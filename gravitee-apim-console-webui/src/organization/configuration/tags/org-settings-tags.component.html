@@ -23,6 +23,7 @@
 
   <mat-card class="org-settings-tags__tags-card">
     <div class="org-settings-tags__add-button-container" *gioPermission="{ anyOf: ['organization-tag-c'] }">
+      <h2>Tags</h2>
       <button (click)="onAddTagClicked()" mat-raised-button color="primary" aria-label="Button to add a tag" type="button">
         <mat-icon>add</mat-icon>Add a tag
       </button>
@@ -97,35 +98,29 @@
     </gio-table-wrapper>
   </mat-card>
 
-  <mat-card class="org-settings-tags__default-config-card">
-    <h2>Default configuration</h2>
-
-    <mat-form-field
-      [matTooltip]="providedConfigurationMessage"
-      [matTooltipDisabled]="!isReadonlySetting('entrypoint')"
-      class="org-settings-new-user__card__form-field"
-      appearance="fill"
-    >
-      <mat-icon *ngIf="isReadonlySetting('entrypoint')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
-      <mat-label>Entrypoint</mat-label>
-      <input matInput formControlName="entrypoint" />
-    </mat-form-field>
-  </mat-card>
-
   <mat-card class="org-settings-tags__entrypoints-card">
-    <div class="org-settings-tags__add-button-container" *gioPermission="{ anyOf: ['organization-entrypoint-c'] }">
+    <div class="org-settings-tags__add-button-container">
       <h2>Entrypoint mappings</h2>
 
       <button
+        *gioPermission="{ anyOf: ['organization-entrypoint-c'] }"
         (click)="onAddEntrypointClicked()"
         mat-raised-button
         color="primary"
         type="button"
         aria-label="Button to add a entrypoint mapping"
       >
-        <mat-icon>add</mat-icon>Add a entrypoint
+        <mat-icon>add</mat-icon>Add a mapping
       </button>
     </div>
+
+    <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('entrypoint')" appearance="fill">
+      <mat-icon *ngIf="isReadonlySetting('entrypoint')" class="org-settings-tags__entrypoints-card__form-field__icon" matPrefix
+        >lock</mat-icon
+      >
+      <mat-label>Default entrypoint</mat-label>
+      <input matInput formControlName="entrypoint" />
+    </mat-form-field>
 
     <gio-table-wrapper [length]="entrypointsTableDS.length" (filtersChange)="onEntrypointsFiltersChanged($event)">
       <table
