@@ -29,4 +29,8 @@ export class EntrypointService {
   list(): Observable<Entrypoint[]> {
     return this.http.get<Entrypoint[]>(`${this.constants.org.baseURL}/configuration/entrypoints`);
   }
+
+  update(entrypoint: Entrypoint): Observable<void> {
+    return this.http.put<void>(`${this.constants.org.baseURL}/configuration/entrypoints/`, entrypoint);
+  }
 }
