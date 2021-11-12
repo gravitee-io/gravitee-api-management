@@ -94,6 +94,8 @@
             <exclude>**/*.adoc</exclude>
             <exclude>node_modules/**</exclude>
             <exclude>node/**</exclude>
+            <exclude>LICENSE_TEMPLATE.txt</exclude>
+            <exclude>sonar-project.properties</exclude>
           </excludes>
         </configuration>
       </plugin>
@@ -118,6 +120,7 @@
             <configuration>
               <nodeVersion>${node.version}</nodeVersion>
               <npmVersion>${npm.version}</npmVersion>
+              <skip>${skip.npm}</skip>
             </configuration>
           </execution>
           <execution>
@@ -187,6 +190,7 @@
               <descriptors>
                 <descriptor>assembly.xml</descriptor>
               </descriptors>
+              <skipAssembly>${skip.npm}</skipAssembly>
             </configuration>
           </execution>
         </executions>

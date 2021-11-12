@@ -114,6 +114,7 @@
               <configuration>
                 <nodeVersion>${node.version}</nodeVersion>
                 <npmVersion>${npm.version}</npmVersion>
+                <skip>${skip.npm}</skip>
               </configuration>
             </execution>
             <execution>
@@ -176,6 +177,7 @@
                   <value>"version": "${project.version}"</value>
                 </replacement>
               </replacements>
+              <skip>${skip.npm}</skip>
             </configuration>
           </execution>
           <execution>
@@ -192,6 +194,7 @@
                   <value>"baseURL": "http://localhost:8083/portal/environments/DEFAULT"</value>
                 </replacement>
               </replacements>
+              <skip>${skip.npm}</skip>
             </configuration>
           </execution>
         </executions>
@@ -214,6 +217,7 @@
               <descriptors>
                 <descriptor>assembly.xml</descriptor>
               </descriptors>
+              <skipAssembly>${skip.npm}</skipAssembly>
             </configuration>
           </execution>
         </executions>

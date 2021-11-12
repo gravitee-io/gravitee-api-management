@@ -107,6 +107,20 @@
         <md-tooltip ng-if="$ctrl.isReadonlySetting('api.labelsDictionary')">Configuration provided by the system</md-tooltip>
       </md-input-container>
 
+      <h3>Dashboard</h3>
+      <md-input-container class="gv-input-container-dense">
+        <md-checkbox
+          ng-model="$ctrl.settings.dashboards.apiStatus.enabled"
+          aria-label="Display API status panel"
+          ng-disabled="$ctrl.isReadonlySetting('console.dashboards.apiStatus.enabled')"
+        >
+          Display API STATUS panel
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('console.dashboards.apiStatus.enabled')"
+            >Configuration provided by the system</md-tooltip
+          >
+        </md-checkbox>
+      </md-input-container>
+
       <h3>API Primary Owner mode</h3>
       <md-input-container class="md-block">
         <md-radio-group ng-model="$ctrl.settings.api.primaryOwnerMode">

@@ -41,7 +41,7 @@ public class JettyServerFactory implements FactoryBean<Server> {
     @Override
     public Server getObject() throws Exception {
         // Setup ThreadPool
-        QueuedThreadPool threadPool = new QueuedThreadPool(
+        QueuedThreadPool threadPool = new JettyQueuedThreadPool(
             jettyConfiguration.getPoolMaxThreads(),
             jettyConfiguration.getPoolMinThreads(),
             jettyConfiguration.getPoolIdleTimeout(),

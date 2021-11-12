@@ -38,8 +38,15 @@ import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
 import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -262,8 +269,18 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         try {
             LOGGER.debug("Find notifier schema by ID: {}", notifier);
             if (DEFAULT_EMAIL_NOTIFIER_ID.equals(notifier)) {
-                URL url = Resources.getResource("notifiers/" + DEFAULT_EMAIL_NOTIFIER_ID + ".json");
-                return Resources.toString(url, Charsets.UTF_8);
+                final URL url = getClass().getResource("/notifiers/" + DEFAULT_EMAIL_NOTIFIER_ID + ".json");
+
+                if (url == null) {
+                    throw new IOException("Resource not found for: /notifiers/" + DEFAULT_EMAIL_NOTIFIER_ID + ".json");
+                }
+
+                try (
+                    final InputStream notifierInputStream = url.openStream();
+                    final BufferedReader reader = new BufferedReader(new InputStreamReader(notifierInputStream, StandardCharsets.UTF_8))
+                ) {
+                    return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+                }
             } else {
                 return notifierManager.getSchema(notifier);
             }
