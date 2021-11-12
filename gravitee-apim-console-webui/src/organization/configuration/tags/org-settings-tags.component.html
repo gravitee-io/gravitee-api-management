@@ -34,7 +34,9 @@
         <!-- Id Column -->
         <ng-container matColumnDef="id">
           <th mat-header-cell *matHeaderCellDef id="id">Id</th>
-          <td mat-cell *matCellDef="let tag">{{ tag.id }}</td>
+          <td mat-cell *matCellDef="let tag">
+            <span gioClipboardCopyWrapper [contentToCopy]="tag.id">{{ tag.id }}</span>
+          </td>
         </ng-container>
 
         <!-- Name Column -->
@@ -119,7 +121,8 @@
         >lock</mat-icon
       >
       <mat-label>Default entrypoint</mat-label>
-      <input matInput formControlName="entrypoint" />
+      <input #entrypointInput matInput formControlName="entrypoint" />
+      <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointInput.value"></gio-clipboard-copy-icon>
     </mat-form-field>
 
     <gio-table-wrapper [length]="entrypointsTableDS.length" (filtersChange)="onEntrypointsFiltersChanged($event)">
@@ -133,7 +136,9 @@
         <!-- Entrypoint Column -->
         <ng-container matColumnDef="entrypoint">
           <th mat-header-cell *matHeaderCellDef id="entrypoint">Entrypoint</th>
-          <td mat-cell *matCellDef="let entrypoint">{{ entrypoint.url }}</td>
+          <td mat-cell *matCellDef="let entrypoint">
+            <span gioClipboardCopyWrapper [contentToCopy]="entrypoint.url">{{ entrypoint.url }}</span>
+          </td>
         </ng-container>
 
         <!-- Tags Column -->

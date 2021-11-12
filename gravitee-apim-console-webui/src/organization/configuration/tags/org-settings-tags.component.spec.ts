@@ -82,7 +82,7 @@ describe('OrgSettingsTagsComponent', () => {
     expect(rowCells).toEqual([
       {
         description: 'A tag for all external stuff',
-        id: 'external',
+        id: expect.stringContaining('external'),
         name: 'External',
         restrictedGroupsName: 'Group A',
         actions: '',
@@ -165,7 +165,7 @@ describe('OrgSettingsTagsComponent', () => {
     ]);
     expect(rowCells).toEqual([
       {
-        entrypoint: 'https://googl.co',
+        entrypoint: expect.stringContaining('https://googl.co'),
         tags: 'internal',
         actions: '',
       },
