@@ -576,6 +576,7 @@ import { GioPolicyStudioWrapperComponent } from '../shared/components/gio-policy
 import { OrgSettingsTenantsComponent } from '../organization/configuration/tenants/org-settings-tenants.component';
 import { OrgSettingsRolesComponent } from '../organization/configuration/roles/org-settings-roles.component';
 import { OrgSettingsTagsComponent } from '../organization/configuration/tags/org-settings-tags.component';
+import { OrgSettingsRoleMembersComponent } from '../organization/configuration/roles/org-settings-role-members.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -880,6 +881,7 @@ graviteeManagementModule.component('roles', RolesComponent);
 graviteeManagementModule.directive('ngRoles', downgradeComponent({ component: OrgSettingsRolesComponent }));
 graviteeManagementModule.component('role', RoleComponent);
 graviteeManagementModule.component('roleMembers', RoleMembersComponent);
+graviteeManagementModule.directive('ngRoleMembers', downgradeComponent({ component: OrgSettingsRoleMembersComponent }));
 graviteeManagementModule.component('theme', ThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.component('cockpit', CockpitComponent);

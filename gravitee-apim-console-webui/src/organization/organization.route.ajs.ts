@@ -203,6 +203,19 @@ function organizationRouterConfig($stateProvider) {
           RoleService.listUsers($stateParams.roleScope, $stateParams.role).then((response) => response),
       },
     })
+    .state('organization.settings.ng-rolemembers', {
+      url: '/ng-role/:roleScope/:role/members',
+      component: 'ngRoleMembers',
+      data: {
+        useAngularMaterial: true,
+        docs: {
+          page: 'organization-configuration-roles',
+        },
+        perms: {
+          only: ['organization-role-u'],
+        },
+      },
+    })
     .state('organization.settings.users', {
       url: '/users?q&page',
       component: 'users',
