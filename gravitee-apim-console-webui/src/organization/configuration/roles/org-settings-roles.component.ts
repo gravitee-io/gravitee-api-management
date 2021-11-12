@@ -116,7 +116,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   }
 
   onMembersClicked(scope: string, role: RoleVM) {
-    this.ajsState.go('organization.settings.rolemembers', { roleScope: scope.toUpperCase(), role: role.name });
+    this.ajsState.go('organization.settings.ng-rolemembers', { roleScope: scope.toUpperCase(), role: role.name });
   }
 
   private convertToRoleVMs(roles: Role[]): RoleVM[] {
