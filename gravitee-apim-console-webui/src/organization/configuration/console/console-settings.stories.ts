@@ -25,6 +25,7 @@ export default {
   decorators: [moduleMetadata({ imports: [OrganizationSettingsModule] })],
 } as Meta;
 
+// @ts-ignore
 export const Default: Story<ConsoleSettingsComponent> = {
   render: (args) => ({
     props: args,
