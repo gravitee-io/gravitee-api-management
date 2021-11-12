@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
-import { MatTooltip } from '@angular/material/tooltip';
+import { Component } from '@angular/core';
+
+import { GioClipboardComponent } from './gio-clipboard.base.component';
 
 @Component({
   selector: '[gioClipboardCopyWrapper]',
-  styles: [require('./gio-clipboard-button-inner.component.scss')],
+  styles: [require('./gio-clipboard-copy-wrapper.component.scss')],
   template: `
     <ng-content></ng-content>
     <span
@@ -37,27 +38,4 @@ import { MatTooltip } from '@angular/material/tooltip';
     </span>
   `,
 })
-export class GioClipboardCopyWrapperComponent {
-  tooltipMessage = 'Copy to clipboard';
-  tooltipHideDelay = 0;
-  clicked = false;
-
-  @Input() contentToCopy: string;
-
-  onCopied(success: boolean, tooltip: MatTooltip) {
-    tooltip.message = success ? 'Copied !' : 'Failed to copy !';
-    tooltip.hideDelay = 2000;
-    tooltip.show();
-    this.clicked = true;
-
-    setTimeout(() => {
-      tooltip.hide();
-    }, 2000);
-
-    setTimeout(() => {
-      this.clicked = false;
-      tooltip.message = this.tooltipMessage;
-      tooltip.hideDelay = this.tooltipHideDelay;
-    }, 2500);
-  }
-}
+export class GioClipboardCopyWrapperComponent extends GioClipboardComponent {}

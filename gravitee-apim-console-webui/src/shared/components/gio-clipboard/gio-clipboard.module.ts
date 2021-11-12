@@ -20,7 +20,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 
-import { GioClipboardCopyWrapperComponent } from './gio-clipboard-button-inner.component';
+import { GioClipboardCopyWrapperComponent } from './gio-clipboard-copy-wrapper.component';
 import { GioClipboardCopyIconComponent } from './gio-clipboard-copy-icon.component';
 
 @NgModule({

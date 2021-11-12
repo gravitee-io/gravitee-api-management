@@ -20,7 +20,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 import { GioClipboardModule } from './gio-clipboard.module';
-import { GioClipboardCopyWrapperComponent } from './gio-clipboard-button-inner.component';
+import { GioClipboardCopyWrapperComponent } from './gio-clipboard-copy-wrapper.component';
 
 export default {
   title: 'Shared / Clipboard',
