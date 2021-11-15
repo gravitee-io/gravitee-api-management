@@ -65,7 +65,7 @@ describe('EntrypointService', () => {
         method: 'PUT',
       });
       expect(req.request.body).toEqual(entrypointToUpdate);
-      req.flush({ status: 200 });
+      req.flush(null);
     });
   });
 

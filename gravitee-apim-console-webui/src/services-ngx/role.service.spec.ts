@@ -187,7 +187,7 @@ describe('RoleService', () => {
           method: 'DELETE',
           url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles/admin`,
         })
-        .flush({ statusCode: 204 });
+        .flush(null);
     });
   });
 

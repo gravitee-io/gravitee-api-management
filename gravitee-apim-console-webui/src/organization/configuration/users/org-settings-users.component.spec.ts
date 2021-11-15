@@ -160,7 +160,7 @@ describe('OrgSettingsUsersComponent', () => {
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/42`);
       expect(req.request.method).toEqual('DELETE');
-      req.flush({});
+      req.flush(null);
 
       expectUsersListRequest();
     }));

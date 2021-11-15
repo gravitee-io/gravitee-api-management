@@ -58,7 +58,7 @@ describe('PortalSettingsService', () => {
       const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` });
       expect(req.request.body).toEqual(portalSettingsToSave);
 
-      req.flush({ status: 200 });
+      req.flush(null);
     });
   });
 

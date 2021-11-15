@@ -153,7 +153,7 @@ describe('UsersService', () => {
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/roles`);
       expect(req.request.method).toEqual('PUT');
 
-      req.flush({});
+      req.flush(null);
     });
   });
 
@@ -203,7 +203,7 @@ describe('UsersService', () => {
         method: 'POST',
         url: `${CONSTANTS_TESTING.org.baseURL}/users/${userId}/resetPassword`,
       });
-      req.flush({});
+      req.flush(null);
     });
   });
 
@@ -220,7 +220,7 @@ describe('UsersService', () => {
       expect(req.request.method).toEqual('POST');
       expect(req.request.body).toEqual(accepted);
 
-      req.flush({});
+      req.flush(null);
     });
   });
 

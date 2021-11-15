@@ -92,7 +92,7 @@ describe('OrganizationService', () => {
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}` });
       expect(req.request.body).toStrictEqual(updatedOrganization);
 
-      req.flush({});
+      req.flush(null);
     });
   });
 

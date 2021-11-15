@@ -46,6 +46,6 @@ describe('ReplaceEnvInterceptor', () => {
       done();
     });
 
-    httpTestingController.expectOne(`https://test.com/${CONSTANTS_TESTING.org.currentEnv.id}/config`).flush({});
+    httpTestingController.expectOne(`https://test.com/${CONSTANTS_TESTING.org.currentEnv.id}/config`).flush(null);
   });
 });

@@ -81,7 +81,7 @@ describe('GroupService', () => {
       expect(req.request.method).toEqual('POST');
       expect(req.request.body).toEqual(groupMemberships);
 
-      req.flush({});
+      req.flush(null);
     });
 
     it('should filter membership with empty roles', (done) => {
@@ -109,7 +109,7 @@ describe('GroupService', () => {
         method: 'DELETE',
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${groupId}/members/${memberId}`,
       });
-      req.flush({});
+      req.flush(null);
     });
   });
 

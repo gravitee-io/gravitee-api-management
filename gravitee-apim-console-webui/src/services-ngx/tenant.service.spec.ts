@@ -85,7 +85,7 @@ describe('TenantService', () => {
 
       httpTestingController
         .expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tenants/tenant#1` })
-        .flush({});
+        .flush(null);
     });
   });
 

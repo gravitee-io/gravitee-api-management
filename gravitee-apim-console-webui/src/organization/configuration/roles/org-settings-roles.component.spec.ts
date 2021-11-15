@@ -223,7 +223,7 @@ describe('OrgSettingsRolesComponent', () => {
           method: 'DELETE',
           url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles/Role 1`,
         })
-        .flush({ statusCode: 204 });
+        .flush(null);
 
       respondToGetRolesRequests([], [], [], []);
     });

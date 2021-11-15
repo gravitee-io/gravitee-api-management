@@ -210,7 +210,7 @@ describe('OrgSettingsTagsComponent', () => {
       url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/`,
     });
     expect(updateEntrypointReq.request.body.tags).toEqual(['tag-2']);
-    updateEntrypointReq.flush({ status: 200 });
+    updateEntrypointReq.flush(null);
 
     // Delete tag
     httpTestingController.expectOne({

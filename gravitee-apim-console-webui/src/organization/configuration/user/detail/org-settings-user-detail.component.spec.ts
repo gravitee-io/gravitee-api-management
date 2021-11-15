@@ -500,7 +500,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/roles`);
     expect(req.request.method).toEqual('PUT');
     expect(req.request.body.roles).toEqual(roles);
-    req.flush({});
+    req.flush(null);
   }
 
   function expectEnvironmentListRequest(environments: Environment[] = []) {

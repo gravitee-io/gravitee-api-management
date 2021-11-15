@@ -47,6 +47,6 @@ describe('AccessControlAllowCredentialsInterceptor', () => {
     const req = httpTestingController.expectOne(testUrl);
     expect(req.request.withCredentials).toEqual(true);
 
-    req.flush({});
+    req.flush(null);
   });
 });
