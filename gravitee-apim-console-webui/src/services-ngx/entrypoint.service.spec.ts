@@ -52,6 +52,23 @@ describe('EntrypointService', () => {
     });
   });
 
+  describe('create', () => {
+    it('should call the API', (done) => {
+      const entrypointToCreate = fakeEntrypoint();
+
+      entrypointService.create(entrypointToCreate).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual(entrypointToCreate);
+      req.flush(null);
+    });
+  });
+
   describe('update', () => {
     it('should call the API', (done) => {
       const entrypointToUpdate = fakeEntrypoint();

@@ -21,6 +21,7 @@ import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './org-settings-add-tag-dialog.component';
+import { OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData } from './org-settings-add-mapping-dialog.component';
 
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
@@ -259,11 +260,55 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     this.filteredEntrypointsTableDS = gioTableFilterCollection(this.entrypointsTableDS, filters);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onAddEntrypointClicked() {}
+  onAddEntrypointClicked() {
+    this.matDialog
+      .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
+        width: '450px',
+        data: {},
+        role: 'dialog',
+        id: 'addMappingDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((result) => !!result),
+        switchMap((newEntrypoint) => this.entrypointService.create(newEntrypoint)),
+        tap(() => {
+          this.snackBarService.success('Mapping successfully created!');
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onEditEntrypointClicked() {}
+  onEditEntrypointClicked(entrypoint: EntrypointTableDS[number]) {
+    this.matDialog
+      .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
+        width: '450px',
+        data: {
+          entrypoint: this.entrypoints.find((e) => e.id === entrypoint.id),
+        },
+        role: 'dialog',
+        id: 'editMappingDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((result) => !!result),
+        switchMap((newEntrypoint) => this.entrypointService.update(newEntrypoint)),
+        tap(() => {
+          this.snackBarService.success('Mapping successfully updated!');
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
   onDeleteEntrypointClicked(entrypoint: EntrypointTableDS[number]) {
     this.matDialog
