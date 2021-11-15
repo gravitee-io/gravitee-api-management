@@ -25,8 +25,8 @@ import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { GioFormFocusInvalidDirective } from './gio-form-focus-first-invalid.directive';
 import { GioFormFocusInvalidModule } from './gio-form-focus-first-invalid.module';
 
-import { GioFormTagsInputModule } from '../form-tags-input/gio-form-tags-input.module';
-import { GioFormColorInputModule } from '../form-color-input/gio-form-color-input.module';
+import { GioFormTagsInputModule } from '../gio-form-tags-input/gio-form-tags-input.module';
+import { GioFormColorInputModule } from '../gio-form-color-input/gio-form-color-input.module';
 
 export default {
   title: 'Shared / Form focus invalid',
@@ -64,7 +64,7 @@ export const Default: Story = {
       <p>A long form, with many many fields</p>
       <p>When clicking on save the 1st input in error is focused</p>
       <div style="display: flex; flex-direction: column;">
-           
+
         <mat-form-field appearance="fill">
           <mat-label>Input</mat-label>
           <input matInput required formControlName="anInput">

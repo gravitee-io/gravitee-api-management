@@ -32,9 +32,9 @@ import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-pr
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { GioFormCardGroupHarness } from '../../../shared/components/form-card-group/gio-form-card-group.harness';
-import { GioFormTagsInputHarness } from '../../../shared/components/form-tags-input/gio-form-tags-input.harness';
-import { GioFormColorInputHarness } from '../../../shared/components/form-color-input/gio-form-color-input.harness';
+import { GioFormCardGroupHarness } from '../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
+import { GioFormTagsInputHarness } from '../../../shared/components/gio-form-tags-input/gio-form-tags-input.harness';
+import { GioFormColorInputHarness } from '../../../shared/components/gio-form-color-input/gio-form-color-input.harness';
 import { NewIdentityProvider } from '../../../entities/identity-provider/newIdentityProvider';
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { fakeIdentityProvider, IdentityProvider } from '../../../entities/identity-provider';

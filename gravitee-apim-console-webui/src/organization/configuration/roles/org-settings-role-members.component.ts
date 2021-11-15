@@ -24,7 +24,10 @@ import { RoleService } from '../../../services-ngx/role.service';
 import { MembershipListItem } from '../../../entities/role/membershipListItem';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({

@@ -27,7 +27,10 @@ import { GroupService } from '../../../services-ngx/group.service';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TagService } from '../../../services-ngx/tag.service';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 

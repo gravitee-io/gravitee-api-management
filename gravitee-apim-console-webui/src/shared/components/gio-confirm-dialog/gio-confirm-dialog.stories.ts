@@ -17,8 +17,8 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/materia
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
-import { GioConfirmDialogComponent, GioConfirmDialogData } from './confirm-dialog.component';
-import { GioConfirmDialogModule } from './confirm-dialog.module';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from './gio-confirm-dialog.component';
+import { GioConfirmDialogModule } from './gio-confirm-dialog.module';
 
 export default {
   title: 'Shared / Confirm dialog',

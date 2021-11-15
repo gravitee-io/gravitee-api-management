@@ -26,7 +26,10 @@ import { ConsoleSettingsService } from '../../../services-ngx/console-settings.s
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { OrganizationService } from '../../../services-ngx/organization.service';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 
 type TableData = {

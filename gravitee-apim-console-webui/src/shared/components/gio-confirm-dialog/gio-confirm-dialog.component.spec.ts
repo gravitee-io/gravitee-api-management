@@ -16,8 +16,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-import { GioConfirmDialogComponent } from './confirm-dialog.component';
-import { GioConfirmDialogModule } from './confirm-dialog.module';
+import { GioConfirmDialogComponent } from './gio-confirm-dialog.component';
+import { GioConfirmDialogModule } from './gio-confirm-dialog.module';
 
 describe('GioConfirmDialogComponent', () => {
   let component: GioConfirmDialogComponent;

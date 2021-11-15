@@ -25,7 +25,10 @@ import { PageEvent } from '@angular/material/paginator';
 
 import { UsersService } from '../../../services-ngx/users.service';
 import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PagedResult } from '../../../entities/pagedResult';
 import { User } from '../../../entities/user/user';

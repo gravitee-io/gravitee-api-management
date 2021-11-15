@@ -23,7 +23,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { RoleService } from '../../../services-ngx/role.service';
 import { Role, RoleScope } from '../../../entities/role/role';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 interface RoleVM {

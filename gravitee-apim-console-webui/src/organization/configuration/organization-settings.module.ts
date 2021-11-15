@@ -61,16 +61,16 @@ import { OrgSettingsRolesComponent } from './roles/org-settings-roles.component'
 import { OrgSettingsTagsComponent } from './tags/org-settings-tags.component';
 import { OrgSettingsRoleMembersComponent } from './roles/org-settings-role-members.component';
 
-import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
+import { GioConfirmDialogModule } from '../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
-import { GioFormSlideToggleModule } from '../../shared/components/form-slide-toogle/gio-form-slide-toggle.module';
+import { GioFormSlideToggleModule } from '../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
-import { GioFormCardGroupModule } from '../../shared/components/form-card-group/gio-form-card-group.module';
-import { GioFormTagsInputModule } from '../../shared/components/form-tags-input/gio-form-tags-input.module';
-import { GioFormColorInputModule } from '../../shared/components/form-color-input/gio-form-color-input.module';
-import { GioGoBackButtonModule } from '../../shared/components/go-back-button/gio-go-back-button.module';
-import { GioFormFocusInvalidModule } from '../../shared/components/form-focus-first-invalid/gio-form-focus-first-invalid.module';
+import { GioFormCardGroupModule } from '../../shared/components/gio-form-card-group/gio-form-card-group.module';
+import { GioFormTagsInputModule } from '../../shared/components/gio-form-tags-input/gio-form-tags-input.module';
+import { GioFormColorInputModule } from '../../shared/components/gio-form-color-input/gio-form-color-input.module';
+import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioFormFocusInvalidModule } from '../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.module';
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioPolicyStudioWrapperModule } from '../../shared/components/gio-policy-studio-wrapper/gio-policy-studio-wrapper.module';

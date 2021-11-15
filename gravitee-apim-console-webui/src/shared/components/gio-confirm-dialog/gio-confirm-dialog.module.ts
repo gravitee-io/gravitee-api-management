@@ -20,7 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
 
-import { GioConfirmDialogComponent } from './confirm-dialog.component';
+import { GioConfirmDialogComponent } from './gio-confirm-dialog.component';
 
 @NgModule({
   imports: [CommonModule, MatButtonModule, MatDialogModule, MatInputModule, A11yModule],

@@ -25,7 +25,7 @@ export type GioConfirmDialogData = {
 
 @Component({
   selector: 'gio-confirm-dialog',
-  template: require('./confirm-dialog.component.html'),
+  template: require('./gio-confirm-dialog.component.html'),
 })
 export class GioConfirmDialogComponent {
   title: string;

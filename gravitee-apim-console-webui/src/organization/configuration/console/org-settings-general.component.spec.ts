@@ -34,7 +34,7 @@ import { OrgSettingsGeneralComponent } from './org-settings-general.component';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
-import { GioFormTagsInputHarness } from '../../../shared/components/form-tags-input/gio-form-tags-input.harness';
+import { GioFormTagsInputHarness } from '../../../shared/components/gio-form-tags-input/gio-form-tags-input.harness';
 
 describe('ConsoleSettingsComponent', () => {
   let fixture: ComponentFixture<OrgSettingsGeneralComponent>;

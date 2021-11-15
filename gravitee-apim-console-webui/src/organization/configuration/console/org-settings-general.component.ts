@@ -26,7 +26,10 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { CorsUtil } from '../../../shared/utils';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
