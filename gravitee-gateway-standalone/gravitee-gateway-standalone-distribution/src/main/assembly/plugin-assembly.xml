@@ -79,6 +79,9 @@
             <includes>
                 <include>*.zip</include>
             </includes>
+            <excludes>
+                <exclude>*gravitee-cockpit-connector-ws*</exclude>
+            </excludes>
         </fileSet>
 
         <fileSet>

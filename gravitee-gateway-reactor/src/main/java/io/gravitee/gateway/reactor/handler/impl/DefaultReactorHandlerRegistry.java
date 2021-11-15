@@ -40,7 +40,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private final Map<Reactable, ReactorHandler> handlers = new ConcurrentHashMap<>();
     private final Map<Reactable, List<HandlerEntrypoint>> entrypointByReactable = new ConcurrentHashMap<>();
-    private final Set<HandlerEntrypoint> registeredEntrypoints = new ConcurrentSkipListSet<>(new PriorityComparator());
+    private final Set<HandlerEntrypoint> registeredEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
 
     @Override
     public void create(Reactable reactable) {
@@ -74,6 +74,11 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                             @Override
                             public String path() {
                                 return entrypoint.path();
+                            }
+
+                            @Override
+                            public String host() {
+                                return entrypoint.host();
                             }
 
                             @Override
@@ -125,7 +130,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
             if (newHandler != null) {
                 ReactorHandler previousHandler = handlers.remove(reactable);
                 List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(previousHandler.reactable());
-                registeredEntrypoints.removeAll(previousEntrypoints);
+                registeredEntrypoints.removeIf(previousEntrypoints::contains);
 
                 register(newHandler);
 
@@ -183,33 +188,5 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     @Override
     public Collection<HandlerEntrypoint> getEntrypoints() {
         return registeredEntrypoints;
-    }
-
-    /**
-     * Comparator used to sort {@link HandlerEntrypoint} in a centralized entrypoints collection.
-     * The final entrypoint collection is a {@link ConcurrentSkipListSet} which rely on this comparator to add / remove entry keeping entries ordered.
-     *
-     * Entrypoint are first sorted by path and, in case of equality in path, the entrypoint priority is used (higher priority first).
-     *
-     */
-    private static class PriorityComparator implements Comparator<HandlerEntrypoint> {
-
-        @Override
-        public int compare(HandlerEntrypoint o1, HandlerEntrypoint o2) {
-            if (o1.equals(o2)) {
-                return 0;
-            }
-
-            final int pathCompare = o1.path().compareTo(o2.path());
-
-            if (pathCompare == 0) {
-                if (o1.priority() <= o2.priority()) {
-                    return 1;
-                }
-                return -1;
-            }
-
-            return pathCompare;
-        }
     }
 }

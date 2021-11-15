@@ -292,8 +292,8 @@
         <gravitee-definition.version>1.30.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.23.0-SNAPSHOT</gravitee-common.version>
         <gravitee-connector-api.version>1.0.0-SNAPSHOT</gravitee-connector-api.version>
-        <gravitee-expression-language.version>1.7.1</gravitee-expression-language.version>
-        <gravitee-license-node.version>1.3.0-SNAPSHOT</gravitee-license-node.version>
+        <gravitee-expression-language.version>1.7.2</gravitee-expression-language.version>
+        <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
         <gravitee-node.version>1.18.0-SNAPSHOT</gravitee-node.version>
         <gravitee-plugin-resource.version>1.20.0-SNAPSHOT</gravitee-plugin-resource.version>
         <gravitee-plugin-core.version>1.20.0-SNAPSHOT</gravitee-plugin-core.version>
@@ -323,6 +323,7 @@
         <hazelcast.version>4.1.1</hazelcast.version>
         <jmh.version>1.26</jmh.version>
         <netty-tcnative-boringssl-static.version>2.0.42.Final</netty-tcnative-boringssl-static.version>
+
         <!-- Fix the asm version at gateway level -->
         <asm.version>9.1</asm.version>
     </properties>

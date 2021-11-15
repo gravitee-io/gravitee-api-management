@@ -38,16 +38,18 @@ public class SyncHandler implements Handler<RoutingContext> {
     public void handle(RoutingContext ctx) {
         HttpServerResponse response = ctx.response();
         JsonObject object = new JsonObject()
+            .put("synced", syncManager.isSynced())
             .put("counter", syncManager.getCounter())
             .put("lastRefreshAt", syncManager.getLastRefreshAt())
             .put("errors", syncManager.getErrors())
             .put("totalErrors", syncManager.getTotalErrors())
             .put("lastErrorMessage", syncManager.getLastErrorMessage());
 
+        response.setStatusCode(syncManager.isSynced() ? HttpStatusCode.OK_200 : HttpStatusCode.SERVICE_UNAVAILABLE_503);
         response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         response.setChunked(true);
+
         response.write(object.encodePrettily());
-        response.setStatusCode(HttpStatusCode.OK_200);
         response.end();
     }
 }
