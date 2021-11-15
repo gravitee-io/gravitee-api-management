@@ -24,7 +24,7 @@ export abstract class GioClipboardComponent {
   @Input() contentToCopy: string;
 
   onCopied(success: boolean, tooltip: MatTooltip) {
-    tooltip.message = success ? 'Copied !' : 'Failed to copy !';
+    tooltip.message = success ? 'Copied!' : 'Failed to copy!';
     tooltip.hideDelay = 2000;
     tooltip.show();
     this.clicked = true;
