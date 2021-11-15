@@ -285,6 +285,52 @@ describe('OrgSettingsTagsComponent', () => {
     expectEntrypointsListRequest();
   });
 
+  it('should update a tag', async () => {
+    fixture.detectChanges();
+    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' }), fakeGroup({ id: 'group-b', name: 'Group B' })]);
+    expectPortalSettingsGetRequest(fakePortalSettings());
+    expectEntrypointsListRequest();
+    fixture.detectChanges();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#tagsTable' }));
+    const rows = await table.getRows();
+    const firstRowActionsCell = (await rows[0].getCells({ columnName: 'actions' }))[0];
+
+    const editButton = await firstRowActionsCell.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to edit a tag"]' }));
+    await editButton.click();
+
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' }), fakeGroup({ id: 'group-b', name: 'Group B' })]);
+
+    const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+
+    const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+    await nameInput.setValue('New tag name');
+
+    const descriptionInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
+    await descriptionInput.setValue('New tag description');
+
+    const restrictedGroupSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=restrictedGroups' }));
+    await restrictedGroupSelect.clickOptions({ text: 'Group B' });
+
+    await submitButton.click();
+
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1` });
+    expect(req.request.body).toStrictEqual({
+      id: 'tag-1',
+      name: 'New tag name',
+      description: 'New tag description',
+      restricted_groups: ['group-a', 'group-b'],
+    });
+    req.flush(null);
+
+    // expect new ngOnInit()
+    expectTagsListRequest();
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    expectPortalSettingsGetRequest(fakePortalSettings());
+    expectEntrypointsListRequest();
+  });
+
   function expectTagsListRequest(tags: Tag[] = []) {
     httpTestingController
       .expectOne({

@@ -32,6 +32,7 @@ export type OrgSettingAddTagDialogData = {
 })
 export class OrgSettingAddTagDialogComponent {
   tag?: Tag;
+  isUpdate = false;
   tagForm: FormGroup;
   groups$? = this.groupService.listByOrganization().pipe(shareReplay());
 
@@ -41,6 +42,7 @@ export class OrgSettingAddTagDialogComponent {
     private readonly groupService: GroupService,
   ) {
     this.tag = confirmDialogData.tag;
+    this.isUpdate = !!this.tag;
 
     this.tagForm = new FormGroup({
       name: new FormControl(this.tag?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(64)]),
@@ -52,6 +54,7 @@ export class OrgSettingAddTagDialogComponent {
   onSubmit() {
     const { restrictedGroups, ...formRawValue } = this.tagForm.getRawValue();
     const updatedTag = {
+      ...this.tag,
       ...formRawValue,
       restricted_groups: restrictedGroups,
     };

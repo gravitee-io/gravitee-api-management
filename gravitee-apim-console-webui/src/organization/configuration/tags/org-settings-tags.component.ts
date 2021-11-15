@@ -59,6 +59,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
 
   providedConfigurationMessage = 'Configuration provided by the system';
 
+  tags: Tag[];
   tagsTableDS: TagTableDS;
   filteredTagsTableDS: TagTableDS;
   tagsTableDisplayedColumns: string[] = ['id', 'name', 'description', 'restrictedGroupsName', 'actions'];
@@ -92,6 +93,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     ])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([tags, groups, portalSettings, entrypoints]) => {
+        this.tags = tags;
         this.tagsTableDS = tags.map((tag) => ({
           id: tag.id,
           name: tag.name,
@@ -179,8 +181,31 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       .subscribe(() => this.ngOnInit());
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onEditTagClicked() {}
+  onEditTagClicked(tag: TagTableDS[number]) {
+    this.matDialog
+      .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
+        width: '450px',
+        data: {
+          tag: this.tags.find((t) => t.id === tag.id),
+        },
+        role: 'dialog',
+        id: 'addTagDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((result) => !!result),
+        switchMap((updatedTag) => this.tagService.update(updatedTag)),
+        tap(() => {
+          this.snackBarService.success('Tag successfully updated!');
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
   onDeleteTagClicked(tag: TagTableDS[number]) {
     const entrypointsToUpdate = this.entrypoints.filter((entrypoint) => entrypoint.tags.includes(tag.id));

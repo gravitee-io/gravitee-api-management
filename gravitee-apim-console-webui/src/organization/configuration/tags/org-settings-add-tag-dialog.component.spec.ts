@@ -28,6 +28,7 @@ import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeGroup } from '../../../entities/group/group.fixture';
 import { Group } from '../../../entities/group/group';
+import { fakeTag } from '../../../entities/tag/tag.fixture';
 
 describe('OrgSettingAddTagDialogComponent', () => {
   let component: OrgSettingAddTagDialogComponent;
@@ -84,6 +85,61 @@ describe('OrgSettingAddTagDialogComponent', () => {
         name: 'Tag name',
         description: 'Tag description',
         restricted_groups: ['group-a'],
+      });
+    });
+  });
+
+  describe('tag edition', () => {
+    beforeEach(() => {
+      const dialogData: OrgSettingAddTagDialogData = {
+        tag: fakeTag({
+          id: 'tagId',
+          name: 'Tag name',
+          description: 'Tag description',
+          restricted_groups: ['group-a'],
+        }),
+      };
+      TestBed.configureTestingModule({
+        imports: [OrganizationSettingsModule, GioHttpTestingModule],
+        providers: [
+          {
+            provide: MAT_DIALOG_DATA,
+            useFactory: () => dialogData,
+          },
+          { provide: MatDialogRef, useValue: matDialogRefMock },
+        ],
+      });
+      fixture = TestBed.createComponent(OrgSettingAddTagDialogComponent);
+      component = fixture.componentInstance;
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      httpTestingController = TestBed.inject(HttpTestingController);
+    });
+
+    it('should fill and submit form', async () => {
+      fixture.detectChanges();
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expect(component.isUpdate).toBeTruthy();
+
+      const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('');
+      expect(await submitButton.isDisabled()).toBeTruthy();
+      await nameInput.setValue('Internal');
+
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
+      await descriptionInput.setValue('Internal tenant');
+
+      const restrictedGroupSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=restrictedGroups' }));
+      await restrictedGroupSelect.clickOptions({ text: 'Group A' });
+
+      await submitButton.click();
+
+      expect(matDialogRefMock.close).toHaveBeenCalledWith({
+        id: 'tagId',
+        name: 'Internal',
+        description: 'Internal tenant',
+        restricted_groups: [],
       });
     });
   });
