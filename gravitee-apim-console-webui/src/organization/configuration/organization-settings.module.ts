@@ -59,6 +59,7 @@ import { OrgSettingsTenantsComponent } from './tenants/org-settings-tenants.comp
 import { OrgSettingAddTenantComponent } from './tenants/org-settings-add-tenant.component';
 import { OrgSettingsRolesComponent } from './roles/org-settings-roles.component';
 import { OrgSettingsTagsComponent } from './tags/org-settings-tags.component';
+import { OrgSettingsRoleMembersComponent } from './roles/org-settings-role-members.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -74,7 +75,6 @@ import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.m
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioPolicyStudioWrapperModule } from '../../shared/components/gio-policy-studio-wrapper/gio-policy-studio-wrapper.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { OrgSettingsRoleMembersComponent } from './roles/org-settings-role-members.component';
 
 @NgModule({
   imports: [
