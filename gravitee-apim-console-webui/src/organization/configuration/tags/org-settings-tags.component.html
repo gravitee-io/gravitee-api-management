@@ -63,7 +63,7 @@
         <!-- Restricted groups Column -->
         <ng-container matColumnDef="restrictedGroupsName">
           <th mat-header-cell *matHeaderCellDef id="restrictedGroupsName" mat-sort-header>Restricted groups</th>
-          <td mat-cell *matCellDef="let tag">{{ tag.restrictedGroupsName }}</td>
+          <td mat-cell *matCellDef="let tag">{{ tag.restrictedGroupsName.join(', ') }}</td>
         </ng-container>
 
         <!-- Actions Column -->

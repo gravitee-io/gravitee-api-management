@@ -20,8 +20,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 
+import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './org-settings-add-tag-dialog.component';
+
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { Tag } from '../../../entities/tag/tag';
 import { EntrypointService } from '../../../services-ngx/entrypoint.service';
 import { GroupService } from '../../../services-ngx/group.service';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
@@ -152,8 +155,29 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onAddTagClicked() {}
+  onAddTagClicked() {
+    this.matDialog
+      .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
+        width: '450px',
+        data: {},
+        role: 'dialog',
+        id: 'addTagDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((result) => !!result),
+        switchMap((newTag) => this.tagService.create(newTag)),
+        tap(() => {
+          this.snackBarService.success('Tag successfully created!');
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onEditTagClicked() {}

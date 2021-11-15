@@ -23,6 +23,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { OrgSettingsTagsComponent } from './org-settings-tags.component';
 
@@ -240,6 +241,48 @@ describe('OrgSettingsTagsComponent', () => {
       url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/entrypoint-1`,
     });
     // no flush stop test here
+  });
+
+  it('should create a new tag', async () => {
+    fixture.detectChanges();
+    expectTagsListRequest();
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    expectPortalSettingsGetRequest(fakePortalSettings());
+    expectEntrypointsListRequest();
+    fixture.detectChanges();
+
+    const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tag"]' }));
+    await addButton.click();
+
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+
+    const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+    expect(await submitButton.isDisabled()).toBeTruthy();
+
+    const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+    await nameInput.setValue('Tag name');
+
+    const descriptionInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
+    await descriptionInput.setValue('Tag description');
+
+    const restrictedGroupSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=restrictedGroups' }));
+    await restrictedGroupSelect.clickOptions({ text: 'Group A' });
+
+    await submitButton.click();
+
+    const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags` });
+    expect(req.request.body).toStrictEqual({
+      name: 'Tag name',
+      description: 'Tag description',
+      restricted_groups: ['group-a'],
+    });
+    req.flush(null);
+
+    // expect new ngOnInit()
+    expectTagsListRequest();
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    expectPortalSettingsGetRequest(fakePortalSettings());
+    expectEntrypointsListRequest();
   });
 
   function expectTagsListRequest(tags: Tag[] = []) {

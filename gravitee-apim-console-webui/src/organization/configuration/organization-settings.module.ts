@@ -60,6 +60,7 @@ import { OrgSettingAddTenantComponent } from './tenants/org-settings-add-tenant.
 import { OrgSettingsRolesComponent } from './roles/org-settings-roles.component';
 import { OrgSettingsTagsComponent } from './tags/org-settings-tags.component';
 import { OrgSettingsRoleMembersComponent } from './roles/org-settings-role-members.component';
+import { OrgSettingAddTagDialogComponent } from './tags/org-settings-add-tag-dialog.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -142,6 +143,7 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     OrgSettingsRolesComponent,
     OrgSettingsTagsComponent,
     OrgSettingsRoleMembersComponent,
+    OrgSettingAddTagDialogComponent,
   ],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
   entryComponents: [
@@ -160,6 +162,7 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     OrgSettingsRolesComponent,
     OrgSettingsTagsComponent,
     OrgSettingsRoleMembersComponent,
+    OrgSettingAddTagDialogComponent,
   ],
 })
 export class OrganizationSettingsModule {}
