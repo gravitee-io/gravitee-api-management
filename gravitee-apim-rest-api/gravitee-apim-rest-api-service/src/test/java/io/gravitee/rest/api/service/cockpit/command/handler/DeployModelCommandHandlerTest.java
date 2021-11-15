@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.observers.TestObserver;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
@@ -40,12 +41,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Julien GIOVARESCO (julien.giovaresco at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(GraviteeContext.class)
 public class DeployModelCommandHandlerTest {
 
     @Mock
@@ -68,6 +73,7 @@ public class DeployModelCommandHandlerTest {
     @Before
     public void setUp() throws Exception {
         cut = new DeployModelCommandHandler(apiService, cockpitApiService, permissionChecker, userService, environmentService);
+        PowerMockito.spy(GraviteeContext.class);
     }
 
     @Test
@@ -526,5 +532,87 @@ public class DeployModelCommandHandlerTest {
                 return true;
             }
         );
+    }
+
+    @Test
+    public void clean_gravitee_context_on_success() {
+        DeployModelPayload payload = new DeployModelPayload();
+        payload.setModelId("model#1");
+        payload.setSwaggerDefinition("swagger-definition");
+        payload.setUserId("cockpit_user#id");
+        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+
+        DeployModelCommand command = new DeployModelCommand(payload);
+
+        when(apiService.exists(payload.getModelId())).thenReturn(false);
+
+        UserEntity user = new UserEntity();
+        user.setId("user#id");
+        user.setSourceId(payload.getUserId());
+        when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("environment#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
+            .thenReturn(Optional.empty());
+
+        when(
+            cockpitApiService.createApi(
+                payload.getModelId(),
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                environment.getId(),
+                DeploymentMode.API_DOCUMENTED
+            )
+        )
+            .thenAnswer(
+                i -> {
+                    ApiEntity apiEntity = new ApiEntity();
+                    apiEntity.setId(i.getArgument(0));
+                    return apiEntity;
+                }
+            );
+
+        TestObserver<DeployModelReply> obs = cut.handle(command).test();
+        obs.awaitTerminalEvent();
+        obs.assertNoErrors();
+
+        PowerMockito.verifyStatic(GraviteeContext.class);
+        GraviteeContext.cleanContext();
+    }
+
+    @Test
+    public void clean_gravitee_context_on_error() {
+        DeployModelPayload payload = new DeployModelPayload();
+        payload.setModelId("model#1");
+        payload.setSwaggerDefinition("swagger-definition");
+        payload.setUserId("user#id");
+        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+
+        DeployModelCommand command = new DeployModelCommand(payload);
+
+        when(apiService.exists(payload.getModelId())).thenReturn(false);
+
+        UserEntity user = new UserEntity();
+        user.setId("user#id");
+        user.setSourceId(payload.getUserId());
+        when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("environment#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
+            .thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
+
+        TestObserver<DeployModelReply> obs = cut.handle(command).test();
+
+        obs.awaitTerminalEvent();
+        obs.assertNoErrors();
+
+        PowerMockito.verifyStatic(GraviteeContext.class);
+        GraviteeContext.cleanContext();
     }
 }

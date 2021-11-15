@@ -30,6 +30,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,6 +113,8 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         } catch (Exception e) {
             logger.error("Error occurred when importing api [{}].", payload.getModelId(), e);
             return Single.just(new DeployModelReply(command.getId(), CommandStatus.ERROR));
+        } finally {
+            GraviteeContext.cleanContext();
         }
     }
 }
