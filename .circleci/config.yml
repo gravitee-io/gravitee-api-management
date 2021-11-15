@@ -79,6 +79,10 @@ jobs:
     resource_class: small
     steps:
       - checkout
+      - restore_cache:
+          name: Restore Maven cache for compute-tag job
+          keys:
+            - gravitee-api-management-compute-tag-{{ .Branch }}-{{ checksum "pom.xml" }}
       - run:
           name: Compute APIM Version
           command: |
@@ -94,6 +98,12 @@ jobs:
             echo "export TAG=$TAG" >> $BASH_ENV
             echo "Docker images will be tagged with: ${TAG}"
             echo $TAG > docker-tag.txt
+      - save_cache:
+          name: Save Maven cache for compute-tag job
+          paths:
+            - ~/.m2
+          key: gravitee-api-management-compute-tag-{{ .Branch }}-{{ checksum "pom.xml" }}
+          when: always
       - persist_to_workspace:
           root: .
           paths:
@@ -624,26 +634,31 @@ jobs:
             az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
             az aks get-credentials --resource-group element-zero --name element-zero
 
-            helm upgrade --repo https://helm.gravitee.io \
-                        --install apim \
-                        -n apim \
-                        --reuse-values \
-                        apim3 \
-                         --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                         --set "api.image.tag=${TAG}" \
-                         --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
-                         --set "portal.image.tag=${TAG}" \
-                         --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
-                         --set "ui.image.tag=${TAG}"
+            if [ "master" == "${CIRCLE_BRANCH}" ]
+            then
+              helm upgrade --repo https://helm.gravitee.io \
+                           --install apim \
+                           -n apim \
+                           --reuse-values \
+                           apim3 \
+                           --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                           --set "api.image.tag=${TAG}" \
+                           --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
+                           --set "portal.image.tag=${TAG}" \
+                           --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
+                           --set "ui.image.tag=${TAG}"
+            fi
       - run:
           name: Helm upgrade and 🚀 to APIM cluster
           command: |
+            export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
+
             az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
             az aks get-credentials --resource-group apim-hprod --name apim-hprod
 
             helm upgrade --repo https://helm.gravitee.io \
                          --install apim \
-                         -n apim-master \
+                         -n ${K8S_NAMESPACE} \
                          --reuse-values \
                          apim3 \
                          --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \

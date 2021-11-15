@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM openjdk:11-jre-slim-buster
+FROM eclipse-temurin:11-jre-focal
 LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
@@ -36,5 +36,6 @@ WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8083
 ENTRYPOINT ["./bin/gravitee"]
 VOLUME ${GRAVITEEIO_HOME}/logs
+CMD ["./bin/gravitee"]
 HEALTHCHECK --interval=5s --timeout=3s --retries=6 --start-period=30s \
             CMD curl --user admin:adminadmin --fail http://localhost:18083/_node/health || exit 1

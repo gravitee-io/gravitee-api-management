@@ -45,9 +45,9 @@
     </issueManagement>
 
     <modules>
+        <module>gravitee-apim-distribution</module>
         <module>gravitee-apim-repository</module>
         <module>gravitee-apim-rest-api</module>
-        <module>gravitee-apim-distribution</module>
         <module>gravitee-apim-console-webui</module>
         <module>gravitee-apim-portal-webui</module>
     </modules>
@@ -59,11 +59,11 @@
         <gravitee-cockpit-api.version>1.9.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.23.0-SNAPSHOT</gravitee-common.version>
         <gravitee-definition.version>1.30.0-SNAPSHOT</gravitee-definition.version>
-        <gravitee-expression-language.version>1.7.1-SNAPSHOT</gravitee-expression-language.version>
+        <gravitee-expression-language.version>1.7.2</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.28.0</gravitee-gateway-api.version>
-        <gravitee-license-node.version>1.3.0-SNAPSHOT</gravitee-license-node.version>
-        <gravitee-node.version>1.17.1</gravitee-node.version>
+        <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
+        <gravitee-node.version>1.17.2</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
         <gravitee-plugin.version>1.20.0-SNAPSHOT</gravitee-plugin.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
@@ -86,7 +86,7 @@
         <gson.version>2.7</gson.version>
         <guava.version>30.1.1-jre</guava.version>
         <hamcrest.version>1.3</hamcrest.version>
-        <hazelcast.version>3.12.9</hazelcast.version>
+        <hazelcast.version>4.1.1</hazelcast.version>
         <imageio.version>3.7.0</imageio.version>
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
         <java-jwt.version>3.10.2</java-jwt.version>
@@ -621,12 +621,6 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>${maven-assembly-plugin.version}</version>
                     <inherited>true</inherited>
-                    <configuration>
-                        <appendAssemblyId>false</appendAssemblyId>
-                        <descriptors>
-                            <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-                        </descriptors>
-                    </configuration>
                     <executions>
                         <execution>
                             <id>make-plugin-assembly</id>

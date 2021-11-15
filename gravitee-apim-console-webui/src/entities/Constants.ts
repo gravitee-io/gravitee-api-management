@@ -85,6 +85,11 @@ interface EnvSettings {
       enabled: boolean;
     };
   };
+  dashboards: {
+    apiStatus: {
+      enabled: boolean;
+    };
+  };
   company: {
     name: string;
   };

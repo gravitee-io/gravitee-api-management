@@ -115,6 +115,7 @@
               <configuration>
                 <nodeVersion>${node.version}</nodeVersion>
                 <npmVersion>${npm.version}</npmVersion>
+                <skip>${skip.npm}</skip>
               </configuration>
             </execution>
             <execution>

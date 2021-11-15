@@ -40,6 +40,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private Portal portal;
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
+    private Dashboards dashboards;
 
     public PortalSettingsEntity() {
         super();
@@ -57,6 +58,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         portal = new Portal();
         reCaptcha = new PortalReCaptcha();
         scheduler = new PortalScheduler();
+        dashboards = new Dashboards();
     }
 
     // Getters & Setters
@@ -170,6 +172,14 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
 
     public void setScheduler(PortalScheduler scheduler) {
         this.scheduler = scheduler;
+    }
+
+    public Dashboards getDashboards() {
+        return dashboards;
+    }
+
+    public void setDashboards(Dashboards dashboards) {
+        this.dashboards = dashboards;
     }
 
     // Classes
