@@ -25,42 +25,76 @@
     </div>
 
     <div class="gv-form">
-      <form name="$ctrl.formCreation" ng-submit="$ctrl.create($)" layout="column">
-        <md-input-container class="md-icon-float">
-          <label>First name</label>
-          <input ng-model="$ctrl.user.firstname" type="text" required autofocus />
+      <div class="gv-form-content">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label class="md-no-float">User Type</label>
+          <gv-option
+            ng-attr-options="{{$ctrl.types}}"
+            ng-on-gv-option:select="$ctrl.changeType($event)"
+            ng-value="$ctrl.userType"
+          ></gv-option>
         </md-input-container>
 
-        <md-input-container class="md-icon-float">
-          <label>Last name</label>
-          <input ng-model="$ctrl.user.lastname" type="text" required />
-        </md-input-container>
-
-        <md-input-container class="md-icon-float">
-          <label>Email</label>
-          <input ng-model="$ctrl.user.email" type="email" required />
-        </md-input-container>
-
-        <div ng-if="$ctrl.identityProviders && $ctrl.identityProviders.length > 1" layout="column">
-          <md-input-container class="md-block">
-            <label>Identity provider</label>
-            <md-select ng-model="$ctrl.user.source">
-              <md-option ng-repeat="idp in $ctrl.identityProviders" value="{{idp.id}}"> {{idp.name}} </md-option>
-            </md-select>
+        <form name="$ctrl.formCreation" ng-submit="$ctrl.create($)" layout="column" ng-if="!$ctrl.isServiceUser()">
+          <div></div>
+          <md-input-container class="md-icon-float">
+            <label>First name</label>
+            <input ng-model="$ctrl.user.firstname" type="text" required autofocus />
           </md-input-container>
 
-          <md-input-container class="md-icon-float" ng-if="$ctrl.user.source !== 'gravitee'">
-            <label>Identity provider identifier</label>
-            <input ng-model="$ctrl.user.sourceId" type="text" required />
+          <md-input-container class="md-icon-float">
+            <label>Last name</label>
+            <input ng-model="$ctrl.user.lastname" type="text" required />
           </md-input-container>
-        </div>
 
-        <div class="md-actions" layout="row">
-          <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formCreation.$invalid || $ctrl.formCreation.$pristine">
-            Save
-          </md-button>
-        </div>
-      </form>
+          <md-input-container class="md-icon-float">
+            <label>Email</label>
+            <input ng-model="$ctrl.user.email" type="email" required />
+          </md-input-container>
+
+          <div ng-if="$ctrl.identityProviders && $ctrl.identityProviders.length > 1" layout="column">
+            <md-input-container class="md-block">
+              <label>Identity provider</label>
+              <md-select ng-model="$ctrl.user.source">
+                <md-option ng-repeat="idp in $ctrl.identityProviders" value="{{idp.id}}"> {{idp.name}} </md-option>
+              </md-select>
+            </md-input-container>
+
+            <md-input-container class="md-icon-float" ng-if="$ctrl.user.source !== 'gravitee'">
+              <label>Identity provider identifier</label>
+              <input ng-model="$ctrl.user.sourceId" type="text" required />
+            </md-input-container>
+          </div>
+
+          <div class="md-actions" layout="row">
+            <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formCreation.$invalid || $ctrl.formCreation.$pristine">
+              Save
+            </md-button>
+          </div>
+        </form>
+
+        <form name="$ctrl.formServiceCreation" ng-submit="$ctrl.create($)" layout="column" ng-if="$ctrl.isServiceUser()">
+          <md-input-container class="md-icon-float">
+            <label>Service name</label>
+            <input ng-model="$ctrl.user.lastname" type="text" required autofocus />
+          </md-input-container>
+
+          <md-input-container class="md-icon-float">
+            <label>Email</label>
+            <input ng-model="$ctrl.user.email" type="email" />
+          </md-input-container>
+
+          <div class="md-actions" layout="row">
+            <md-button
+              type="submit"
+              class="md-raised md-primary"
+              ng-disabled="$ctrl.formServiceCreation.$invalid || $ctrl.formServiceCreation.$pristine"
+            >
+              Save
+            </md-button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>

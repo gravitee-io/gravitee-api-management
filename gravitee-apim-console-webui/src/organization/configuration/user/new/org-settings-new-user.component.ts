@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/core';
 
 import { UsersService } from '../../../../services-ngx/users.service';
-import { NewExternalUser } from '../../../../entities/user/newExternalUser';
+import { NewPreRegisterUser } from '../../../../entities/user/newPreRegisterUser';
 import { IdentityProviderService } from '../../../../services-ngx/identity-provider.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
+
+export enum UserType {
+  EXTERNAL_USER = 'EXTERNAL_USER',
+  SERVICE_ACCOUNT = 'SERVICE_ACCOUNT',
+}
 
 @Component({
   selector: 'org-settings-new-user',
@@ -33,6 +38,8 @@ import { UIRouterState } from '../../../../ajs-upgraded-providers';
 export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
   isLoading = true;
   identityProviders?: Array<{ id: string; name: string }>;
+
+  UserType = UserType;
 
   userForm: FormGroup;
 
@@ -69,11 +76,30 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
         }
 
         this.userForm = this.formBuilder.group({
+          type: [UserType.EXTERNAL_USER],
           firstName: ['', Validators.required],
           lastName: ['', Validators.required],
           email: ['', [Validators.required, Validators.email]],
           ...sourceFormControl,
         });
+
+        this.userForm
+          .get('type')
+          ?.valueChanges.pipe(takeUntil(this.unsubscribe$))
+          .subscribe((type) => {
+            this.userForm.removeControl('firstName');
+            this.userForm.removeControl('lastName');
+            this.userForm.removeControl('email');
+
+            if (type === UserType.SERVICE_ACCOUNT) {
+              this.userForm.addControl('lastName', new FormControl('', [Validators.required]));
+              this.userForm.addControl('email', new FormControl('', [Validators.email]));
+            } else {
+              this.userForm.addControl('lastName', new FormControl('', [Validators.required]));
+              this.userForm.addControl('email', new FormControl('', [Validators.required, Validators.email]));
+              this.userForm.addControl('firstName', new FormControl('', [Validators.required]));
+            }
+          });
 
         this.userForm
           .get('source')
@@ -104,12 +130,13 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
 
     const userFormValue = this.userForm.getRawValue();
 
-    const userToCreate: NewExternalUser = {
+    const userToCreate: NewPreRegisterUser = {
       firstname: userFormValue.firstName,
       lastname: userFormValue.lastName,
       email: userFormValue.email,
       source: userFormValue.source,
       sourceId: userFormValue.source === this.graviteeIdp.id ? '' : userFormValue.sourceId,
+      service: userFormValue.type === UserType.SERVICE_ACCOUNT,
     };
 
     this.usersService

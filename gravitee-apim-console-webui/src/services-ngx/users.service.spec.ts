@@ -21,7 +21,7 @@ import { UsersService } from './users.service';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeAdminUser, fakeUser } from '../entities/user/user.fixture';
 import { fakePagedResult } from '../entities/pagedResult';
-import { fakeNewExternalUser } from '../entities/user/newExternalUser.fixture';
+import { fakeNewPreregisterUser } from '../entities/user/newPreRegisterUser.fixture';
 import { fakeGroup } from '../entities/group/group.fixture';
 import { fakeUserMembership } from '../entities/user/userMembership.fixture';
 import { fakeSearchableUser } from '../entities/user/searchableUser.fixture';
@@ -117,7 +117,7 @@ describe('UsersService', () => {
 
   describe('create', () => {
     it('should call the API', (done) => {
-      const userToCreate = fakeNewExternalUser();
+      const userToCreate = fakeNewPreregisterUser();
       const createdUser = fakeUser();
 
       usersService.create(userToCreate).subscribe((user) => {

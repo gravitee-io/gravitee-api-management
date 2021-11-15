@@ -11,6 +11,18 @@
     &__form-field {
       width: 100%;
     }
+
+    &__user-type-group {
+      &__button {
+        flex: 1 1 15%;
+        text-align: center;
+
+        &__logo {
+          font-size: 48px;
+          margin-right: 24px;
+        }
+      }
+    }
   }
 
   &__actions {

@@ -767,7 +767,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         checkUserRegistrationEnabled(currentContext);
         boolean autoRegistrationEnabled = isAutoRegistrationEnabled(currentContext);
 
-        return createAndSendEmail(newExternalUserEntity, USER_REGISTRATION, confirmationPageUrl, autoRegistrationEnabled);
+        return createAndSendEmail(newExternalUserEntity, USER_REGISTRATION, confirmationPageUrl, autoRegistrationEnabled, false);
     }
 
     private boolean isAutoRegistrationEnabled(GraviteeContext.ReferenceContext currentContext) {
@@ -786,8 +786,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public UserEntity create(final NewExternalUserEntity newExternalUserEntity) {
-        return createAndSendEmail(newExternalUserEntity, USER_CREATION, null, true);
+    public UserEntity create(final NewPreRegisterUserEntity newPreRegisterUserEntity) {
+        return createAndSendEmail(newPreRegisterUserEntity, USER_CREATION, null, true, newPreRegisterUserEntity.isService());
     }
 
     /**
@@ -797,9 +797,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final NewExternalUserEntity newExternalUserEntity,
         final ACTION action,
         final String confirmationPageUrl,
-        final boolean autoRegistrationEnabled
+        final boolean autoRegistrationEnabled,
+        final boolean isServiceUser
     ) {
-        if (!EmailValidator.isValid(newExternalUserEntity.getEmail())) {
+        if (!isServiceUser && !EmailValidator.isValid(newExternalUserEntity.getEmail())) {
             throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
         }
 
@@ -807,15 +808,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         if (isBlank(newExternalUserEntity.getSource())) {
             newExternalUserEntity.setSource(IDP_SOURCE_GRAVITEE);
-        } else {
-            if (!IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
-                // check if IDP exists
-                identityProviderService.findById(newExternalUserEntity.getSource());
-            }
+        } else if (!IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
+            // check if IDP exists
+            identityProviderService.findById(newExternalUserEntity.getSource());
         }
 
         if (isBlank(newExternalUserEntity.getSourceId())) {
-            newExternalUserEntity.setSourceId(newExternalUserEntity.getEmail());
+            newExternalUserEntity.setSourceId(isServiceUser ? newExternalUserEntity.getLastname() : newExternalUserEntity.getEmail());
         }
 
         final Optional<User> optionalUser;
@@ -841,29 +840,31 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         final UserEntity userEntity = create(newExternalUserEntity, true, autoRegistrationEnabled);
 
-        if (IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
-            final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action, confirmationPageUrl);
-            emailService.sendAsyncEmailNotification(
-                new EmailNotificationBuilder()
-                    .to(userEntity.getEmail())
-                    .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION)
-                    .params(params)
-                    .param("registrationAction", USER_REGISTRATION.equals(action) ? "registration" : "creation")
-                    .build(),
-                GraviteeContext.getCurrentContext()
-            );
-
-            if (autoRegistrationEnabled) {
-                notifierService.trigger(
-                    ACTION.USER_REGISTRATION.equals(action) ? PortalHook.USER_REGISTERED : PortalHook.USER_CREATED,
-                    params
+        if (!isServiceUser) {
+            if (IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
+                final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action, confirmationPageUrl);
+                emailService.sendAsyncEmailNotification(
+                    new EmailNotificationBuilder()
+                        .to(userEntity.getEmail())
+                        .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION)
+                        .params(params)
+                        .param("registrationAction", USER_REGISTRATION.equals(action) ? "registration" : "creation")
+                        .build(),
+                    GraviteeContext.getCurrentContext()
                 );
-            } else {
-                notifierService.trigger(PortalHook.USER_REGISTRATION_REQUEST, params);
+
+                if (autoRegistrationEnabled) {
+                    notifierService.trigger(
+                        ACTION.USER_REGISTRATION.equals(action) ? PortalHook.USER_REGISTERED : PortalHook.USER_CREATED,
+                        params
+                    );
+                } else {
+                    notifierService.trigger(PortalHook.USER_REGISTRATION_REQUEST, params);
+                }
             }
         }
 
-        if (newExternalUserEntity.getNewsletter() != null && newExternalUserEntity.getNewsletter()) {
+        if (!isServiceUser && newExternalUserEntity.getNewsletter() != null && newExternalUserEntity.getNewsletter()) {
             newsletterService.subscribe(newExternalUserEntity.getEmail());
         }
 

@@ -197,7 +197,7 @@ export function fakeUser(attributes?: Partial<User>): User {
     firstname: 'Bruce',
     lastname: 'Wayne',
     email: 'me@batman.com',
-    picture: 'http://batman.com/photo.jpeg',
+    picture: 'https://batman.com/photo.jpeg',
     sourceId: 'batman',
     customFields: {},
     lastConnectionAt: 1631017105654,

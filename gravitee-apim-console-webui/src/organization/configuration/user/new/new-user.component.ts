@@ -15,6 +15,8 @@
  */
 import { StateService } from '@uirouter/core';
 
+import { UserType } from './org-settings-new-user.component';
+
 import NotificationService from '../../../../services/notification.service';
 import UserService from '../../../../services/user.service';
 
@@ -25,19 +27,58 @@ const NewUserComponent: ng.IComponentOptions = {
   },
   controller: function (UserService: UserService, NotificationService: NotificationService, $state: StateService) {
     'ngInject';
+
     this.$onInit = () => {
+      this.types = [
+        {
+          title: 'User',
+          id: 'EXTERNAL_USER',
+          icon: 'social:person_add',
+        },
+        {
+          title: 'Service Account',
+          id: 'SERVICE_ACCOUNT',
+          icon: 'communication:shield-user',
+        },
+      ];
+
+      this.userType = UserType.EXTERNAL_USER;
+
       if (this.identityProviders && this.identityProviders.length) {
         this.identityProviders.unshift({ id: 'gravitee', name: 'Gravitee' });
         this.user = { source: 'gravitee' };
       }
     };
 
+    this.changeType = (event) => {
+      this.userType = event.detail.id;
+      this.user = {};
+      this.formCreation?.$setPristine();
+      this.formCreation?.$setUntouched();
+      this.formServiceCreation?.$setPristine();
+      this.formServiceCreation?.$setUntouched();
+    };
+
     this.create = () => {
-      UserService.create(this.user).then(() => {
+      let toCreate = this.user;
+
+      if (this.userType === UserType.SERVICE_ACCOUNT) {
+        toCreate = {
+          ...this.user,
+          service: true,
+          source: 'gravitee',
+        };
+
+        delete toCreate.firstname;
+      }
+
+      UserService.create(toCreate).then(() => {
         NotificationService.show('User registered with success');
         $state.go('organization.settings.users');
       });
     };
+
+    this.isServiceUser = () => this.userType === UserType.SERVICE_ACCOUNT;
   },
 };
 

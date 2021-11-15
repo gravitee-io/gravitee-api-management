@@ -109,7 +109,7 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
             }
         }
 
-        if (user.getEmail() != null) {
+        if (user.getEmail() != null && user.getEmail().length() > 0) {
             if (user.getEmail().indexOf('@') < 0) {
                 logger.warn("Email of the user {} is not valid", user.getId());
             } else {

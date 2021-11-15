@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface NewExternalUser {
-  firstname?: string;
-  lastname?: string;
-  email: string;
-  source?: string;
-  picture?: string;
-  sourceId?: string;
-  newsletter?: boolean;
-  customFields?: Record<string, unknown>;
+import { NewPreRegisterUser } from './newPreRegisterUser';
+
+export function fakeNewPreregisterUser(attributes?: Partial<NewPreRegisterUser>): NewPreRegisterUser {
+  const base: NewPreRegisterUser = {
+    firstname: 'Bruce',
+    lastname: 'Wayne',
+    email: 'me@batman.com',
+    source: 'memory',
+    picture: 'https://batman.com/photo.jpeg',
+    sourceId: 'batman',
+    newsletter: true,
+    customFields: {},
+  };
+  return {
+    ...base,
+    ...attributes,
+  };
 }

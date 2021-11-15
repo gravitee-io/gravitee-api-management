@@ -21,7 +21,7 @@ import { map } from 'rxjs/operators';
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { User } from '../entities/user/user';
-import { NewExternalUser } from '../entities/user/newExternalUser';
+import { NewPreRegisterUser } from '../entities/user/newPreRegisterUser';
 import { Group } from '../entities/group/group';
 import { UserMembership } from '../entities/user/userMembership';
 import { SearchableUser } from '../entities/user/searchableUser';
@@ -54,7 +54,7 @@ export class UsersService {
     return this.http.get<Group[]>(`${this.constants.org.baseURL}/users/${userId}/groups`);
   }
 
-  create(user: NewExternalUser): Observable<User> {
+  create(user: NewPreRegisterUser): Observable<User> {
     return this.http.post<User>(`${this.constants.org.baseURL}/users`, user);
   }
 

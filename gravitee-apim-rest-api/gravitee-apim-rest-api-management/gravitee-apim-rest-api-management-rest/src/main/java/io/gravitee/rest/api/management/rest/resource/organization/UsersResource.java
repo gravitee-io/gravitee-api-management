@@ -25,11 +25,11 @@ import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.NewExternalUserEntity;
+import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.validator.ValidNewPreRegisterUser;
 import io.swagger.annotations.*;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -83,8 +83,8 @@ public class UsersResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    public Response createUser(@Valid NewExternalUserEntity newExternalUserEntity) {
-        UserEntity newUser = userService.create(newExternalUserEntity);
+    public Response createUser(@ValidNewPreRegisterUser NewPreRegisterUserEntity newPreRegisterUserEntity) {
+        UserEntity newUser = userService.create(newPreRegisterUserEntity);
         if (newUser != null) {
             return Response.ok().entity(newUser).build();
         }

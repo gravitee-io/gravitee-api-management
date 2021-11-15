@@ -84,7 +84,7 @@ public interface UserService {
 
     Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action, String confirmationPageUrl);
 
-    UserEntity create(NewExternalUserEntity newExternalUserEntity);
+    UserEntity create(NewPreRegisterUserEntity newPreRegisterUserEntity);
 
     UserEntity createOrUpdateUserFromSocialIdentityProvider(SocialIdentityProviderEntity socialProvider, String userInfo);
 
