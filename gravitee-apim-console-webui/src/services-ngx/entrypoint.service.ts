@@ -33,4 +33,8 @@ export class EntrypointService {
   update(entrypoint: Entrypoint): Observable<void> {
     return this.http.put<void>(`${this.constants.org.baseURL}/configuration/entrypoints/`, entrypoint);
   }
+
+  delete(entrypointId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.org.baseURL}/configuration/entrypoints/${entrypointId}`);
+  }
 }

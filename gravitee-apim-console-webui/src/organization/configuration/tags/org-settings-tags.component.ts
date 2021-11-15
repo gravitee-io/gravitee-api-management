@@ -42,6 +42,7 @@ type TagTableDS = {
 }[];
 
 type EntrypointTableDS = {
+  id: string;
   url: string;
   tags: string[];
 }[];
@@ -106,7 +107,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
         this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
 
         this.entrypoints = entrypoints;
-        this.entrypointsTableDS = entrypoints.map((entrypoint) => ({ url: entrypoint.value, tags: entrypoint.tags }));
+        this.entrypointsTableDS = entrypoints.map((entrypoint) => ({ id: entrypoint.id, url: entrypoint.value, tags: entrypoint.tags }));
         this.filteredEntrypointsTableDS = this.entrypointsTableDS;
 
         this.isLoading = false;
@@ -215,6 +216,29 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onEditEntrypointClicked() {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onDeleteEntrypointClicked() {}
+  onDeleteEntrypointClicked(entrypoint: EntrypointTableDS[number]) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Remove a entrypoint',
+          content: `Are you sure you want to remove the entrypoint <strong>${entrypoint.url}</strong>?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'removeEntrypointConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.entrypointService.delete(entrypoint.id)),
+        tap(() => this.snackBarService.success(`Entrypoint "${entrypoint.url}" has been removed`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 }

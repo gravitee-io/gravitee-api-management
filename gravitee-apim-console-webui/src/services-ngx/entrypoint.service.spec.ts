@@ -69,6 +69,23 @@ describe('EntrypointService', () => {
     });
   });
 
+  describe('delete', () => {
+    it('should call the API', (done) => {
+      const entrypointToUpdate = fakeEntrypoint();
+
+      entrypointService.delete(entrypointToUpdate.id).subscribe(() => {
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/${entrypointToUpdate.id}`,
+          method: 'DELETE',
+        })
+        .flush(null);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

@@ -220,6 +220,28 @@ describe('OrgSettingsTagsComponent', () => {
     // no flush stop test here
   });
 
+  it('should remove a entrypoint', async () => {
+    fixture.detectChanges();
+    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    expectPortalSettingsGetRequest(fakePortalSettings());
+    expectEntrypointsListRequest([fakeEntrypoint({ id: 'entrypoint-1', tags: ['tag-1', 'tag-2'] })]);
+    fixture.detectChanges();
+
+    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a entrypoint"]' }));
+    await deleteButton.click();
+
+    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+    await confirmDialogButton.click();
+
+    // Delete entrypoint
+    httpTestingController.expectOne({
+      method: 'DELETE',
+      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/entrypoint-1`,
+    });
+    // no flush stop test here
+  });
+
   function expectTagsListRequest(tags: Tag[] = []) {
     httpTestingController
       .expectOne({
