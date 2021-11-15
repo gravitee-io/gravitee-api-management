@@ -19,6 +19,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatCellHarness } from '@angular/material/table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { OrgSettingsRoleMembersComponent } from './org-settings-role-members.component';
 
@@ -28,8 +30,6 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { MembershipListItem } from '../../../entities/role/membershipListItem';
 import { fakeMembershipListItem } from '../../../entities/role/membershipListItem.fixture';
 import { User } from '../../../entities/user';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('OrgSettingsRoleMembersComponent', () => {
@@ -46,6 +46,7 @@ describe('OrgSettingsRoleMembersComponent', () => {
   let component: OrgSettingsRoleMembersComponent;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -55,10 +56,15 @@ describe('OrgSettingsRoleMembersComponent', () => {
         { provide: UIRouterStateParams, useValue: { roleScope, role } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(OrgSettingsRoleMembersComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -87,6 +93,36 @@ describe('OrgSettingsRoleMembersComponent', () => {
     expect(await tableCells[0].getText()).toEqual('John Doe');
   });
 
+  describe('onDeleteMemberClicked', () => {
+    beforeEach(() => {
+      currentUser.userPermissions = ['organization-role-u'];
+    });
+
+    it('should delete member', async () => {
+      respondToListMembershipsRequest([
+        fakeMembershipListItem({
+          id: 'user#1',
+          displayName: 'John Doe',
+        }),
+      ]);
+
+      const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a member"]' }));
+      await deleteButton.click();
+
+      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+      await confirmDialogButton.click();
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${role}/users/user#1`,
+        })
+        .flush(null);
+
+      respondToListMembershipsRequest([]);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
@@ -98,5 +134,7 @@ describe('OrgSettingsRoleMembersComponent', () => {
         url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${role}/users`,
       })
       .flush(items);
+
+    fixture.detectChanges();
   }
 });

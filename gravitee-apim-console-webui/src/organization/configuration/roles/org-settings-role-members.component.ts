@@ -15,14 +15,17 @@
  */
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
 
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { RoleService } from '../../../services-ngx/role.service';
 import { MembershipListItem } from '../../../entities/role/membershipListItem';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'org-settings-role-members',
@@ -42,6 +45,8 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams: { roleScope: string; role: string },
     private readonly roleService: RoleService,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -72,6 +77,29 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onAddMemberClicked() {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
-  onDeleteMemberClicked(member) {}
+  onDeleteMemberClicked(membership: MembershipListItem) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete a membership',
+          content: `Are you sure you want to remove the role <strong>${this.roleScope} - ${this.role}</strong> to user <strong>${membership.displayName}</strong>?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'deleteMembershipConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.roleService.deleteMembership(this.roleScope, this.role, membership.id)),
+        tap(() => this.snackBarService.success(`Membership has been successfully deleted`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 }
