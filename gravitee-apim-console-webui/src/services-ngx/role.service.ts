@@ -46,4 +46,10 @@ export class RoleService {
   listMemberships(scope: string, roleName: string): Observable<MembershipListItem[]> {
     return this.http.get<MembershipListItem[]>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles/${roleName}/users`);
   }
+
+  deleteMembership(roleScope: string, roleName: string, username: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.constants.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${roleName}/users/${username}`,
+    );
+  }
 }

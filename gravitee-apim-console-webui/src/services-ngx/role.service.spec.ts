@@ -72,6 +72,23 @@ describe('RoleService', () => {
     });
   });
 
+  describe('deleteMembership', () => {
+    it('should call the API', (done) => {
+      const roleScope = 'ORGANIZATION';
+      const roleName = 'ADMIN';
+      const username = 'johndoe';
+
+      roleService.deleteMembership(roleScope, roleName, username).subscribe(() => done());
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${roleName}/users/${username}`,
+        })
+        .flush(null);
+    });
+  });
+
   describe('getPermissionsByScopes', () => {
     it('should call the API', (done) => {
       const scopes: Record<'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION', string[]> = {
