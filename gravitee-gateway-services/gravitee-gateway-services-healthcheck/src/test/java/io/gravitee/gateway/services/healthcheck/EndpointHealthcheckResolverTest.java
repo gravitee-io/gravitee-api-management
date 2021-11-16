@@ -267,7 +267,12 @@ public class EndpointHealthcheckResolverTest {
                 "  \"target\": \"http://localhost\",\n" +
                 "  \"healthcheck\": {\n" +
                 "    \"enabled\": true,\n" +
-                "    \"inherit\": false\n" +
+                "    \"inherit\": false,\n" +
+                "    \"request\": {" +
+                "      \"uri\": \"http://localhost\",\n" +
+                "      \"method\": \"GET\",\n" +
+                "      \"path\": \"/\"\n" +
+                "    }\n" +
                 "  }, \n" +
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
@@ -304,7 +309,12 @@ public class EndpointHealthcheckResolverTest {
                 "  \"target\": \"http://localhost\",\n" +
                 "  \"healthcheck\": {\n" +
                 "    \"enabled\": true,\n" +
-                "    \"inherit\": false\n" +
+                "    \"inherit\": false,\n" +
+                "    \"request\": {" +
+                "      \"uri\": \"http://localhost\",\n" +
+                "      \"method\": \"GET\",\n" +
+                "      \"path\": \"/\"\n" +
+                "    }\n" +
                 "  }, \n" +
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
@@ -339,7 +349,12 @@ public class EndpointHealthcheckResolverTest {
                 "  \"target\": \"http://localhost\",\n" +
                 "  \"healthcheck\": {\n" +
                 "    \"enabled\": true,\n" +
-                "    \"inherit\": false\n" +
+                "    \"inherit\": false,\n" +
+                "    \"request\": {" +
+                "      \"uri\": \"http://localhost\",\n" +
+                "      \"method\": \"GET\",\n" +
+                "      \"path\": \"/\"\n" +
+                "    }\n" +
                 "  }, \n" +
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
@@ -350,6 +365,12 @@ public class EndpointHealthcheckResolverTest {
                 "    \"maxConcurrentConnections\": 100,\n" +
                 "    \"useCompression\": true,\n" +
                 "    \"followRedirects\": false\n" +
+                "  },\n" +
+                "  \"ssl\": {\n" +
+                "    \"trustAll\": true,\n" +
+                "    \"keyStore\": {\n" +
+                "      \"type\": \"\"\n" +
+                "    }\n" +
                 "  }\n" +
                 "}\n"
             );

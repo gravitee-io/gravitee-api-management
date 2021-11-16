@@ -71,6 +71,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.definition</groupId>
+            <artifactId>gravitee-definition-jackson</artifactId>
+            <version>${gravitee-definition.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Jackson dependencies -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
