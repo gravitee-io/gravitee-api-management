@@ -21,14 +21,22 @@ import { OrgSettingsRoleComponent } from './org-settings-role.component';
 
 import { OrganizationSettingsModule } from '../../organization-settings.module';
 import { GioHttpTestingModule } from '../../../../shared/testing';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 
 describe('OrgSettingsRoleComponent', () => {
+  const roleScope = 'ORGANIZATION';
+  const role = 'USER';
+
   let fixture: ComponentFixture<OrgSettingsRoleComponent>;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      providers: [
+        { provide: UIRouterState, useValue: {} },
+        { provide: UIRouterStateParams, useValue: { roleScope, role } },
+      ],
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(OrgSettingsRoleComponent);

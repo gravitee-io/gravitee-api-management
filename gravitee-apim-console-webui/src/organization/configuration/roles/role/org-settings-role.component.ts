@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
+
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'org-settings-role',
@@ -25,13 +27,17 @@ import { Subject } from 'rxjs';
 export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   isLoading = true;
 
+  roleScope: string;
+  role: string;
+
   private unsubscribe$ = new Subject<boolean>();
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  constructor() {}
+  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: { roleScope: string; role: string }) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.roleScope = this.ajsStateParams.roleScope;
+    this.role = this.ajsStateParams.role;
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
