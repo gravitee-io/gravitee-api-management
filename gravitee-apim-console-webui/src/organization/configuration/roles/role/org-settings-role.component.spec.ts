@@ -96,6 +96,53 @@ describe('OrgSettingsRoleComponent', () => {
     });
   });
 
+  describe('create mode', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+        providers: [
+          { provide: UIRouterState, useValue: fakeAjsState },
+          { provide: UIRouterStateParams, useValue: { roleScope } },
+        ],
+      });
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture = TestBed.createComponent(OrgSettingsRoleComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      fixture.detectChanges();
+    });
+
+    it('should create role', async () => {
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('New name');
+
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
+      await descriptionInput.setValue('New description');
+
+      const defaultToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=default]' }));
+      await defaultToggle.toggle();
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({
+        name: 'New name',
+        description: 'New description',
+        default: true,
+        scope: roleScope,
+      });
+      req.flush(null);
+      fixture.detectChanges();
+
+      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.settings.ng-roleedit', { role: 'NEW NAME', roleScope: 'ORGANIZATION' });
+    });
+  });
+
   function expectRoleGetRequest(role: Role) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`, method: 'GET' })

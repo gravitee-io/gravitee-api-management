@@ -170,6 +170,20 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.ng-rolenew', {
+      url: '/ng-role/:roleScope/',
+      component: 'ngOrgSettingsRole',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-roles',
+        },
+        perms: {
+          only: ['organization-role-u'],
+        },
+      },
+    })
     .state('organization.settings.roleedit', {
       url: '/role/:roleScope/:role',
       component: 'role',

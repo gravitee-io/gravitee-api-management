@@ -15,11 +15,12 @@
  */
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { StateService } from '@uirouter/angularjs';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Role } from '../../../../entities/role/role';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -31,6 +32,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 })
 export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   isLoading = true;
+  isEditMode = false;
 
   roleScope: string;
   roleName: string;
@@ -41,6 +43,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: { roleScope: string; role: string },
     private readonly roleService: RoleService,
     private readonly snackBarService: SnackBarService,
@@ -48,6 +51,19 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.roleScope = this.ajsStateParams.roleScope;
+    this.isEditMode = !!this.ajsStateParams.role;
+
+    if (!this.isEditMode) {
+      this.roleForm = new FormGroup({
+        name: new FormControl('', [Validators.required]),
+        description: new FormControl(),
+        default: new FormControl(),
+      });
+
+      this.isLoading = false;
+      return;
+    }
+
     this.roleName = this.ajsStateParams.role;
 
     this.roleService
@@ -72,11 +88,19 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    this.roleService
-      .update({
-        ...this.role,
-        ...this.roleForm.getRawValue(),
-      })
+    const roleFormValue = this.roleForm.getRawValue();
+
+    const createOrUpdateRole$ = this.isEditMode
+      ? this.roleService.update({
+          ...this.role,
+          ...roleFormValue,
+        })
+      : this.roleService.create({
+          ...roleFormValue,
+          scope: this.roleScope,
+        });
+
+    createOrUpdateRole$
       .pipe(
         takeUntil(this.unsubscribe$),
         tap(() => {
@@ -88,7 +112,11 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe(() => {
-        this.ngOnInit();
+        if (!this.isEditMode) {
+          this.ajsState.go('organization.settings.ng-roleedit', { roleScope: this.roleScope, role: roleFormValue.name.toUpperCase() });
+        } else {
+          this.ngOnInit();
+        }
       });
   }
 }

@@ -17,12 +17,18 @@
 -->
 <div class="org-settings-role">
   <h1>
-    <gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-roles' }"></gio-go-back-button>{{ roleScope | titlecase }} - {{ roleName }}
+    <gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-roles' }"></gio-go-back-button>{{ roleScope | titlecase }} -
+    {{ isEditMode ? roleName : 'New role' }}
   </h1>
-  <h4>Edit CRUD (Create, Read, Update, Delete) permissions for each role {{ roleName }} in the {{ roleScope }} scope.</h4>
+  <h4>Manage CRUD (Create, Read, Update, Delete) permissions for each role {{ roleName }} in the {{ roleScope }} scope.</h4>
 
   <form *ngIf="!isLoading" autocomplete="off" [formGroup]="roleForm" (ngSubmit)="onSubmit()">
     <mat-card class="org-settings-role__card">
+      <mat-form-field *ngIf="!isEditMode" appearance="fill">
+        <mat-label>Role name</mat-label>
+        <input matInput formControlName="name" required />
+      </mat-form-field>
+
       <mat-form-field appearance="fill">
         <mat-label>Role description</mat-label>
         <input matInput formControlName="description" />
@@ -34,6 +40,6 @@
       </gio-form-slide-toggle>
     </mat-card>
 
-    <gio-save-bar [creationMode]="false" [form]="roleForm" [formInitialValues]="initialRoleFormValue"></gio-save-bar>
+    <gio-save-bar [creationMode]="!isEditMode" [form]="roleForm" [formInitialValues]="initialRoleFormValue"></gio-save-bar>
   </form>
 </div>
