@@ -577,6 +577,7 @@ import { OrgSettingsTenantsComponent } from '../organization/configuration/tenan
 import { OrgSettingsRolesComponent } from '../organization/configuration/roles/org-settings-roles.component';
 import { OrgSettingsTagsComponent } from '../organization/configuration/tags/org-settings-tags.component';
 import { OrgSettingsRoleMembersComponent } from '../organization/configuration/roles/org-settings-role-members.component';
+import { OrgSettingsRoleComponent } from '../organization/configuration/roles/role/org-settings-role.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -880,6 +881,7 @@ graviteeManagementModule.component('metadata', MetadataComponent);
 graviteeManagementModule.component('roles', RolesComponent);
 graviteeManagementModule.directive('ngRoles', downgradeComponent({ component: OrgSettingsRolesComponent }));
 graviteeManagementModule.component('role', RoleComponent);
+graviteeManagementModule.directive('ngOrgSettingsRole', downgradeComponent({ component: OrgSettingsRoleComponent }));
 graviteeManagementModule.component('roleMembers', RoleMembersComponent);
 graviteeManagementModule.directive('ngRoleMembers', downgradeComponent({ component: OrgSettingsRoleMembersComponent }));
 graviteeManagementModule.component('theme', ThemeComponent);
