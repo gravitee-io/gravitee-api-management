@@ -37,7 +37,11 @@ public interface ApiService {
 
     Set<ApiEntity> findAll();
 
-    Set<ApiEntity> findAllLight();
+    default Set<ApiEntity> findAllLight() {
+        return findAllLight(true);
+    }
+
+    Set<ApiEntity> findAllLight(boolean excludeDefinition);
 
     Page<ApiEntity> findByUser(String userId, ApiQuery apiQuery, Sortable sortable, Pageable pageable, boolean portal);
 

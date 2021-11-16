@@ -63,8 +63,8 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
     @Override
     public boolean upgrade() {
-        // Index APIs
-        final Set<ApiEntity> apis = apiService.findAllLight();
+        // Index APIs. We need to keep definition, so we can index paths and hosts defined in the proxy field.
+        final Set<ApiEntity> apis = apiService.findAllLight(false);
 
         ExecutorService executorService = Executors.newFixedThreadPool(
             Runtime.getRuntime().availableProcessors() * 2,

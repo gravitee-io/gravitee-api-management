@@ -842,14 +842,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAllLight() {
+    public Set<ApiEntity> findAllLight(boolean excludeDefinition) {
         try {
             LOGGER.debug("Find all APIs without some fields (definition, picture...)");
+            final ApiFieldExclusionFilter.Builder exclusionFilterBuilder = new ApiFieldExclusionFilter.Builder().excludePicture();
+            if (excludeDefinition) {
+                exclusionFilterBuilder.excludeDefinition();
+            }
+
             return new HashSet<>(
                 convert(
                     apiRepository.search(
                         new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
-                        new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
+                        exclusionFilterBuilder.build()
                     )
                 )
             );
