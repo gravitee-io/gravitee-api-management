@@ -19,7 +19,7 @@ export function fakeEntrypoint(attributes?: Partial<Entrypoint>): Entrypoint {
   const base: Entrypoint = {
     id: 'da98cab3-ff94-4c68-98ca-b3ff949c6896',
     value: 'https://googl.co',
-    tags: ['internal'],
+    tags: ['external'],
   };
 
   return {

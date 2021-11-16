@@ -178,14 +178,14 @@ describe('OrgSettingsTagsComponent', () => {
     expect(headerCells).toEqual([
       {
         entrypoint: 'Entrypoint',
-        tags: 'Tags id',
+        tags: 'Tags',
         actions: '',
       },
     ]);
     expect(rowCells).toEqual([
       {
         entrypoint: expect.stringContaining('https://googl.co'),
-        tags: 'internal',
+        tags: 'External',
         actions: 'editdelete',
       },
     ]);
@@ -193,7 +193,7 @@ describe('OrgSettingsTagsComponent', () => {
 
   it('should remove a tag', async () => {
     fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
+    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
     expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     expectPortalSettingsGetRequest(fakePortalSettings());
     expectEntrypointsListRequest([fakeEntrypoint({ tags: ['tag-1', 'tag-2'] }), fakeEntrypoint({ id: 'epIdB', tags: ['tag-1'] })]);
@@ -231,7 +231,7 @@ describe('OrgSettingsTagsComponent', () => {
 
   it('should remove a mapping', async () => {
     fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
+    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
     expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     expectPortalSettingsGetRequest(fakePortalSettings());
     expectEntrypointsListRequest([fakeEntrypoint({ id: 'entrypoint-1', tags: ['tag-1', 'tag-2'] })]);

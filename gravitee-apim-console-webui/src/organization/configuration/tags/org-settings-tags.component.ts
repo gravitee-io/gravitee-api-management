@@ -49,6 +49,7 @@ type EntrypointTableDS = {
   id: string;
   url: string;
   tags: string[];
+  tagsName: string[];
 }[];
 @Component({
   selector: 'org-settings-tags',
@@ -113,7 +114,12 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
         this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
 
         this.entrypoints = entrypoints;
-        this.entrypointsTableDS = entrypoints.map((entrypoint) => ({ id: entrypoint.id, url: entrypoint.value, tags: entrypoint.tags }));
+        this.entrypointsTableDS = entrypoints.map((entrypoint) => ({
+          id: entrypoint.id,
+          url: entrypoint.value,
+          tags: entrypoint.tags,
+          tagsName: (entrypoint.tags ?? []).map((tagId) => tags.find((t) => t.id === tagId).name ?? tagId),
+        }));
         this.filteredEntrypointsTableDS = this.entrypointsTableDS;
 
         this.isLoading = false;
