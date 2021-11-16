@@ -74,6 +74,11 @@ public class VirtualHost implements Entrypoint {
     }
 
     @Override
+    public String host() {
+        return host;
+    }
+
+    @Override
     public int priority() {
         return weight;
     }
