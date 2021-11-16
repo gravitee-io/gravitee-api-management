@@ -218,8 +218,6 @@ public class EntrypointResolverTest {
         // Cases without host.
         for (final HandlerEntrypoint expected : noHosts) {
             logger.info("Test case: resolve for host [{}] with unknown path.", expected.host());
-
-            final HttpHeaders headers = createHeaders(null);
             final List<String> pathsShouldNotMatch = Arrays.asList("/unknown", "/A/b/C", "/a/b/c", "/a/b/c/");
 
             // Test some path that should be resolved to null.
@@ -230,7 +228,7 @@ public class EntrypointResolverTest {
                 path -> {
                     logger.info("Trying to resolve for host [{}] and path [{}].", expected.host(), path);
                     reset(request);
-                    when(request.headers()).thenReturn(headers);
+                    when(request.host()).thenReturn(null);
                     when(request.path()).thenReturn(path);
                     assertNull(handlerResolver.resolve(context));
                 }
@@ -247,7 +245,7 @@ public class EntrypointResolverTest {
                 path -> {
                     logger.info("Test case: to resolve for host [{}] and path [{}].", expected.host(), path);
                     reset(request);
-                    when(request.headers()).thenReturn(headers);
+                    when(request.host()).thenReturn(null);
                     when(request.path()).thenReturn(path);
                     assertEquals(expected, handlerResolver.resolve(context));
                 }
@@ -256,8 +254,6 @@ public class EntrypointResolverTest {
 
         // Cases with host and path "/a/b/c"
         for (final HandlerEntrypoint expected : withHostAndPathABC) {
-            final HttpHeaders headers = createHeaders(expected.host());
-
             // Test some path that should be resolved to null.
             // "unknown" -> path not declared at all
             // "/A/b/C"  -> path with this specific case not declared
@@ -268,7 +264,7 @@ public class EntrypointResolverTest {
                 path -> {
                     logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
                     reset(request);
-                    when(request.headers()).thenReturn(headers);
+                    when(request.host()).thenReturn(expected.host());
                     when(request.path()).thenReturn(path);
                     assertNull(handlerResolver.resolve(context));
                 }
@@ -287,7 +283,7 @@ public class EntrypointResolverTest {
                 path -> {
                     logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
                     reset(request);
-                    when(request.headers()).thenReturn(headers);
+                    when(request.host()).thenReturn(expected.host());
                     when(request.path()).thenReturn(path);
                     assertEquals(expected, handlerResolver.resolve(context));
                 }
@@ -296,8 +292,6 @@ public class EntrypointResolverTest {
 
         // Cases with host and path NOT "/a/b/c"
         for (final HandlerEntrypoint expected : withHostAndNotPathABC) {
-            final HttpHeaders headers = createHeaders(expected.host());
-
             // Test some path that should be resolved to null.
             // "unknown" -> path not declared at all
             // All other paths are either on all host ('*') either for an host which is also exposing the paths we are testing (ex: "api1.gravitee.io" exposes multiples paths).
@@ -307,7 +301,7 @@ public class EntrypointResolverTest {
                 path -> {
                     logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
                     reset(request);
-                    when(request.headers()).thenReturn(headers);
+                    when(request.host()).thenReturn(expected.host());
                     when(request.path()).thenReturn(path);
                     assertNull(handlerResolver.resolve(context));
                 }
@@ -324,22 +318,12 @@ public class EntrypointResolverTest {
                 path -> {
                     logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
                     reset(request);
-                    when(request.headers()).thenReturn(headers);
+                    when(request.host()).thenReturn(expected.host());
                     when(request.path()).thenReturn(path);
                     assertEquals(expected, handlerResolver.resolve(context));
                 }
             );
         }
-    }
-
-    private HttpHeaders createHeaders(String host) {
-        final HttpHeaders httpHeaders = new HttpHeaders();
-
-        if (host != null) {
-            httpHeaders.add(HttpHeaders.HOST, host);
-        }
-
-        return httpHeaders;
     }
 
     private class DummyReactorandlerEntrypoint implements HandlerEntrypoint {

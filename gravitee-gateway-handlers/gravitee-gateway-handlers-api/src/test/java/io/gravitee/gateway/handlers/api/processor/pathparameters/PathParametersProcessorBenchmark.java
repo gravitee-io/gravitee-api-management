@@ -212,6 +212,11 @@ public class PathParametersProcessorBenchmark {
         }
 
         @Override
+        public String host() {
+            return null;
+        }
+
+        @Override
         public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
             return null;
         }
