@@ -62,7 +62,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
 
         Command command = new Command();
         command.setId(RandomString.generate());
-        command.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        command.setEnvironmentId(GraviteeContext.getCurrentEnvironmentOrDefault());
         command.setFrom(node.id());
         command.setTo(messageEntity.getTo());
         command.setTags(convert(messageEntity.getTags()));
