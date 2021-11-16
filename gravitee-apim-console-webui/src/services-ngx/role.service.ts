@@ -15,7 +15,6 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { toUpper } from 'lodash';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -32,11 +31,21 @@ export class RoleService {
   list(scope: string): Observable<Role[]> {
     return this.http
       .get<Role[]>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles`)
-      .pipe(map((roles) => roles.map((role) => ({ ...role, scope: toUpper(role.scope) as RoleScope }))));
+      .pipe(map((roles) => roles.map((role) => ({ ...role, scope: role.scope.toUpperCase() as RoleScope }))));
   }
 
   getPermissionsByScopes(): Observable<Record<Extract<RoleScope, 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION'>, string[]>> {
     return this.http.get<Record<string, string[]>>(`${this.constants.org.baseURL}/configuration/rolescopes`);
+  }
+
+  get(scope: string, roleName: string): Observable<Role> {
+    return this.http
+      .get<Role>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles/${roleName}`)
+      .pipe(map((role) => ({ ...role, scope: role.scope.toUpperCase() as RoleScope })));
+  }
+
+  update(role: Role): Observable<void> {
+    return this.http.put<void>(`${this.constants.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`, role);
   }
 
   delete(scope: string, roleName: string): Observable<void> {

@@ -173,7 +173,7 @@ describe('RoleService', () => {
     });
   });
 
-  describe('remove', () => {
+  describe('delete', () => {
     it('should call the API', (done) => {
       const roleToDelete = fakeRole({
         scope: 'ORGANIZATION',
@@ -188,6 +188,46 @@ describe('RoleService', () => {
           url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles/admin`,
         })
         .flush(null);
+    });
+  });
+
+  describe('get', () => {
+    it('should call the API', (done) => {
+      const roleToGet = fakeRole({
+        scope: 'ORGANIZATION',
+        name: 'admin',
+      });
+
+      roleService.get(roleToGet.scope, roleToGet.name).subscribe((role) => {
+        expect(role).toMatchObject(roleToGet);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleToGet.scope}/roles/${roleToGet.name}`,
+          method: 'GET',
+        })
+        .flush(roleToGet);
+    });
+  });
+
+  describe('update', () => {
+    it('should call the API', (done) => {
+      const roleToUpdate = fakeRole({
+        scope: 'ORGANIZATION',
+        name: 'admin',
+      });
+
+      roleService.update(roleToUpdate).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleToUpdate.scope}/roles/${roleToUpdate.name}`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual(roleToUpdate);
+
+      req.flush(null);
     });
   });
 
