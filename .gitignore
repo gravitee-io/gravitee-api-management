@@ -33,9 +33,12 @@ gravitee-**/node/
 # used in makefile as working directory
 .working/
 # used in makefile for docker-compose quick setups
-.logs/
-.plugins/
-.license/
+docker/quick-setup/**/.data
+docker/quick-setup/**/.logs
+docker/quick-setup/**/.plugins
+docker/quick-setup/**/.license
+docker/quick-setup/**/.driver
+
 # -- Cicd : Git ignore the [.circleci/**/*] which contains
 # files which do not need to be commited (password to artifactory)
 .circleci/**/*
@@ -58,3 +61,4 @@ graviteebot.gpg.pub.key
 # Cypress
 gravitee-apim-cypress/cypress/videos/
 gravitee-apim-cypress/cypress/screenshots/
+

@@ -45,6 +45,9 @@ https-gateway: ## Run API Management with HTTPS enabled.
 mongodb: ## Run API Management with MongoDB as database.
 	cd ./quick-setup/mongodb && docker-compose down -v && docker-compose pull && docker-compose up -d
 
+postgresql: ## Run API Management with PostgreSQL as database.
+	cd ./quick-setup/postgresql && docker-compose down -v && docker-compose pull && docker-compose up -d
+
 keycloak: ## Run API Management with MongoDB as database.
 	cd ./quick-setup/keycloak && docker-compose down -v && docker-compose pull && docker-compose up -d
 
