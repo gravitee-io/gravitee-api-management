@@ -291,7 +291,12 @@ public enum Key {
         "true",
         new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))
     ),
-    CONSOLE_SUPPORT_ENABLED("console.support.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM)));
+    CONSOLE_SUPPORT_ENABLED("console.support.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_DASHBOARDS_API_STATUS(
+        "console.dashboards.apiStatus.enabled",
+        "true",
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    );
 
     String key;
     String defaultValue;

@@ -16,14 +16,16 @@
 package io.gravitee.repository.hazelcast.ratelimit;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import io.gravitee.repository.hazelcast.ratelimit.configuration.HazelcastRateLimitConfiguration;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
-import io.reactivex.*;
+import io.reactivex.Completable;
+import io.reactivex.Maybe;
+import io.reactivex.Single;
+import io.reactivex.SingleSource;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
@@ -53,7 +55,7 @@ public class HazelcastRateLimitRepository implements RateLimitRepository<RateLim
     public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
         final long now = System.currentTimeMillis();
 
-        Lock lock = hazelcastInstance.getLock("lock-rl-" + key);
+        Lock lock = hazelcastInstance.getCPSubsystem().getLock("lock-rl-" + key);
 
         return Completable
             .create(
@@ -67,7 +69,7 @@ public class HazelcastRateLimitRepository implements RateLimitRepository<RateLim
                 Single.defer(
                     () ->
                         Maybe
-                            .fromFuture(counters.getAsync(key))
+                            .fromFuture(counters.getAsync(key).toCompletableFuture())
                             .switchIfEmpty((SingleSource<RateLimit>) observer -> observer.onSuccess(supplier.get()))
                             .flatMap(
                                 (Function<RateLimit, SingleSource<RateLimit>>) rateLimit -> {
@@ -81,12 +83,14 @@ public class HazelcastRateLimitRepository implements RateLimitRepository<RateLim
 
                                     return Completable
                                         .fromFuture(
-                                            counters.setAsync(
-                                                rateLimit.getKey(),
-                                                rateLimit,
-                                                now - rateLimit.getResetTime(),
-                                                TimeUnit.MILLISECONDS
-                                            )
+                                            counters
+                                                .setAsync(
+                                                    rateLimit.getKey(),
+                                                    rateLimit,
+                                                    now - rateLimit.getResetTime(),
+                                                    TimeUnit.MILLISECONDS
+                                                )
+                                                .toCompletableFuture()
                                         )
                                         .andThen(Single.defer(() -> Single.just(finalRateLimit)))
                                         .doFinally(lock::unlock);

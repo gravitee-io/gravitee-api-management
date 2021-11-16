@@ -44,7 +44,16 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         List<AggregationOperation> aggregationOperations = new ArrayList<>();
 
         // Filter on group property.
-        aggregationOperations.add(Aggregation.match(Criteria.where("properties." + group.getValue()).exists(true)));
+        if (criteria.getFrom() != 0) {
+            // When a 'from' date is specified we can optimize the pipeline by filtering event on 'updatedAt' field and avoid executing the grouping step on all events.
+            aggregationOperations.add(
+                Aggregation.match(
+                    Criteria.where("properties." + group.getValue()).exists(true).and("updatedAt").gte(new Date(criteria.getFrom()))
+                )
+            );
+        } else {
+            aggregationOperations.add(Aggregation.match(Criteria.where("properties." + group.getValue()).exists(true)));
+        }
 
         // Sort.
         aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt", "_id"));
