@@ -196,7 +196,7 @@ describe('OrgSettingsTagsComponent', () => {
     expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
     expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest([fakeEntrypoint({ tags: ['tag-1', 'tag-2'] })]);
+    expectEntrypointsListRequest([fakeEntrypoint({ tags: ['tag-1', 'tag-2'] }), fakeEntrypoint({ id: 'epIdB', tags: ['tag-1'] })]);
     fixture.detectChanges();
 
     const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tag"]' }));
@@ -212,6 +212,14 @@ describe('OrgSettingsTagsComponent', () => {
     });
     expect(updateEntrypointReq.request.body.tags).toEqual(['tag-2']);
     updateEntrypointReq.flush(null);
+
+    // Delete entrypoint with only this tag
+    httpTestingController
+      .expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/epIdB`,
+      })
+      .flush(null);
 
     // Delete tag
     httpTestingController.expectOne({

@@ -17,7 +17,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './org-settings-add-tag-dialog.component';
@@ -210,14 +210,27 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
 
   onDeleteTagClicked(tag: TagTableDS[number]) {
     const entrypointsToUpdate = this.entrypoints.filter((entrypoint) => entrypoint.tags.includes(tag.id));
+    const entrypointsToUpdateWithOneTag = entrypointsToUpdate.filter((e) => e.tags.length === 1);
+    const entrypointsToUpdateWithManyTags = entrypointsToUpdate.filter((e) => e.tags.length > 1);
+
     let entrypointsInfoMessage = '';
-    if (entrypointsToUpdate.length === 1) {
-      entrypointsInfoMessage = `<br>The tag will be removed for the entrypoint <strong>${entrypointsToUpdate[0].value}</strong>.`;
-    } else if (entrypointsToUpdate.length > 1) {
+    if (entrypointsToUpdateWithManyTags.length === 1) {
+      entrypointsInfoMessage = `<br>The tag will be removed for the entrypoint <strong>${entrypointsToUpdateWithManyTags[0].value}</strong>.`;
+    } else if (entrypointsToUpdateWithManyTags.length > 1) {
       entrypointsInfoMessage = `
         <br>The tag will be removed from all these entrypoints:
         <ul>
-          <li><strong>${entrypointsToUpdate.map((e) => e.value).join('</strong></li><li><strong>')}</li>
+          <li><strong>${entrypointsToUpdateWithManyTags.map((e) => e.value).join('</strong></li><li><strong>')}</strong></li>
+        </ul>`;
+    }
+
+    if (entrypointsToUpdateWithOneTag.length === 1) {
+      entrypointsInfoMessage += `<br>The <strong>${entrypointsToUpdateWithOneTag[0].value}</strong> entrypoint will be deleted as it is only using this tag.`;
+    } else if (entrypointsToUpdateWithOneTag.length > 1) {
+      entrypointsInfoMessage += `
+        <br>The following entrypoints will be deleted as they are only using this tag:
+        <ul>
+          <li><strong>${entrypointsToUpdateWithOneTag.map((e) => e.value).join('</strong></li><li><strong>')}</strong></li>
         </ul>`;
     }
 
@@ -240,11 +253,19 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
         filter((confirm) => confirm === true),
         // Remove tag in each entrypoints and update them all
         switchMap(() => {
-          const entrypointsUpdated = entrypointsToUpdate.map((entrypoint) => ({
+          if (entrypointsToUpdate.length === 0) {
+            return of();
+          }
+          const entrypointsUpdated = entrypointsToUpdateWithManyTags.map((entrypoint) => ({
             ...entrypoint,
             tags: entrypoint.tags.filter((t) => t !== tag.id),
           }));
-          return combineLatest([...entrypointsUpdated.map((entrypoint) => this.entrypointService.update(entrypoint))]);
+          const entrypointsToDelete = entrypointsToUpdateWithOneTag;
+
+          return combineLatest([
+            ...entrypointsUpdated.map((entrypoint) => this.entrypointService.update(entrypoint)),
+            ...entrypointsToDelete.map((entrypoint) => this.entrypointService.delete(entrypoint.id)),
+          ]);
         }),
         switchMap(() => this.tagService.delete(tag.id)),
         tap(() => this.snackBarService.success(`Tag "${tag.name}" has been removed`)),
