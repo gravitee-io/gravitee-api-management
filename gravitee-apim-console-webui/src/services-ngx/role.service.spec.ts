@@ -231,6 +231,25 @@ describe('RoleService', () => {
     });
   });
 
+  describe('create', () => {
+    it('should call the API', (done) => {
+      const roleToCreate = fakeRole({
+        scope: 'ORGANIZATION',
+        name: 'admin',
+      });
+
+      roleService.create(roleToCreate).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleToCreate.scope}/roles`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual(roleToCreate);
+
+      req.flush(null);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

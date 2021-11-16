@@ -44,6 +44,10 @@ export class RoleService {
       .pipe(map((role) => ({ ...role, scope: role.scope.toUpperCase() as RoleScope })));
   }
 
+  create(role: Role): Observable<void> {
+    return this.http.post<void>(`${this.constants.org.baseURL}/configuration/rolescopes/${role.scope}/roles`, role);
+  }
+
   update(role: Role): Observable<void> {
     return this.http.put<void>(`${this.constants.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`, role);
   }
