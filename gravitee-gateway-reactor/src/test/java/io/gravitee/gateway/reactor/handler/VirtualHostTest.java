@@ -34,13 +34,9 @@ public class VirtualHostTest {
     @Mock
     private Request request;
 
-    @Mock
-    private HttpHeaders httpHeaders;
-
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        when(request.headers()).thenReturn(httpHeaders);
     }
 
     @Test
@@ -137,7 +133,7 @@ public class VirtualHostTest {
         VirtualHost vHost = new VirtualHost("api.gravitee.io", "/");
 
         when(request.path()).thenReturn("/");
-        when(httpHeaders.getFirst(HttpHeaders.HOST)).thenReturn("api.gravitee.io");
+        when(request.host()).thenReturn("api.gravitee.io");
         boolean accept = vHost.accept(request);
 
         Assert.assertTrue(accept);

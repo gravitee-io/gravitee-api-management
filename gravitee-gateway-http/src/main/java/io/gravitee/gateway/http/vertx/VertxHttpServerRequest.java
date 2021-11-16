@@ -265,6 +265,11 @@ public class VertxHttpServerRequest implements Request {
         return this;
     }
 
+    @Override
+    public String host() {
+        return this.serverRequest.host();
+    }
+
     public HttpServerRequest getNativeServerRequest() {
         return serverRequest;
     }
