@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -101,8 +102,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String userId, String organizationId, String environmentId) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
-            // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+            apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
+
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, jsonNode);
             createPageAndMedia(createdApiEntity, jsonNode, environmentId);
@@ -205,6 +207,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         try {
             // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+
+            // regenerate nested IDs in input json node, only if importing on a different API
+            if (!jsonNode.has("id") || !apiId.equals(jsonNode.get("id").asText())) {
+                apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
+            }
+
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
             ApiEntity updatedApiEntity = apiService.update(apiId, importedApi, false);
             updateApiReferences(updatedApiEntity, jsonNode, organizationId, environmentId, true);
@@ -512,9 +520,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             plansList.forEach(
                 planEntity -> {
                     planEntity.setApi(createdOrUpdatedApiEntity.getId());
-                    planEntity.setId(
-                        UuidString.generateForEnvironment(environmentId, createdOrUpdatedApiEntity.getId(), planEntity.getId())
-                    );
                     planService.createOrUpdatePlan(planEntity, environmentId);
                 }
             );
@@ -603,5 +608,19 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             result = 31 * result + sourceId.hashCode();
             return result;
         }
+    }
+
+    protected String preprocessApiDefinitionUpdatingIds(JsonNode apiJsonNode, String environmentId) {
+        final JsonNode plansDefinition = apiJsonNode.path("plans");
+        if (plansDefinition != null && plansDefinition.isArray()) {
+            plansDefinition.forEach(planJsonNode -> regenerateApiDefinitionPlanId(apiJsonNode, planJsonNode, environmentId));
+        }
+        return apiJsonNode.toString();
+    }
+
+    private void regenerateApiDefinitionPlanId(JsonNode apiJsonNode, JsonNode planJsonNode, String environmentId) {
+        String apiId = apiJsonNode.has("id") ? apiJsonNode.get("id").asText() : null;
+        String planId = planJsonNode.has("id") ? planJsonNode.get("id").asText() : null;
+        ((ObjectNode) planJsonNode).put("id", UuidString.generateForEnvironment(environmentId, apiId, planId));
     }
 }
