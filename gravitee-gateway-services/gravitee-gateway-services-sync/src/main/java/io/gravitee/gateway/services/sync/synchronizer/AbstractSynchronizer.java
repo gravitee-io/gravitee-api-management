@@ -29,6 +29,7 @@ import io.reactivex.Flowable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -46,6 +47,7 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
     protected ObjectMapper objectMapper;
 
     @Autowired
+    @Qualifier("syncExecutor")
     protected ExecutorService executor;
 
     @Value("${services.sync.bulk_items:100}")
