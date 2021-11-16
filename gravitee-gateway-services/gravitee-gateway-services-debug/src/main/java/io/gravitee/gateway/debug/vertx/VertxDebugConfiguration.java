@@ -73,7 +73,12 @@ public class VertxDebugConfiguration {
 
     @Bean("debugHttpServerConfiguration")
     public HttpServerConfiguration debugHttpServerConfiguration(Environment environment) {
-        return HttpServerConfiguration.builder().withEnvironment(environment).withDefaultPort(8482).withDefaultHost("localhost").build();
+        return HttpServerConfiguration
+            .builder()
+            .withEnvironment(environment)
+            .withPort(Integer.parseInt(environment.getProperty("debug.http.port", "8482")))
+            .withHost(environment.getProperty("debug.http.host", "localhost"))
+            .build();
     }
 
     @Bean("gatewayDebugHttpServer")
