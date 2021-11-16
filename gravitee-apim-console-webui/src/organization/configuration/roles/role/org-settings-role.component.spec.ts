@@ -33,61 +33,67 @@ import { Role } from '../../../../entities/role/role';
 describe('OrgSettingsRoleComponent', () => {
   const roleScope = 'ORGANIZATION';
   const role = 'USER';
+  const fakeAjsState = {
+    go: jest.fn(),
+  };
 
   let fixture: ComponentFixture<OrgSettingsRoleComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
-      providers: [
-        { provide: UIRouterState, useValue: {} },
-        { provide: UIRouterStateParams, useValue: { roleScope, role } },
-      ],
-    });
-    httpTestingController = TestBed.inject(HttpTestingController);
-    fixture = TestBed.createComponent(OrgSettingsRoleComponent);
-    loader = TestbedHarnessEnvironment.loader(fixture);
-    fixture.detectChanges();
-  });
-
   afterEach(() => {
     httpTestingController.verify();
+    jest.resetAllMocks();
   });
 
-  it('should update role', async () => {
-    const role = fakeRole({ id: 'roleId' });
-    expectRoleGetRequest(role);
-
-    const saveBar = await loader.getHarness(GioSaveBarHarness);
-
-    const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
-    await descriptionInput.setValue('New description');
-
-    const defaultToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=default]' }));
-    await defaultToggle.toggle();
-
-    expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
-    await saveBar.clickSubmit();
-
-    const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`,
-      method: 'PUT',
+  describe('edit mode', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+        providers: [
+          { provide: UIRouterState, useValue: fakeAjsState },
+          { provide: UIRouterStateParams, useValue: { roleScope, role } },
+        ],
+      });
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture = TestBed.createComponent(OrgSettingsRoleComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      fixture.detectChanges();
     });
-    expect(req.request.body).toEqual({ ...role, description: 'New description', default: false });
-    // No flush to stop test here
-  });
 
-  it('should disable form with a system role', async () => {
-    const role = fakeRole({ id: 'roleId', system: true });
-    expectRoleGetRequest(role);
+    it('should update role', async () => {
+      const role = fakeRole({ id: 'roleId', scope: roleScope });
+      expectRoleGetRequest(role);
 
-    const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
-    expect(await descriptionInput.isDisabled()).toEqual(true);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
 
-    const defaultToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=default]' }));
-    expect(await defaultToggle.isDisabled()).toEqual(true);
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
+      await descriptionInput.setValue('New description');
+
+      const defaultToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=default]' }));
+      await defaultToggle.toggle();
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual({ ...role, description: 'New description', default: false });
+      // No flush to stop test here
+    });
+
+    it('should disable form with a system role', async () => {
+      const role = fakeRole({ id: 'roleId', system: true, scope: roleScope });
+      expectRoleGetRequest(role);
+
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
+      expect(await descriptionInput.isDisabled()).toEqual(true);
+
+      const defaultToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=default]' }));
+      expect(await defaultToggle.isDisabled()).toEqual(true);
+    });
   });
 
   function expectRoleGetRequest(role: Role) {
