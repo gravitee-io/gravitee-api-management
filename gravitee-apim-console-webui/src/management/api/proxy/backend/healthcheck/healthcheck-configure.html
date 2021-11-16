@@ -243,7 +243,7 @@
               class="md-raised md-primary"
               type="submit"
               ng-click="healthCheckCtrl.update()"
-              ng-disabled="((healthCheckCtrl.healthcheck.inherit === false && healthCheckCtrl.healthcheck.enabled === true) && (formApiHealthCheckTrigger.$invalid || formApiHealthCheckResponse.$invalid || formApiHealthCheckRequest.$invalid))"
+              ng-disabled="healthCheckCtrl.cannotUpdate()"
             >
               Save
             </md-button>

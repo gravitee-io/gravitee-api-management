@@ -72,16 +72,14 @@ class ApiHealthCheckConfigureController {
       if (this.api.proxy.groups.length === 1 && this.api.proxy.groups[0].endpoints.length === 1) {
         this.endpointToDisplay = this.api.proxy.groups[0].endpoints[0];
       }
-
       this.healthcheck = this.api.services && this.api.services['health-check'];
     }
-
     this.healthcheck = this.healthcheck || { enabled: false, inherit: false, schedule: '*/1 * * * * *' };
     const inherit = this.endpoint !== undefined && this.healthcheck.inherit;
     const enabled = this.healthcheck.enabled;
 
     // FIXME: https://github.com/gravitee-io/issues/issues/6437
-    this.hasHealthCheck = this.endpoint.type === 'http' || this.endpoint.type === 'grpc';
+    this.hasHealthCheck = this.endpointToDisplay.type?.toLowerCase() === 'http' || this.endpointToDisplay.type?.toLowerCase() === 'grpc';
 
     if (inherit) {
       this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || { enabled: false });
@@ -204,6 +202,16 @@ class ApiHealthCheckConfigureController {
     } else {
       this.$scope.formApiHealthCheckTrigger.$invalid = true;
     }
+  }
+
+  cannotUpdate() {
+    return (
+      (this.healthcheck.inherit === false || this.healthcheck.inherit == null) &&
+      this.healthcheck.enabled === true &&
+      (this.$scope.formApiHealthCheckTrigger.$invalid ||
+        this.$scope.formApiHealthCheckResponse.$invalid ||
+        this.$scope.formApiHealthCheckRequest.$invalid)
+    );
   }
 
   update() {
