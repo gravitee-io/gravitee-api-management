@@ -24,6 +24,7 @@ import { User } from '../entities/user/user';
 import { NewExternalUser } from '../entities/user/newExternalUser';
 import { Group } from '../entities/group/group';
 import { UserMembership } from '../entities/user/userMembership';
+import { SearchableUser } from '../entities/user/searchableUser';
 
 @Injectable({
   providedIn: 'root',
@@ -87,5 +88,13 @@ export class UsersService {
 
   processRegistration(userId: string, accepted: boolean): Observable<void> {
     return this.http.post<void>(`${this.constants.org.baseURL}/users/${userId}/_process`, accepted);
+  }
+
+  search(query: string): Observable<SearchableUser[]> {
+    return this.http.get<SearchableUser[]>(`${this.constants.org.baseURL}/search/users`, {
+      params: {
+        q: query,
+      },
+    });
   }
 }

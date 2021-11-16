@@ -24,6 +24,7 @@ import { fakePagedResult } from '../entities/pagedResult';
 import { fakeNewExternalUser } from '../entities/user/newExternalUser.fixture';
 import { fakeGroup } from '../entities/group/group.fixture';
 import { fakeUserMembership } from '../entities/user/userMembership.fixture';
+import { fakeSearchableUser } from '../entities/user/searchableUser.fixture';
 
 describe('UsersService', () => {
   let httpTestingController: HttpTestingController;
@@ -221,6 +222,24 @@ describe('UsersService', () => {
       expect(req.request.body).toEqual(accepted);
 
       req.flush(null);
+    });
+  });
+
+  describe('search', () => {
+    it('should return users matching params', (done) => {
+      const expectedUsersResult = [fakeSearchableUser()];
+
+      usersService.search('joh').subscribe((users) => {
+        expect(users).toEqual(expectedUsersResult);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/search/users?q=joh`,
+        })
+        .flush(expectedUsersResult);
     });
   });
 
