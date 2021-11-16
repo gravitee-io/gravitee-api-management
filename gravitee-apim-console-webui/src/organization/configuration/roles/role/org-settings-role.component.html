@@ -17,9 +17,18 @@
 -->
 <div class="org-settings-role">
   <h1>
-    <gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-roles' }"></gio-go-back-button>{{ roleScope | titlecase }} - {{ role }}
+    <gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-roles' }"></gio-go-back-button>{{ roleScope | titlecase }} - {{ roleName }}
   </h1>
-  <h4>Edit CRUD (Create, Read, Update, Delete) permissions for each role {{ role }} in the {{ roleScope }} scope.</h4>
+  <h4>Edit CRUD (Create, Read, Update, Delete) permissions for each role {{ roleName }} in the {{ roleScope }} scope.</h4>
 
-  <mat-card>TODO 🦊</mat-card>
+  <form *ngIf="!isLoading" autocomplete="off" [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+    <mat-card class="org-settings-role__card">
+      <mat-form-field appearance="fill">
+        <mat-label>Role description</mat-label>
+        <input matInput formControlName="description" />
+      </mat-form-field>
+    </mat-card>
+
+    <gio-save-bar [creationMode]="false" [form]="roleForm" [formInitialValues]="initialRoleFormValue"></gio-save-bar>
+  </form>
 </div>

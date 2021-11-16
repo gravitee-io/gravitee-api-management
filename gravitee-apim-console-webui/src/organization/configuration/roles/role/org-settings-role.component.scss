@@ -3,3 +3,10 @@
 :host {
   @include gio-layout.gio-responsive-content-container;
 }
+
+.org-settings-role {
+  &__card {
+    display: flex;
+    flex-direction: column;
+  }
+}
