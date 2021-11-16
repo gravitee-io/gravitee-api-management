@@ -20,6 +20,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { OrgSettingsRoleComponent } from './org-settings-role.component';
 
@@ -64,6 +65,9 @@ describe('OrgSettingsRoleComponent', () => {
     const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
     await descriptionInput.setValue('New description');
 
+    const defaultToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=default]' }));
+    await defaultToggle.toggle();
+
     expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
     await saveBar.clickSubmit();
 
@@ -71,7 +75,7 @@ describe('OrgSettingsRoleComponent', () => {
       url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`,
       method: 'PUT',
     });
-    expect(req.request.body).toEqual({ ...role, description: 'New description' });
+    expect(req.request.body).toEqual({ ...role, description: 'New description', default: false });
     // No flush to stop test here
   });
 
@@ -81,6 +85,9 @@ describe('OrgSettingsRoleComponent', () => {
 
     const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
     expect(await descriptionInput.isDisabled()).toEqual(true);
+
+    const defaultToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=default]' }));
+    expect(await defaultToggle.isDisabled()).toEqual(true);
   });
 
   function expectRoleGetRequest(role: Role) {

@@ -85,7 +85,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   }
 
   onAddARoleClicked(scope: string) {
-    this.ajsState.go('organization.settings.rolenew', { roleScope: scope });
+    this.ajsState.go('organization.settings.ng-rolenew', { roleScope: scope });
   }
 
   onEditRoleClicked(scope: string, role: RoleVM) {

@@ -58,6 +58,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
           this.role = role;
           this.roleForm = new FormGroup({
             description: new FormControl({ value: role?.description, disabled: role.system }),
+            default: new FormControl({ value: role?.default, disabled: role.system }),
           });
           this.initialRoleFormValue = this.roleForm.getRawValue();
         }),

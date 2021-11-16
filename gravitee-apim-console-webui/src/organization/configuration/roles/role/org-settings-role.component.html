@@ -27,6 +27,11 @@
         <mat-label>Role description</mat-label>
         <input matInput formControlName="description" />
       </mat-form-field>
+
+      <gio-form-slide-toggle appearance="fill">
+        <gio-form-label>Default role</gio-form-label>
+        <mat-slide-toggle gioFormSlideToggle aria-label="Default role toggle" formControlName="default"></mat-slide-toggle>
+      </gio-form-slide-toggle>
     </mat-card>
 
     <gio-save-bar [creationMode]="false" [form]="roleForm" [formInitialValues]="initialRoleFormValue"></gio-save-bar>
