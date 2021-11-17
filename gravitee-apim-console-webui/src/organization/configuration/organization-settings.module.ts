@@ -78,6 +78,7 @@ import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.m
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioPolicyStudioWrapperModule } from '../../shared/components/gio-policy-studio-wrapper/gio-policy-studio-wrapper.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
 
 @NgModule({
   imports: [
@@ -124,6 +125,7 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     GioClipboardModule,
     GioPolicyStudioWrapperModule,
     GioTableWrapperModule,
+    GioUsersSelectorModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,

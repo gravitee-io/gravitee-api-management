@@ -31,6 +31,8 @@ import { MembershipListItem } from '../../../entities/role/membershipListItem';
 import { fakeMembershipListItem } from '../../../entities/role/membershipListItem.fixture';
 import { User } from '../../../entities/user';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
+import { GioUsersSelectorHarness } from '../../../shared/components/gio-users-selector/gio-users-selector.harness';
+import { fakeSearchableUser } from '../../../entities/user/searchableUser.fixture';
 
 describe('OrgSettingsRoleMembersComponent', () => {
   const roleScope = 'ORGANIZATION';
@@ -118,6 +120,61 @@ describe('OrgSettingsRoleMembersComponent', () => {
           url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${role}/users/user#1`,
         })
         .flush(null);
+
+      respondToListMembershipsRequest([]);
+    });
+  });
+
+  describe('onAddMemberClicked', () => {
+    beforeEach(() => {
+      currentUser.userPermissions = ['organization-role-u'];
+    });
+
+    it('should add members', async () => {
+      respondToListMembershipsRequest([
+        fakeMembershipListItem({
+          id: 'user#1',
+          displayName: 'John Doe',
+        }),
+      ]);
+
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a member"]' }));
+      await addButton.click();
+
+      const usersSelector = await rootLoader.getHarness(GioUsersSelectorHarness);
+
+      await usersSelector.typeSearch('john');
+      httpTestingController
+        .expectOne(`${CONSTANTS_TESTING.org.baseURL}/search/users?q=john`)
+        .flush([fakeSearchableUser({ displayName: 'John', id: 'john', reference: 'john_ref' })]);
+      await usersSelector.selectUser('John');
+
+      await usersSelector.typeSearch('flash');
+      httpTestingController
+        .expectOne(`${CONSTANTS_TESTING.org.baseURL}/search/users?q=flash`)
+        .flush([fakeSearchableUser({ displayName: 'Flash', id: 'flash', reference: 'flash_ref' })]);
+      await usersSelector.selectUser('Flash');
+
+      await usersSelector.validate();
+
+      const membershipRequests = httpTestingController.match({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${role}/users`,
+      });
+
+      expect(membershipRequests.length).toEqual(2);
+
+      expect(membershipRequests[1].request.body).toStrictEqual({
+        id: 'john',
+        reference: 'john_ref',
+      });
+      membershipRequests[1].flush(null);
+
+      expect(membershipRequests[0].request.body).toStrictEqual({
+        id: 'flash',
+        reference: 'flash_ref',
+      });
+      membershipRequests[0].flush(null);
 
       respondToListMembershipsRequest([]);
     });

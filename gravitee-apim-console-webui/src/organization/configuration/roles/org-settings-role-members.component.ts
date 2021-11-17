@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { EMPTY, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -29,6 +29,11 @@ import {
   GioConfirmDialogData,
 } from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import {
+  GioUsersSelectorComponent,
+  GioUsersSelectorData,
+} from '../../../shared/components/gio-users-selector/gio-users-selector.component';
+import { SearchableUser } from '../../../entities/user/searchableUser';
 
 @Component({
   selector: 'org-settings-role-members',
@@ -77,8 +82,40 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
     this.filteredMemberships = gioTableFilterCollection(this.memberships, filters);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onAddMemberClicked() {}
+  onAddMemberClicked() {
+    this.matDialog
+      .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
+        width: '500px',
+        data: {
+          userFilterPredicate: (user) => !this.memberships.some((membership) => membership.id === user.id),
+        },
+        role: 'alertdialog',
+        id: 'createMembershipConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((users) => !!users),
+        switchMap((selectedUsers) =>
+          combineLatest(
+            selectedUsers.map((user) => {
+              const membership = {
+                id: user.id,
+                reference: user.reference,
+              };
+              return this.roleService.createMembership(this.roleScope, this.role, membership);
+            }),
+          ),
+        ),
+        tap(() => {
+          this.snackBarService.success('Membership successfully created');
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
   onDeleteMemberClicked(membership: MembershipListItem) {
     this.matDialog
