@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -512,12 +513,16 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         //Plans
         final JsonNode plansDefinition = jsonNode.path("plans");
         if (plansDefinition != null && plansDefinition.isArray()) {
-            List<PlanEntity> plansList = objectMapper.readValue(
+            List<PlanEntity> plansToImport = objectMapper.readValue(
                 plansDefinition.toString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, PlanEntity.class)
             );
 
-            plansList.forEach(
+            if (isUpdate) {
+                findRemovedPlansIds(planService.findByApi(createdOrUpdatedApiEntity.getId()), plansToImport).forEach(planService::delete);
+            }
+
+            plansToImport.forEach(
                 planEntity -> {
                     planEntity.setApi(createdOrUpdatedApiEntity.getId());
                     planService.createOrUpdatePlan(planEntity, environmentId);
@@ -622,5 +627,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         String apiId = apiJsonNode.has("id") ? apiJsonNode.get("id").asText() : null;
         String planId = planJsonNode.has("id") ? planJsonNode.get("id").asText() : null;
         ((ObjectNode) planJsonNode).put("id", UuidString.generateForEnvironment(environmentId, apiId, planId));
+    }
+
+    private Stream<String> findRemovedPlansIds(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
+        return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan)).map(plan -> plan.getId());
     }
 }
