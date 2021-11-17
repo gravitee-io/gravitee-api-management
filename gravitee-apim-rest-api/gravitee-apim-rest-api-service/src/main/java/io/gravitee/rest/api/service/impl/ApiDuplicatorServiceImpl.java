@@ -139,6 +139,20 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         } else {
             newApiEntity.setGroups(apiEntity.getGroups());
         }
+
+        Map<String, String> plansIdsMap = new HashMap<>();
+        if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
+            newApiEntity
+                .getPlans()
+                .forEach(
+                    plan -> {
+                        String newPlanId = UuidString.generateRandom();
+                        plansIdsMap.put(plan.getId(), newPlanId);
+                        plan.setId(newPlanId);
+                    }
+                );
+        }
+
         final ApiEntity duplicatedApi = apiService.createWithApiDefinition(newApiEntity, getAuthenticatedUsername(), null);
 
         if (!duplicateApiEntity.getFilteredFields().contains("members")) {
@@ -172,8 +186,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
-            final Set<PlanEntity> plans = planService.findByApi(apiId);
-            planService.duplicatePlans(plans, environmentId, duplicatedApi.getId());
+            planService
+                .findByApi(apiId)
+                .forEach(
+                    plan -> {
+                        plan.setId(plansIdsMap.get(plan.getId()));
+                        plan.setApi(duplicatedApi.getId());
+                        planService.create(NewPlanEntity.from(plan));
+                    }
+                );
         }
 
         return duplicatedApi;
