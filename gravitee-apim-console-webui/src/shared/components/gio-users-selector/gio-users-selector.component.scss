@@ -1,0 +1,47 @@
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+@use 'node_modules/@gravitee/ui-particles-angular' as gio;
+
+$background: map.get(gio.$mat-theme, background);
+
+.gio-users-selector {
+  &__search-autocomplete {
+    width: 100%;
+  }
+
+  &__users {
+    height: 180px;
+    overflow: auto;
+    margin: 0 -24px;
+    padding: 0 24px;
+
+    &__user {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      &:hover {
+        background-color: mat.get-color-from-palette($background, hover);
+      }
+
+      &__name {
+        flex: 1 1 auto;
+        padding: 0 16px;
+      }
+    }
+
+    &__no-user {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+
+      &__icon {
+        height: 96px;
+        width: 96px;
+        font-size: 96px;
+      }
+    }
+  }
+}

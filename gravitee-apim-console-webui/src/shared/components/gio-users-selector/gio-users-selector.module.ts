@@ -15,11 +15,32 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { GioUsersSelectorComponent } from './gio-users-selector.component';
 
+import { GioAvatarModule } from '../gio-avatar/gio-avatar.module';
+
 @NgModule({
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatAutocompleteModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    MatListModule,
+    GioAvatarModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
   declarations: [GioUsersSelectorComponent],
   exports: [GioUsersSelectorComponent],
   entryComponents: [GioUsersSelectorComponent],

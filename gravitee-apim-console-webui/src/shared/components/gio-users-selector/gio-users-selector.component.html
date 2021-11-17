@@ -15,4 +15,63 @@
     limitations under the License.
 
 -->
-It works!
+<h2 mat-dialog-title>
+  <ng-container *ngIf="selectedUsers.length === 0">Select users</ng-container>
+  <ng-container *ngIf="selectedUsers.length > 0"
+    >{{ selectedUsers.length }} user{{ selectedUsers.length > 1 ? 's' : '' }} selected</ng-container
+  >
+</h2>
+
+<mat-dialog-content>
+  <div>
+    <mat-form-field class="gio-users-selector__search-autocomplete" appearance="fill">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Search a user by name or email</mat-label>
+
+      <input matInput type="search" [matAutocomplete]="auto" [formControl]="userSearchTerm" />
+      <button *ngIf="this.userSearchTerm.value" matSuffix mat-icon-button aria-label="Clear" (click)="resetSearchTerm()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectUser($event)">
+        <mat-option *ngFor="let option of users | async" [value]="option">
+          {{ option.displayName }}
+        </mat-option>
+        <mat-option *ngIf="(users | async)?.length === 0 && this.userSearchTerm.value?.length > 0" disabled
+          >No user matching the term or user already selected</mat-option
+        >
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+  <div class="gio-users-selector__users">
+    <mat-list-item *ngFor="let selectedUser of selectedUsers">
+      <div class="gio-users-selector__users__user">
+        <gio-avatar
+          mat-list-icon
+          [src]="selectedUser.userPicture"
+          [name]="selectedUser.displayName"
+          size="32"
+          [roundedBorder]="true"
+        ></gio-avatar>
+        <div mat-line class="gio-users-selector__users__user__name">{{ selectedUser.displayName }}</div>
+        <button
+          (click)="onRemoveUserClicked(selectedUser)"
+          mat-icon-button
+          color="primary"
+          aria-label="Button to remove user from selection"
+          matTooltip="Remove user from selection"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </mat-list-item>
+    <div *ngIf="selectedUsers.length === 0" class="gio-users-selector__users__no-user">
+      <mat-icon class="gio-users-selector__users__no-user__icon">group_add</mat-icon>
+      <div class="gio-users-selector__users__no-user__message">No selected user</div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="[]">Cancel</button>
+  <button color="primary" mat-button [mat-dialog-close]="selectedUsers">Select</button>
+</mat-dialog-actions>
