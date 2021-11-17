@@ -1,6 +1,6 @@
 <#ftl output_format="JSON">
 {
-    "index_patterns": ["${indexName}-*"],
+    "index_patterns": ["${indexName}*"],
     "settings": {
         <#if indexLifecyclePolicyLog??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyLog}",</#if>
         "index.number_of_shards":${numberOfShards},
