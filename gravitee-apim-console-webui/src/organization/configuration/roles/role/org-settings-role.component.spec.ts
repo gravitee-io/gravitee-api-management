@@ -21,6 +21,8 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { OrgSettingsRoleComponent } from './org-settings-role.component';
 
@@ -63,7 +65,13 @@ describe('OrgSettingsRoleComponent', () => {
     });
 
     it('should update role', async () => {
-      const role = fakeRole({ id: 'roleId', scope: roleScope });
+      const role = fakeRole({
+        id: 'roleId',
+        scope: roleScope,
+        permissions: {
+          '1_USER_P': ['C', 'R', 'U', 'D'],
+        },
+      });
       expectRoleGetRequest(role);
       expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
 
@@ -85,7 +93,67 @@ describe('OrgSettingsRoleComponent', () => {
         url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`,
         method: 'PUT',
       });
-      expect(req.request.body).toEqual({ ...role, description: 'New description', default: false });
+      expect(req.request.body).toEqual({
+        ...role,
+        description: 'New description',
+        default: false,
+        permissions: {
+          '1_USER_P': ['C', 'R', 'U', 'D'],
+          '2_ROLE_P': [],
+        },
+      });
+      // No flush to stop test here
+    });
+
+    it('should update role permissions', async () => {
+      const role = fakeRole({
+        id: 'roleId',
+        scope: roleScope,
+        permissions: {
+          '1_USER_P': ['C', 'R', 'U', 'D'],
+        },
+      });
+      expectRoleGetRequest(role);
+      expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#rolePermissionsTable' }));
+      const rows = await table.getRows();
+
+      // Uncheck Create for the first row
+      const firstRowCreateCell = (await rows[0].getCells({ columnName: 'create' }))[0];
+      const firstRowCreateCheckbox = await firstRowCreateCell.getHarness(MatCheckboxHarness);
+      await firstRowCreateCheckbox.uncheck();
+
+      // Uncheck Read for the first row
+      const firstRowReadCell = (await rows[0].getCells({ columnName: 'read' }))[0];
+      const firstRowReadCheckbox = await firstRowReadCell.getHarness(MatCheckboxHarness);
+      await firstRowReadCheckbox.uncheck();
+
+      // Check Update for the second row
+      const firstRowUpdateCell = (await rows[1].getCells({ columnName: 'update' }))[0];
+      const firstRowUpdateCheckbox = await firstRowUpdateCell.getHarness(MatCheckboxHarness);
+      await firstRowUpdateCheckbox.check();
+
+      // Check Delete for the second row
+      const firstRowDeleteCell = (await rows[1].getCells({ columnName: 'delete' }))[0];
+      const firstRowDeleteCheckbox = await firstRowDeleteCell.getHarness(MatCheckboxHarness);
+      await firstRowDeleteCheckbox.check();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual({
+        ...role,
+        permissions: {
+          '1_USER_P': ['U', 'D'],
+          '2_ROLE_P': ['U', 'D'],
+        },
+      });
       // No flush to stop test here
     });
 
@@ -99,6 +167,29 @@ describe('OrgSettingsRoleComponent', () => {
 
       const defaultToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=default]' }));
       expect(await defaultToggle.isDisabled()).toEqual(true);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#rolePermissionsTable' }));
+      const rows = await table.getRows();
+
+      // Checkbox Create for the first row should be disabled
+      const firstRowCreateCell = (await rows[0].getCells({ columnName: 'create' }))[0];
+      const firstRowCreateCheckbox = await firstRowCreateCell.getHarness(MatCheckboxHarness);
+      expect(await firstRowCreateCheckbox.isDisabled()).toEqual(true);
+
+      // Checkbox Read for the first row should be disabled
+      const firstRowReadCell = (await rows[0].getCells({ columnName: 'read' }))[0];
+      const firstRowReadCheckbox = await firstRowReadCell.getHarness(MatCheckboxHarness);
+      expect(await firstRowReadCheckbox.isDisabled()).toEqual(true);
+
+      // Checkbox Update for the first row should be disabled
+      const firstRowUpdateCell = (await rows[0].getCells({ columnName: 'update' }))[0];
+      const firstRowUpdateCheckbox = await firstRowUpdateCell.getHarness(MatCheckboxHarness);
+      expect(await firstRowUpdateCheckbox.isDisabled()).toEqual(true);
+
+      // Checkbox Delete for the first row should be disabled
+      const firstRowDeleteCell = (await rows[0].getCells({ columnName: 'delete' }))[0];
+      const firstRowDeleteCheckbox = await firstRowDeleteCell.getHarness(MatCheckboxHarness);
+      expect(await firstRowDeleteCheckbox.isDisabled()).toEqual(true);
     });
   });
 
@@ -131,6 +222,29 @@ describe('OrgSettingsRoleComponent', () => {
       const defaultToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=default]' }));
       await defaultToggle.toggle();
 
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#rolePermissionsTable' }));
+      const rows = await table.getRows();
+
+      // Check Create for the first row
+      const firstRowCreateCell = (await rows[0].getCells({ columnName: 'create' }))[0];
+      const firstRowCreateCheckbox = await firstRowCreateCell.getHarness(MatCheckboxHarness);
+      await firstRowCreateCheckbox.check();
+
+      // Check Read for the first row
+      const firstRowReadCell = (await rows[0].getCells({ columnName: 'read' }))[0];
+      const firstRowReadCheckbox = await firstRowReadCell.getHarness(MatCheckboxHarness);
+      await firstRowReadCheckbox.check();
+
+      // Check Update for the first row
+      const firstRowUpdateCell = (await rows[0].getCells({ columnName: 'update' }))[0];
+      const firstRowUpdateCheckbox = await firstRowUpdateCell.getHarness(MatCheckboxHarness);
+      await firstRowUpdateCheckbox.check();
+
+      // Check Delete for the first row
+      const firstRowDeleteCell = (await rows[0].getCells({ columnName: 'delete' }))[0];
+      const firstRowDeleteCheckbox = await firstRowDeleteCell.getHarness(MatCheckboxHarness);
+      await firstRowDeleteCheckbox.check();
+
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
 
@@ -143,6 +257,10 @@ describe('OrgSettingsRoleComponent', () => {
         description: 'New description',
         default: true,
         scope: roleScope,
+        permissions: {
+          '1_USER_P': ['C', 'R', 'U', 'D'],
+          '2_ROLE_P': [],
+        },
         system: false,
       });
       req.flush(null);

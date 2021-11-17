@@ -66,6 +66,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
         : of({
             scope: this.roleScope,
             system: false,
+            permissions: {},
           } as Role),
       this.roleService.getPermissionsByScope(this.roleScope),
     ])
@@ -77,6 +78,24 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
             name: new FormControl({ value: role.name ?? '', disabled: this.isEditMode }, [Validators.required]),
             description: new FormControl({ value: role.description ?? '', disabled: role.system }),
             default: new FormControl({ value: role.default ?? false, disabled: role.system }),
+            /**
+             * Convert permissions rights into object to edit each CRUD item
+             * Permissions from server: { permissions: { EX_P1: ['C'], EX_P2: ['C', 'R'] } }
+             * Permissions in form: { permissions: { EX_P1: { C: true } }, EX_P2: { C: true, R: true } } }
+             */
+            permissions: new FormGroup(
+              permissions.reduce((prev, permission) => {
+                return {
+                  ...prev,
+                  [permission]: new FormGroup({
+                    C: new FormControl({ value: role.permissions[permission]?.includes('C'), disabled: role.system }),
+                    R: new FormControl({ value: role.permissions[permission]?.includes('R'), disabled: role.system }),
+                    U: new FormControl({ value: role.permissions[permission]?.includes('U'), disabled: role.system }),
+                    D: new FormControl({ value: role.permissions[permission]?.includes('D'), disabled: role.system }),
+                  }),
+                };
+              }, {}),
+            ),
           });
           this.initialRoleFormValue = this.roleForm.getRawValue();
 
@@ -100,6 +119,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
       ...this.role,
       ...roleFormValue,
       name: roleFormValue.name.toUpperCase(),
+      permissions: fromFormPermissionsToPermissions(roleFormValue.permissions),
     };
 
     const createOrUpdateRole$ = this.isEditMode ? this.roleService.update(roleToSend) : this.roleService.create(roleToSend);
@@ -124,3 +144,14 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
       });
   }
 }
+
+const fromFormPermissionsToPermissions = (formPermissions: Record<string, Record<'C' | 'R' | 'U' | 'D', boolean>>): Role['permissions'] => {
+  return Object.entries(formPermissions).reduce((prev, [permission, right]) => {
+    return {
+      ...prev,
+      [permission]: Object.entries(right)
+        .filter(([, value]) => value === true)
+        .map(([key]) => key),
+    };
+  }, {});
+};

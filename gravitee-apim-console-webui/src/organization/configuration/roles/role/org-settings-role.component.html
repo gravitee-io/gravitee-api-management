@@ -42,7 +42,7 @@
       </gio-form-slide-toggle>
     </mat-card>
 
-    <mat-card class="org-settings-role__permissions-card">
+    <mat-card class="org-settings-role__permissions-card" formGroupName="permissions">
       <table
         *ngIf="rolePermissionsTableDS"
         mat-table
@@ -59,25 +59,33 @@
         <!-- Create Column -->
         <ng-container matColumnDef="create">
           <th mat-header-cell *matHeaderCellDef id="create">Create</th>
-          <td mat-cell *matCellDef="let permission"><mat-checkbox></mat-checkbox></td>
+          <td mat-cell *matCellDef="let permission" [formGroupName]="permission.permissionName">
+            <mat-checkbox formControlName="C"></mat-checkbox>
+          </td>
         </ng-container>
 
         <!-- Read Column -->
         <ng-container matColumnDef="read">
           <th mat-header-cell *matHeaderCellDef id="read">Read</th>
-          <td mat-cell *matCellDef="let permission"><mat-checkbox></mat-checkbox></td>
+          <td mat-cell *matCellDef="let permission" [formGroupName]="permission.permissionName">
+            <mat-checkbox formControlName="R"></mat-checkbox>
+          </td>
         </ng-container>
 
         <!-- Update Column -->
         <ng-container matColumnDef="update">
           <th mat-header-cell *matHeaderCellDef id="update">Update</th>
-          <td mat-cell *matCellDef="let permission"><mat-checkbox></mat-checkbox></td>
+          <td mat-cell *matCellDef="let permission" [formGroupName]="permission.permissionName">
+            <mat-checkbox formControlName="U"></mat-checkbox>
+          </td>
         </ng-container>
 
         <!-- Delete Column -->
         <ng-container matColumnDef="delete">
           <th mat-header-cell *matHeaderCellDef id="delete">Delete</th>
-          <td mat-cell *matCellDef="let permission"><mat-checkbox></mat-checkbox></td>
+          <td mat-cell *matCellDef="let permission" [formGroupName]="permission.permissionName">
+            <mat-checkbox formControlName="D"></mat-checkbox>
+          </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="rolePermissionsTableDisplayedColumns"></tr>
@@ -88,6 +96,7 @@
         </tr>
       </table>
     </mat-card>
+
     <gio-save-bar [creationMode]="!isEditMode" [form]="roleForm" [formInitialValues]="initialRoleFormValue"></gio-save-bar>
   </form>
 </div>
