@@ -17,8 +17,8 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/angularjs';
-import { EMPTY, Observable, Subject } from 'rxjs';
-import { catchError, map, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, of, Subject } from 'rxjs';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Role } from '../../../../entities/role/role';
@@ -44,7 +44,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   initialRoleFormValue: unknown;
 
   rolePermissionsTableDisplayedColumns = ['permissionName', 'create', 'read', 'update', 'delete'];
-  rolePermissionsTableDS$: Observable<RolePermissionsTableDM[]>;
+  rolePermissionsTableDS: RolePermissionsTableDM[];
 
   private unsubscribe$ = new Subject<boolean>();
 
@@ -58,44 +58,31 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.roleScope = this.ajsStateParams.roleScope;
     this.isEditMode = !!this.ajsStateParams.role;
-
-    this.rolePermissionsTableDS$ = this.roleService.getPermissionsByScope(this.roleScope).pipe(
-      map((permissions) => {
-        return permissions.map((permission) => ({
-          permissionName: permission,
-        }));
-      }),
-      catchError(({ error }) => {
-        this.snackBarService.error(error.message);
-        return EMPTY;
-      }),
-    );
-
-    if (!this.isEditMode) {
-      this.roleForm = new FormGroup({
-        name: new FormControl('', [Validators.required]),
-        description: new FormControl(),
-        default: new FormControl(),
-      });
-
-      this.isLoading = false;
-      return;
-    }
-
     this.roleName = this.ajsStateParams.role;
 
-    this.roleService
-      .get(this.roleScope, this.roleName)
+    combineLatest([
+      this.isEditMode
+        ? this.roleService.get(this.roleScope, this.roleName)
+        : of({
+            scope: this.roleScope,
+            system: false,
+          } as Role),
+      this.roleService.getPermissionsByScope(this.roleScope),
+    ])
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap((role) => {
+        tap(([role, permissions]) => {
           this.role = role;
           this.roleForm = new FormGroup({
-            name: new FormControl({ value: role?.name, disabled: true }, [Validators.required]),
-            description: new FormControl({ value: role?.description, disabled: role.system }),
-            default: new FormControl({ value: role?.default, disabled: role.system }),
+            name: new FormControl({ value: role.name ?? '', disabled: this.isEditMode }, [Validators.required]),
+            description: new FormControl({ value: role.description ?? '', disabled: role.system }),
+            default: new FormControl({ value: role.default ?? false, disabled: role.system }),
           });
           this.initialRoleFormValue = this.roleForm.getRawValue();
+
+          this.rolePermissionsTableDS = permissions.map((permission) => ({
+            permissionName: permission,
+          }));
         }),
       )
       .subscribe(() => (this.isLoading = false));
@@ -109,17 +96,13 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   onSubmit() {
     const roleFormValue = this.roleForm.getRawValue();
 
-    const createOrUpdateRole$ = this.isEditMode
-      ? this.roleService.update({
-          ...this.role,
-          ...roleFormValue,
-          name: roleFormValue.name.toUpperCase(),
-        })
-      : this.roleService.create({
-          ...roleFormValue,
-          name: roleFormValue.name.toUpperCase(),
-          scope: this.roleScope,
-        });
+    const roleToSend = {
+      ...this.role,
+      ...roleFormValue,
+      name: roleFormValue.name.toUpperCase(),
+    };
+
+    const createOrUpdateRole$ = this.isEditMode ? this.roleService.update(roleToSend) : this.roleService.create(roleToSend);
 
     createOrUpdateRole$
       .pipe(

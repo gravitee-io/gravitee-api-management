@@ -44,7 +44,7 @@
 
     <mat-card class="org-settings-role__permissions-card">
       <table
-        *ngIf="rolePermissionsTableDS$ | async as rolePermissionsTableDS"
+        *ngIf="rolePermissionsTableDS"
         mat-table
         [dataSource]="rolePermissionsTableDS"
         id="rolePermissionsTable"

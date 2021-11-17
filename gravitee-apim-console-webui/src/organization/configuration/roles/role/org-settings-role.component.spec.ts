@@ -143,6 +143,7 @@ describe('OrgSettingsRoleComponent', () => {
         description: 'New description',
         default: true,
         scope: roleScope,
+        system: false,
       });
       req.flush(null);
       fixture.detectChanges();
