@@ -52,7 +52,69 @@
     </modules>
 
     <properties>
+        <!-- override spring version-->
+        <spring.version>5.2.5.RELEASE</spring.version>
+        <!-- Gravitee dependencies version -->
         <gravitee-parent.version>19.2.3</gravitee-parent.version>
+        <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
+        <gravitee-common.version>1.19.4</gravitee-common.version>
+        <gravitee-definition.version>1.25.1</gravitee-definition.version>
+        <gravitee-expression-language.version>1.5.2</gravitee-expression-language.version>
+        <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
+        <gravitee-gateway-api.version>1.20.1</gravitee-gateway-api.version>
+        <gravitee-node.version>1.10.1</gravitee-node.version>
+        <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
+        <gravitee-plugin.version>1.16.0</gravitee-plugin.version>
+        <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
+        <gravitee-resource-oauth2-provider-api.version>1.3.0</gravitee-resource-oauth2-provider-api.version>
+        <!-- Other dependencies version -->
+        <batik-transcoder.version>1.11</batik-transcoder.version>
+        <classgraph.version>4.8.90</classgraph.version>
+        <commons-io.version>2.5</commons-io.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
+        <commons-pool2.version>2.9.0</commons-pool2.version>
+        <commons-text.version>1.9</commons-text.version>
+        <dozer.version>6.4.1</dozer.version>
+        <flexmark.version>0.61.16</flexmark.version>
+        <freemarker.version>2.3.30</freemarker.version>
+        <gson.version>2.7</gson.version>
+        <guava.version>29.0-jre</guava.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <hazelcast.version>3.12.9</hazelcast.version>
+        <imageio.version>3.4.1</imageio.version>
+        <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
+        <jakarta.mail.version>1.6.7</jakarta.mail.version>
+        <java-jwt.version>3.10.2</java-jwt.version>
+        <javax.activation-api.version>1.2.0</javax.activation-api.version>
+        <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
+        <javax.inject.version>1</javax.inject.version>
+        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+        <javax.transaction-api.version>1.2</javax.transaction-api.version>
+        <jaxb-api.version>2.3.0</jaxb-api.version>
+        <jaxb-impl.version>2.1.2</jaxb-impl.version>
+        <json-patch.version>1.13</json-patch.version>
+        <json-schema-validator.version>2.2.14</json-schema-validator.version>
+        <json-smart.version>2.3</json-smart.version>
+        <jsonpath.version>2.4.0</jsonpath.version>
+        <jsoup.version>1.10.1</jsoup.version>
+        <lucene.version>7.5.0</lucene.version>
+        <nimbus-jose-jwt.version>8.15</nimbus-jose-jwt.version>
+        <owasp-java-html-sanitizer.version>20191001.1</owasp-java-html-sanitizer.version>
+        <powermock.version>2.0.9</powermock.version>
+        <snakeyaml.version>1.26</snakeyaml.version>
+        <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
+        <spring.security.version>5.3.1.RELEASE</spring.security.version>
+        <swagger-model.version>2.0.9</swagger-model.version>
+        <swagger.version>1.6.2</swagger.version>
+        <swagger-parser.version>2.0.24</swagger-parser.version>
+        <validation-api.version>2.0.1.Final</validation-api.version>
+        <xmlbeans.version>3.1.0</xmlbeans.version>
+        <wiremock.version>2.6.0</wiremock.version>
+        <wsdl4j.version>1.6.3</wsdl4j.version>
+        <!-- Plugins version -->
+        <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
+        <prettier-maven-plugin.version>0.12</prettier-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -66,6 +128,455 @@
                 <type>pom</type>
             </dependency>
 
+            <!-- Gravitee.io -->
+            <dependency>
+                <groupId>io.gravitee.alert</groupId>
+                <artifactId>gravitee-alert-api</artifactId>
+                <version>${gravitee-alert-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.apim.repository</groupId>
+                <artifactId>gravitee-apim-repository-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.common</groupId>
+                <artifactId>gravitee-common</artifactId>
+                <version>${gravitee-common.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.definition</groupId>
+                <artifactId>gravitee-definition-jackson</artifactId>
+                <version>${gravitee-definition.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.definition</groupId>
+                <artifactId>gravitee-definition-model</artifactId>
+                <version>${gravitee-definition.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.el</groupId>
+                <artifactId>gravitee-expression-language</artifactId>
+                <version>${gravitee-expression-language.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.fetcher</groupId>
+                <artifactId>gravitee-fetcher-api</artifactId>
+                <version>${gravitee-fetcher-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.gateway</groupId>
+                <artifactId>gravitee-gateway-api</artifactId>
+                <version>${gravitee-gateway-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-api</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-container</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-vertx</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.notifier</groupId>
+                <artifactId>gravitee-notifier-api</artifactId>
+                <version>${gravitee-notifier-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-alert</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-core</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-fetcher</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-notifier</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-policy</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-resource</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-service-discovery</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.policy</groupId>
+                <artifactId>gravitee-policy-api</artifactId>
+                <version>${gravitee-policy-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-oauth2-provider-api</artifactId>
+                <version>${gravitee-resource-oauth2-provider-api.version}</version>
+            </dependency>
+
+            <!-- Other dependencies -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons-lang.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>${java-jwt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.dozermapper</groupId>
+                <artifactId>dozer-core</artifactId>
+                <version>${dozer.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.java-json-tools</groupId>
+                <artifactId>json-patch</artifactId>
+                <version>${json-patch.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.java-json-tools</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>${json-schema-validator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.tomakehurst</groupId>
+                <artifactId>wiremock</artifactId>
+                <version>${wiremock.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+                <artifactId>owasp-java-html-sanitizer</artifactId>
+                <version>${owasp-java-html-sanitizer.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast</artifactId>
+                <version>${hazelcast.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.jayway.jsonpath</groupId>
+                <artifactId>json-path</artifactId>
+                <version>${jsonpath.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbus-jose-jwt.version}</version>
+            </dependency>
+
+            <!-- json-smart is needed by nimbus-jose-jwt -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json-smart.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>jakarta.mail</artifactId>
+                <version>${jakarta.mail.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.twelvemonkeys.imageio</groupId>
+                <artifactId>imageio-core</artifactId>
+                <version>${imageio.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.twelvemonkeys.imageio</groupId>
+                <artifactId>imageio-jpeg</artifactId>
+                <version>${imageio.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.twelvemonkeys.imageio</groupId>
+                <artifactId>imageio-batik</artifactId>
+                <version>${imageio.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.vladsch.flexmark</groupId>
+                <artifactId>flexmark-html2md-converter</artifactId>
+                <version>${flexmark.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.classgraph</groupId>
+                <artifactId>classgraph</artifactId>
+                <version>${classgraph.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-core</artifactId>
+                <version>${swagger-model.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.parser.v3</groupId>
+                <artifactId>swagger-parser</artifactId>
+                <version>${swagger-parser.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.github.fge</groupId>
+                        <artifactId>json-patch</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>javax.activation-api</artifactId>
+                <version>${javax.activation-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>${javax.annotation-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>${javax.inject.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${javax.servlet-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.transaction</groupId>
+                <artifactId>javax.transaction-api</artifactId>
+                <version>${javax.transaction-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>${jaxb-impl.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${validation-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-pool2</artifactId>
+                <version>${commons-pool2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${commons-text.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-core</artifactId>
+                <version>${lucene.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-queryparser</artifactId>
+                <version>${lucene.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-analyzers-common</artifactId>
+                <version>${lucene.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.xmlbeans</groupId>
+                <artifactId>xmlbeans</artifactId>
+                <version>${xmlbeans.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.xmlgraphics</groupId>
+                <artifactId>batik-transcoder</artifactId>
+                <version>${batik-transcoder.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-mapper-asl</artifactId>
+                <version>${jackson-mapper-asl.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-library</artifactId>
+                <version>${hamcrest.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito2</artifactId>
+                <version>${powermock.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>${powermock.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.integration</groupId>
+                <artifactId>spring-integration-xml</artifactId>
+                <version>${spring-integration.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-config</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-ldap</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>wsdl4j</groupId>
+                <artifactId>wsdl4j</artifactId>
+                <version>${wsdl4j.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -74,14 +585,15 @@
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
-                <version>0.12</version>
+                <version>${prettier-maven-plugin.version}</version>
                 <configuration>
                     <nodeVersion>12.13.0</nodeVersion>
                     <prettierJavaVersion>1.0.1</prettierJavaVersion>
+                    <skip>${skipTests}</skip>
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>verify</phase>
+                        <phase>validate</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>

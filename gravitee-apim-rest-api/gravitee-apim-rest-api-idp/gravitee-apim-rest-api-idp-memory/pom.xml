@@ -26,7 +26,7 @@
     <parent>
         <groupId>io.gravitee.apim.rest.api.idp</groupId>
         <artifactId>gravitee-apim-rest-api-idp</artifactId>
-    <version>3.5.24-SNAPSHOT</version>
+        <version>3.5.24-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-apim-rest-api-idp-memory</artifactId>
@@ -39,15 +39,6 @@
             <artifactId>gravitee-apim-rest-api-idp-api</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
         </dependency>
     </dependencies>
 

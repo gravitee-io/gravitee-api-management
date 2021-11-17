@@ -44,29 +44,25 @@
         <module>gravitee-apim-rest-api-services-auto-fetch</module>
     </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Vert.x -->
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-web</artifactId>
-                <version>${vertx.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
-        <!-- Gravitee.io dependencies -->
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api</groupId>
+            <artifactId>gravitee-apim-rest-api-service</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Exclude from plugin zip -->
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
             <scope>provided</scope>
         </dependency>
 
+        <!-- Exclude from plugin zip -->
         <dependency>
-            <groupId>io.gravitee.apim.rest.api</groupId>
-            <artifactId>gravitee-apim-rest-api-service</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

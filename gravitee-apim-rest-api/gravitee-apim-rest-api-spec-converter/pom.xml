@@ -32,34 +32,25 @@
     <artifactId>gravitee-apim-rest-api-spec-converter</artifactId>
     <name>Gravitee.io APIM - Management API - Spec Converter</name>
 
-    <properties>
-        <swagger-model.version>2.0.9</swagger-model.version>
-    </properties>
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/wsdl4j/wsdl4j -->
         <dependency>
             <groupId>wsdl4j</groupId>
             <artifactId>wsdl4j</artifactId>
-            <version>1.6.3</version>
         </dependency>
 
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-core</artifactId>
-            <version>${swagger-model.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.xmlbeans/xmlbeans -->
         <dependency>
             <groupId>org.apache.xmlbeans</groupId>
             <artifactId>xmlbeans</artifactId>
-            <version>3.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

@@ -26,7 +26,7 @@
     <parent>
         <groupId>io.gravitee.apim.rest.api.idp</groupId>
         <artifactId>gravitee-apim-rest-api-idp</artifactId>
-    <version>3.5.24-SNAPSHOT</version>
+        <version>3.5.24-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-apim-rest-api-idp-core</artifactId>
@@ -44,22 +44,16 @@
             <artifactId>gravitee-plugin-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
         <!-- JWT -->
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
-            <version>${nimbus-jose-jwt.version}</version>
+        </dependency>
+
+        <!-- json-smart is needed by nimbus-jose-jwt -->
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
         </dependency>
     </dependencies>
 </project>

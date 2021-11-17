@@ -26,7 +26,7 @@
     <parent>
         <groupId>io.gravitee.apim.rest.api.idp</groupId>
         <artifactId>gravitee-apim-rest-api-idp</artifactId>
-    <version>3.5.24-SNAPSHOT</version>
+        <version>3.5.24-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-apim-rest-api-idp-repository</artifactId>
@@ -40,33 +40,11 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>io.gravitee.apim.rest.api</groupId>
             <artifactId>gravitee-apim-rest-api-service</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-        </dependency>
-
-        <!-- Exclude from plugin zip -->
-        <dependency>
-            <groupId>io.gravitee.common</groupId>
-            <artifactId>gravitee-common</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Exclude from plugin zip -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

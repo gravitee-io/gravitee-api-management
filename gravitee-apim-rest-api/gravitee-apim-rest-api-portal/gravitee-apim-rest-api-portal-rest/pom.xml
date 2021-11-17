@@ -75,16 +75,6 @@
                           </typeMappings>
                       </configuration>
                   </execution>
-                  <execution>
-                      <id>docs</id>
-                      <goals>
-                          <goal>generate</goal>
-                      </goals>
-                      <configuration>
-                          <inputSpec>${project.basedir}/src/main/resources/openapi.yaml</inputSpec>
-                          <generatorName>html2</generatorName>
-                      </configuration>
-                  </execution>
               </executions>
             </plugin>
         </plugins>
@@ -160,7 +150,6 @@
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
-			<version>2.6</version>
 		</dependency>
 
 		<!-- Jackson dependencies -->
@@ -181,29 +170,24 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>3.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-batik</artifactId>
-			<version>3.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-transcoder</artifactId>
-			<version>1.11</version>
 		</dependency>
 
 		<!-- Unit testing -->
 		<dependency>
 			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
 			<artifactId>jersey-test-framework-provider-jetty</artifactId>
-			<version>${jersey.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -214,36 +198,12 @@
 			<groupId>com.github.tomakehurst</groupId>
 			<artifactId>wiremock</artifactId>
 			<scope>test</scope>
-			<version>2.6.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<!-- Json Path Find-->
 		<dependency>
 			<groupId>com.jayway.jsonpath</groupId>
 			<artifactId>json-path</artifactId>
-			<version>${jsonpath.version}</version>
 		</dependency>
 	</dependencies>
-
-	<pluginRepositories>
-		<pluginRepository>
-			<id>jcenter-snapshots</id>
-			<name>jcenter</name>
-			<url>http://oss.jfrog.org/artifactory/oss-snapshot-local/</url>
-		</pluginRepository>
-		<pluginRepository>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>jcenter-releases</id>
-			<name>jcenter</name>
-			<url>http://jcenter.bintray.com</url>
-		</pluginRepository>
-	</pluginRepositories>
 </project>
