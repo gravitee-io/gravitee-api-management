@@ -7,17 +7,28 @@
 $background: map.get(gio.$mat-theme, background);
 
 :host {
-  @include gio-layout.gio-responsive-content-container;
+  @include gio-layout.gio-responsive-margin-container;
 }
 
 .org-settings-role {
-  &__card {
+  &__role-card {
     display: flex;
     flex-direction: column;
 
+    &__field__name {
+      text-transform: uppercase;
+    }
+  }
+
+  &__permissions-card {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+
     .mat-table {
       .mat-header-row {
-        height: 42px;
         background-color: mat.get-color-from-palette($background, 'background');
       }
 
@@ -25,6 +36,8 @@ $background: map.get(gio.$mat-theme, background);
       .mat-column-read,
       .mat-column-update,
       .mat-column-delete {
+        width: 64px;
+        padding-right: 0;
         text-align: center;
       }
     }

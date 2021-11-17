@@ -69,6 +69,9 @@ describe('OrgSettingsRoleComponent', () => {
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
 
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      expect(await nameInput.isDisabled()).toEqual(true);
+
       const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
       await descriptionInput.setValue('New description');
 
@@ -136,7 +139,7 @@ describe('OrgSettingsRoleComponent', () => {
         method: 'POST',
       });
       expect(req.request.body).toEqual({
-        name: 'New name',
+        name: 'NEW NAME',
         description: 'New description',
         default: true,
         scope: roleScope,

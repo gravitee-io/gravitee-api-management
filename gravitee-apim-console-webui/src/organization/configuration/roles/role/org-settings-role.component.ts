@@ -91,6 +91,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
         tap((role) => {
           this.role = role;
           this.roleForm = new FormGroup({
+            name: new FormControl({ value: role?.name, disabled: true }, [Validators.required]),
             description: new FormControl({ value: role?.description, disabled: role.system }),
             default: new FormControl({ value: role?.default, disabled: role.system }),
           });
@@ -112,9 +113,11 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
       ? this.roleService.update({
           ...this.role,
           ...roleFormValue,
+          name: roleFormValue.name.toUpperCase(),
         })
       : this.roleService.create({
           ...roleFormValue,
+          name: roleFormValue.name.toUpperCase(),
           scope: this.roleScope,
         });
 
