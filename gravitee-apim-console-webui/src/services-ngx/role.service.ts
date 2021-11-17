@@ -65,4 +65,8 @@ export class RoleService {
       `${this.constants.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${roleName}/users/${username}`,
     );
   }
+
+  createMembership(roleScope: string, roleName: string, membership: { reference: string; id: string }): Observable<void> {
+    return this.http.post<void>(`${this.constants.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${roleName}/users`, membership);
+  }
 }

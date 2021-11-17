@@ -89,6 +89,27 @@ describe('RoleService', () => {
     });
   });
 
+  describe('createMembership', () => {
+    it('should call the API', (done) => {
+      const roleScope = 'ORGANIZATION';
+      const roleName = 'ADMIN';
+      const membership = {
+        id: 'user#1',
+        reference: '08620e92ee2112001ade4000',
+      };
+
+      roleService.createMembership(roleScope, roleName, membership).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${roleName}/users`,
+      });
+      expect(req.request.body).toStrictEqual(membership);
+
+      req.flush(null);
+    });
+  });
+
   describe('getPermissionsByScopes', () => {
     it('should call the API', (done) => {
       const scopes: Record<'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION', string[]> = {
