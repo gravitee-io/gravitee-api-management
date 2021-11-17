@@ -1,4 +1,10 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 @use '../../../../scss/gio-layout' as gio-layout;
+
+$background: map.get(gio.$mat-theme, background);
 
 :host {
   @include gio-layout.gio-responsive-content-container;
@@ -8,5 +14,19 @@
   &__card {
     display: flex;
     flex-direction: column;
+
+    .mat-table {
+      .mat-header-row {
+        height: 42px;
+        background-color: mat.get-color-from-palette($background, 'background');
+      }
+
+      .mat-column-create,
+      .mat-column-read,
+      .mat-column-update,
+      .mat-column-delete {
+        text-align: center;
+      }
+    }
   }
 }

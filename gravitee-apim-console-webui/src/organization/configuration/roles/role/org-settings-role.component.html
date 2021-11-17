@@ -38,8 +38,52 @@
         <gio-form-label>Default role</gio-form-label>
         <mat-slide-toggle gioFormSlideToggle aria-label="Default role toggle" formControlName="default"></mat-slide-toggle>
       </gio-form-slide-toggle>
-    </mat-card>
 
+      <table
+        *ngIf="rolePermissionsTableDS$ | async as rolePermissionsTableDS"
+        mat-table
+        [dataSource]="rolePermissionsTableDS"
+        id="rolePermissionsTable"
+        aria-label="Role CRUD permissions table"
+      >
+        <!-- Name Column -->
+        <ng-container matColumnDef="permissionName">
+          <th mat-header-cell *matHeaderCellDef id="permissionName">Permission</th>
+          <td mat-cell *matCellDef="let permission">{{ permission.permissionName }}</td>
+        </ng-container>
+
+        <!-- Create Column -->
+        <ng-container matColumnDef="create">
+          <th mat-header-cell *matHeaderCellDef id="create">Create</th>
+          <td mat-cell *matCellDef="let permission"><mat-checkbox></mat-checkbox></td>
+        </ng-container>
+
+        <!-- Read Column -->
+        <ng-container matColumnDef="read">
+          <th mat-header-cell *matHeaderCellDef id="read">Read</th>
+          <td mat-cell *matCellDef="let permission"><mat-checkbox></mat-checkbox></td>
+        </ng-container>
+
+        <!-- Update Column -->
+        <ng-container matColumnDef="update">
+          <th mat-header-cell *matHeaderCellDef id="update">Update</th>
+          <td mat-cell *matCellDef="let permission"><mat-checkbox></mat-checkbox></td>
+        </ng-container>
+
+        <!-- Delete Column -->
+        <ng-container matColumnDef="delete">
+          <th mat-header-cell *matHeaderCellDef id="delete">Delete</th>
+          <td mat-cell *matCellDef="let permission"><mat-checkbox></mat-checkbox></td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="rolePermissionsTableDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: rolePermissionsTableDisplayedColumns"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="rolePermissionsTableDisplayedColumns.length">No permission</td>
+        </tr>
+      </table>
+    </mat-card>
     <gio-save-bar [creationMode]="!isEditMode" [form]="roleForm" [formInitialValues]="initialRoleFormValue"></gio-save-bar>
   </form>
 </div>

@@ -29,6 +29,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { fakeRole } from '../../../../entities/role/role.fixture';
 import { Role } from '../../../../entities/role/role';
+import { fakePermissionsByScopes } from '../../../../entities/role/permission.fixtures';
 
 describe('OrgSettingsRoleComponent', () => {
   const roleScope = 'ORGANIZATION';
@@ -64,6 +65,7 @@ describe('OrgSettingsRoleComponent', () => {
     it('should update role', async () => {
       const role = fakeRole({ id: 'roleId', scope: roleScope });
       expectRoleGetRequest(role);
+      expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
 
@@ -87,6 +89,7 @@ describe('OrgSettingsRoleComponent', () => {
     it('should disable form with a system role', async () => {
       const role = fakeRole({ id: 'roleId', system: true, scope: roleScope });
       expectRoleGetRequest(role);
+      expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
 
       const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
       expect(await descriptionInput.isDisabled()).toEqual(true);
@@ -112,6 +115,8 @@ describe('OrgSettingsRoleComponent', () => {
     });
 
     it('should create role', async () => {
+      expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
+
       const saveBar = await loader.getHarness(GioSaveBarHarness);
 
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
@@ -147,6 +152,13 @@ describe('OrgSettingsRoleComponent', () => {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`, method: 'GET' })
       .flush(role);
+    fixture.detectChanges();
+  }
+
+  function expectGetPermissionsByScopeRequest(permissions: string[]) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes`, method: 'GET' })
+      .flush(fakePermissionsByScopes({ [roleScope]: permissions }));
     fixture.detectChanges();
   }
 });

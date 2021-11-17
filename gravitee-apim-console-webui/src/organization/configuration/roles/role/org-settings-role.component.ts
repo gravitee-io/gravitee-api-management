@@ -17,14 +17,17 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/angularjs';
-import { EMPTY, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Observable, Subject } from 'rxjs';
+import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Role } from '../../../../entities/role/role';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
+type RolePermissionsTableDM = {
+  permissionName: string;
+};
 @Component({
   selector: 'org-settings-role',
   template: require('./org-settings-role.component.html'),
@@ -40,6 +43,9 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   roleForm: FormGroup;
   initialRoleFormValue: unknown;
 
+  rolePermissionsTableDisplayedColumns = ['permissionName', 'create', 'read', 'update', 'delete'];
+  rolePermissionsTableDS$: Observable<RolePermissionsTableDM[]>;
+
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
@@ -52,6 +58,18 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.roleScope = this.ajsStateParams.roleScope;
     this.isEditMode = !!this.ajsStateParams.role;
+
+    this.rolePermissionsTableDS$ = this.roleService.getPermissionsByScope(this.roleScope).pipe(
+      map((permissions) => {
+        return permissions.map((permission) => ({
+          permissionName: permission,
+        }));
+      }),
+      catchError(({ error }) => {
+        this.snackBarService.error(error.message);
+        return EMPTY;
+      }),
+    );
 
     if (!this.isEditMode) {
       this.roleForm = new FormGroup({
