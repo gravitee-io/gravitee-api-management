@@ -21,6 +21,7 @@ import { map } from 'rxjs/operators';
 import { Constants } from '../entities/Constants';
 import { Role, RoleScope } from '../entities/role/role';
 import { MembershipListItem } from '../entities/role/membershipListItem';
+import { PermissionsByScopes } from '../entities/role/permission';
 
 @Injectable({
   providedIn: 'root',
@@ -34,8 +35,23 @@ export class RoleService {
       .pipe(map((roles) => roles.map((role) => ({ ...role, scope: role.scope.toUpperCase() as RoleScope }))));
   }
 
-  getPermissionsByScopes(): Observable<Record<Extract<RoleScope, 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION'>, string[]>> {
-    return this.http.get<Record<string, string[]>>(`${this.constants.org.baseURL}/configuration/rolescopes`);
+  getPermissionsByScopes(): Observable<PermissionsByScopes> {
+    return this.http.get<PermissionsByScopes>(`${this.constants.org.baseURL}/configuration/rolescopes`);
+  }
+
+  getPermissionsByScope(scope: string): Observable<string[]>;
+  getPermissionsByScope(scope: Extract<RoleScope, 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION'>): Observable<string[]> {
+    const availableScopes = ['API', 'APPLICATION', 'ENVIRONMENT', 'ORGANIZATION'];
+
+    const isAvailableScope = (scopeString: string): scopeString is 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION' => {
+      return availableScopes.includes(scope);
+    };
+
+    if (!isAvailableScope(scope)) {
+      throw new Error(`Invalid scope. The accepted scopes are ${availableScopes.join(' | ')}`);
+    }
+
+    return this.getPermissionsByScopes().pipe(map((s) => s[scope]));
   }
 
   get(scope: string, roleName: string): Observable<Role> {
