@@ -22,7 +22,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { MatInputHarness } from '@angular/material/input/testing';
 
 import { OrgSettingsUsersComponent } from './org-settings-users.component';
 
@@ -33,6 +32,7 @@ import { User } from '../../../entities/user/user';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { fakeAdminUser } from '../../../entities/user/user.fixture';
 import { User as DeprecatedUser } from '../../../entities/user';
+import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('OrgSettingsUsersComponent', () => {
   let fixture: ComponentFixture<OrgSettingsUsersComponent>;
@@ -167,15 +167,15 @@ describe('OrgSettingsUsersComponent', () => {
 
     it('should search users', fakeAsync(async () => {
       expectUsersListRequest();
-      const searchInput = await loader.getHarness(MatInputHarness.with({ placeholder: 'Search users' }));
+      const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
 
-      await searchInput.setValue('a');
-      httpTestingController.verify();
+      await tableWrapper.setSearchValue('a');
+      expectUsersListRequest([fakeAdminUser()], 'a');
 
-      await searchInput.setValue('ad');
+      await tableWrapper.setSearchValue('ad');
       expectUsersListRequest([fakeAdminUser()], 'ad');
 
-      await searchInput.setValue('');
+      await tableWrapper.setSearchValue('');
       expectUsersListRequest([], '');
     }));
   });
@@ -202,7 +202,7 @@ describe('OrgSettingsUsersComponent', () => {
     fixture.detectChanges();
     tick(400);
 
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users?page=${page}&size=25${q ? `&q=${q}` : ''}`);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users?page=${page}&size=10${q ? `&q=${q}` : ''}`);
     expect(req.request.method).toEqual('GET');
     req.flush(fakePagedResult(usersResponse));
   }

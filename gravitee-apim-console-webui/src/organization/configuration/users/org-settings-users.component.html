@@ -15,24 +15,15 @@
     limitations under the License.
 
 -->
-<h1>Users</h1>
 
-<div class="search-bar">
-  <mat-form-field class="search-bar__form-field" appearance="outline">
-    <mat-icon matPrefix>search</mat-icon>
-    <input matInput type="search" placeholder="Search users" [formControl]="searchFormControl" />
-    <mat-label>Search users</mat-label>
-    <button *ngIf="searchFormControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="searchFormControl.setValue('')">
-      <mat-icon>close</mat-icon>
-    </button>
-  </mat-form-field>
-  <div class="search-bar__add-btn">
-    <button (click)="onAddUserClick()" mat-raised-button color="primary"><mat-icon>person_add</mat-icon> Add user</button>
-  </div>
+<div class="title">
+  <h1>Users</h1>
+
+  <button (click)="onAddUserClick()" mat-raised-button color="primary"><mat-icon>person_add</mat-icon> Add user</button>
 </div>
 
-<div class="mat-elevation-z3">
-  <table mat-table [dataSource]="dataSource" class="users-table" id="usersTable" aria-label="User table">
+<gio-table-wrapper [length]="nbTotalUsers" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
+  <table mat-table [dataSource]="filteredTableData" class="users-table" id="usersTable" aria-label="User table">
     <!-- Position Column -->
     <ng-container matColumnDef="userPicture">
       <th mat-header-cell *matHeaderCellDef id="userPicture" width="1%"></th>
@@ -100,12 +91,4 @@
       <td class="mat-cell" [attr.colspan]="displayedColumns.length">No user</td>
     </tr>
   </table>
-
-  <mat-paginator
-    [length]="resultsLength"
-    [pageSizeOptions]="pageSizeOptions"
-    [pageIndex]="matPaginatorPageIndex"
-    (page)="onPageChange($event)"
-    aria-label="Select page of user list"
-  ></mat-paginator>
-</div>
+</gio-table-wrapper>

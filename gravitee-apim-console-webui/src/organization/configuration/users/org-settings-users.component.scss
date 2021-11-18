@@ -7,19 +7,14 @@
   @include gio-layout.gio-responsive-content-container;
 }
 
-.search-bar {
+.title {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 16px;
 
-  &__form-field {
-    flex: 0 1 auto;
-    margin-right: 48px;
-  }
-
-  &__add-btn {
-    flex: 0 1 auto;
-    padding-bottom: 1.34375em;
+  h1 {
+    margin-bottom: 0;
   }
 }
 
@@ -32,7 +27,7 @@
   padding: 0 4px;
 }
 
-.mat-column-displayName {
+.mat-column-displayName.mat-cell {
   cursor: pointer;
 }
 

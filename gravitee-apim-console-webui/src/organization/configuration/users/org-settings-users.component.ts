@@ -15,13 +15,9 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
-import { BehaviorSubject, combineLatest, of, Subject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { FormControl } from '@angular/forms';
-import { isEmpty, size } from 'lodash';
-import { PageEvent } from '@angular/material/paginator';
+import { BehaviorSubject, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UsersService } from '../../../services-ngx/users.service';
 import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
@@ -33,6 +29,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PagedResult } from '../../../entities/pagedResult';
 import { User } from '../../../entities/user/user';
 import { UserHelper } from '../../../entities/user/userHelper';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 type TableData = {
   userId: string;
@@ -54,18 +51,14 @@ type TableData = {
 export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['userPicture', 'displayName', 'status', 'email', 'source', 'actions'];
 
-  dataSource = new MatTableDataSource([]);
-
-  searchFormControl = new FormControl();
-
-  resultsLength = 0;
-  matPaginatorPageIndex = 0;
-  pageSizeOptions = [25, 50, 100];
+  filters: GioTableWrapperFilters;
+  nbTotalUsers = 0;
+  filteredTableData: TableData[] = [];
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  // Create page stream
-  private pageStream = new BehaviorSubject<{ pageNumber: number; pageSize: number }>({ pageNumber: 1, pageSize: this.pageSizeOptions[0] });
+  // Create filters stream
+  private filtersStream = new BehaviorSubject<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
 
   constructor(
     @Inject(UIRouterStateParams) private $stateParams,
@@ -76,43 +69,30 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // Init search value
+    // Init filters stream with state params
     const initialSearchValue = this.$stateParams.q ?? '';
-    this.searchFormControl.setValue(initialSearchValue, { emitEvent: false });
+    const initialPageNumber = this.$stateParams.page ? Number(this.$stateParams.page) : 1;
+    this.filters = {
+      searchTerm: initialSearchValue,
+      pagination: {
+        ...this.filtersStream.value.pagination,
+        index: initialPageNumber,
+      },
+    };
+    this.filtersStream.next(this.filters);
 
-    if (this.$stateParams.page) {
-      const pageNumber = Number(this.$stateParams.page);
-
-      this.pageStream.next({ ...this.pageStream.value, pageNumber });
-    }
-
-    // Create search stream when entering a search term
-    this.searchFormControl.valueChanges
+    // Create filters stream
+    this.filtersStream
       .pipe(
         takeUntil(this.unsubscribe$),
-        // if the search is longer than 2 characters or is empty. And wait 200 ms before new search event
-        filter<string | null>((searchTerm) => size(searchTerm) >= 2 || isEmpty(searchTerm)),
-        debounceTime(300),
+        debounceTime(100),
         distinctUntilChanged(),
-        // If the user changes search, reset back to the first page.
-        tap(
-          () =>
-            (this.pageStream = new BehaviorSubject({
-              ...this.pageStream.value,
-              pageNumber: 1,
-            })),
-        ),
-        // Init first search with initial search value
-        startWith(initialSearchValue),
-        switchMap((searchTerm) => combineLatest([of(searchTerm), this.pageStream])),
-        tap(([searchTerm, { pageNumber }]) => {
-          // Change mat paginator index with pageStream value
-          this.matPaginatorPageIndex = pageNumber - 1;
+        tap(({ pagination, searchTerm }) => {
           // Change url params
-          this.$state.go('.', { q: searchTerm, page: pageNumber }, { notify: false });
+          this.$state.go('.', { q: searchTerm, page: pagination.index }, { notify: false });
         }),
-        switchMap(([searchTerm, { pageNumber, pageSize }]) =>
-          this.usersService.list(searchTerm, pageNumber, pageSize).pipe(
+        switchMap(({ pagination, searchTerm }) =>
+          this.usersService.list(searchTerm, pagination.index, pagination.size).pipe(
             // Return empty page result in case of error and does not interrupt the research observable
             catchError(() => of(new PagedResult<User>())),
           ),
@@ -149,14 +129,11 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
         switchMap(() => this.usersService.remove(userId)),
         tap(() => this.snackBarService.success(`User ${displayName} successfully deleted!`)),
       )
-      .subscribe(() => this.ngOnInit());
+      .subscribe(() => this.filtersStream.next({ ...this.filtersStream.value }));
   }
 
-  onPageChange(pageEvent: PageEvent) {
-    const pageNumber = pageEvent.pageIndex + 1;
-    if (this.pageStream.value.pageNumber !== pageNumber || this.pageStream.value.pageSize !== pageEvent.pageSize) {
-      this.pageStream.next({ pageNumber, pageSize: pageEvent.pageSize });
-    }
+  onFiltersChanged(filters: GioTableWrapperFilters) {
+    this.filtersStream.next(filters);
   }
 
   onAddUserClick() {
@@ -164,19 +141,17 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   }
 
   private setDataSourceFromUsersList(users: PagedResult<User>) {
-    this.dataSource = new MatTableDataSource<TableData>(
-      users.data.map((u) => ({
-        userId: u.id,
-        displayName: u.displayName,
-        email: u.email,
-        source: u.source,
-        status: u.status,
-        userPicture: u.picture,
-        primary_owner: u.primary_owner,
-        number_of_active_tokens: u.number_of_active_tokens,
-        badgeCSSClass: UserHelper.getStatusBadgeCSSClass(u),
-      })),
-    );
-    this.resultsLength = users.page.total_elements;
+    this.filteredTableData = users.data.map((u) => ({
+      userId: u.id,
+      displayName: u.displayName,
+      email: u.email,
+      source: u.source,
+      status: u.status,
+      userPicture: u.picture,
+      primary_owner: u.primary_owner,
+      number_of_active_tokens: u.number_of_active_tokens,
+      badgeCSSClass: UserHelper.getStatusBadgeCSSClass(u),
+    }));
+    this.nbTotalUsers = users.page.total_elements;
   }
 }
