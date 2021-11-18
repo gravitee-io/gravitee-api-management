@@ -20,7 +20,7 @@
     <div class="gv-forms-header">
       <h1 ng-if="!$ctrl.editMode">New role [{{$ctrl.role.scope}}]</h1>
       <h1 ng-if="$ctrl.editMode">Update [{{$ctrl.role.scope}}]: {{::$ctrl.role.name}}</h1>
-      <a ui-sref="organization.settings.roles">Back to roles</a>
+      <a ui-sref="organization.settings.ajs-roles">Back to roles</a>
     </div>
 
     <form name="$ctrl.formRole" ng-submit="$ctrl.save()" novalidate>

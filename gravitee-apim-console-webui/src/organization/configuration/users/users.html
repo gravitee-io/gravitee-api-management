@@ -61,7 +61,7 @@
                   ></gravitee-identity-picture>
                 </td>
                 <td md-cell>
-                  <a ui-sref="organization.settings.user({userId: user.id})">
+                  <a ui-sref="organization.settings.ajs-user({userId: user.id})">
                     {{user.displayName}}
                     <span ng-if="user.primary_owner" flex class="badge" style="background-color: #039be5">Primary Owner</span>
                     <span ng-if="user.number_of_active_tokens > 0" flex class="badge" style="background-color: #e53935">

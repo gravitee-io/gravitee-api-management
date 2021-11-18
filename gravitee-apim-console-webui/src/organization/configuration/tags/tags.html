@@ -46,7 +46,7 @@
                 ng-mouseout="hovered = false"
               >
                 <td md-cell>
-                  <a ui-sref="organization.settings.tag({tagId: tag.id})">{{tag.id}}</a>
+                  <a ui-sref="organization.settings.ajs-tag({tagId: tag.id})">{{tag.id}}</a>
                   <span style="position: absolute">
                     <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
                     <ng-md-icon
@@ -102,7 +102,7 @@
         </div>
       </form>
       <br />
-      <a ng-if="$ctrl.tags && $ctrl.tags.length" ui-sref="organization.settings.newEntrypoint"
+      <a ng-if="$ctrl.tags && $ctrl.tags.length" ui-sref="organization.settings.ajs-newEntrypoint"
         >Add a mapping configuration entrypoint / tags</a
       >
       <br />
@@ -122,7 +122,7 @@
                 <td md-cell>{{entrypoint.value}}</td>
                 <td md-cell>{{entrypoint.tags.join(', ')}}</td>
                 <td md-cell permission permission-only="'organization-entrypoint-u'">
-                  <ng-md-icon icon="edit" ui-sref="organization.settings.entrypoint({entrypointId: entrypoint.id})"></ng-md-icon>
+                  <ng-md-icon icon="edit" ui-sref="organization.settings.ajs-entrypoint({entrypointId: entrypoint.id})"></ng-md-icon>
                 </td>
                 <td md-cell permission permission-only="'organization-entrypoint-d'">
                   <ng-md-icon icon="delete" ng-click="$ctrl.deleteEntrypoint(entrypoint)"></ng-md-icon>
@@ -142,7 +142,7 @@
         class="md-fab"
         aria-label="Add"
         ng-click="$ctrl.showAddTagModal()"
-        ui-sref="organization.settings.tag({tagId: 'new'})"
+        ui-sref="organization.settings.ajs-tag({tagId: 'new'})"
       >
         <ng-md-icon icon="add"></ng-md-icon>
       </md-button>

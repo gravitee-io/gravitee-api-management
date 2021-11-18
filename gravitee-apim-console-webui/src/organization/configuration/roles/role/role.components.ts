@@ -47,7 +47,7 @@ const RoleComponent: ng.IComponentOptions = {
             ),
           };
         } else {
-          $state.go('organization.settings.roles');
+          $state.go('organization.settings.ajs-roles');
         }
       }
     };
@@ -66,7 +66,7 @@ const RoleComponent: ng.IComponentOptions = {
         this.formRole.$setPristine();
         NotificationService.show(`Role ${this.editMode ? 'updated' : 'created'} with success`);
         if (!this.editMode) {
-          $state.go('organization.settings.roleedit', { roleScope: this.role.scope, role: this.role.name });
+          $state.go('organization.settings.ajs-roleedit', { roleScope: this.role.scope, role: this.role.name });
         }
       });
     };

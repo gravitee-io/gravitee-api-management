@@ -34,12 +34,12 @@ class EntrypointController {
     if (entrypoint.id) {
       this.EntrypointService.update(entrypoint).then(() => {
         this.NotificationService.show('Entrypoint updated with success');
-        this.$state.go('organization.settings.tags');
+        this.$state.go('organization.settings.ajs-tags');
       });
     } else {
       this.EntrypointService.create(entrypoint).then(() => {
         this.NotificationService.show('Entrypoint created with success');
-        this.$state.go('organization.settings.tags');
+        this.$state.go('organization.settings.ajs-tags');
       });
     }
   }

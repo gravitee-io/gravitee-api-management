@@ -59,8 +59,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.cockpit', {
-      url: '/cockpit',
+    .state('organization.settings.ajs-cockpit', {
+      url: '/ajs-cockpit',
       component: 'cockpit',
       data: {
         menu: null,
@@ -73,7 +73,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-cockpit', {
-      url: '/ng-cockpit',
+      url: '/cockpit',
       component: 'ngCockpit',
       data: {
         useAngularMaterial: true,
@@ -86,8 +86,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.console', {
-      url: '/console',
+    .state('organization.settings.ajs-console', {
+      url: '/ajs-console',
       component: 'consoleSettings',
       data: {
         menu: null,
@@ -100,7 +100,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-console', {
-      url: '/ng-console',
+      url: '/console',
       component: 'ngConsoleSettings',
       data: {
         useAngularMaterial: true,
@@ -113,8 +113,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.roles', {
-      url: '/roles',
+    .state('organization.settings.ajs-roles', {
+      url: '/ajs-roles',
       component: 'roles',
       resolve: {
         roleScopes: (RoleService: RoleService) => RoleService.listScopes(),
@@ -141,7 +141,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-roles', {
-      url: '/ng-roles',
+      url: '/roles',
       component: 'ngRoles',
       data: {
         useAngularMaterial: true,
@@ -154,8 +154,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.rolenew', {
-      url: '/role/:roleScope/new',
+    .state('organization.settings.ajs-rolenew', {
+      url: '/ajs-role/:roleScope/new',
       component: 'role',
       resolve: {
         roleScopes: (RoleService: RoleService) => RoleService.listScopes(),
@@ -171,7 +171,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-rolenew', {
-      url: '/ng-role/:roleScope/',
+      url: '/role/:roleScope/',
       component: 'ngOrgSettingsRole',
       data: {
         useAngularMaterial: true,
@@ -184,8 +184,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.roleedit', {
-      url: '/role/:roleScope/:role',
+    .state('organization.settings.ajs-roleedit', {
+      url: '/ajs-role/:roleScope/:role',
       component: 'role',
       resolve: {
         roleScopes: (RoleService: RoleService) => RoleService.listScopes(),
@@ -201,7 +201,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-roleedit', {
-      url: '/ng-role/:roleScope/:role',
+      url: '/role/:roleScope/:role',
       component: 'ngOrgSettingsRole',
       data: {
         useAngularMaterial: true,
@@ -214,8 +214,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.rolemembers', {
-      url: '/role/:roleScope/:role/members',
+    .state('organization.settings.ajs-rolemembers', {
+      url: '/ajs-role/:roleScope/:role/members',
       component: 'roleMembers',
       data: {
         menu: null,
@@ -232,7 +232,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-rolemembers', {
-      url: '/ng-role/:roleScope/:role/members',
+      url: '/role/:roleScope/:role/members',
       component: 'ngRoleMembers',
       data: {
         useAngularMaterial: true,
@@ -244,8 +244,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.users', {
-      url: '/users?q&page',
+    .state('organization.settings.ajs-users', {
+      url: '/ajs-users?q&page',
       component: 'users',
       resolve: {
         usersPage: (UserService: UserService, $state, $stateParams) =>
@@ -268,7 +268,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-users', {
-      url: '/ng-users?q&page',
+      url: '/users?q&page',
       component: 'ngOrgSettingsUsers',
       data: {
         useAngularMaterial: true,
@@ -290,8 +290,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.user', {
-      url: '/users/:userId',
+    .state('organization.settings.ajs-user', {
+      url: '/ajs-users/:userId',
       component: 'userDetail',
       resolve: {
         selectedUser: (UserService: UserService, $stateParams) => UserService.get($stateParams.userId).then((response) => response),
@@ -315,8 +315,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.newuser', {
-      url: '/users/new',
+    .state('organization.settings.ajs-newuser', {
+      url: '/ajs-users/new',
       component: 'newUser',
       resolve: {
         identityProviders: (IdentityProviderService: IdentityProviderService) => IdentityProviderService.list(),
@@ -332,7 +332,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-newuser', {
-      url: '/ng-users/new',
+      url: '/users/new',
       component: 'ngOrgSettingsNewUser',
       data: {
         useAngularMaterial: true,
@@ -346,7 +346,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-user', {
-      url: '/ng-users/:userId',
+      url: '/users/:userId',
       component: 'ngOrgSettingsUserDetail',
       data: {
         useAngularMaterial: true,
@@ -359,11 +359,11 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.identityproviders', {
+    .state('organization.settings.ajs-identityproviders', {
       abstract: true,
-      url: '/identities',
+      url: '/ajs-identities',
     })
-    .state('organization.settings.identityproviders.list', {
+    .state('organization.settings.ajs-identityproviders.list', {
       url: '/',
       component: 'identityProviders',
       resolve: {
@@ -386,7 +386,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-identityproviders', {
-      url: '/ng-identities',
+      url: '/identities',
       component: 'ngOrgSettingsIdentityProviders',
       data: {
         useAngularMaterial: true,
@@ -400,7 +400,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-identityprovider-edit', {
-      url: '/ng-identities/:id',
+      url: '/identities/:id',
       component: 'ngOrgSettingsIdentityProvider',
       data: {
         useAngularMaterial: true,
@@ -414,7 +414,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-identityprovider-new', {
-      url: '/ng-identities/',
+      url: '/identities/',
       component: 'ngOrgSettingsIdentityProvider',
       data: {
         useAngularMaterial: true,
@@ -427,7 +427,7 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.identityproviders.new', {
+    .state('organization.settings.ajs-identityproviders.new', {
       url: '/new?:type',
       component: 'identityProvider',
       data: {
@@ -440,7 +440,7 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.identityproviders.identityprovider', {
+    .state('organization.settings.ajs-identityproviders.identityprovider', {
       url: '/:id',
       component: 'identityProvider',
       resolve: {
@@ -465,8 +465,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.tags', {
-      url: '/tags',
+    .state('organization.settings.ajs-tags', {
+      url: '/ajs-tags',
       component: 'tags',
       resolve: {
         tags: (TagService: TagService) => TagService.list().then((response) => response.data),
@@ -485,7 +485,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-tags', {
-      url: '/ng-tags',
+      url: '/tags',
       component: 'ngOrgSettingsTags',
       data: {
         useAngularMaterial: true,
@@ -498,8 +498,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.policies', {
-      url: '/policies',
+    .state('organization.settings.ajs-policies', {
+      url: '/ajs-policies',
       component: 'policies',
       resolve: {
         tags: (TagService: TagService) => TagService.list().then((response) => response.data),
@@ -517,7 +517,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-policies', {
-      url: '/ng-policies',
+      url: '/policies',
       component: 'ngPlatformPolicies',
       data: {
         useAngularMaterial: true,
@@ -529,8 +529,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.newEntrypoint', {
-      url: '/tags/entrypoint/new',
+    .state('organization.settings.ajs-newEntrypoint', {
+      url: '/ajs-tags/entrypoint/new',
       component: 'entrypoint',
       resolve: {
         tags: (TagService: TagService) => TagService.list().then((response) => response.data),
@@ -545,8 +545,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.entrypoint', {
-      url: '/tags/entrypoint/:entrypointId',
+    .state('organization.settings.ajs-entrypoint', {
+      url: '/ajs-tags/entrypoint/:entrypointId',
       component: 'entrypoint',
       resolve: {
         tags: (TagService: TagService) => TagService.list().then((response) => response.data),
@@ -561,8 +561,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.tag', {
-      url: '/tags/:tagId',
+    .state('organization.settings.ajs-tag', {
+      url: '/ajs-tags/:tagId',
       component: 'tag',
       resolve: {
         groups: (GroupService: GroupService) => GroupService.listByOrganization().then((response) => response.data),
@@ -577,8 +577,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.tenants', {
-      url: '/tenants',
+    .state('organization.settings.ajs-tenants', {
+      url: '/ajs-tenants',
       component: 'tenants',
       resolve: {
         tenants: (TenantService: TenantService) => TenantService.list().then((response) => response.data),
@@ -594,7 +594,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-tenants', {
-      url: '/ng-tenants',
+      url: '/tenants',
       component: 'ngTenants',
       data: {
         useAngularMaterial: true,
@@ -607,8 +607,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.notificationTemplates', {
-      url: '/notification-templates',
+    .state('organization.settings.ajs-notificationTemplates', {
+      url: '/ajs-notification-templates',
       component: 'notificationTemplatesComponent',
       data: {
         menu: null,
@@ -625,7 +625,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-notificationTemplates', {
-      url: '/ng-notification-templates',
+      url: '/notification-templates',
       component: 'ngNotificationTemplatesComponent',
       data: {
         useAngularMaterial: true,
@@ -638,8 +638,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.notificationTemplate', {
-      url: '/notification-templates/:scope/:hook',
+    .state('organization.settings.ajs-notificationTemplate', {
+      url: '/ajs-notification-templates/:scope/:hook',
       component: 'notificationTemplateComponent',
       data: {
         menu: null,
@@ -664,7 +664,7 @@ function organizationRouterConfig($stateProvider) {
       },
     })
     .state('organization.settings.ng-notificationTemplate', {
-      url: '/ng-notification-templates/:scope/:hook',
+      url: '/notification-templates/:scope/:hook',
       component: 'ngNotificationTemplateComponent',
       data: {
         useAngularMaterial: true,

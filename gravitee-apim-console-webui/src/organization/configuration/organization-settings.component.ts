@@ -32,46 +32,46 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
       // MANAGEMENT
       organizationIdentityProviders: {
         perm: UserService.isUserHasAllPermissions(['organization-identity_provider-r', 'organization-identity_provider_activation-r']),
-        goTo: 'organization.settings.identityproviders.list',
+        goTo: 'organization.settings.ng-identityproviders',
       },
       consoleSettings: {
         perm: UserService.isUserHasPermissions(['organization-settings-r']),
-        goTo: 'organization.settings.console',
+        goTo: 'organization.settings.ng-console',
       },
 
       // USER MANAGEMENT
       users: {
         perm: UserService.isUserHasPermissions(['organization-user-r']),
-        goTo: 'organization.settings.users',
+        goTo: 'organization.settings.ng-users',
       },
       roles: {
         perm: UserService.isUserHasPermissions(['organization-role-c', 'organization-role-u', 'organization-role-d']),
-        goTo: 'organization.settings.roles',
+        goTo: 'organization.settings.ng-roles',
       },
 
       tags: {
         perm: UserService.isUserHasPermissions(['organization-tag-c', 'organization-tag-u', 'organization-tag-d']),
-        goTo: 'organization.settings.tags',
+        goTo: 'organization.settings.ng-tags',
       },
       tenants: {
         perm: UserService.isUserHasPermissions(['organization-tenant-c', 'organization-tenant-u', 'organization-tenant-d']),
-        goTo: 'organization.settings.tenants',
+        goTo: 'organization.settings.ng-tenants',
       },
       policies: {
         perm: UserService.isUserHasPermissions(['organization-policies-c', 'organization-policies-u', 'organization-policies-d']),
-        goTo: 'organization.settings.policies',
+        goTo: 'organization.settings.ng-policies',
       },
 
       // ALERT
       notificationTemplates: {
         perm: UserService.isUserHasPermissions(['organization-notification_templates-r']),
-        goTo: 'organization.settings.notificationTemplates',
+        goTo: 'organization.settings.ng-notificationTemplates',
       },
 
       // COCKPIT
       cockpit: {
         perm: UserService.isUserHasPermissions(['organization-installation-r']),
-        goTo: 'organization.settings.cockpit',
+        goTo: 'organization.settings.ng-cockpit',
       },
     };
 

@@ -270,7 +270,7 @@ const UserDetailComponent: ng.IComponentOptions = {
     this.backToUsers = () => {
       const page = $window.localStorage.usersTablePage || 1;
       const query = $window.localStorage.usersTableQuery || undefined;
-      $state.go('organization.settings.users', { q: query, page: page });
+      $state.go('organization.settings.ajs-users', { q: query, page: page });
     };
 
     this.accept = (ev: Event) => {

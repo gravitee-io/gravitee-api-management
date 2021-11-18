@@ -101,7 +101,7 @@ class IdentityProviderController {
     if (!this.updateMode) {
       this.IdentityProviderService.create(this.identityProvider).then((response: any) => {
         this.NotificationService.show('Identity provider ' + this.identityProvider.name + ' has been created');
-        this.$state.go('organization.settings.identityproviders.identityprovider', { id: response.data.id }, { reload: true });
+        this.$state.go('organization.settings.ajs-identityproviders.identityprovider', { id: response.data.id }, { reload: true });
       });
     } else {
       this.IdentityProviderService.update(this.identityProvider).then((response) => {

@@ -87,7 +87,7 @@ const UsersComponent: ng.IComponentOptions = {
     };
 
     this.newUser = () => {
-      $state.go('organization.settings.newuser');
+      $state.go('organization.settings.ajs-newuser');
     };
   },
 };

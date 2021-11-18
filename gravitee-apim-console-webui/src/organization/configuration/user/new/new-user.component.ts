@@ -74,7 +74,7 @@ const NewUserComponent: ng.IComponentOptions = {
 
       UserService.create(toCreate).then(() => {
         NotificationService.show('User registered with success');
-        $state.go('organization.settings.users');
+        $state.go('organization.settings.ajs-users');
       });
     };
 

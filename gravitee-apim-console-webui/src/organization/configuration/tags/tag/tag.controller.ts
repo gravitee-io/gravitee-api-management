@@ -36,12 +36,12 @@ class TagController {
     if (tag.id) {
       this.TagService.update(tag).then(() => {
         this.NotificationService.show('Tag updated with success');
-        this.$state.go('organization.settings.tags');
+        this.$state.go('organization.settings.ajs-tags');
       });
     } else {
       this.TagService.create(tag).then(() => {
         this.NotificationService.show('Tag created with success');
-        this.$state.go('organization.settings.tags');
+        this.$state.go('organization.settings.ajs-tags');
       });
     }
   }

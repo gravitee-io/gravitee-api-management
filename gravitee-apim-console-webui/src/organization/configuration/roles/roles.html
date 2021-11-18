@@ -35,7 +35,7 @@
             <tbody md-body>
               <tr md-row ng-repeat="role in $ctrl.rolesByScope[scope]">
                 <td md-cell>
-                  <a ui-sref="organization.settings.roleedit({roleScope: role.scope, role: role.name})"> {{role.name}} </a>
+                  <a ui-sref="organization.settings.ajs-roleedit({roleScope: role.scope, role: role.name})"> {{role.name}} </a>
                 </td>
                 <td md-cell>
                   {{role.description}}

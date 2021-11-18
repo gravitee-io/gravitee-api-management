@@ -83,7 +83,7 @@ class TasksComponentController implements IController, IOnInit {
         this.$state.go('management.apis.detail.portal.general', { apiId: task.data.referenceId });
         break;
       case 'USER_REGISTRATION_APPROVAL':
-        this.$state.go('organization.settings.user', { userId: task.data.id });
+        this.$state.go('organization.settings.ng-user', { userId: task.data.id });
         break;
     }
   }
