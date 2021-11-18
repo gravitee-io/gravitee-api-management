@@ -23,6 +23,8 @@
   <h4>Manage CRUD (Create, Read, Update, Delete) permissions for this role {{ roleName }} in the {{ roleScope | titlecase }} scope.</h4>
 
   <form *ngIf="!isLoading" autocomplete="off" [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+    <gio-banner-info *ngIf="role.system">System role are not editable</gio-banner-info>
+
     <mat-card class="org-settings-role__role-card">
       <mat-form-field appearance="fill">
         <mat-label>Role name</mat-label>
