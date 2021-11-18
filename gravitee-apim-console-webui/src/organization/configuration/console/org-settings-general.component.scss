@@ -44,12 +44,12 @@ $typography: map.get(gio.$mat-theme, typography);
         @include mat.typography-level($typography, body-2);
 
         & ~ & {
-          padding-top: 16px;
+          padding-top: 8px;
         }
       }
 
       &__h3 {
-        margin-top: 16px;
+        margin-top: 8px;
       }
     }
   }
