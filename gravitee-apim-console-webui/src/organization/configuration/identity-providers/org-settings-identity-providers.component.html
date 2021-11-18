@@ -22,8 +22,8 @@
   accounts from GitHub, Google, OpenID Connect server or Gravitee.io AM.
 </h4>
 
-<h2>Configuration</h2>
-<div class="org-settings-identity-providers__card">
+<mat-card class="org-settings-identity-providers__config-card">
+  <h2>Configuration</h2>
   <mat-slide-toggle
     [checked]="consoleSettings?.authentication?.localLogin?.enabled"
     [disabled]="isReadonlySetting('console.authentication.localLogin.enabled') || !hasActivatedIdp()"
@@ -32,139 +32,143 @@
     (change)="updateLocalLogin($event.checked)"
     >Show login form on management console
   </mat-slide-toggle>
-</div>
+</mat-card>
 
-<div class="org-settings-identity-providers__search-bar">
-  <h2>Identity Providers</h2>
-  <button (click)="onAddIdpClicked()" mat-raised-button color="primary"><mat-icon>add</mat-icon>Add an identity provider</button>
-</div>
-<div class="mat-elevation-z3">
-  <table
-    mat-table
-    [dataSource]="dataSource"
-    class="org-settings-identity-providers__table"
-    id="identityProvidersTable"
-    aria-label="Identity Providers table"
-  >
-    <!-- Logo Column -->
-    <ng-container matColumnDef="logo">
-      <th mat-header-cell *matHeaderCellDef id="logo"></th>
-      <td mat-cell *matCellDef="let element">
-        <img class="org-settings-identity-providers__table__logo" [src]="element.logo" alt="Logo of {{ element.name }}" />
-      </td>
-    </ng-container>
+<mat-card class="org-settings-identity-providers__list-card">
+  <div class="org-settings-identity-providers__list-card__title">
+    <h2>Identity Providers</h2>
 
-    <!-- Id Column -->
-    <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef id="id">Id</th>
-      <td mat-cell *matCellDef="let element" (click)="onEditActionClicked(element)">
-        <a>{{ element.id }}</a>
-      </td>
-    </ng-container>
+    <button (click)="onAddIdpClicked()" mat-raised-button color="primary"><mat-icon>add</mat-icon>Add an identity provider</button>
+  </div>
 
-    <!-- Name Column -->
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.name }}
-      </td>
-    </ng-container>
+  <gio-table-wrapper [length]="tableData.length" (filtersChange)="onFiltersChanged($event)">
+    <table
+      mat-table
+      [dataSource]="filteredTableData"
+      class="org-settings-identity-providers__table"
+      id="identityProvidersTable"
+      aria-label="Identity Providers table"
+    >
+      <!-- Logo Column -->
+      <ng-container matColumnDef="logo">
+        <th mat-header-cell *matHeaderCellDef id="logo"></th>
+        <td mat-cell *matCellDef="let element">
+          <img class="org-settings-identity-providers__table__logo" [src]="element.logo" alt="Logo of {{ element.name }}" />
+        </td>
+      </ng-container>
 
-    <!-- Description Column -->
-    <ng-container matColumnDef="description">
-      <th mat-header-cell *matHeaderCellDef id="description">Description</th>
-      <td mat-cell *matCellDef="let element">{{ element.description }}</td>
-    </ng-container>
+      <!-- Id Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef id="id">Id</th>
+        <td mat-cell *matCellDef="let element" (click)="onEditActionClicked(element)">
+          <a>{{ element.id }}</a>
+        </td>
+      </ng-container>
 
-    <!-- Activated Column -->
-    <ng-container matColumnDef="activated">
-      <th mat-header-cell *matHeaderCellDef id="activated">Status</th>
-      <td mat-cell *matCellDef="let element">
-        <span *ngIf="element.activated" class="org-settings-identity-providers__table__status__activated">ACTIVATED</span>
-        <span *ngIf="!element.activated" class="org-settings-identity-providers__table__status__deactivated">DEACTIVATED</span>
-      </td>
-    </ng-container>
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.name }}
+        </td>
+      </ng-container>
 
-    <!-- Sync Column -->
-    <ng-container matColumnDef="sync">
-      <th mat-header-cell *matHeaderCellDef id="sync">
-        <div class="org-settings-identity-providers__table__centered-cell">Sync</div>
-      </th>
-      <td mat-cell *matCellDef="let element">
-        <div class="org-settings-identity-providers__table__centered-cell">
-          <mat-icon *ngIf="element.sync">check</mat-icon>
-        </div>
-      </td>
-    </ng-container>
+      <!-- Description Column -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef id="description">Description</th>
+        <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+      </ng-container>
 
-    <!-- Available on the Portal Column -->
-    <ng-container matColumnDef="availableOnPortal">
-      <th mat-header-cell *matHeaderCellDef id="availableOnPortal">
-        <div class="org-settings-identity-providers__table__centered-cell">Available on dev portal</div>
-      </th>
-      <td mat-cell *matCellDef="let element">
-        <div class="org-settings-identity-providers__table__centered-cell">
-          <mat-icon *ngIf="element.availableOnPortal">check</mat-icon>
-        </div>
-      </td>
-    </ng-container>
+      <!-- Activated Column -->
+      <ng-container matColumnDef="activated">
+        <th mat-header-cell *matHeaderCellDef id="activated">Status</th>
+        <td mat-cell *matCellDef="let element">
+          <span *ngIf="element.activated" class="org-settings-identity-providers__table__status__activated">ACTIVATED</span>
+          <span *ngIf="!element.activated" class="org-settings-identity-providers__table__status__deactivated">DEACTIVATED</span>
+        </td>
+      </ng-container>
 
-    <!-- Updated at Column -->
-    <ng-container matColumnDef="updatedAt">
-      <th mat-header-cell *matHeaderCellDef id="updatedAt">Updated at</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.updatedAt | date: 'medium' }}
-      </td>
-    </ng-container>
+      <!-- Sync Column -->
+      <ng-container matColumnDef="sync">
+        <th mat-header-cell *matHeaderCellDef id="sync">
+          <div class="org-settings-identity-providers__table__centered-cell">Sync</div>
+        </th>
+        <td mat-cell *matCellDef="let element">
+          <div class="org-settings-identity-providers__table__centered-cell">
+            <mat-icon *ngIf="element.sync">check</mat-icon>
+          </div>
+        </td>
+      </ng-container>
 
-    <!-- Actions Column -->
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef id="actions"></th>
-      <td mat-cell *matCellDef="let element">
-        <div class="org-settings-identity-providers__table__centered-cell">
-          <ng-container *gioPermission="{ anyOf: ['organization-identity_provider_activation-u'] }">
-            <button
-              (click)="onActivationToggleActionClicked(element)"
-              mat-icon-button
-              color="primary"
-              aria-label="Switch to toggle an identity provider activation"
-              matTooltip="
+      <!-- Available on the Portal Column -->
+      <ng-container matColumnDef="availableOnPortal">
+        <th mat-header-cell *matHeaderCellDef id="availableOnPortal">
+          <div class="org-settings-identity-providers__table__centered-cell">Available on dev portal</div>
+        </th>
+        <td mat-cell *matCellDef="let element">
+          <div class="org-settings-identity-providers__table__centered-cell">
+            <mat-icon *ngIf="element.availableOnPortal">check</mat-icon>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Updated at Column -->
+      <ng-container matColumnDef="updatedAt">
+        <th mat-header-cell *matHeaderCellDef id="updatedAt">Updated at</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.updatedAt | date: 'medium' }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef id="actions"></th>
+        <td mat-cell *matCellDef="let element">
+          <div class="org-settings-identity-providers__table__centered-cell">
+            <ng-container *gioPermission="{ anyOf: ['organization-identity_provider_activation-u'] }">
+              <button
+                (click)="onActivationToggleActionClicked(element)"
+                mat-icon-button
+                color="primary"
+                aria-label="Switch to toggle an identity provider activation"
+                matTooltip="
             {{ element.activated ? 'Deactivate identity provider' : 'Activate identity provider' }}
             "
-            >
-              <mat-icon>{{ element.activated ? 'toggle_off' : 'toggle_on' }}</mat-icon>
-            </button>
-          </ng-container>
-          <button
-            (click)="onEditActionClicked(element)"
-            mat-icon-button
-            color="primary"
-            aria-label="Button to edit an identity provider"
-            matTooltip="Edit identity provider"
-          >
-            <mat-icon>edit</mat-icon>
-          </button>
-          <ng-container *gioPermission="{ anyOf: ['organization-identity_provider-d'] }">
+              >
+                <mat-icon>{{ element.activated ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+              </button>
+            </ng-container>
             <button
-              (click)="onDeleteActionClicked(element)"
+              (click)="onEditActionClicked(element)"
               mat-icon-button
               color="primary"
-              aria-label="Button to delete an identity provider"
-              matTooltip="Delete identity provider"
+              aria-label="Button to edit an identity provider"
+              matTooltip="Edit identity provider"
             >
-              <mat-icon>delete</mat-icon>
+              <mat-icon>edit</mat-icon>
             </button>
-          </ng-container>
-        </div>
-      </td>
-    </ng-container>
+            <ng-container *gioPermission="{ anyOf: ['organization-identity_provider-d'] }">
+              <button
+                (click)="onDeleteActionClicked(element)"
+                mat-icon-button
+                color="primary"
+                aria-label="Button to delete an identity provider"
+                matTooltip="Delete identity provider"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </ng-container>
+          </div>
+        </td>
+      </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-    <!-- Row shown when there is no data -->
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="4">No Identity Provider</td>
-    </tr>
-  </table>
-</div>
+      <!-- Row shown when there is no data -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" colspan="4">No Identity Provider</td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
+</mat-card>

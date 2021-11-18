@@ -61,8 +61,21 @@
 }
 
 .org-settings-identity-providers {
-  &__card {
+  &__config-card {
     margin-bottom: 16px;
+  }
+
+  &__list-card {
+    &__title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+
+      h2 {
+        margin-bottom: 0;
+      }
+    }
   }
 
   &__search-bar {

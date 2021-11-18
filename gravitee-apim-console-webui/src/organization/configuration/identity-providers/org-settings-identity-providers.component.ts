@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
 import { combineLatest, Subject } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
@@ -31,6 +30,8 @@ import {
   GioConfirmDialogData,
 } from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
 type TableData = {
   logo: string;
@@ -52,7 +53,8 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   providedConfigurationMessage = 'Configuration provided by the system';
 
   displayedColumns: string[] = ['logo', 'id', 'name', 'description', 'activated', 'sync', 'availableOnPortal', 'updatedAt', 'actions'];
-  dataSource = new MatTableDataSource<TableData>([]);
+  tableData: TableData[] = [];
+  filteredTableData: TableData[] = [];
 
   consoleSettings: ConsoleSettings;
 
@@ -83,6 +85,10 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  onFiltersChanged(filters: GioTableWrapperFilters) {
+    this.filteredTableData = gioTableFilterCollection(this.tableData, filters);
   }
 
   onDeleteActionClicked(identityProvider: TableData) {
@@ -131,7 +137,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
         filter((confirm) => confirm === true),
         switchMap(() => {
           identityProvider.activated = !identityProvider.activated;
-          const activatedIdps = this.dataSource.data.filter((idp) => idp.activated === true).map((idp) => ({ identityProvider: idp.id }));
+          const activatedIdps = this.tableData.filter((idp) => idp.activated === true).map((idp) => ({ identityProvider: idp.id }));
           return this.organizationService.updateActivatedIdentityProviders(activatedIdps);
         }),
         tap(() => this.snackBarService.success(`Identity Provider ${identityProvider.name} successfully deleted!`)),
@@ -164,7 +170,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   }
 
   hasActivatedIdp(): boolean {
-    return this.dataSource.data.some((idp) => idp.activated);
+    return this.tableData.some((idp) => idp.activated);
   }
 
   private setDataSourceFromIdentityProviders(
@@ -192,7 +198,8 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
         return idpA.id.localeCompare(idpB.id);
       });
 
-    this.dataSource = new MatTableDataSource<TableData>(matTableData);
+    this.tableData = matTableData;
+    this.filteredTableData = matTableData;
   }
 
   getLocalLoginTooltipMessage(): string | null {
