@@ -15,8 +15,8 @@
  */
 package io.gravitee.reporter.file.formatter.csv;
 
-import io.gravitee.reporter.api.monitor.JvmInfo;
-import io.gravitee.reporter.api.monitor.Monitor;
+import io.gravitee.node.api.monitor.JvmInfo;
+import io.gravitee.node.api.monitor.Monitor;
 import io.vertx.core.buffer.Buffer;
 
 /**
