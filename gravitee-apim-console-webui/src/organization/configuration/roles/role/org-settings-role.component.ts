@@ -27,6 +27,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 type RolePermissionsTableDM = {
   permissionName: string;
+  isMovedToOrganizationScope: boolean;
 };
 @Component({
   selector: 'org-settings-role',
@@ -85,13 +86,14 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
              */
             permissions: new FormGroup(
               permissions.reduce((prev, permission) => {
+                const disabled = isPermissionMovedToOrganizationScope(role, permission) || role.system;
                 return {
                   ...prev,
                   [permission]: new FormGroup({
-                    C: new FormControl({ value: role.permissions[permission]?.includes('C'), disabled: role.system }),
-                    R: new FormControl({ value: role.permissions[permission]?.includes('R'), disabled: role.system }),
-                    U: new FormControl({ value: role.permissions[permission]?.includes('U'), disabled: role.system }),
-                    D: new FormControl({ value: role.permissions[permission]?.includes('D'), disabled: role.system }),
+                    C: new FormControl({ value: role.permissions[permission]?.includes('C'), disabled }),
+                    R: new FormControl({ value: role.permissions[permission]?.includes('R'), disabled }),
+                    U: new FormControl({ value: role.permissions[permission]?.includes('U'), disabled }),
+                    D: new FormControl({ value: role.permissions[permission]?.includes('D'), disabled }),
                   }),
                 };
               }, {}),
@@ -101,6 +103,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
 
           this.rolePermissionsTableDS = permissions.map((permission) => ({
             permissionName: permission,
+            isMovedToOrganizationScope: isPermissionMovedToOrganizationScope(role, permission),
           }));
         }),
       )
@@ -144,6 +147,10 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
       });
   }
 }
+
+const isPermissionMovedToOrganizationScope = (role: Role, permission: string): boolean => {
+  return role?.scope === 'ENVIRONMENT' && (permission === 'TAG' || permission === 'TENANT' || permission === 'ENTRYPOINT');
+};
 
 const fromFormPermissionsToPermissions = (formPermissions: Record<string, Record<'C' | 'R' | 'U' | 'D', boolean>>): Role['permissions'] => {
   return Object.entries(formPermissions).reduce((prev, [permission, right]) => {

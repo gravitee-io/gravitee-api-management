@@ -5,6 +5,7 @@
 @use '../../../../scss/gio-layout' as gio-layout;
 
 $background: map.get(gio.$mat-theme, background);
+$infoColor: mat.get-color-from-palette(gio.$mat-info-palette, default);
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
@@ -30,6 +31,13 @@ $background: map.get(gio.$mat-theme, background);
     .mat-table {
       .mat-header-row {
         background-color: mat.get-color-from-palette($background, 'background');
+      }
+
+      .mat-column-permissionName {
+        .permission-moved {
+          color: mat.get-color-from-palette(gio.$mat-warning-palette, dark);
+          font-style: italic;
+        }
       }
 
       .mat-column-create,
