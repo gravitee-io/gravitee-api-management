@@ -31,6 +31,18 @@
     <name>Gravitee.io APIM - Gateway - Standalone - Distribution</name>
 
     <properties>
+        <!-- Properties used for building RPM & DEB package-->
+        <packaging.gravitee.gateway.home.dir>/usr/share/gravitee-gateway</packaging.gravitee.gateway.home.dir>
+        <packaging.gravitee.gateway.bin.dir>${packaging.gravitee.gateway.home.dir}/bin</packaging.gravitee.gateway.bin.dir>
+        <packaging.gravitee.gateway.plugins.dir>${packaging.gravitee.gateway.home.dir}/plugins</packaging.gravitee.gateway.plugins.dir>
+        <packaging.gravitee.gateway.apis.dir>${packaging.gravitee.gateway.home.dir}/apis</packaging.gravitee.gateway.apis.dir>
+        <packaging.gravitee.gateway.conf.dir>/etc/gravitee-gateway</packaging.gravitee.gateway.conf.dir>
+        <packaging.gravitee.gateway.log.dir>/var/log/gravitee-gateway</packaging.gravitee.gateway.log.dir>
+        <packaging.gravitee.gateway.pid.dir>/var/run/gravitee-gateway</packaging.gravitee.gateway.pid.dir>
+        <packaging.gravitee.gateway.services.dir>/etc/init.d</packaging.gravitee.gateway.services.dir>
+        <packaging.gravitee.gateway.user>gravitee</packaging.gravitee.gateway.user>
+        <packaging.gravitee.gateway.group>gravitee</packaging.gravitee.gateway.group>
+
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
         <gravitee-policy-apikey.version>2.3.0</gravitee-policy-apikey.version>
@@ -89,11 +101,11 @@
         <gravitee-fetcher-github.version>1.6.0</gravitee-fetcher-github.version>
         <gravitee-fetcher-gitlab.version>1.11.0</gravitee-fetcher-gitlab.version>
         <gravitee-fetcher-http.version>1.12.0</gravitee-fetcher-http.version>
-        <gravitee-repository-elasticsearch.version>3.8.0</gravitee-repository-elasticsearch.version>
+        <gravitee-repository-elasticsearch.version>3.8.1</gravitee-repository-elasticsearch.version>
         <!-- Gateway Only -->
-        <gravitee-reporter-elasticsearch.version>3.8.0</gravitee-reporter-elasticsearch.version>
-        <gravitee-reporter-file.version>2.4.2</gravitee-reporter-file.version>
-        <gravitee-reporter-tcp.version>1.3.2</gravitee-reporter-tcp.version>
+        <gravitee-reporter-elasticsearch.version>3.8.1</gravitee-reporter-elasticsearch.version>
+        <gravitee-reporter-file.version>2.4.3</gravitee-reporter-file.version>
+        <gravitee-reporter-tcp.version>1.3.3</gravitee-reporter-tcp.version>
         <!--	Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit	-->
         <!--	<gravitee-gateway-services-ratelimit.version>1.13.0</gravitee-gateway-services-ratelimit.version>	-->
     </properties>
