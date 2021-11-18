@@ -39,6 +39,14 @@ class GvModelDirective {
         element.on(`${element[0].localName}:input`, (e) => {
           ngModel.$setViewValue(e.target.value);
         });
+
+        /*
+         * Some components emit different events, for instance:
+         *  - gv-option emits 'gv-option:select' event
+         */
+        element.on(`${element[0].localName}:select`, (e) => {
+          ngModel.$setViewValue(e.target.value);
+        });
       },
     };
   }

@@ -892,15 +892,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAllLightByEnvironment(String environmentId) {
+    public Set<ApiEntity> findAllLightByEnvironment(String environmentId, boolean excludeDefinition) {
         try {
             LOGGER.debug("Find all APIs without some fields (definition, picture...) for environment {}", environmentId);
+            final ApiFieldExclusionFilter.Builder exclusionFilterBuilder = new ApiFieldExclusionFilter.Builder().excludePicture();
+            if (excludeDefinition) {
+                exclusionFilterBuilder.excludeDefinition();
+            }
             return new HashSet<>(
                 convert(
-                    apiRepository.search(
-                        new ApiCriteria.Builder().environmentId(environmentId).build(),
-                        new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
-                    )
+                    apiRepository.search(new ApiCriteria.Builder().environmentId(environmentId).build(), exclusionFilterBuilder.build())
                 )
             );
         } catch (TechnicalException ex) {
@@ -911,7 +912,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Set<ApiEntity> findAllLight() {
-        return findAllLightByEnvironment(null);
+        return findAllLightByEnvironment(null, false);
     }
 
     @Override

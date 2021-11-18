@@ -45,6 +45,7 @@ public class UpdatePlanEntityTest {
         Assert.assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
         Assert.assertEquals(result.getTags(), actual.getTags());
         Assert.assertEquals(result.getSelectionRule(), actual.getSelectionRule());
+        Assert.assertSame(result.getFlows(), actual.getFlows());
     }
 
     @Test
