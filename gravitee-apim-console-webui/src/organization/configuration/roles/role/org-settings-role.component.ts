@@ -16,6 +16,7 @@
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 import { StateService } from '@uirouter/angularjs';
 import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
@@ -46,6 +47,18 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
 
   rolePermissionsTableDisplayedColumns = ['permissionName', 'create', 'read', 'update', 'delete'];
   rolePermissionsTableDS: RolePermissionsTableDM[];
+  selectAllCheckbox: Record<
+    'C' | 'R' | 'U' | 'D',
+    {
+      state: 'checked' | 'unchecked' | 'indeterminate';
+      label: string;
+    }
+  > = {
+    C: { state: 'unchecked', label: 'Select all' },
+    R: { state: 'unchecked', label: 'Select all' },
+    U: { state: 'unchecked', label: 'Select all' },
+    D: { state: 'unchecked', label: 'Select all' },
+  };
 
   private unsubscribe$ = new Subject<boolean>();
 
@@ -87,13 +100,27 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
             permissions: new FormGroup(
               permissions.reduce((prev, permission) => {
                 const disabled = isPermissionMovedToOrganizationScope(role, permission) || role.system;
+
+                // Create a new FormControl for each permission right and add observable to update the select all checkbox state
+                const createFormControl = new FormControl({ value: role.permissions[permission]?.includes('C'), disabled });
+                createFormControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.updateSelectAllCheckboxState('C'));
+
+                const readFormControl = new FormControl({ value: role.permissions[permission]?.includes('R'), disabled });
+                readFormControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.updateSelectAllCheckboxState('R'));
+
+                const updateFormControl = new FormControl({ value: role.permissions[permission]?.includes('U'), disabled });
+                updateFormControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.updateSelectAllCheckboxState('U'));
+
+                const deleteFormControl = new FormControl({ value: role.permissions[permission]?.includes('D'), disabled });
+                deleteFormControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.updateSelectAllCheckboxState('D'));
+
                 return {
                   ...prev,
                   [permission]: new FormGroup({
-                    C: new FormControl({ value: role.permissions[permission]?.includes('C'), disabled }),
-                    R: new FormControl({ value: role.permissions[permission]?.includes('R'), disabled }),
-                    U: new FormControl({ value: role.permissions[permission]?.includes('U'), disabled }),
-                    D: new FormControl({ value: role.permissions[permission]?.includes('D'), disabled }),
+                    C: createFormControl,
+                    R: readFormControl,
+                    U: updateFormControl,
+                    D: deleteFormControl,
                   }),
                 };
               }, {}),
@@ -105,6 +132,14 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
             permissionName: permission,
             isMovedToOrganizationScope: isPermissionMovedToOrganizationScope(role, permission),
           }));
+
+          if (this.isEditMode) {
+            // 📝 Initialize select all checkbox state for edit mode
+            this.updateSelectAllCheckboxState('C');
+            this.updateSelectAllCheckboxState('R');
+            this.updateSelectAllCheckboxState('U');
+            this.updateSelectAllCheckboxState('D');
+          }
         }),
       )
       .subscribe(() => (this.isLoading = false));
@@ -145,6 +180,30 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
           this.ngOnInit();
         }
       });
+  }
+
+  toggleAll(rightKey: 'C' | 'R' | 'U' | 'D', change: MatCheckboxChange) {
+    const permissionsFormGroup = this.roleForm.get('permissions') as FormGroup;
+    Object.values(permissionsFormGroup.controls).forEach((permission) => {
+      const rightFormControl = permission.get(rightKey);
+
+      if (!rightFormControl.disabled) {
+        rightFormControl.setValue(change.checked);
+      }
+    });
+    permissionsFormGroup.markAsDirty();
+  }
+
+  private updateSelectAllCheckboxState(rightKey: 'C' | 'R' | 'U' | 'D') {
+    const permissionsFormGroup = this.roleForm.get('permissions') as FormGroup;
+    const nbChecked = Object.values(permissionsFormGroup.controls).filter((permission) => permission.get(rightKey).value).length;
+
+    const nbPermissions = Object.keys((this.roleForm.get('permissions') as FormGroup).controls).length;
+
+    this.selectAllCheckbox[rightKey] = {
+      state: nbChecked === nbPermissions ? 'checked' : nbChecked === 0 ? 'unchecked' : 'indeterminate',
+      label: `${nbChecked === nbPermissions ? 'Deselect' : 'Select'} all`,
+    };
   }
 }
 

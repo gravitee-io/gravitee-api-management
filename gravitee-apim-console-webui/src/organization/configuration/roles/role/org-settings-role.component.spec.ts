@@ -157,6 +157,60 @@ describe('OrgSettingsRoleComponent', () => {
       // No flush to stop test here
     });
 
+    it('should toggle select all create & update permission right', async () => {
+      const role = fakeRole({
+        id: 'roleId',
+        scope: roleScope,
+        permissions: {
+          '1_USER_P': ['U', 'R'],
+          '2_ROLE_P': ['R'],
+        },
+      });
+      expectRoleGetRequest(role);
+      expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#rolePermissionsTable' }));
+      const headerRow = (await table.getHeaderRows())[0];
+
+      // Select all create
+      const createHeaderCell = (await headerRow.getCells({ columnName: 'create' }))[0];
+      const selectAllCreateCheckbox = await createHeaderCell.getHarness(MatCheckboxHarness);
+      expect(await selectAllCreateCheckbox.isChecked()).toEqual(false);
+      expect(await selectAllCreateCheckbox.isIndeterminate()).toEqual(false);
+      await selectAllCreateCheckbox.check();
+
+      // Expect read select all is checked
+      const readHeaderCell = (await headerRow.getCells({ columnName: 'read' }))[0];
+      const selectAllReadCheckbox = await readHeaderCell.getHarness(MatCheckboxHarness);
+      expect(await selectAllReadCheckbox.isChecked()).toEqual(true);
+      expect(await selectAllReadCheckbox.isIndeterminate()).toEqual(false);
+
+      // Unselect all update
+      const updateHeaderCell = (await headerRow.getCells({ columnName: 'update' }))[0];
+      const selectAllUpdateCheckbox = await updateHeaderCell.getHarness(MatCheckboxHarness);
+      expect(await selectAllUpdateCheckbox.isIndeterminate()).toEqual(true);
+      await selectAllUpdateCheckbox.toggle(); // Check all
+      await selectAllUpdateCheckbox.toggle(); // Unckeck all
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual({
+        ...role,
+        permissions: {
+          '1_USER_P': ['C', 'R'],
+          '2_ROLE_P': ['C', 'R'],
+        },
+      });
+      // No flush to stop test here
+    });
+
     it('should disable form with a system role', async () => {
       const role = fakeRole({ id: 'roleId', system: true, scope: roleScope });
       expectRoleGetRequest(role);

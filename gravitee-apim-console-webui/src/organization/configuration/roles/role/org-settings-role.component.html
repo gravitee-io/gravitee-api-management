@@ -64,7 +64,19 @@
 
         <!-- Create Column -->
         <ng-container matColumnDef="create">
-          <th mat-header-cell *matHeaderCellDef id="create">Create</th>
+          <th mat-header-cell *matHeaderCellDef id="create">
+            Create
+            <div>
+              <mat-checkbox
+                (change)="toggleAll('C', $event)"
+                [disabled]="role.system"
+                [checked]="selectAllCheckbox.C.state === 'checked'"
+                [indeterminate]="selectAllCheckbox.C.state === 'indeterminate'"
+                [aria-label]="selectAllCheckbox.C.label"
+              >
+              </mat-checkbox>
+            </div>
+          </th>
           <td mat-cell *matCellDef="let permission" [formGroupName]="permission.permissionName">
             <mat-checkbox formControlName="C"></mat-checkbox>
           </td>
@@ -72,7 +84,19 @@
 
         <!-- Read Column -->
         <ng-container matColumnDef="read">
-          <th mat-header-cell *matHeaderCellDef id="read">Read</th>
+          <th mat-header-cell *matHeaderCellDef id="read">
+            Read
+            <div>
+              <mat-checkbox
+                (change)="toggleAll('R', $event)"
+                [disabled]="role.system"
+                [checked]="selectAllCheckbox.R.state === 'checked'"
+                [indeterminate]="selectAllCheckbox.R.state === 'indeterminate'"
+                [aria-label]="selectAllCheckbox.R.label"
+              >
+              </mat-checkbox>
+            </div>
+          </th>
           <td mat-cell *matCellDef="let permission" [formGroupName]="permission.permissionName">
             <mat-checkbox formControlName="R"></mat-checkbox>
           </td>
@@ -80,7 +104,19 @@
 
         <!-- Update Column -->
         <ng-container matColumnDef="update">
-          <th mat-header-cell *matHeaderCellDef id="update">Update</th>
+          <th mat-header-cell *matHeaderCellDef id="update">
+            Update
+            <div>
+              <mat-checkbox
+                (change)="toggleAll('U', $event)"
+                [disabled]="role.system"
+                [checked]="selectAllCheckbox.U.state === 'checked'"
+                [indeterminate]="selectAllCheckbox.U.state === 'indeterminate'"
+                [aria-label]="selectAllCheckbox.U.label"
+              >
+              </mat-checkbox>
+            </div>
+          </th>
           <td mat-cell *matCellDef="let permission" [formGroupName]="permission.permissionName">
             <mat-checkbox formControlName="U"></mat-checkbox>
           </td>
@@ -88,7 +124,19 @@
 
         <!-- Delete Column -->
         <ng-container matColumnDef="delete">
-          <th mat-header-cell *matHeaderCellDef id="delete">Delete</th>
+          <th mat-header-cell *matHeaderCellDef id="delete">
+            Delete
+            <div>
+              <mat-checkbox
+                (change)="toggleAll('D', $event)"
+                [disabled]="role.system"
+                [checked]="selectAllCheckbox.D.state === 'checked'"
+                [indeterminate]="selectAllCheckbox.D.state === 'indeterminate'"
+                [aria-label]="selectAllCheckbox.D.label"
+              >
+              </mat-checkbox>
+            </div>
+          </th>
           <td mat-cell *matCellDef="let permission" [formGroupName]="permission.permissionName">
             <mat-checkbox formControlName="D"></mat-checkbox>
           </td>
