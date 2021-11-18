@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -43,6 +44,7 @@ import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -101,8 +103,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String userId, String organizationId, String environmentId) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
-            // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+            apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
+
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, jsonNode);
             createPageAndMedia(createdApiEntity, jsonNode, environmentId);
@@ -136,6 +139,20 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         } else {
             newApiEntity.setGroups(apiEntity.getGroups());
         }
+
+        Map<String, String> plansIdsMap = new HashMap<>();
+        if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
+            newApiEntity
+                .getPlans()
+                .forEach(
+                    plan -> {
+                        String newPlanId = UuidString.generateRandom();
+                        plansIdsMap.put(plan.getId(), newPlanId);
+                        plan.setId(newPlanId);
+                    }
+                );
+        }
+
         final ApiEntity duplicatedApi = apiService.createWithApiDefinition(newApiEntity, getAuthenticatedUsername(), null);
 
         if (!duplicateApiEntity.getFilteredFields().contains("members")) {
@@ -169,8 +186,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
-            final Set<PlanEntity> plans = planService.findByApi(apiId);
-            planService.duplicatePlans(plans, environmentId, duplicatedApi.getId());
+            planService
+                .findByApi(apiId)
+                .forEach(
+                    plan -> {
+                        plan.setId(plansIdsMap.get(plan.getId()));
+                        plan.setApi(duplicatedApi.getId());
+                        planService.create(NewPlanEntity.from(plan));
+                    }
+                );
         }
 
         return duplicatedApi;
@@ -205,6 +229,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         try {
             // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+
+            // regenerate nested IDs in input json node, only if importing on a different API
+            if (!jsonNode.has("id") || !apiId.equals(jsonNode.get("id").asText())) {
+                apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
+            }
+
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
             ApiEntity updatedApiEntity = apiService.update(apiId, importedApi, false);
             updateApiReferences(updatedApiEntity, jsonNode, organizationId, environmentId, true);
@@ -477,17 +507,18 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         //Plans
         final JsonNode plansDefinition = jsonNode.path("plans");
         if (plansDefinition != null && plansDefinition.isArray()) {
-            List<PlanEntity> plansList = objectMapper.readValue(
+            List<PlanEntity> plansToImport = objectMapper.readValue(
                 plansDefinition.toString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, PlanEntity.class)
             );
 
-            plansList.forEach(
+            if (isUpdate) {
+                findRemovedPlansIds(planService.findByApi(createdOrUpdatedApiEntity.getId()), plansToImport).forEach(planService::delete);
+            }
+
+            plansToImport.forEach(
                 planEntity -> {
                     planEntity.setApi(createdOrUpdatedApiEntity.getId());
-                    planEntity.setId(
-                        UuidString.generateForEnvironment(environmentId, createdOrUpdatedApiEntity.getId(), planEntity.getId())
-                    );
                     planService.createOrUpdatePlan(planEntity, environmentId);
                 }
             );
@@ -576,5 +607,23 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             result = 31 * result + sourceId.hashCode();
             return result;
         }
+    }
+
+    protected String preprocessApiDefinitionUpdatingIds(JsonNode apiJsonNode, String environmentId) {
+        final JsonNode plansDefinition = apiJsonNode.path("plans");
+        if (plansDefinition != null && plansDefinition.isArray()) {
+            plansDefinition.forEach(planJsonNode -> regenerateApiDefinitionPlanId(apiJsonNode, planJsonNode, environmentId));
+        }
+        return apiJsonNode.toString();
+    }
+
+    private void regenerateApiDefinitionPlanId(JsonNode apiJsonNode, JsonNode planJsonNode, String environmentId) {
+        String apiId = apiJsonNode.has("id") ? apiJsonNode.get("id").asText() : null;
+        String planId = planJsonNode.has("id") ? planJsonNode.get("id").asText() : null;
+        ((ObjectNode) planJsonNode).put("id", UuidString.generateForEnvironment(environmentId, apiId, planId));
+    }
+
+    private Stream<String> findRemovedPlansIds(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
+        return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan)).map(plan -> plan.getId());
     }
 }

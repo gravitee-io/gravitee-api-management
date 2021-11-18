@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
@@ -421,9 +422,29 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
+        String plan1newId = "b1761e88-e346-34f5-ac63-f0ba0ccf8869";
+        String plan2newId = "14ad0cbe-fbaa-3161-acb0-add9b500fc03";
 
-        verify(planService, times(2)).createOrUpdatePlan(any(PlanEntity.class), any(String.class));
+        // check createWithApiDefinition has been called with newly generated plans IDs in API's definition
+        verify(apiService, times(1))
+            .createWithApiDefinition(
+                any(),
+                eq("admin"),
+                argThat(
+                    jsonNode -> {
+                        JsonNode plansDefinition = jsonNode.path("plans");
+                        return (
+                            plansDefinition.get(0).get("id").asText().equals(plan1newId) &&
+                            plansDefinition.get(1).get("id").asText().equals(plan2newId)
+                        );
+                    }
+                )
+            );
+
+        // check planService has been called twice to create 2 plans, with same IDs as API definition
+        verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals(plan1newId)), any(String.class));
+        verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals(plan2newId)), any(String.class));
+        verifyNoMoreInteractions(planService);
     }
 
     @Test

@@ -34,9 +34,7 @@ import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -428,15 +426,25 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
     @Test
     public void shouldUpdateImportApiWithPlans() throws IOException {
-        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+plans.json");
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+
+        // plan1 is present both in existing api and in imported api definition
+        // plan2 is present both in existing api and in imported api definition
+        // plan3 is not present in existing api but added in imported api definition
+        // plan4 is present in existing api, but not in imported api definition
         PlanEntity plan1 = new PlanEntity();
-        plan1.setId("plan-id");
+        plan1.setId("plan-id1");
         PlanEntity plan2 = new PlanEntity();
         plan2.setId("plan-id2");
+        PlanEntity plan3 = new PlanEntity();
+        plan3.setId("plan-id3");
+        PlanEntity plan4 = new PlanEntity();
+        plan4.setId("plan-id4");
+        when(planService.findByApi(apiEntity.getId())).thenReturn(Set.of(plan1, plan2, plan3, plan4));
 
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
@@ -446,7 +454,16 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        verify(planService, times(2)).createOrUpdatePlan(any(PlanEntity.class), any(String.class));
+        verify(planService, times(1)).findByApi(apiEntity.getId());
+        // plan1, plan2 and plan4 has to be created or updated
+        verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id1")), eq("DEFAULT"));
+        verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id2")), eq("DEFAULT"));
+        verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id4")), eq("DEFAULT"));
+        // plan3 has to be deleted cause no more in imported file
+        verify(planService, times(1)).delete("plan-id3");
+
+        verifyNoMoreInteractions(planService);
+
         verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
         verify(apiService, never()).create(any(), any());
     }

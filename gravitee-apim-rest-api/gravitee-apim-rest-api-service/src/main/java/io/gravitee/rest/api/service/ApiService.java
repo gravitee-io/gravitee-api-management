@@ -42,7 +42,11 @@ public interface ApiService {
 
     Set<ApiEntity> findAllByEnvironment(String environment);
 
-    Set<ApiEntity> findAllLightByEnvironment(String environmentId);
+    default Set<ApiEntity> findAllLightByEnvironment(String environmentId) {
+        return findAllLightByEnvironment(environmentId, true);
+    }
+
+    Set<ApiEntity> findAllLightByEnvironment(String environmentId, boolean excludeDefinition);
 
     Set<ApiEntity> findAllLight();
 

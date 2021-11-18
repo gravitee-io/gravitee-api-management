@@ -225,6 +225,7 @@ public class UpdatePlanEntity {
         updatePlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
         updatePlanEntity.setTags(planEntity.getTags());
         updatePlanEntity.setSelectionRule(planEntity.getSelectionRule());
+        updatePlanEntity.setFlows(planEntity.getFlows());
         return updatePlanEntity;
     }
 }
