@@ -1880,33 +1880,34 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (!events.getContent().isEmpty()) {
                 // According to page size, we know that we have only one element in the list
                 EventEntity lastEvent = events.getContent().get(0);
+                boolean sync = false;
+                if (PUBLISH_API.equals(lastEvent.getType())) {
+                    //TODO: Done only for backward compatibility with 0.x. Must be removed later (1.1.x ?)
+                    boolean enabled = objectMapper.getDeserializationConfig().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+                    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
+                    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
 
-                //TODO: Done only for backward compatibility with 0.x. Must be removed later (1.1.x ?)
-                boolean enabled = objectMapper.getDeserializationConfig().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
-                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
+                    final ApiEntity deployedApi = convert(payloadEntity);
+                    // Remove policy description from sync check
+                    removeDescriptionFromPolicies(api);
+                    removeDescriptionFromPolicies(deployedApi);
 
-                final ApiEntity deployedApi = convert(payloadEntity);
-                // Remove policy description from sync check
-                removeDescriptionFromPolicies(api);
-                removeDescriptionFromPolicies(deployedApi);
+                    sync = apiSynchronizationProcessor.processCheckSynchronization(deployedApi, api);
 
-                boolean sync = apiSynchronizationProcessor.processCheckSynchronization(deployedApi, api);
-
-                // 2_ If API definition is synchronized, check if there is any modification for API's plans
-                // but only for published or closed plan
-                if (sync) {
-                    Set<PlanEntity> plans = planService.findByApi(api.getId());
-                    sync =
-                        plans
-                            .stream()
-                            .filter(plan -> (plan.getStatus() != PlanStatus.STAGING))
-                            .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt()))
-                            .count() ==
-                        0;
+                    // 2_ If API definition is synchronized, check if there is any modification for API's plans
+                    // but only for published or closed plan
+                    if (sync) {
+                        Set<PlanEntity> plans = planService.findByApi(api.getId());
+                        sync =
+                            plans
+                                .stream()
+                                .filter(plan -> (plan.getStatus() != PlanStatus.STAGING))
+                                .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt()))
+                                .count() ==
+                            0;
+                    }
                 }
-
                 return sync;
             }
         } catch (Exception e) {
