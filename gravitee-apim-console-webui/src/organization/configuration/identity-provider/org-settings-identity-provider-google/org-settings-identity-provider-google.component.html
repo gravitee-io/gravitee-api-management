@@ -21,10 +21,12 @@
   <mat-form-field class="identity-provider__card__form-field" appearance="fill">
     <mat-label>Client Id</mat-label>
     <input matInput name="configurationClientId" formControlName="clientId" required />
+    <mat-error *ngIf="configurationFormGroup.get('clientId').hasError('required')">Client Id is required.</mat-error>
   </mat-form-field>
 
   <mat-form-field class="identity-provider__card__form-field" appearance="fill">
     <mat-label>Client Secret</mat-label>
     <input matInput name="configurationClientSecret" type="password" formControlName="clientSecret" required />
+    <mat-error *ngIf="configurationFormGroup.get('clientSecret').hasError('required')">Client Secret is required.</mat-error>
   </mat-form-field>
 </mat-card>

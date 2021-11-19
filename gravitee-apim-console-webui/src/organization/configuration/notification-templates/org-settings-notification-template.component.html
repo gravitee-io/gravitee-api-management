@@ -60,6 +60,9 @@
         <mat-form-field appearance="fill" *ngIf="!isTemplateToInclude">
           <mat-label>Title of the notification</mat-label>
           <input matInput formControlName="title" required />
+          <mat-error *ngIf="notificationTemplatesForm.get(notificationTemplate.type).get('title').hasError('required')"
+            >Title of the notification is required.</mat-error
+          >
         </mat-form-field>
 
         <mat-form-field appearance="fill">
@@ -71,6 +74,9 @@
             required
           >
           </textarea>
+          <mat-error *ngIf="notificationTemplatesForm.get(notificationTemplate.type).get('content').hasError('required')"
+            >Content is required.</mat-error
+          >
         </mat-form-field>
       </div>
     </mat-card>

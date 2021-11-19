@@ -21,21 +21,25 @@
   <mat-form-field class="identity-provider__card__form-field" appearance="fill">
     <mat-label>Client Id</mat-label>
     <input matInput name="configurationClientId" formControlName="clientId" required />
+    <mat-error *ngIf="configurationFormGroup.get('clientId').hasError('required')">Client Id is required.</mat-error>
   </mat-form-field>
 
   <mat-form-field class="identity-provider__card__form-field" appearance="fill">
     <mat-label>Client Secret</mat-label>
     <input matInput name="configurationClientSecret" type="password" formControlName="clientSecret" required />
+    <mat-error *ngIf="configurationFormGroup.get('clientSecret').hasError('required')">Client Secret is required.</mat-error>
   </mat-form-field>
 
   <mat-form-field class="identity-provider__card__form-field" appearance="fill">
     <mat-label>Server URL</mat-label>
     <input matInput name="configurationServerURL" type="url" formControlName="serverURL" required />
+    <mat-error *ngIf="configurationFormGroup.get('serverURL').hasError('required')">Server URL is required.</mat-error>
   </mat-form-field>
 
   <mat-form-field class="identity-provider__card__form-field" appearance="fill">
     <mat-label>Security domain</mat-label>
     <input matInput name="configurationDomain" formControlName="domain" required />
+    <mat-error *ngIf="configurationFormGroup.get('domain').hasError('required')">Security domain is required.</mat-error>
   </mat-form-field>
 
   <mat-form-field class="identity-provider__card__form-field" appearance="fill">
@@ -55,6 +59,7 @@
   <mat-form-field class="identity-provider__card__form-field" appearance="fill">
     <mat-label>ID</mat-label>
     <input matInput name="userProfileMappingId" placeholder="sub" formControlName="id" required />
+    <mat-error *ngIf="userProfileMappingFormGroup.get('id').hasError('required')">ID is required.</mat-error>
   </mat-form-field>
 
   <mat-form-field class="identity-provider__card__form-field" appearance="fill">
