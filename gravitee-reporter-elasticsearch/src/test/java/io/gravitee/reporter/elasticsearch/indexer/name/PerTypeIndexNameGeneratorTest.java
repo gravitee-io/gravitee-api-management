@@ -15,23 +15,25 @@
  */
 package io.gravitee.reporter.elasticsearch.indexer.name;
 
-import javax.annotation.PostConstruct;
+import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
+import org.junit.Test;
+
 import java.time.Instant;
 
-/**
- * @author GraviteeSource Team
- */
-public class PerTypeIndexNameGenerator extends AbstractPerTypeIndexNameGenerator {
+import static org.junit.Assert.assertEquals;
 
-    private String indexNameTemplate;
+public class PerTypeIndexNameGeneratorTest {
 
-    @PostConstruct
-    public void initialize() {
-        indexNameTemplate = configuration.getIndexName() + "-%s";
-    }
+    private PerTypeIndexNameGenerator indexNameGenerator = new PerTypeIndexNameGenerator();
 
-    @Override
-    public String generate(String type, Instant timestamp) {
-        return String.format(indexNameTemplate, type);
+    @Test
+    public void generate_should_generate_index_name_with_type_and_no_date() {
+        indexNameGenerator.configuration = new ReporterConfiguration();
+        indexNameGenerator.configuration.setIndexName("indexName");
+        indexNameGenerator.initialize();
+
+        String indexName = indexNameGenerator.generate("indextype", Instant.parse("2018-04-28T18:35:24.00Z"));
+
+        assertEquals(indexName, "indexName-indextype");
     }
 }
