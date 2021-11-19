@@ -659,14 +659,14 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
       });
 
-      it('should remove group mapping', async () => {
+      it('should delete group mapping', async () => {
         const saveBar = await loader.getHarness(GioSaveBarHarness);
 
-        // 📝 [ng-reflect-name="0"] is the index of the group to remove
-        const removeGroupMappingButton = await groupMappingsCard.getHarness(
-          MatButtonHarness.with({ text: /Remove/, ancestor: '[ng-reflect-name="0"]' }),
+        // 📝 [ng-reflect-name="0"] is the index of the group to delete
+        const deleteGroupMappingButton = await groupMappingsCard.getHarness(
+          MatButtonHarness.with({ text: /Delete/, ancestor: '[ng-reflect-name="0"]' }),
         );
-        await removeGroupMappingButton.click();
+        await deleteGroupMappingButton.click();
 
         expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
         await saveBar.clickSubmit();

@@ -116,11 +116,11 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
         width: '450px',
         data: {
           title: 'Delete a user',
-          content: `Are you sure you want to remove the user <strong>${displayName}</strong>?`,
-          confirmButton: 'Remove',
+          content: `Are you sure you want to delete the user <strong>${displayName}</strong>?`,
+          confirmButton: 'Delete',
         },
         role: 'alertdialog',
-        id: 'removeUserConfirmDialog',
+        id: 'deleteUserConfirmDialog',
       })
       .afterClosed()
       .pipe(

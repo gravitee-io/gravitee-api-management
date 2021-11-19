@@ -123,8 +123,8 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
         width: '500px',
         data: {
           title: 'Delete a membership',
-          content: `Are you sure you want to remove the role <strong>${this.roleScope} - ${this.role}</strong> to user <strong>${membership.displayName}</strong>?`,
-          confirmButton: 'Remove',
+          content: `Are you sure you want to delete the role <strong>${this.roleScope} - ${this.role}</strong> to user <strong>${membership.displayName}</strong>?`,
+          confirmButton: 'Delete',
         },
         role: 'alertdialog',
         id: 'deleteMembershipConfirmDialog',

@@ -98,8 +98,8 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
         width: '500px',
         data: {
           title: 'Delete a Role',
-          content: `Are you sure you want to remove the role <strong>${role.name}</strong>?`,
-          confirmButton: 'Remove',
+          content: `Are you sure you want to delete the role <strong>${role.name}</strong>?`,
+          confirmButton: 'Delete',
         },
         role: 'alertdialog',
         id: 'deleteRoleConfirmDialog',

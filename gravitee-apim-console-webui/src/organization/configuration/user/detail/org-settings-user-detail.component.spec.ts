@@ -357,7 +357,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     ]);
   });
 
-  it('should remove user from group after confirm dialog', async () => {
+  it('should delete user from group after confirm dialog', async () => {
     const user = fakeUser({
       id: 'userId',
       source: 'gravitee',
@@ -381,7 +381,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     await deleteUserGroupButton.click();
 
     const dialog = await rootLoader.getHarness(MatDialogHarness);
-    await (await dialog.getHarness(MatButtonHarness.with({ text: 'Remove' }))).click();
+    await (await dialog.getHarness(MatButtonHarness.with({ text: 'Delete' }))).click();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/groupA/members/${user.id}`);
     expect(req.request.method).toEqual('DELETE');

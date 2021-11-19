@@ -124,7 +124,7 @@ describe('OrgSettingsUsersComponent', () => {
       ]);
     }));
 
-    it('should confirm and remove user', fakeAsync(async () => {
+    it('should confirm and delete user', fakeAsync(async () => {
       expectUsersListRequest([
         {
           id: 'c0716036-5ed0-46ef-b160-365ed026ef07',
@@ -156,7 +156,7 @@ describe('OrgSettingsUsersComponent', () => {
       });
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
-      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Remove/ }))).click();
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Delete/ }))).click();
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/42`);
       expect(req.request.method).toEqual('DELETE');

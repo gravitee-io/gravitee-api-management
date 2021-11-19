@@ -92,8 +92,8 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
         width: '450px',
         data: {
           title: 'Delete a tenant',
-          content: `Are you sure you want to remove the tenant <strong>${tenant.name}</strong>?`,
-          confirmButton: 'Remove',
+          content: `Are you sure you want to delete the tenant <strong>${tenant.name}</strong>?`,
+          confirmButton: 'Delete',
         },
         role: 'alertdialog',
         id: 'deleteIdentityProviderConfirmDialog',

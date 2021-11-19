@@ -215,7 +215,7 @@ describe('OrgSettingsRolesComponent', () => {
       const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a role"]' }));
       await deleteButton.click();
 
-      const dialogConfirmButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+      const dialogConfirmButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
       await dialogConfirmButton.click();
 
       httpTestingController

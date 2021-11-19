@@ -191,7 +191,7 @@ describe('OrgSettingsTenantsComponent', () => {
     const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tenant"]' }));
     await deleteButton.click();
 
-    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
     await confirmDialogButton.click();
 
     httpTestingController

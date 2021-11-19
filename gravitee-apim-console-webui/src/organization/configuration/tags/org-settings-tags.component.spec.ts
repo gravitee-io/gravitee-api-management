@@ -191,7 +191,7 @@ describe('OrgSettingsTagsComponent', () => {
     ]);
   });
 
-  it('should remove a tag', async () => {
+  it('should delete a tag', async () => {
     fixture.detectChanges();
     expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
     expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
@@ -202,10 +202,10 @@ describe('OrgSettingsTagsComponent', () => {
     const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tag"]' }));
     await deleteButton.click();
 
-    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
     await confirmDialogButton.click();
 
-    // Update entrypoint to remove tag
+    // Update entrypoint to delete tag
     const updateEntrypointReq = httpTestingController.expectOne({
       method: 'PUT',
       url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/`,
@@ -229,7 +229,7 @@ describe('OrgSettingsTagsComponent', () => {
     // no flush stop test here
   });
 
-  it('should remove a mapping', async () => {
+  it('should delete a mapping', async () => {
     fixture.detectChanges();
     expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
     expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
@@ -240,7 +240,7 @@ describe('OrgSettingsTagsComponent', () => {
     const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a mapping"]' }));
     await deleteButton.click();
 
-    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
     await confirmDialogButton.click();
 
     // Delete entrypoint

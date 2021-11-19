@@ -340,9 +340,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
         data: {
-          title: 'Remove user form the group',
-          content: `Are you sure you want to remove the user from the group <strong>${group.name}</strong> ?`,
-          confirmButton: 'Remove',
+          title: 'Delete user form the group',
+          content: `Are you sure you want to delete the user from the group <strong>${group.name}</strong> ?`,
+          confirmButton: 'Delete',
         },
         role: 'alertdialog',
         id: 'removeGroupMemberConfirmDialog',
@@ -352,7 +352,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.groupService.deleteMember(group.id, this.user.id)),
-        tap(() => this.snackBarService.success(`"${this.user.displayName}" has been removed from the group "${group.name}"`)),
+        tap(() => this.snackBarService.success(`"${this.user.displayName}" has been deleted from the group "${group.name}"`)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;

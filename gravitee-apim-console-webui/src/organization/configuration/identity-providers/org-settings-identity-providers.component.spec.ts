@@ -143,8 +143,8 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
       const activateLoginSlideToggle = await getActionButtonWithAriaLabel('Button to delete an identity provider');
       await activateLoginSlideToggle.click();
 
-      // Use rootLoader to find the Remove button inside the dialog
-      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+      // Use rootLoader to find the Delete button inside the dialog
+      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
       await confirmDialogButton.click();
 
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/gravitee-am`).flush(null);
@@ -236,7 +236,6 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
       const activateLoginSlideToggle = await getActionButtonWithAriaLabel('Switch to toggle an identity provider activation');
       await activateLoginSlideToggle.click();
 
-      // Use rootLoader to find the Remove button inside the dialog
       const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Ok' }));
       await confirmDialogButton.click();
 
@@ -281,7 +280,6 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
       const activateLoginSlideToggle = await getActionButtonWithAriaLabel(`Switch to toggle an identity provider activation`);
       await activateLoginSlideToggle.click();
 
-      // Use rootLoader to find the Remove button inside the dialog
       const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Ok' }));
       await confirmDialogButton.click();
 

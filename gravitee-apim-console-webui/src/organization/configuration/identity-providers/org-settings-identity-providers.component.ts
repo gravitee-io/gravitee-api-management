@@ -97,8 +97,8 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
         width: '500px',
         data: {
           title: 'Delete an Identity Provider',
-          content: `Are you sure you want to remove the identity provider <strong>${identityProvider.name}</strong>?`,
-          confirmButton: 'Remove',
+          content: `Are you sure you want to delete the identity provider <strong>${identityProvider.name}</strong>?`,
+          confirmButton: 'Delete',
         },
         role: 'alertdialog',
         id: 'deleteIdentityProviderConfirmDialog',

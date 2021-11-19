@@ -244,11 +244,11 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         width: '500px',
         data: {
-          title: 'Remove a tag',
-          content: `Are you sure you want to remove the tag <strong>${tag.name}</strong>?
+          title: 'Delete a tag',
+          content: `Are you sure you want to delete the tag <strong>${tag.name}</strong>?
           ${entrypointsInfoMessage}
           `,
-          confirmButton: 'Remove',
+          confirmButton: 'Delete',
         },
         role: 'alertdialog',
         id: 'removeTagConfirmDialog',
@@ -274,7 +274,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           ]);
         }),
         switchMap(() => this.tagService.delete(tag.id)),
-        tap(() => this.snackBarService.success(`Tag "${tag.name}" has been removed`)),
+        tap(() => this.snackBarService.success(`Tag "${tag.name}" has been deleted.`)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -342,19 +342,19 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         width: '500px',
         data: {
-          title: 'Remove a entrypoint',
-          content: `Are you sure you want to remove the entrypoint <strong>${entrypoint.url}</strong>?`,
-          confirmButton: 'Remove',
+          title: 'Delete a entrypoint',
+          content: `Are you sure you want to delete the entrypoint <strong>${entrypoint.url}</strong>?`,
+          confirmButton: 'Delete',
         },
         role: 'alertdialog',
-        id: 'removeEntrypointConfirmDialog',
+        id: 'deleteEntrypointConfirmDialog',
       })
       .afterClosed()
       .pipe(
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.entrypointService.delete(entrypoint.id)),
-        tap(() => this.snackBarService.success(`Entrypoint "${entrypoint.url}" has been removed`)),
+        tap(() => this.snackBarService.success(`Entrypoint "${entrypoint.url}" has been delete`)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
