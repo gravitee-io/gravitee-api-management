@@ -21,17 +21,17 @@ import java.time.Instant;
 /**
  * @author GraviteeSource Team
  */
-public class PerTypeIndexNameGenerator extends AbstractPerTypeIndexNameGenerator {
+public class PerTypeAndDateIndexNameGenerator extends AbstractPerTypeIndexNameGenerator {
 
     private String indexNameTemplate;
 
     @PostConstruct
     public void initialize() {
-        indexNameTemplate = configuration.getIndexName() + "-%s";
+        indexNameTemplate = configuration.getIndexName() + "-%s-%s";
     }
 
     @Override
     public String generate(String type, Instant timestamp) {
-        return String.format(indexNameTemplate, type);
+        return String.format(indexNameTemplate, type, sdf.format(timestamp));
     }
 }
