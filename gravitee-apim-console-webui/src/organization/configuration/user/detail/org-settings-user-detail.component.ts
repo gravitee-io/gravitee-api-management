@@ -255,7 +255,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           content: `
           Are you sure you want to reset password of user <strong>${this.user.displayName}</strong> ?
           <br>
-          The user will receive an email with a link to set new password.
+          The user will receive an email with a link to set a new password.
           `,
           confirmButton: 'Reset',
         },
