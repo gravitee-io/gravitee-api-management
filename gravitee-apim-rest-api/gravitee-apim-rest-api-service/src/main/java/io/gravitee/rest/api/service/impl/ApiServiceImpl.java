@@ -251,6 +251,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private APIV1toAPIV2Converter apiv1toAPIV2Converter;
 
+    @Autowired
+    private ApiDuplicatorService apiDuplicatorService;
+
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
 
@@ -1913,13 +1916,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity rollback(String apiId, UpdateApiEntity api) {
+    public ApiEntity rollback(String apiId, RollbackApiEntity rollbackApiEntity) {
         LOGGER.debug("Rollback API : {}", apiId);
+
         try {
             // Audit
             auditService.createApiAuditLog(apiId, Collections.emptyMap(), API_ROLLBACKED, new Date(), null, null);
 
-            return update(apiId, api);
+            return apiDuplicatorService.updateWithImportedDefinition(
+                apiId,
+                objectMapper.writeValueAsString(rollbackApiEntity),
+                getAuthenticatedUsername(),
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment()
+            );
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to rollback API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to rollback API: " + apiId, ex);

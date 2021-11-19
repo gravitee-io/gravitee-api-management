@@ -89,7 +89,7 @@ public interface ApiService {
 
     ApiEntity deploy(String apiId, String userId, EventType eventType, ApiDeploymentEntity apiDeploymentEntity);
 
-    ApiEntity rollback(String apiId, UpdateApiEntity api);
+    ApiEntity rollback(String apiId, RollbackApiEntity api);
 
     String exportAsJson(String apiId, String exportVersion, String... filteredFields);
 

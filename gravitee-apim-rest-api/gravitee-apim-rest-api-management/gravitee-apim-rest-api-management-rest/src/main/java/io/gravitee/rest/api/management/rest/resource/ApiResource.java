@@ -356,7 +356,7 @@ public class ApiResource extends AbstractResource {
         }
     )
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response rollbackApi(@ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiEntity) {
+    public Response rollbackApi(@ApiParam(name = "api", required = true) @Valid @NotNull final RollbackApiEntity apiEntity) {
         try {
             ApiEntity rollbackedApi = apiService.rollback(api, apiEntity);
             return Response
