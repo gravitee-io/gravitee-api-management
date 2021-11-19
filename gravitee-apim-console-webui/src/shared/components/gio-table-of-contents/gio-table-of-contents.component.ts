@@ -64,10 +64,20 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
         ? this.scrollingContainer
         : (this.document.querySelector(this.scrollingContainer) as HTMLElement) || window;
 
-    // Set initial route url/location and fragment if defined
-    const { rootUrl, fragment } = splitUrlFragment(this.location.path(true));
-    this.rootUrl = rootUrl;
-    this.fragment = fragment;
+    /**
+     * TODO: remove me after angularJs migration
+     * 🤷‍♂️ Without knowing the exact reason :
+     * Added to fix a problem related to the navigation between AngularJs and Angular.
+     * Because `this.location.path` was always returning the url of the previous route
+     * and not the current one. With a setTimeout it seems to fix the problem. I suspect an
+     * import or execution order problem but i didn't find better
+     */
+    setTimeout(() => {
+      // Set initial route url/location and fragment if defined
+      const { rootUrl, fragment } = splitUrlFragment(this.location.path(true));
+      this.rootUrl = rootUrl;
+      this.fragment = fragment;
+    }, 1);
 
     this.subscriptions.add(
       // Update rootUrl, fragment and scroll position if url/location change

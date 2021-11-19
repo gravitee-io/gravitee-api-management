@@ -162,6 +162,7 @@ describe('GioConfirmDialogComponent', () => {
 
   it('should update location by clicking on link', async () => {
     fixture.detectChanges();
+    locationStrategy.simulatePopState('');
 
     gioTableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
     gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
