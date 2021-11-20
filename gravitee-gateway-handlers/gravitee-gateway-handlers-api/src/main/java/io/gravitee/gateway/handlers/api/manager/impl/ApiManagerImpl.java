@@ -19,7 +19,6 @@ import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.plan
 
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryEventType;
-import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.impl.MapListenerAdapter;
 import io.gravitee.common.event.EventManager;
@@ -31,6 +30,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
@@ -61,7 +61,7 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
     private GatewayConfiguration gatewayConfiguration;
 
     @Autowired
-    private HazelcastInstance hzInstance;
+    private CacheManager cacheManager;
 
     @Autowired
     private ClusterManager clusterManager;
@@ -73,8 +73,8 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        apis = hzInstance.getMap("apis");
-        ((IMap) apis).addEntryListener(this, true);
+        apis = cacheManager.getMap("apis");
+        //        ((IMap) apis).addEntryListener(this, true);
     }
 
     @Override
