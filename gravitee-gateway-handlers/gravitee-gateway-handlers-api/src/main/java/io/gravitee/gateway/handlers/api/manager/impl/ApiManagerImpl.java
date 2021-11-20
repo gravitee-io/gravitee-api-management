@@ -19,7 +19,6 @@ import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.plan
 
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryEventType;
-import com.hazelcast.map.IMap;
 import com.hazelcast.map.impl.MapListenerAdapter;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
@@ -73,7 +72,7 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        apis = cacheManager.getMap("apis");
+        apis = cacheManager.getCache("apis");
         //        ((IMap) apis).addEntryListener(this, true);
     }
 
