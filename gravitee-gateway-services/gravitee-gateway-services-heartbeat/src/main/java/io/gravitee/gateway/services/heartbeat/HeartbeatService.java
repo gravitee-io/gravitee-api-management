@@ -121,7 +121,7 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
     @Override
     public void afterPropertiesSet() throws Exception {
         topic = messageProducer.getTopic("heartbeats");
-        subscriptionId = topic.addMessageListener(this);
+        subscriptionId = topic.addMessageConsumer(this);
     }
 
     @Override
@@ -179,7 +179,7 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
 
             topic.publish(heartbeatEvent);
 
-            topic.removeMessageListener(subscriptionId);
+            topic.removeMessageConsumer(subscriptionId);
         }
         return this;
     }
@@ -200,7 +200,7 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
 
             topic.publish(heartbeatEvent);
 
-            topic.removeMessageListener(subscriptionId);
+            topic.removeMessageConsumer(subscriptionId);
 
             super.doStop();
             LOGGER.info("Stop gateway monitor : DONE");

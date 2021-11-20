@@ -118,7 +118,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
         LOGGER.debug("Register subscription repository implementation {}", SubscriptionRepositoryWrapper.class.getName());
         beanFactory.registerSingleton(
             SubscriptionRepository.class.getName(),
-            new SubscriptionRepositoryWrapper(subscriptionRepository, cacheManager.getMap(CACHE_NAME))
+            new SubscriptionRepositoryWrapper(subscriptionRepository, cacheManager.getCache(CACHE_NAME))
         );
 
         LOGGER.info("Associate a new HTTP handler on {}", PATH);
@@ -169,7 +169,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                                         chunks
                                     );
                                     refresher.setSubscriptionRepository(subscriptionRepository);
-                                    refresher.setCache(cacheManager.getMap(CACHE_NAME));
+                                    refresher.setCache(cacheManager.getCache(CACHE_NAME));
 
                                     return refresher;
                                 }
@@ -288,7 +288,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
             if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
                 final FullSubscriptionRefresher refresher = new FullSubscriptionRefresher(planIds);
                 refresher.setSubscriptionRepository(subscriptionRepository);
-                refresher.setCache(cacheManager.getMap(CACHE_NAME));
+                refresher.setCache(cacheManager.getCache(CACHE_NAME));
 
                 CompletableFuture
                     .supplyAsync(refresher::call, executorService)
