@@ -32,7 +32,7 @@ import { OrganizationSettingsModule } from '../../organization-settings.module';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { fakeIdentityProviderListItem } from '../../../../entities/identity-provider';
 import { fakeUser } from '../../../../entities/user/user.fixture';
-import { GioFormCardGroupHarness } from '../../../../shared/components/form-card-group/gio-form-card-group.harness';
+import { GioFormCardGroupHarness } from '../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 
 describe('OrgSettingsNewUserComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNewUserComponent>;
