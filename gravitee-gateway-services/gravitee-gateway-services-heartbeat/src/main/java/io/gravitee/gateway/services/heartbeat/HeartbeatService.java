@@ -17,10 +17,6 @@ package io.gravitee.gateway.services.heartbeat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.topic.ITopic;
-import com.hazelcast.topic.Message;
-import com.hazelcast.topic.MessageListener;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUID;
@@ -29,6 +25,10 @@ import io.gravitee.gateway.services.heartbeat.event.InstanceEventPayload;
 import io.gravitee.gateway.services.heartbeat.event.Plugin;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.message.Message;
+import io.gravitee.node.api.message.MessageConsumer;
+import io.gravitee.node.api.message.MessageProducer;
+import io.gravitee.node.api.message.Topic;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -57,7 +57,7 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HeartbeatService extends AbstractService implements MessageListener<Event>, InitializingBean {
+public class HeartbeatService extends AbstractService implements MessageConsumer<Event>, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatService.class);
 
@@ -105,7 +105,7 @@ public class HeartbeatService extends AbstractService implements MessageListener
     private ClusterManager clusterManager;
 
     @Autowired
-    private HazelcastInstance hzInstance;
+    private MessageProducer messageProducer;
 
     @Autowired
     private EnvironmentRepository environmentRepository;
@@ -114,13 +114,13 @@ public class HeartbeatService extends AbstractService implements MessageListener
     private OrganizationRepository organizationRepository;
 
     // How to avoid duplicate
-    private ITopic<Event> topic;
+    private Topic<Event> topic;
 
     private java.util.UUID subscriptionId;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        topic = hzInstance.getTopic("heartbeats");
+        topic = messageProducer.getTopic("heartbeats");
         subscriptionId = topic.addMessageListener(this);
     }
 
