@@ -41,6 +41,7 @@
   width: 12%;
 }
 .mat-column-activated {
+  text-align: center;
   width: 8%;
 }
 
@@ -110,16 +111,6 @@
     &__logo {
       height: 24px;
       width: 24px;
-    }
-
-    &__status {
-      &__activated {
-        color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium');
-      }
-
-      &__deactivated {
-        color: mat.get-color-from-palette(gio.$mat-warning-palette, 'medium');
-      }
     }
   }
 }
