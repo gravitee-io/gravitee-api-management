@@ -80,8 +80,44 @@ parameters:
     type: string
     default: ""
     description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
+  build-console-job:
+    type: boolean
+    default: false
+    description: "Should build the console ?"
+  build-portal-job:
+    type: boolean
+    default: false
+    description: "Should build the portal ?"
+  build-rest-api-job:
+    type: boolean
+    default: false
+    description: "Should build the rest-api ?"
+  build-repository-job:
+    type: boolean
+    default: false
+    description: "Should build the repositories ?"
 
 jobs:
+  check-workflow-parameters:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+        - run:
+            name: Check Workflow parameters
+            command: |
+                echo gio_action: << pipeline.parameters.gio_action >>
+                echo dry_run: << pipeline.parameters.dry_run >>
+                echo maven_profile_id: << pipeline.parameters.maven_profile_id >>
+                echo secrethub_org: << pipeline.parameters.secrethub_org >>
+                echo secrethub_repo: << pipeline.parameters.secrethub_repo >>
+                echo s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+                echo replayed_release: << pipeline.parameters.replayed_release >>
+                echo build-console-job: << pipeline.parameters.build-console-job >>
+                echo build-portal-job: << pipeline.parameters.build-portal-job >>
+                echo build-rest-api-job: << pipeline.parameters.build-rest-api-job >>
+                echo build-repository-job: << pipeline.parameters.build-repository-job >>
+
   compute-apim-tag:
     docker:
       - image: cimg/openjdk:11.0
@@ -690,6 +726,7 @@ workflows:
       and:
         - equal: [ pull_requests, << pipeline.parameters.gio_action >> ]
     jobs:
+      - check-workflow-parameters
       - gravitee/d_pull_requests_secrets:
           context: cicd-orchestrator
           name: pr_secrets_resolution
