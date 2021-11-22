@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,7 +40,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private final Map<Reactable, ReactorHandler> handlers = new ConcurrentHashMap<>();
     private final Map<Reactable, List<HandlerEntrypoint>> entrypointByReactable = new ConcurrentHashMap<>();
-    private final Set<HandlerEntrypoint> registeredEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
+
+    private final List<HandlerEntrypoint> registeredEntrypoints = new ArrayList<>();
+    private final HandlerEntryPointComparator entryPointComparator = new HandlerEntryPointComparator();
 
     @Override
     public void create(Reactable reactable) {
@@ -92,7 +93,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                 }).collect(Collectors.toList());
 
         entrypointByReactable.put(handler.reactable(), reactableEntrypoints);
-        registeredEntrypoints.addAll(reactableEntrypoints);
+        addEntrypoints(reactableEntrypoints);
     }
 
     private ReactorHandler prepare(Reactable reactable) {
@@ -125,9 +126,10 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
             if (newHandler != null) {
                 ReactorHandler previousHandler = handlers.remove(reactable);
                 List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(previousHandler.reactable());
-                registeredEntrypoints.removeIf(previousEntrypoints::contains);
 
+                // Register the new handler before removing the previous entrypoints to avoid 404, especially on high throughput.
                 register(newHandler);
+                removeEntrypoints(previousEntrypoints);
 
                 try {
                     logger.debug("Stopping previous handler for: {}", reactable);
@@ -151,7 +153,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     @Override
     public void clear() {
         Iterator<Map.Entry<Reactable, ReactorHandler>> reactableIte = handlers.entrySet().iterator();
-        while(reactableIte.hasNext()) {
+        while (reactableIte.hasNext()) {
             final Map.Entry<Reactable, ReactorHandler> next = reactableIte.next();
             remove(next.getKey(), next.getValue(), false);
             reactableIte.remove();
@@ -161,9 +163,11 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     private void remove(Reactable reactable, ReactorHandler handler, boolean remove) {
         if (handler != null) {
             try {
-                handler.stop();
                 List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(handler.reactable());
-                registeredEntrypoints.removeIf(previousEntrypoints::contains);
+
+                // Remove the entrypoints before stopping the handler to avoid 500 errors.
+                removeEntrypoints(previousEntrypoints);
+                handler.stop();
 
                 if (remove) {
                     handlers.remove(reactable);
@@ -178,6 +182,20 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     @Override
     public Collection<HandlerEntrypoint> getEntrypoints() {
         return registeredEntrypoints;
+    }
+
+    private void addEntrypoints(List<HandlerEntrypoint> reactableEntrypoints) {
+        synchronized (registeredEntrypoints) {
+            registeredEntrypoints.addAll(reactableEntrypoints);
+            registeredEntrypoints.sort(entryPointComparator);
+        }
+    }
+
+    private void removeEntrypoints(List<HandlerEntrypoint> previousEntrypoints) {
+        synchronized (registeredEntrypoints) {
+            registeredEntrypoints.removeAll(previousEntrypoints);
+            registeredEntrypoints.sort(entryPointComparator);
+        }
     }
 
 }

@@ -25,7 +25,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -298,21 +302,77 @@ public class ReactorHandlerRegistryTest {
     }
 
     @Test
-    public void shouldHaveOneEntrypoint_updateSameReactable() {
+    public void shouldHaveOneEntrypoint_updateSameReactableWithVHost() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        DummyReactable updateReactable = createReactable("reactable1", "api.gravitee.io", "/new-path");
-        ReactorHandler handler2 = createReactorHandler(updateReactable);
-        when(reactorHandlerFactoryManager.create(updateReactable)).thenReturn(handler2);
-        reactorHandlerRegistry.update(updateReactable);
+        Assert.assertEquals(1, reactorHandlerRegistry.getEntrypoints().size());
+
+        for (int i = 0; i < 100; i++) {
+            final DummyReactable toUpdate = createReactable("reactable1", "api.gravitee.io", "/new-path");
+            final ReactorHandler handlerUpdate = createReactorHandler(toUpdate);
+            when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(handlerUpdate);
+            reactorHandlerRegistry.update(toUpdate);
+            Assert.assertEquals("Size of entrypoints list should be 1 (i=" + i + ")", 1, reactorHandlerRegistry.getEntrypoints().size());
+        }
 
         final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
         final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(1, entrypoints.size());
         assertEntryPoint("api.gravitee.io", "/new-path/", entrypointIterator.next());
+    }
+
+    @Test
+    public void shouldHaveOneEntrypoint_updateSameReactableWithContextPath() throws InterruptedException {
+
+        DummyReactable reactable = createReactable("reactable", "/c");
+        ReactorHandler handler = createReactorHandler(reactable);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        reactorHandlerRegistry.create(reactable);
+
+        Assert.assertEquals(1, reactorHandlerRegistry.getEntrypoints().size());
+
+        for (int i = 0; i < 100; i++) {
+            final Reactable toUpdate = createReactable("reactable", "/c");
+            final ReactorHandler handlerUpdate = createReactorHandler(toUpdate);
+            when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(handlerUpdate);
+            reactorHandlerRegistry.update(toUpdate);
+            Assert.assertEquals("Size of entrypoints list should be 1 (i=" + i + ")", 1, reactorHandlerRegistry.getEntrypoints().size());
+        }
+
+        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        Assert.assertEquals(1, entrypoints.size());
+        assertEntryPoint(null, "/c/", entrypointIterator.next());
+    }
+
+    @Test
+    public void shouldHave100Entrypoints_createThenUpdateMultiThreads() throws InterruptedException {
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+        for (int i = 0; i < 100; i++) {
+            final DummyReactable toCreate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
+            final ReactorHandler handler = createReactorHandler(toCreate);
+            when(reactorHandlerFactoryManager.create(toCreate)).thenReturn(handler);
+
+            executorService.submit(() -> reactorHandlerRegistry.create(toCreate));
+        }
+
+        for (int i = 0; i < 100; i++) {
+            final DummyReactable toUpdate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
+            final ReactorHandler handler = createReactorHandler(toUpdate);
+            when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(handler);
+            executorService.submit(() -> reactorHandlerRegistry.update(toUpdate));
+        }
+
+        executorService.shutdown();
+        assertTrue(executorService.awaitTermination(10000, TimeUnit.MILLISECONDS));
+
+        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        Assert.assertEquals(100, entrypoints.size());
     }
 
     @Test
