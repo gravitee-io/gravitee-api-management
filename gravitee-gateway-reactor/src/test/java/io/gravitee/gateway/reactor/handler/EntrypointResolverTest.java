@@ -111,7 +111,9 @@ public class EntrypointResolverTest {
         DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
         DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
 
-        when(reactorHandlerRegistry.getEntrypoints()).thenReturn(Arrays.asList(entrypoint1, entrypoint2));
+        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
+        when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
         when(request.path()).thenReturn("/teams");
 
         assertEquals(entrypoint1, handlerResolver.resolve(context));
@@ -123,8 +125,8 @@ public class EntrypointResolverTest {
         DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
         DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
-        handlerEntrypoints.addAll(Arrays.asList(entrypoint1, entrypoint2));
+        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/team");
@@ -153,8 +155,8 @@ public class EntrypointResolverTest {
         DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
         DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
-        handlerEntrypoints.addAll(Arrays.asList(entrypoint1, entrypoint2));
+        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/teams/");
@@ -168,8 +170,8 @@ public class EntrypointResolverTest {
         DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
         DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
-        handlerEntrypoints.addAll(Arrays.asList(entrypoint1, entrypoint2));
+        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/teamss/");
@@ -212,10 +214,11 @@ public class EntrypointResolverTest {
         withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api11.gravitee.io", "/a/b/c1/sub")));
         withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("apispecial.gravitee.io", "/a/b/special")));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
+        final List<HandlerEntrypoint> handlerEntrypoints = new ArrayList<>();
         handlerEntrypoints.addAll(noHosts);
         handlerEntrypoints.addAll(withHostAndPathABC);
         handlerEntrypoints.addAll(withHostAndNotPathABC);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         // Cases without host.
