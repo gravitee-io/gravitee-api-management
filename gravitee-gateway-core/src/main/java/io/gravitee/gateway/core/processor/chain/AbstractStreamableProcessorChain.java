@@ -61,7 +61,10 @@ public abstract class AbstractStreamableProcessorChain<T, S, P extends Streamabl
                     .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
                     .handle(data);
             } catch (Exception ex) {
-                errorHandler.handle(new RuntimeProcessorFailure(ex.getMessage()));
+                RuntimeProcessorFailure runtimeProcessorFailure = new RuntimeProcessorFailure(ex.getMessage());
+                errorHandler.handle(runtimeProcessorFailure);
+                exitHandler.handle(null);
+                streamErrorHandler.handle(runtimeProcessorFailure);
             }
         } else {
             ReadWriteStream<S> tailPolicyStreamer = previousProcessor;
