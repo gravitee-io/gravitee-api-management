@@ -17,9 +17,6 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
 
-import com.hazelcast.core.EntryEvent;
-import com.hazelcast.core.EntryEventType;
-import com.hazelcast.map.impl.MapListenerAdapter;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.Plan;
@@ -29,7 +26,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.node.api.cache.CacheManager;
+import io.gravitee.node.api.cache.*;
 import io.gravitee.node.api.cluster.ClusterManager;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
@@ -48,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements ApiManager, InitializingBean {
+public class ApiManagerImpl implements MapListener<String, Api>, ApiManager, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(ApiManagerImpl.class);
     private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
@@ -72,8 +69,8 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        apis = cacheManager.getCache("apis");
-        //        ((IMap) apis).addEntryListener(this, true);
+        apis = cacheManager.getMap("apis");
+        ((GMap<String, Api>) apis).addMapListener(this, true);
     }
 
     @Override
