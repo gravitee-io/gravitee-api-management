@@ -23,5 +23,6 @@ export enum FeatureEnum {
   ratingCommentMandatory = 'portal.rating.comment.mandatory',
   userRegistration = 'portal.userCreation.enabled',
   categoryMode = 'portal.apis.categoryMode.enabled',
+  promotedApiMode = 'portal.apis.promotedApiMode.enabled',
   alert = 'alert.enabled',
 }

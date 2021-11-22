@@ -4278,6 +4278,8 @@ components:
           $ref: '#/components/schemas/Enabled'
         categoryMode:
           $ref: '#/components/schemas/Enabled'
+        promotedApiMode:
+          $ref: '#/components/schemas/Enabled'
         apiHeaderShowTags:
           $ref: '#/components/schemas/Enabled'
         apiHeaderShowCategories:

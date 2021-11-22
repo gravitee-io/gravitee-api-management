@@ -125,6 +125,13 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
       });
     };
 
+    this.savePromotedApiMode = () => {
+      PortalSettingsService.save(this.settings).then((response) => {
+        NotificationService.show('Promoted API is now ' + (this.settings.portal.apis.promotedApiMode.enabled ? 'visible' : 'hidden'));
+        this.settings = response.data;
+      });
+    };
+
     this.isReadonlySetting = (property: string): boolean => {
       return PortalSettingsService.isReadonly(this.settings, property);
     };

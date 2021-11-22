@@ -56,6 +56,7 @@ public enum Key {
         "true",
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
+    PORTAL_APIS_PROMOTED_API_ENABLED("portal.apis.promotedApiMode.enabled", "true", Set.of(ENVIRONMENT)),
     PORTAL_APIS_SHOW_TAGS_IN_APIHEADER(
         "portal.apis.apiheader.showtags.enabled",
         "true",
