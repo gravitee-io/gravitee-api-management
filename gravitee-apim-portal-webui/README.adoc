@@ -98,13 +98,13 @@ npm run serve:prod
 
 == Tips
 
-If you want to test with other backend like nightly :
+If you want to test with other backend like apim master :
 
 Edit `src/proxy.conf.json`
 ```json
 {
   "/portal/environments/DEFAULT": {
-    "target": "https://nightly.gravitee.io/api/",
+    "target": "https://apim-master-api.cloud.gravitee.io/",
     "secure": false,
     "changeOrigin": true
   },
