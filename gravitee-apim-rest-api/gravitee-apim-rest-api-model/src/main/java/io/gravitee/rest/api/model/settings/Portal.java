@@ -171,6 +171,9 @@ public class Portal {
         @ParameterKey(Key.PORTAL_APIS_CATEGORY_ENABLED)
         private Enabled categoryMode;
 
+        @ParameterKey(Key.PORTAL_APIS_PROMOTED_API_ENABLED)
+        private Enabled promotedApiMode;
+
         @ParameterKey(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER)
         private Enabled apiHeaderShowTags;
 
@@ -191,6 +194,14 @@ public class Portal {
 
         public void setCategoryMode(Enabled categoryMode) {
             this.categoryMode = categoryMode;
+        }
+
+        public Enabled getPromotedApiMode() {
+            return promotedApiMode;
+        }
+
+        public void setPromotedApiMode(Enabled promotedApiMode) {
+            this.promotedApiMode = promotedApiMode;
         }
 
         public Enabled getApiHeaderShowTags() {

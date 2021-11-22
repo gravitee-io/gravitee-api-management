@@ -155,7 +155,7 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   _load() {
-    if (this.page === 1) {
+    if (this.page === 1 && this.hasPromotedApiMode()) {
       this.promotedApi = this._loadPromotedApi({ size: 1, filter: this.filterApiQuery, promoted: true });
     }
     return Promise.all([this._loadRandomList(), this._loadCards()]);
@@ -207,18 +207,22 @@ export class FilteredCatalogComponent implements OnInit {
 
   _loadCategory() {
     this.category = this.activatedRoute.snapshot.data.category;
-    this.promotedApi = this._loadPromotedApi({ size: 1, category: this.currentCategory, promoted: true });
+    if (this.hasPromotedApiMode()) {
+      this.promotedApi = this._loadPromotedApi({ size: 1, category: this.currentCategory, promoted: true });
+    }
     return this._loadCards();
   }
 
   async _loadCards() {
+    const fetchPromoted = this.hasPromotedApiMode() ? false : undefined;
+
     return this.apiService
       .getApis({
         page: this.page,
         size: this.size,
         filter: this.filterApiQuery,
         category: this.currentCategory,
-        promoted: false,
+        promoted: fetchPromoted,
       })
       .toPromise()
       .then(async ({ data, metadata }) => {
@@ -319,6 +323,10 @@ export class FilteredCatalogComponent implements OnInit {
 
   get showCards() {
     return this.currentDisplay === FilteredCatalogComponent.DEFAULT_DISPLAY;
+  }
+
+  hasPromotedApiMode() {
+    return this.config.hasFeature(FeatureEnum.promotedApiMode);
   }
 
   hasCategoryMode() {

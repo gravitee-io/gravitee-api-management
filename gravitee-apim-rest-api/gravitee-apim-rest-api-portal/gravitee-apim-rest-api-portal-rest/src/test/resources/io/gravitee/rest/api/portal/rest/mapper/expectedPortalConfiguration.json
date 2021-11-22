@@ -18,6 +18,9 @@
       "categoryMode" : {
         "enabled" : true
       },
+      "promotedApiMode": {
+        "enabled": true
+      },
       "apiHeaderShowTags" : {
         "enabled" : false
       },
