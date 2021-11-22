@@ -130,10 +130,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
             if (newHandler != null) {
                 ReactorHandler previousHandler = handlers.remove(reactable);
                 List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(previousHandler.reactable());
-
-                // Register the new handler before removing the previous entrypoints to avoid 404, especially on  high throughput.
-                register(newHandler);
                 registeredEntrypoints.removeIf(previousEntrypoints::contains);
+
+                register(newHandler);
 
                 try {
                     logger.debug("Stopping previous handler for: {}", reactable);
@@ -167,11 +166,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     private void remove(Reactable reactable, ReactorHandler handler, boolean remove) {
         if (handler != null) {
             try {
-                List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(handler.reactable());
-
-                // Remove the entrypoints before stopping the handler to avoid 500 errors.
-                registeredEntrypoints.removeIf(previousEntrypoints::contains);
                 handler.stop();
+                List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(handler.reactable());
+                registeredEntrypoints.removeIf(previousEntrypoints::contains);
 
                 if (remove) {
                     handlers.remove(reactable);
