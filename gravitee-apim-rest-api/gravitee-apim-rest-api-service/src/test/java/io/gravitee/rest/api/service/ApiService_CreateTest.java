@@ -21,8 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -37,19 +35,14 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
-import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import java.io.IOException;
 import java.io.Reader;
-import java.net.URL;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.AfterClass;
@@ -323,77 +316,5 @@ public class ApiService_CreateTest {
                 new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
-    }
-
-    @Test
-    public void shouldCreateImportApiEvenIfMemberRoleIsInvalid() throws IOException, TechnicalException {
-        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
-        String toBeImport = Resources.toString(url, Charsets.UTF_8);
-        ApiEntity apiEntity = new ApiEntity();
-        Api api = new Api();
-        api.setId(API_ID);
-        apiEntity.setId(API_ID);
-        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
-        when(apiRepository.create(any())).thenReturn(api);
-        UserEntity admin = new UserEntity();
-        admin.setId("admin");
-        admin.setSource(SOURCE);
-        admin.setSourceId("ref-admin");
-        UserEntity user = new UserEntity();
-        user.setId("user");
-        user.setSource(SOURCE);
-        user.setSourceId("ref-user");
-        when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
-        when(userService.findById(admin.getId())).thenReturn(admin);
-        when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
-
-        RoleEntity poRoleEntity = new RoleEntity();
-        poRoleEntity.setId("API_PRIMARY_OWNER");
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
-        RoleEntity ownerRoleEntity = new RoleEntity();
-        ownerRoleEntity.setId("API_OWNER");
-
-        MemberEntity po = new MemberEntity();
-        po.setId("admin");
-        po.setReferenceId(API_ID);
-        po.setReferenceType(MembershipReferenceType.API);
-        po.setRoles(Arrays.asList(poRoleEntity));
-        MemberEntity owner = new MemberEntity();
-        owner.setId("user");
-        owner.setReferenceId(API_ID);
-        owner.setReferenceType(MembershipReferenceType.API);
-        owner.setRoles(Arrays.asList(ownerRoleEntity));
-        when(membershipService.getMembersByReference(any(), any())).thenReturn(Collections.singleton(po));
-
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setId(admin.getId());
-        memberEntity.setRoles(Collections.singletonList(poRoleEntity));
-        when(membershipService.addRoleToMemberOnReference(any(), any(), any())).thenReturn(memberEntity);
-        when(
-            membershipService.addRoleToMemberOnReference(
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                user.getId(),
-                "API_OWNER"
-            )
-        )
-            .thenThrow(new RoleNotFoundException("API_OWNER Not found"));
-
-        apiService.createWithImportedDefinition(null, toBeImport, "admin");
-
-        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
-        verify(membershipService, times(1))
-            .addRoleToMemberOnReference(
-                new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipMember(admin.getId(), null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-            );
-        verify(membershipService, times(1))
-            .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
-        verify(apiRepository, never()).update(any());
-        verify(apiRepository, times(1)).create(any());
-        verify(membershipService, never()).transferApiOwnership(any(), any(), any());
-        verify(genericNotificationConfigService, times(1)).create(any());
     }
 }

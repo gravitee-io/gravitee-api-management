@@ -97,10 +97,6 @@ public interface ApiService {
 
     String exportAsJson(String apiId, String exportVersion, String... filteredFields);
 
-    ApiEntity createWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId);
-
-    ApiEntity updateWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId);
-
     InlinePictureEntity getPicture(String apiId);
 
     void deleteCategoryFromAPIs(String categoryId);

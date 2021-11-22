@@ -217,6 +217,16 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
+        when(
+            membershipService.addRoleToMemberOnReference(
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "user",
+                "UNEXISTING_ROLE"
+            )
+        )
+            .thenThrow(new RoleNotFoundException("UNEXISTING_ROLE"));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
