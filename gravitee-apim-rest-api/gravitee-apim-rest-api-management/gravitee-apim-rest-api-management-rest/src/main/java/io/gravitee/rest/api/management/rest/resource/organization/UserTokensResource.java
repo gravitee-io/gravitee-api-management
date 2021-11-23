@@ -13,34 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.rest.api.management.rest.resource.organization;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.TokenService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = { "User Tokens" })
-public class TokensResource extends AbstractResource {
+public class UserTokensResource extends AbstractResource {
 
     @Inject
     private TokenService tokenService;
+
+    @PathParam("userId")
+    @ApiParam(name = "userId", required = true)
+    private String userId;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -52,8 +69,9 @@ public class TokensResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ }))
     public List<TokenEntity> getTokens() {
-        return tokenService.findByUser(getAuthenticatedUser()).stream().sorted(comparing(TokenEntity::getCreatedAt)).collect(toList());
+        return tokenService.findByUser(userId).stream().sorted(comparing(TokenEntity::getCreatedAt)).collect(toList());
     }
 
     @POST
@@ -66,22 +84,9 @@ public class TokensResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    public TokenEntity createTokens(@Valid @NotNull final NewTokenEntity token) {
-        return tokenService.create(token, getAuthenticatedUser());
-    }
-
-    @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke all user's personal tokens")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "User's personal tokens revoked"),
-            @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
-    public void revokeAllTokens() {
-        tokenService.revokeByUser(getAuthenticatedUser());
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ, RolePermissionAction.CREATE }))
+    public Response createToken(@Valid @NotNull final NewTokenEntity token) {
+        return Response.status(Response.Status.CREATED).entity(tokenService.create(token, userId)).build();
     }
 
     @Path("{token}")
@@ -95,6 +100,7 @@ public class TokensResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ, RolePermissionAction.DELETE }))
     public void revokeToken(@PathParam("token") String tokenId) {
         tokenService.revoke(tokenId);
     }

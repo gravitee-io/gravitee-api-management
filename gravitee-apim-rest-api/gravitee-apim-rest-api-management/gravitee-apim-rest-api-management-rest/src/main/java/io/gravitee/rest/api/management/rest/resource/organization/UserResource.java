@@ -280,4 +280,9 @@ public class UserResource extends AbstractResource {
     public Response validateRegistration(boolean accepted) {
         return Response.ok(userService.processRegistration(userId, accepted)).build();
     }
+
+    @Path("tokens")
+    public UserTokensResource getUserTokensResource() {
+        return resourceContext.getResource(UserTokensResource.class);
+    }
 }

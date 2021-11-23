@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.management.model.Token;
-import io.gravitee.rest.api.model.NewTokenEntity;
-import io.gravitee.rest.api.model.TokenEntity;
-import java.util.List;
+export interface Token {
+  id: string;
+  name: string;
+  token?: string;
+  created_at: number;
+  expires_at?: number;
+  last_use_at?: number;
+}
 
-/**
- * @author Azize ELAMRANI (azize at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface TokenService {
-    List<TokenEntity> findByUser(String userId);
-    Token findByToken(String token);
-    TokenEntity create(NewTokenEntity token, String userId);
-    void revokeByUser(String userId);
-    void revoke(String tokenId);
+export interface NewToken {
+  name: string;
 }

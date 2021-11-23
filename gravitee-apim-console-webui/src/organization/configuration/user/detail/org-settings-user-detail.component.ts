@@ -25,6 +25,10 @@ import {
   OrgSettingsUserDetailAddGroupDialogData,
   OrgSettingsUserDetailAddGroupDialogReturn,
 } from './org-settings-user-detail-add-group-dialog.component';
+import {
+  OrgSettingsUserGenerateTokenComponent,
+  OrgSettingsUserGenerateTokenDialogData,
+} from './tokens/org-settings-user-generate-token.component';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Environment } from '../../../../entities/environment/environment';
@@ -42,6 +46,8 @@ import {
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { UserHelper } from '../../../../entities/user/userHelper';
+import { Token } from '../../../../entities/user/userTokens';
+import { UsersTokenService } from '../../../../services-ngx/users-token.service';
 
 interface UserVM extends User {
   organizationRoles: string;
@@ -101,6 +107,8 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   applicationsTableDS: ApplicationDS[];
   applicationsTableDisplayedColumns = ['name'];
 
+  tokens: Token[];
+
   openSaveBar = false;
   invalidStateSaveBar = false;
 
@@ -110,6 +118,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly usersService: UsersService,
+    private readonly usersTokenService: UsersTokenService,
     private readonly roleService: RoleService,
     private readonly groupService: GroupService,
     private readonly snackBarService: SnackBarService,
@@ -168,6 +177,13 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           id: applicationId,
           name: applicationMetadata.name,
         }));
+      });
+
+    this.usersTokenService
+      .getTokens(this.ajsStateParams.userId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((response) => {
+        this.tokens = response;
       });
   }
 
@@ -475,5 +491,55 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     this.groupsRolesFormGroup.statusChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((status) => {
       this.invalidStateSaveBar = status !== 'VALID';
     });
+  }
+
+  onDeleteTokenClicked(token: Token) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: '450px',
+        data: {
+          title: 'Revoke a token',
+          content: `Are you sure you want to revoke the token <strong>${token.name}</strong>?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'revokeUsersTokenDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.usersTokenService.revokeToken(this.ajsStateParams.userId, token.id)),
+        tap(() => this.snackBarService.success(`Token successfully deleted!`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
+  onGenerateTokenClicked() {
+    this.matDialog
+      .open<OrgSettingsUserGenerateTokenComponent, OrgSettingsUserGenerateTokenDialogData, Token>(OrgSettingsUserGenerateTokenComponent, {
+        width: '750px',
+        data: {
+          userId: this.ajsStateParams.userId,
+        },
+        role: 'dialog',
+        id: 'generateTokenDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        // tap(() => {
+        //   this.snackBarService.success('Token successfully created!');
+        // }),
+        // catchError(({ error }) => {
+        //   this.snackBarService.error(error.message);
+        //   return EMPTY;
+        // }),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 }

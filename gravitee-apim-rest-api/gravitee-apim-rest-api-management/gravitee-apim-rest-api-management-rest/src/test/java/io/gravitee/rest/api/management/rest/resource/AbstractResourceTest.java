@@ -221,6 +221,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected DebugApiService debugApiService;
 
+    @Autowired
+    protected TokenService tokenService;
+
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
     static class ContextConfiguration {
@@ -488,6 +491,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public DebugApiService debugApiService() {
             return mock(DebugApiService.class);
+        }
+
+        @Bean
+        public TokenService tokenService() {
+            return mock(TokenService.class);
         }
     }
 }

@@ -26,6 +26,8 @@ import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatListHarness } from '@angular/material/list/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
@@ -46,6 +48,8 @@ import { fakeGroupMembership } from '../../../../entities/group/groupMember.fixt
 import { fakeUserMembership } from '../../../../entities/user/userMembership.fixture';
 import { UserMembership } from '../../../../entities/user/userMembership';
 import { GioTableWrapperHarness } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
+import { Token } from '../../../../entities/user/userTokens';
+import { fakeUserToken } from '../../../../entities/user/userToken.fixture';
 
 describe('OrgSettingsUserDetailComponent', () => {
   const fakeAjsState = {
@@ -72,6 +76,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       .overrideProvider(InteractivityChecker, {
         useValue: {
           isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+          isTabbable: () => true, // This checks tabbable trap, set it to true to  avoid the warning
         },
       })
       .compileComponents();
@@ -104,6 +109,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       ],
       customFields,
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -132,6 +138,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       id: 'userId',
       source: 'gravitee',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -152,12 +159,37 @@ describe('OrgSettingsUserDetailComponent', () => {
     // No flush to stop test here
   });
 
+  it('should not reset password if no email', async (done) => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      email: null,
+    });
+    expectUserTokensGetRequest(user);
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    await userCard.getHarness(MatButtonHarness.with({ text: 'Reset password' })).catch((reason) => {
+      expect(reason.message).toEqual(
+        'Failed to find element matching one of the following queries:\n' +
+          '(MatButtonHarness with host element matching selector: "[mat-button],[mat-raised-button],[mat-flat-button],[mat-icon-button],[mat-stroked-button],[mat-fab],[mat-mini-fab]" satisfying the constraints: text = "Reset password")',
+      );
+      done();
+    });
+  });
+
   it('should accept user registration after confirm dialog', async () => {
     const user = fakeUser({
       id: 'userId',
       source: 'gravitee',
       status: 'PENDING',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -187,6 +219,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'PENDING',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -216,6 +249,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'PENDING',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -235,6 +269,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -253,6 +288,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
       roles: [{ id: 'roleOrgUserId', name: 'ROLE_ORG_USER', scope: 'ORGANIZATION' }],
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -283,6 +319,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
       envRoles: { environmentAlphaId: [{ id: 'roleEnvApiId' }], environmentBetaId: [] },
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectUserGroupsGetRequest(user.id);
     expectUserMembershipGetRequest(user.id, 'api');
@@ -316,6 +353,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id, [
@@ -363,6 +401,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'PENDING',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id, [fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN' } })]);
@@ -394,6 +433,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -425,6 +465,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -453,6 +494,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
@@ -488,6 +530,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id, [fakeGroup({ id: 'groupA', name: 'Group A' })]);
@@ -534,6 +577,128 @@ describe('OrgSettingsUserDetailComponent', () => {
       },
     ]);
   });
+
+  it('should create a token', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectUserTokensGetRequest(user);
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id, [
+      fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER' } }),
+    ]);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+    expectRolesListRequest('API', [fakeRole({ id: 'roleApiId', name: 'ROLE_API' })]);
+    expectRolesListRequest('APPLICATION', [
+      fakeRole({ id: 'roleAppOwnerId', name: 'ROLE_APP_OWNER' }),
+      fakeRole({ id: 'roleAppUserId', name: 'ROLE_APP_USER' }),
+    ]);
+
+    const tokensCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__tokens__card' }));
+    const generateTokenButton = await tokensCard.getHarness(MatButtonHarness);
+    const tokensList = await tokensCard.getHarness(MatListHarness);
+
+    const matListItemHarnesses = await tokensList.getItems();
+    expect(matListItemHarnesses).toHaveLength(1);
+    const listItemHarness = matListItemHarnesses.pop();
+    expect(await listItemHarness.getText()).toEqual('No token');
+
+    await generateTokenButton.click();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    const generateButton = await dialog.getHarness(MatButtonHarness.with({ text: 'Generate' }));
+
+    const nameInput = await dialog.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+    await nameInput.setValue('My token');
+
+    await generateButton.click();
+
+    const reqPost = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}/tokens`);
+    expect(reqPost.request.method).toEqual('POST');
+    expect(reqPost.request.body.name).toEqual('My token');
+
+    const tokenResponse: Token = fakeUserToken({ name: 'My token' });
+    reqPost.flush(tokenResponse);
+
+    const closeButton = await dialog.getHarness(MatButtonHarness.with({ text: 'Close' }));
+    await closeButton.click();
+
+    expectUserTokensGetRequest(user, [tokenResponse]);
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id, [
+      fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER' } }),
+    ]);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+  });
+
+  it('should delete a token', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    const tokenResponse: Token = fakeUserToken({ name: 'My token' });
+
+    expectUserTokensGetRequest(user, [tokenResponse]);
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id, [
+      fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER' } }),
+    ]);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+    expectRolesListRequest('API', [fakeRole({ id: 'roleApiId', name: 'ROLE_API' })]);
+    expectRolesListRequest('APPLICATION', [
+      fakeRole({ id: 'roleAppOwnerId', name: 'ROLE_APP_OWNER' }),
+      fakeRole({ id: 'roleAppUserId', name: 'ROLE_APP_USER' }),
+    ]);
+
+    const tokensCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__tokens__card' }));
+    const tokensList = await tokensCard.getHarness(MatListHarness);
+    const matListItemHarnesses = await tokensList.getItems();
+    expect(matListItemHarnesses).toHaveLength(1);
+
+    const listItemHarness = matListItemHarnesses.pop();
+    expect(await listItemHarness.getText()).toContain(tokenResponse.name);
+    const removeTokenButton = await listItemHarness.getHarness(
+      MatButtonHarness.with({ selector: '[aria-label="Button to delete a token"]' }),
+    );
+
+    await removeTokenButton.click();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    const removeButton = await dialog.getHarness(MatButtonHarness.with({ text: /Remove/ }));
+
+    await removeButton.click();
+
+    const reqDelete = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}/tokens/${tokenResponse.id}`);
+    expect(reqDelete.request.method).toEqual('DELETE');
+    reqDelete.flush(null);
+
+    expectUserTokensGetRequest(user, []);
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id, [
+      fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER' } }),
+    ]);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+  });
+
+  function expectUserTokensGetRequest(user: User = fakeUser({ id: 'userId' }), tokens: Token[] = []) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}/tokens`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(tokens);
+    fixture.detectChanges();
+  }
 
   function expectUserGetRequest(user: User = fakeUser({ id: 'userId' })) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}`);

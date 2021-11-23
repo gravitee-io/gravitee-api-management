@@ -67,20 +67,18 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     }
 
     @Override
-    public TokenEntity create(NewTokenEntity newToken) {
+    public TokenEntity create(NewTokenEntity newToken, String user) {
         try {
-            final String username = getAuthenticatedUsername();
-
             // check if name already exists
-            final List<TokenEntity> tokens = findByUser(username);
+            final List<TokenEntity> tokens = findByUser(user);
             final boolean nameAlreadyExists = tokens.stream().anyMatch(token -> newToken.getName().equalsIgnoreCase(token.getName()));
             if (nameAlreadyExists) {
                 throw new TokenNameAlreadyExistsException(newToken.getName());
             }
 
             final String decodedToken = UUID.toString(UUID.random());
-            final Token token = convert(newToken, TokenReferenceType.USER, username, passwordEncoder.encode(decodedToken));
-            auditService.createEnvironmentAuditLog(
+            final Token token = convert(newToken, TokenReferenceType.USER, user, passwordEncoder.encode(decodedToken));
+            auditService.createOrganizationAuditLog(
                 Collections.singletonMap(TOKEN, token.getId()),
                 TOKEN_CREATED,
                 token.getCreatedAt(),
@@ -107,7 +105,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             Optional<Token> tokenOptional = tokenRepository.findById(tokenId);
             if (tokenOptional.isPresent()) {
                 tokenRepository.delete(tokenId);
-                auditService.createEnvironmentAuditLog(
+                auditService.createOrganizationAuditLog(
                     Collections.singletonMap(TOKEN, tokenId),
                     TOKEN_DELETED,
                     new Date(),

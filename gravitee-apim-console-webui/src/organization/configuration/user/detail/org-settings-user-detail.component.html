@@ -49,7 +49,10 @@
 
       <div class="org-settings-user-detail__card__head__right">
         <ng-container *gioPermission="{ anyOf: ['organization-user-u'] }">
-          <div *ngIf="user.status === 'ACTIVE' && user.source === 'gravitee'" class="org-settings-user-detail__card__head__left__btn">
+          <div
+            *ngIf="user.status === 'ACTIVE' && user.source === 'gravitee' && user.email"
+            class="org-settings-user-detail__card__head__left__btn"
+          >
             <button (click)="onRestPassword()" mat-stroked-button aria-label="User reset password">Reset password</button>
           </div>
         </ng-container>
@@ -366,6 +369,50 @@
     <mat-card-footer *ngIf="!applicationsTableDS">
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </mat-card-footer>
+  </mat-card>
+
+  <mat-card class="org-settings-user-detail__tokens__card">
+    <div class="org-settings-user-detail__tokens__headline">
+      <h2 gioTableOfContents>Tokens</h2>
+      <button *gioPermission="{ anyOf: ['organization-user-u'] }" (click)="onGenerateTokenClicked()" mat-raised-button color="primary">
+        <mat-icon>add</mat-icon>Generate a personal token
+      </button>
+    </div>
+
+    <mat-list class="org-settings-user-detail__tokens__list">
+      <mat-list-item class="org-settings-user-detail__tokens__list__empty" *ngIf="tokens?.length === 0">
+        <div class="org-settings-user-detail__tokens__list__empty__label">No token</div>
+      </mat-list-item>
+      <mat-list-item class="org-settings-user-detail__tokens__list__item" *ngFor="let token of tokens">
+        <mat-icon mat-list-icon>token</mat-icon>
+        <div class="org-settings-user-detail__tokens__list__item__description">
+          <div mat-line>
+            <div class="org-settings-user-detail__tokens__list__item__description__strong">{{ token.name }}</div>
+          </div>
+          <div mat-line>
+            <span class="org-settings-user-detail__tokens__list__item__description__strong">Created at: </span
+            >{{ token.created_at | date: 'medium' }}
+          </div>
+          <div mat-line>
+            <span class="org-settings-user-detail__tokens__list__item__description__strong">Last use: </span
+            >{{ token.last_use_at ? (token.last_use_at | date: 'medium') : 'never' }}
+          </div>
+        </div>
+        <div>
+          <ng-container *gioPermission="{ anyOf: ['organization-user-d'] }">
+            <button
+              (click)="onDeleteTokenClicked(token)"
+              mat-icon-button
+              color="primary"
+              aria-label="Button to delete a token"
+              matTooltip="Delete token"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </ng-container>
+        </div>
+      </mat-list-item>
+    </mat-list>
   </mat-card>
 
   <gio-save-bar
