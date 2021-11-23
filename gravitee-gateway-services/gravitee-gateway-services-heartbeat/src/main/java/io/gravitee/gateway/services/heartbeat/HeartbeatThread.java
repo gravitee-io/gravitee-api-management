@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.services.heartbeat;
 
-import com.hazelcast.topic.ITopic;
 import io.gravitee.node.api.message.Topic;
 import io.gravitee.repository.management.model.Event;
+import io.vertx.core.json.JsonObject;
 import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +30,10 @@ public class HeartbeatThread implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatThread.class);
 
-    private final Topic<Event> topic;
+    private final Topic<JsonObject> topic;
     private final Event event;
 
-    HeartbeatThread(Topic<Event> topic, Event event) {
+    HeartbeatThread(Topic<JsonObject> topic, Event event) {
         this.topic = topic;
         this.event = event;
     }
@@ -46,7 +46,7 @@ public class HeartbeatThread implements Runnable {
             // Update heartbeat timestamp
             event.setUpdatedAt(new Date());
             event.getProperties().put(HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(event.getUpdatedAt().getTime()));
-            topic.publish(event);
+            topic.publish(JsonObject.mapFrom(event));
         } catch (Exception ex) {
             LOGGER.error("An unexpected error occurs while monitoring the gateway", ex);
         }
