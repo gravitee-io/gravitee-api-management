@@ -144,7 +144,7 @@ jobs:
           name: Compute Tag for Docker images
           command: |
             # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
-            export TAG=$(echo "${APIM_VERSION}-${CIRCLE_BRANCH:0:15}+${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
+            export TAG=${APIM_VERSION}-$(echo "${CIRCLE_BRANCH:0:15}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)-${CIRCLE_SHA1:0:7}
             # Workaround for sharing this variable to the next steps
             echo "export TAG=$TAG" >> $BASH_ENV
             echo "Docker images will be tagged with: ${TAG}"
@@ -194,29 +194,38 @@ jobs:
       - run:
           name: Helm upgrade and 🚀 to Element Zero cluster
           command: |
-            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-            az aks get-credentials --resource-group element-zero --name element-zero
+            if [ "master" == "${CIRCLE_BRANCH}" ]
+            then
+              az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+              az aks get-credentials --resource-group element-zero --name element-zero
 
-            helm upgrade --repo https://helm.gravitee.io \
-                         --install apim \
-                         -n apim \
-                         apim3 \
-                         --reuse-values \
-                         --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                         --set "gateway.image.tag=${TAG}"
+              # FIXME: change redis.repositoryVersion
+              helm upgrade --repo https://helm.gravitee.io \
+                           --install apim \
+                           -n apim \
+                           apim3 \
+                           --reuse-values \
+                           --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
+                           --set "gateway.image.tag=${TAG}" \
+                           --set "redis.repositoryVersion=3.12.1"
+            fi
       - run:
           name: Helm upgrade and 🚀 to APIM cluster
           command: |
+            export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
+
             az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
             az aks get-credentials --resource-group apim-hprod --name apim-hprod
 
+            # FIXME: change redis.repositoryVersion
             helm upgrade --repo https://helm.gravitee.io \
                          --install apim \
-                         -n apim-master \
+                        -n ${K8S_NAMESPACE} \
                          apim3 \
                          --reuse-values \
                          --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                         --set "gateway.image.tag=${TAG}"
+                         --set "gateway.image.tag=${TAG}" \
+                         --set "redis.repositoryVersion=3.12.1"
 
 workflows:
   version: 2.1
@@ -266,7 +275,7 @@ workflows:
             branches:
               only:
                 - master
-                - 6170-deploy-on-apim-cluster
+                - /^\d+\.\d+\.x$/
       - deploy-on-azure-aks:
           context: cicd-orchestrator
           pre-steps:
@@ -285,7 +294,7 @@ workflows:
             branches:
               only:
                 - master
-                - 6170-deploy-on-apim-cluster
+                - /^\d+\.\d+\.x$/
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
   # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
