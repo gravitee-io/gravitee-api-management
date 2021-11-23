@@ -225,14 +225,23 @@ jobs:
       - run:
           name: Build & Publish Management API Docker Image to Azure Registry
           command: |
-            export IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
-
+            export PUBLIC_IMAGE_TAG=graviteeio/apim-management-api:${TAG}
+            export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
             docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
             --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-            -t ${IMAGE_TAG} .
+            -t ${PRIVATE_IMAGE_TAG} \
+            -t ${PUBLIC_IMAGE_TAG} .
+
+            if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
+            then
+              echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
+              docker push ${PUBLIC_IMAGE_TAG}
+              docker logout
+            fi
 
             echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-            docker push ${IMAGE_TAG}
+            docker push ${PRIVATE_IMAGE_TAG}
+            docker logout graviteeio.azurecr.io
       - notify-on-failure
 
   cypress-install:
@@ -491,10 +500,20 @@ jobs:
             cp -fr docker/config .
             cp -fr docker/run.sh .
 
-            export IMAGE_TAG=graviteeio.azurecr.io/apim-console-webui:${TAG}
-            docker build -f docker/Dockerfile-dev -t ${IMAGE_TAG} .
+            export PUBLIC_IMAGE_TAG=graviteeio/apim-console-webui:${TAG}
+            export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-console-webui:${TAG}
+            docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} -t ${PUBLIC_IMAGE_TAG} .
+
+            if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
+            then
+              echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
+              docker push ${PUBLIC_IMAGE_TAG}
+              docker logout
+            fi
+
             echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-            docker push ${IMAGE_TAG}
+            docker push ${PRIVATE_IMAGE_TAG}
+            docker logout graviteeio.azurecr.io
           working_directory: gravitee-apim-console-webui
       - notify-on-failure
 
@@ -620,10 +639,20 @@ jobs:
             cp -fr docker/config .
             cp -fr docker/run.sh .
 
-            export IMAGE_TAG=graviteeio.azurecr.io/apim-portal-webui:${TAG}
-            docker build -f docker/Dockerfile-dev -t ${IMAGE_TAG} .
+            export PUBLIC_IMAGE_TAG=graviteeio/apim-portal-webui:${TAG}
+            export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-portal-webui:${TAG}
+            docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} -t ${PUBLIC_IMAGE_TAG} .
+
+            if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
+            then
+              echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
+              docker push ${PUBLIC_IMAGE_TAG}
+              docker logout
+            fi
+
             echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-            docker push ${IMAGE_TAG}
+            docker push ${PRIVATE_IMAGE_TAG}
+            docker logout graviteeio.azurecr.io
           working_directory: gravitee-apim-portal-webui
       - notify-on-failure
 
@@ -739,6 +768,12 @@ workflows:
             - secrethub/env-export:
                 secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
                 var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                var-name: DOCKERHUB_BOT_USER_NAME
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                var-name: DOCKERHUB_BOT_USER_TOKEN
           filters:
             branches:
               only:
@@ -803,12 +838,19 @@ workflows:
             - secrethub/env-export:
                 secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
                 var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+            - secrethub/env-export:
+                  secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                  var-name: DOCKERHUB_BOT_USER_NAME
+            - secrethub/env-export:
+                  secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                  var-name: DOCKERHUB_BOT_USER_TOKEN
           requires:
             - console-webui-build
           filters:
             branches:
               only:
                 - master
+                - /^\d+\.\d+\.x$/
       - portal-webui-install:
           requires:
             - compute-apim-tag
@@ -835,12 +877,19 @@ workflows:
             - secrethub/env-export:
                 secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
                 var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                var-name: DOCKERHUB_BOT_USER_NAME
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                var-name: DOCKERHUB_BOT_USER_TOKEN
           requires:
             - portal-webui-build
           filters:
             branches:
               only:
                 - master
+                - /^\d+\.\d+\.x$/
       - deploy-on-azure-cluster:
           context: cicd-orchestrator
           pre-steps:
