@@ -85,7 +85,7 @@ public class RepositoryManagementEventCodec implements MessageCodec<Event, Event
 
     @Override
     public String name() {
-        return getClass().getName();
+        return Event.class.getName();
     }
 
     @Override
