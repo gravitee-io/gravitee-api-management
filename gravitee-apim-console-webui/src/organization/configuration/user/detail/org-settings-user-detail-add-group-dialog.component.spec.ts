@@ -68,6 +68,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
   it('should fill and submit form', async () => {
     fixture.detectChanges();
     expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    fixture.detectChanges();
     expectRolesListRequest('API', [
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_API_USER' }),
       fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_API_ADMIN' }),

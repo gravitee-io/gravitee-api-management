@@ -17,13 +17,13 @@
 -->
 <h2 mat-dialog-title>Add a group with roles</h2>
 
-<form autocomplete="off" [formGroup]="addGroupForm" (ngSubmit)="onSubmit()">
+<form *ngIf="groups$ | async as groups" autocomplete="off" [formGroup]="addGroupForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
-    <div class="form">
+    <div *ngIf="groups.length !== 0; else allGroupAlreadyAdded" class="form">
       <mat-form-field appearance="fill">
         <mat-label>Group</mat-label>
         <mat-select formControlName="groupId" aria-label="Groups selection" required>
-          <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
+          <mat-option *ngFor="let group of groups" [value]="group.id">{{ group.name }}</mat-option>
         </mat-select>
         <mat-error *ngIf="addGroupForm.get('groupId').hasError('required')">Group is required.</mat-error>
       </mat-form-field>
@@ -53,10 +53,11 @@
     <div *ngIf="addGroupForm.dirty && addGroupForm.hasError('leastOneIsRequired')" class="mat-caption error">
       At least one role is mandatory
     </div>
+    <ng-template #allGroupAlreadyAdded><gio-banner-warning>All groups are already added.</gio-banner-warning></ng-template>
   </mat-dialog-content>
 
   <mat-dialog-actions class="actions">
     <button mat-button [mat-dialog-close]="false">Cancel</button>
-    <button mat-button [disabled]="addGroupForm.invalid" type="submit">Save</button>
+    <button *ngIf="groups.length !== 0" mat-button [disabled]="addGroupForm.invalid" type="submit">Save</button>
   </mat-dialog-actions>
 </form>

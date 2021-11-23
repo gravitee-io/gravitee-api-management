@@ -502,6 +502,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     const addGroupButton = await groupsCard.getHarness(MatButtonHarness.with({ text: /Add a group/ }));
     await addGroupButton.click();
     expectGroupListByOrganizationRequest([fakeGroup({ id: 'groupA', name: 'Group A' }), fakeGroup({ id: 'groupB', name: 'Group B' })]);
+    fixture.detectChanges();
     expectRolesListRequest('API');
     expectRolesListRequest('APPLICATION');
 
