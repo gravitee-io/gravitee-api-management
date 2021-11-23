@@ -1200,7 +1200,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             if (swaggerDescriptor.isWithPolicyPaths()) {
-                if (DefinitionVersion.V2.equals(updateApiEntity.getGraviteeDefinitionVersion())) {
+                if (DefinitionVersion.V2.getLabel().equals(updateApiEntity.getGraviteeDefinitionVersion())) {
                     updateApiEntity.setFlows(swaggerApiEntity.getFlows());
                 } else {
                     updateApiEntity.setPaths(swaggerApiEntity.getPaths());
