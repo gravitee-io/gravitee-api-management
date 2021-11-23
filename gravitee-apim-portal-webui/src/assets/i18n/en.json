@@ -220,7 +220,7 @@
       "ok": "OK"
     },
     "description": {
-      "label": "Describe the goal of this application",
+      "label": "Describe the purpose of this application",
       "title": "Description"
     },
     "domain": {
@@ -462,7 +462,7 @@
         "placeholder": "Just describe its purpose"
       },
       "domain": {
-        "label": "Domain your application will use",
+        "label": "Domain used by the application",
         "placeholder": "https://my-app.com"
       },
       "image": "Application Image",

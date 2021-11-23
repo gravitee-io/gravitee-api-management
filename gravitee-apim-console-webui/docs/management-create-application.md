@@ -8,4 +8,4 @@ An application is a simple entity composed of small property which are mainly de
 , what is does, ...
 
 If relevant, you can set the domain used by your application (for instance `https://my-app.com`). It will help API publishers to properly configure access controls.
-If multiple domains are concerned, use the comma as a separator.
+TIP: You can set multiple domains separated by commas.

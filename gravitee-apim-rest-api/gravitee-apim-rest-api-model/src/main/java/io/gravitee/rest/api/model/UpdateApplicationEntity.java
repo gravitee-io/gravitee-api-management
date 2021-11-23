@@ -54,7 +54,7 @@ public class UpdateApplicationEntity {
     @NotNull(message = "Application's settings must not be null")
     private ApplicationSettings settings;
 
-    @ApiModelProperty(value = "Application's groups. Used to add team in your App.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @ApiModelProperty(value = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     /**

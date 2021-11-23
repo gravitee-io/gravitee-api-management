@@ -60,7 +60,7 @@ public class NewApplicationEntity {
     @Deprecated
     private String clientId;
 
-    @ApiModelProperty(value = "Application's groups. Used to add team in your App.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @ApiModelProperty(value = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     private String picture;

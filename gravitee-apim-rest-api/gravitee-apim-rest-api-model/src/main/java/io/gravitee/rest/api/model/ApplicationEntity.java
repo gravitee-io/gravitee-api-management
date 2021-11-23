@@ -44,7 +44,7 @@ public class ApplicationEntity {
     @ApiModelProperty(value = "Domain used by the application, if relevant", example = "https://my-app.com")
     private String domain;
 
-    @ApiModelProperty(value = "Application's groups. Used to add team in your App.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @ApiModelProperty(value = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     @ApiModelProperty(value = "if the app is ACTIVE or ARCHIVED.", example = "ACTIVE")
