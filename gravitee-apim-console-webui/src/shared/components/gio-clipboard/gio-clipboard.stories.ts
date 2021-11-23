@@ -41,6 +41,15 @@ export const InnerButton: Story = {
   },
 };
 
+export const InnerButtonAlwaysVisible: Story = {
+  render: () => {
+    return {
+      template: `<div style="width:300px;"><div gioClipboardCopyWrapper contentToCopy="Hello" alwaysVisible="true" > Copy me ! </div></div>`,
+      props: {},
+    };
+  },
+};
+
 export const FormField: Story = {
   render: () => {
     return {

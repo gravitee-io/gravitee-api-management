@@ -26,6 +26,7 @@ import { GioClipboardComponent } from './gio-clipboard.base.component';
       #tooltip="matTooltip"
       class="right"
       [class.clicked]="clicked"
+      [class.always-visible]="alwaysVisible"
       [cdkCopyToClipboard]="contentToCopy"
       (cdkCopyToClipboardCopied)="onCopied($event, tooltip)"
       matRipple

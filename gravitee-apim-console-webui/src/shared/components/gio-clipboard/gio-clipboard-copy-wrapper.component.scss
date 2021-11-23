@@ -9,7 +9,7 @@ $primary: map.get(gio.$mat-theme, primary);
   cursor: pointer;
   color: mat.get-color-from-palette($primary);
 
-  &:not(.clicked) {
+  &:not(.clicked):not(.always-visible) {
     opacity: 0;
   }
 
