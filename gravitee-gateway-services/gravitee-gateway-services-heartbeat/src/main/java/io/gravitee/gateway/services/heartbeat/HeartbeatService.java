@@ -38,6 +38,7 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.Organization;
+import io.vertx.core.json.JsonObject;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -57,7 +58,7 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HeartbeatService extends AbstractService implements MessageConsumer<Event>, InitializingBean {
+public class HeartbeatService extends AbstractService implements MessageConsumer<JsonObject>, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatService.class);
 
@@ -114,7 +115,7 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
     private OrganizationRepository organizationRepository;
 
     // How to avoid duplicate
-    private Topic<Event> topic;
+    private Topic<JsonObject> topic;
 
     private java.util.UUID subscriptionId;
 
@@ -131,7 +132,7 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
             LOGGER.info("Start gateway heartbeat");
 
             heartbeatEvent = prepareEvent();
-            topic.publish(heartbeatEvent);
+            topic.publish(JsonObject.mapFrom(heartbeatEvent));
 
             // Remove the state to not include it in the underlying repository as it's just used for internal
             // purpose
@@ -150,10 +151,10 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
     }
 
     @Override
-    public void onMessage(Message<Event> message) {
+    public void onMessage(Message<JsonObject> message) {
         // Writing event to the repository is the responsibility of the master node
         if (clusterManager.isMasterNode()) {
-            Event event = message.getMessageObject();
+            Event event = message.getMessageObject().mapTo(Event.class);
             try {
                 String state = event.getProperties().get(EVENT_STATE_PROPERTY);
                 if (state != null) {
@@ -164,7 +165,7 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
             } catch (Exception ex) {
                 LOGGER.error("An error occurs while pushing heartbeat event id[{}] type[{}]", event.getId(), event.getType(), ex);
                 // Push back the event into the topic in case of error
-                topic.publish(event);
+                topic.publish(JsonObject.mapFrom(event));
             }
         }
     }
@@ -177,7 +178,7 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
             LOGGER.debug("Pre-stopping Heartbeat Service");
             LOGGER.debug("Sending a {} event", heartbeatEvent.getType());
 
-            topic.publish(heartbeatEvent);
+            topic.publish(JsonObject.mapFrom(heartbeatEvent));
 
             topic.removeMessageConsumer(subscriptionId);
         }
@@ -198,7 +199,7 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
             heartbeatEvent.getProperties().put(EVENT_STOPPED_AT_PROPERTY, Long.toString(new Date().getTime()));
             LOGGER.debug("Sending a {} event", heartbeatEvent.getType());
 
-            topic.publish(heartbeatEvent);
+            topic.publish(JsonObject.mapFrom(heartbeatEvent));
 
             topic.removeMessageConsumer(subscriptionId);
 
