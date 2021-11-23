@@ -21,6 +21,7 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.services.heartbeat.codec.RepositoryManagementEventCodec;
 import io.gravitee.gateway.services.heartbeat.event.InstanceEventPayload;
 import io.gravitee.gateway.services.heartbeat.event.Plugin;
 import io.gravitee.node.api.Node;
@@ -38,13 +39,10 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.Organization;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.Vertx;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -58,7 +56,7 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HeartbeatService extends AbstractService implements MessageConsumer<JsonObject>, InitializingBean {
+public class HeartbeatService extends AbstractService implements MessageConsumer<Event>, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatService.class);
 
@@ -95,8 +93,6 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
     @Autowired
     private EventRepository eventRepository;
 
-    private ExecutorService executorService;
-
     private Event heartbeatEvent;
 
     @Autowired
@@ -114,8 +110,11 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
     @Autowired
     private OrganizationRepository organizationRepository;
 
+    @Autowired
+    private Vertx vertx;
+
     // How to avoid duplicate
-    private Topic<JsonObject> topic;
+    private Topic<Event> topic;
 
     private java.util.UUID subscriptionId;
 
@@ -131,41 +130,49 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
             super.doStart();
             LOGGER.info("Start gateway heartbeat");
 
+            vertx.eventBus().registerCodec(new RepositoryManagementEventCodec());
             heartbeatEvent = prepareEvent();
-            topic.publish(JsonObject.mapFrom(heartbeatEvent));
-
-            // Remove the state to not include it in the underlying repository as it's just used for internal
-            // purpose
-            heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
-
-            executorService = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "gio-heartbeat"));
-
-            HeartbeatThread monitorThread = new HeartbeatThread(topic, heartbeatEvent);
+            topic.publish(heartbeatEvent);
 
             LOGGER.info("Monitoring scheduled with fixed delay {} {} ", delay, unit.name());
-
-            ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(monitorThread, 0, delay, unit);
+            vertx.setPeriodic(
+                delay,
+                d -> {
+                    LOGGER.debug("Run monitor for gateway at {}", new Date());
+                    try {
+                        // Update heartbeat timestamp
+                        heartbeatEvent.setUpdatedAt(new Date());
+                        heartbeatEvent
+                            .getProperties()
+                            .put(HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(heartbeatEvent.getUpdatedAt().getTime()));
+                        topic.publish(heartbeatEvent);
+                    } catch (Exception ex) {
+                        LOGGER.error("An unexpected error occurs while monitoring the gateway", ex);
+                    }
+                }
+            );
 
             LOGGER.info("Start gateway heartbeat : DONE");
         }
     }
 
     @Override
-    public void onMessage(Message<JsonObject> message) {
+    public void onMessage(Message<Event> message) {
         // Writing event to the repository is the responsibility of the master node
         if (clusterManager.isMasterNode()) {
-            Event event = message.getMessageObject().mapTo(Event.class);
+            Event event = message.getMessageObject();
             try {
                 String state = event.getProperties().get(EVENT_STATE_PROPERTY);
                 if (state != null) {
                     eventRepository.create(event);
+                    heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
                 } else {
                     eventRepository.update(event);
                 }
             } catch (Exception ex) {
                 LOGGER.error("An error occurs while pushing heartbeat event id[{}] type[{}]", event.getId(), event.getType(), ex);
                 // Push back the event into the topic in case of error
-                topic.publish(JsonObject.mapFrom(event));
+                topic.publish(event);
             }
         }
     }
@@ -178,7 +185,7 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
             LOGGER.debug("Pre-stopping Heartbeat Service");
             LOGGER.debug("Sending a {} event", heartbeatEvent.getType());
 
-            topic.publish(JsonObject.mapFrom(heartbeatEvent));
+            topic.publish(heartbeatEvent);
 
             topic.removeMessageConsumer(subscriptionId);
         }
@@ -188,18 +195,11 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
     @Override
     protected void doStop() throws Exception {
         if (enabled) {
-            if (!executorService.isShutdown()) {
-                LOGGER.info("Stop gateway monitor");
-                executorService.shutdownNow();
-            } else {
-                LOGGER.info("Gateway monitor already shut-downed");
-            }
-
             heartbeatEvent.setType(EventType.GATEWAY_STOPPED);
             heartbeatEvent.getProperties().put(EVENT_STOPPED_AT_PROPERTY, Long.toString(new Date().getTime()));
             LOGGER.debug("Sending a {} event", heartbeatEvent.getType());
 
-            topic.publish(JsonObject.mapFrom(heartbeatEvent));
+            topic.publish(heartbeatEvent);
 
             topic.removeMessageConsumer(subscriptionId);
 
