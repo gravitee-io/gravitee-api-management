@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM openjdk:11-jre-slim-buster
+FROM eclipse-temurin:11-jre-focal
 LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
