@@ -350,22 +350,25 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHave100Entrypoints_createThenUpdateMultiThreads() throws InterruptedException {
-
         final ExecutorService executorService = Executors.newFixedThreadPool(10);
+        List<Runnable> runnables = new ArrayList<>();
 
         for (int i = 0; i < 100; i++) {
             final DummyReactable toCreate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
             final ReactorHandler handler = createReactorHandler(toCreate);
             when(reactorHandlerFactoryManager.create(toCreate)).thenReturn(handler);
-
-            executorService.submit(() -> reactorHandlerRegistry.create(toCreate));
+            runnables.add(() -> reactorHandlerRegistry.create(toCreate));
         }
 
         for (int i = 0; i < 100; i++) {
             final DummyReactable toUpdate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
             final ReactorHandler handler = createReactorHandler(toUpdate);
             when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(handler);
-            executorService.submit(() -> reactorHandlerRegistry.update(toUpdate));
+            runnables.add(() -> reactorHandlerRegistry.update(toUpdate));
+        }
+
+        for (Runnable r : runnables) {
+            executorService.submit(r);
         }
 
         executorService.shutdown();
