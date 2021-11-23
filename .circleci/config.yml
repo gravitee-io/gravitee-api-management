@@ -143,8 +143,13 @@ jobs:
       - run:
           name: Compute Tag for Docker images
           command: |
-            # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
-            export TAG=${APIM_VERSION}-$(echo "${CIRCLE_BRANCH:0:15}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)-${CIRCLE_SHA1:0:7}
+            if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
+            then
+              export TAG=${CIRCLE_BRANCH}-latest
+            else
+              # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
+              export TAG=${APIM_VERSION}-$(echo "${CIRCLE_BRANCH:0:15}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)-${CIRCLE_SHA1:0:7}
+            fi
             # Workaround for sharing this variable to the next steps
             echo "export TAG=$TAG" >> $BASH_ENV
             echo "Docker images will be tagged with: ${TAG}"
@@ -220,12 +225,14 @@ jobs:
             # FIXME: change redis.repositoryVersion
             helm upgrade --repo https://helm.gravitee.io \
                          --install apim \
-                        -n ${K8S_NAMESPACE} \
+                         -n ${K8S_NAMESPACE} \
                          apim3 \
                          --reuse-values \
                          --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
                          --set "gateway.image.tag=${TAG}" \
                          --set "redis.repositoryVersion=3.12.1"
+
+            kubectl rollout restart deployment/apim-apim3-gateway -n ${K8S_NAMESPACE}
 
 workflows:
   version: 2.1
