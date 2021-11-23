@@ -7,40 +7,40 @@ orbs:
   gh: circleci/github-cli@1.0.4
 
 executors:
-  node-lts:
-    parameters:
-      class:
-        description: The resource class
-        type: enum
-        enum: [ 'small', 'medium', 'large', 'xlarge' ]
-        default: 'medium'
-    docker:
-      - image: cimg/node:14.18
-    resource_class: <<parameters.class>>
+    node-lts:
+        parameters:
+            class:
+                description: The resource class
+                type: enum
+                enum: [ 'small', 'medium', 'large', 'xlarge' ]
+                default: 'medium'
+        docker:
+            - image: cimg/node:14.18
+        resource_class: <<parameters.class>>
 
 commands:
-  restore-maven-cache:
-    description: "Restore Maven cache"
-    steps:
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+    restore-maven-cache:
+        description: "Restore Maven cache"
+        steps:
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
 
-  notify-on-failure:
-    steps:
-      - slack/notify:
-          branch_pattern: master
-          event: fail
-          template: basic_fail_1
-  
-  get-apim-tag:
-    steps:
-      - run:
-          name: Read tag of Docker images to deploy
-          command: |
-            export TAG=$(cat ./docker-tag.txt)
-            # Workaround for sharing this variable to the next steps
-            echo "export TAG=$TAG" >> $BASH_ENV
+    notify-on-failure:
+        steps:
+            - slack/notify:
+                  branch_pattern: master
+                  event: fail
+                  template: basic_fail_1
+
+    get-apim-tag:
+        steps:
+            - run:
+                  name: Read tag of Docker images to deploy
+                  command: |
+                      export TAG=$(cat ./docker-tag.txt)
+                      # Workaround for sharing this variable to the next steps
+                      echo "export TAG=$TAG" >> $BASH_ENV
 
 parameters:
   gio_action:
@@ -631,22 +631,22 @@ jobs:
       - run:
           name: Helm upgrade and 🚀 to Element Zero cluster
           command: |
-            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-            az aks get-credentials --resource-group element-zero --name element-zero
-
             if [ "master" == "${CIRCLE_BRANCH}" ]
             then
-              helm upgrade --repo https://helm.gravitee.io \
-                           --install apim \
-                           -n apim \
-                           --reuse-values \
-                           apim3 \
-                           --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                           --set "api.image.tag=${TAG}" \
-                           --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
-                           --set "portal.image.tag=${TAG}" \
-                           --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
-                           --set "ui.image.tag=${TAG}"
+                az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+                az aks get-credentials --resource-group element-zero --name element-zero
+
+                helm upgrade --repo https://helm.gravitee.io \
+                            --install apim \
+                            -n apim \
+                            --reuse-values \
+                            apim3 \
+                             --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                             --set "api.image.tag=${TAG}" \
+                             --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
+                             --set "portal.image.tag=${TAG}" \
+                             --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
+                             --set "ui.image.tag=${TAG}"
             fi
       - run:
           name: Helm upgrade and 🚀 to APIM cluster
@@ -786,6 +786,7 @@ workflows:
             branches:
               only:
                 - master
+                - /^\d+\.\d+\.x$/
       - portal-webui-install:
           requires:
             - pr_secrets_resolution
@@ -819,6 +820,7 @@ workflows:
             branches:
               only:
                 - master
+                - /^\d+\.\d+\.x$/
       - deploy-on-azure-cluster:
           context: cicd-orchestrator
           pre-steps:
@@ -839,6 +841,7 @@ workflows:
             branches:
               only:
                 - master
+                - /^\d+\.\d+\.x$/
         # To be modified when testing strategy will be defined
       - cypress-install:
           requires:
