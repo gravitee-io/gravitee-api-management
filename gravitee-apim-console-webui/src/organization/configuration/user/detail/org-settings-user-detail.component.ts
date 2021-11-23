@@ -18,6 +18,13 @@ import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn 
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
 import { catchError, filter, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { isEmpty } from 'lodash';
+
+import {
+  OrgSettingsUserDetailAddGroupDialogComponent,
+  OrgSettingsUserDetailAddGroupDialogData,
+  OrgSettingsUserDetailAddGroupDialogReturn,
+} from './org-settings-user-detail-add-group-dialog.component';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Environment } from '../../../../entities/environment/environment';
@@ -353,6 +360,47 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         filter((confirm) => confirm === true),
         switchMap(() => this.groupService.deleteMember(group.id, this.user.id)),
         tap(() => this.snackBarService.success(`"${this.user.displayName}" has been deleted from the group "${group.name}"`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
+  onAddGroupClicked() {
+    this.matDialog
+      .open<
+        OrgSettingsUserDetailAddGroupDialogComponent,
+        OrgSettingsUserDetailAddGroupDialogData,
+        OrgSettingsUserDetailAddGroupDialogReturn
+      >(OrgSettingsUserDetailAddGroupDialogComponent, {
+        width: '500px',
+        data: {
+          groupIdAlreadyAdded: this.groupsTableDS.map((g) => g.id),
+        },
+        role: 'alertdialog',
+        id: 'addGroupConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((groupeAdded) => !isEmpty(groupeAdded)),
+        switchMap((groupeAdded) =>
+          this.groupService.addOrUpdateMemberships(groupeAdded.groupId, [
+            {
+              id: this.user.id,
+              roles: [
+                { scope: 'GROUP' as const, name: groupeAdded.isAdmin ? 'ADMIN' : '' },
+                { scope: 'API' as const, name: groupeAdded.applicationRole },
+                { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
+              ],
+            },
+          ]),
+        ),
+        tap(() => {
+          this.snackBarService.success('Roles successfully updated');
+        }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;

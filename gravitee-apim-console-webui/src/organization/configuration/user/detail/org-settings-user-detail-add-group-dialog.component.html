@@ -1,0 +1,62 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title>Add a group with roles</h2>
+
+<form autocomplete="off" [formGroup]="addGroupForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="form">
+      <mat-form-field appearance="fill">
+        <mat-label>Group</mat-label>
+        <mat-select formControlName="groupId" aria-label="Groups selection" required>
+          <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="addGroupForm.get('groupId').hasError('required')">Group is required.</mat-error>
+      </mat-form-field>
+
+      <div class="form__checkbox-field">
+        <mat-checkbox formControlName="isAdmin">Group admin role</mat-checkbox>
+      </div>
+
+      <mat-form-field appearance="fill">
+        <mat-label>API Role</mat-label>
+        <mat-select formControlName="apiRole" aria-label="API role">
+          <mat-option>-- None --</mat-option>
+          <mat-option *ngFor="let apiRole of apiRoles$ | async" [value]="apiRole.name">{{ apiRole.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Application Role</mat-label>
+        <mat-select formControlName="applicationRole" aria-label="Application role">
+          <mat-option>-- None --</mat-option>
+          <mat-option *ngFor="let applicationRole of applicationRoles$ | async" [value]="applicationRole.name">{{
+            applicationRole.name
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div *ngIf="addGroupForm.dirty && addGroupForm.hasError('leastOneIsRequired')" class="mat-caption error">
+      At least one role is mandatory
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="actions">
+    <button mat-button [mat-dialog-close]="false">Cancel</button>
+    <button mat-button [disabled]="addGroupForm.invalid" type="submit">Save</button>
+  </mat-dialog-actions>
+</form>

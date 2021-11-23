@@ -173,7 +173,22 @@
   </mat-card>
 
   <mat-card class="org-settings-user-detail__groups-card">
-    <h2 gioTableOfContents>Groups</h2>
+    <div class="org-settings-user-detail__groups-card__header">
+      <h2 gioTableOfContents>Groups</h2>
+
+      <ng-container *ngIf="user.status === 'ACTIVE'">
+        <button
+          *gioPermission="{ anyOf: ['organization-user-c'] }"
+          (click)="onAddGroupClicked()"
+          mat-raised-button
+          color="primary"
+          aria-label="Button to add a group"
+        >
+          <mat-icon>add</mat-icon>Add a group
+        </button>
+      </ng-container>
+    </div>
+
     <p>You can manage all groups of this user.</p>
 
     <gio-table-wrapper

@@ -59,7 +59,7 @@ describe('OrgSettingsUserDetailComponent', () => {
 
   beforeEach(async () => {
     const currentUser = new DeprecatedUser();
-    currentUser.userPermissions = ['organization-user-u', 'organization-user-d'];
+    currentUser.userPermissions = ['organization-user-u', 'organization-user-d', 'organization-user-c'];
 
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
@@ -482,6 +482,58 @@ describe('OrgSettingsUserDetailComponent', () => {
     expect(await applicationTable.getCellTextByIndex()).toEqual([['Application Fox'], ['Application Dog']]);
   });
 
+  it('should add and save group roles', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id, [fakeGroup({ id: 'groupA', name: 'Group A' })]);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+    expectRolesListRequest('API');
+    expectRolesListRequest('APPLICATION');
+
+    const groupsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
+
+    const addGroupButton = await groupsCard.getHarness(MatButtonHarness.with({ text: /Add a group/ }));
+    await addGroupButton.click();
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'groupA', name: 'Group A' }), fakeGroup({ id: 'groupB', name: 'Group B' })]);
+    expectRolesListRequest('API');
+    expectRolesListRequest('APPLICATION');
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+
+    const groupIdSelect = await dialog.getHarness(MatSelectHarness.with({ selector: '[formControlName=groupId' }));
+    await groupIdSelect.open();
+    // group A option is filtered
+    expect((await groupIdSelect.getOptions()).length).toEqual(1);
+
+    await groupIdSelect.clickOptions({ text: 'Group B' });
+
+    const isAdminSelect = await dialog.getHarness(MatCheckboxHarness.with({ selector: '[formControlName=isAdmin' }));
+    await isAdminSelect.check();
+
+    const submitButton = await dialog.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+    await submitButton.click();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/groupB/members`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual([
+      {
+        id: 'userId',
+        roles: [
+          { name: 'ADMIN', scope: 'GROUP' },
+          { name: null, scope: 'API' },
+          { name: null, scope: 'APPLICATION' },
+        ],
+      },
+    ]);
+  });
+
   function expectUserGetRequest(user: User = fakeUser({ id: 'userId' })) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}`);
     expect(req.request.method).toEqual('GET');
@@ -528,5 +580,14 @@ describe('OrgSettingsUserDetailComponent', () => {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/memberships?type=${type}`);
     expect(req.request.method).toEqual('GET');
     req.flush(userMembership ?? {});
+  }
+
+  function expectGroupListByOrganizationRequest(groups: Group[] = []) {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.org.baseURL}/groups`,
+      })
+      .flush(groups);
   }
 });
