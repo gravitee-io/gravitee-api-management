@@ -79,6 +79,8 @@ jobs:
     resource_class: small
     steps:
       - checkout
+      - attach_workspace:
+          at: .
       - restore_cache:
           name: Restore Maven cache for compute-tag job
           keys:
@@ -86,7 +88,7 @@ jobs:
       - run:
           name: Compute APIM Version
           command: |
-            export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+            export APIM_VERSION=$(mvn -s .artifactory.settings.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
             echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
             echo "Gravitee APIM version: ${APIM_VERSION}"
       - run:
@@ -679,11 +681,12 @@ workflows:
       - gravitee/d_pull_requests_secrets:
           context: cicd-orchestrator
           name: pr_secrets_resolution
-      - compute-apim-tag
+      - compute-apim-tag:
+          requires:
+            - pr_secrets_resolution
       - build:
           context: gravitee-qa
           requires:
-            - pr_secrets_resolution
             - compute-apim-tag
       - test:
           requires:
@@ -722,7 +725,6 @@ workflows:
                 - /^\d+\.\d+\.x$/
       - console-webui-install:
           requires:
-            - pr_secrets_resolution
             - compute-apim-tag
       - console-webui-lint-test:
           requires:
@@ -788,7 +790,6 @@ workflows:
                 - master
       - portal-webui-install:
           requires:
-            - pr_secrets_resolution
             - compute-apim-tag
       - portal-webui-lint-test:
           requires:
