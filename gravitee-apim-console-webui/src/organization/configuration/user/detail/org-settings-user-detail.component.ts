@@ -269,7 +269,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  onRestPassword() {
+  onResetPassword() {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
