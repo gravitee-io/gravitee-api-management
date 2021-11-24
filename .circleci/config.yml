@@ -208,17 +208,24 @@ jobs:
             - setup_remote_docker
             - get-apim-tag
             -   run:
-                    name: Build & Publish Management API Docker Image to Azure Registry
+                    name: Build & Publish Management API and Gateway Docker Image to Azure Registry
                     command: |
                         export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-                        export IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
+
+                        export REST_API_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
+                        export GATEWAY_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
 
                         docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
                         --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-                        -t ${IMAGE_TAG} .
+                        -t ${REST_API_IMAGE_TAG} .
+
+                        docker build -f gravitee-apim-gateway/docker/Dockerfile-dev \
+                        --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
+                        -t ${GATEWAY_IMAGE_TAG} .
 
                         echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-                        docker push ${IMAGE_TAG}
+                        docker push ${REST_API_IMAGE_TAG}
+                        docker push ${GATEWAY_IMAGE_TAG}
             - notify-on-failure
 
     console-webui-install:
@@ -540,7 +547,9 @@ jobs:
                                          --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
                                          --set "portal.image.tag=${TAG}" \
                                          --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
-                                         --set "ui.image.tag=${TAG}"
+                                         --set "ui.image.tag=${TAG}" \
+                                         --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
+                                         --set "gateway.image.tag=${TAG}"
                         fi
             -   run:
                     name: Helm upgrade and 🚀 to APIM cluster
@@ -560,7 +569,10 @@ jobs:
                                      --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
                                      --set "portal.image.tag=${TAG}" \
                                      --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
-                                     --set "ui.image.tag=${TAG}"
+                                     --set "ui.image.tag=${TAG}" \
+                                     --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
+                                     --set "gateway.image.tag=${TAG}"
+
             - notify-on-failure
 
 
