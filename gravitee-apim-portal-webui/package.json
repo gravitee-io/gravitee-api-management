@@ -16,6 +16,7 @@
     "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
     "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
     "serve": "ng serve --port=4100",
+    "serve:apim-master": "ng run gravitee-portal-webui:serve:apim-master --port=4100",
     "serve:prod": "node scripts/serve.js",
     "test": "NODE_OPTIONS=--max-old-space-size=3072 ng test --maxWorkers=8",
     "test:coverage": "NODE_OPTIONS=--max-old-space-size=3072 ng test --maxWorkers=8 --collect-coverage",
