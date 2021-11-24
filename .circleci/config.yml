@@ -276,7 +276,6 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - implement-continuous-deployment-to-azure
             - deploy-on-azure-aks:
                   context: cicd-orchestrator
                   pre-steps:
@@ -296,7 +295,6 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - implement-continuous-deployment-to-azure
     # ---
     # The 2 Workflows Below are there for the CICD Orchestrator to be able to
     # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
