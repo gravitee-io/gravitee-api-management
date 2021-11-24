@@ -121,6 +121,7 @@ jobs:
           root: .
           paths:
             - docker-tag.txt
+            - apim-version.txt
 
   build:
     docker:
