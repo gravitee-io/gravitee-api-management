@@ -17,6 +17,8 @@
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-option');
 
+import { ConsoleSettings } from '../../../entities/consoleSettings';
+
 export function getDefinitionVersionTitle(definitionVersion) {
   if (definitionVersion === '2.0.0') {
     return 'Design studio';
@@ -37,14 +39,21 @@ class NewApiController {
   isImport: boolean;
 
   getDefinitionVersionTitle = getDefinitionVersionTitle;
-  getDefinitionVersionDescription = getDefinitionVersionDescription;
   private definitionVersions: string[];
 
-  constructor(private policies, private Constants: any) {
+  private consoleSettings: ConsoleSettings;
+
+  constructor(private policies, private Constants: any, private ConsoleSettingsService: any) {
     'ngInject';
     this.definitionVersions = ['2.0.0', '1.0.0'];
     this.definitionVersion = '2.0.0';
     this.isImport = false;
+  }
+
+  $onInit() {
+    this.ConsoleSettingsService.get().then(({ data }) => {
+      this.consoleSettings = data;
+    });
   }
 
   cancelImport() {
@@ -53,6 +62,10 @@ class NewApiController {
 
   getImportTitle() {
     return `Import ${getDefinitionVersionTitle(this.definitionVersion)}`;
+  }
+
+  get allowsPathBasedCreation() {
+    return this.consoleSettings?.management?.pathBasedApiCreation?.enabled;
   }
 }
 

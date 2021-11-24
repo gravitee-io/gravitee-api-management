@@ -55,7 +55,11 @@
         </div>
       </div>
 
-      <div layout="column" ng-class="{ selected: $ctrl.definitionVersion==='1.0.0', 'definition-container': true}">
+      <div
+        layout="column"
+        ng-class="{ selected: $ctrl.definitionVersion==='1.0.0', 'definition-container': true}"
+        ng-if="$ctrl.allowsPathBasedCreation"
+      >
         <div class="card" ng-click="$ctrl.definitionVersion='1.0.0'">
           <span class="title">{{$ctrl.getDefinitionVersionTitle('1.0.0')}}</span>
           <gv-image src="assets/api-design-paths.png"></gv-image>

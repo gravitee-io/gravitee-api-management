@@ -297,7 +297,8 @@ public enum Key {
         "console.dashboards.apiStatus.enabled",
         "true",
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
-    );
+    ),
+    CONSOLE_PATH_BASED_API_CREATION_ENABLED("console.pathBasedApiCreation.enabled", "false", Set.of(ORGANIZATION, SYSTEM));
 
     String key;
     String defaultValue;
