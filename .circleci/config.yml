@@ -94,7 +94,7 @@ jobs:
                     command: |
                         if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
                         then
-                          export TAG=${CIRCLE_BRANCH}
+                          export TAG=${CIRCLE_BRANCH}-latest
                         else
                           # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
                           export TAG=${APIM_VERSION}-$(echo "${CIRCLE_BRANCH:0:15}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)-${CIRCLE_SHA1:0:7}
@@ -572,6 +572,11 @@ jobs:
                                      --set "ui.image.tag=${TAG}" \
                                      --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
                                      --set "gateway.image.tag=${TAG}"
+
+                        kubectl rollout restart deployment/apim-apim3-api -n ${K8S_NAMESPACE}
+                        kubectl rollout restart deployment/apim-apim3-portal -n ${K8S_NAMESPACE}
+                        kubectl rollout restart deployment/apim-apim3-ui -n ${K8S_NAMESPACE}
+                        kubectl rollout restart deployment/apim-apim3-gateway -n ${K8S_NAMESPACE}
 
             - notify-on-failure
 
