@@ -1,9 +1,9 @@
 {
-  "projectId": "gravitee-apim-cypress-e2e",
+  "projectId": "gravitee-apim-cypress",
   "baseUrl": "http://localhost:8083",
-  "video": true,
-  "screenshotOnRunFailure": true,
-  "integrationFolder": "cypress/e2e",
+  "video": false,
+  "screenshotOnRunFailure": false,
+  "integrationFolder": "cypress/integration/nrt",
   "testFiles": "**/*.ts",
   "env": {
     "failOnStatusCode": false,
@@ -16,7 +16,7 @@
     "admin_user_login": "admin",
     "admin_user_password": "admin",
     "managementApi": "/management/organizations/DEFAULT/environments/DEFAULT",
-    "portalApi": "/portal/environments/DEFAULT",
-    "managementUI": "http://localhost:3000"
+    "managementUI": "http://localhost:8084",
+    "portalApi": "/portal/environments/DEFAULT"
   }
 }
