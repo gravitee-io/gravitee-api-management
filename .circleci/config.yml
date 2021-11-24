@@ -38,9 +38,18 @@ commands:
             - run:
                   name: Read tag of Docker images to deploy
                   command: |
-                      export TAG=$(cat ./docker-tag.txt)
+                      export TAG=$(cat ./.docker-tag.txt)
                       # Workaround for sharing this variable to the next steps
                       echo "export TAG=$TAG" >> $BASH_ENV
+
+    get-apim-version:
+        steps:
+            - run:
+                  name: Read APIM version
+                  command: |
+                      export APIM_VERSION=$(cat ./.apim-version.txt)
+                      # Workaround for sharing this variable to the next steps
+                      echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
 
 parameters:
     gio_action:
@@ -79,6 +88,8 @@ jobs:
         resource_class: small
         steps:
             - checkout
+            - attach_workspace:
+                  at: .
             - restore_cache:
                   name: Restore Maven cache for compute-tag job
                   keys:
@@ -86,23 +97,19 @@ jobs:
             - run:
                   name: Compute APIM Version
                   command: |
-                      export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+                      export APIM_VERSION=$(mvn -s .artifactory.settings.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
                       echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
                       echo "Gravitee APIM version: ${APIM_VERSION}"
+                      echo $APIM_VERSION > .apim-version.txt
+
             - run:
                   name: Compute Tag for Docker images
                   command: |
-                      if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
-                      then
-                        export TAG=${CIRCLE_BRANCH}-latest
-                      else
-                        # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
-                        export TAG=${APIM_VERSION}-$(echo "${CIRCLE_BRANCH:0:15}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)-${CIRCLE_SHA1:0:7}
-                      fi
+                      export TAG=${CIRCLE_BRANCH}-latest
                       # Workaround for sharing this variable to the next steps
                       echo "export TAG=$TAG" >> $BASH_ENV
                       echo "Docker images will be tagged with: ${TAG}"
-                      echo $TAG > docker-tag.txt
+                      echo $TAG > .docker-tag.txt
             - save_cache:
                   name: Save Maven cache for compute-tag job
                   paths:
@@ -112,7 +119,8 @@ jobs:
             - persist_to_workspace:
                   root: .
                   paths:
-                      - docker-tag.txt
+                      - .docker-tag.txt
+                      - .apim-version.txt
 
     build:
         docker:
@@ -207,32 +215,42 @@ jobs:
                   at: .
             - setup_remote_docker
             - get-apim-tag
+            - get-apim-version
             - run:
                   name: Build & Publish Management API and Gateway Docker Image to Azure Registry
                   command: |
-                      export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
 
-                      export REST_API_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
-                      export GATEWAY_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
+                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
+                      export REST_API_PUBLIC_IMAGE_TAG=graviteeio/apim-management-api:${TAG}
+
+                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${TAG}
+                      export GATEWAY_PUBLIC_IMAGE_TAG=graviteeio/apim-gateway:${TAG}
 
                       docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-                      -t ${REST_API_IMAGE_TAG} .
+                      -t ${REST_API_PRIVATE_IMAGE_TAG} \
+                      -t ${REST_API_PUBLIC_IMAGE_TAG} \
+                      .
 
                       docker build -f gravitee-apim-gateway/docker/Dockerfile-dev \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-                      -t ${GATEWAY_IMAGE_TAG} .
+                      -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
+                      -t ${GATEWAY_PUBLIC_IMAGE_TAG} \
+                      .
 
                       if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
                       then
-                        docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
-                        docker push ${REST_API_IMAGE_TAG}
-                        docker push ${GATEWAY_IMAGE_TAG}
+                        echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
+                        docker push ${REST_API_PUBLIC_IMAGE_TAG}
+                        docker push ${GATEWAY_PUBLIC_IMAGE_TAG}
+                        docker logout
                       fi
 
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-                      docker push ${REST_API_IMAGE_TAG}
-                      docker push ${GATEWAY_IMAGE_TAG}
+                      docker push ${REST_API_PRIVATE_IMAGE_TAG}
+                      docker push ${REST_API_PUBLIC_IMAGE_TAG}
+                      docker logout graviteeio.azurecr.io
+
             - notify-on-failure
 
     console-webui-install:
@@ -304,6 +322,7 @@ jobs:
                   command: npm run build:prod
                   environment:
                       NODE_OPTIONS: --max_old_space_size=4086
+                      # FIXME: Use dynamic configuration
                       BACKEND_ENV: element-zero
                   working_directory: gravitee-apim-console-webui
             - run:
@@ -377,17 +396,20 @@ jobs:
                       cp -fr docker/config .
                       cp -fr docker/run.sh .
 
-                      export IMAGE_TAG=graviteeio.azurecr.io/apim-console-webui:${TAG}
-                      docker build -f docker/Dockerfile-dev -t ${IMAGE_TAG} .
+                      export PUBLIC_IMAGE_TAG=graviteeio/apim-console-webui:${TAG}
+                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-console-webui:${TAG}
+                      docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} -t ${PUBLIC_IMAGE_TAG} .
 
                       if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
                       then
-                        docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
-                        docker push ${IMAGE_TAG}
+                        echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
+                        docker push ${PUBLIC_IMAGE_TAG}
+                        docker logout
                       fi
 
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-                      docker push ${IMAGE_TAG}
+                      docker push ${PRIVATE_IMAGE_TAG}
+                      docker logout graviteeio.azurecr.io
                   working_directory: gravitee-apim-console-webui
             - notify-on-failure
 
@@ -513,17 +535,20 @@ jobs:
                       cp -fr docker/config .
                       cp -fr docker/run.sh .
 
-                      export IMAGE_TAG=graviteeio.azurecr.io/apim-portal-webui:${TAG}
-                      docker build -f docker/Dockerfile-dev -t ${IMAGE_TAG} .
+                      export PUBLIC_IMAGE_TAG=graviteeio/apim-portal-webui:${TAG}
+                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-portal-webui:${TAG}
+                      docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} -t ${PUBLIC_IMAGE_TAG} .
 
                       if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
                       then
-                        docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
-                        docker push ${IMAGE_TAG}
+                        echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
+                        docker push ${PUBLIC_IMAGE_TAG}
+                        docker logout
                       fi
 
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-                      docker push ${IMAGE_TAG}
+                      docker push ${PRIVATE_IMAGE_TAG}
+                      docker logout graviteeio.azurecr.io
                   working_directory: gravitee-apim-portal-webui
             - notify-on-failure
 
@@ -567,7 +592,8 @@ jobs:
                                        --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
                                        --set "ui.image.tag=${TAG}" \
                                        --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                                       --set "gateway.image.tag=${TAG}"
+                                       --set "gateway.image.tag=${TAG}" \
+                                       --set "redis.repositoryVersion=3.12.1"
                       fi
             - run:
                   name: Helm upgrade and 🚀 to APIM cluster
@@ -589,7 +615,8 @@ jobs:
                                    --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
                                    --set "ui.image.tag=${TAG}" \
                                    --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                                   --set "gateway.image.tag=${TAG}"
+                                   --set "gateway.image.tag=${TAG}" \
+                                   --set "redis.repositoryVersion=3.12.1"
 
                       kubectl rollout restart deployment/apim-apim3-api -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/apim-apim3-portal -n ${K8S_NAMESPACE}
@@ -607,12 +634,10 @@ workflows:
             - gravitee/d_pull_requests_secrets:
                   context: cicd-orchestrator
                   name: pr_secrets_resolution
-            - compute-apim-tag
             - build:
                   context: gravitee-qa
                   requires:
                       - pr_secrets_resolution
-                      - compute-apim-tag
             - test:
                   requires:
                       - build
@@ -632,10 +657,19 @@ workflows:
                               - /^\d+\.\d+\.x$/
                   requires:
                       - test
+            - compute-apim-tag:
+                  requires:
+                      - pr_secrets_resolution
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
             - publish-images-azure-registry:
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - compute-apim-tag
                   pre-steps:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
@@ -654,11 +688,9 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - implement-continuous-deployment-to-azure-3.5.x
             - console-webui-install:
                   requires:
                       - pr_secrets_resolution
-                      - compute-apim-tag
             - console-webui-lint-test:
                   requires:
                       - console-webui-install
@@ -712,16 +744,15 @@ workflows:
                             var-name: DOCKERHUB_BOT_USER_TOKEN
                   requires:
                       - console-webui-build
+                      - compute-apim-tag
                   filters:
                       branches:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - implement-continuous-deployment-to-azure-3.5.x
             - portal-webui-install:
                   requires:
                       - pr_secrets_resolution
-                      - compute-apim-tag
             - portal-webui-lint-test:
                   requires:
                       - portal-webui-install
@@ -753,12 +784,12 @@ workflows:
                             var-name: DOCKERHUB_BOT_USER_TOKEN
                   requires:
                       - portal-webui-build
+                      - compute-apim-tag
                   filters:
                       branches:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - implement-continuous-deployment-to-azure-3.5.x
             - deploy-on-azure-cluster:
                   context: cicd-orchestrator
                   pre-steps:
@@ -780,7 +811,6 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - implement-continuous-deployment-to-azure-3.5.x
 
     # ---
     # The 2 Workflows Below are there for the CICD Orchestrator to be able to
