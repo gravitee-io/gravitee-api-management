@@ -223,6 +223,13 @@ jobs:
                         --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                         -t ${GATEWAY_IMAGE_TAG} .
 
+                        if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
+                        then
+                          docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
+                          docker push ${REST_API_IMAGE_TAG}
+                          docker push ${GATEWAY_IMAGE_TAG}
+                        fi
+
                         echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                         docker push ${REST_API_IMAGE_TAG}
                         docker push ${GATEWAY_IMAGE_TAG}
@@ -375,6 +382,13 @@ jobs:
 
                         export IMAGE_TAG=graviteeio.azurecr.io/apim-console-webui:${TAG}
                         docker build -f docker/Dockerfile-dev -t ${IMAGE_TAG} .
+
+                        if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
+                        then
+                          docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
+                          docker push ${IMAGE_TAG}
+                        fi
+
                         echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                         docker push ${IMAGE_TAG}
                     working_directory: gravitee-apim-console-webui
@@ -504,6 +518,13 @@ jobs:
 
                         export IMAGE_TAG=graviteeio.azurecr.io/apim-portal-webui:${TAG}
                         docker build -f docker/Dockerfile-dev -t ${IMAGE_TAG} .
+
+                        if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
+                        then
+                          docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
+                          docker push ${IMAGE_TAG}
+                        fi
+
                         echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                         docker push ${IMAGE_TAG}
                     working_directory: gravitee-apim-portal-webui
@@ -626,6 +647,12 @@ workflows:
                         -   secrethub/env-export:
                                 secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
                                 var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+                        - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                            var-name: DOCKERHUB_BOT_USER_NAME
+                        - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                            var-name: DOCKERHUB_BOT_USER_TOKEN
                     filters:
                         branches:
                             only:
@@ -681,6 +708,12 @@ workflows:
                         -   secrethub/env-export:
                                 secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
                                 var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+                        - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                            var-name: DOCKERHUB_BOT_USER_NAME
+                        - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                            var-name: DOCKERHUB_BOT_USER_TOKEN
                     requires:
                         - console-webui-build
                     filters:
@@ -716,6 +749,12 @@ workflows:
                         -   secrethub/env-export:
                                 secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
                                 var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+                        - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                            var-name: DOCKERHUB_BOT_USER_NAME
+                        - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                            var-name: DOCKERHUB_BOT_USER_TOKEN
                     requires:
                         - portal-webui-build
                     filters:
