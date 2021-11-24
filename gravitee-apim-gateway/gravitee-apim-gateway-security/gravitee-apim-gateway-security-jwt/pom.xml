@@ -23,18 +23,18 @@
 
     <parent>
         <groupId>io.gravitee.gateway.security</groupId>
-        <artifactId>gravitee-gateway-security</artifactId>
+        <artifactId>gravitee-apim-gateway-security</artifactId>
     <version>3.5.25-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-security-jwt</artifactId>
+    <artifactId>gravitee-apim-gateway-security-jwt</artifactId>
     <name>Gravitee.io APIM - Gateway - Security - JWT</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
         <dependency>
             <groupId>io.gravitee.gateway.security</groupId>
-            <artifactId>gravitee-gateway-security-core</artifactId>
+            <artifactId>gravitee-apim-gateway-security-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
