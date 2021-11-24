@@ -42,6 +42,15 @@ commands:
             # Workaround for sharing this variable to the next steps
             echo "export TAG=$TAG" >> $BASH_ENV
 
+  get-apim-version:
+    steps:
+      - run:
+          name: Read APIM version
+          command: |
+            export APIM_VERSION=$(cat ./apim-version.txt)
+            # Workaround for sharing this variable to the next steps
+            echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
+
 parameters:
   gio_action:
     type: enum
@@ -91,6 +100,8 @@ jobs:
             export APIM_VERSION=$(mvn -s .artifactory.settings.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
             echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
             echo "Gravitee APIM version: ${APIM_VERSION}"
+            echo $APIM_VERSION > apim-version.txt
+
       - run:
           name: Compute Tag for Docker images
           command: |
@@ -204,10 +215,10 @@ jobs:
           at: .
       - setup_remote_docker
       - get-apim-tag
+      - get-apim-version
       - run:
           name: Build & Publish Management API Docker Image to Azure Registry
           command: |
-            export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
             export IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
 
             docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
