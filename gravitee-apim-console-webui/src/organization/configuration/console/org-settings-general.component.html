@@ -64,12 +64,12 @@
 
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('management.support.enabled')"
+          [matTooltipDisabled]="!isReadonlySetting('console.support.enabled')"
           appearance="fill"
           class="settings-general__form__card__form-field"
           formGroupName="support"
         >
-          <mat-icon *ngIf="isReadonlySetting('management.support.enabled')" gioFormPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('console.support.enabled')" gioFormPrefix>lock</mat-icon>
           <gio-form-label>Activate Support</gio-form-label>
           <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Activate Support" name="support"></mat-slide-toggle>
         </gio-form-slide-toggle>
@@ -97,12 +97,12 @@
 
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('management.userCreation.enabled')"
+          [matTooltipDisabled]="!isReadonlySetting('console.userCreation.enabled')"
           appearance="fill"
           class="settings-general__form__card__form-field"
           formGroupName="userCreation"
         >
-          <mat-icon *ngIf="isReadonlySetting('management.userCreation.enabled')" gioFormPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('console.userCreation.enabled')" gioFormPrefix>lock</mat-icon>
           <gio-form-label>Allow User Registration</gio-form-label>
           <mat-slide-toggle
             #managementUserCreationSlideToggle
@@ -118,12 +118,12 @@
 
           <gio-form-slide-toggle
             [matTooltip]="providedConfigurationMessage"
-            [matTooltipDisabled]="!isReadonlySetting('management.automaticValidation.enabled')"
+            [matTooltipDisabled]="!isReadonlySetting('console.userCreation.automaticValidation.enabled')"
             appearance="fill"
             class="settings-general__form__card__form-field"
             formGroupName="automaticValidation"
           >
-            <mat-icon *ngIf="isReadonlySetting('management.automaticValidation.enabled')" gioFormPrefix>lock</mat-icon>
+            <mat-icon *ngIf="isReadonlySetting('console.userCreation.automaticValidation.enabled')" gioFormPrefix>lock</mat-icon>
             <gio-form-label>Enable automatic validation of registration requests</gio-form-label>
             <mat-slide-toggle
               gioFormSlideToggle
