@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+process.env.TZ = 'UTC';
+
 module.exports = {
   preset: 'ts-jest',
   testMatch: ['<rootDir>/src/**/?(*.)+(spec|test).ts'],

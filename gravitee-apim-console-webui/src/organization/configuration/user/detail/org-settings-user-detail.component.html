@@ -361,7 +361,7 @@
         <tr mat-row *matRowDef="let row; columns: applicationsTableDisplayedColumns"></tr>
 
         <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" [attr.colspan]="apisTableDisplayedColumns.length">No application</td>
+          <td class="mat-cell" [attr.colspan]="applicationsTableDisplayedColumns.length">No application</td>
         </tr>
       </table>
     </gio-table-wrapper>
@@ -372,35 +372,45 @@
   </mat-card>
 
   <mat-card class="org-settings-user-detail__tokens__card">
-    <div class="org-settings-user-detail__tokens__headline">
+    <div class="org-settings-user-detail__tokens__card__headline">
       <h2 gioTableOfContents>Tokens</h2>
       <button *gioPermission="{ anyOf: ['organization-user-u'] }" (click)="onGenerateTokenClicked()" mat-raised-button color="primary">
         <mat-icon>add</mat-icon>Generate a personal token
       </button>
     </div>
 
-    <mat-list class="org-settings-user-detail__tokens__list">
-      <mat-list-item class="org-settings-user-detail__tokens__list__empty" *ngIf="tokens?.length === 0">
-        <div class="org-settings-user-detail__tokens__list__empty__label">No token</div>
-      </mat-list-item>
-      <mat-list-item class="org-settings-user-detail__tokens__list__item" *ngFor="let token of tokens">
-        <mat-icon mat-list-icon>token</mat-icon>
-        <div class="org-settings-user-detail__tokens__list__item__description">
-          <div mat-line>
-            <div class="org-settings-user-detail__tokens__list__item__description__strong">{{ token.name }}</div>
-          </div>
-          <div mat-line>
-            <span class="org-settings-user-detail__tokens__list__item__description__strong">Created at: </span
-            >{{ token.created_at | date: 'medium' }}
-          </div>
-          <div mat-line>
-            <span class="org-settings-user-detail__tokens__list__item__description__strong">Last use: </span
-            >{{ token.last_use_at ? (token.last_use_at | date: 'medium') : 'never' }}
-          </div>
-        </div>
-        <div>
-          <ng-container *gioPermission="{ anyOf: ['organization-user-d'] }">
+    <gio-table-wrapper *ngIf="tokensTableDS" [length]="tokensTableDS.length" (filtersChange)="onFiltersChanged('tokensTableDS', $event)">
+      <table class="org-settings-user-detail__tokens__card__table" mat-table [dataSource]="tokensTableDS" aria-label="Tokens table">
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+          <td mat-cell *matCellDef="let token">
+            {{ token.name }}
+          </td>
+        </ng-container>
+
+        <!-- CreatedAt Column -->
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef id="createdAt">Created at</th>
+          <td mat-cell *matCellDef="let token">
+            {{ token.createdAt | date: 'medium' }}
+          </td>
+        </ng-container>
+
+        <!-- LastUseAt Column -->
+        <ng-container matColumnDef="lastUseAt">
+          <th mat-header-cell *matHeaderCellDef id="lastUseAt">Last use</th>
+          <td mat-cell *matCellDef="let token">
+            {{ token.lastUseAt ? (token.lastUseAt | date: 'medium') : 'never' }}
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef id="action" width="1%"></th>
+          <td mat-cell *matCellDef="let token">
             <button
+              *gioPermission="{ anyOf: ['organization-user-d'] }"
               (click)="onDeleteTokenClicked(token)"
               mat-icon-button
               color="primary"
@@ -409,10 +419,17 @@
             >
               <mat-icon>delete</mat-icon>
             </button>
-          </ng-container>
-        </div>
-      </mat-list-item>
-    </mat-list>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="tokensTableDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: tokensTableDisplayedColumns"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="tokensTableDisplayedColumns.length">No tokens</td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
   </mat-card>
 
   <gio-save-bar

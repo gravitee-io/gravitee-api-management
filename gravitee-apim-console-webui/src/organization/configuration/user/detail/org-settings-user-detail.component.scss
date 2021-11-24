@@ -139,42 +139,15 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__tokens {
-    // Hack to match place not used by the Table of Content
-    // Classic flex setup aren't working because of list's mat-line
-    width: 81%;
-
     &__card {
       margin-bottom: 32px;
-    }
 
-    &__headline {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-
-    &__list {
-      &__empty__label {
-        @include mat.typography-level($typography, body-1);
-        margin-left: 8px;
-      }
-
-      &__item {
-        &:hover {
-          background-color: mat.get-color-from-palette($background, hover);
-        }
-
-        &__description {
-          cursor: pointer;
-          padding-left: 16px;
-          flex: 1 1 auto;
-
-          &__strong {
-            @include mat.typography-level($typography, body-2);
-          }
-        }
+      &__headline {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
       }
     }
   }

@@ -78,6 +78,13 @@ interface ApplicationDS {
   name: string;
 }
 
+interface TokenDS {
+  id: string;
+  name: string;
+  createdAt: number;
+  lastUseAt?: number;
+}
+
 @Component({
   selector: 'org-settings-user-detail',
   template: require('./org-settings-user-detail.component.html'),
@@ -107,7 +114,8 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   applicationsTableDS: ApplicationDS[];
   applicationsTableDisplayedColumns = ['name'];
 
-  tokens: Token[];
+  tokensTableDS: TokenDS[];
+  tokensTableDisplayedColumns = ['name', 'createdAt', 'lastUseAt', 'action'];
 
   openSaveBar = false;
   invalidStateSaveBar = false;
@@ -183,7 +191,12 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .getTokens(this.ajsStateParams.userId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((response) => {
-        this.tokens = response;
+        this.tokensTableDS = response.map((token) => ({
+          id: token.id,
+          createdAt: token.created_at,
+          lastUseAt: token.last_use_at,
+          name: token.name,
+        }));
       });
   }
 
@@ -493,7 +506,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  onDeleteTokenClicked(token: Token) {
+  onDeleteTokenClicked(token: TokenDS) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         width: '450px',

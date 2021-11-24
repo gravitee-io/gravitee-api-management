@@ -26,7 +26,6 @@ import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatListHarness } from '@angular/material/list/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
@@ -601,12 +600,10 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     const tokensCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__tokens__card' }));
     const generateTokenButton = await tokensCard.getHarness(MatButtonHarness);
-    const tokensList = await tokensCard.getHarness(MatListHarness);
+    const tokensTable = await tokensCard.getHarness(MatTableHarness);
 
-    const matListItemHarnesses = await tokensList.getItems();
-    expect(matListItemHarnesses).toHaveLength(1);
-    const listItemHarness = matListItemHarnesses.pop();
-    expect(await listItemHarness.getText()).toEqual('No token');
+    const cellTextByIndex = await tokensTable.getCellTextByIndex();
+    expect(cellTextByIndex).toEqual([['No tokens']]);
 
     await generateTokenButton.click();
 
@@ -644,7 +641,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
-    const tokenResponse: Token = fakeUserToken({ name: 'My token' });
+    const tokenResponse: Token = fakeUserToken({ name: 'My token', created_at: 1630373735403, last_use_at: 1631017105654 });
 
     expectUserTokensGetRequest(user, [tokenResponse]);
     expectUserGetRequest(user);
@@ -662,13 +659,13 @@ describe('OrgSettingsUserDetailComponent', () => {
     ]);
 
     const tokensCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__tokens__card' }));
-    const tokensList = await tokensCard.getHarness(MatListHarness);
-    const matListItemHarnesses = await tokensList.getItems();
-    expect(matListItemHarnesses).toHaveLength(1);
+    const tokensTable = await tokensCard.getHarness(MatTableHarness);
+    expect(await tokensTable.getCellTextByIndex()).toEqual([
+      ['My token', 'Aug 31, 2021, 1:35:35 AM', 'Sep 7, 2021, 12:18:25 PM', 'delete'],
+    ]);
 
-    const listItemHarness = matListItemHarnesses.pop();
-    expect(await listItemHarness.getText()).toContain(tokenResponse.name);
-    const removeTokenButton = await listItemHarness.getHarness(
+    const firstRowActionCell = (await (await tokensTable.getRows())[0].getCells({ columnName: 'action' }))[0];
+    const removeTokenButton = await firstRowActionCell.getHarness(
       MatButtonHarness.with({ selector: '[aria-label="Button to delete a token"]' }),
     );
 
