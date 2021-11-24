@@ -113,6 +113,9 @@
           "configurations": {
             "production": {
               "browserTarget": "gravitee-portal-webui:build:production"
+            },
+            "apim-master": {
+              "proxyConfig": "src/proxy-apim-master.conf.js"
             }
           }
         },
