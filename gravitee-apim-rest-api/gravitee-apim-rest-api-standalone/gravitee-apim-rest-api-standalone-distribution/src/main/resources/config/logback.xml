@@ -39,6 +39,24 @@
         </encoder>
     </appender>
 
+    <appender name="FILE-UPGRADERS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${gravitee.management.log.dir}/gravitee-upgraders.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- monthly rollover -->
+            <fileNamePattern>${gravitee.management.log.dir}/gravitee-upgraders_%d{yyyy-MM}.log</fileNamePattern>
+
+            <!-- keep 12 months worth of history -->
+            <maxHistory>12</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="io.gravitee.rest.api.service.impl.upgrade" level="INFO">
+        <appender-ref ref="FILE-UPGRADERS" />
+    </logger>
     <logger name="io.gravitee" level="INFO" />
     <logger name="org.eclipse.jetty" level="INFO" />
 
