@@ -29,6 +29,7 @@ import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     private final PageService pageService;
     private final ApiMetadataService apiMetadataService;
     private final PlanService planService;
+    private final VirtualHostService virtualHostService;
 
     public ApiServiceCockpitImpl(
         ObjectMapper objectMapper,
@@ -55,7 +57,8 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         SwaggerService swaggerService,
         PageService pageService,
         ApiMetadataService apiMetadataService,
-        PlanService planService
+        PlanService planService,
+        VirtualHostService virtualHostService
     ) {
         this.objectMapper = objectMapper;
         this.apiService = apiService;
@@ -63,10 +66,11 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         this.pageService = pageService;
         this.apiMetadataService = apiMetadataService;
         this.planService = planService;
+        this.virtualHostService = virtualHostService;
     }
 
     @Override
-    public ApiEntity createApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
+    public ApiEntityResult createApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
         GraviteeContext.setCurrentEnvironment(environmentId);
 
         if (mode == DeploymentMode.API_MOCKED) {
@@ -84,7 +88,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     }
 
     @Override
-    public ApiEntity updateApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
+    public ApiEntityResult updateApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
         GraviteeContext.setCurrentEnvironment(environmentId);
 
         if (mode == DeploymentMode.API_DOCUMENTED) {
@@ -101,55 +105,64 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         return updateMockedApi(apiId, userId, swaggerDefinition);
     }
 
-    private ApiEntity createDocumentedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+    private ApiEntityResult createDocumentedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = buildForDocumentedApi(swaggerDefinition);
         return createApiEntity(apiId, userId, swaggerDescriptor);
     }
 
-    private ApiEntity updateDocumentedApi(String apiId, String swaggerDefinition) {
+    private ApiEntityResult updateDocumentedApi(String apiId, String swaggerDefinition) {
         return updateApiEntity(apiId, buildForDocumentedApi(swaggerDefinition));
     }
 
-    private ApiEntity createMockedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+    private ApiEntityResult createMockedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
 
-        createApiEntity(apiId, userId, swaggerDescriptor);
-        this.planService.create(createKeylessPlan(apiId, environmentId));
+        ApiEntityResult createApiResult = createApiEntity(apiId, userId, swaggerDescriptor);
 
-        return this.apiService.start(apiId, userId);
+        if (createApiResult.isSuccess()) {
+            this.planService.create(createKeylessPlan(apiId, environmentId));
+
+            return ApiEntityResult.success(this.apiService.start(apiId, userId));
+        }
+        return createApiResult;
     }
 
-    private ApiEntity updateMockedApi(String apiId, String userId, String swaggerDefinition) {
+    private ApiEntityResult updateMockedApi(String apiId, String userId, String swaggerDefinition) {
         updateApiEntity(apiId, buildForMockedApi(swaggerDefinition));
 
         ApiDeploymentEntity apiDeployment = new ApiDeploymentEntity();
         apiDeployment.setDeploymentLabel("Model updated");
-        return apiService.deploy(apiId, userId, EventType.PUBLISH_API, apiDeployment);
+        return ApiEntityResult.success(apiService.deploy(apiId, userId, EventType.PUBLISH_API, apiDeployment));
     }
 
-    private ApiEntity createPublishedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+    private ApiEntityResult createPublishedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
 
-        createApiEntity(apiId, userId, swaggerDescriptor);
-        this.planService.create(createKeylessPlan(apiId, environmentId));
-        ApiEntity apiEntity = this.apiService.start(apiId, userId);
+        ApiEntityResult createApiResult = createApiEntity(apiId, userId, swaggerDescriptor);
 
-        publishSwaggerDocumentation(apiId);
+        if (createApiResult.isSuccess()) {
+            this.planService.create(createKeylessPlan(apiId, environmentId));
+            ApiEntity apiEntity = this.apiService.start(apiId, userId);
 
-        UpdateApiEntity updateEntity = ApiService.convert(apiEntity);
-        updateEntity.setVisibility(Visibility.PUBLIC);
-        updateEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        return this.apiService.update(apiId, updateEntity);
+            publishSwaggerDocumentation(apiId);
+
+            UpdateApiEntity updateEntity = ApiService.convert(apiEntity);
+            updateEntity.setVisibility(Visibility.PUBLIC);
+            updateEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
+            return ApiEntityResult.success(this.apiService.update(apiId, updateEntity));
+        }
+
+        return createApiResult;
     }
 
-    private ApiEntity updateApiEntity(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    private ApiEntityResult updateApiEntity(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
 
-        return this.apiService.updateFromSwagger(apiId, api, swaggerDescriptor);
+        return ApiEntityResult.success(this.apiService.updateFromSwagger(apiId, api, swaggerDescriptor));
     }
 
-    private ApiEntity createApiEntity(String apiId, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    private ApiEntityResult createApiEntity(String apiId, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
 
@@ -157,10 +170,25 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         apiDefinition.put("id", apiId);
 
         final ApiEntity createdApi = apiService.createWithApiDefinition(api, userId, apiDefinition);
-        pageService.createAsideFolder(apiId, GraviteeContext.getCurrentEnvironment());
-        pageService.createOrUpdateSwaggerPage(apiId, swaggerDescriptor, true);
-        apiMetadataService.create(api.getMetadata(), createdApi.getId());
-        return createdApi;
+
+        final Optional<String> result = checkContextPath(createdApi);
+        if (result.isEmpty()) {
+            pageService.createAsideFolder(apiId, GraviteeContext.getCurrentEnvironment());
+            pageService.createOrUpdateSwaggerPage(apiId, swaggerDescriptor, true);
+            apiMetadataService.create(api.getMetadata(), createdApi.getId());
+            return ApiEntityResult.success(createdApi);
+        }
+
+        return ApiEntityResult.failure(result.get());
+    }
+
+    Optional<String> checkContextPath(ApiEntity api) {
+        try {
+            virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts());
+            return Optional.empty();
+        } catch (Exception e) {
+            return Optional.of(e.getMessage());
+        }
     }
 
     private NewPlanEntity createKeylessPlan(String apiId, String environmentId) {

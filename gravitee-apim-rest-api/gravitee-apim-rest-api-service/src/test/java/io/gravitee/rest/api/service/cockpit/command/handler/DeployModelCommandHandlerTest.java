@@ -26,6 +26,7 @@ import io.gravitee.cockpit.api.command.designer.DeployModelReply;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntityResult;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
@@ -118,7 +119,7 @@ public class DeployModelCommandHandlerTest {
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(i.getArgument(0));
-                    return apiEntity;
+                    return ApiEntityResult.success(apiEntity);
                 }
             );
 
@@ -165,7 +166,7 @@ public class DeployModelCommandHandlerTest {
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(i.getArgument(0));
-                    return apiEntity;
+                    return ApiEntityResult.success(apiEntity);
                 }
             );
 
@@ -212,7 +213,7 @@ public class DeployModelCommandHandlerTest {
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(i.getArgument(0));
-                    return apiEntity;
+                    return ApiEntityResult.success(apiEntity);
                 }
             );
 
@@ -261,7 +262,7 @@ public class DeployModelCommandHandlerTest {
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(i.getArgument(0));
-                    return apiEntity;
+                    return ApiEntityResult.success(apiEntity);
                 }
             );
 
@@ -308,7 +309,7 @@ public class DeployModelCommandHandlerTest {
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(i.getArgument(0));
-                    return apiEntity;
+                    return ApiEntityResult.success(apiEntity);
                 }
             );
 
@@ -355,7 +356,7 @@ public class DeployModelCommandHandlerTest {
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(i.getArgument(0));
-                    return apiEntity;
+                    return ApiEntityResult.success(apiEntity);
                 }
             );
 
@@ -402,7 +403,7 @@ public class DeployModelCommandHandlerTest {
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(i.getArgument(0));
-                    return apiEntity;
+                    return ApiEntityResult.success(apiEntity);
                 }
             );
 
@@ -571,7 +572,7 @@ public class DeployModelCommandHandlerTest {
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(i.getArgument(0));
-                    return apiEntity;
+                    return ApiEntityResult.success(apiEntity);
                 }
             );
 
@@ -614,5 +615,55 @@ public class DeployModelCommandHandlerTest {
 
         PowerMockito.verifyStatic(GraviteeContext.class);
         GraviteeContext.cleanContext();
+    }
+
+    @Test
+    public void fails_to_create_due_to_context_path_already_used() {
+        DeployModelPayload payload = new DeployModelPayload();
+        payload.setModelId("model#1");
+        payload.setSwaggerDefinition("swagger-definition");
+        payload.setUserId("cockpit_user#id");
+        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+
+        DeployModelCommand command = new DeployModelCommand(payload);
+
+        when(apiService.exists(payload.getModelId())).thenReturn(false);
+
+        UserEntity user = new UserEntity();
+        user.setId("user#id");
+        user.setSourceId(payload.getUserId());
+        when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("environment#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
+            .thenReturn(Optional.empty());
+
+        when(
+            cockpitApiService.createApi(
+                payload.getModelId(),
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                environment.getId(),
+                DeploymentMode.API_DOCUMENTED
+            )
+        )
+            .thenReturn(ApiEntityResult.failure("context path not available"));
+
+        TestObserver<DeployModelReply> obs = cut.handle(command).test();
+
+        obs.awaitTerminalEvent();
+        obs.assertNoErrors();
+        obs.assertValue(
+            reply -> {
+                Assertions
+                    .assertThat(reply)
+                    .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getMessage)
+                    .containsExactly(command.getId(), CommandStatus.FAILED, "context path not available");
+                return true;
+            }
+        );
     }
 }

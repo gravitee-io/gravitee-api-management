@@ -24,17 +24,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.service.ApiMetadataService;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,6 +74,9 @@ public class ApiServiceCockpitImplTest {
     @Mock
     private PlanService planService;
 
+    @Mock
+    private VirtualHostService virtualHostService;
+
     private ApiServiceCockpitImpl service;
 
     @Captor
@@ -96,7 +99,16 @@ public class ApiServiceCockpitImplTest {
 
     @Before
     public void setUp() throws Exception {
-        service = new ApiServiceCockpitImpl(new ObjectMapper(), apiService, swaggerService, pageService, apiMetadataService, planService);
+        service =
+            new ApiServiceCockpitImpl(
+                new ObjectMapper(),
+                apiService,
+                swaggerService,
+                pageService,
+                apiMetadataService,
+                planService,
+                virtualHostService
+            );
         PowerMockito.spy(GraviteeContext.class);
     }
 
@@ -112,6 +124,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -136,6 +152,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -159,6 +179,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -186,6 +210,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -213,6 +241,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -243,6 +275,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -267,6 +303,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -289,6 +329,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -314,6 +358,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
@@ -321,6 +369,7 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
+        updatedApiEntity.setProxy(proxy);
         when(apiService.updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
 
@@ -334,7 +383,7 @@ public class ApiServiceCockpitImplTest {
 
         verify(apiService, times(0)).createWithApiDefinition(any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
         verify(apiService, times(1)).updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class));
-        assertThat(result).isEqualTo(updatedApiEntity);
+        assertThat(result.getApi()).isEqualTo(updatedApiEntity);
     }
 
     @Test
@@ -350,6 +399,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
@@ -357,13 +410,15 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
+        updatedApiEntity.setProxy(proxy);
+
         when(apiService.updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
         when(apiService.deploy(anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
 
         final var result = service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED);
-        assertThat(result).isEqualTo(updatedApiEntity);
+        assertThat(result.getApi()).isEqualTo(updatedApiEntity);
 
         PowerMockito.verifyStatic(GraviteeContext.class);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
@@ -381,6 +436,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
@@ -410,6 +469,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
@@ -417,13 +480,14 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
+        updatedApiEntity.setProxy(proxy);
         when(apiService.updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
         when(apiService.deploy(anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
 
         final var result = service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
-        assertThat(result).isEqualTo(updatedApiEntity);
+        assertThat(result.getApi()).isEqualTo(updatedApiEntity);
 
         PowerMockito.verifyStatic(GraviteeContext.class);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
@@ -441,6 +505,10 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
@@ -455,6 +523,40 @@ public class ApiServiceCockpitImplTest {
 
         verify(apiService).deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), apiDeploymentCaptor.capture());
         assertThat(apiDeploymentCaptor.getValue().getDeploymentLabel()).isEqualTo("Model updated");
+    }
+
+    @Test
+    public void should_check_context_path_unique() {
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
+
+        when(virtualHostService.sanitizeAndValidate(any(Collection.class))).thenReturn(List.of(virtualHost));
+        var message = service.checkContextPath(api);
+
+        verify(virtualHostService).sanitizeAndValidate(eq(List.of(virtualHost)));
+        assertThat(message.isPresent()).isFalse();
+    }
+
+    @Test
+    public void should_check_context_path_not_unique() {
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
+
+        when(virtualHostService.sanitizeAndValidate(any(Collection.class)))
+            .thenThrow(new ApiContextPathAlreadyExistsException("contextPath"));
+        var message = service.checkContextPath(api);
+
+        verify(virtualHostService).sanitizeAndValidate(eq(List.of(virtualHost)));
+        assertThat(message.isPresent()).isTrue();
+        assertThat(message.get()).isEqualTo("The path [contextPath] is already covered by an other API.");
     }
 
     private void preparePageServiceMock() {
