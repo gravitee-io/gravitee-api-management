@@ -1,0 +1,25 @@
+{
+  "id": "api-test",
+  "name": "api-test",
+
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/team/test%7Cpipe",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ],
+    "strip_context_path": false,
+    "dumpRequest": true
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

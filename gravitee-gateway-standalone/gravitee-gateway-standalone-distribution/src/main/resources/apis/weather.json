@@ -1,0 +1,23 @@
+{
+  "name": "api-weather",
+
+  "proxy": {
+    "context_path": "/weather",
+    "target": "http://api.openweathermap.org/data/2.5/weather",
+    "strip_context_path": false,
+
+    "http_client": {
+      "read_timeout": 5000,
+      "request_timeout": 5000,
+      "connect_timeout": 5000,
+      "max_connections": -1,
+      "max_connections_per_host": -1
+    }
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+
+}

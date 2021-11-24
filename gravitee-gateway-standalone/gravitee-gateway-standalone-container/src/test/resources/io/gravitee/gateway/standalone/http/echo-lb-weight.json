@@ -1,0 +1,30 @@
+{
+  "id": "api-echo",
+  "name": "api-echo",
+
+  "proxy": {
+    "context_path": "/api",
+    "endpoints": [
+      {
+        "name": "endpoint_0",
+        "target": "http://localhost:8080/api1",
+        "weight": 3
+      },
+      {
+        "name": "endpoint_1",
+        "target": "http://localhost:8080/api2",
+        "weight": 7
+      }
+    ],
+    "load_balancing": {
+      "type": "weighted_round_robin"
+    },
+    "strip_context_path": false,
+    "dumpRequest": true
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}
