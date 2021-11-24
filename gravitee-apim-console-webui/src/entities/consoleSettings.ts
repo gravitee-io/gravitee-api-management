@@ -106,6 +106,9 @@ export interface ConsoleSettingsManagement {
   };
   title?: string;
   url?: string;
+  pathBasedApiCreation?: {
+    enabled: boolean;
+  };
   userCreation?: {
     enabled?: boolean;
   };

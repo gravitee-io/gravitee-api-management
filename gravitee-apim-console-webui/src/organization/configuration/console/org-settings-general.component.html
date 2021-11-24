@@ -78,6 +78,25 @@
 
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('console.pathBasedApiCreation.enabled')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+          formGroupName="pathBasedApiCreation"
+        >
+          <mat-icon *ngIf="isReadonlySetting('console.pathBasedApiCreation.enabled')" gioFormPrefix>lock</mat-icon>
+          <gio-form-label>Enable path based API creation</gio-form-label>
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Enable path based API creation"
+            name="pathBasedApiCreation"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <mat-divider></mat-divider>
+
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('management.userCreation.enabled')"
           appearance="fill"
           class="settings-general__form__card__form-field"

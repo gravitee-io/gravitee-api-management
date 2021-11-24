@@ -81,6 +81,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
             title: [toFormState(this.settings, 'management.title')],
             url: [toFormState(this.settings, 'management.url')],
             support: this.fb.group({ enabled: [toFormState(this.settings, 'management.support.enabled')] }),
+            pathBasedApiCreation: this.fb.group({ enabled: [toFormState(this.settings, 'management.pathBasedApiCreation.enabled')] }),
             userCreation: this.fb.group({ enabled: [toFormState(this.settings, 'management.userCreation.enabled')] }),
             automaticValidation: this.fb.group({ enabled: [toFormState(this.settings, 'management.automaticValidation.enabled')] }),
           }),
