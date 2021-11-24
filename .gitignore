@@ -4,6 +4,7 @@ gravitee-**/target/
 .idea/
 *.iml
 .DS_Store
+.*.settings.xml
 
 # eclipse
 .settings/
