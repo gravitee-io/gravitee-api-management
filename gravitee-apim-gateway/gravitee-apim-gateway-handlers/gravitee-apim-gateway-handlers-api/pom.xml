@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway.handlers</groupId>
+        <groupId>io.gravitee.apim.gateway.handlers</groupId>
         <artifactId>gravitee-apim-gateway-handlers</artifactId>
     <version>3.5.25-SNAPSHOT</version>
     </parent>
@@ -63,31 +63,31 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
             <artifactId>gravitee-apim-gateway-security-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
             <artifactId>gravitee-apim-gateway-security-apikey</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
             <artifactId>gravitee-apim-gateway-security-keyless</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
             <artifactId>gravitee-apim-gateway-security-oauth2</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
             <artifactId>gravitee-apim-gateway-security-jwt</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -113,28 +113,23 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>${hazelcast.version}</version>
         </dependency>
+
         <!-- JMH -->
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
-            <version>${jmh.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
-            <version>${jmh.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>

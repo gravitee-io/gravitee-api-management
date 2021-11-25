@@ -27,7 +27,7 @@
         <version>3.5.25-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway.handlers</groupId>
+    <groupId>io.gravitee.apim.gateway.handlers</groupId>
     <artifactId>gravitee-apim-gateway-handlers</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Reactor Handlers</name>

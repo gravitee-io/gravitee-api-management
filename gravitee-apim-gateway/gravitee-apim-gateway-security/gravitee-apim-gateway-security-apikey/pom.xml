@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway.security</groupId>
+        <groupId>io.gravitee.apim.gateway.security</groupId>
         <artifactId>gravitee-apim-gateway-security</artifactId>
     <version>3.5.25-SNAPSHOT</version>
     </parent>
@@ -33,7 +33,7 @@
     <dependencies>
         <!-- Gravitee.io dependencies -->
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
             <artifactId>gravitee-apim-gateway-security-core</artifactId>
             <version>${project.version}</version>
         </dependency>

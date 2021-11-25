@@ -27,7 +27,7 @@
         <version>3.5.25-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway.security</groupId>
+    <groupId>io.gravitee.apim.gateway.security</groupId>
     <artifactId>gravitee-apim-gateway-security</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Security</name>

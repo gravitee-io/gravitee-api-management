@@ -36,7 +36,6 @@
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-reporter</artifactId>
-            <version>${gravitee-node.version}</version>
         </dependency>
 
         <dependency>
@@ -49,22 +48,14 @@
             <artifactId>gravitee-common</artifactId>
         </dependency>
 
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>

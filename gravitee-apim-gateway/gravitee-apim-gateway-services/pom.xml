@@ -27,7 +27,7 @@
         <version>3.5.25-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway.services</groupId>
+    <groupId>io.gravitee.apim.gateway.services</groupId>
     <artifactId>gravitee-apim-gateway-services</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Services</name>
@@ -40,14 +40,29 @@
         <module>gravitee-apim-gateway-services-endpoint-discovery</module>
     </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Vert.x -->
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-web</artifactId>
-                <version>${vertx.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Spring dependencies -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
 </project>
