@@ -16,27 +16,20 @@
 package io.gravitee.gateway.reactor.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
-import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.HandlerEntryPointComparator;
-import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.stream.Collectors;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -112,7 +105,9 @@ public class EntrypointResolverTest {
         DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
         DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
 
-        when(reactorHandlerRegistry.getEntrypoints()).thenReturn(Arrays.asList(entrypoint1, entrypoint2));
+        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
+        when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
         when(request.path()).thenReturn("/teams");
 
         assertEquals(entrypoint1, handlerResolver.resolve(context));
@@ -124,8 +119,8 @@ public class EntrypointResolverTest {
         DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
         DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
-        handlerEntrypoints.addAll(Arrays.asList(entrypoint1, entrypoint2));
+        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/team");
@@ -154,8 +149,8 @@ public class EntrypointResolverTest {
         DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
         DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
-        handlerEntrypoints.addAll(Arrays.asList(entrypoint1, entrypoint2));
+        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/teams/");
@@ -169,8 +164,8 @@ public class EntrypointResolverTest {
         DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
         DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
-        handlerEntrypoints.addAll(Arrays.asList(entrypoint1, entrypoint2));
+        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/teamss/");
@@ -213,10 +208,11 @@ public class EntrypointResolverTest {
         withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api11.gravitee.io", "/a/b/c1/sub")));
         withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("apispecial.gravitee.io", "/a/b/special")));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
+        final List<HandlerEntrypoint> handlerEntrypoints = new ArrayList<>();
         handlerEntrypoints.addAll(noHosts);
         handlerEntrypoints.addAll(withHostAndPathABC);
         handlerEntrypoints.addAll(withHostAndNotPathABC);
+        handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         // Cases without host.
