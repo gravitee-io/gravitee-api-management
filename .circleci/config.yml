@@ -135,8 +135,8 @@ jobs:
                   name: "Build project"
                   command: |
                       mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
-                      cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-distribution-*.zip ./
-                      cp ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target/gravitee-apim-gateway-distribution-*.zip ./
+                      cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-distribution-*.tar.gz ./
+                      cp ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target/gravitee-apim-gateway-distribution-*.tar.gz ./
 
             - notify-on-failure
             - save_cache:
@@ -148,8 +148,8 @@ jobs:
                   root: ./
                   paths:
                       - ./gravitee-*/*/target/*
-                      - ./gravitee-apim-rest-api-distribution-*.zip
-                      - ./gravitee-apim-gateway-distribution-*.zip
+                      - ./gravitee-apim-rest-api-distribution-*.tar.gz
+                      - ./gravitee-apim-gateway-distribution-*.tar.gz
 
     test:
         machine:
