@@ -421,7 +421,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
               id: this.user.id,
               roles: [
                 { scope: 'GROUP' as const, name: groupeAdded.isAdmin ? 'ADMIN' : '' },
-                { scope: 'API' as const, name: groupeAdded.applicationRole },
+                { scope: 'API' as const, name: groupeAdded.apiRole },
                 { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
               ],
             },
