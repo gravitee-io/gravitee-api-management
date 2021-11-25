@@ -378,7 +378,7 @@
             <build>
                 <resources>
                     <resource>
-                        <directory>../gravitee-gateway-standalone-distribution/src/main/resources/</directory>
+                        <directory>../gravitee-apim-gateway-standalone-distribution/src/main/resources/</directory>
                         <includes>
                             <include>config/*</include>
                             <include>templates/*</include>
