@@ -1,0 +1,24 @@
+{
+  "id": "unreachable-api",
+  "name": "My unreachable API",
+
+  "proxy": {
+    "context_path": "/api",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080",
+        "http": {
+          "readTimeout": 1000
+        }
+      }
+    ],
+    "strip_context_path": false,
+    "dumpRequest": true
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

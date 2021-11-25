@@ -1,0 +1,618 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravite.gateway.http.connector;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.proxy.ProxyRequest;
+import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
+import io.gravitee.gateway.http.connector.http.HttpConnector;
+import io.gravitee.reporter.api.http.Metrics;
+import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.*;
+import io.vertx.core.streams.Pipe;
+import io.vertx.core.streams.WriteStream;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+
+@RunWith(MockitoJUnitRunner.class)
+@Ignore
+public class VertxHttpClientTest {
+    /*
+    Vertx vertx = Vertx.vertx();
+
+    @Mock
+    Request request;
+
+    @Mock
+    HttpEndpoint endpoint;
+
+    @Mock
+    HttpClient httpClient;
+
+    HttpConnector vertxHttpClient = new HttpConnector(null);
+
+    @Before
+    public void init() {
+        ReflectionTestUtils.setField(vertxHttpClient, "vertx", vertx);
+        ReflectionTestUtils.setField(vertxHttpClient, "endpoint", endpoint);
+        Map<Context, HttpClient> httpClients = new HashMap<>();
+        httpClients.put(Vertx.currentContext(), httpClient);
+        ReflectionTestUtils.setField(vertxHttpClient, "httpClients", httpClients);
+        when(httpClient.request(eq(io.vertx.core.http.HttpMethod.GET), eq(80), anyString(), anyString()))
+            .thenReturn(new MockedHttpClientRequest());
+        Metrics metrics = Metrics.on((new Date()).getTime()).build();
+        when(request.metrics()).thenReturn(metrics);
+    }
+
+    @Test
+    public void testUnencodedWithoutQuery() throws Exception {
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void testUnencodedWithQueryUnencoded() throws Exception {
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo=bar")
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo=bar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void testUnencodedWithQueryUnencoded2() throws Exception {
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo==bar")
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo==bar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void testUnencodedWithQueryEncoded() throws Exception {
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo=%3Dbar")
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo=%3Dbar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void testUnencodedWithEmptyQueryParam() throws Exception {
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo=&bar=")
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo=&bar=", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void testUnencodedWithNullQueryParam() throws Exception {
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo&bar")
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo&bar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvoke() {
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(new LinkedMultiValueMap())
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeWithParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("foo", "bar");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo=bar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeWithoutEncodeParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("foo", "=bar");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo==bar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeWithoutEncodeEncodedParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("foo", "%3Dbar");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo=%3Dbar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeMergedQueryParams() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParams", "value");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo=bar")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo=bar&urlParams=value", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeEmptyQueryParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParam", "");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?urlParam=", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeEmptyQueryParams() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParam1", "");
+        parameters.add("urlParam2", "");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?urlParam1=&urlParam2=", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeNullQueryParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParam", null);
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?urlParam", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeNullQueryParams() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParam1", null);
+        parameters.add("urlParam2", null);
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?urlParam1&urlParam2", request.metrics().getEndpoint());
+    }
+
+    class MockedHttpClientRequest implements HttpClientRequest {
+
+        @Override
+        public HttpClientRequest exceptionHandler(Handler<Throwable> handler) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest setWriteQueueMaxSize(int maxSize) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest drainHandler(Handler<Void> handler) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest setHost(String host) {
+            return null;
+        }
+
+        @Override
+        public String getHost() {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest setPort(int port) {
+            return null;
+        }
+
+        @Override
+        public int getPort() {
+            return 0;
+        }
+
+        @Override
+        public HttpClientRequest setFollowRedirects(boolean followRedirects) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest setMaxRedirects(int maxRedirects) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest setChunked(boolean chunked) {
+            return null;
+        }
+
+        @Override
+        public boolean isChunked() {
+            return false;
+        }
+
+        @Override
+        public io.vertx.core.http.HttpMethod getMethod() {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest setMethod(io.vertx.core.http.HttpMethod method) {
+            return null;
+        }
+
+        @Override
+        public String absoluteURI() {
+            return null;
+        }
+
+        @Override
+        public String getURI() {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest setURI(String uri) {
+            return null;
+        }
+
+        @Override
+        public String path() {
+            return null;
+        }
+
+        @Override
+        public String query() {
+            return null;
+        }
+
+        @Override
+        public MultiMap headers() {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest putHeader(String name, String value) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest putHeader(CharSequence name, CharSequence value) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest putHeader(String name, Iterable<String> values) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest putHeader(CharSequence name, Iterable<CharSequence> values) {
+            return null;
+        }
+
+        @Override
+        public HttpVersion version() {
+            return null;
+        }
+
+        @Override
+        public Future<Void> write(String chunk) {
+            return null;
+        }
+
+        @Override
+        public void write(String chunk, Handler<AsyncResult<Void>> handler) {
+
+        }
+
+        @Override
+        public Future<Void> write(String chunk, String enc) {
+            return null;
+        }
+
+        @Override
+        public void write(String chunk, String enc, Handler<AsyncResult<Void>> handler) {
+
+        }
+
+        @Override
+        public HttpClientRequest continueHandler(@io.vertx.codegen.annotations.Nullable Handler<Void> handler) {
+            return null;
+        }
+
+        @Override
+        public Future<Void> sendHead() {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest sendHead(Handler<AsyncResult<Void>> completionHandler) {
+            return null;
+        }
+
+        @Override
+        public void connect(Handler<AsyncResult<HttpClientResponse>> handler) {
+
+        }
+
+        @Override
+        public Future<HttpClientResponse> connect() {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest response(Handler<AsyncResult<HttpClientResponse>> handler) {
+            return null;
+        }
+
+        @Override
+        public Future<HttpClientResponse> response() {
+            return null;
+        }
+
+        @Override
+        public Future<Void> end(String chunk) {
+            return null;
+        }
+
+        @Override
+        public void end(String chunk, Handler<AsyncResult<Void>> handler) {
+
+        }
+
+        @Override
+        public Future<Void> end(String chunk, String enc) {
+            return null;
+        }
+
+        @Override
+        public void end(String chunk, String enc, Handler<AsyncResult<Void>> handler) {
+
+        }
+
+        @Override
+        public Future<Void> end(Buffer chunk) {
+            return null;
+        }
+
+        @Override
+        public void end(Buffer chunk, Handler<AsyncResult<Void>> handler) {
+
+        }
+
+        @Override
+        public Future<Void> end() {
+            return null;
+        }
+
+        @Override
+        public void end(Handler<AsyncResult<Void>> handler) {}
+
+        @Override
+        public HttpClientRequest setTimeout(long timeoutMs) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest pushHandler(Handler<HttpClientRequest> handler) {
+            return null;
+        }
+
+        @Override
+        public boolean reset(long code) {
+            return false;
+        }
+
+        @Override
+        public boolean reset(long code, Throwable cause) {
+            return false;
+        }
+
+        @Override
+        public HttpConnection connection() {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest writeCustomFrame(int type, int flags, Buffer payload) {
+            return null;
+        }
+
+        @Override
+        public StreamPriority getStreamPriority() {
+            return null;
+        }
+
+        @Override
+        public Future<Void> write(Buffer data) {
+            return null;
+        }
+
+        @Override
+        public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
+
+        }
+
+        @Override
+        public boolean writeQueueFull() {
+            return false;
+        }
+    }
+*/
+}
