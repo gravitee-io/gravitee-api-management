@@ -1,0 +1,342 @@
+############################################################################################################
+#################################### Gravitee.IO Gateway - Configuration ###################################
+############################################################################################################
+
+############################################################################################################
+# This file is the general configuration of Gravitee.IO Gateway:
+# - Properties (and respective default values) in comment are provided for information.
+# - You can reference other property by using ${property.name} syntax
+# - gravitee.home property is automatically set-up by launcher and refers to the installation path. Do not override it !
+#
+# Please have a look to http://docs.gravitee.io/ for more options and fine-grained granularity
+############################################################################################################
+
+# Gateway HTTP server
+#http:
+#  port: 8082
+#  host: 0.0.0.0
+#  idleTimeout: 0
+#  tcpKeepAlive: true
+#  compressionSupported: false
+#  maxHeaderSize: 8192
+#  maxChunkSize: 8192
+#  maxInitialLineLength: 4096
+#  instances: 0
+#  requestTimeout: 0
+#  secured: false
+#  alpn: false
+#  ssl:
+#    sni: false
+#    clientAuth: none # Supports none, request, requires
+#    tlsProtocols: TLSv1.2, TLSv1.3
+#    tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+#    keystore:
+#      type: jks # Supports jks, pem, pkcs12
+#      path: ${gravitee.home}/security/keystore.jks
+#      password: secret
+#    truststore:
+#      type: jks # Supports jks, pem, pkcs12
+#      path: ${gravitee.home}/security/truststore.jks
+#      password: secret
+#  websocket:
+#    enabled: false
+#    subProtocols: v10.stomp, v11.stomp, v12.stomp
+#    perMessageWebSocketCompressionSupported: true
+#    perFrameWebSocketCompressionSupported: true
+
+# Plugins repository
+#plugins:
+#  path:
+#    - ${gravitee.home}/plugins
+#    - ${gravitee.home}/my-custom-plugins
+
+# If a plugin is already installed (but with a different version), management node does not start anymore
+#  failOnDuplicate: true
+
+# Management repository is used to store global configuration such as APIs, applications, apikeys, ...
+# This is the default configuration using MongoDB (single server)
+# For more information about MongoDB configuration, please have a look to:
+# - http://api.mongodb.org/java/current/com/mongodb/MongoClientOptions.html
+management:
+  type: mongodb
+  mongodb:
+    dbname: ${ds.mongodb.dbname}
+    host: ${ds.mongodb.host}
+    port: ${ds.mongodb.port}
+#    username:
+#    password:
+#    connectionsPerHost: 0
+#    connectTimeout: 500
+#    maxWaitTime: 120000
+#    socketTimeout: 500
+#    socketKeepAlive: false
+#    maxConnectionLifeTime: 0
+#    maxConnectionIdleTime: 0
+#    serverSelectionTimeout: 0
+#    description: gravitee.io
+#    heartbeatFrequency: 10000
+#    minHeartbeatFrequency: 500
+#    heartbeatConnectTimeout: 1000
+#    heartbeatSocketTimeout: 20000
+#    localThreshold: 15
+#    minConnectionsPerHost: 0
+#    sslEnabled: false
+#    keystore:                   # path to KeyStore (when sslEnabled is true)
+#    keystorePassword:           # KeyStore password
+#    keyPassword:                # password for recovering keys in the KeyStore
+#    threadsAllowedToBlockForConnectionMultiplier: 5
+#    cursorFinalizerEnabled: true
+# possible values are 1,2,3... (the number of node) or 'majority'
+#    writeConcern: 1
+#    wtimeout: 0
+#    journal: true
+
+# Management repository: single MongoDB using URI
+# For more information about MongoDB configuration using URI, please have a look to:
+# - http://api.mongodb.org/java/current/com/mongodb/MongoClientURI.html
+#management:
+#  type: mongodb
+#  mongodb:
+#    uri: mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+
+# Management repository: clustered MongoDB
+#management:
+#  type: mongodb
+#  mongodb:
+#    servers:
+#      - host: mongo1
+#        port: 27017
+#      - host: mongo2
+#        port: 27017
+#    dbname: ${ds.mongodb.dbname}
+#    connectTimeout: 500
+#    socketTimeout: 250
+
+# When defining rate-limiting policy, the gateway has to store data to share with other gateway instances.
+# In this example, we are using MongoDB to store counters.
+ratelimit:
+  type: mongodb
+  mongodb:
+    uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
+
+cache:
+  type: ehcache
+
+# Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
+# All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
+reporters:
+  # logging configuration
+#  logging:
+#    max_size: -1 # max size per API log content respectively : client-request, client-response, proxy-request and proxy-response in MB (-1 means no limit)
+#    excluded_response_types: video.*|audio.*|image.*|application\/octet-stream|application\/pdf # Response content types to exclude in logging (must be a regular expression)
+  # Elasticsearch reporter
+  elasticsearch:
+    enabled: true # Is the reporter enabled or not (default to true)
+    endpoints:
+      - http://${ds.elastic.host}:${ds.elastic.port}
+#    lifecycle:
+#      policy_property_name: index.lifecycle.name   #for openDistro, use 'opendistro.index_state_management.policy_id' instead of 'index.lifecycle.name'
+#      policies:
+#        monitor: my_policy ## ILM policy for the gravitee-monitor-* indexes
+#        request: my_policy ## ILM policy for the gravitee-request-* indexes
+#        health: my_policy ## ILM policy for the gravitee-health-* indexes
+#        log: my_policy ## ILM policy for the gravitee-log-* indexes
+#    index: gravitee
+#    index_per_type: true
+#    index_mode: daily         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
+#    bulk:
+#      actions: 1000           # Number of requests action before flush
+#      flush_interval: 5       # Flush interval in seconds
+#    settings:
+#      number_of_shards: 1
+#      number_of_replicas: 1
+#      refresh_interval: 5s
+#    pipeline:
+#      plugins:
+#        ingest: geoip, user_agent
+#    security:
+#      username: user
+#      password: secret
+#    http:
+#      timeout: 30000 # in milliseconds
+#      proxy:
+#        type: HTTP #HTTP, SOCK4, SOCK5
+#        http:
+#          host: localhost
+#          port: 3128
+#          username: user
+#          password: secret
+#        https:
+#          host: localhost
+#          port: 3128
+#          username: user
+#          password: secret
+#    template_mapping:
+#      path: ${gravitee.home}/config/reporter/elasticsearch/templates
+#      extended_request_mapping: request.ftl
+  file:
+    enabled: false # Is the reporter enabled or not (default to false)
+#    fileName: ${gravitee.home}/metrics/%s-yyyy_mm_dd
+#    output: json # Can be csv, json, elasticsearch or message_pack
+
+# Gateway service configurations. Provided values are default values.
+# All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
+# 'local' service for an example).
+services:
+  core:
+    http:
+      enabled: true
+      port: 18082
+      host: localhost
+      authentication:
+        # authentication type to be used for the core services
+        # - none : to disable authentication
+        # - basic : to use basic authentication
+        # default is "basic"
+        type: basic
+        users:
+          admin: adminadmin
+
+  # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository
+  # Be aware that, by disabling it, the gateway will not be sync with the configuration done through management API
+  # and management UI
+  sync:
+    # Synchronization is done each 5 seconds
+    delay: 5000
+    unit: MILLISECONDS
+    distributed: false # By enabling this mode, data synchronization process is distributed over clustered API gateways.
+    bulk_items: 100 # Defines the number of items to retrieve during synchronization (events, plans, api keys, ...).
+
+  # Local registry service.
+  # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
+  # to configure your API using the web console or the rest API (but you need to know and understand the json descriptor
+  # format to make it work....)
+  local:
+    enabled: false
+    path: ${gravitee.home}/apis # The path to API descriptors
+
+  # Gateway monitoring service.
+  # This service retrieves metrics like os / process / jvm metrics and send them to an underlying reporting service.
+  monitoring:
+    delay: 5000
+    unit: MILLISECONDS
+
+  # metrics service
+  metrics:
+    enabled: false
+# default: local, http_method, http_code
+#    labels:
+#      - local
+#      - remote
+#      - http_method
+#      - http_code
+#      - http_path
+    prometheus:
+      enabled: true
+
+  # heartbeat
+#  heartbeat:
+#    enabled: true
+#    delay: 5000
+#    unit: MILLISECONDS
+#    storeSystemProperties: true
+
+#handlers:
+#  request:
+#    # manage traceparent header defined by W3C trace-context specification
+#    trace-context:
+#      enabled: false
+#    # possible values: hex, uuid. Default: uuid.
+#    format: uuid
+#    transaction:
+#      # Default: X-Gravitee-Transaction-Id.
+#      header: X-Gravitee-Transaction-Id
+#    headers:
+#      # Override X-Forwarded-Prefix with context path. Disabled by default.
+#      x-forwarded-prefix: false
+#    request:
+#      # Default: X-Gravitee-Request-Id.
+#      header: X-Gravitee-Request-Id
+
+# Referenced properties
+ds:
+  mongodb:
+    dbname: gravitee
+    host: localhost
+    port: 27017
+  elastic:
+    host: localhost
+    port: 9200
+
+#system:
+#  # Proxy configuration that can be used to proxy request to api endpoints (see endpoint http configuration -> Use system proxy).
+#  proxy:
+#    type: HTTP #HTTP, SOCK4, SOCK5
+#    host: localhost
+#    port: 3128
+#    username: user
+#    password: secret
+
+# Sharding tags configuration
+# Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
+#tags: products,stocks,!international
+#zone: national-products
+
+# Multi-tenant configuration
+# Allow only a single-value
+#tenant: europe
+
+#policy:
+# Customize the api-key header and / or query parameter.
+# Set an empty value to prohibit its use.
+#  api-key:
+#    header: X-Gravitee-Api-Key
+#    param: api-key
+
+#el:
+  # Allows to define which methods or classes are accessible to the Expression Language engine (/!\ caution, changing default whitelist may expose you to security issues).
+  # A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-expression-language/master/src/main/resources/whitelist).
+#  whitelist:
+    # Allows to define if the specified list of method or classes should be append to the default one or should replace it.
+    # We recommend you to always choose 'append' unless you absolutely know what you are doing.
+#    mode: append
+    # Define the list of classes or methods to append (or set) to made accessible to the Expression Language.
+    # start with 'method' to allow a specific method (complete signature).
+    # start with 'class' to allow a complete class. All methods of the class will then be accessible.
+#    list:
+      # Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
+      # - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
+      # Ex: allow access to all methods of DateTimeFormatter class
+      # - class java.time.format.DateTimeFormatter
+
+#groovy:
+  # Allows to define which methods, fields, constructors, annotations or classes are accessible to the Groovy Script (/!\ caution, changing default whitelist may expose you to security issues).
+  # A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-policy-groovy/master/src/main/resources/groovy-whitelist).
+#  whitelist:
+    # Allows to define if the specified list of methods, fields, constructors or classes should be append to the default one or should replace it.
+    # We recommend you to always choose 'append' unless you absolutely know what you are doing.
+#    mode: append
+    # Define the list of classes, methods, constructors, fields or annotations to append (or set) to made accessible to the Groovy Script.
+    # start with 'method' to allow a specific method (complete signature).
+    # start with 'class' to allow a complete class. All methods, constructors and fields of the class will then be accessible.
+    # start with 'new' to allow a specific constructor (complete signature).
+    # start with 'field' to allow access to a specific field of a class.
+    # start with 'annotation' to allow use of a specific annotation.
+#    list:
+      # Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
+      # - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
+      # Ex: allow access to all methods, constructors and fields of DateTimeFormatter class
+      # - class java.time.format.DateTimeFormatter
+      # Ex: allow usage of field Integer.MAX_VALUE
+      # - field java.lang.Integer MAX_VALUE
+      # Ex: allow usage of @Override annotation
+      # - annotation java.lang.Override
+
+# If you want to create cluster of nodes, you can change the Hazelcast file to configure the Hz network
+# Clustering capabilities can be used for:
+#   - Distributed sync process
+#   - Distributed rate-limiting / quota counters
+#cluster:
+#  hazelcast:
+#    config:
+#      path: ${gravitee.home}/config/hazelcast.xml

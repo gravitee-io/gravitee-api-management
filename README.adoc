@@ -4,10 +4,6 @@
 image:https://img.shields.io/badge/License-Apache%202.0-blue.svg["License", link="https://github.com/gravitee-io/gravitee-api-management/blob/master/LICENSE"]
 image:https://circleci.com/gh/gravitee-io/gravitee-api-management/tree/3%2E5%2Ex.svg?style=svg["CircleCI", link="https://circleci.com/gh/gravitee-io/gravitee-api-management/tree/3%2E5%2Ex"]
 
-⚠️ Notes: This repository is under construction and doesn't contain all Gravitee.io API Management source code.
-It will be completed step by step by merging other API Management related repositories like `gravitee-gateway`.
-
-
 image:./assets/gravitee-logo-cyan.svg["Gravitee.io",400]
 
 == Overview
