@@ -73,6 +73,11 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
         throw new IllegalStateException();
     }
 
+    @Override
+    public Set<ApiKey> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
     private ApiKeyRepository getRepository() {
 
         if(repository != null) {

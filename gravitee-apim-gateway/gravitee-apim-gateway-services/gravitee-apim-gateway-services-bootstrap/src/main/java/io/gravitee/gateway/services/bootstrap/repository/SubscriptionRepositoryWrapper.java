@@ -26,10 +26,7 @@ import io.gravitee.repository.management.model.Subscription;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -82,6 +79,11 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
             Subscription subscription = (Subscription) this.cache.get(key);
             return (subscription != null) ? Collections.singletonList(subscription) : null;
         }
+    }
+
+    @Override
+    public Set<Subscription> findAll() throws TechnicalException {
+        throw new IllegalStateException();
     }
 
     private SubscriptionRepository getRepository() {
