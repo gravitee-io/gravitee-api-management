@@ -298,7 +298,7 @@ class ApiHistoryController {
 
   rollback(_apiPayload) {
     const _apiDefinition = JSON.parse(_apiPayload.definition);
-    delete _apiDefinition.id;
+    _apiDefinition.id = this.api.id;
     delete _apiDefinition.deployed_at;
     _apiDefinition.description = _apiPayload.description;
     _apiDefinition.visibility = _apiPayload.visibility;
@@ -350,6 +350,7 @@ class ApiHistoryController {
     delete payload.permission;
     delete payload.owner;
     delete payload.picture_url;
+    delete payload.background_url;
     delete payload.categories;
     delete payload.groups;
     delete payload.etag;
@@ -393,6 +394,7 @@ class ApiHistoryController {
       tags: eventPayloadDefinition.tags,
       proxy: eventPayloadDefinition.proxy,
       paths: eventPayloadDefinition.paths,
+      plans: eventPayloadDefinition.plans,
       flows: eventPayloadDefinition.flows,
       properties: eventPayloadDefinition.properties,
       services: eventPayloadDefinition.services,
