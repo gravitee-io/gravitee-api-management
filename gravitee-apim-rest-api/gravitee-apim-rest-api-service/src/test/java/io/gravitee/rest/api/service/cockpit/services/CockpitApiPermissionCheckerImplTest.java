@@ -95,11 +95,35 @@ public class CockpitApiPermissionCheckerImplTest {
     }
 
     @Test
-    public void returns_empty_optional_when_allowed_to_update_api() {
+    public void returns_error_message_when_not_allowed_to_update_the_api_definition_for_mocked_deployment_mode() {
+        var expectedMessage = "You are not allowed to mock and deploy this API.";
+
+        allowApiUpdate();
+        allowApiDocumentationUpdate();
+        when(permissionService.hasPermission(USER_ID, RolePermission.API_DEFINITION, API_ID, RolePermissionAction.UPDATE))
+            .thenReturn(false);
+
+        var result = permissionChecker.checkUpdatePermission(USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_MOCKED);
+
+        assertThat(result).contains(expectedMessage);
+    }
+
+    @Test
+    public void returns_empty_optional_when_allowed_to_update_documented_api() {
         allowApiUpdate();
         allowApiDocumentationUpdate();
 
         var result = permissionChecker.checkUpdatePermission(USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_DOCUMENTED);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void returns_empty_optional_when_allowed_to_update_mocked_api() {
+        allowApiUpdate();
+        allowApiDocumentationUpdate();
+        allowApiDefinitionUpdate();
+
+        var result = permissionChecker.checkUpdatePermission(USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_MOCKED);
         assertThat(result).isEmpty();
     }
 
@@ -111,5 +135,9 @@ public class CockpitApiPermissionCheckerImplTest {
     private void allowApiDocumentationUpdate() {
         when(permissionService.hasPermission(USER_ID, RolePermission.API_DOCUMENTATION, API_ID, RolePermissionAction.UPDATE))
             .thenReturn(true);
+    }
+
+    private void allowApiDefinitionUpdate() {
+        when(permissionService.hasPermission(USER_ID, RolePermission.API_DEFINITION, API_ID, RolePermissionAction.UPDATE)).thenReturn(true);
     }
 }

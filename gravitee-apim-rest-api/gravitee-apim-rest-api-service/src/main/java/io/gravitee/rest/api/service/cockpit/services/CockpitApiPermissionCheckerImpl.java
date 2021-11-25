@@ -52,6 +52,10 @@ public class CockpitApiPermissionCheckerImpl implements CockpitApiPermissionChec
         if (isNotAllowedToUpdateDocumentation(userId, apiId)) {
             return Optional.of("You are not allowed to update the documentation of this API.");
         }
+
+        if (mode != DeploymentMode.API_DOCUMENTED && isNotAllowedToUpdateApiDefinition(userId, apiId)) {
+            return Optional.of("You are not allowed to mock and deploy this API.");
+        }
         return Optional.empty();
     }
 
@@ -65,5 +69,9 @@ public class CockpitApiPermissionCheckerImpl implements CockpitApiPermissionChec
 
     private boolean isNotAllowedToUpdateDocumentation(String userId, String apiId) {
         return !permissionService.hasPermission(userId, RolePermission.API_DOCUMENTATION, apiId, RolePermissionAction.UPDATE);
+    }
+
+    private boolean isNotAllowedToUpdateApiDefinition(String userId, String apiId) {
+        return !permissionService.hasPermission(userId, RolePermission.API_DEFINITION, apiId, RolePermissionAction.UPDATE);
     }
 }
