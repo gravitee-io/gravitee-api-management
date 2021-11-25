@@ -251,7 +251,7 @@ jobs:
 
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${REST_API_PRIVATE_IMAGE_TAG}
-                      docker push ${REST_API_PUBLIC_IMAGE_TAG}
+                      docker push ${GATEWAY_PRIVATE_IMAGE_TAG}
                       docker logout graviteeio.azurecr.io
 
             - notify-on-failure
