@@ -36,7 +36,9 @@
         <mat-label>API Role</mat-label>
         <mat-select formControlName="apiRole" aria-label="API role">
           <mat-option>-- None --</mat-option>
-          <mat-option *ngFor="let apiRole of apiRoles$ | async" [value]="apiRole.name">{{ apiRole.name }}</mat-option>
+          <mat-option *ngFor="let apiRole of apiRoles$ | async" [disabled]="apiRole.system" [value]="apiRole.name">{{
+            apiRole.name
+          }}</mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -44,9 +46,12 @@
         <mat-label>Application Role</mat-label>
         <mat-select formControlName="applicationRole" aria-label="Application role">
           <mat-option>-- None --</mat-option>
-          <mat-option *ngFor="let applicationRole of applicationRoles$ | async" [value]="applicationRole.name">{{
-            applicationRole.name
-          }}</mat-option>
+          <mat-option
+            *ngFor="let applicationRole of applicationRoles$ | async"
+            [disabled]="applicationRole.system"
+            [value]="applicationRole.name"
+            >{{ applicationRole.name }}</mat-option
+          >
         </mat-select>
       </mat-form-field>
     </div>

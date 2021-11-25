@@ -233,7 +233,7 @@
               <mat-label>API role</mat-label>
               <mat-select [id]="group.id" [aria-label]="'API roles for ' + group.id" formControlName="API">
                 <mat-option>-- None --</mat-option>
-                <mat-option *ngFor="let role of apiRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+                <mat-option *ngFor="let role of apiRoles$ | async" [disabled]="role.system" [value]="role.name">{{ role.name }}</mat-option>
               </mat-select>
             </mat-form-field>
           </td>
@@ -247,7 +247,9 @@
               <mat-label>Application role</mat-label>
               <mat-select [id]="group.id" [aria-label]="'Application roles for ' + group.id" formControlName="APPLICATION">
                 <mat-option>-- None --</mat-option>
-                <mat-option *ngFor="let role of applicationRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+                <mat-option *ngFor="let role of applicationRoles$ | async" [disabled]="role.system" [value]="role.name">{{
+                  role.name
+                }}</mat-option>
               </mat-select>
             </mat-form-field>
           </td>
