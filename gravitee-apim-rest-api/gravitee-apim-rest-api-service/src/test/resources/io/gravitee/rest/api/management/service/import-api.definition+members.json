@@ -110,6 +110,13 @@
       "roles": [
         "API_OWNER"
       ]
+    },
+    {
+      "source": "source",
+      "sourceId": "ref-user",
+      "roles": [
+        "UNEXISTING_ROLE"
+      ]
     }
   ]
 }
