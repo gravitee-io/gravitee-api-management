@@ -24,7 +24,6 @@
 
     <formats>
         <format>zip</format>
-	<format>tar.gz</format>
     </formats>
 
     <includeBaseDirectory>true</includeBaseDirectory>
@@ -79,7 +78,7 @@
             </includes>
             <fileMode>755</fileMode>
         </fileSet>
-        
+
         <!-- Just to create an empty logs directory -->
         <fileSet>
             <directory>src/main/assembly</directory>
