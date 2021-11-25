@@ -27,6 +27,7 @@ import java.util.concurrent.*;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,9 +65,10 @@ public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest
             executorService.submit(calls);
         }
 
-        latch.await(30, TimeUnit.SECONDS);
+        assertTrue(latch.await(30, TimeUnit.SECONDS));
         executorService.shutdown();
         wireMockRule.verify(NUMBER_OF_CLIENTS * NUMBER_OF_REQUESTS,
                 getRequestedFor(urlPathEqualTo("/team/my_team")));
+        executorService.shutdownNow();
     }
 }

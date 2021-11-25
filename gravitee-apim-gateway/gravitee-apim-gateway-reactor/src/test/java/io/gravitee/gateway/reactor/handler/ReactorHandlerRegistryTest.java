@@ -350,32 +350,52 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHave100Entrypoints_createThenUpdateMultiThreads() throws InterruptedException {
-        final ExecutorService executorService = Executors.newFixedThreadPool(10);
-        List<Runnable> runnables = new ArrayList<>();
+        ExecutorService executorService = null;
 
-        for (int i = 0; i < 100; i++) {
-            final DummyReactable toCreate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
-            final ReactorHandler handler = createReactorHandler(toCreate);
-            when(reactorHandlerFactoryManager.create(toCreate)).thenReturn(handler);
-            runnables.add(() -> reactorHandlerRegistry.create(toCreate));
+        try {
+            executorService = Executors.newFixedThreadPool(10);
+            List<Runnable> runnables = new ArrayList<>();
+
+            for (int i = 0; i < 100; i++) {
+                final DummyReactable toCreate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
+                final ReactorHandler handler = createReactorHandler(toCreate);
+                when(reactorHandlerFactoryManager.create(toCreate)).thenReturn(handler);
+                runnables.add(() -> reactorHandlerRegistry.create(toCreate));
+            }
+
+            for (Runnable r : runnables) {
+                executorService.submit(r);
+            }
+
+            // Wait for all creations before going further.
+            executorService.shutdown();
+            assertTrue(executorService.awaitTermination(10000, TimeUnit.MILLISECONDS));
+
+            Assert.assertEquals(100, reactorHandlerRegistry.getEntrypoints().size());
+
+            executorService = Executors.newFixedThreadPool(10);
+            runnables = new ArrayList<>();
+
+            for (int i = 0; i < 100; i++) {
+                final DummyReactable toUpdate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
+                final ReactorHandler handler = createReactorHandler(toUpdate);
+                when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(handler);
+                runnables.add(() -> reactorHandlerRegistry.update(toUpdate));
+            }
+
+            for (Runnable r : runnables) {
+                executorService.submit(r);
+            }
+
+            executorService.shutdown();
+            assertTrue(executorService.awaitTermination(10000, TimeUnit.MILLISECONDS));
+
+            Assert.assertEquals(100, reactorHandlerRegistry.getEntrypoints().size());
+        } finally {
+            if (executorService != null) {
+                executorService.shutdownNow();
+            }
         }
-
-        for (int i = 0; i < 100; i++) {
-            final DummyReactable toUpdate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
-            final ReactorHandler handler = createReactorHandler(toUpdate);
-            when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(handler);
-            runnables.add(() -> reactorHandlerRegistry.update(toUpdate));
-        }
-
-        for (Runnable r : runnables) {
-            executorService.submit(r);
-        }
-
-        executorService.shutdown();
-        assertTrue(executorService.awaitTermination(10000, TimeUnit.MILLISECONDS));
-
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        Assert.assertEquals(100, entrypoints.size());
     }
 
     @Test
