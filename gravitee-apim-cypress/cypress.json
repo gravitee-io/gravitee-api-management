@@ -1,12 +1,10 @@
 {
-  "projectId": "gravitee-apim-cypress-e2e",
+  "projectId": "gravitee-apim-cypress",
   "baseUrl": "http://localhost:8083",
-  "video": true,
-  "screenshotOnRunFailure": true,
-  "integrationFolder": "cypress/integration/e2e",
+  "video": false,
+  "screenshotOnRunFailure": false,
+  "integrationFolder": "cypress/integration/nrt",
   "testFiles": "**/*.ts",
-  "viewportWidth": 1920,
-  "viewportHeight": 1080,
   "env": {
     "failOnStatusCode": false,
     "api_publisher_user_login": "api1",
