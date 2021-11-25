@@ -17,6 +17,7 @@ package io.gravitee.gateway.standalone.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
@@ -84,7 +85,7 @@ public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest
             executorService.submit(calls);
         }
 
-        latch.await(30, TimeUnit.SECONDS);
+        assertTrue(latch.await(30, TimeUnit.SECONDS));
         executorService.shutdown();
         wireMockRule.verify(NUMBER_OF_CLIENTS * NUMBER_OF_REQUESTS, getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
