@@ -22,79 +22,79 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway.handlers</groupId>
-        <artifactId>gravitee-gateway-handlers</artifactId>
+        <groupId>io.gravitee.apim.gateway.handlers</groupId>
+        <artifactId>gravitee-apim-gateway-handlers</artifactId>
         <version>3.10.8-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-handlers-api</artifactId>
+    <artifactId>gravitee-apim-gateway-handlers-api</artifactId>
     <name>Gravitee.io APIM - Gateway - Reactor Handlers - API</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-reactor</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-reactor</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-policy</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-policy</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-flow</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-flow</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-resource</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-resource</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-core</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-http</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-http</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
-            <artifactId>gravitee-gateway-security-core</artifactId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
+            <artifactId>gravitee-apim-gateway-security-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
-            <artifactId>gravitee-gateway-security-apikey</artifactId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
+            <artifactId>gravitee-apim-gateway-security-apikey</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
-            <artifactId>gravitee-gateway-security-keyless</artifactId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
+            <artifactId>gravitee-apim-gateway-security-keyless</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
-            <artifactId>gravitee-gateway-security-oauth2</artifactId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
+            <artifactId>gravitee-apim-gateway-security-oauth2</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.security</groupId>
-            <artifactId>gravitee-gateway-security-jwt</artifactId>
+            <groupId>io.gravitee.apim.gateway.security</groupId>
+            <artifactId>gravitee-apim-gateway-security-jwt</artifactId>
             <version>${project.version}</version>
         </dependency>
 

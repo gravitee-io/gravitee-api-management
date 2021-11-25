@@ -22,21 +22,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway</groupId>
-        <artifactId>gravitee-gateway</artifactId>
+        <groupId>io.gravitee.apim.gateway</groupId>
+        <artifactId>gravitee-apim-gateway</artifactId>
         <version>3.10.8-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway.security</groupId>
-    <artifactId>gravitee-gateway-security</artifactId>
+    <groupId>io.gravitee.apim.gateway.security</groupId>
+    <artifactId>gravitee-apim-gateway-security</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Security</name>
 
     <modules>
-        <module>gravitee-gateway-security-core</module>
-        <module>gravitee-gateway-security-apikey</module>
-        <module>gravitee-gateway-security-keyless</module>
-        <module>gravitee-gateway-security-oauth2</module>
-        <module>gravitee-gateway-security-jwt</module>
+        <module>gravitee-apim-gateway-security-core</module>
+        <module>gravitee-apim-gateway-security-apikey</module>
+        <module>gravitee-apim-gateway-security-keyless</module>
+        <module>gravitee-apim-gateway-security-oauth2</module>
+        <module>gravitee-apim-gateway-security-jwt</module>
     </modules>
 </project>
