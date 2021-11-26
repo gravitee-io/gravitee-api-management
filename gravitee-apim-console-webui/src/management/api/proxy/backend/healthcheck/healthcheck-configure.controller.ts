@@ -67,19 +67,25 @@ class ApiHealthCheckConfigureController {
         this.healthcheck = this.endpoint.healthcheck;
       }
       this.endpointToDisplay = this.endpoint;
+      // FIXME: https://github.com/gravitee-io/issues/issues/6437
+      this.hasHealthCheck =
+        this.endpointToDisplay != null &&
+        (this.endpointToDisplay.type?.toLowerCase() === 'http' || this.endpointToDisplay.type?.toLowerCase() === 'grpc');
     } else {
-      // Health-check for all endpoint
-      if (this.api.proxy.groups.length === 1 && this.api.proxy.groups[0].endpoints.length === 1) {
-        this.endpointToDisplay = this.api.proxy.groups[0].endpoints[0];
+      // Find endpoints that can have HC
+      const httpEndpoints = this.api.proxy.groups
+        ?.filter((group) => group.endpoints != null && group.endpoints.length > 0)
+        ?.reduce((endpoints, group) => endpoints.concat(group.endpoints), [])
+        .filter((endpoint) => ['http', 'grpc'].includes(endpoint.type?.toLowerCase()));
+      this.hasHealthCheck = httpEndpoints.length > 0;
+      if (httpEndpoints.length === 1) {
+        this.endpointToDisplay = httpEndpoints[0];
       }
       this.healthcheck = this.api.services && this.api.services['health-check'];
     }
     this.healthcheck = this.healthcheck || { enabled: false, inherit: false, schedule: '*/1 * * * * *' };
     const inherit = this.endpoint !== undefined && this.healthcheck.inherit;
     const enabled = this.healthcheck.enabled;
-
-    // FIXME: https://github.com/gravitee-io/issues/issues/6437
-    this.hasHealthCheck = this.endpointToDisplay.type?.toLowerCase() === 'http' || this.endpointToDisplay.type?.toLowerCase() === 'grpc';
 
     if (inherit) {
       this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || { enabled: false });
