@@ -116,7 +116,13 @@
         <div class="info" *ngIf="apiInformations.length > 0">
           <ul class="info__miscellaneous">
             <li class="info__miscellaneous_item" *ngFor="let apiInformation of apiInformations">
-              <span>{{ apiInformation.name | translate }}</span> {{ apiInformation.value }}
+              <ng-container *ngIf="isSearchable(apiInformation.name)">
+                <span>{{ apiInformation.name | translate }}</span>
+                <a href="#" (click)="goToSearch(apiInformation.name, apiInformation.value)">{{ apiInformation.value }}</a>
+              </ng-container>
+              <ng-container *ngIf="!isSearchable(apiInformation.name)">
+                <span>{{ apiInformation.name | translate }}</span> {{ apiInformation.value }}
+              </ng-container>
             </li>
           </ul>
         </div>
@@ -142,7 +148,9 @@
         <div *ngIf="currentApi.labels && currentApi.labels.length > 0" class="info">
           <h4 class="title">{{ 'api.information.labels' | translate }}</h4>
           <span>
-            <gv-tag (:gv-tag:click)="goToSearch(tag)" *ngFor="let tag of currentApi.labels" [clickable]="true" major>{{ tag }}</gv-tag>
+            <gv-tag (:gv-tag:click)="goToSearch('labels', tag)" *ngFor="let tag of currentApi.labels" [clickable]="true" major>{{
+              tag
+            }}</gv-tag>
           </span>
         </div>
 

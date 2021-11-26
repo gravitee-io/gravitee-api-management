@@ -19,6 +19,8 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
 
 describe('ApiGeneralComponent', () => {
   const createComponent = createComponentFactory({
@@ -28,15 +30,30 @@ describe('ApiGeneralComponent', () => {
   });
 
   let spectator: Spectator<ApiGeneralComponent>;
-  let component;
+  let component: ApiGeneralComponent;
+  let router: Router;
 
   beforeEach(() => {
     spectator = createComponent();
     component = spectator.component;
     component.apiHomepage = null;
+    router = TestBed.get(Router);
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('goToSearch', () => {
+    it('should navigate', () => {
+      const navigateSpy = spyOn(router, 'navigate');
+
+      const key = 'labels';
+
+      expect(component.isSearchable(key)).toBeTruthy();
+      component.goToSearch(key, 'TheLabel');
+
+      expect(navigateSpy).toHaveBeenCalledWith(['catalog/search'], { queryParams: { q: 'labels:"TheLabel"' } });
+    });
   });
 });

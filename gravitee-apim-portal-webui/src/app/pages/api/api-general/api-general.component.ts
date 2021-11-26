@@ -50,6 +50,12 @@ import { ScrollService } from '../../../services/scroll.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import StatusEnum = Subscription.StatusEnum;
 
+const searchableKeysMapping = {
+  labels: 'labels',
+  'api.owner': 'ownerName',
+} as const;
+
+type SearchableKeys = keyof typeof searchableKeysMapping;
 @Component({
   selector: 'app-api-general',
   templateUrl: './api-general.component.html',
@@ -263,8 +269,12 @@ export class ApiGeneralComponent implements OnInit {
     this.router.navigate(['/catalog/categories', category]);
   }
 
-  goToSearch(tag: string) {
-    this.router.navigate(['catalog/search'], { queryParams: { q: tag } });
+  isSearchable(key: string): key is SearchableKeys {
+    return Object.keys(searchableKeysMapping).includes(key);
+  }
+
+  goToSearch(key: SearchableKeys, value: string) {
+    this.router.navigate(['catalog/search'], { queryParams: { q: `${searchableKeysMapping[key]}:"${value}"` } });
   }
 
   goToExtern(url: string) {
