@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.standalone.websocket;
 
-import io.gravitee.gateway.standalone.AbstractGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.vertx.core.Vertx;
@@ -64,6 +63,7 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
             "/test",
             event -> {
                 if (event.failed()) {
+                    logger.error("An error occurred during websocket call", event.cause());
                     Assert.fail();
                 } else {
                     final WebSocket webSocket = event.result();
