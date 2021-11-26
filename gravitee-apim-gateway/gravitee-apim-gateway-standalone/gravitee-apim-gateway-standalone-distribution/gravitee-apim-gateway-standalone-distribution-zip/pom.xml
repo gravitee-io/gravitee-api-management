@@ -22,9 +22,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.apim.gateway.standalone</groupId>
+        <groupId>io.gravitee.apim.gateway.standalone.distribution</groupId>
         <artifactId>gravitee-apim-gateway-standalone-distribution</artifactId>
 	    <version>3.12.5-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>gravitee-apim-gateway-standalone-distribution-zip</artifactId>
@@ -40,12 +41,11 @@
 
         <!-- Gravitee dependencies on distribution -->
         <dependency>
-            <groupId>io.gravitee.apim.gateway.standalone</groupId>
+            <groupId>io.gravitee.apim.gateway.standalone.distribution</groupId>
             <artifactId>gravitee-apim-gateway-standalone-distribution</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
         </dependency>
-
     </dependencies>
 
 	<build>
