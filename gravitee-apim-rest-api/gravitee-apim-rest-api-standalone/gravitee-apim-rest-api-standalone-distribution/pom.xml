@@ -35,6 +35,8 @@
 
 	<packaging>pom</packaging>
 
+    <name>Gravitee.io APIM - Management API - Standalone - Distribution</name>
+
 	<properties>
 		<!-- Properties used for building RPM & DEB package -->
 		<packaging.gravitee.management.home.dir>/usr/share/gravitee-management</packaging.gravitee.management.home.dir>
@@ -48,19 +50,21 @@
 		<packaging.gravitee.management.group>gravitee</packaging.gravitee.management.group>
 	</properties>
 
-	<name>Gravitee.io APIM - Management API - Standalone - Distribution</name>
+	<modules>
+		<module>gravitee-apim-rest-api-standalone-distribution-zip</module>
+	</modules>
 
 	<dependencies>
 		<!-- Gravitee dependencies -->
 		<dependency>
 			<groupId>io.gravitee.apim.rest.api.standalone</groupId>
-			<artifactId>gravitee-apim-rest-api-standalone-container</artifactId>
+			<artifactId>gravitee-apim-rest-api-standalone-bootstrap</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.gravitee.apim.rest.api.standalone</groupId>
-			<artifactId>gravitee-apim-rest-api-standalone-bootstrap</artifactId>
+			<artifactId>gravitee-apim-rest-api-standalone-container</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -163,6 +167,7 @@
 
 	<build>
 		<finalName>distribution</finalName>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -247,8 +252,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<modules>
-		<module>gravitee-apim-rest-api-standalone-distribution-zip</module>
-	</modules>
 </project>
