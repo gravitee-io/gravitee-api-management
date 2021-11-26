@@ -53,174 +53,10 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Import bom to properly inherit all dependencies -->
-            <dependency>
-                <groupId>io.gravitee</groupId>
-                <artifactId>gravitee-bom</artifactId>
-                <version>${gravitee-bom.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-
-            <!-- Gravitee.io -->
-            <dependency>
-                <groupId>io.gravitee.node</groupId>
-                <artifactId>gravitee-node-container</artifactId>
-                <version>${gravitee-node.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.node</groupId>
-                <artifactId>gravitee-node-api</artifactId>
-                <version>${gravitee-node.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.node</groupId>
-                <artifactId>gravitee-node-cluster</artifactId>
-                <version>${gravitee-node.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.node</groupId>
-                <artifactId>gravitee-node-vertx</artifactId>
-                <version>${gravitee-node.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>io.gravitee.apim.repository</groupId>
                 <artifactId>gravitee-apim-repository-api</artifactId>
-                <version>${gravitee-api-management.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.common</groupId>
-                <artifactId>gravitee-common</artifactId>
-                <version>${gravitee-common.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.definition</groupId>
-                <artifactId>gravitee-definition-jackson</artifactId>
-                <version>${gravitee-definition.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.definition</groupId>
-                <artifactId>gravitee-definition-model</artifactId>
-                <version>${gravitee-definition.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.gateway</groupId>
-                <artifactId>gravitee-gateway-api</artifactId>
-                <version>${gravitee-gateway-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.policy</groupId>
-                <artifactId>gravitee-policy-api</artifactId>
-                <version>${gravitee-policy-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.reporter</groupId>
-                <artifactId>gravitee-reporter-api</artifactId>
-                <version>${gravitee-reporter-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.plugin</groupId>
-                <artifactId>gravitee-plugin-core</artifactId>
-                <version>${gravitee-plugin-core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.plugin</groupId>
-                <artifactId>gravitee-plugin-policy</artifactId>
-                <version>${gravitee-plugin-policy.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.plugin</groupId>
-                <artifactId>gravitee-plugin-resource</artifactId>
-                <version>${gravitee-plugin-resource.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.plugin</groupId>
-                <artifactId>gravitee-plugin-alert</artifactId>
-                <version>${gravitee-plugin-alert.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.plugin</groupId>
-                <artifactId>gravitee-plugin-service-discovery</artifactId>
-                <version>${gravitee-plugin-service-discovery.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.alert</groupId>
-                <artifactId>gravitee-alert-api</artifactId>
-                <version>${gravitee-alert-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.graviteesource.license</groupId>
-                <artifactId>gravitee-license-node</artifactId>
-                <version>${gravitee-license-node.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.discovery</groupId>
-                <artifactId>gravitee-service-discovery-api</artifactId>
-                <version>${gravitee-service-discovery-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.el</groupId>
-                <artifactId>gravitee-expression-language</artifactId>
-                <version>${gravitee-expression-language.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.resource</groupId>
-                <artifactId>gravitee-resource-oauth2-provider-api</artifactId>
-                <version>${gravitee-resource-oauth2-provider-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.resource</groupId>
-                <artifactId>gravitee-resource-cache-provider-api</artifactId>
-                <version>${gravitee-resource-cache-provider-api.version}</version>
-            </dependency>
-
-            <!-- The following dependencies are necessary to make sure the good version is resolved (else they can still be overridden by dependency management of transitive dependencies) -->
-            <dependency>
-                <groupId>org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>${snakeyaml.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>${httpclient.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.jayway.jsonpath</groupId>
-                <artifactId>json-path</artifactId>
-                <version>${json-path.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>net.minidev</groupId>
-                <artifactId>json-smart</artifactId>
-                <version>${json-smart.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
@@ -299,7 +135,6 @@
         <commons-validator.version>1.4.1</commons-validator.version>
         <json-path.version>2.6.0</json-path.version>
         <json-smart.version>2.4.7</json-smart.version>
-        <wiremock.version>2.28.0</wiremock.version>
         <guava.version>30.1.1-jre</guava.version>
         <powermock.version>2.0.9</powermock.version>
         <nimbus-jwt.version>8.22.1</nimbus-jwt.version>
@@ -313,27 +148,6 @@
     </properties>
 
     <build>
-        <plugins>
-            <plugin>
-                <groupId>com.hubspot.maven.plugins</groupId>
-                <artifactId>prettier-maven-plugin</artifactId>
-                <version>0.12</version>
-                <configuration>
-                    <nodeVersion>12.13.0</nodeVersion>
-                    <prettierJavaVersion>1.0.1</prettierJavaVersion>
-                    <skip>${skipTests}</skip>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-
         <pluginManagement>
             <plugins>
                 <!-- allow snapshot only for vertx until the final release -->
@@ -358,24 +172,4 @@
             </plugins>
         </pluginManagement>
     </build>
-    <profiles>
-        <profile>
-            <id>allow-snapshots-for-swagger3</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <repositories>
-                <repository>
-                    <id>snapshots-repo</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-        </profile>
-    </profiles>
 </project>

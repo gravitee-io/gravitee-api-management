@@ -27,7 +27,6 @@
         <version>3.12.5-SNAPSHOT</version>
     </parent>
 
-
     <artifactId>gravitee-apim-gateway-resource</artifactId>
     <name>Gravitee.io APIM - Gateway - Resource</name>
 
@@ -52,20 +51,6 @@
         <dependency>
             <groupId>io.gravitee.plugin</groupId>
             <artifactId>gravitee-plugin-resource</artifactId>
-        </dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
         </dependency>
 
         <!-- Spring dependencies -->
