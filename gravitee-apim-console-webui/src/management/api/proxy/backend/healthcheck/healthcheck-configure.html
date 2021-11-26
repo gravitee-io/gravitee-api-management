@@ -26,7 +26,7 @@
     >
   </div>
   <div ng-show="!healthCheckCtrl.hasHealthCheck">
-    <h3>The healtcheck is not yet available for "{{healthCheckCtrl.endpoint.type}}" endpoints</h3>
+    <h3>Only HTTP and GRPC endpoints support the health check</h3>
   </div>
   <div ng-show="healthCheckCtrl.hasHealthCheck" class="gv-form">
     <h2></h2>
