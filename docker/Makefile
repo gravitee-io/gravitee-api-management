@@ -54,6 +54,9 @@ keycloak: ## Run API Management with MongoDB as database.
 ee-with-alert-engine: ## Run API Management Enterprise Edition with Alert Engine. ⚠️ No nightly image for this for the moment. Do not forget to suffix version with '-ee'.
 	cd ./quick-setup/ee-with-alert-engine && docker-compose down -v && docker-compose pull && docker-compose up -d
 
+nginx: ## Run API Management with an nginx. ⚠️ No nightly image for this for the moment. Do not forget to suffix version with '-ee'.
+	cd ./quick-setup/nginx && docker-compose down -v && docker-compose pull && docker-compose up -d
+
 start: ## Start a docker-compose based on target. Example: make start TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to start. Example: make start TARGET=tags-internal-external SERVICES=elasticsearch
 ifeq ($(TARGET),)
 	@echo "\033[0;31m ⚠️ Please provide the target you want to start \033[0m"
