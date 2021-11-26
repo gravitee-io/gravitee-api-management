@@ -33,7 +33,7 @@
       [metrics]="promotedMetrics"
       [href]="this.promotedApiPath"
       (:gv-promote:click)="goToApi(promotedApi)"
-      (:gv-tag:click)="goToSearch($event.detail.tagValue)"
+      (:gv-tag:click)="goToSearchByTag($event.detail.tagValue)"
     ></gv-promote>
 
     <article class="catalog__article__random" *ngIf="!inCategory() && !inCategoryAll()">
@@ -72,7 +72,7 @@
       <gv-option [options]="options" *ngIf="allApis.length > 0" [value]="this.currentDisplay"></gv-option>
     </div>
 
-    <gv-card-list *ngIf="showCards" [items]="allApis" (:gv-tag:click)="goToSearch($event.detail.tagValue)"></gv-card-list>
+    <gv-card-list *ngIf="showCards" [items]="allApis" (:gv-tag:click)="goToSearchByTag($event.detail.tagValue)"></gv-card-list>
 
     <div *ngIf="!showCards" class="catalog__list catalog__list__all">
       <gv-row *ngFor="let api of allApis" [item]="api.item" (click)="goToApi(api.item)"></gv-row>
