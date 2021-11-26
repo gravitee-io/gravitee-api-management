@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +43,7 @@ import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -111,7 +113,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             createPageAndMedia(createdApiEntity, jsonNode, environmentId);
             updateApiReferences(createdApiEntity, jsonNode, organizationId, environmentId, false);
             return createdApiEntity;
-        } catch (JsonProcessingException e) {
+        } catch (IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
@@ -239,7 +241,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             ApiEntity updatedApiEntity = apiService.update(apiId, importedApi, false);
             updateApiReferences(updatedApiEntity, jsonNode, organizationId, environmentId, true);
             return updatedApiEntity;
-        } catch (JsonProcessingException e) {
+        } catch (IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
@@ -341,7 +343,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         String environmentId,
         // FIXME: This whole method should be split in 2 (creation and update) and this flag should be removed
         boolean isUpdate
-    ) throws JsonProcessingException {
+    ) throws IOException {
         // Members
         final JsonNode membersToImport = jsonNode.path("members");
         if (membersToImport != null && membersToImport.isArray()) {
@@ -509,14 +511,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         //Plans
         final JsonNode plansDefinition = jsonNode.path("plans");
         if (plansDefinition != null && plansDefinition.isArray()) {
-            List<PlanEntity> plansToImport = objectMapper.readValue(
-                plansDefinition.toString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, PlanEntity.class)
-            );
+            Map<String, PlanEntity> existingPlans = isUpdate
+                ? planService.findByApi(createdOrUpdatedApiEntity.getId()).stream().collect(toMap(PlanEntity::getId, plan -> plan))
+                : Collections.emptyMap();
 
-            if (isUpdate) {
-                findRemovedPlansIds(planService.findByApi(createdOrUpdatedApiEntity.getId()), plansToImport).forEach(planService::delete);
-            }
+            List<PlanEntity> plansToImport = readPlansToImportFromDefinition(plansDefinition, existingPlans);
+
+            findRemovedPlansIds(existingPlans.values(), plansToImport).forEach(planService::delete);
 
             plansToImport.forEach(
                 planEntity -> {
@@ -627,5 +628,20 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private Stream<String> findRemovedPlansIds(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
         return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan)).map(plan -> plan.getId());
+    }
+
+    private List<PlanEntity> readPlansToImportFromDefinition(JsonNode plansDefinition, Map<String, PlanEntity> existingPlans)
+        throws IOException {
+        List<PlanEntity> plansToImport = new ArrayList<>();
+        for (Iterator<JsonNode> it = plansDefinition.elements(); it.hasNext();) {
+            JsonNode planDefinition = it.next();
+            PlanEntity existingPlan = planDefinition.has("id") ? existingPlans.get(planDefinition.get("id").asText()) : null;
+            if (existingPlan != null) {
+                plansToImport.add(objectMapper.readerForUpdating(existingPlan).readValue(planDefinition));
+            } else {
+                plansToImport.add(objectMapper.readValue(planDefinition.toString(), PlanEntity.class));
+            }
+        }
+        return plansToImport;
     }
 }

@@ -467,4 +467,41 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
         verify(apiService, never()).create(any(), any());
     }
+
+    @Test
+    public void shouldKeepExistingPlansDataIfNotInDefinition() throws IOException {
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        UserEntity admin = new UserEntity();
+        UserEntity user = new UserEntity();
+        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+
+        // plan1 had a description and a name before import
+        // imported definition contains a new name, but doesn't specify any description
+        PlanEntity plan1 = new PlanEntity();
+        plan1.setId("plan-id1");
+        plan1.setName("plan name before import");
+        plan1.setDescription("plan description before import");
+        when(planService.findByApi(apiEntity.getId())).thenReturn(Set.of(plan1));
+
+        apiDuplicatorService.updateWithImportedDefinition(
+            apiEntity.getId(),
+            toBeImport,
+            "import",
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
+
+        // plan1 has been updated with new name from imported description. But kept his old description
+        verify(planService, times(1))
+            .createOrUpdatePlan(
+                argThat(
+                    plan ->
+                        plan.getId().equals("plan-id1") &&
+                        plan.getName().equals("new name from imported description") &&
+                        plan.getDescription().equals("plan description before import")
+                ),
+                eq("DEFAULT")
+            );
+    }
 }
