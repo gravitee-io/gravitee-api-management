@@ -38,6 +38,7 @@
 #      type: jks # Supports jks, pem, pkcs12
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
+#    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
 #  websocket:
 #    enabled: false
 #    subProtocols: v10.stomp, v11.stomp, v12.stomp

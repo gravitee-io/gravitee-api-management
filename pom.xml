@@ -121,6 +121,7 @@
         <xmlbeans.version>3.1.0</xmlbeans.version>
         <wiremock.version>2.26.3</wiremock.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
+        <netty-tcnative-boringssl-static.version>2.0.42.Final</netty-tcnative-boringssl-static.version>
         <!-- Plugins version -->
         <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
         <prettier-maven-plugin.version>0.12</prettier-maven-plugin.version>

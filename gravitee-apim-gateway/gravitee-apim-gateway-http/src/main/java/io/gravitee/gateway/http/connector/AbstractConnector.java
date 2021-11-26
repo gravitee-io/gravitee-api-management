@@ -193,6 +193,10 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
             options.setSsl(true)
                     .setUseAlpn(true);
 
+            if (environment.getProperty("http.ssl.openssl", Boolean.class, false)) {
+                options.setSslEngineOptions(new OpenSSLEngineOptions());
+            }
+
             if (sslOptions != null) {
                 options
                         .setVerifyHost(sslOptions.isHostnameVerifier())
