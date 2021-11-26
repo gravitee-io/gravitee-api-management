@@ -46,8 +46,8 @@
     <properties>
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
-        <gravitee-connector-http.version>1.0.0-SNAPSHOT</gravitee-connector-http.version>
-        <gravitee-connector-kafka.version>1.0.0-SNAPSHOT</gravitee-connector-kafka.version>
+        <gravitee-connector-http.version>1.0.0</gravitee-connector-http.version>
+        <gravitee-connector-kafka.version>1.0.0</gravitee-connector-kafka.version>
         <gravitee-policy-apikey.version>2.3.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.6.0</gravitee-policy-assign-content.version>
@@ -76,7 +76,7 @@
         <!--	Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit	-->
         <!--	<gravitee-policy-quota.version>1.13.0</gravitee-policy-quota.version>	-->
         <!--	<gravitee-policy-spikearrest.version>1.13.0</gravitee-policy-spikearrest.version>	-->
-        <gravitee-policy-ratelimit.version>1.13.2</gravitee-policy-ratelimit.version>
+        <gravitee-policy-ratelimit.version>1.14.0</gravitee-policy-ratelimit.version>
         <gravitee-policy-regex-threat-protection.version>1.2.0</gravitee-policy-regex-threat-protection.version>
         <gravitee-policy-request-content-limit.version>1.7.0</gravitee-policy-request-content-limit.version>
         <gravitee-policy-request-validation.version>1.12.0</gravitee-policy-request-validation.version>
