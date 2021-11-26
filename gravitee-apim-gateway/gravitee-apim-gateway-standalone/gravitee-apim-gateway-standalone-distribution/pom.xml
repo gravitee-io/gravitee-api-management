@@ -21,12 +21,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway.standalone</groupId>
-        <artifactId>gravitee-gateway-standalone</artifactId>
+        <groupId>io.gravitee.apim.gateway.standalone</groupId>
+        <artifactId>gravitee-apim-gateway-standalone</artifactId>
         <version>3.12.5-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-standalone-distribution</artifactId>
+    <artifactId>gravitee-apim-gateway-standalone-distribution</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Standalone - Distribution</name>
 
@@ -111,67 +111,67 @@
     </properties>
 
     <modules>
-        <module>gravitee-gateway-standalone-distribution-zip</module>
+        <module>gravitee-apim-gateway-standalone-distribution-zip</module>
     </modules>
 
 
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>
-            <groupId>io.gravitee.gateway.standalone</groupId>
-            <artifactId>gravitee-gateway-standalone-bootstrap</artifactId>
+            <groupId>io.gravitee.apim.gateway.standalone</groupId>
+            <artifactId>gravitee-apim-gateway-standalone-bootstrap</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.standalone</groupId>
-            <artifactId>gravitee-gateway-standalone-container</artifactId>
+            <groupId>io.gravitee.apim.gateway.standalone</groupId>
+            <artifactId>gravitee-apim-gateway-standalone-container</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-healthcheck</artifactId>
-            <version>${project.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-sync</artifactId>
+            <groupId>io.gravitee.apim.gateway.services</groupId>
+            <artifactId>gravitee-apim-gateway-services-healthcheck</artifactId>
             <version>${project.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-localregistry</artifactId>
+            <groupId>io.gravitee.apim.gateway.services</groupId>
+            <artifactId>gravitee-apim-gateway-services-sync</artifactId>
             <version>${project.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-heartbeat</artifactId>
+            <groupId>io.gravitee.apim.gateway.services</groupId>
+            <artifactId>gravitee-apim-gateway-services-localregistry</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.gateway.services</groupId>
+            <artifactId>gravitee-apim-gateway-services-heartbeat</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-endpoint-discovery</artifactId>
+            <groupId>io.gravitee.apim.gateway.services</groupId>
+            <artifactId>gravitee-apim-gateway-services-endpoint-discovery</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-debug</artifactId>
+            <groupId>io.gravitee.apim.gateway.services</groupId>
+            <artifactId>gravitee-apim-gateway-services-debug</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
@@ -196,38 +196,38 @@
                             <outputDirectory>${basedir}/target/staging/gateway_plugins</outputDirectory>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>io.gravitee.gateway.services</groupId>
-                                    <artifactId>gravitee-gateway-services-healthcheck</artifactId>
+                                    <groupId>io.gravitee.apim.gateway.services</groupId>
+                                    <artifactId>gravitee-apim-gateway-services-healthcheck</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>io.gravitee.gateway.services</groupId>
-                                    <artifactId>gravitee-gateway-services-sync</artifactId>
+                                    <groupId>io.gravitee.apim.gateway.services</groupId>
+                                    <artifactId>gravitee-apim-gateway-services-sync</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>io.gravitee.gateway.services</groupId>
-                                    <artifactId>gravitee-gateway-services-localregistry</artifactId>
+                                    <groupId>io.gravitee.apim.gateway.services</groupId>
+                                    <artifactId>gravitee-apim-gateway-services-localregistry</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>io.gravitee.gateway.services</groupId>
-                                    <artifactId>gravitee-gateway-services-heartbeat</artifactId>
+                                    <groupId>io.gravitee.apim.gateway.services</groupId>
+                                    <artifactId>gravitee-apim-gateway-services-heartbeat</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>io.gravitee.gateway.services</groupId>
-                                    <artifactId>gravitee-gateway-services-endpoint-discovery</artifactId>
+                                    <groupId>io.gravitee.apim.gateway.services</groupId>
+                                    <artifactId>gravitee-apim-gateway-services-endpoint-discovery</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>io.gravitee.gateway.services</groupId>
-                                    <artifactId>gravitee-gateway-services-debug</artifactId>
+                                    <groupId>io.gravitee.apim.gateway.services</groupId>
+                                    <artifactId>gravitee-apim-gateway-services-debug</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                 </artifactItem>

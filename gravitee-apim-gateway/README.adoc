@@ -1,0 +1,26 @@
+= Gravitee.io API Management - Gateway
+
+ifdef::env-github[]
+image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-gateway/master["Build status", link="https://ci.gravitee.io/job/gravitee-io/job/gravitee-gateway"]
+image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
+endif::[]
+
+== Overview
+
+The gateway is the core component of the Gravitee.io platform. You can compare it to a "smart" proxy to understand its goal.
+
+Unlike traditional HTTP proxy, the gateway is able to apply policies (ie. rules) to both HTTP requests and responses according to your needs, meaning that you can enhance requests and responses processing by adding transformation, security, and many other crazy features!
+
+== Documentation
+
+You can find Gravitee.io API Management documentation from https://docs.gravitee.io/[Gravitee.io website].
+
+== Building
+
+[source]
+----
+$ cd gravitee-apim-gateway
+$ mvn clean compile exec:java -Pdev -pl gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-container
+...
+<app starts and listens on port 8082>
+----

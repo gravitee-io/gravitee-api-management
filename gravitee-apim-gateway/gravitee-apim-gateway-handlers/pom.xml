@@ -22,17 +22,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway</groupId>
-        <artifactId>gravitee-gateway</artifactId>
+        <groupId>io.gravitee.apim.gateway</groupId>
+        <artifactId>gravitee-apim-gateway</artifactId>
         <version>3.12.5-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway.handlers</groupId>
-    <artifactId>gravitee-gateway-handlers</artifactId>
+    <groupId>io.gravitee.apim.gateway.handlers</groupId>
+    <artifactId>gravitee-apim-gateway-handlers</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Reactor Handlers</name>
 
     <modules>
-        <module>gravitee-gateway-handlers-api</module>
+        <module>gravitee-apim-gateway-handlers-api</module>
     </modules>
 </project>

@@ -50,6 +50,7 @@
         <module>gravitee-apim-rest-api</module>
         <module>gravitee-apim-console-webui</module>
         <module>gravitee-apim-portal-webui</module>
+        <module>gravitee-apim-gateway</module>
     </modules>
 
     <properties>
