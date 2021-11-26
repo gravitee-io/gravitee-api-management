@@ -122,6 +122,29 @@ jobs:
                       - .docker-tag.txt
                       - .apim-version.txt
 
+    sonarcloud-analysis:
+        description: A job that run Sonarcloud analysis
+        parameters:
+            working_directory:
+                description: "Directory where the Sonarcloud analysis will be run"
+                default: "gravitee-apim-rest-api"
+                type: string
+        docker:
+            - image: sonarsource/sonar-scanner-cli
+        resource_class: medium
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: .
+            - secrethub/env-export:
+                  secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
+                  var-name: SONAR_TOKEN
+            - run:
+                  name: Run Sonarcloud Analysis
+                  command: sonar-scanner
+                  working_directory: << parameters.working_directory >>
+            - notify-on-failure
+
     build:
         docker:
             - image: cimg/openjdk:11.0
@@ -299,19 +322,6 @@ jobs:
                   working_directory: gravitee-apim-console-webui
             - notify-on-failure
 
-    console-webui-sonarcloud-analysis:
-        docker:
-            - image: sonarsource/sonar-scanner-cli
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - run:
-                  name: Run Sonarcloud Analysis
-                  command: sonar-scanner
-                  working_directory: gravitee-apim-console-webui
-            - notify-on-failure
-
     console-webui-build:
         executor:
             name: node-lts
@@ -483,19 +493,6 @@ jobs:
             - store_test_results:
                   path: gravitee-apim-portal-webui/coverage
 
-    portal-webui-sonarcloud-analysis:
-        docker:
-            - image: sonarsource/sonar-scanner-cli
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - run:
-                  name: Run Sonarcloud Analysis
-                  command: sonar-scanner
-                  working_directory: gravitee-apim-portal-webui
-            - notify-on-failure
-
     portal-webui-build:
         executor:
             name: node-lts
@@ -644,6 +641,12 @@ workflows:
             - test:
                   requires:
                       - build
+            - sonarcloud-analysis:
+                  name: Sonarcloud - REST API
+                  working_directory: gravitee-apim-rest-api
+                  context: cicd-orchestrator
+                  requires:
+                      - test
             - publish-on-artifactory:
                   filters:
                       branches:
@@ -697,12 +700,10 @@ workflows:
             - console-webui-lint-test:
                   requires:
                       - console-webui-install
-            - console-webui-sonarcloud-analysis:
+            - sonarcloud-analysis:
+                name: Sonarcloud - Console Web UI
+                  working_directory: gravitee-apim-console-webui
                   context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
-                            var-name: SONAR_TOKEN
                   requires:
                       - console-webui-lint-test
             - console-webui-build:
@@ -759,12 +760,10 @@ workflows:
             - portal-webui-lint-test:
                   requires:
                       - portal-webui-install
-            - portal-webui-sonarcloud-analysis:
+            - sonarcloud-analysis:
+                name: Sonarcloud - Portal Web UI
+                  working_directory: gravitee-apim-portal-webui
                   context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
-                            var-name: SONAR_TOKEN
                   requires:
                       - portal-webui-lint-test
             - portal-webui-build:

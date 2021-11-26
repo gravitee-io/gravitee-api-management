@@ -735,6 +735,7 @@
                         <exclude>**/.*</exclude>
                         <exclude>**/.*/**</exclude>
                         <exclude>**/*.adoc</exclude>
+                        <exclude>**/sonar-project.properties</exclude>
                     </excludes>
                     <mapping>
                         <ts>SLASHSTAR_STYLE</ts>
