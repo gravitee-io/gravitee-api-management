@@ -370,7 +370,7 @@ export class FilteredCatalogComponent implements OnInit {
     return this.activatedRoute.snapshot.data.title;
   }
 
-  goToSearch(tag: string) {
-    this.router.navigate(['catalog/search'], { queryParams: { q: tag } });
+  goToSearchByTag(tag: string) {
+    this.router.navigate(['catalog/search'], { queryParams: { q: `labels:"${tag}"` } });
   }
 }
