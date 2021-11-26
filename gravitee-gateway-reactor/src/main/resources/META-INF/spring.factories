@@ -1,0 +1,2 @@
+io.gravitee.el.TemplateVariableProvider=\
+    io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider
