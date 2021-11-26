@@ -1,0 +1,30 @@
+{
+  "id": "api-echo",
+  "name": "api-echo",
+
+  "proxy": {
+    "context_path": "/api",
+    "endpoints": [
+      {
+        "name": "endpoint-1",
+        "target": "http://localhost:8080/api1"
+      },
+      {
+        "name": "endpoint-2",
+        "target": "http://localhost:8080/api2"
+      },
+      {
+        "name": "endpoint-3",
+        "target": "http://localhost:8080/api3",
+        "backup": true
+      }
+    ],
+    "strip_context_path": false,
+    "dumpRequest": true
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

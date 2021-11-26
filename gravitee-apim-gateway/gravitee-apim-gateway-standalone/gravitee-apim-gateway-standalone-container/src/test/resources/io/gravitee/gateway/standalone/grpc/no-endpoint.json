@@ -1,0 +1,14 @@
+{
+  "id": "api-hello-world",
+  "name": "hello-world",
+
+  "proxy": {
+    "context_path": "/helloworld.Greeter",
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

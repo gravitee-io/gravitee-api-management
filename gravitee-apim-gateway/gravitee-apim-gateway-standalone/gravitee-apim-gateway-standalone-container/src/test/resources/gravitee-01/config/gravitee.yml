@@ -1,0 +1,24 @@
+
+http:
+  instances: 0
+  websocket:
+    enabled: true
+
+plugins:
+    path: ${gravitee.home}/plugins
+
+management:
+  type: mock
+
+ratelimit:
+  type: mock
+
+cache:
+  type: mock
+
+sync:
+  enabled: false
+  cron: '*/5 * * * * *'
+
+tracing:
+  enabled: false

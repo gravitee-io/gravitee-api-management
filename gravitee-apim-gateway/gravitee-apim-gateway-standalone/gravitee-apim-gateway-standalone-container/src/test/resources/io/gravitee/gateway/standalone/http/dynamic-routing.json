@@ -1,0 +1,35 @@
+{
+  "id": "unreachable-api",
+  "name": "My unreachable API",
+
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/team"
+      }
+    ],
+    "strip_context_path": false,
+    "dumpRequest": true
+  },
+
+  "paths": {
+    "/": [
+      {
+        "methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "HEAD",
+          "PATCH",
+          "OPTIONS",
+          "TRACE",
+          "CONNECT"
+        ],
+        "dynamic-routing": {}
+      }
+    ]
+  }
+}
