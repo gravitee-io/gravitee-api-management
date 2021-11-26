@@ -120,7 +120,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   openSaveBar = false;
   invalidStateSaveBar = false;
 
-  private initialTableDS: Record<string, unknown[]> = {};
+  private initialTableDS: Record<
+    'environmentsTableDS' | 'groupsTableDS' | 'apisTableDS' | 'applicationsTableDS' | 'tokensTableDS',
+    unknown[]
+  > = { apisTableDS: [], applicationsTableDS: [], environmentsTableDS: [], groupsTableDS: [], tokensTableDS: [] };
 
   private unsubscribe$ = new Subject<boolean>();
 
@@ -154,6 +157,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         this.initOrganizationRolesForm();
 
         this.environmentsTableDS = environments.map((e) => ({ id: e.id, name: e.name, description: e.description, roles: '' }));
+        this.initialTableDS['environmentsTableDS'] = this.environmentsTableDS;
 
         this.initEnvironmentsRolesForm(environments);
 
@@ -161,7 +165,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           id: g.id,
           name: g.name,
         }));
-
+        this.initialTableDS['groupsTableDS'] = this.groupsTableDS;
         this.initGroupsRolesForm(groups);
       });
 
@@ -175,6 +179,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           version: apiMetadata.version,
           visibility: apiMetadata.visibility,
         }));
+        this.initialTableDS['apisTableDS'] = this.apisTableDS;
       });
 
     this.usersService
@@ -185,6 +190,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           id: applicationId,
           name: applicationMetadata.name,
         }));
+        this.initialTableDS['applicationsTableDS'] = this.applicationsTableDS;
       });
 
     this.usersTokenService
@@ -197,6 +203,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           lastUseAt: token.last_use_at,
           name: token.name,
         }));
+        this.initialTableDS['tokensTableDS'] = this.tokensTableDS;
       });
   }
 
