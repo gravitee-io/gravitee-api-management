@@ -25,6 +25,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -236,13 +237,40 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         return findByCriteria(apiCriteria, apiFieldExclusionFilter);
     }
 
-    private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        LOGGER.debug("JdbcApiRepository.search({})", apiCriteria);
+    @Override
+    public Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
         final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
             CHILD_ADDER,
             "id"
         );
+
+        final StringBuilder sbQuery = new StringBuilder("select a.id");
+
+        if (apiFieldInclusionFilter.hasCategories()) {
+            sbQuery.append(", ac.*");
+        }
+
+        sbQuery.append(" from ").append(this.tableName).append(" a ");
+
+        if (apiFieldInclusionFilter.hasCategories()) {
+            sbQuery.append("left join " + API_CATEGORIES + " ac on a.id = ac.api_id ");
+        }
+
+        addCriteriaClauses(sbQuery, apiCriteria);
+
+        List<Api> apis = executeQuery(sbQuery, apiCriteria, rowMapper);
+
+        return new HashSet<>(apis);
+    }
+
+    private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+        final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+            getOrm().getRowMapper(),
+            CHILD_ADDER,
+            "id"
+        );
+        LOGGER.debug("JdbcApiRepository.search({})", apiCriteria);
 
         String projection =
             "ac.*, a.id, a.environment_id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
@@ -257,7 +285,19 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
         final StringBuilder sbQuery = new StringBuilder("select ").append(projection).append(" from ").append(this.tableName).append(" a ");
         sbQuery.append("left join " + API_CATEGORIES + " ac on a.id = ac.api_id ");
+        addCriteriaClauses(sbQuery, apiCriteria);
+        sbQuery.append("order by a.name");
 
+        List<Api> apis = executeQuery(sbQuery, apiCriteria, rowMapper);
+
+        for (final Api api : apis) {
+            addLabels(api);
+            addGroups(api);
+        }
+        return apis;
+    }
+
+    private void addCriteriaClauses(StringBuilder sbQuery, ApiCriteria apiCriteria) {
         if (apiCriteria != null) {
             if (!isEmpty(apiCriteria.getGroups())) {
                 sbQuery.append("join " + API_GROUPS + " ag on a.id = ag.api_id ");
@@ -304,8 +344,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 sbQuery.append("and a.environment_id in (").append(getOrm().buildInClause(apiCriteria.getEnvironments())).append(") ");
             }
         }
-        sbQuery.append("order by a.name");
+    }
 
+    private List<Api> executeQuery(StringBuilder sbQuery, ApiCriteria apiCriteria, JdbcHelper.CollatingRowMapper<Api> rowMapper) {
         jdbcTemplate.query(
             sbQuery.toString(),
             (PreparedStatement ps) -> {
@@ -348,6 +389,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             },
             rowMapper
         );
+
         List<Api> apis = rowMapper.getRows();
 
         if (apiCriteria != null && apiCriteria.getContextPath() != null && !apiCriteria.getContextPath().isEmpty()) {
@@ -371,10 +413,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                     .collect(Collectors.toList());
         }
 
-        for (final Api api : apis) {
-            addLabels(api);
-            addGroups(api);
-        }
         return apis;
     }
 

@@ -25,10 +25,13 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -36,6 +39,8 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 
 /**
@@ -100,6 +105,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(groupedApi.getGroups()).thenReturn(singleton("api-group"));
         when(groupedApi.getId()).thenReturn("grouped-api");
         when(groupedApi.getApiLifecycleState()).thenReturn(PUBLISHED);
+        when(groupedApi.getCategories()).thenReturn(Set.of("category-1"));
         when(apiRepository.findById("grouped-api")).thenReturn(of(groupedApi));
         when(groupedApi.getDefinition()).thenReturn("\"proxy\" : {  \"context_path\" : \"/product\" }");
 
@@ -167,5 +173,18 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
             .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));
         when(apiRepository.search(new ApiCriteria.Builder().contextPath("/product").build()))
             .thenReturn(asList(apiToDelete, apiToUpdate, groupedApi));
+
+        Api apiToUpdateProjection = Mockito.mock(Api.class);
+        when(apiToUpdateProjection.getId()).thenReturn("api-to-update");
+
+        Api groupedApiProjection = Mockito.mock(Api.class);
+        when(groupedApiProjection.getId()).thenReturn("grouped-api");
+        when(groupedApiProjection.getCategories()).thenReturn(Set.of("category-1"));
+
+        Api bigNameApiProjection = Mockito.mock(Api.class);
+        when(bigNameApiProjection.getId()).thenReturn("big-name");
+
+        when(apiRepository.search(any(), any(ApiFieldInclusionFilter.class)))
+            .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjection, bigNameApiProjection));
     }
 }

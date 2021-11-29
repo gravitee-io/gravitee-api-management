@@ -52,7 +52,8 @@
     "updatedAt": 1439022010883,
     "lifecycleState": "STOPPED",
     "apiLifecycleState": "PUBLISHED",
-    "disableMembershipNotifications": true
+    "disableMembershipNotifications": true,
+    "categories": ["category-1"]
   },
   {
     "id": "big-name",

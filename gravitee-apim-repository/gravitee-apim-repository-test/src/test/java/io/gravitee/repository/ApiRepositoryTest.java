@@ -28,6 +28,7 @@ import static org.junit.Assert.*;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -35,7 +36,9 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
+import java.io.IOException;
 import java.util.*;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
 /**
@@ -380,5 +383,25 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals(3, apis.size());
         assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update", "grouped-api")));
         assertEquals(3, apis.stream().filter(api -> api.getDefinition().contains("\"context_path\" : \"/product\"")).count());
+    }
+
+    @Test
+    public void shouldOnlyIncludeRequiredAndDefaultFields() {
+        ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
+        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
+
+        Set<Api> apis = apiRepository.search(criteria, filter);
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(3, apis.size());
+
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-update", "grouped-api", "big-name")));
+        assertTrue(apis.stream().map(Api::getName).anyMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getDefinition).anyMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getPicture).anyMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getBackground).anyMatch(Objects::isNull));
+
+        List<String> categories = apis.stream().map(Api::getCategories).filter(Objects::nonNull).flatMap(Set::stream).collect(toList());
+        assertTrue(categories.contains("category-1"));
     }
 }

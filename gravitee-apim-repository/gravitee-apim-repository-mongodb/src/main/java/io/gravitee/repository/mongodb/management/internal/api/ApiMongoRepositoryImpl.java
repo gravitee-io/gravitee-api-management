@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -53,7 +54,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         final Pageable pageable,
         final ApiFieldExclusionFilter apiFieldExclusionFilter
     ) {
-        final Query query = new Query();
+        final Query query = queryFromCriteria(criteria);
 
         if (apiFieldExclusionFilter != null) {
             if (apiFieldExclusionFilter.isDefinition()) {
@@ -65,6 +66,48 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             }
         }
 
+        query.with(Sort.by(ASC, "name"));
+
+        long total = mongoTemplate.count(query, ApiMongo.class);
+
+        if (pageable != null) {
+            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
+        }
+
+        List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
+        if (criteria != null && criteria.getContextPath() != null && !criteria.getContextPath().isEmpty()) {
+            apis =
+                apis
+                    .stream()
+                    .filter(
+                        apiMongo -> {
+                            try {
+                                io.gravitee.definition.model.Api apiDefinition = new GraviteeMapper()
+                                .readValue(apiMongo.getDefinition(), io.gravitee.definition.model.Api.class);
+                                VirtualHost searchedVHost = new VirtualHost();
+                                searchedVHost.setPath(criteria.getContextPath());
+                                return apiDefinition.getProxy().getVirtualHosts().contains(searchedVHost);
+                            } catch (JsonProcessingException e) {
+                                logger.error("Problem occured while parsing api definition", e);
+                                return false;
+                            }
+                        }
+                    )
+                    .collect(Collectors.toList());
+        }
+
+        return new Page<>(apis, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : apis.size(), total);
+    }
+
+    @Override
+    public List<ApiMongo> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
+        Query query = queryFromCriteria(criteria);
+        query.fields().include(apiFieldInclusionFilter.includedFields());
+        return mongoTemplate.find(query, ApiMongo.class);
+    }
+
+    private Query queryFromCriteria(ApiCriteria criteria) {
+        Query query = new Query();
         if (criteria != null) {
             if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
                 query.addCriteria(where("id").in(criteria.getIds()));
@@ -100,37 +143,6 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                 query.addCriteria(where("apiLifecycleState").in(criteria.getLifecycleStates()));
             }
         }
-
-        query.with(Sort.by(ASC, "name"));
-
-        long total = mongoTemplate.count(query, ApiMongo.class);
-
-        if (pageable != null) {
-            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
-        }
-
-        List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
-        if (criteria != null && criteria.getContextPath() != null && !criteria.getContextPath().isEmpty()) {
-            apis =
-                apis
-                    .stream()
-                    .filter(
-                        apiMongo -> {
-                            try {
-                                io.gravitee.definition.model.Api apiDefinition = new GraviteeMapper()
-                                .readValue(apiMongo.getDefinition(), io.gravitee.definition.model.Api.class);
-                                VirtualHost searchedVHost = new VirtualHost();
-                                searchedVHost.setPath(criteria.getContextPath());
-                                return apiDefinition.getProxy().getVirtualHosts().contains(searchedVHost);
-                            } catch (JsonProcessingException e) {
-                                logger.error("Problem occured while parsing api definition", e);
-                                return false;
-                            }
-                        }
-                    )
-                    .collect(Collectors.toList());
-        }
-
-        return new Page<>(apis, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+        return query;
     }
 }
