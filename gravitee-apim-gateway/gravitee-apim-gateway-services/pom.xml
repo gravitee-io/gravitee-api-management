@@ -22,23 +22,23 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway</groupId>
-        <artifactId>gravitee-gateway</artifactId>
+        <groupId>io.gravitee.apim.gateway</groupId>
+        <artifactId>gravitee-apim-gateway</artifactId>
         <version>3.13.2-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway.services</groupId>
-    <artifactId>gravitee-gateway-services</artifactId>
+    <groupId>io.gravitee.apim.gateway.services</groupId>
+    <artifactId>gravitee-apim-gateway-services</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Services</name>
 
     <modules>
-        <module>gravitee-gateway-services-localregistry</module>
-        <module>gravitee-gateway-services-sync</module>
-        <module>gravitee-gateway-services-healthcheck</module>
-        <module>gravitee-gateway-services-heartbeat</module>
-        <module>gravitee-gateway-services-endpoint-discovery</module>
-        <module>gravitee-gateway-services-debug</module>
+        <module>gravitee-apim-gateway-services-localregistry</module>
+        <module>gravitee-apim-gateway-services-sync</module>
+        <module>gravitee-apim-gateway-services-healthcheck</module>
+        <module>gravitee-apim-gateway-services-heartbeat</module>
+        <module>gravitee-apim-gateway-services-endpoint-discovery</module>
+        <module>gravitee-apim-gateway-services-debug</module>
     </modules>
 
 </project>

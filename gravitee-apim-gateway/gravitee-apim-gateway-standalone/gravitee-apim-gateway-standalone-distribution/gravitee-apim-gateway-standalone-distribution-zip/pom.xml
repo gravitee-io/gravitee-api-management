@@ -22,12 +22,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway.standalone</groupId>
-        <artifactId>gravitee-gateway-standalone-distribution</artifactId>
+        <groupId>io.gravitee.apim.gateway.standalone</groupId>
+        <artifactId>gravitee-apim-gateway-standalone-distribution</artifactId>
 	    <version>3.13.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-standalone-distribution-zip</artifactId>
+    <artifactId>gravitee-apim-gateway-standalone-distribution-zip</artifactId>
     <name>Gravitee.io APIM - Gateway - Standalone - Distribution - ZIP</name>
     <packaging>pom</packaging>
 
@@ -40,8 +40,8 @@
 
         <!-- Gravitee dependencies on distribution -->
         <dependency>
-            <groupId>io.gravitee.gateway.standalone</groupId>
-            <artifactId>gravitee-gateway-standalone-distribution</artifactId>
+            <groupId>io.gravitee.apim.gateway.standalone</groupId>
+            <artifactId>gravitee-apim-gateway-standalone-distribution</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
         </dependency>
@@ -65,7 +65,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<finalName>gravitee-gateway-standalone-${project.version}</finalName>
+							<finalName>gravitee-apim-gateway-standalone-${project.version}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
 								<descriptor>src/main/assembly/plugin-assembly-standalone.xml</descriptor>
@@ -80,7 +80,7 @@
 						</goals>
 						<configuration>
 							<attach>false</attach>
-							<finalName>gravitee-gateway-distribution-${project.version}</finalName>
+							<finalName>gravitee-apim-gateway-distribution-${project.version}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
 								<descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
