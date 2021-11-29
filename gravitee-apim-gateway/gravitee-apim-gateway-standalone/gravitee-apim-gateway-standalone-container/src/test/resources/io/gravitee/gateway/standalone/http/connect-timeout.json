@@ -1,0 +1,25 @@
+{
+  "id": "unreachable-api",
+  "name": "My unreachable API",
+
+  "proxy": {
+    "context_path": "/unreachable",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://10.255.255.255:8080/team",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 3000
+        }
+      }
+    ],
+    "strip_context_path": false,
+    "dumpRequest": true
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}
