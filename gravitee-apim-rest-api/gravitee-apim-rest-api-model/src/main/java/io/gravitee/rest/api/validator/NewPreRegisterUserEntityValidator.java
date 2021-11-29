@@ -18,6 +18,7 @@ package io.gravitee.rest.api.validator;
 import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -32,11 +33,15 @@ public class NewPreRegisterUserEntityValidator implements ConstraintValidator<Va
 
     /**
      * Is valid when:
-     * - Is service account, with or without email
+     * - Is service account and firstName is null.
      * - Is not service account and have an email
      */
     @Override
     public boolean isValid(NewPreRegisterUserEntity value, ConstraintValidatorContext context) {
-        return Boolean.TRUE.equals(value.isService()) || value.getEmail() != null;
+        if (Boolean.TRUE.equals(value.isService())) {
+            return value.getFirstname() == null;
+        } else {
+            return value.getEmail() != null;
+        }
     }
 }

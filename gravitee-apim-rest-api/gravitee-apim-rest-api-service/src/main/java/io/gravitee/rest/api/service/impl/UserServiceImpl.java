@@ -800,7 +800,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final boolean autoRegistrationEnabled,
         final boolean isServiceUser
     ) {
-        if (!isServiceUser && !EmailValidator.isValid(newExternalUserEntity.getEmail())) {
+        if (
+            (!isServiceUser || StringUtils.isNotEmpty(newExternalUserEntity.getEmail())) &&
+            !EmailValidator.isValid(newExternalUserEntity.getEmail())
+        ) {
             throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
         }
 

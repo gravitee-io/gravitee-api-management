@@ -52,6 +52,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.UserServiceImpl;
+import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.IOException;
 import java.io.InputStream;
@@ -249,16 +250,188 @@ public class UserServiceTest {
 
     @Test
     public void shouldCreate() throws TechnicalException {
-        innerShoudCreate(null);
+        innerShouldCreate(null);
     }
 
     @Test
     public void shouldCreateWithCustomFields() throws TechnicalException {
         Map<String, Object> customFields = Maps.<String, Object>builder().put("md1", "value1").put("md2", "value2").build();
-        innerShoudCreate(customFields);
+        innerShouldCreate(customFields);
     }
 
-    protected void innerShoudCreate(Map<String, Object> customFields) throws TechnicalException {
+    @Test(expected = EmailFormatInvalidException.class)
+    public void shouldNotCreateNormalUserBadEmail() throws TechnicalException {
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
+        newPreRegisterUserEntity.setService(false);
+        newPreRegisterUserEntity.setEmail("bad./.email");
+
+        userService.create(newPreRegisterUserEntity);
+    }
+
+    @Test(expected = UserAlreadyExistsException.class)
+    public void shouldNotCreateNormalUserBecauseAlreadyExists() throws TechnicalException {
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+        when(newPreRegisterUserEntity.isService()).thenReturn(false);
+        when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+        when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.of(new User()));
+
+        userService.create(newPreRegisterUserEntity);
+
+        verify(newPreRegisterUserEntity, times(1)).setSourceId(EMAIL);
+    }
+
+    @Test
+    public void shouldCreateNormalUser() throws TechnicalException {
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+        when(newPreRegisterUserEntity.isService()).thenReturn(false);
+        when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER))
+            .thenReturn(1000);
+        when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(empty());
+
+        // Mock create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole, boolean autoRegistrationEnabled)
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        mockDefaultEnvironment();
+
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getFirstname()).thenReturn(FIRST_NAME);
+        when(user.getLastname()).thenReturn(LAST_NAME);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getCreatedAt()).thenReturn(date);
+        when(user.getUpdatedAt()).thenReturn(date);
+        when(userRepository.create(any(User.class))).thenReturn(user);
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
+        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findDefaultRoleByScopes(any())).thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
+        RoleEntity roleEnv = mock(RoleEntity.class);
+        when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleEnv.getName()).thenReturn("USER");
+        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, user.getId()))
+            .thenReturn(new HashSet<>(List.of(roleEnv)));
+        RoleEntity roleOrg = mock(RoleEntity.class);
+        when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
+        when(roleOrg.getName()).thenReturn("USER");
+        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, user.getId()))
+            .thenReturn(new HashSet<>(List.of(roleOrg)));
+
+        // Come back to our method
+
+        userService.create(newPreRegisterUserEntity);
+
+        verify(newPreRegisterUserEntity, times(1)).setSourceId(EMAIL);
+        verify(emailService, times(1)).sendAsyncEmailNotification(any(), any());
+        verify(notifierService, times(1)).trigger(eq(PortalHook.USER_CREATED), any());
+    }
+
+    @Test(expected = EmailFormatInvalidException.class)
+    public void shouldNotCreateServiceUserBadEmail() throws TechnicalException {
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
+        newPreRegisterUserEntity.setService(true);
+        newPreRegisterUserEntity.setEmail("bad./.email");
+
+        userService.create(newPreRegisterUserEntity);
+    }
+
+    @Test
+    public void shouldCreateServiceUserWithEmail() throws TechnicalException {
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+        when(newPreRegisterUserEntity.isService()).thenReturn(true);
+        when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+        when(newPreRegisterUserEntity.getLastname()).thenReturn(LAST_NAME);
+        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+        // Mock create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole, boolean autoRegistrationEnabled)
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        mockDefaultEnvironment();
+
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getFirstname()).thenReturn(FIRST_NAME);
+        when(user.getLastname()).thenReturn(LAST_NAME);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getCreatedAt()).thenReturn(date);
+        when(user.getUpdatedAt()).thenReturn(date);
+        when(userRepository.create(any(User.class))).thenReturn(user);
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
+        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findDefaultRoleByScopes(any())).thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
+        RoleEntity roleEnv = mock(RoleEntity.class);
+        when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleEnv.getName()).thenReturn("USER");
+        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, user.getId()))
+            .thenReturn(new HashSet<>(List.of(roleEnv)));
+        RoleEntity roleOrg = mock(RoleEntity.class);
+        when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
+        when(roleOrg.getName()).thenReturn("USER");
+        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, user.getId()))
+            .thenReturn(new HashSet<>(List.of(roleOrg)));
+
+        // Come back to our method
+
+        userService.create(newPreRegisterUserEntity);
+
+        verify(newPreRegisterUserEntity, times(1)).setSourceId(LAST_NAME);
+        verify(emailService, never()).sendAsyncEmailNotification(any(), any());
+        verify(notifierService, never()).trigger(any(), any());
+    }
+
+    @Test
+    public void shouldCreateServiceUserWithoutEmail() throws TechnicalException {
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+        when(newPreRegisterUserEntity.isService()).thenReturn(true);
+        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+        when(newPreRegisterUserEntity.getLastname()).thenReturn(LAST_NAME);
+        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+        // Mock create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole, boolean autoRegistrationEnabled)
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        mockDefaultEnvironment();
+
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(null);
+        when(user.getFirstname()).thenReturn(FIRST_NAME);
+        when(user.getLastname()).thenReturn(LAST_NAME);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getCreatedAt()).thenReturn(date);
+        when(user.getUpdatedAt()).thenReturn(date);
+        when(userRepository.create(any(User.class))).thenReturn(user);
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
+        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findDefaultRoleByScopes(any())).thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
+        RoleEntity roleEnv = mock(RoleEntity.class);
+        when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleEnv.getName()).thenReturn("USER");
+        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, user.getId()))
+            .thenReturn(new HashSet<>(List.of(roleEnv)));
+        RoleEntity roleOrg = mock(RoleEntity.class);
+        when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
+        when(roleOrg.getName()).thenReturn("USER");
+        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, user.getId()))
+            .thenReturn(new HashSet<>(List.of(roleOrg)));
+
+        // Come back to our method
+
+        userService.create(newPreRegisterUserEntity);
+
+        verify(newPreRegisterUserEntity, times(1)).setSourceId(LAST_NAME);
+        verify(emailService, never()).sendAsyncEmailNotification(any(), any());
+        verify(notifierService, never()).trigger(any(), any());
+    }
+
+    protected void innerShouldCreate(Map<String, Object> customFields) throws TechnicalException {
         if (customFields != null) {
             when(newUser.getCustomFields()).thenReturn(customFields);
         }

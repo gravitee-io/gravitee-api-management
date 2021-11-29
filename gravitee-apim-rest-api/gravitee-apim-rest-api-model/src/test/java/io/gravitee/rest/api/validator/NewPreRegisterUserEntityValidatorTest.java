@@ -39,13 +39,15 @@ public class NewPreRegisterUserEntityValidatorTest {
     public static Iterable<Object[]> data() {
         return Arrays.asList(
             new Object[][] {
-                // email;isServiceAccount;shouldBeValid
-                { "", true, true },
-                { null, true, true },
-                { "mail@mail.mail", true, true },
-                { "", false, true },
-                { null, false, false },
-                { "mail@mail.mail", false, true },
+                // email;firstName;isServiceAccount;shouldBeValid
+                { "", null, true, true },
+                { null, null, true, true },
+                { "mail@mail.mail", null, true, true },
+                { null, "firstName", true, false },
+                { "mail@mail.mail", "firstName", true, false },
+                { "", "firstName", false, true },
+                { null, "firstName", false, false },
+                { "mail@mail.mail", "firstName", false, true },
             }
         );
     }
@@ -54,9 +56,12 @@ public class NewPreRegisterUserEntityValidatorTest {
     public String email;
 
     @Parameterized.Parameter(1)
-    public Boolean isServiceAccount;
+    public String firstName;
 
     @Parameterized.Parameter(2)
+    public Boolean isServiceAccount;
+
+    @Parameterized.Parameter(3)
     public boolean shouldBeValid;
 
     @Before
@@ -67,14 +72,16 @@ public class NewPreRegisterUserEntityValidatorTest {
     @Test
     public void shoultTestNewExternalUserEntityValidation() {
         LOGGER.info(
-            "Execute NewExternalUserEntity validation test for mail: '{}', serviceUser: {}, shouldBeValid: {}",
+            "Execute NewExternalUserEntity validation test for mail: '{}', firstName: '{}', serviceUser: {}, shouldBeValid: {}",
             email,
+            firstName,
             isServiceAccount,
             shouldBeValid
         );
 
         final NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
         newPreRegisterUserEntity.setService(isServiceAccount);
+        newPreRegisterUserEntity.setFirstname(firstName);
         newPreRegisterUserEntity.setEmail(email);
 
         final boolean isValid = validator.isValid(newPreRegisterUserEntity, null);
