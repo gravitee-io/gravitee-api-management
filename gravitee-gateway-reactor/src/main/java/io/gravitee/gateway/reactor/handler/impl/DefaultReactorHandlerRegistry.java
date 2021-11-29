@@ -20,7 +20,6 @@ import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -40,7 +39,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private final Map<Reactable, ReactorHandler> handlers = new ConcurrentHashMap<>();
     private final Map<Reactable, List<HandlerEntrypoint>> entrypointByReactable = new ConcurrentHashMap<>();
-    private final Set<HandlerEntrypoint> registeredEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
+
+    private final List<HandlerEntrypoint> registeredEntrypoints = new ArrayList<>();
+    private final HandlerEntryPointComparator entryPointComparator = new HandlerEntryPointComparator();
 
     @Override
     public void create(Reactable reactable) {
@@ -97,7 +98,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
             .collect(Collectors.toList());
 
         entrypointByReactable.put(handler.reactable(), reactableEntrypoints);
-        registeredEntrypoints.addAll(reactableEntrypoints);
+        addEntrypoints(reactableEntrypoints);
     }
 
     private ReactorHandler prepare(Reactable reactable) {
@@ -131,9 +132,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                 ReactorHandler previousHandler = handlers.remove(reactable);
                 List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(previousHandler.reactable());
 
-                // Register the new handler before removing the previous entrypoints to avoid 404, especially on  high throughput.
+                // Register the new handler before removing the previous entrypoints to avoid 404, especially on high throughput.
                 register(newHandler);
-                registeredEntrypoints.removeIf(previousEntrypoints::contains);
+                removeEntrypoints(previousEntrypoints);
 
                 try {
                     logger.debug("Stopping previous handler for: {}", reactable);
@@ -175,7 +176,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                 List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(handler.reactable());
 
                 // Remove the entrypoints before stopping the handler to avoid 500 errors.
-                registeredEntrypoints.removeIf(previousEntrypoints::contains);
+                removeEntrypoints(previousEntrypoints);
                 handler.stop();
 
                 if (remove) {
@@ -191,5 +192,19 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     @Override
     public Collection<HandlerEntrypoint> getEntrypoints() {
         return registeredEntrypoints;
+    }
+
+    private void addEntrypoints(List<HandlerEntrypoint> reactableEntrypoints) {
+        synchronized (registeredEntrypoints) {
+            registeredEntrypoints.addAll(reactableEntrypoints);
+            registeredEntrypoints.sort(entryPointComparator);
+        }
+    }
+
+    private void removeEntrypoints(List<HandlerEntrypoint> previousEntrypoints) {
+        synchronized (registeredEntrypoints) {
+            registeredEntrypoints.removeAll(previousEntrypoints);
+            registeredEntrypoints.sort(entryPointComparator);
+        }
     }
 }
