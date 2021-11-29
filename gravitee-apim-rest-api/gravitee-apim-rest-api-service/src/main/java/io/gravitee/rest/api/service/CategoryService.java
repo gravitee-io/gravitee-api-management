@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewCategoryEntity;
@@ -37,6 +38,7 @@ public interface CategoryService {
     List<CategoryEntity> update(List<UpdateCategoryEntity> categories);
     void delete(String categoryId);
     long getTotalApisByCategory(Set<ApiEntity> apis, CategoryEntity category);
+    long getTotalApisByCategoryId(Set<Api> apis, String categoryId);
     InlinePictureEntity getPicture(String categoryId);
     InlinePictureEntity getBackground(String categoryId);
     List<CategoryEntity> findByPage(String pageId);

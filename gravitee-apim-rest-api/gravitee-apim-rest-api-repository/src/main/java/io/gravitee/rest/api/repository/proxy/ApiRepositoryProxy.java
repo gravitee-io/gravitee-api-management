@@ -17,12 +17,12 @@ package io.gravitee.rest.api.repository.proxy;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiQualityRule;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -74,5 +74,10 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     @Override
     public Set<Api> findAll() throws TechnicalException {
         return target.findAll();
+    }
+
+    @Override
+    public Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
+        return target.search(apiCriteria, apiFieldInclusionFilter);
     }
 }

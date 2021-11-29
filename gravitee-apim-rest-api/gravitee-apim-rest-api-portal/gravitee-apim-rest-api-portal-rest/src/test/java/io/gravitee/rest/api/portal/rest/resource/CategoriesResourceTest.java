@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
@@ -49,26 +50,27 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     public void init() {
         resetAllMocks();
 
-        Set<ApiEntity> mockApis = new HashSet<>();
+        Set<Api> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
 
         CategoryEntity category1 = new CategoryEntity();
         category1.setId("1");
         category1.setHidden(false);
         category1.setOrder(2);
-        doReturn(1L).when(categoryService).getTotalApisByCategory(mockApis, category1);
 
         CategoryEntity category2 = new CategoryEntity();
         category2.setId("2");
         category2.setHidden(false);
         category2.setOrder(3);
-        doReturn(0L).when(categoryService).getTotalApisByCategory(mockApis, category2);
 
         CategoryEntity category3 = new CategoryEntity();
         category3.setId("3");
         category3.setHidden(true);
         category3.setOrder(1);
-        doReturn(2L).when(categoryService).getTotalApisByCategory(mockApis, category3);
+
+        doReturn(Map.of(category1.getId(), 1L, category2.getId(), 0L, category3.getId(), 2L))
+            .when(apiService)
+            .countPublishedByUserGroupedByCategories(any());
 
         existingCategories = Arrays.asList(category1, category2, category3);
 
@@ -79,15 +81,12 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNotHiddenCategories() {
-        // every category contains one API
-        doReturn(1L).when(categoryService).getTotalApisByCategory(any(), any());
-
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(apiService).findPublishedByUser(any());
+        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(any());
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
-        assertEquals(2, categoriesResponse.getData().size());
+        assertEquals(1, categoriesResponse.getData().size());
     }
 
     @Test
@@ -133,12 +132,12 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNothingIfAllCategoriesEmpty() {
         // 0 APIs returned for user in any categories
-        doReturn(0L).when(categoryService).getTotalApisByCategory(any(), any());
+        doReturn(Map.of()).when(apiService).countPublishedByUserGroupedByCategories(any());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(apiService).findPublishedByUser(any());
+        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(any());
 
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
 
@@ -150,7 +149,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        Mockito.verify(apiService).findPublishedByUser(any());
+        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(any());
 
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
         // only C1 is returned

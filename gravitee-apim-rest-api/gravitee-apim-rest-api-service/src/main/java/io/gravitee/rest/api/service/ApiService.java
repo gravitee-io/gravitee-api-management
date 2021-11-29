@@ -170,4 +170,6 @@ public interface ApiService {
     void removeGroup(String api, String group);
 
     void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans);
+
+    Map<String, Long> countPublishedByUserGroupedByCategories(String userId);
 }

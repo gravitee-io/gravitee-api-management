@@ -18,6 +18,7 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -83,6 +84,11 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
 
     @Override
     public Set<Api> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
         throw new IllegalStateException();
     }
 }

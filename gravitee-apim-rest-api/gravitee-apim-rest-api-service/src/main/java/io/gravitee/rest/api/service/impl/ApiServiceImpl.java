@@ -44,6 +44,7 @@ import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -3091,5 +3092,50 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (userId != null) {
             notifierService.trigger(hook, apiId, new NotificationParamsBuilder().api(apiEntity).user(userService.findById(userId)).build());
         }
+    }
+
+    @Override
+    public Map<String, Long> countPublishedByUserGroupedByCategories(String userId) {
+        ApiCriteria criteria = new ApiCriteria.Builder().visibility(PUBLIC).lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).build();
+        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
+
+        Set<Api> apis = apiRepository.search(criteria, filter);
+
+        final String[] userApiIds = membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+            .stream()
+            .map(MembershipEntity::getReferenceId)
+            .toArray(String[]::new);
+
+        if (userApiIds.length > 0) {
+            criteria = new ApiCriteria.Builder().ids(userApiIds).build();
+            Set<Api> userApis = apiRepository.search(criteria, filter);
+            apis.addAll(userApis);
+        }
+
+        final String[] groupIds = membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
+            .stream()
+            .filter(
+                m -> {
+                    final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
+                    return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
+                }
+            )
+            .map(MembershipEntity::getReferenceId)
+            .toArray(String[]::new);
+
+        if (groupIds.length > 0 && groupIds[0] != null) {
+            criteria = new ApiCriteria.Builder().groups(groupIds).build();
+            Set<Api> groupApis = apiRepository.search(criteria, filter);
+            apis.addAll(groupApis);
+        }
+
+        return apis
+            .stream()
+            .map(Api::getCategories)
+            .filter(Objects::nonNull)
+            .flatMap(Set::stream)
+            .collect(toMap(id -> id, id -> categoryService.getTotalApisByCategoryId(apis, id), (a, b) -> a));
     }
 }
