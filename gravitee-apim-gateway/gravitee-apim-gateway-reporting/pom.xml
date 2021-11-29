@@ -27,7 +27,6 @@
         <version>3.13.2-SNAPSHOT</version>
     </parent>
 
-
     <artifactId>gravitee-apim-gateway-reporting</artifactId>
     <name>Gravitee.io APIM - Gateway - Reporting</name>
 
@@ -53,12 +52,6 @@
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
-        </dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
         </dependency>
 
         <!-- Spring dependencies -->
