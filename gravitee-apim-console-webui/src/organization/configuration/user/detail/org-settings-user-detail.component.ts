@@ -550,16 +550,11 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         id: 'generateTokenDialog',
       })
       .afterClosed()
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        // tap(() => {
-        //   this.snackBarService.success('Token successfully created!');
-        // }),
-        // catchError(({ error }) => {
-        //   this.snackBarService.error(error.message);
-        //   return EMPTY;
-        // }),
-      )
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe(() => this.ngOnInit());
+  }
+
+  isServiceUser(): boolean {
+    return !this.user.firstname;
   }
 }

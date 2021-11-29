@@ -158,11 +158,12 @@ describe('OrgSettingsUserDetailComponent', () => {
     // No flush to stop test here
   });
 
-  it('should not reset password if no email', async (done) => {
+  it('should not reset password if no firstname', async (done) => {
     const user = fakeUser({
       id: 'userId',
       source: 'gravitee',
       email: null,
+      firstname: null,
     });
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
