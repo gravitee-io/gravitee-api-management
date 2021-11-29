@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.Category.AuditEvent.*;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -345,5 +346,10 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     @Override
     public long getTotalApisByCategory(Set<ApiEntity> apis, CategoryEntity category) {
         return apis.stream().filter(api -> api.getCategories() != null && api.getCategories().contains(category.getKey())).count();
+    }
+
+    @Override
+    public long getTotalApisByCategoryId(Set<Api> apis, String categoryId) {
+        return apis.stream().filter(api -> api.getCategories() != null && api.getCategories().contains(categoryId)).count();
     }
 }

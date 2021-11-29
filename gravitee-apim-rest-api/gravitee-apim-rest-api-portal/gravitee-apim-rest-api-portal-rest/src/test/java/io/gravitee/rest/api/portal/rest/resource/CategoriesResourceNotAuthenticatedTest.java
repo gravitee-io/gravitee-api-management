@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.common.http.HttpStatusCode;
@@ -25,10 +26,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -109,7 +107,10 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
 
         List<CategoryEntity> mockCategories = Arrays.asList(category1, category2, category3);
         doReturn(mockCategories).when(categoryService).findAll();
-        doReturn(1L).when(categoryService).getTotalApisByCategory(any(), any());
+
+        doReturn(Map.of(category1.getId(), 1L, category2.getId(), 1L, category3.getId(), 1L))
+            .when(apiService)
+            .countPublishedByUserGroupedByCategories(any());
 
         doReturn(false).when(ratingService).isEnabled();
 
@@ -121,7 +122,7 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(apiService).findPublishedByUser(any());
+        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(any());
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
         assertEquals(2, categoriesResponse.getData().size());
     }

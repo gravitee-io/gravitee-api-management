@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -99,6 +100,8 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
 
+        doReturn(Map.of(CATEGORY_ID, 5L)).when(apiService).countPublishedByUserGroupedByCategories(null);
+
         Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
     }
 
@@ -108,11 +111,11 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         assertEquals(OK_200, response.getStatus());
 
         Mockito.verify(categoryService).findNotHiddenById(CATEGORY_ID);
-        Mockito.verify(apiService).findPublishedByUser(null);
-        Mockito.verify(categoryService).getTotalApisByCategory(any(), any());
+        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(null);
         Mockito.verify(categoryMapper).convert(any(), any());
 
         final Category responseCategory = response.readEntity(Category.class);
         assertNotNull(responseCategory);
+        assertEquals(Long.valueOf(5), responseCategory.getTotalApis());
     }
 }

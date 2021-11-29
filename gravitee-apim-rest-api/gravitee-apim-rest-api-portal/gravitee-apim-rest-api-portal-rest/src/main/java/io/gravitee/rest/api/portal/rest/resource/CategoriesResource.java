@@ -25,6 +25,7 @@ import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ws.rs.BeanParam;
@@ -34,6 +35,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import org.checkerframework.checker.units.qual.Time;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -55,20 +57,14 @@ public class CategoriesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getCategories(@BeanParam PaginationParam paginationParam) {
-        // FIXME: retrieve all the apis of the user can be heavy because it involves a lot of data fetching. Find a way to just retrieve only necessary data.
-        Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        Map<String, Long> countByCategory = apiService.countPublishedByUserGroupedByCategories(getAuthenticatedUserOrNull());
 
         List<Category> categoriesList = categoryService
             .findAll()
             .stream()
             .filter(c -> !c.isHidden())
             .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
-            .map(
-                c -> {
-                    c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
-                    return c;
-                }
-            )
+            .peek(c -> c.setTotalApis(countByCategory.getOrDefault(c.getId(), 0L)))
             .filter(c -> c.getTotalApis() > 0)
             .map(c -> categoryMapper.convert(c, uriInfo.getBaseUriBuilder()))
             .collect(Collectors.toList());

@@ -33,10 +33,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import org.eclipse.jetty.http.HttpHeader;
@@ -73,6 +70,8 @@ public class CategoryResourceTest extends AbstractResourceTest {
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
 
+        doReturn(Map.of(CATEGORY_ID, 1L)).when(apiService).countPublishedByUserGroupedByCategories(USER_NAME);
+
         Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
 
         mockImage = new InlinePictureEntity();
@@ -88,12 +87,12 @@ public class CategoryResourceTest extends AbstractResourceTest {
         assertEquals(OK_200, response.getStatus());
 
         Mockito.verify(categoryService).findNotHiddenById(CATEGORY_ID);
-        Mockito.verify(apiService).findPublishedByUser(USER_NAME);
-        Mockito.verify(categoryService).getTotalApisByCategory(any(), any());
+        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(USER_NAME);
         Mockito.verify(categoryMapper).convert(any(), any());
 
         final Category responseCategory = response.readEntity(Category.class);
         assertNotNull(responseCategory);
+        assertEquals(Long.valueOf(1), responseCategory.getTotalApis());
     }
 
     @Test

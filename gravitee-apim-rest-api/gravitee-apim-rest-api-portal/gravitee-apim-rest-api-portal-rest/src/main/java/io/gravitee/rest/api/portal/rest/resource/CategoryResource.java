@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
+import java.util.Map;
 import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -51,9 +52,8 @@ public class CategoryResource extends AbstractResource {
     public Response get(@PathParam("categoryId") String categoryId) {
         CategoryEntity category = categoryService.findNotHiddenById(categoryId);
 
-        // FIXME: retrieve all the apis of the user can be heavy because it involves a lot of data fetching. Find a way to just retrieve only necessary data.
-        Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        category.setTotalApis(categoryService.getTotalApisByCategory(apis, category));
+        Map<String, Long> countByCategory = apiService.countPublishedByUserGroupedByCategories(getAuthenticatedUserOrNull());
+        category.setTotalApis(countByCategory.getOrDefault(category.getId(), 0L));
 
         return Response.ok(categoryMapper.convert(category, uriInfo.getBaseUriBuilder())).build();
     }
