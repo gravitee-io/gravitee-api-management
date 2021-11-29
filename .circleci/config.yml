@@ -642,8 +642,13 @@ workflows:
                   requires:
                       - build
             - sonarcloud-analysis:
-                  name: Sonarcloud - REST API
-                  working_directory: gravitee-apim-rest-api
+                  name: Sonar - << matrix.working_directory >>
+                  matrix:
+                      parameters:
+                          working_directory:
+                              - gravitee-apim-rest-api
+                              - gravitee-apim-repository
+                              - gravitee-apim-gateway
                   context: cicd-orchestrator
                   requires:
                       - test
@@ -700,12 +705,6 @@ workflows:
             - console-webui-lint-test:
                   requires:
                       - console-webui-install
-            - sonarcloud-analysis:
-                name: Sonarcloud - Console Web UI
-                  working_directory: gravitee-apim-console-webui
-                  context: cicd-orchestrator
-                  requires:
-                      - console-webui-lint-test
             - console-webui-build:
                   requires:
                       - console-webui-install
@@ -761,10 +760,15 @@ workflows:
                   requires:
                       - portal-webui-install
             - sonarcloud-analysis:
-                name: Sonarcloud - Portal Web UI
-                  working_directory: gravitee-apim-portal-webui
+                  name: Sonar - << matrix.working_directory >>
+                  matrix:
+                      parameters:
+                          working_directory:
+                              - gravitee-apim-console-webui
+                              - gravitee-apim-portal-webui
                   context: cicd-orchestrator
                   requires:
+                      - console-webui-lint-test
                       - portal-webui-lint-test
             - portal-webui-build:
                   requires:
