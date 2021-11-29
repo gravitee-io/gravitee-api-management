@@ -538,8 +538,8 @@ jobs:
                       cp -fr docker/config .
                       cp -fr docker/run.sh .
 
-                      export PUBLIC_IMAGE_TAG=graviteeio/apim-portal-webui:${TAG}
-                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-portal-webui:${TAG}
+                      export PUBLIC_IMAGE_TAG=graviteeio/apim-portal-ui:${TAG}
+                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-portal-ui:${TAG}
                       docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} -t ${PUBLIC_IMAGE_TAG} .
 
                       if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
@@ -590,7 +590,7 @@ jobs:
                                       apim3 \
                                        --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
                                        --set "api.image.tag=${TAG}" \
-                                       --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
+                                       --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
                                        --set "portal.image.tag=${TAG}" \
                                        --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
                                        --set "ui.image.tag=${TAG}" \
@@ -613,7 +613,7 @@ jobs:
                                    apim3 \
                                    --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
                                    --set "api.image.tag=${TAG}" \
-                                   --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
+                                   --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
                                    --set "portal.image.tag=${TAG}" \
                                    --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
                                    --set "ui.image.tag=${TAG}" \
