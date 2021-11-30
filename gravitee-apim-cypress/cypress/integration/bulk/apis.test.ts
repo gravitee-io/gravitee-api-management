@@ -16,7 +16,7 @@
 
 import { ApiFakers } from '../../fakers/apis';
 import { API_PUBLISHER_USER } from '../../fakers/users/users';
-import { Api } from '../../model/apis';
+import { ApiLifecycleState, ApiVisibility } from '../../model/apis';
 import { gio } from '../../commands/gravitee.commands';
 
 const bulkSize = 50;
@@ -35,22 +35,14 @@ function createPublishAndStart() {
       gio
         .management(API_PUBLISHER_USER)
         .apis()
-        .update(apiId, createResponse.body)
+        .update(apiId, { ...createResponse.body, lifecycle_state: ApiLifecycleState.PUBLISHED, visibility: ApiVisibility.PUBLIC })
         .ok()
         .should((publishResponse) => {
           expect(publishResponse.body.lifecycle_state).to.eq('PUBLISHED');
           expect(publishResponse.body.visibility).to.eq('PUBLIC');
         });
 
-      gio
-        .management(API_PUBLISHER_USER)
-        .apis()
-        .start(apiId)
-        .noContent()
-        .should((response) => {
-          const result: Api = response.body;
-          expect(result.state).to.equal('STARTED');
-        });
+      gio.management(API_PUBLISHER_USER).apis().start(apiId).noContent();
     });
 }
 
