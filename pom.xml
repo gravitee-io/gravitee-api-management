@@ -123,6 +123,7 @@
         <swagger-annotations.version>1.6.2</swagger-annotations.version>
         <swagger-core.version>2.0.9</swagger-core.version>
         <swagger-parser.version>2.0.28</swagger-parser.version>
+        <swagger-models.version>1.6.3</swagger-models.version>
         <testcontainers.version>1.15.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
         <wiremock.version>2.19.0</wiremock.version>
@@ -491,6 +492,12 @@
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-core</artifactId>
                 <version>${swagger-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>${swagger-models.version}</version>
             </dependency>
 
             <!-- JAXB API & implementation -->
