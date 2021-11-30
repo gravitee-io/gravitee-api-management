@@ -18,6 +18,7 @@ Then, the following NPM scripts are available:
  - `npm run test:ci`: Run integration tests with Cypress against a locally running APIM Rest API
  - `npm run test:dev`: Run integration tests with Cypress against a locally running APIM Rest API with verbose (**requests, responses and calls to cy.log() are logged**)
  - `npm run test:e2e`: Run end to end tests with Cypress against a locally running APIM, testing is made against UI
+ - `npm run test:bulk`: Run Cypress to insert bulk data in APIM
 
 ## Structure
 ````
