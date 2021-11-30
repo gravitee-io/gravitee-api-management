@@ -30,4 +30,15 @@
   <section *ngIf="!empty">
     <gv-card-list [items]="applications"></gv-card-list>
   </section>
+
+  <div *ngIf="paginationData" class="page__content__pagination">
+    <gv-select
+      class="page__content__pagination__size__block"
+      [options]="paginationPageSizes"
+      [value]="paginationSize"
+      small
+      (:gv-select:select)="onSelectSize($event.detail)"
+    ></gv-select>
+    <gv-pagination [data]="paginationData"></gv-pagination>
+  </div>
 </div>

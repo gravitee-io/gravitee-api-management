@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.page__content__pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
+export interface Pagination {
+  current_page: number;
+  first: number;
+  last: number;
+  size: number;
+  total: number;
+  total_pages: number;
 }
