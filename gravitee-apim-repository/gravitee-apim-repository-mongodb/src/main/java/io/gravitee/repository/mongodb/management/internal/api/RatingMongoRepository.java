@@ -27,7 +27,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface RatingMongoRepository extends MongoRepository<RatingMongo, String> {
+public interface RatingMongoRepository extends MongoRepository<RatingMongo, String>, RatingMongoRepositoryCustom {
     RatingMongo findByReferenceIdAndReferenceTypeAndUser(String referenceId, String referenceType, String user);
 
     Page<RatingMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType, Pageable pageable);

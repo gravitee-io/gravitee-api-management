@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import java.util.List;
@@ -69,6 +70,11 @@ public class HttpRatingRepository extends AbstractRepository implements RatingRe
 
     @Override
     public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) {
         throw new IllegalStateException();
     }
 

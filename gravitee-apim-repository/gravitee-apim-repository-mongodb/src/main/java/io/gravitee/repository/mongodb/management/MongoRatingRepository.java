@@ -22,6 +22,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.RatingMongoRepository;
@@ -71,6 +72,14 @@ public class MongoRatingRepository implements RatingRepository {
         );
         LOGGER.debug("Find rating by ref [{}] and user [{}] - DONE", referenceId, user);
         return ofNullable(map(rating));
+    }
+
+    @Override
+    public Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) throws TechnicalException {
+        LOGGER.debug("Find rating by criteria [{}]", ratingCriteria);
+        Set<String> ranking = internalRatingRepository.findReferenceIdsOrderByRate(ratingCriteria);
+        LOGGER.debug("Find rating by criteria [{}] - DONE", ratingCriteria);
+        return ranking;
     }
 
     @Override
