@@ -280,7 +280,7 @@
         <wiremock.version>2.26.3</wiremock.version>
         <guava.version>29.0-jre</guava.version>
         <powermock.version>2.0.0</powermock.version>
-        <nimbus-jwt.version>8.19</nimbus-jwt.version>
+        <nimbus-jwt.version>9.15.2</nimbus-jwt.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <protobuf-java.version>3.12.2</protobuf-java.version>
         <hazelcast.version>3.12.9</hazelcast.version>
