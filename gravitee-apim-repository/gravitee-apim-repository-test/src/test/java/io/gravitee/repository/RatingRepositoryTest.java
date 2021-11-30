@@ -21,10 +21,12 @@ import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
 import io.gravitee.repository.management.model.RatingReferenceType;
+import io.gravitee.repository.management.model.RatingSummary;
 import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -133,6 +135,46 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals(1, ratings.stream().filter(rating -> "rating-id".equals(rating.getId())).count());
         assertEquals(1, ratings.stream().filter(rating -> "rating2-id".equals(rating.getId())).count());
         assertEquals(1, ratings.stream().filter(rating -> "rating4-id".equals(rating.getId())).count());
+    }
+
+    @Test
+    public void shouldFindAllSummariesByCriteria() throws Exception {
+        final Map<String, RatingSummary> summaries = ratingRepository.findSummariesByCriteria(new RatingCriteria.Builder().build());
+        assertEquals(2, summaries.size());
+        assertEquals(summaries.keySet(), Set.of("api", "api2"));
+        RatingSummary first = summaries.get("api");
+        assertEquals(first.getNumberOfRatings(), 3);
+        assertEquals(first.getAverageRate(), Double.valueOf((double) (1 + 2 + 5) / 3), 0.0001);
+
+        RatingSummary second = summaries.get("api2");
+        assertEquals(second.getAverageRate(), Double.valueOf(2));
+        assertEquals(second.getNumberOfRatings(), 1);
+    }
+
+    @Test
+    public void shouldComputeRanking() throws Exception {
+        final Set<String> ranking = ratingRepository.computeRanking(new RatingCriteria.Builder().build());
+        assertEquals(ranking, new LinkedHashSet<>(Arrays.asList("api", "api2")));
+    }
+
+    @Test
+    public void shouldFindSummariesByCriteria() throws Exception {
+        final Map<String, RatingSummary> summaries = ratingRepository.findSummariesByCriteria(
+            new RatingCriteria.Builder().referenceIds("api").referenceType(RatingReferenceType.API).gt(1).build()
+        );
+        assertEquals(1, summaries.size());
+        assertEquals(summaries.keySet(), Set.of("api"));
+        RatingSummary first = summaries.get("api");
+        assertEquals(first.getNumberOfRatings(), 2);
+        assertEquals(first.getAverageRate(), Double.valueOf((double) (2 + 5) / 2));
+    }
+
+    @Test
+    public void shouldComputeRankingWithCriteria() throws Exception {
+        final Set<String> ranking = ratingRepository.computeRanking(
+            new RatingCriteria.Builder().referenceIds("api").referenceType(RatingReferenceType.API).gt(1).build()
+        );
+        assertEquals(ranking, new LinkedHashSet<>(Arrays.asList("api")));
     }
 
     @Test

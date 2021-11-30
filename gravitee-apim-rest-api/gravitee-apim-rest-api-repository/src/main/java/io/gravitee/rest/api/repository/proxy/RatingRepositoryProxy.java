@@ -19,9 +19,12 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
+import io.gravitee.repository.management.model.RatingSummary;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -68,6 +71,16 @@ public class RatingRepositoryProxy extends AbstractProxy<RatingRepository> imple
     public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user)
         throws TechnicalException {
         return target.findByReferenceIdAndReferenceTypeAndUser(referenceId, referenceType, user);
+    }
+
+    @Override
+    public Map<String, RatingSummary> findSummariesByCriteria(RatingCriteria ratingCriteria) throws TechnicalException {
+        return target.findSummariesByCriteria(ratingCriteria);
+    }
+
+    @Override
+    public Set<String> computeRanking(RatingCriteria ratingCriteria) throws TechnicalException {
+        return target.computeRanking(ratingCriteria);
     }
 
     @Override

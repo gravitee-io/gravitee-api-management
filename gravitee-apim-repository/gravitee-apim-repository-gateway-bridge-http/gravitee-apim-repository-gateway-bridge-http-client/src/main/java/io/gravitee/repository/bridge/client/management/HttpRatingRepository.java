@@ -19,9 +19,12 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
+import io.gravitee.repository.management.model.RatingSummary;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -69,6 +72,16 @@ public class HttpRatingRepository extends AbstractRepository implements RatingRe
 
     @Override
     public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Map<String, RatingSummary> findSummariesByCriteria(RatingCriteria ratingCriteria) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<String> computeRanking(RatingCriteria ratingCriteria) {
         throw new IllegalStateException();
     }
 

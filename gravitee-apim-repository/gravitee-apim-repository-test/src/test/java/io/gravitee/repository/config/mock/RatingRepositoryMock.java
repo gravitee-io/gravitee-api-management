@@ -26,8 +26,14 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
+import io.gravitee.repository.management.model.RatingSummary;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -63,6 +69,45 @@ public class RatingRepositoryMock extends AbstractRepositoryMock<RatingRepositor
         when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser("api", RatingReferenceType.API, "user")).thenReturn(of(rating));
         when(ratingRepository.findByReferenceIdAndReferenceType("api", RatingReferenceType.API))
             .thenReturn(asList(rating, rating2, rating4));
+
+        Map<String, RatingSummary> summaries = new LinkedHashMap<>();
+
+        RatingSummary firstSummary = new RatingSummary();
+        firstSummary.setApi("api");
+        firstSummary.setNumberOfRatings(3);
+        firstSummary.setAverageRate(Double.valueOf((double) (1 + 2 + 5) / 3));
+        summaries.put("api", firstSummary);
+        RatingSummary secondSummary = new RatingSummary();
+        secondSummary.setApi("api2");
+        secondSummary.setAverageRate(Double.valueOf(2));
+        secondSummary.setNumberOfRatings(1);
+        summaries.put("api2", secondSummary);
+
+        when(ratingRepository.findSummariesByCriteria(eq(new RatingCriteria.Builder().build()))).thenReturn(summaries);
+
+        when(ratingRepository.computeRanking(eq(new RatingCriteria.Builder().build())))
+            .thenReturn(new LinkedHashSet<>(Arrays.asList("api", "api2")));
+
+        Map<String, RatingSummary> apiSummaries = new LinkedHashMap<>();
+        RatingSummary apiSummary = new RatingSummary();
+        apiSummary.setApi("api");
+        apiSummary.setAverageRate(Double.valueOf((double) (2 + 5) / 2));
+        apiSummary.setNumberOfRatings(2);
+        apiSummaries.put("api", apiSummary);
+
+        when(
+            ratingRepository.findSummariesByCriteria(
+                eq(new RatingCriteria.Builder().referenceType(RatingReferenceType.API).gt(1).referenceIds("api").build())
+            )
+        )
+            .thenReturn(apiSummaries);
+
+        when(
+            ratingRepository.computeRanking(
+                eq(new RatingCriteria.Builder().referenceType(RatingReferenceType.API).gt(1).referenceIds("api").build())
+            )
+        )
+            .thenReturn(new LinkedHashSet<>(Arrays.asList("api")));
     }
 
     private Rating mockRating(

@@ -22,11 +22,14 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
+import io.gravitee.repository.management.model.RatingSummary;
 import io.gravitee.repository.mongodb.management.internal.api.RatingMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.RatingMongo;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,6 +74,22 @@ public class MongoRatingRepository implements RatingRepository {
         );
         LOGGER.debug("Find rating by ref [{}] and user [{}] - DONE", referenceId, user);
         return ofNullable(map(rating));
+    }
+
+    @Override
+    public Map<String, RatingSummary> findSummariesByCriteria(RatingCriteria ratingCriteria) throws TechnicalException {
+        LOGGER.debug("Find rating by criteria [{}]", ratingCriteria);
+        final Map<String, RatingSummary> summaries = internalRatingRepository.findSummariesByCriteria(ratingCriteria);
+        LOGGER.debug("Find rating by criteria [{}] - DONE", ratingCriteria);
+        return summaries;
+    }
+
+    @Override
+    public Set<String> computeRanking(RatingCriteria ratingCriteria) throws TechnicalException {
+        LOGGER.debug("Find rating by criteria [{}]", ratingCriteria);
+        Set<String> ranking = internalRatingRepository.computeRanking(ratingCriteria);
+        LOGGER.debug("Find rating by criteria [{}] - DONE", ratingCriteria);
+        return ranking;
     }
 
     @Override

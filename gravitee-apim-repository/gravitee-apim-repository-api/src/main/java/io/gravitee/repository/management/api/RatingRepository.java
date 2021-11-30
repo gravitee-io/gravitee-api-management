@@ -18,10 +18,14 @@ package io.gravitee.repository.management.api;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
+import io.gravitee.repository.management.model.RatingSummary;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -43,4 +47,8 @@ public interface RatingRepository extends FindAllRepository<Rating> {
 
     Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user)
         throws TechnicalException;
+
+    Map<String, RatingSummary> findSummariesByCriteria(RatingCriteria ratingCriteria) throws TechnicalException;
+
+    Set<String> computeRanking(RatingCriteria ratingCriteria) throws TechnicalException;
 }

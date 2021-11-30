@@ -25,10 +25,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
 import io.gravitee.repository.management.model.RatingReferenceType;
+import io.gravitee.repository.management.model.RatingSummary;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -40,10 +42,7 @@ import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalDouble;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -219,6 +218,32 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find summary rating for api {}", api, ex);
             throw new TechnicalManagementException("An error occurred while trying to find summary rating for api " + api, ex);
+        }
+    }
+
+    @Override
+    public Map<String, RatingSummary> findRatingSummaries(Collection<String> apis) {
+        if (!isEnabled()) {
+            throw new ApiRatingUnavailableException();
+        }
+        try {
+            return ratingRepository.findSummariesByCriteria(new RatingCriteria.Builder().referenceIds(apis).build());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurred while trying to find rating summaries for apis {}", apis, ex);
+            throw new TechnicalManagementException("An error occurred while trying to find rating summaries for apis " + apis, ex);
+        }
+    }
+
+    @Override
+    public Set<String> computeRanking(Collection<String> apis) {
+        if (!isEnabled()) {
+            throw new ApiRatingUnavailableException();
+        }
+        try {
+            return ratingRepository.computeRanking(new RatingCriteria.Builder().referenceIds(apis).build());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurred while trying to compute ranking for apis {}", apis, ex);
+            throw new TechnicalManagementException("An error occurred while trying to compute ranking for apis " + apis, ex);
         }
     }
 

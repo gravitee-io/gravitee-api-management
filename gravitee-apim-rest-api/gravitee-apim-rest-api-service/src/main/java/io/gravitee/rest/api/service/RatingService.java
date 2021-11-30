@@ -17,8 +17,12 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.RatingSummary;
 import io.gravitee.rest.api.model.*;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -46,4 +50,8 @@ public interface RatingService {
     void deleteAnswer(String ratingId, String answerId);
 
     boolean isEnabled();
+
+    Map<String, RatingSummary> findRatingSummaries(Collection<String> apis);
+
+    Set<String> computeRanking(Collection<String> apis);
 }
