@@ -136,6 +136,14 @@
         </fileSet>
 
         <fileSet>
+            <directory>target/staging/tracers</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>*.zip</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
             <directory>target/staging</directory>
             <outputDirectory>boot</outputDirectory>
             <includes>
