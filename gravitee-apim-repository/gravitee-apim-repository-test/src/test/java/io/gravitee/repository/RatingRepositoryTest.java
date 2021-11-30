@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
@@ -133,6 +134,20 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals(1, ratings.stream().filter(rating -> "rating-id".equals(rating.getId())).count());
         assertEquals(1, ratings.stream().filter(rating -> "rating2-id".equals(rating.getId())).count());
         assertEquals(1, ratings.stream().filter(rating -> "rating4-id".equals(rating.getId())).count());
+    }
+
+    @Test
+    public void shouldFindReferenceIdsOrderByRate() throws Exception {
+        final Set<String> ranking = ratingRepository.findReferenceIdsOrderByRate(new RatingCriteria.Builder().build());
+        assertEquals(ranking, new LinkedHashSet<>(Arrays.asList("api", "api2")));
+    }
+
+    @Test
+    public void shouldFindReferenceIdsOrderByRateWithCriteria() throws Exception {
+        final Set<String> ranking = ratingRepository.findReferenceIdsOrderByRate(
+            new RatingCriteria.Builder().referenceIds("api").referenceType(RatingReferenceType.API).gt(1).build()
+        );
+        assertEquals(ranking, new LinkedHashSet<>(Arrays.asList("api")));
     }
 
     @Test

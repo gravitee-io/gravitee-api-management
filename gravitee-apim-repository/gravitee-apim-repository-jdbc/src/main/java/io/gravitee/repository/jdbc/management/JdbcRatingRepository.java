@@ -22,15 +22,15 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import java.sql.Types;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -136,6 +136,55 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
         } catch (final Exception ex) {
             LOGGER.error("Failed to find ratings by api:", ex);
             throw new TechnicalException("Failed to find ratings by api", ex);
+        }
+    }
+
+    private PreparedStatementSetter buildSummariesSetter(RatingCriteria ratingCriteria, boolean hasInClause) {
+        return ps -> {
+            ps.setString(1, ratingCriteria.getReferenceType().name());
+            ps.setInt(2, ratingCriteria.getGt());
+            if (hasInClause) {
+                getOrm().setArguments(ps, ratingCriteria.getReferenceIds(), 3);
+            }
+        };
+    }
+
+    private String buildSummariesQuery(RatingCriteria ratingCriteria, boolean hasInClause) {
+        StringBuilder queryBuilder = new StringBuilder(
+            "SELECT reference_id, avg(cast(rate as decimal)) as averageRate, count(rate) as numberOfRatings, max(updated_at) as lastUpdatedAt from "
+        )
+            .append(this.tableName)
+            .append(" where reference_type = ? and rate > ? ");
+
+        if (hasInClause) {
+            queryBuilder.append("and reference_id IN (").append(getOrm().buildInClause(ratingCriteria.getReferenceIds())).append(") ");
+        }
+        queryBuilder.append("group by reference_id order by averageRate desc, numberOfRatings desc, lastUpdatedAt desc");
+
+        return queryBuilder.toString();
+    }
+
+    @Override
+    public Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) throws TechnicalException {
+        LOGGER.debug("JdbcRatingRepository.findReferenceIdsOrderByRate({})", ratingCriteria.toString());
+        try {
+            boolean hasInClause = ratingCriteria.getReferenceIds() != null && !ratingCriteria.getReferenceIds().isEmpty();
+
+            return jdbcTemplate.query(
+                this.buildSummariesQuery(ratingCriteria, hasInClause),
+                this.buildSummariesSetter(ratingCriteria, hasInClause),
+                resultSet -> {
+                    Set<String> ranking = new LinkedHashSet<>();
+                    while (resultSet.next()) {
+                        String referenceId = resultSet.getString(1);
+                        ranking.add(referenceId);
+                    }
+                    return ranking;
+                }
+            );
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to compute ranking by criteria:", ex);
+            throw new TechnicalException("Failed to compute ranking by criteria", ex);
         }
     }
 }

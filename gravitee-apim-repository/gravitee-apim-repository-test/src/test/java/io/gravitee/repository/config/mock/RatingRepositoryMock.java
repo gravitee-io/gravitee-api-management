@@ -26,8 +26,11 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -63,6 +66,16 @@ public class RatingRepositoryMock extends AbstractRepositoryMock<RatingRepositor
         when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser("api", RatingReferenceType.API, "user")).thenReturn(of(rating));
         when(ratingRepository.findByReferenceIdAndReferenceType("api", RatingReferenceType.API))
             .thenReturn(asList(rating, rating2, rating4));
+
+        when(ratingRepository.findReferenceIdsOrderByRate(eq(new RatingCriteria.Builder().build())))
+            .thenReturn(new LinkedHashSet<>(Arrays.asList("api", "api2")));
+
+        when(
+            ratingRepository.findReferenceIdsOrderByRate(
+                eq(new RatingCriteria.Builder().referenceType(RatingReferenceType.API).gt(1).referenceIds("api").build())
+            )
+        )
+            .thenReturn(new LinkedHashSet<>(Arrays.asList("api")));
     }
 
     private Rating mockRating(

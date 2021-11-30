@@ -40,5 +40,15 @@
       "comment":"My comment4",
       "rate":2,
       "createdAt": 1586771200000
+   },
+   {
+      "id":"rating5-id",
+      "referenceId":"api3",
+      "referenceType": "API",
+      "user":"admin",
+      "title":"title5",
+      "comment":"My comment5",
+      "rate":0,
+      "createdAt": 1586771200000
    }
 ]
