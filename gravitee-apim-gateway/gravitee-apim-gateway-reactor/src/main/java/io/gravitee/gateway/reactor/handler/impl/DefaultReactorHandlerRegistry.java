@@ -41,7 +41,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     private final Map<Reactable, ReactorHandler> handlers = new ConcurrentHashMap<>();
     private final Map<Reactable, List<HandlerEntrypoint>> entrypointByReactable = new ConcurrentHashMap<>();
 
-    private final List<HandlerEntrypoint> registeredEntrypoints = new ArrayList<>();
+    private List<HandlerEntrypoint> registeredEntrypoints = new ArrayList<>();
     private final HandlerEntryPointComparator entryPointComparator = new HandlerEntryPointComparator();
 
     @Override
@@ -185,16 +185,22 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     }
 
     private void addEntrypoints(List<HandlerEntrypoint> reactableEntrypoints) {
-        synchronized (registeredEntrypoints) {
-            registeredEntrypoints.addAll(reactableEntrypoints);
-            registeredEntrypoints.sort(entryPointComparator);
+        synchronized (this) {
+            final ArrayList<HandlerEntrypoint> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
+            handlerEntrypoints.addAll(reactableEntrypoints);
+            handlerEntrypoints.sort(entryPointComparator);
+
+            registeredEntrypoints = handlerEntrypoints;
         }
     }
 
     private void removeEntrypoints(List<HandlerEntrypoint> previousEntrypoints) {
-        synchronized (registeredEntrypoints) {
-            registeredEntrypoints.removeAll(previousEntrypoints);
-            registeredEntrypoints.sort(entryPointComparator);
+        synchronized (this) {
+            final ArrayList<HandlerEntrypoint> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
+            handlerEntrypoints.removeAll(previousEntrypoints);
+            handlerEntrypoints.sort(entryPointComparator);
+
+            registeredEntrypoints = handlerEntrypoints;
         }
     }
 
