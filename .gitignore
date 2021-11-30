@@ -25,7 +25,7 @@ gravitee-**/target/
 **/dist-tsc/
 **/node_modules/
 **/npm-debug.log
-gravitee-**/node/
+gravitee-**-webui/node/
 **/.settings
 **/report.*.json
 **/.vscode

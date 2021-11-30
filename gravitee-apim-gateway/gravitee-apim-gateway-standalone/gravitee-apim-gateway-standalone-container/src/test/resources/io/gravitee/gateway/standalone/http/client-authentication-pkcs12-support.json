@@ -1,0 +1,58 @@
+{
+  "id": "api-test",
+  "name": "api-test",
+
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "endpoint-1",
+        "target": "https://localhost:8080/team"
+      }, {
+        "name": "endpoint-2",
+        "target": "https://localhost:8080/team",
+        "ssl": {
+          "trustAll": false,
+          "keyStore": {
+            "type": "PKCS12",
+            "path": "Defined programmatically",
+            "password": "password"
+          }
+        }
+      }, {
+        "name": "endpoint-3",
+        "target": "https://localhost:8080/team",
+        "ssl": {
+          "trustAll": false,
+          "keyStore": {
+            "type": "PKCS12",
+            "path": "Defined programmatically",
+            "password": "password"
+          },
+          "trustStore": {
+            "type": "PKCS12",
+            "path": "Defined programmatically",
+            "password": "password"
+          }
+        }
+      }, {
+        "name": "endpoint-4",
+        "target": "https://localhost:8080/team",
+        "ssl": {
+          "trustAll": true,
+          "keyStore": {
+            "type": "PKCS12",
+            "path": "Defined programmatically",
+            "password": "password"
+          }
+        }
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}
