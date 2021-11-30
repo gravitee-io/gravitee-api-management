@@ -102,6 +102,7 @@ public class ApiResource extends AbstractResource {
         }
     )
     public Response getApi() {
+        canReadApi(api);
         ApiEntity apiEntity = apiService.findById(api);
         if (hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
             setPictures(apiEntity);
