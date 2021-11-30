@@ -21,7 +21,6 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.services.heartbeat.codec.RepositoryManagementEventCodec;
 import io.gravitee.gateway.services.heartbeat.event.InstanceEventPayload;
 import io.gravitee.gateway.services.heartbeat.event.Plugin;
 import io.gravitee.node.api.Node;
@@ -130,7 +129,6 @@ public class HeartbeatService extends AbstractService implements MessageConsumer
             super.doStart();
             LOGGER.info("Start gateway heartbeat");
 
-            vertx.eventBus().registerCodec(new RepositoryManagementEventCodec());
             heartbeatEvent = prepareEvent();
             topic.publish(heartbeatEvent);
 

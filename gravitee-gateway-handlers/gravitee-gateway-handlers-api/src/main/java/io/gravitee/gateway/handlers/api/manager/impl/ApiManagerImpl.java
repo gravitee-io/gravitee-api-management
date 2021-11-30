@@ -26,12 +26,12 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.node.api.cache.*;
+import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.resource.cache.api.*;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiManagerImpl implements MapListener<String, Api>, ApiManager, InitializingBean {
+public class ApiManagerImpl implements CacheListener<String, Api>, ApiManager, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(ApiManagerImpl.class);
     private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
@@ -65,16 +65,16 @@ public class ApiManagerImpl implements MapListener<String, Api>, ApiManager, Ini
     @Autowired
     private DataEncryptor dataEncryptor;
 
-    private Map<String, Api> apis;
+    private Cache<String, Api> apis;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        apis = cacheManager.getMap("apis");
-        ((GMap<String, Api>) apis).addMapListener(this, true);
+        apis = cacheManager.getCache("apis");
+        apis.addCacheListener(this);
     }
 
     @Override
-    public void onEntryEvent(EntryEvent<String, Api> event) {
+    public void onEvent(EntryEvent<String, Api> event) {
         // Replication is only done for secondary nodes
         if (!clusterManager.isMasterNode()) {
             if (event.getEventType() == EntryEventType.ADDED) {
@@ -141,7 +141,7 @@ public class ApiManagerImpl implements MapListener<String, Api>, ApiManager, Ini
 
     @Override
     public void refresh() {
-        if (apis != null && !apis.isEmpty()) {
+        if (apis != null && apis.size() > 0) {
             final long begin = System.currentTimeMillis();
 
             logger.info("Starting apis refresh. {} apis to be refreshed.", apis.size());
@@ -150,6 +150,7 @@ public class ApiManagerImpl implements MapListener<String, Api>, ApiManager, Ini
             final ExecutorService refreshAllExecutor = createExecutor(Math.min(PARALLELISM, apis.size()));
 
             final List<Callable<Boolean>> toInvoke = apis
+                .getNativeCache()
                 .values()
                 .stream()
                 .map(api -> ((Callable<Boolean>) () -> register(api, true)))
@@ -181,7 +182,7 @@ public class ApiManagerImpl implements MapListener<String, Api>, ApiManager, Ini
                     logger.debug("\t- {}", plan.getName());
                 }
 
-                apis.put(api.getId(), api);
+                apis.put(new Element<>(api.getId(), api));
                 eventManager.publishEvent(ReactorEvent.DEPLOY, api);
                 logger.info("{} has been deployed", api);
             } else {
@@ -244,7 +245,7 @@ public class ApiManagerImpl implements MapListener<String, Api>, ApiManager, Ini
                 logger.info("\t- {}", plan.getName());
             }
 
-            apis.put(api.getId(), api);
+            apis.put(new Element<>(api.getId(), api));
             eventManager.publishEvent(ReactorEvent.UPDATE, api);
             logger.info("{} has been updated", api);
         } else {
@@ -256,7 +257,7 @@ public class ApiManagerImpl implements MapListener<String, Api>, ApiManager, Ini
     }
 
     private void undeploy(String apiId) {
-        Api currentApi = apis.remove(apiId);
+        Api currentApi = apis.evict(apiId);
         if (currentApi != null) {
             MDC.put("api", apiId);
             logger.debug("Undeployment of {}", currentApi);
@@ -285,19 +286,20 @@ public class ApiManagerImpl implements MapListener<String, Api>, ApiManager, Ini
 
     @Override
     public Collection<Api> apis() {
-        return apis.values();
+        return apis.getNativeCache().values();
     }
 
     @Override
     public Api get(String name) {
-        return apis.get(name);
+        Element<String, Api> element = apis.get(name);
+        return element == null ? null : element.getValue();
     }
 
     public void setEventManager(EventManager eventManager) {
         this.eventManager = eventManager;
     }
 
-    public void setApis(Map<String, Api> apis) {
+    public void setApis(Cache<String, Api> apis) {
         this.apis = apis;
     }
 }
