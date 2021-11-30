@@ -22,19 +22,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway</groupId>
-        <artifactId>gravitee-gateway</artifactId>
+        <groupId>io.gravitee.apim.gateway</groupId>
+        <artifactId>gravitee-apim-gateway</artifactId>
         <version>3.14.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway.standalone</groupId>
-    <artifactId>gravitee-gateway-standalone</artifactId>
+    <groupId>io.gravitee.apim.gateway.standalone</groupId>
+    <artifactId>gravitee-apim-gateway-standalone</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Standalone</name>
 
     <modules>
-        <module>gravitee-gateway-standalone-container</module>
-        <module>gravitee-gateway-standalone-distribution</module>
-        <module>gravitee-gateway-standalone-bootstrap</module>
+        <module>gravitee-apim-gateway-standalone-container</module>
+        <module>gravitee-apim-gateway-standalone-distribution</module>
+        <module>gravitee-apim-gateway-standalone-bootstrap</module>
     </modules>
 </project>

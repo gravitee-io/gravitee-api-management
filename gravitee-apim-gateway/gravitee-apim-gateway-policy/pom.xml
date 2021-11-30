@@ -22,37 +22,37 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway</groupId>
-        <artifactId>gravitee-gateway</artifactId>
+        <groupId>io.gravitee.apim.gateway</groupId>
+        <artifactId>gravitee-apim-gateway</artifactId>
         <version>3.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-policy</artifactId>
+    <artifactId>gravitee-apim-gateway-policy</artifactId>
     <name>Gravitee.io APIM - Gateway - Policy</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-reactor</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-reactor</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-core</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-resource</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-resource</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-buffer</artifactId>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-buffer</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
