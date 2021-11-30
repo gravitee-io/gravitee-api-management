@@ -23,7 +23,6 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.resource.cache.api.Cache;
 import io.gravitee.resource.cache.api.Element;
-
 import java.util.*;
 
 /**
