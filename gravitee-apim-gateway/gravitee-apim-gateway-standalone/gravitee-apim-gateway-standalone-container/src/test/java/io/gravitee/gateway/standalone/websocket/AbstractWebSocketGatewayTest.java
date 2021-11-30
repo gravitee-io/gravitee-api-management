@@ -16,12 +16,17 @@
 package io.gravitee.gateway.standalone.websocket;
 
 import io.gravitee.gateway.standalone.AbstractGatewayTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
+
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     static {
         System.setProperty("vertx.disableWebsockets", Boolean.FALSE.toString());
     }
