@@ -115,6 +115,11 @@
             <version>${gravitee-node.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-cache</artifactId>
+        </dependency>
+
         <!-- Vert.x -->
         <dependency>
             <groupId>io.vertx</groupId>

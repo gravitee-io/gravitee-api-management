@@ -20,6 +20,8 @@ import static io.gravitee.repository.management.model.Subscription.Status.*;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.resource.cache.api.Cache;
+import io.gravitee.resource.cache.api.Element;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
@@ -35,7 +37,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
 
     private SubscriptionRepository subscriptionRepository;
 
-    private Map<String, Object> cache;
+    private Cache<String, Object> cache;
 
     protected Result<Boolean> doRefresh(SubscriptionCriteria criteria) {
         logger.debug("Refresh api-keys");
@@ -52,14 +54,14 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
     private void saveOrUpdate(Subscription subscription) {
         String key = subscription.getApi() + '-' + subscription.getClientId();
 
-        Object element = cache.get(subscription.getId());
+        Element<String, Object> element = cache.get(subscription.getId());
 
         if ((CLOSED.equals(subscription.getStatus()) || PAUSED.equals(subscription.getStatus())) && element != null) {
-            cache.remove(subscription.getId());
-            String oldKey = (String) element;
-            Subscription eltSubscription = (Subscription) cache.get(oldKey);
+            cache.evict(subscription.getId());
+            String oldKey = (String) element.getValue();
+            Subscription eltSubscription = cache.get(oldKey) != null ? ((Subscription) cache.get(oldKey).getValue()) : null;
             if (eltSubscription != null && eltSubscription.getId().equals(subscription.getId())) {
-                cache.remove(oldKey);
+                cache.evict(oldKey);
             }
         } else if (ACCEPTED.equals(subscription.getStatus())) {
             logger.debug(
@@ -68,7 +70,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
                 subscription.getApplication(),
                 subscription.getClientId()
             );
-            cache.put(subscription.getId(), key);
+            cache.put(new Element<>((subscription.getId()), key));
 
             // Delete useless information to preserve memory
             subscription.setGeneralConditionsContentPageId(null);
@@ -77,12 +79,12 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
             subscription.setSubscribedBy(null);
             subscription.setProcessedBy(null);
 
-            cache.put(key, subscription);
+            cache.put(new Element<>(key, subscription));
 
             if (element != null) {
-                final String oldKey = (String) element;
+                final String oldKey = (String) element.getValue();
                 if (!oldKey.equals(key)) {
-                    cache.remove(oldKey);
+                    cache.evict(oldKey);
                 }
             }
         }
@@ -92,7 +94,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
         this.subscriptionRepository = subscriptionRepository;
     }
 
-    public void setCache(Map<String, Object> cache) {
+    public void setCache(Cache<String, Object> cache) {
         this.cache = cache;
     }
 }

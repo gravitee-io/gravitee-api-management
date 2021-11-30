@@ -18,6 +18,8 @@ package io.gravitee.gateway.services.sync.cache;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.resource.cache.api.Element;
+import io.gravitee.resource.cache.standalone.StandaloneCache;
 import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +30,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiKeysCacheTest {
 
-    private final ApiKeysCache apiKeysCache = new ApiKeysCache(new HashMap<>());
+    private final ApiKeysCache apiKeysCache = new ApiKeysCache(new StandaloneCache<>("api-key-cache-test", 0));
 
     @Mock
     private ApiKey cachedApiKey1;
@@ -41,9 +43,9 @@ public class ApiKeysCacheTest {
 
     @Before
     public void initInternalCache() {
-        apiKeysCache.cache.put("another-apiId.another-key", cachedApiKey1);
-        apiKeysCache.cache.put("api-id.key-id", cachedApiKey2);
-        apiKeysCache.cache.put("another-apiId2.another-key", cachedApiKey3);
+        apiKeysCache.cache.put(new Element<>("another-apiId.another-key", cachedApiKey1));
+        apiKeysCache.cache.put(new Element<>("api-id.key-id", cachedApiKey2));
+        apiKeysCache.cache.put(new Element<>("another-apiId2.another-key", cachedApiKey3));
     }
 
     @Test
@@ -68,7 +70,7 @@ public class ApiKeysCacheTest {
 
         apiKeysCache.put(apiKey);
 
-        assertSame(apiKey, apiKeysCache.cache.get("api-id6.key-id"));
+        assertSame(apiKey, apiKeysCache.cache.get("api-id6.key-id").getValue());
     }
 
     @Test
@@ -80,6 +82,6 @@ public class ApiKeysCacheTest {
         apiKeysCache.remove(apiKey);
 
         assertEquals(2, apiKeysCache.cache.size());
-        assertFalse(apiKeysCache.cache.containsKey("api-id.key-id"));
+        assertNull(apiKeysCache.cache.get("api-id.key-id"));
     }
 }
