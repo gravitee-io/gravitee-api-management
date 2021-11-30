@@ -106,6 +106,7 @@
         <json-path.version>2.4.0</json-path.version>
         <jsoup.version>1.10.1</jsoup.version>
         <lucene.version>7.5.0</lucene.version>
+        <netty-tcnative-boringssl-static.version>2.0.42.Final</netty-tcnative-boringssl-static.version>
         <nimbus-jose-jwt.version>8.19</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20191001.1</owasp-java-html-sanitizer.version>
         <powermock.version>2.0.9</powermock.version>
@@ -419,6 +420,13 @@
                 <groupId>io.github.classgraph</groupId>
                 <artifactId>classgraph</artifactId>
                 <version>${classgraph.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-tcnative-boringssl-static</artifactId>
+                <version>${netty-tcnative-boringssl-static.version}</version>
+                <classifier>linux-x86_64</classifier>
             </dependency>
 
             <dependency>

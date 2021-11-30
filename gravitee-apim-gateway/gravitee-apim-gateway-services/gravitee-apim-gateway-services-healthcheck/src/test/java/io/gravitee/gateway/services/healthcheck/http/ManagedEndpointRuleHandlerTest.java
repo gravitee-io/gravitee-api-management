@@ -34,11 +34,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.core.env.Environment;
 
 import java.util.Collections;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,15 +54,19 @@ public class ManagedEndpointRuleHandlerTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
+
+    private Environment environment;
     private Vertx vertx;
 
     @Before
-    public void before(TestContext context) {
+    public void before() {
         vertx = Vertx.vertx();
+        environment = mock(Environment.class);
+        when(environment.getProperty("http.ssl.openssl", Boolean.class, false)).thenReturn(false);
     }
 
     @Test
-    public void shouldNotValidate_invalidEndpoint(TestContext context) {
+    public void shouldNotValidate_invalidEndpoint(TestContext context) throws Exception {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/"))
                 .willReturn(notFound()));
@@ -80,7 +86,7 @@ public class ManagedEndpointRuleHandlerTest {
 
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, environment);
         Async async = context.async();
 
         // Verify
@@ -101,7 +107,7 @@ public class ManagedEndpointRuleHandlerTest {
     }
 
     @Test
-    public void shouldValidate(TestContext context) throws InterruptedException {
+    public void shouldValidate(TestContext context) throws Exception {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/"))
                 .willReturn(ok("{\"status\": \"green\"}")));
@@ -121,7 +127,7 @@ public class ManagedEndpointRuleHandlerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, environment);
 
         Async async = context.async();
 
@@ -143,7 +149,7 @@ public class ManagedEndpointRuleHandlerTest {
     }
 
     @Test
-    public void shouldNotValidate_invalidResponseBody(TestContext context) throws InterruptedException {
+    public void shouldNotValidate_invalidResponseBody(TestContext context) throws Exception {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/"))
                 .willReturn(ok("{\"status\": \"yellow\"}")));
@@ -163,7 +169,7 @@ public class ManagedEndpointRuleHandlerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, environment);
 
         Async async = context.async();
 
@@ -191,7 +197,7 @@ public class ManagedEndpointRuleHandlerTest {
     }
 
     @Test
-    public void shouldValidateFromRoot(TestContext context) throws InterruptedException {
+    public void shouldValidateFromRoot(TestContext context) throws Exception {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/"))
                 .willReturn(ok()));
@@ -214,7 +220,7 @@ public class ManagedEndpointRuleHandlerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, environment);
 
         Async async = context.async();
 

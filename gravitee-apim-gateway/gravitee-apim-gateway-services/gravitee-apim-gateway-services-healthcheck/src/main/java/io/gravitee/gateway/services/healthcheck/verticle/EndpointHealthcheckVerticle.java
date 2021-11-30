@@ -38,8 +38,10 @@ import io.vertx.core.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,7 +67,10 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     @Autowired
     private Node node;
 
-    private final Map<Api, List<EndpointRuleTrigger>> apiTimers = new HashMap<>();
+    @Autowired
+    private Environment environment;
+
+    private final Map<Api, List<EndpointRuleTrigger>> apiTimers = new ConcurrentHashMap<>();
 
     @Override
     public void start(final Future<Void> startedResult) {
@@ -133,25 +138,32 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void addTrigger(Api api, EndpointRule rule) {
-        EndpointRuleHandler runner = rule.createRunner(vertx, rule);
-        runner.setStatusHandler(statusReporter);
-        runner.setAlertEventProducer(alertEventProducer);
-        runner.setNode(node);
+        try {
+            EndpointRuleHandler runner = rule.createRunner(vertx, rule, environment);
+            runner.setStatusHandler(statusReporter);
+            runner.setAlertEventProducer(alertEventProducer);
+            runner.setNode(node);
 
-        long timerId = vertx.setPeriodic(getDelayMillis(rule.trigger()), runner);
-        apiTimers.get(api).add(new EndpointRuleTrigger(timerId, rule.endpoint()));
+            long timerId = vertx.setPeriodic(getDelayMillis(rule.trigger()), runner);
+            apiTimers.get(api).add(new EndpointRuleTrigger(timerId, runner, rule.endpoint()));
 
-        LOGGER.debug("Add health-check trigger id[{}] for endpoint name[{}] target[{}] each rate[{}] unit[{}]",
-                timerId,
-                rule.endpoint().getName(), rule.endpoint().getTarget(),
-                rule.trigger().getRate(), rule.trigger().getUnit());
+            LOGGER.debug("Add health-check trigger id[{}] for endpoint name[{}] target[{}] each rate[{}] unit[{}]",
+                    timerId,
+                    rule.endpoint().getName(), rule.endpoint().getTarget(),
+                    rule.trigger().getRate(), rule.trigger().getUnit());
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while creating an health-check runner", ex);
+        }
     }
 
     private void removeTriggers(Api api) {
         List<EndpointRuleTrigger> triggers = apiTimers.remove(api);
         if (triggers != null) {
             LOGGER.debug("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
-            triggers.forEach(trigger -> vertx.cancelTimer(trigger.getTimerId()));
+            triggers.forEach(trigger -> {
+                vertx.cancelTimer(trigger.getTimerId());
+                trigger.getEndpointRuleHandler().close();
+            });
         }
     }
 
@@ -167,6 +179,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
                         trigger.getTimerId(),
                         endpoint.getName(), endpoint.getType(), endpoint.getTarget());
                 vertx.cancelTimer(trigger.getTimerId());
+                trigger.getEndpointRuleHandler().close();
                 endpointRuleTriggers.remove(trigger);
             });
         }
@@ -208,15 +221,21 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     private class EndpointRuleTrigger {
         private final long timerId;
+        private final EndpointRuleHandler ruleHandler;
         private final Endpoint endpoint;
 
-        EndpointRuleTrigger(long timerId, Endpoint endpoint) {
+        EndpointRuleTrigger(long timerId, EndpointRuleHandler ruleHandler, Endpoint endpoint) {
             this.timerId = timerId;
+            this.ruleHandler = ruleHandler;
             this.endpoint = endpoint;
         }
 
         long getTimerId() {
             return timerId;
+        }
+
+        public EndpointRuleHandler getEndpointRuleHandler() {
+            return ruleHandler;
         }
 
         Endpoint getEndpoint() {

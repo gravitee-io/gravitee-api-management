@@ -300,6 +300,12 @@
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
     </dependencies>
 
     <build>

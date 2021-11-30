@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.healthcheck.grpc;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.endpoint.GrpcEndpoint;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRuleHandler;
 import io.vertx.core.Vertx;
@@ -25,6 +26,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpVersion;
+import org.springframework.core.env.Environment;
 
 import java.net.URI;
 
@@ -36,8 +38,8 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<GrpcEndpoin
 
     private static final String GRPC_TRAILERS_TE = "trailers";
 
-    GrpcEndpointRuleHandler(Vertx vertx, EndpointRule<GrpcEndpoint> rule) {
-        super(vertx, rule);
+    GrpcEndpointRuleHandler(Vertx vertx, EndpointRule<GrpcEndpoint> rule, Environment environment) throws Exception {
+        super(vertx, rule, environment);
     }
 
     @Override
@@ -55,8 +57,8 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<GrpcEndpoin
     }
 
     @Override
-    protected HttpClientOptions createHttpClientOptions(final URI requestUri) throws Exception {
-        HttpClientOptions httpClientOptions = super.createHttpClientOptions(requestUri);
+    protected HttpClientOptions createHttpClientOptions(final GrpcEndpoint endpoint, final URI requestUri) throws Exception {
+        HttpClientOptions httpClientOptions = super.createHttpClientOptions((HttpEndpoint) endpoint, requestUri);
 
         // Force HTTP_2 and disable Upgrade
         httpClientOptions.setProtocolVersion(HttpVersion.HTTP_2)

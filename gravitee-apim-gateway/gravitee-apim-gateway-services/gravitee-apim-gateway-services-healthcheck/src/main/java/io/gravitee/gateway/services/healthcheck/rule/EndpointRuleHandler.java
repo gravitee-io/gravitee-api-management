@@ -43,6 +43,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -81,18 +82,31 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     private static final String PROP_MESSAGE = "message";
 
     protected final EndpointRule<T> rule;
-    private final Vertx vertx;
+    protected final Environment environment;
     private final EndpointStatusDecorator endpointStatus;
     private Handler<EndpointStatus> statusHandler;
 
     private AlertEventProducer alertEventProducer;
     private Node node;
 
-    public EndpointRuleHandler(Vertx vertx, EndpointRule<T> rule) {
-        this.vertx = vertx;
+    private final HttpClient httpClient;
+
+    public EndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, Environment environment) throws Exception{
         this.rule = rule;
+        this.environment = environment;
 
         endpointStatus = new EndpointStatusDecorator(rule.endpoint());
+
+        if (! rule.steps().isEmpty()) {
+            // For now, we only allow one step per rule.
+            URI uri = createRequest(rule.endpoint(), rule.steps().get(0));
+
+            HttpClientOptions clientOptions = createHttpClientOptions(rule.endpoint(), uri);
+            httpClient = vertx.createHttpClient(clientOptions);
+
+        } else {
+            httpClient = null;
+        }
     }
 
     @Override
@@ -106,13 +120,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         }
     }
 
-    protected abstract HttpClientOptions createHttpClientOptions(final URI requestUri) throws Exception;
-
-    protected HttpClient createHttpClient(final URI requestUri) throws Exception {
-        HttpClientOptions options = createHttpClientOptions(requestUri);
-
-        return vertx.createHttpClient(options);
-    }
+    protected abstract HttpClientOptions createHttpClientOptions(final T endpoint, final URI requestUri) throws Exception;
 
     protected HttpClientRequest createHttpClientRequest(final HttpClient httpClient, URI request, io.gravitee.definition.model.services.healthcheck.Step step) throws Exception {
         final int port = request.getPort() != -1 ? request.getPort() :
@@ -171,7 +179,6 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             try {
                 URI hcRequestUri = createRequest(endpoint, step);
 
-                HttpClient httpClient = createHttpClient(hcRequestUri);
                 HttpClientRequest healthRequest = createHttpClientRequest(httpClient, hcRequestUri, step);
 
                 final EndpointStatus.Builder healthBuilder = EndpointStatus
@@ -224,14 +231,9 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                         healthBuilder.step(stepBuilder.build());
 
                         report(healthBuilder.build());
-
-                        // Close client
-                        httpClient.close();
                     });
                     response.exceptionHandler(throwable -> {
                         logger.error("An error has occurred during Health check response handler", throwable);
-                        // Close client
-                        httpClient.close();
                     });
                 });
 
@@ -269,13 +271,6 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     healthBuilder.step(result);
 
                     report(healthBuilder.build());
-
-                    try {
-                        // Close client
-                        httpClient.close();
-                    } catch (IllegalStateException ise) {
-                        // Do not take care about exception when closing client
-                    }
                 });
 
                 // Send request
@@ -368,5 +363,11 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     public void setNode(Node node) {
         this.node = node;
+    }
+
+    public void close() {
+        if (httpClient != null) {
+            httpClient.close();
+        }
     }
 }
