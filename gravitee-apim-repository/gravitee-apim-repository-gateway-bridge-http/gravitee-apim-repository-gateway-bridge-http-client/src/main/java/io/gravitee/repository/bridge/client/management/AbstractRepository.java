@@ -23,6 +23,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -67,7 +68,7 @@ public abstract class AbstractRepository implements InitializingBean {
     <T> T blockingGet(Future<T> future) throws TechnicalException {
         VertxCompletableFuture<T> completable = VertxCompletableFuture.from(vertx, future);
         try {
-            return completable.get();
+            return completable.get(10, TimeUnit.SECONDS);
         } catch (Exception ex) {
             logger.error("Unexpected error while invoking bridge: {}", ex.getMessage());
             throw new TechnicalException(ex);
