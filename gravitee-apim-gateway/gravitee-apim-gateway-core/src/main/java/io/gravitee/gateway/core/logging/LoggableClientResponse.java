@@ -70,12 +70,23 @@ public class LoggableClientResponse implements Response {
     }
 
     @Override
+    public void end() {
+        calculate(buffer);
+        response.end();
+    }
+
+    @Override
     public Response endHandler(Handler<Void> endHandler) {
-        writeClientResponseLog(buffer);
         return response.endHandler(endHandler);
     }
 
-    private void writeClientResponseLog(Buffer buffer) {
+    @Override
+    public void end(Buffer buffer) {
+        calculate(buffer);
+        response.end(buffer);
+    }
+
+    private void calculate(Buffer buffer) {
         // Check if log is not already write by GDPR policy
         if (LoggingUtils.isResponseHeadersLoggable(context) && log.getClientResponse().getHeaders() == null) {
             // Here we are sure that headers has been full processed by policies
