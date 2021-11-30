@@ -1,0 +1,22 @@
+{
+  "id": "api-test",
+  "name": "api-test",
+
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/team"
+      }
+    ],
+    "strip_context_path": false,
+    "dumpRequest": true,
+    "multiTenant": true
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+io.gravitee.gateway.policy.ConfigurablePolicyChainProvider=\
+    io.gravitee.gateway.platform.providers.OnRequestPlatformPolicyChainProvider,\
+    io.gravitee.gateway.platform.providers.OnResponsePlatformPolicyChainProvider
