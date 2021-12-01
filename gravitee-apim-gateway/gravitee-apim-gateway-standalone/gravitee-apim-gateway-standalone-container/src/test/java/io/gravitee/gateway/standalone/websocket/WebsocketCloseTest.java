@@ -64,6 +64,7 @@ public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
             "/test",
             event -> {
                 if (event.failed()) {
+                    logger.error("An error occurred during websocket call", event.cause());
                     Assert.fail();
                 } else {
                     final WebSocket webSocket = event.result();
