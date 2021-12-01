@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HeartbeatService extends AbstractService implements MessageListener<Event>, InitializingBean {
+public class HeartbeatService extends AbstractService<HeartbeatService> implements MessageListener<Event>, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatService.class);
 
@@ -124,8 +124,7 @@ public class HeartbeatService extends AbstractService implements MessageListener
             heartbeatEvent = prepareEvent();
             topic.publish(heartbeatEvent);
 
-            // Remove the state to not include it in the underlying repository as it's just used for internal
-            // purpose
+            // Remove the state to not include it in the underlying repository as it's just used for internal purpose
             heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
 
             executorService = Executors.newSingleThreadScheduledExecutor(
@@ -154,16 +153,20 @@ public class HeartbeatService extends AbstractService implements MessageListener
                 } else {
                     eventRepository.update(event);
                 }
-            } catch (Exception ex) {
-                LOGGER.error("An error occurs while pushing heartbeat event id[{}] type[{}]", event.getId(), event.getType(), ex);
-                // Push back the event into the topic in case of error
+            } catch (IllegalStateException isex) {
+                // We make the assumption that an IllegalStateException is thrown when trying to update the event while it is not existing in the database anymore.
+                // This can be cause, for instance, by a db event cleanup without taking care of the heartbeat event.
+                event.getProperties().put(EVENT_STATE_PROPERTY, "recreate");
                 topic.publish(event);
+            } catch (Exception ex) {
+                // We assume to loose the event if something goes wrong and not republish it to avoid infinite loop and cpu starving. It will be overridden by the next heartbeat event.
+                LOGGER.warn("An error occurred while pushing heartbeat event id[{}] type[{}]. Message is: {}", event.getId(), event.getType(), ex.getMessage());
             }
         }
     }
 
     @Override
-    public Object preStop() throws Exception {
+    public HeartbeatService preStop() throws Exception {
         if (enabled) {
             heartbeatEvent.setType(EventType.GATEWAY_STOPPED);
             heartbeatEvent.getProperties().put(EVENT_STOPPED_AT_PROPERTY, Long.toString(new Date().getTime()));
