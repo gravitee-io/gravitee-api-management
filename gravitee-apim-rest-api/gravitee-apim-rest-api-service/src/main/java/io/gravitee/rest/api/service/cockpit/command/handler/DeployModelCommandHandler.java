@@ -23,7 +23,7 @@ import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
 import io.gravitee.cockpit.api.command.designer.DeployModelReply;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntityResult;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
@@ -84,7 +84,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
             final UserEntity user = userService.findBySource("cockpit", userId, false);
             final EnvironmentEntity environment = environmentService.findByCockpitId(environmentId);
 
-            ApiEntity api;
+            ApiEntityResult result;
 
             if (apiService.exists(apiId)) {
                 var message = permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), apiId, mode);
@@ -95,7 +95,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                     return Single.just(reply);
                 }
 
-                api = cockpitApiService.updateApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
+                result = cockpitApiService.updateApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
             } else {
                 var message = permissionChecker.checkCreatePermission(user.getId(), environment.getId(), mode);
 
@@ -105,11 +105,18 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                     return Single.just(reply);
                 }
 
-                api = cockpitApiService.createApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
+                result = cockpitApiService.createApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
             }
-            logger.info("Api imported [{}].", api.getId());
 
-            return Single.just(new DeployModelReply(command.getId(), CommandStatus.SUCCEEDED));
+            if (result.isSuccess()) {
+                logger.info("Api imported [{}].", result.getApi().getId());
+
+                return Single.just(new DeployModelReply(command.getId(), CommandStatus.SUCCEEDED));
+            }
+            logger.error("Failed to import API [{}].", result.getErrorMessage());
+            var reply = new DeployModelReply(command.getId(), CommandStatus.FAILED);
+            reply.setMessage(result.getErrorMessage());
+            return Single.just(reply);
         } catch (Exception e) {
             logger.error("Error occurred when importing api [{}].", payload.getModelId(), e);
             return Single.just(new DeployModelReply(command.getId(), CommandStatus.ERROR));
