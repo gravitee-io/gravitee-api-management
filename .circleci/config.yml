@@ -24,7 +24,7 @@ commands:
         steps:
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
 
     notify-on-failure:
         steps:
@@ -165,7 +165,7 @@ jobs:
             - save_cache:
                   paths:
                       - ~/.m2
-                  key: gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
             - persist_to_workspace:
                   root: ./
