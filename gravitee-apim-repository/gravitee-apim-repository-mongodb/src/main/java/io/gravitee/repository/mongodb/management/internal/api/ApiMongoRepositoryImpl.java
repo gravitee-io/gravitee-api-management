@@ -15,10 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Filters.in;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mongodb.client.AggregateIterable;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.VirtualHost;
@@ -26,8 +29,13 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,5 +140,27 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         }
 
         return new Page<>(apis, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+    }
+
+    @Override
+    public Set<String> listCategories(ApiCriteria apiCriteria) {
+        List<Bson> aggregations = new ArrayList<>();
+        if (apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty()) {
+            aggregations.add(match(in("_id", apiCriteria.getIds())));
+        }
+        aggregations.add(unwind("$categories"));
+        aggregations.add(group("$categories"));
+
+        AggregateIterable<Document> distinctCategories = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(ApiMongo.class))
+            .aggregate(aggregations);
+        Set<String> categories = new LinkedHashSet<>();
+        distinctCategories.forEach(
+            document -> {
+                String category = document.getString("_id");
+                categories.add(category);
+            }
+        );
+        return categories;
     }
 }

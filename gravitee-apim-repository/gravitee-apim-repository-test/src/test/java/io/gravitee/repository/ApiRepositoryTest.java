@@ -381,4 +381,24 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update", "grouped-api")));
         assertEquals(3, apis.stream().filter(api -> api.getDefinition().contains("\"context_path\" : \"/product\"")).count());
     }
+
+    @Test
+    public void shouldListCategories() throws TechnicalException {
+        final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().build());
+        assertNotNull(categories);
+        Set<String> expectedCategories = new LinkedHashSet<>();
+        expectedCategories.add("cycling");
+        expectedCategories.add("my-category");
+        expectedCategories.add("hiking");
+        assertEquals(expectedCategories, categories);
+    }
+
+    @Test
+    public void shouldListCategoriesWithCriteria() throws TechnicalException {
+        final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().ids("api-to-findById").build());
+        assertNotNull(categories);
+        Set<String> expectedCategories = new LinkedHashSet<>();
+        expectedCategories.add("my-category");
+        assertEquals(expectedCategories, categories);
+    }
 }

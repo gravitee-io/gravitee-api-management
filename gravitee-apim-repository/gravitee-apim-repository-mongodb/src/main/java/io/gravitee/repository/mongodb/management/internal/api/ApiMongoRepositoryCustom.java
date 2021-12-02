@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -27,4 +28,6 @@ import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
  */
 public interface ApiMongoRepositoryCustom {
     Page<ApiMongo> search(ApiCriteria criteria, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
+
+    Set<String> listCategories(ApiCriteria apiCriteria);
 }

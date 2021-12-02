@@ -85,4 +85,9 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     public Set<Api> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

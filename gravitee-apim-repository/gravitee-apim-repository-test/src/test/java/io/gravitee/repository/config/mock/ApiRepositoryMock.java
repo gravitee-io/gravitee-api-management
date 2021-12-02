@@ -25,6 +25,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -33,9 +34,13 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
-import java.util.Arrays;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.mockito.internal.util.collections.Sets;
 
 /**
@@ -167,5 +172,15 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
             .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));
         when(apiRepository.search(new ApiCriteria.Builder().contextPath("/product").build()))
             .thenReturn(asList(apiToDelete, apiToUpdate, groupedApi));
+
+        Set<String> categories = new LinkedHashSet<>();
+        categories.add("cycling");
+        categories.add("my-category");
+        categories.add("hiking");
+        when(apiRepository.listCategories(eq(new ApiCriteria.Builder().build()))).thenReturn(categories);
+
+        Set<String> apiCategories = new LinkedHashSet<>();
+        apiCategories.add("my-category");
+        when(apiRepository.listCategories(eq(new ApiCriteria.Builder().ids("api-to-findById").build()))).thenReturn(apiCategories);
     }
 }
