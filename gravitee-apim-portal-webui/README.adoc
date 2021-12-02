@@ -64,12 +64,6 @@ popd
 This project use project https://github.com/OpenAPITools/openapi-generator[openapi-generator] to generate a client sdk with openapi file.
 If you want to generate the client, run `npm run update:sdk`
 
-IMPORTANT: Don't forget to fix generation https://github.com/OpenAPITools/openapi-generator/issues/2154[BUG] for files:
-
-- `api/analytics.service.ts`
-- `api/application.service.ts`
-- `api/api.ts`
-
 == Review
 
 If you want review a pull request with changes on https://github.com/gravitee-io/gravitee-ui-components[Gravitee UI Components] dependency, you can use link:scripts/install.sh[]
