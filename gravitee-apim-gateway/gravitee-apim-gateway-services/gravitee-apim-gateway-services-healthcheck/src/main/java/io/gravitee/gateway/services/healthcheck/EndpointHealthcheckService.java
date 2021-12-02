@@ -36,9 +36,8 @@ public class EndpointHealthcheckService extends AbstractService {
     private String deploymentId;
 
     @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-
+    public Object preStart() throws Exception {
+        // Start the service on the preStart phase to be ready when other services will start.
         final EndpointHealthcheckVerticle healthcheckVerticle = new EndpointHealthcheckVerticle();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(healthcheckVerticle);
 
@@ -52,6 +51,12 @@ public class EndpointHealthcheckService extends AbstractService {
                 deploymentId = event.result();
             }
         );
+        return this;
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
     }
 
     @Override

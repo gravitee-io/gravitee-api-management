@@ -795,6 +795,7 @@
                         <exclude>**/.*/**</exclude>
                         <exclude>**/*.adoc</exclude>
                         <exclude>**/LICENSE_TEMPLATE.txt</exclude>
+                        <exclude>**/sonar-project.properties</exclude>
                     </excludes>
                     <mapping>
                         <ts>SLASHSTAR_STYLE</ts>

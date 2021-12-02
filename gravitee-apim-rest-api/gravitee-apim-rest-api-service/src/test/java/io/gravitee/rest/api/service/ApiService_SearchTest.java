@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -36,7 +39,10 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.search.query.Query;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -100,6 +106,9 @@ public class ApiService_SearchTest {
 
     @Spy
     private ApiConverter apiConverter;
+
+    @Mock
+    private SearchEngineService searchEngineService;
 
     @Before
     public void setUp() {
@@ -167,5 +176,51 @@ public class ApiService_SearchTest {
         assertEquals(2, apiPage.getPageNumber());
         assertEquals(1, apiPage.getPageElements());
         assertEquals(2, apiPage.getTotalElements());
+    }
+
+    @Test
+    public void shouldSearchPaginatedAndKeepOrder() {
+        final Api api1 = new Api();
+        api1.setId("api1");
+        api1.setName("APITest");
+
+        final Api api2 = new Api();
+        api2.setId("api2");
+        api2.setName("API Test with long name");
+
+        final Api api3 = new Api();
+        api3.setId("api3");
+        api3.setName("API Test");
+
+        final SearchResult searchResult = new SearchResult(Arrays.asList(api3.getId(), api1.getId(), api2.getId()));
+
+        when(searchEngineService.search(any(Query.class))).thenReturn(searchResult);
+
+        when(apiRepository.search(new ApiCriteria.Builder().ids(api3.getId(), api1.getId(), api2.getId()).build()))
+            .thenReturn(Arrays.asList(api3, api1, api2));
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId("API_PRIMARY_OWNER");
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
+
+        MemberEntity poMember = new MemberEntity();
+        poMember.setId("admin");
+        poMember.setRoles(Collections.singletonList(poRole));
+
+        MemberEntity poMember2 = new MemberEntity();
+        poMember2.setId("user 2");
+
+        MemberEntity poMember3 = new MemberEntity();
+        poMember3.setId("user 3");
+        when(membershipService.getMembersByReferencesAndRole(eq(MembershipReferenceType.API), anyList(), eq("API_PRIMARY_OWNER")))
+            .thenReturn(new HashSet<>(Arrays.asList(poMember, poMember2, poMember3)));
+
+        final Page<ApiEntity> apiPage = apiService.search("API Test", emptyMap(), null, new PageableImpl(1, 10));
+
+        assertThat(apiPage.getPageNumber()).isEqualTo(1);
+        assertThat(apiPage.getPageElements()).isEqualTo(3);
+        assertThat(apiPage.getTotalElements()).isEqualTo(3);
+
+        assertThat(apiPage.getContent()).extracting(ApiEntity::getId).containsExactly(api3.getId(), api1.getId(), api2.getId());
     }
 }
