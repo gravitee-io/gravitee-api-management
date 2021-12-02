@@ -167,7 +167,12 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
                 topic.publish(event);
             } catch (Exception ex) {
                 // We assume to loose the event if something goes wrong and not republish it to avoid infinite loop and cpu starving. It will be overridden by the next heartbeat event.
-                LOGGER.warn("An error occurred while pushing heartbeat event id[{}] type[{}]. Message is: {}", event.getId(), event.getType(), ex.getMessage());
+                LOGGER.warn(
+                    "An error occurred while pushing heartbeat event id[{}] type[{}]. Message is: {}",
+                    event.getId(),
+                    event.getType(),
+                    ex.getMessage()
+                );
             }
         }
     }
