@@ -1018,7 +1018,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             List<Api> allApis = findApisByUser(userId, apiQuery, portal);
 
-            final Page<Api> apiPage = sortAndPaginate(allApis, sortable, pageable);
+            final Page<Api> apiPage = sortAndPaginate(
+                allApis,
+                pageable,
+                buildApiComparator(sortable, pageable, allApis, comparing(api -> api.getName().toLowerCase()))
+            );
 
             // merge all apis
             final List<ApiEntity> apis = convert(apiPage.getContent());
@@ -2317,10 +2321,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // We need to sort on fields which cannot be sort using db engine (ex: api's definition fields). Retrieve all the apis, then sort and paginate in memory.
             // Pictures are not required when looking for APIs
+            final List<Api> search = apiRepository.search(
+                queryToCriteria(query).build(),
+                new ApiFieldExclusionFilter.Builder().excludePicture().build()
+            );
+
             Page<Api> apiPage = sortAndPaginate(
-                apiRepository.search(queryToCriteria(query).build(), new ApiFieldExclusionFilter.Builder().excludePicture().build()),
-                sortable,
-                pageable
+                search,
+                pageable,
+                buildApiComparator(sortable, pageable, search, comparing(api -> api.getName().toLowerCase()))
             );
 
             // Unfortunately, for now, filterApiByQuery can't be invoked because it could break pagination and sort.
@@ -2386,7 +2395,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             final ApiCriteria apiCriteria = new ApiCriteria.Builder().ids(apiIds).build();
-            final Page<Api> apiPage = sortAndPaginate(apiRepository.search(apiCriteria), sortable, pageable);
+            final Page<Api> apiPage = sortAndPaginate(
+                apiRepository.search(apiCriteria),
+                pageable,
+                // Keep order done by `searchEngineService` (based on score)
+                buildApiComparator(sortable, pageable, apiRepository.search(apiCriteria), (api1, api2) -> 0)
+            );
 
             // merge all apis
             final List<ApiEntity> apis = convert(apiPage.getContent());
@@ -3144,8 +3158,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     /*
         Sort then paginate the provided list of apis.
      */
-    private Page<Api> sortAndPaginate(List<Api> apis, Sortable sortable, Pageable pageable) {
-        Comparator<Api> comparator = buildApiComparator(sortable, pageable, apis);
+    private Page<Api> sortAndPaginate(List<Api> apis, Pageable pageable, final Comparator<Api> comparator) {
         pageable = buildPageable(pageable);
 
         int totalCount = apis.size();
@@ -3177,12 +3190,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Depending on the field to compare, it maintains a map of api definitions internally.
         This increase the complexity but avoid unnecessary multiple json deserialization
      */
-    private Comparator<Api> buildApiComparator(Sortable sortable, Pageable pageable, List<Api> apis) {
+    private Comparator<Api> buildApiComparator(
+        Sortable sortable,
+        Pageable pageable,
+        List<Api> apis,
+        final Comparator<Api> paginationDefaultComparator
+    ) {
         Comparator<Api> comparator = (api1, api2) -> 0;
 
         if (pageable != null) {
             // Pagination requires sorting apis to be able to navigate through pages.
-            comparator = comparing(api -> api.getName().toLowerCase());
+            comparator = paginationDefaultComparator;
         }
 
         if (sortable != null) {
