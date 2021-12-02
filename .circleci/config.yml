@@ -24,7 +24,7 @@ commands:
         steps:
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
 
     notify-on-failure:
         steps:
@@ -122,6 +122,32 @@ jobs:
                       - .docker-tag.txt
                       - .apim-version.txt
 
+    sonarcloud-analysis:
+        description: A job that run Sonarcloud analysis
+        parameters:
+            working_directory:
+                description: "Directory where the Sonarcloud analysis will be run"
+                default: "gravitee-apim-rest-api"
+                type: string
+        docker:
+            - image: sonarsource/sonar-scanner-cli
+        resource_class: medium
+        steps:
+            - run:
+                  name: Add SSH tool
+                  command: apk add --no-cache openssh
+            - checkout
+            - attach_workspace:
+                  at: .
+            - secrethub/env-export:
+                  secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
+                  var-name: SONAR_TOKEN
+            - run:
+                  name: Run Sonarcloud Analysis
+                  command: sonar-scanner
+                  working_directory: << parameters.working_directory >>
+            - notify-on-failure
+
     build:
         docker:
             - image: cimg/openjdk:11.0
@@ -142,7 +168,7 @@ jobs:
             - save_cache:
                   paths:
                       - ~/.m2
-                  key: gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
             - persist_to_workspace:
                   root: ./
@@ -309,19 +335,6 @@ jobs:
             - store_test_results:
                   path: gravitee-apim-console-webui/coverage
 
-    console-webui-sonarcloud-analysis:
-        docker:
-            - image: sonarsource/sonar-scanner-cli
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - run:
-                  name: Run Sonarcloud Analysis
-                  command: sonar-scanner
-                  working_directory: gravitee-apim-console-webui
-            - notify-on-failure
-
     console-webui-build:
         executor:
             name: node-lts
@@ -376,7 +389,7 @@ jobs:
             - checkout
             - gh/setup
             - run:
-                  name: Comment Pull Request
+                  name: Edit Pull Request Description
                   command: |
                       # First check there is an associated pull request, otherwise just stop the job here
                       if ! gh pr view --json title;
@@ -384,13 +397,26 @@ jobs:
                         echo "No PR found for this branch, stopping the job here."
                         exit 0
                       fi
-
+                      
+                      # If PR state is different from OPEN
+                      if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
+                      then
+                        echo "PR is not opened, stopping the job here."
+                        exit 0
+                      fi            
+                    
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
-                      gh pr comment --body "**Gravitee.io Automatic Deployment**
+                      export PR_BODY_UI_SECTION="
+                      <!-- UI placeholder -->
+                      🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.blob.core.windows.net/${BRANCH_ID}/index.html)
+                      _Notes_: The deployed app is linked to the management API of the Element Zero team's environment.
+                      <!-- UI placeholder end -->
+                      "
+                      
+                      export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/UI placeholder -->/,/UI placeholder end -->/d')
+                      
+                      gh pr edit --body "$CLEAN_BODY$PR_BODY_UI_SECTION"
 
-                      Congrats, all the CI steps were 🟢 . The Bot was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.blob.core.windows.net/${BRANCH_ID}/index.html)! 🚀
-
-                      _Notes_: The deployed app is linked to the management API of the Element Zero team's environment."
             - notify-on-failure
 
     console-webui-publish-images-azure-registry:
@@ -492,19 +518,6 @@ jobs:
                       - gravitee-apim-portal-webui/coverage
             - store_test_results:
                   path: gravitee-apim-portal-webui/coverage
-
-    portal-webui-sonarcloud-analysis:
-        docker:
-            - image: sonarsource/sonar-scanner-cli
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - run:
-                  name: Run Sonarcloud Analysis
-                  command: sonar-scanner
-                  working_directory: gravitee-apim-portal-webui
-            - notify-on-failure
 
     portal-webui-build:
         executor:
@@ -654,6 +667,17 @@ workflows:
             - test:
                   requires:
                       - build
+            - sonarcloud-analysis:
+                  name: Sonar - << matrix.working_directory >>
+                  matrix:
+                      parameters:
+                          working_directory:
+                              - gravitee-apim-rest-api
+                              - gravitee-apim-repository
+                              - gravitee-apim-gateway
+                  context: cicd-orchestrator
+                  requires:
+                      - test
             - publish-on-artifactory:
                   filters:
                       branches:
@@ -707,14 +731,6 @@ workflows:
             - console-webui-lint-test:
                   requires:
                       - console-webui-install
-            - console-webui-sonarcloud-analysis:
-                  context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
-                            var-name: SONAR_TOKEN
-                  requires:
-                      - console-webui-lint-test
             - console-webui-build:
                   requires:
                       - console-webui-install
@@ -769,13 +785,16 @@ workflows:
             - portal-webui-lint-test:
                   requires:
                       - portal-webui-install
-            - portal-webui-sonarcloud-analysis:
+            - sonarcloud-analysis:
+                  name: Sonar - << matrix.working_directory >>
+                  matrix:
+                      parameters:
+                          working_directory:
+                              - gravitee-apim-console-webui
+                              - gravitee-apim-portal-webui
                   context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
-                            var-name: SONAR_TOKEN
                   requires:
+                      - console-webui-lint-test
                       - portal-webui-lint-test
             - portal-webui-build:
                   requires:
