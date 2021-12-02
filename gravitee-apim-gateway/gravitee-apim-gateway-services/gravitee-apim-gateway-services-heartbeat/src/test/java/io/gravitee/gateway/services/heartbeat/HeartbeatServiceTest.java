@@ -93,7 +93,8 @@ public class HeartbeatServiceTest {
 
         when(clusterManager.isMasterNode()).thenReturn(true);
         when(message.getMessageObject()).thenReturn(event);
-        when(eventRepository.update(event)).thenThrow(new IllegalStateException(String.format("No event found with id [%s]", event.getId())));
+        when(eventRepository.update(event))
+            .thenThrow(new IllegalStateException(String.format("No event found with id [%s]", event.getId())));
         cut.onMessage(message);
 
         verify(topic).publish(event);
