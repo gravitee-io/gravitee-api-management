@@ -15,21 +15,21 @@
  */
 package io.gravitee.rest.api.model.filtering;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 public class FilteredEntities<FilterableItem> {
 
-    List<FilterableItem> filteredItems;
+    Collection<FilterableItem> filteredItems;
     Map<String, Map<String, Object>> metadata;
 
-    public FilteredEntities(List<FilterableItem> filteredItems, Map<String, Map<String, Object>> metadata) {
+    public FilteredEntities(Collection<FilterableItem> filteredItems, Map<String, Map<String, Object>> metadata) {
         super();
         this.filteredItems = filteredItems;
         this.metadata = metadata;
     }
 
-    public List<FilterableItem> getFilteredItems() {
+    public Collection<FilterableItem> getFilteredItems() {
         return filteredItems;
     }
 
