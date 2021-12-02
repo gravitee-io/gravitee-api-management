@@ -20,6 +20,7 @@ import static java.util.Arrays.asList;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,7 +30,7 @@ import java.util.Objects;
  */
 public class ApiCriteria {
 
-    private List<String> ids;
+    private Collection<String> ids;
     private List<String> groups;
     private String category;
     private String label;
@@ -57,7 +58,7 @@ public class ApiCriteria {
         this.environments = builder.environments;
     }
 
-    public List<String> getIds() {
+    public Collection<String> getIds() {
         return ids;
     }
 
@@ -146,7 +147,7 @@ public class ApiCriteria {
 
     public static class Builder {
 
-        private List<String> ids;
+        private Collection<String> ids;
         private List<String> groups;
         private String category;
         private String label;
@@ -161,6 +162,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = asList(id);
+            return this;
+        }
+
+        public ApiCriteria.Builder ids(final Collection<String> ids) {
+            this.ids = ids;
             return this;
         }
 
