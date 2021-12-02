@@ -58,18 +58,24 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
     public Document transform(io.gravitee.rest.api.model.api.ApiEntity api) {
         Document doc = new Document();
 
-        doc.add(new StringField(FIELD_REFERENCE_TYPE, api.getReferenceType(), Field.Store.NO));
-        doc.add(new StringField(FIELD_REFERENCE_ID, api.getReferenceId(), Field.Store.NO));
+        if (api.getReferenceId() != null) {
+            doc.add(new StringField(FIELD_REFERENCE_TYPE, api.getReferenceType(), Field.Store.NO));
+            doc.add(new StringField(FIELD_REFERENCE_ID, api.getReferenceId(), Field.Store.NO));
+        }
+
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
+
         if (api.getName() != null) {
             doc.add(new StringField(FIELD_NAME, api.getName(), Field.Store.NO));
             doc.add(new StringField(FIELD_NAME_LOWERCASE, api.getName().toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_NAME_SPLIT, api.getName(), Field.Store.NO));
         }
+
         if (api.getDescription() != null) {
             doc.add(new TextField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
         }
+
         if (api.getPrimaryOwner() != null) {
             doc.add(new TextField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), Field.Store.NO));
             if (api.getPrimaryOwner().getEmail() != null) {
