@@ -58,10 +58,14 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
     public Document transform(io.gravitee.rest.api.model.api.ApiEntity api) {
         Document doc = new Document();
 
-        doc.add(new StringField(FIELD_REFERENCE_TYPE, api.getReferenceType(), Field.Store.NO));
-        doc.add(new StringField(FIELD_REFERENCE_ID, api.getReferenceId(), Field.Store.NO));
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
+
+        if (api.getReferenceId() != null) {
+            doc.add(new StringField(FIELD_REFERENCE_TYPE, api.getReferenceType(), Field.Store.NO));
+            doc.add(new StringField(FIELD_REFERENCE_ID, api.getReferenceId(), Field.Store.NO));
+        }
+
         if (api.getName() != null) {
             doc.add(new StringField(FIELD_NAME, api.getName(), Field.Store.NO));
             doc.add(new StringField(FIELD_NAME_LOWERCASE, api.getName().toLowerCase(), Field.Store.NO));
