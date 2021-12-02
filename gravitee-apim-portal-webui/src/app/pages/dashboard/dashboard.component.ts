@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
+import { defaultIfEmpty, filter, switchMap } from 'rxjs/operators';
 import { CurrentUserService } from '../../services/current-user.service';
 import {
   Application,
   ApplicationService,
+  PermissionsService,
   Subscription,
   SubscriptionService,
   User,
@@ -61,6 +63,7 @@ export class DashboardComponent implements OnInit {
     private config: ConfigurationService,
     private translateService: TranslateService,
     private analyticsService: AnalyticsService,
+    private permissionsService: PermissionsService,
   ) {}
 
   ngOnInit() {
@@ -120,8 +123,15 @@ export class DashboardComponent implements OnInit {
   }
 
   private _getMetrics(application: Application) {
-    return this.subscriptionService
-      .getSubscriptions({ size: -1, applicationId: application.id, statuses: [StatusEnum.ACCEPTED] })
+    return this.permissionsService
+      .getCurrentUserPermissions({ applicationId: application.id })
+      .pipe(
+        filter((permissions) => permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('R')),
+        switchMap(() =>
+          this.subscriptionService.getSubscriptions({ size: -1, applicationId: application.id, statuses: [StatusEnum.ACCEPTED] }),
+        ),
+        defaultIfEmpty({ data: [], metadata: {} }),
+      )
       .toPromise()
       .then(async (r) => {
         r.data.forEach((sub) => {
