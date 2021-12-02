@@ -127,7 +127,7 @@ const routes: Routes = [
           icon: 'home:key',
           title: i18n('route.subscriptions'),
           animation: { type: 'slide', group: 'app', index: 3 },
-          expectedPermissions: [],
+          expectedPermissions: ['SUBSCRIPTION-R'],
         },
       },
       {
