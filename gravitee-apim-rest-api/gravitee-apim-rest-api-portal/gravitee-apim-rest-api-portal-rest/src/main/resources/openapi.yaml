@@ -10,7 +10,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
-  version: "3.13.2-SNAPSHOT"
+  version: "3.14.0-SNAPSHOT"
 servers:
   - url: http://localhost:8083/portal/environments/{envId}
     description: The portal API for a given environment
@@ -97,6 +97,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApisResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /apis/_categories:
+    get:
+      tags:
+        - Api
+      parameters:
+        - $ref: '#/components/parameters/apiFilterQueryParam'
+      summary: List Categories
+      description: |
+        List all categories find in public APIs for anonymous requests.
+        List all categories find in all the APIs the current user is allowed to category for authenticated requests.
+
+        The list is sorted by alphabetic order.
+      operationId: listCategories
+      security: [ ]
+      responses:
+        200:
+          description: List used categories in accessible APIs for current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}:
