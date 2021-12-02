@@ -85,50 +85,6 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldRenewApiKeyWithCustomApiKey() {
-        when(apiKeyService.renew(anyString(), anyString())).thenReturn(fakeApiKeyEntity);
-        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
-
-        Response response = envTarget(SUBSCRIPTION_ID).queryParam("customApiKey", "atLeast10CharsButLessThan64").request().post(null);
-
-        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(fakeApiKeyEntity, response.readEntity(ApiKeyEntity.class));
-        assertEquals(
-            envTarget(SUBSCRIPTION_ID)
-                .path("keys")
-                .path(FAKE_KEY)
-                .queryParam("customApiKey", "atLeast10CharsButLessThan64")
-                .getUri()
-                .toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
-    }
-
-    @Test
-    public void shouldNotRenewApiKeyWithCustomApiKeyIfNotAllowed() {
-        when(apiKeyService.renew(anyString(), anyString())).thenReturn(fakeApiKeyEntity);
-        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)).thenReturn(false);
-
-        Response response = envTarget(SUBSCRIPTION_ID).queryParam("customApiKey", "atLeast10CharsButLessThan64").request().post(null);
-
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-    }
-
-    @Test
-    public void shouldRenewApiKeyWithoutCustomApiKey() {
-        when(apiKeyService.renew(anyString(), isNull())).thenReturn(fakeApiKeyEntity);
-
-        Response response = envTarget(SUBSCRIPTION_ID).request().post(null);
-
-        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(response.readEntity(ApiKeyEntity.class), fakeApiKeyEntity);
-        assertEquals(
-            envTarget(SUBSCRIPTION_ID).path("keys").path(FAKE_KEY).getUri().toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
-    }
-
-    @Test
     public void shouldProcess() {
         ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
         processSubscriptionEntity.setId(SUBSCRIPTION_ID);

@@ -736,11 +736,6 @@ public class ApiResource extends AbstractResource {
         return Response.ok(promotionService.promote(this.api, promotionRequest, getAuthenticatedUser())).build();
     }
 
-    @Path("keys")
-    public ApiKeysResource getApiKeyResource() {
-        return resourceContext.getResource(ApiKeysResource.class);
-    }
-
     @Path("members")
     public ApiMembersResource getApiMembersResource() {
         return resourceContext.getResource(ApiMembersResource.class);
