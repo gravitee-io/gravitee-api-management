@@ -75,20 +75,4 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
             response.getHeaders().getFirst(HttpHeaders.LOCATION)
         );
     }
-
-    @Test
-    public void shouldRenewApiKeyForApplicationSubscription() {
-        reset(apiKeyService);
-
-        ApiKeyEntity newApiKeyEntity = new ApiKeyEntity();
-        newApiKeyEntity.setKey(NEW_APIKEY);
-        when(apiKeyService.renew(SUBSCRIPTION)).thenReturn(newApiKeyEntity);
-
-        final Response response = envTarget().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).request().post(null);
-        assertEquals(CREATED_201, response.getStatus());
-        assertEquals(
-            envTarget().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).path("keys").path(NEW_APIKEY).getUri().toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
-    }
 }
