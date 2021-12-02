@@ -319,9 +319,13 @@ public abstract class AbstractResource {
         }
 
         return new DataResponse()
-            .data(paginatedList)
+            .data(populatePage(paginatedList))
             .metadata(this.computeMetadata(metadata, dataMetadata, paginationMetadata))
             .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
+    }
+
+    protected List populatePage(List paginatedList) {
+        return paginatedList;
     }
 
     protected Map<String, Map<String, Object>> computeMetadata(
@@ -407,20 +411,20 @@ public abstract class AbstractResource {
         return Response.ok(media.getData()).cacheControl(cc).tag(etag).type(media.getType() + "/" + media.getSubType()).build();
     }
 
-    private class DataResponse {
+    protected class DataResponse {
 
-        private List data = null;
+        private Collection data = null;
         private Map<String, Map<String, Object>> metadata = null;
         private Links links;
 
-        public DataResponse data(List data) {
+        public DataResponse data(Collection data) {
             this.data = data;
             return this;
         }
 
         @javax.annotation.Nullable
         @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-        public List getData() {
+        public Collection getData() {
             return data;
         }
 
