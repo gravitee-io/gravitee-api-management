@@ -15,26 +15,25 @@
  */
 package io.gravitee.gateway.services.heartbeat;
 
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
+import static io.gravitee.gateway.services.heartbeat.HeartbeatService.EVENT_STATE_PROPERTY;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
+
+import com.hazelcast.topic.ITopic;
+import com.hazelcast.topic.Message;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static io.gravitee.gateway.services.heartbeat.HeartbeatService.EVENT_STATE_PROPERTY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
