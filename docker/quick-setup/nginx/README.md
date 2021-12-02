@@ -7,8 +7,8 @@ You can now access your component like this:
 | Component      	| URL                      	            |
 |----------------	|--------------------------	            |
 | Gateway        	| http://localhost/gateway/ 	        |
-| Management API 	| http://localhost/management-api/      |
-| Portal API 	    | http://localhost/portal-api/          |
+| Management API 	| http://localhost/console/api/      |
+| Portal API 	    | http://localhost/portal/api/          |
 | Console UI 	    | http://localhost/console/             |
 | Portal UI 	    | http://localhost/portal/              |
 |                	|                          	            |
