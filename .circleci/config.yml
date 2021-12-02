@@ -133,6 +133,9 @@ jobs:
             - image: sonarsource/sonar-scanner-cli
         resource_class: medium
         steps:
+            - run:
+                  name: Add SSH tool
+                  command: apk add --no-cache openssh
             - checkout
             - attach_workspace:
                   at: .
