@@ -2,9 +2,9 @@ version: 2.1
 
 orbs:
     slack: circleci/slack@4.4.4
-    gravitee: gravitee-io/gravitee@1.0.38
+    gravitee: gravitee-io/gravitee@1.0.42
     secrethub: secrethub/cli@1.1.0
-    gh: circleci/github-cli@1.0.4
+    gh: circleci/github-cli@1.0.5
 
 executors:
     node-lts:
@@ -24,7 +24,25 @@ commands:
         steps:
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v6-{{ checksum ".apim-version.txt" }}
+
+    save-maven-cache:
+        description: "Save maven cache for the workflow. We only save external dependencies to force gravitee artefacts download"
+        steps:
+            - run:
+                  name: "Exclude Gravitee internal dependencies from cache"
+                  command: |
+                      if [ -d ~/.m2/io/gravitee ]; then
+                        rm -rf ~/.m2/io/gravitee
+                      fi;
+                      if [ -d ~/.m2/com/graviteesource ]; then
+                        rm -rf ~/.m2/com/graviteesource
+                      fi;
+            - save_cache:
+                  paths:
+                      - ~/.m2
+                  key: gravitee-api-management-v6-{{ checksum ".apim-version.txt" }}
+                  when: always
 
     notify-on-failure:
         steps:
@@ -82,6 +100,19 @@ parameters:
         description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
 
 jobs:
+    load-snapshot-configuration:
+        docker:
+            - image: cimg/base:stable
+        environment:
+            MAVEN_SETTINGS: "secrethub://graviteeio/cicd/graviteebot/infra/maven/gravitee-snapshot.settings.xml"
+        steps:
+            - secrethub/exec:
+                  command: echo $MAVEN_SETTINGS > /tmp/.gravitee-snapshot.settings.xml
+            - persist_to_workspace:
+                  root: /tmp
+                  paths:
+                      - .gravitee-snapshot.settings.xml
+
     compute-apim-tag:
         docker:
             - image: cimg/openjdk:11.0
@@ -97,7 +128,7 @@ jobs:
             - run:
                   name: Compute APIM Version
                   command: |
-                      export APIM_VERSION=$(mvn -s .artifactory.settings.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+                      export APIM_VERSION=$(mvn -s .gravitee-snapshot.settings.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
                       echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
                       echo "Gravitee APIM version: ${APIM_VERSION}"
                       echo $APIM_VERSION > .apim-version.txt
@@ -148,6 +179,23 @@ jobs:
                   working_directory: << parameters.working_directory >>
             - notify-on-failure
 
+    validate:
+        docker:
+            - image: cimg/openjdk:11.0
+        resource_class: small
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: .
+            - restore-maven-cache
+            - run:
+                  name: "validate project"
+                  command: |
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml validate --no-transfer-progress -T 2C
+
+            - notify-on-failure
+            - save-maven-cache
+
     build:
         docker:
             - image: cimg/openjdk:11.0
@@ -160,16 +208,12 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C
                       cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-distribution-*.tar.gz ./
                       cp ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target/gravitee-apim-gateway-distribution-*.tar.gz ./
 
             - notify-on-failure
-            - save_cache:
-                  paths:
-                      - ~/.m2
-                  key: gravitee-api-management-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
-                  when: always
+            - save-maven-cache
             - persist_to_workspace:
                   root: ./
                   paths:
@@ -190,7 +234,7 @@ jobs:
                   name: Run tests
                   command: |
                       # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .artifactory.settings.xml package --no-transfer-progress -T 2C
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml package --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -205,6 +249,8 @@ jobs:
         docker:
             - image: cimg/openjdk:11.0
         resource_class: large
+        environment:
+            ALT_DEPLOYMENT_REPOSITORY: "artifactory-gravitee::default::https://odbxikk7vo-artifactory.services.clever-cloud.com/gravitee-snapshots"
         steps:
             - checkout
             - attach_workspace:
@@ -213,16 +259,14 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .artifactory.settings.xml -P gio-dev
+                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
+            - save-maven-cache
             - notify-on-failure
 
     publish-on-nexus:
         docker:
             - image: cimg/openjdk:11.0
         resource_class: large
-        environment:
-            NEXUS_SNAPSHOTS_URL: "https://oss.sonatype.org/content/repositories/snapshots"
-            NEXUS_SNAPSHOTS_SERVER_ID: "sonatype-nexus-snapshots"
         steps:
             - checkout
             - attach_workspace:
@@ -231,7 +275,8 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Nexus Snapshots"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .nexus.settings.xml  -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
+                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml
+            - save-maven-cache
             - notify-on-failure
 
     publish-images-azure-registry:
@@ -446,33 +491,33 @@ jobs:
                       echo "export SB_URL=$SB_URL" >> $BASH_ENV
             - gh/setup
             - run:
-                name: Edit Pull Request Description
-                command: |
-                  # First check there is an associated pull request, otherwise just stop the job here
-                  if ! gh pr view --json title;
-                  then
-                    echo "No PR found for this branch, stopping the job here."
-                    exit 0
-                  fi
-                  
-                  # If PR state is different from OPEN
-                  if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
-                  then
-                    echo "PR is not opened, stopping the job here."
-                    exit 0
-                  fi            
-                  
-                  export PR_BODY_STORYBOOK_SECTION="
-                  <!-- Storybook placeholder -->
-                  ---
-                  
-                  📚&nbsp;&nbsp;View the storybook of this branch [here](${SB_URL})
-                  <!-- Storybook placeholder end -->
-                  "
-                  
-                  export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Storybook placeholder -->/,/Storybook placeholder end -->/d')
-                  
-                  gh pr edit --body "$CLEAN_BODY$PR_BODY_STORYBOOK_SECTION"
+                  name: Edit Pull Request Description
+                  command: |
+                      # First check there is an associated pull request, otherwise just stop the job here
+                      if ! gh pr view --json title;
+                      then
+                        echo "No PR found for this branch, stopping the job here."
+                        exit 0
+                      fi
+
+                      # If PR state is different from OPEN
+                      if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
+                      then
+                        echo "PR is not opened, stopping the job here."
+                        exit 0
+                      fi
+
+                      export PR_BODY_STORYBOOK_SECTION="
+                      <!-- Storybook placeholder -->
+                      ---
+
+                      📚&nbsp;&nbsp;View the storybook of this branch [here](${SB_URL})
+                      <!-- Storybook placeholder end -->
+                      "
+
+                      export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Storybook placeholder -->/,/Storybook placeholder end -->/d')
+
+                      gh pr edit --body "$CLEAN_BODY$PR_BODY_STORYBOOK_SECTION"
             - notify-on-failure
 
     console-webui-deploy-on-azure-storage:
@@ -509,14 +554,14 @@ jobs:
                         echo "No PR found for this branch, stopping the job here."
                         exit 0
                       fi
-                      
+
                       # If PR state is different from OPEN
                       if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
                       then
                         echo "PR is not opened, stopping the job here."
                         exit 0
-                      fi            
-                    
+                      fi
+
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       export PR_BODY_UI_SECTION="
                       <!-- UI placeholder -->
@@ -524,9 +569,9 @@ jobs:
                       _Notes_: The deployed app is linked to the management API of the Element Zero team's environment.
                       <!-- UI placeholder end -->
                       "
-                      
+
                       export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/UI placeholder -->/,/UI placeholder end -->/d')
-                      
+
                       gh pr edit --body "$CLEAN_BODY$PR_BODY_UI_SECTION"
 
             - notify-on-failure
@@ -769,13 +814,19 @@ workflows:
             and:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
         jobs:
-            - gravitee/d_pull_requests_secrets:
+            - load-snapshot-configuration:
                   context: cicd-orchestrator
-                  name: pr_secrets_resolution
+            - compute-apim-tag:
+                  requires:
+                      - load-snapshot-configuration
+            - validate:
+                  context: gravitee-qa
+                  requires:
+                      - compute-apim-tag
             - build:
                   context: gravitee-qa
                   requires:
-                      - pr_secrets_resolution
+                      - validate
             - test:
                   requires:
                       - build
@@ -796,6 +847,7 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+                              - backport-ci-improvement
                   requires:
                       - test
             - publish-on-nexus:
@@ -804,21 +856,13 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+                              - backport-ci-improvement
                   requires:
                       - test
-            - compute-apim-tag:
-                  requires:
-                      - pr_secrets_resolution
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
             - publish-images-azure-registry:
                   context: cicd-orchestrator
                   requires:
                       - test
-                      - compute-apim-tag
                   pre-steps:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
@@ -839,7 +883,7 @@ workflows:
                               - /^\d+\.\d+\.x$/
             - console-webui-install:
                   requires:
-                      - pr_secrets_resolution
+                      - load-snapshot-configuration
             - console-webui-lint-test:
                   requires:
                       - console-webui-install
@@ -904,7 +948,7 @@ workflows:
                               - /^\d+\.\d+\.x$/
             - portal-webui-install:
                   requires:
-                      - pr_secrets_resolution
+                      - load-snapshot-configuration
             - portal-webui-lint-test:
                   requires:
                       - portal-webui-install
