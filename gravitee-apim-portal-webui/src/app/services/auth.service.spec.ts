@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator';
-import { OAuthService } from 'angular-oauth2-oidc';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
@@ -23,7 +22,6 @@ describe('AuthService', () => {
   const createService = createServiceFactory({
     service: AuthService,
     imports: [HttpClientTestingModule],
-    providers: [mockProvider(OAuthService)],
   });
 
   beforeEach(() => {
