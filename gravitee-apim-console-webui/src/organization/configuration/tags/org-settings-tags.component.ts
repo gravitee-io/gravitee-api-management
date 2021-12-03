@@ -100,7 +100,9 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           id: tag.id,
           name: tag.name,
           description: tag.description,
-          restrictedGroupsName: (tag.restricted_groups ?? []).map((groupId) => groups.find((g) => g.id === groupId).name),
+          restrictedGroupsName: (tag.restricted_groups ?? [])
+            .map((groupId) => groups.find((g) => g.id === groupId)?.name)
+            .filter((name) => !!name),
         }));
         this.filteredTagsTableDS = this.tagsTableDS;
 
@@ -118,7 +120,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           id: entrypoint.id,
           url: entrypoint.value,
           tags: entrypoint.tags,
-          tagsName: (entrypoint.tags ?? []).map((tagId) => tags.find((t) => t.id === tagId).name ?? tagId),
+          tagsName: (entrypoint.tags ?? []).map((tagId) => tags.find((t) => t.id === tagId)?.name ?? tagId),
         }));
         this.filteredEntrypointsTableDS = this.entrypointsTableDS;
 
