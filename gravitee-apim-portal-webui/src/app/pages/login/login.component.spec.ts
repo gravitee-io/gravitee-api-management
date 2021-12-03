@@ -16,7 +16,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
-import { OAuthService } from 'angular-oauth2-oidc';
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureGuardService } from '../../services/feature-guard.service';
 import { NotificationService } from '../../services/notification.service';
@@ -30,12 +29,7 @@ describe('LoginComponent', () => {
     component: LoginComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
-    providers: [
-      mockProvider(NotificationService),
-      mockProvider(FeatureGuardService),
-      mockProvider(ConfigurationService),
-      mockProvider(OAuthService),
-    ],
+    providers: [mockProvider(NotificationService), mockProvider(FeatureGuardService), mockProvider(ConfigurationService)],
   });
 
   let spectator: Spectator<LoginComponent>;

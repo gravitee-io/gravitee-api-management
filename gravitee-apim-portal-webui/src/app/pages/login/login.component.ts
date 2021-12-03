@@ -103,7 +103,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   authenticate(provider) {
-    this.authService.authenticate(provider);
+    this.authService.authenticate(provider, this.redirectUrl);
   }
 
   isFormValid() {
