@@ -18,11 +18,14 @@ import { TestBed } from '@angular/core/testing';
 import { AuthGuardService } from './auth-guard.service';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { mockProvider } from '@ngneat/spectator';
+import { OAuthService } from 'angular-oauth2-oidc';
 
 describe('AuthGuardService', () => {
   beforeEach(() =>
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, RouterTestingModule],
+      providers: [mockProvider(OAuthService)],
     }),
   );
 

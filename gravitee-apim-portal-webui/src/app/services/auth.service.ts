@@ -89,11 +89,12 @@ export class AuthService {
     );
   };
 
-  authenticate(provider) {
+  authenticate(provider, redirectUrl: string) {
     if (provider) {
       this.storeProviderId(provider.id);
       this._configure(provider);
-      this.oauthService.initCodeFlow();
+      // 📝 Save `redirectUrl` into OAuth state to retrieve it after redirect
+      this.oauthService.initCodeFlow(redirectUrl);
     }
   }
 
