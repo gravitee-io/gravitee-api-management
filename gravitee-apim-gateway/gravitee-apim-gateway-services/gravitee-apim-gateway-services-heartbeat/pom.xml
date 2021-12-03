@@ -34,6 +34,12 @@
         <!-- Gravitee.io dependencies -->
         <dependency>
             <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-cluster</artifactId>
             <scope>provided</scope>
         </dependency>
@@ -61,13 +67,6 @@
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Hazelcast -->
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast</artifactId>
             <scope>provided</scope>
         </dependency>
 

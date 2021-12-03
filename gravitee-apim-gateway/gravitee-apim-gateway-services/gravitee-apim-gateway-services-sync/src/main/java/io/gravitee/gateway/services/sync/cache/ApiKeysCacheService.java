@@ -29,6 +29,7 @@ import io.gravitee.gateway.services.sync.cache.repository.ApiKeyRepositoryWrappe
 import io.gravitee.gateway.services.sync.cache.task.FullApiKeyRefresher;
 import io.gravitee.gateway.services.sync.cache.task.IncrementalApiKeyRefresher;
 import io.gravitee.gateway.services.sync.cache.task.Result;
+import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.vertx.ext.web.Router;
@@ -116,7 +117,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         LOGGER.debug("Register API key repository implementation {}", ApiKeyRepositoryWrapper.class.getName());
         beanFactory.registerSingleton(
             ApiKeyRepository.class.getName(),
-            new ApiKeyRepositoryWrapper(this.apiKeyRepository, new ApiKeysCache(cacheManager.getCache(API_KEY_CACHE_NAME)))
+            new ApiKeyRepositoryWrapper(this.apiKeyRepository, new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)))
         );
 
         LOGGER.info("Associate a new HTTP handler on {}", PATH);
@@ -164,7 +165,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                                     chunk
                                 );
                                 refresher.setApiKeyRepository(apiKeyRepository);
-                                refresher.setCache(new ApiKeysCache(cacheManager.getCache(API_KEY_CACHE_NAME)));
+                                refresher.setCache(new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)));
 
                                 return refresher;
                             }
@@ -279,7 +280,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
                 final FullApiKeyRefresher refresher = new FullApiKeyRefresher(planIds);
                 refresher.setApiKeyRepository(apiKeyRepository);
-                refresher.setCache(new ApiKeysCache(cacheManager.getCache(API_KEY_CACHE_NAME)));
+                refresher.setCache(new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)));
 
                 CompletableFuture
                     .supplyAsync(refresher::call, executorService)

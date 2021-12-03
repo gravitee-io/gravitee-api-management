@@ -93,7 +93,7 @@
         <gravitee-policy-xml-threat-protection.version>1.2.1</gravitee-policy-xml-threat-protection.version>
         <gravitee-policy-xml-validation.version>1.1.0</gravitee-policy-xml-validation.version>
         <gravitee-policy-xslt.version>1.6.0</gravitee-policy-xslt.version>
-        <gravitee-resource-cache.version>1.6.2</gravitee-resource-cache.version>
+        <gravitee-resource-cache.version>1.7.0-SNAPSHOT</gravitee-resource-cache.version>
         <gravitee-resource-oauth2-provider-am.version>1.14.1</gravitee-resource-oauth2-provider-am.version>
         <gravitee-resource-oauth2-provider-generic.version>1.16.1</gravitee-resource-oauth2-provider-generic.version>
         <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>

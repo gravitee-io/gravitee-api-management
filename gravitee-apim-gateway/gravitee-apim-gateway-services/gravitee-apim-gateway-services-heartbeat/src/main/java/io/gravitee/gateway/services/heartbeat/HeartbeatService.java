@@ -17,10 +17,7 @@ package io.gravitee.gateway.services.heartbeat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.topic.ITopic;
-import com.hazelcast.topic.Message;
-import com.hazelcast.topic.MessageListener;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUID;
@@ -29,6 +26,10 @@ import io.gravitee.gateway.services.heartbeat.event.InstanceEventPayload;
 import io.gravitee.gateway.services.heartbeat.event.Plugin;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.message.Message;
+import io.gravitee.node.api.message.MessageConsumer;
+import io.gravitee.node.api.message.MessageProducer;
+import io.gravitee.node.api.message.Topic;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -57,7 +58,7 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HeartbeatService extends AbstractService<HeartbeatService> implements MessageListener<Event>, InitializingBean {
+public class HeartbeatService extends AbstractService<HeartbeatService> implements MessageConsumer<Event>, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatService.class);
 
@@ -105,7 +106,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
     private ClusterManager clusterManager;
 
     @Autowired
-    private HazelcastInstance hzInstance;
+    private MessageProducer messageProducer;
 
     @Autowired
     private EnvironmentRepository environmentRepository;
@@ -114,14 +115,14 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
     private OrganizationRepository organizationRepository;
 
     // How to avoid duplicate
-    private ITopic<Event> topic;
+    private Topic<Event> topic;
 
     private java.util.UUID subscriptionId;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        topic = hzInstance.getTopic("heartbeats");
-        subscriptionId = topic.addMessageListener(this);
+        topic = messageProducer.getTopic("heartbeats");
+        subscriptionId = topic.addMessageConsumer(this);
     }
 
     @Override
@@ -132,9 +133,6 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
 
             heartbeatEvent = prepareEvent();
             topic.publish(heartbeatEvent);
-
-            // Remove the state to not include it in the underlying repository as it's just used for internal purpose
-            heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
 
             executorService = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "gio-heartbeat"));
 
@@ -157,12 +155,14 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
                 String state = event.getProperties().get(EVENT_STATE_PROPERTY);
                 if (state != null) {
                     eventRepository.create(event);
+                    // Remove the state to not include it in the underlying repository as it's just used for internal purpose
+                    heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
                 } else {
                     eventRepository.update(event);
                 }
             } catch (IllegalStateException isex) {
                 // We make the assumption that an IllegalStateException is thrown when trying to update the event while it is not existing in the database anymore.
-                // This can be cause, for instance, by a db event cleanup without taking care of the heartbeat event.
+                // This can be caused, for instance, by a db event cleanup without taking care of the heartbeat event.
                 event.getProperties().put(EVENT_STATE_PROPERTY, "recreate");
                 topic.publish(event);
             } catch (Exception ex) {
@@ -187,7 +187,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
 
             topic.publish(heartbeatEvent);
 
-            topic.removeMessageListener(subscriptionId);
+            topic.removeMessageConsumer(subscriptionId);
         }
         return this;
     }
@@ -208,7 +208,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
 
             topic.publish(heartbeatEvent);
 
-            topic.removeMessageListener(subscriptionId);
+            topic.removeMessageConsumer(subscriptionId);
 
             super.doStop();
             LOGGER.info("Stop gateway monitor : DONE");
