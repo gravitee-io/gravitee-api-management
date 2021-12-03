@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.Visibility;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -31,7 +32,7 @@ import java.util.Objects;
 public class ApiCriteria {
 
     private Collection<String> ids;
-    private List<String> groups;
+    private Collection<String> groups;
     private String category;
     private String label;
     private LifecycleState state;
@@ -62,7 +63,7 @@ public class ApiCriteria {
         return ids;
     }
 
-    public List<String> getGroups() {
+    public Collection<String> getGroups() {
         return groups;
     }
 
@@ -148,7 +149,7 @@ public class ApiCriteria {
     public static class Builder {
 
         private Collection<String> ids;
-        private List<String> groups;
+        private Collection<String> groups;
         private String category;
         private String label;
         private LifecycleState state;
@@ -161,17 +162,22 @@ public class ApiCriteria {
         private List<String> environments;
 
         public ApiCriteria.Builder ids(final String... id) {
-            this.ids = asList(id);
+            this.ids = Set.of(id);
             return this;
         }
 
         public ApiCriteria.Builder ids(final Collection<String> ids) {
-            this.ids = ids;
+            this.ids = Set.copyOf(ids);
             return this;
         }
 
         public ApiCriteria.Builder groups(final String... group) {
             this.groups = asList(group);
+            return this;
+        }
+
+        public ApiCriteria.Builder groups(final Collection<String> groups) {
+            this.groups = groups;
             return this;
         }
 
