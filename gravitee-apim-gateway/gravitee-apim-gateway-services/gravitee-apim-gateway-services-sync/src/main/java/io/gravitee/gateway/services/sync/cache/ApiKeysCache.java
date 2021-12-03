@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.cache;
 
+import io.gravitee.node.api.cache.Cache;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -29,9 +30,9 @@ public class ApiKeysCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeysCache.class);
 
-    protected Map<String, ApiKey> cache;
+    protected Cache<String, ApiKey> cache;
 
-    public ApiKeysCache(Map<String, ApiKey> cache) {
+    public ApiKeysCache(Cache<String, ApiKey> cache) {
         this.cache = cache;
     }
 
@@ -42,7 +43,7 @@ public class ApiKeysCache {
             apiKey.getPlan(),
             apiKey.getApplication()
         );
-        cache.remove(buildCacheKey(apiKey));
+        cache.evict(buildCacheKey(apiKey));
     }
 
     public void put(ApiKey apiKey) {

@@ -20,10 +20,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
-import com.hazelcast.topic.ITopic;
-import com.hazelcast.topic.Message;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.message.Message;
+import io.gravitee.node.api.message.Topic;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
@@ -49,7 +49,7 @@ public class HeartbeatServiceTest {
     private EventRepository eventRepository;
 
     @Mock
-    private ITopic<Event> topic;
+    private Topic<Event> topic;
 
     @Mock
     private Message<Event> message;
