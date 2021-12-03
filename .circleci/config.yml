@@ -32,14 +32,16 @@ jobs:
 
                       # Find all maven project to build
                       # FIXME use jq+xml to json or impive grep to find artifactId
-                      MVN_PROJECTS_TO_BUILD=$(git diff --name-only origin/${target_branch} | grep -E '^gravitee-apim.*' | grep -v -E '.*apim-(?:console|portal).*' | sed -r 's#.*/(.*)/src.*#:\1#' | uniq | paste -sd ',' -)
-                      if [[ ! -z $MVN_PROJECTS_TO_BUILD ]]
-                      then
-                        echo "Maven projects to build are $MVN_PROJECTS_TO_BUILD"
-                        BUILD_MAVEN=true
-                      else
-                        BUILD_MAVEN=false
-                      fi
+                      # MVN_PROJECTS_TO_BUILD=$(git diff --name-only origin/${target_branch} | grep -E '^gravitee-apim.*' | grep -v -E '.*apim-(?:console|portal).*' | sed -r 's#.*/(.*)/src.*#:\1#' | uniq | paste -sd ',' -)
+                      # if [[ ! -z $MVN_PROJECTS_TO_BUILD ]]
+                      # then
+                      #   echo "Maven projects to build are $MVN_PROJECTS_TO_BUILD"
+                      #   BUILD_MAVEN=true
+                      # else
+                      #   BUILD_MAVEN=false
+                      # fi
+
+                      # FIXME take care of all edge cases. So for the moment
 
                       # Should we build the portal
                       portalLines=$(git diff --name-only origin/${target_branch} | { grep -e ".*apim-portal.*" || true; } | wc -l)
@@ -64,13 +66,11 @@ jobs:
                       echo "Console should be built: $BUILD_CONSOLE"
 
                       PARAMETERS=$( jq -n \
-                                  --arg mptb "$MVN_PROJECTS_TO_BUILD" \
                                   --argjson bm $BUILD_MAVEN \
                                   --argjson bp $BUILD_PORTAL \
                                   --argjson bc $BUILD_CONSOLE \
-                                  '{mvn_projects_to_build: $mptb, build_maven: $bm, build_portal: $bp, build_console: $bc}' )
+                                  '{build_maven: $bm, build_portal: $bp, build_console: $bc}' )
 
-                      echo "Here are the parameters for the build workflows: $PARAMETERS"
                       echo $PARAMETERS > /tmp/parameters.json
             - continuation/continue:
                   configuration_path: .circleci/continue_config.yml
