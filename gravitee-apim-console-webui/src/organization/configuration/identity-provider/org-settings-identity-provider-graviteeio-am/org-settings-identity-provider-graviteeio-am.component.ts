@@ -36,11 +36,11 @@ export class OrgSettingsIdentityProviderGraviteeioAmComponent implements Provide
   });
 
   userProfileMappingFormGroup: FormGroup = new FormGroup({
-    id: new FormControl(null, Validators.required),
-    firstname: new FormControl(),
-    lastname: new FormControl(),
-    email: new FormControl(),
-    picture: new FormControl(),
+    id: new FormControl('sub', Validators.required),
+    firstname: new FormControl('given_name'),
+    lastname: new FormControl('family_name'),
+    email: new FormControl('email'),
+    picture: new FormControl('picture'),
   });
 
   getFormGroups(): Record<string, FormGroup> {

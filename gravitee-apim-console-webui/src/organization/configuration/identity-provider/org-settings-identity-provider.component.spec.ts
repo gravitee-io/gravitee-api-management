@@ -150,11 +150,11 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           serverURL: 'ServerURL',
         },
         userProfileMapping: {
-          email: null,
-          firstname: null,
+          email: 'email',
+          firstname: 'given_name',
           id: 'Id',
-          lastname: null,
-          picture: null,
+          lastname: 'family_name',
+          picture: 'picture',
         },
       });
 
