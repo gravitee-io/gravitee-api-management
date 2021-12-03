@@ -26,13 +26,14 @@
     <br />
   </div>
 
-  <a style="margin-bottom: 5px" ng-click="$ctrl.addFilter()" style="font-style: italic">> Add a filter</a>
+  <a style="margin-bottom: 5px" ng-click="$ctrl.addFilter()" style="font-style: italic" ng-if="!$ctrl.isReadonly">> Add a filter</a>
 
   <gv-alert-trigger-filter
     alert="$ctrl.alert"
     ng-repeat="condition in $ctrl.alert.filters"
     condition="condition"
     on-filter-remove="$ctrl.removeFilter($index)"
+    is-readonly="$ctrl.isReadonly"
   >
     ></gv-alert-trigger-filter
   >

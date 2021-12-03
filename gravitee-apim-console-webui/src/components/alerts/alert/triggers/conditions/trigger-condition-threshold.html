@@ -18,7 +18,15 @@
 
 <md-input-container class="md-block" flex="30">
   <label>Threshold</label>
-  <input ng-model="$ctrl.condition.threshold" required type="number" min="1" name="threshold" aria-label="trigger threshold" />
+  <input
+    ng-model="$ctrl.condition.threshold"
+    required
+    type="number"
+    min="1"
+    name="threshold"
+    aria-label="trigger threshold"
+    ng-disabled="$ctrl.isReadonly"
+  />
   <!--
   <div class="hint">
     The threshold value to compare to.

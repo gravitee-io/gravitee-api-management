@@ -30,8 +30,8 @@
                 <th md-column>Last 5m / 1h / 1d / 1M</th>
                 <th md-column>Last alert</th>
                 <th md-column>Last message</th>
-                <th permission permission-only="'environment-alert-d'" width="48px" nowrap></th>
-                <th permission permission-only="'environment-alert-d'" width="48px" nowrap></th>
+                <th ng-if="$ctrl.hasPermissionForCurrentScope('alert-u')" width="48px" nowrap></th>
+                <th ng-if="$ctrl.hasPermissionForCurrentScope('alert-d')" width="48px" nowrap></th>
               </tr>
             </thead>
             <tbody md-body>
@@ -44,16 +44,13 @@
                     {{alert.severity}}
                   </span>
                 </td>
-                <td md-cell permission permission-only="'environment-alert-u'">
+                <td md-cell>
                   <a ng-style="alert.enabled?'':{'font-style': 'italic', 'color': 'grey'}" ng-click="$ctrl.goTo('alert', alert.id)">
                     <span ng-if="alert.template">[Template] </span>
                     {{alert.name}}
                   </a>
                 </td>
                 <td md-cell>{{alert.description}}</td>
-                <td md-cell permission permission-except="'environment-alert-u'">
-                  <span ng-style="alert.enabled?'':{'font-style': 'italic', 'color': 'grey'}">{{alert.name}}</span>
-                </td>
                 <td md-cell>
                   <span ng-if="!alert.template">
                     {{ alert.counters['5m'] }} / {{ alert.counters['1h'] }} / {{ alert.counters['1d'] }} / {{ alert.counters['1M'] }}
@@ -77,22 +74,18 @@
                 </td>
                 <td md-cell width="48px">
                   <ng-md-icon
-                    ng-if="!alert.enabled && !alert.template"
+                    ng-if="$ctrl.hasPermissionForCurrentScope('alert-u') && !alert.enabled && !alert.template"
                     icon="not_interested"
                     ng-click="$ctrl.toggleEnable(alert)"
                     style="font-size: 24px; height: 24px"
-                    permission
-                    permission-only="'environment-alert-u'"
                   >
                     <md-tooltip md-direction="top" md-visible="false">Enable this alert</md-tooltip>
                   </ng-md-icon>
                   <ng-md-icon
-                    ng-if="alert.enabled && !alert.template"
+                    ng-if="$ctrl.hasPermissionForCurrentScope('alert-u') && alert.enabled && !alert.template"
                     icon="done"
                     ng-click="$ctrl.toggleEnable(alert)"
                     style="font-size: 24px; height: 24px"
-                    permission
-                    permission-only="'environment-alert-u'"
                   >
                     <md-tooltip md-direction="top" md-visible="false">Disable this alert</md-tooltip>
                   </ng-md-icon>
@@ -100,7 +93,7 @@
                     <md-tooltip md-direction="top" md-visible="false">Alert template</md-tooltip>
                   </ng-md-icon>
                 </td>
-                <td md-cell permission permission-only="'environment-alert-d'">
+                <td md-cell ng-if="$ctrl.hasPermissionForCurrentScope('alert-d')">
                   <ng-md-icon icon="delete" ng-click="$ctrl.delete(alert)"></ng-md-icon>
                 </td>
               </tr>
@@ -120,8 +113,7 @@
   </div>
   <div ng-style="{'text-align': $ctrl.alerts.length == 0 ? 'center' : 'none' }">
     <md-button
-      permission
-      permission-only="['api-alert-c', 'application-alert-c', 'environment-alert-c']"
+      ng-if="$ctrl.hasPermissionForCurrentScope('alert-c')"
       ng-class="{'md-fab-bottom-right': $ctrl.alerts.length > 0}"
       class="md-fab"
       aria-label="create-alert"

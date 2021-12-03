@@ -21,6 +21,7 @@ const AlertTriggerConditionCompareComponent: ng.IComponentOptions = {
   bindings: {
     condition: '<',
     metrics: '<',
+    isReadonly: '<',
   },
   template: require('./trigger-condition-compare.html'),
   controller: function () {

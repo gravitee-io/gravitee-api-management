@@ -15,4 +15,8 @@
     limitations under the License.
 
 -->
-<gv-alert-trigger-window label="'No event for'" condition="$ctrl.alert.conditions[0]"></gv-alert-trigger-window>
+<gv-alert-trigger-window
+  label="'No event for'"
+  condition="$ctrl.alert.conditions[0]"
+  is-readonly="$ctrl.parent.isReadonly()"
+></gv-alert-trigger-window>

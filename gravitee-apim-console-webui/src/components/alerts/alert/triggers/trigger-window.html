@@ -34,6 +34,7 @@
       min="1"
       name="window-duration"
       aria-label="trigger time-window duration"
+      ng-disabled="$ctrl.isReadonly"
     />
     <div ng-messages="$ctrl.formAlert['window-duration'].$error">
       <div ng-message="required">Duration is required.</div>
@@ -43,7 +44,7 @@
 
   <md-input-container class="md-block" flex-gt-sm flex="15">
     <label>TimeUnit</label>
-    <md-select ng-model="$ctrl.condition.timeUnit" required>
+    <md-select ng-model="$ctrl.condition.timeUnit" required ng-disabled="$ctrl.isReadonly">
       <md-option ng-value="unit.key" ng-repeat="unit in $ctrl.timeUnits"> {{::unit.name}} </md-option>
     </md-select>
   </md-input-container>

@@ -15,4 +15,8 @@
     limitations under the License.
 
 -->
-<gv-alert-trigger-condition condition="$ctrl.alert.conditions[0]" metrics="$ctrl.metrics"></gv-alert-trigger-condition>
+<gv-alert-trigger-condition
+  condition="$ctrl.alert.conditions[0]"
+  metrics="$ctrl.metrics"
+  is-readonly="$ctrl.parent.isReadonly()"
+></gv-alert-trigger-condition>
