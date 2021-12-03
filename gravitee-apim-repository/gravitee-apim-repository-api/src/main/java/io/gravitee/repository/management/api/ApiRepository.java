@@ -37,5 +37,11 @@ public interface ApiRepository extends CrudRepository<Api, String> {
 
     List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
+    default List<String> searchIds(ApiCriteria... apiCriteria) {
+        return searchIds(null, apiCriteria);
+    }
+
+    List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria);
+
     Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException;
 }

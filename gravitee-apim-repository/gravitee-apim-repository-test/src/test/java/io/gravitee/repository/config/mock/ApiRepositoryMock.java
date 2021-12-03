@@ -139,6 +139,14 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiRepository.search(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build()))
             .thenReturn(asList(apiToUpdate, apiToDelete, apiBigName));
 
+        when(
+            apiRepository.searchIds(
+                eq(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build()),
+                eq(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build())
+            )
+        )
+            .thenReturn(asList("api-to-delete", "api-to-update", "big-name"));
+
         when(apiRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build())).thenReturn(singletonList(apiToFindById));

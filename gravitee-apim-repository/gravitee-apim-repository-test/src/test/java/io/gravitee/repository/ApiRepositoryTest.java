@@ -217,6 +217,18 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update", "big-name")));
     }
 
+    @Test
+    public void shouldFindIdsWithMultipleApiCriteria() {
+        List<String> apis = apiRepository.searchIds(
+            new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build(),
+            new ApiCriteria.Builder().environments(Arrays.asList("DEV", "DEVS")).build()
+        );
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(3, apis.size());
+        assertTrue(apis.containsAll(asList("api-to-delete", "api-to-update", "big-name")));
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownApi() throws TechnicalException {
         Api unknownApi = new Api();

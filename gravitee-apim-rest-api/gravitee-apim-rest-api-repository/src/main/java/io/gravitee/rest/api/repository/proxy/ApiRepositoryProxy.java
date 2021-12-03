@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiQualityRule;
 import java.util.List;
@@ -57,8 +58,13 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
-    public Page<Api> search(ApiCriteria apiCriteria, Pageable pageable) {
-        return target.search(apiCriteria, pageable);
+    public Page<Api> search(
+        ApiCriteria apiCriteria,
+        Sortable sortable,
+        Pageable pageable,
+        ApiFieldExclusionFilter apiFieldExclusionFilter
+    ) {
+        return target.search(apiCriteria, sortable, pageable, apiFieldExclusionFilter);
     }
 
     @Override
@@ -69,6 +75,16 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         return target.search(apiCriteria, apiFieldExclusionFilter);
+    }
+
+    @Override
+    public List<String> searchIds(ApiCriteria... apiCriteria) {
+        return target.searchIds(apiCriteria);
+    }
+
+    @Override
+    public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
+        return target.searchIds(sortable, apiCriteria);
     }
 
     @Override

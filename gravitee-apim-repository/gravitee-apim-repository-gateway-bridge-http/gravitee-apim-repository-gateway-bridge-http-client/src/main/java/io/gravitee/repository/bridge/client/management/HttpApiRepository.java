@@ -82,6 +82,11 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
+    public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
+        throw new IllegalStateException();
+    }
+
+    @Override
     public Set<Api> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
