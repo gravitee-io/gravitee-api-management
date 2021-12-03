@@ -75,3 +75,26 @@ That's it! You've just contributed to the project, and we really appreciate it!
 == Further Information
 
 You can find more detailed information about contributing in the https://guides.github.com/activities/contributing-to-open-source/[Github guides].
+
+---
+
+== Using a fork of the old `gravitee-gateway` repository?
+
+If you have a fork of `gravitee-gateway` and want to update it to get the full API Management monorepo, you can run:
+
+[source,shell]
+----
+# Add APIM monorepo remote
+git remote add upstream https://github.com/gravitee-io/gravitee-api-management
+git fetch --all
+
+# Update repo branches, et voilà 
+git pull upstream BASE_BRANCH
+
+# Update the branch you are working on
+# git checkout YOUR_BRANCH
+# git rebase BASE_BRANCH
+
+# Push the updated branch
+git push origin YOUR_BRANCH
+----
