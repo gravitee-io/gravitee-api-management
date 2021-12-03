@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.cache.repository;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.node.api.cache.Cache;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -30,9 +31,9 @@ import java.util.*;
 public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
 
     private final SubscriptionRepository wrapped;
-    private final Map<String, Subscription> cache;
+    private final Cache<String, Subscription> cache;
 
-    public SubscriptionRepositoryWrapper(final SubscriptionRepository wrapped, final Map<String, Subscription> cache) {
+    public SubscriptionRepositoryWrapper(final SubscriptionRepository wrapped, final Cache<String, Subscription> cache) {
         this.wrapped = wrapped;
         this.cache = cache;
     }
