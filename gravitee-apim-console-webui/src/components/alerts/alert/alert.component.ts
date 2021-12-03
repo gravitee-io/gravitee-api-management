@@ -19,12 +19,14 @@ import NotificationService from '../../../services/notification.service';
 import { Alert, Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';
 import { IScope } from 'angular';
+import UserService from '../../../services/user.service';
 
 const AlertComponent: ng.IComponentOptions = {
   bindings: {
     alerts: '<',
     notifiers: '<',
     status: '<',
+    mode: '<',
   },
   template: require('./alert.html'),
   controller: function (
@@ -32,6 +34,7 @@ const AlertComponent: ng.IComponentOptions = {
     $scope: IScope,
     AlertService: AlertService,
     NotificationService: NotificationService,
+    UserService: UserService,
     $state,
     $mdDialog,
   ) {
@@ -170,6 +173,20 @@ const AlertComponent: ng.IComponentOptions = {
       } else {
         $state.go('management.settings.alerts.list');
       }
+    };
+
+    this.hasPermissionForCurrentScope = (permission: string): boolean => {
+      let scope = 'environment';
+      if ($state.params.apiId) {
+        scope = 'api';
+      } else if ($state.params.applicationId) {
+        scope = 'application';
+      }
+      return UserService.isUserHasPermissions([`${scope}-${permission}`]);
+    };
+
+    this.isReadonly = (): boolean => {
+      return this.mode === 'detail' && !this.hasPermissionForCurrentScope('alert-u');
     };
   },
 };
