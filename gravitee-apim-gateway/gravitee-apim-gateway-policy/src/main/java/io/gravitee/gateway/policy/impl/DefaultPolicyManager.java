@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.policy.*;
@@ -60,6 +61,8 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
     @Autowired
     private PolicyConfigurationFactory policyConfigurationFactory;
+
+    private DelegatingClassLoader resourcesClassLoader;
 
     private final Map<String, PolicyMetadata> policies = new HashMap<>();
 
@@ -107,6 +110,9 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
         // Close policy classloaders
         policies.values().forEach(policy -> {
+            // Cleanup everything possible in PolicyFactory.
+            policyFactory.cleanup(policy);
+
             ClassLoader policyClassLoader = policy.classloader();
             if (policyClassLoader instanceof PluginClassLoader) {
                 try {
@@ -117,8 +123,13 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
             }
         });
 
-        // Be sure to remove all references to policies
+        // Be sure to remove all references to policies.
         policies.clear();
+
+        this.resourcesClassLoader = null;
+
+        // This action aims to avoid memory leak by making sure that no Gravitee ClassLoader is still referenced by Jackson TypeFactory.
+        TypeFactory.defaultInstance().clearCache();
     }
 
     private void initialize() {
@@ -134,30 +145,32 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
         Set<Policy> requiredPlugins = reactable.dependencies(Policy.class);
 
+        ClassLoader parentClassLoader;
+
+        // Load dependant resources to enhance policy classloader
+        Collection<? extends Resource> resources = rm.getResources();
+        if (!resources.isEmpty()) {
+            ClassLoader[] resourceClassLoaders = rm.getResources().stream().map(new Function<Resource, ClassLoader>() {
+                @Override
+                public ClassLoader apply(Resource resource) {
+                    return resource.getClass().getClassLoader();
+                }
+            }).toArray(ClassLoader[]::new);
+
+            this.resourcesClassLoader = new DelegatingClassLoader(rh.getClass().getClassLoader(), resourceClassLoaders);
+            parentClassLoader = resourcesClassLoader;
+        } else {
+            parentClassLoader = rh.getClass().getClassLoader();
+        }
+
         requiredPlugins.forEach(policy -> {
             final PolicyPlugin policyPlugin = ppm.get(policy.getName());
             if (policyPlugin == null) {
                 logger.error("Policy [{}] can not be found in policy registry", policy.getName());
-                throw new IllegalStateException("Policy ["+policy.getName()+"] can not be found in policy registry");
+                throw new IllegalStateException("Policy [" + policy.getName() + "] can not be found in policy registry");
             }
 
-            PluginClassLoader policyClassLoader;
-
-            // Load dependant resources to enhance policy classloader
-            Collection<? extends Resource> resources = rm.getResources();
-            if (! resources.isEmpty()) {
-                ClassLoader[] resourceClassLoaders = rm.getResources().stream().map(new Function<Resource, ClassLoader>() {
-                    @Override
-                    public ClassLoader apply(Resource resource) {
-                        return resource.getClass().getClassLoader();
-                    }
-                }).toArray(ClassLoader[]::new);
-
-                DelegatingClassLoader parentClassLoader = new DelegatingClassLoader(rh.getClass().getClassLoader(), resourceClassLoaders);
-                policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, parentClassLoader);
-            } else {
-                policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, rh.getClass().getClassLoader());
-            }
+            PluginClassLoader policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, parentClassLoader);
 
             logger.debug("Loading policy {} for {}", policy.getName(), rh);
 
@@ -179,11 +192,11 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
                 // Prepare context if defined
                 if (policyPlugin.context() != null) {
-                    Class<? extends PolicyContext> policyContextClass = (Class<? extends PolicyContext>)ClassUtils.forName(policyPlugin.context().getName(), policyClassLoader);
+                    Class<? extends PolicyContext> policyContextClass = (Class<? extends PolicyContext>) ClassUtils.forName(policyPlugin.context().getName(), policyClassLoader);
                     // Create policy context instance and initialize context provider (if used)
                     PolicyContext context = new PolicyContextFactory().create(policyContextClass);
 
-                    if(context instanceof PolicyContextProviderAware) {
+                    if (context instanceof PolicyContextProviderAware) {
                         ((PolicyContextProviderAware) context).setPolicyContextProvider(new SpringPolicyContextProvider(applicationContext));
                     }
 
