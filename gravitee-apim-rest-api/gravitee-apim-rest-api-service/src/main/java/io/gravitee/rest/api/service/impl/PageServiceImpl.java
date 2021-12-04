@@ -2097,7 +2097,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         previousPage.setContent(page.getContent());
         previousPage.setName(page.getName());
 
-        UpdatePageEntity updatePageEntity = convertToUpdateEntity(page);
+        UpdatePageEntity updatePageEntity = convertToUpdateEntity(page, false);
         try {
             fetchPage(updatePageEntity);
         } catch (FetcherException e) {
@@ -2264,6 +2264,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private UpdatePageEntity convertToUpdateEntity(Page page) {
+        return convertToUpdateEntity(page, true);
+    }
+
+    private UpdatePageEntity convertToUpdateEntity(Page page, boolean removeSensitiveData) {
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
 
         updatePageEntity.setName(page.getName());
@@ -2271,7 +2275,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         updatePageEntity.setLastContributor(page.getLastContributor());
         updatePageEntity.setOrder(page.getOrder());
         updatePageEntity.setPublished(page.isPublished());
-        updatePageEntity.setSource(this.convert(page.getSource()));
+        updatePageEntity.setSource(this.convert(page.getSource(), removeSensitiveData));
         updatePageEntity.setConfiguration(page.getConfiguration());
         updatePageEntity.setHomepage(page.isHomepage());
         updatePageEntity.setExcludedAccessControls(page.isExcludedAccessControls());
