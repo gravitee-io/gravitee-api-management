@@ -16,6 +16,7 @@
 package io.gravitee.gateway.policy.impl;
 
 import com.google.common.base.Predicate;
+import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -27,6 +28,7 @@ import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.reflections.ReflectionUtils.withModifier;
 import static org.reflections.ReflectionUtils.withParametersCount;
@@ -42,7 +44,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
     /**
      * Cache of constructor by policy
      */
-    private Map<Class<?>, Constructor<?>> constructors = new HashMap<>();
+    private final Map<Class<?>, Constructor<?>> constructors = new ConcurrentHashMap<>();
 
     @Override
     public Object create(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
@@ -50,6 +52,13 @@ public class PolicyFactoryImpl implements PolicyFactory {
         LOGGER.debug("Create a new policy instance for {}", policyClass.getName());
 
         return createPolicy(policyMetadata, policyConfiguration);
+    }
+
+    @Override
+    public void cleanup(PolicyMetadata policyMetadata) {
+        if(policyMetadata != null) {
+            constructors.remove(policyMetadata.policy());
+        }
     }
 
     private Object createPolicy(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
