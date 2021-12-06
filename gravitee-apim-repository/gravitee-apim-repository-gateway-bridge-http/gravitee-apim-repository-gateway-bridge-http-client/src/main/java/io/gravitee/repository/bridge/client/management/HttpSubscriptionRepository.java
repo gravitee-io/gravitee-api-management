@@ -71,6 +71,11 @@ public class HttpSubscriptionRepository extends AbstractRepository implements Su
     }
 
     @Override
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria) {
+        throw new IllegalStateException();
+    }
+
+    @Override
     public Set<Subscription> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

@@ -29,15 +29,12 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 /**
  * @author njt
@@ -91,6 +88,62 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     @Override
     public List<Subscription> search(final SubscriptionCriteria criteria) throws TechnicalException {
         return searchPage(criteria, null).getContent();
+    }
+
+    @Override
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria) {
+        final StringBuilder builder = new StringBuilder("select ");
+
+        String group = "api";
+        Collection<String> data = null;
+        if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
+            group = "application";
+            data = criteria.getApplications();
+        } else if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
+            data = criteria.getApis();
+        }
+
+        builder
+            .append(group)
+            .append(", count(*) as numberOfSubscriptions, max(updated_at) as lastUpdatedAt from ")
+            .append(this.tableName)
+            .append(" where ")
+            .append(group)
+            .append(" is not null");
+
+        if (data != null) {
+            builder.append(" and ").append(group).append(" in (").append(getOrm().buildInClause(data)).append(")");
+        }
+
+        if (!isEmpty(criteria.getStatuses())) {
+            builder.append(" and status ").append(" in (").append(getOrm().buildInClause(criteria.getStatuses())).append(")");
+        }
+
+        builder.append(" group by ").append(group).append(" order by numberOfSubscriptions desc, lastUpdatedAt desc");
+        return jdbcTemplate.query(
+            builder.toString(),
+            fillPreparedStatement(data, criteria),
+            resultSet -> {
+                Set<String> ranking = new LinkedHashSet();
+                while (resultSet.next()) {
+                    String referenceId = resultSet.getString(1);
+                    ranking.add(referenceId);
+                }
+                return ranking;
+            }
+        );
+    }
+
+    private PreparedStatementSetter fillPreparedStatement(Collection<String> data, SubscriptionCriteria criteria) {
+        return ps -> {
+            int index = 1;
+            if (data != null) {
+                index = getOrm().setArguments(ps, data, index);
+            }
+            if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
+                getOrm().setArguments(ps, criteria.getStatuses().stream().map(Enum::name).collect(toList()), index);
+            }
+        };
     }
 
     private Page<Subscription> searchPage(final SubscriptionCriteria criteria, final Pageable pageable) {
