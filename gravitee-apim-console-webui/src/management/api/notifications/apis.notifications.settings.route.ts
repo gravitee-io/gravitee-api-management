@@ -81,6 +81,9 @@ function apisNotificationsRouterConfig($stateProvider) {
         perms: {
           only: ['api-alert-r'],
         },
+        docs: {
+          page: 'management-alerts',
+        },
       },
       resolve: {
         alerts: (AlertService: AlertService, $stateParams) =>
