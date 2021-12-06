@@ -25,7 +25,7 @@ import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.core.net.PfxOptions;
-import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.Router;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -118,7 +118,7 @@ public class HttpServerSpringConfiguration {
     }
 
     @Bean("bridgeAuthProvider")
-    public AuthProvider nodeAuthProvider() {
+    public AuthenticationProvider nodeAuthProvider() {
         return new BasicAuthProvider();
     }
 

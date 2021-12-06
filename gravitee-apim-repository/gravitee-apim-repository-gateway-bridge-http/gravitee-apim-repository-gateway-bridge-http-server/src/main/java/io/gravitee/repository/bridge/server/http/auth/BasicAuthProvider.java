@@ -19,8 +19,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -28,7 +28,7 @@ import org.springframework.core.env.Environment;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BasicAuthProvider implements AuthProvider {
+public class BasicAuthProvider implements AuthenticationProvider {
 
     private static final String USERS_PREFIX_KEY = "services.bridge.http.authentication.users.";
 
@@ -44,7 +44,7 @@ public class BasicAuthProvider implements AuthProvider {
             String presentedPassword = authInfo.getString("password");
 
             if (password.equals(presentedPassword)) {
-                resultHandler.handle(Future.succeededFuture(new io.gravitee.repository.bridge.server.http.auth.User()));
+                resultHandler.handle(Future.succeededFuture(User.fromName(authInfo.getString("username"))));
                 return;
             }
         }

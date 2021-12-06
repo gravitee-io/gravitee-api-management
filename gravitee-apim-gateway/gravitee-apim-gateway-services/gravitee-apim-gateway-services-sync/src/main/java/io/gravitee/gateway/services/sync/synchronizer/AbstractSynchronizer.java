@@ -110,4 +110,8 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
     public int getBulkSize() {
         return bulkItems > 0 ? bulkItems : DEFAULT_BULK_SIZE;
     }
+
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
+    }
 }
