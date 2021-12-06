@@ -13,18 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
+package io.gravitee.gateway.flow.condition.evaluation;
 
-import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 
 /**
+ * This {@link ConditionEvaluator} evaluates to true if the condition of the string is evaluated to <code>true</code>.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyManager extends LifecycleComponent<PolicyManager> {
-    default Policy create(StreamType streamType, String policy, String configuration) {
-        return create(streamType, policy, configuration, null);
-    }
+public class ExpressionLanguageFlowConditionEvaluator implements ConditionEvaluator<Flow> {
 
-    Policy create(StreamType streamType, String policy, String configuration, String condition);
+    @Override
+    public boolean evaluate(Flow flow, ExecutionContext context) {
+        if (flow.getCondition() != null && !flow.getCondition().isEmpty()) {
+            return context.getTemplateEngine().getValue(flow.getCondition(), Boolean.class);
+        }
+
+        return true;
+    }
 }

@@ -51,7 +51,7 @@ public class FlowPolicyResolver implements PolicyResolver {
         return steps
             .stream()
             .filter(Step::isEnabled)
-            .map(step -> new Policy(step.getPolicy(), step.getConfiguration()))
+            .map(step -> new Policy(step.getPolicy(), step.getConfiguration(), step.getCondition()))
             .collect(Collectors.toList());
     }
 }

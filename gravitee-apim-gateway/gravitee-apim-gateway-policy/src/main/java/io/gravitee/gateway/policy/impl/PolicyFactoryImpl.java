@@ -41,7 +41,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
+    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
         Object policy = policyPluginFactory.create(policyMetadata.policy(), policyConfiguration);
 
         Method headMethod, streamMethod;
@@ -53,6 +53,9 @@ public class PolicyFactoryImpl implements PolicyFactory {
             streamMethod = policyMetadata.method(OnResponseContent.class);
         }
 
+        if (condition != null) {
+            return new ConditionalExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod, condition);
+        }
         return new ExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod);
     }
 }

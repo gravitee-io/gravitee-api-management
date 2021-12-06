@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.condition;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
-
 import java.util.Arrays;
 import java.util.List;
 
