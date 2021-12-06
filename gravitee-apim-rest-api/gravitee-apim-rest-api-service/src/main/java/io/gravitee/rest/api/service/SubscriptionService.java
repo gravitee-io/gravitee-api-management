@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -69,6 +70,10 @@ public interface SubscriptionService {
     Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable);
 
     Metadata getMetadata(List<SubscriptionEntity> subscriptions);
+
     SubscriptionEntity transfer(TransferSubscriptionEntity transferSubscription, String userId);
+
     String exportAsCsv(Collection<SubscriptionEntity> subscriptions, Map<String, Map<String, Object>> metadata);
+
+    Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionQuery subscriptionQuery);
 }

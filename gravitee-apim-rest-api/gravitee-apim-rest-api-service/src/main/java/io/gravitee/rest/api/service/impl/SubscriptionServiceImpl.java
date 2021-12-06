@@ -19,7 +19,6 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.*;
 import static java.lang.System.lineSeparator;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.data.domain.Page;
@@ -1138,6 +1137,19 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             sb.append(lineSeparator());
         }
         return sb.toString();
+    }
+
+    @Override
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionQuery query) {
+        try {
+            return subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(toSubscriptionCriteriaBuilder(query).build());
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to findReferenceIdsOrderByNumberOfSubscriptions for subscriptions: {}", query, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to findReferenceIdsOrderByNumberOfSubscriptions for subscriptions: %s", query),
+                ex
+            );
+        }
     }
 
     private String getName(Object map) {

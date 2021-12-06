@@ -19,8 +19,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -28,8 +26,7 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Subscription;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -107,5 +104,21 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
             .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(sub3, sub1), 0, 2, 2));
         when(subscriptionRepository.search(any(), eq(new PageableBuilder().pageNumber(1).pageSize(2).build())))
             .thenReturn(new io.gravitee.common.data.domain.Page<>(emptyList(), 1, 0, 2));
+
+        when(
+            subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
+                eq(new SubscriptionCriteria.Builder().status(Subscription.Status.PENDING).build())
+            )
+        )
+            .thenReturn(Set.of("api1"));
+        Set<String> ranking = new LinkedHashSet<>();
+        ranking.add("app1");
+        ranking.add("app2");
+        when(
+            subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
+                eq(new SubscriptionCriteria.Builder().applications(Arrays.asList("app1", "app2")).build())
+            )
+        )
+            .thenReturn(ranking);
     }
 }

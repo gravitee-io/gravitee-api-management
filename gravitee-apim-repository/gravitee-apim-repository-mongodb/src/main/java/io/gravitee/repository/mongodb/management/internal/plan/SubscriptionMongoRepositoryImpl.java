@@ -15,12 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management.internal.plan;
 
+import static com.mongodb.client.model.Accumulators.sum;
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Sorts.descending;
+import static java.util.stream.Collectors.toList;
+
+import com.mongodb.client.AggregateIterable;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -33,6 +42,9 @@ import org.springframework.data.mongodb.core.query.Query;
  * @author GraviteeSource Team
  */
 public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoRepositoryCustom {
+
+    private static final String NUMBER_OF_SUBSCRIPTIONS = "numberOfSubscriptions";
+    private static final String LAST_UPDATED_AT = "updatedAt";
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -62,18 +74,20 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         }
 
         if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
+            Criteria statusCriteria = Criteria.where("status");
             if (criteria.getStatuses().size() == 1) {
-                query.addCriteria(Criteria.where("status").is(criteria.getStatuses().iterator().next()));
+                query.addCriteria(statusCriteria.is(criteria.getStatuses().iterator().next()));
             } else {
-                query.addCriteria(Criteria.where("status").in(criteria.getStatuses()));
+                query.addCriteria(statusCriteria.in(criteria.getStatuses()));
             }
         }
 
         if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
+            Criteria applicationCriteria = Criteria.where("application");
             if (criteria.getApplications().size() == 1) {
-                query.addCriteria(Criteria.where("application").is(criteria.getApplications().iterator().next()));
+                query.addCriteria(applicationCriteria.is(criteria.getApplications().iterator().next()));
             } else {
-                query.addCriteria(Criteria.where("application").in(criteria.getApplications()));
+                query.addCriteria(applicationCriteria.in(criteria.getApplications()));
             }
         }
 
@@ -126,5 +140,39 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             subscriptions.size(),
             total == null ? subscriptions.size() : total
         );
+    }
+
+    @Override
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria) {
+        List<Bson> aggregations = new ArrayList<>();
+        String group = "$api";
+        if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
+            aggregations.add(match(in("application", criteria.getApplications())));
+            group = "$application";
+        } else if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
+            aggregations.add(match(in("api", criteria.getApis())));
+        } else {
+            aggregations.add(match(ne("api", null)));
+        }
+
+        if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
+            aggregations.add(match(in("status", criteria.getStatuses().stream().map(Enum::name).collect(toList()))));
+        }
+
+        aggregations.add(group(group, sum(NUMBER_OF_SUBSCRIPTIONS, 1)));
+        aggregations.add(sort(descending(NUMBER_OF_SUBSCRIPTIONS, LAST_UPDATED_AT)));
+
+        AggregateIterable<Document> subscriptions = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+            .aggregate(aggregations);
+
+        Set<String> references = new LinkedHashSet<>();
+        subscriptions.forEach(
+            document -> {
+                String referenceId = document.getString("_id");
+                references.add(referenceId);
+            }
+        );
+        return references;
     }
 }
