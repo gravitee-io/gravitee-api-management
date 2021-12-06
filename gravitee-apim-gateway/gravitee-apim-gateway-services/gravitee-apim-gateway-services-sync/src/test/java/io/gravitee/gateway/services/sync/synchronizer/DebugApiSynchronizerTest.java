@@ -56,9 +56,6 @@ public class DebugApiSynchronizerTest extends TestCase {
     @Mock
     private EventManager eventManager;
 
-    @Spy
-    private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-
     @Mock
     private Node node;
 
@@ -66,6 +63,7 @@ public class DebugApiSynchronizerTest extends TestCase {
 
     @Before
     public void setup() {
+        debugApiSynchronizer.setExecutor(Executors.newFixedThreadPool(1));
         when(node.id()).thenReturn(GATEWAY_ID);
     }
 

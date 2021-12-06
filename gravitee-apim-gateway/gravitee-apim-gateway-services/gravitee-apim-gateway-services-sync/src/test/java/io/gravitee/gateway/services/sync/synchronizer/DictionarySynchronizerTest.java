@@ -26,13 +26,12 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.*;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import junit.framework.TestCase;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -54,10 +53,12 @@ public class DictionarySynchronizerTest extends TestCase {
     @Mock
     private ObjectMapper objectMapper;
 
-    @Spy
-    private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-
     static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
+
+    @Before
+    public void setUp() {
+        dictionarySynchronizer.setExecutor(Executors.newFixedThreadPool(1));
+    }
 
     @Test
     public void initialSynchronize() throws Exception {
