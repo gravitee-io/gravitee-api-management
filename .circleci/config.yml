@@ -11,71 +11,19 @@ orbs:
 # our defined job, and its steps
 jobs:
     setup:
-        executor: continuation/default
+        docker:
+            - image: cimg/node:lts
+        resource_class: small
         steps:
             - checkout
             - run:
-                  name: Generate config
+                  name: Install ZX config
                   command: |
-                      # We build everything when not building a PR
-                      if [[ -z $CIRCLE_PULL_REQUEST ]]
-                      then
-                        echo '{}' > /tmp/parameters.json
-                        exit 0
-                      fi
-
-                      url="https://api.github.com/repos/gravitee-io/gravitee-api-management/pulls/${CIRCLE_PULL_REQUEST##*/}"
-                      # FIXME use gh orb: target_branch=$(gh pr view --json baseRefName --jq .baseRefName)
-
-                      target_branch=$(curl "$url" | jq '.base.ref' | tr -d '"')
-                      echo "Target branch is $target_branch"
-
-                      # Find all maven project to build
-                      # FIXME use jq+xml to json or impive grep to find artifactId
-                      # MVN_PROJECTS_TO_BUILD=$(git diff --name-only origin/${target_branch} | grep -E '^gravitee-apim.*' | grep -v -E '.*apim-(?:console|portal).*' | sed -r 's#.*/(.*)/src.*#:\1#' | uniq | paste -sd ',' -)
-                      # if [[ ! -z $MVN_PROJECTS_TO_BUILD ]]
-                      # then
-                      #   echo "Maven projects to build are $MVN_PROJECTS_TO_BUILD"
-                      #   BUILD_MAVEN=true
-                      # else
-                      #   BUILD_MAVEN=false
-                      # fi
-
-                      # FIXME take care of all edge cases. So for the moment
-
-                      # Should we build the portal
-                      portalLines=$(git diff --name-only origin/${target_branch} | { grep -e ".*apim-portal.*" || true; } | wc -l)
-                      echo "$portalLines lines modified for portal"
-                      if [ $portalLines -gt 0 ]
-                      then
-                        BUILD_PORTAL=true
-                      else
-                        BUILD_PORTAL=false
-                      fi
-                      echo "Portal should be built: $BUILD_PORTAL"
-
-                      # Should we build the console
-                      consoleLines=$(git diff --name-only origin/${target_branch} | { grep -e ".*apim-console.*" || true; } | wc -l)
-                      echo "$consoleLines lines modified for console"
-                      if [ $consoleLines -gt 0 ]
-                      then
-                          BUILD_CONSOLE=true
-                      else
-                          BUILD_CONSOLE=false
-                      fi
-                      echo "Console should be built: $BUILD_CONSOLE"
-
-                      PARAMETERS=$( jq -n \
-                                  --argjson bm $BUILD_MAVEN \
-                                  --argjson bp $BUILD_PORTAL \
-                                  --argjson bc $BUILD_CONSOLE \
-                                  '{build_maven: $bm, build_portal: $bp, build_console: $bc}' )
-
-                      echo $PARAMETERS > /tmp/parameters.json
+                      # Call ZX script to generate a JSON file containing the pipeline parameters: /tmp/parameters.json 
+                      npx zx@4 ./.circleci/scripts/build-execution-plan.mjs --quiet
             - continuation/continue:
                   configuration_path: .circleci/continue_config.yml
                   parameters: /tmp/parameters.json
-
 
 # our single workflow, that triggers the setup job defined above
 workflows:
