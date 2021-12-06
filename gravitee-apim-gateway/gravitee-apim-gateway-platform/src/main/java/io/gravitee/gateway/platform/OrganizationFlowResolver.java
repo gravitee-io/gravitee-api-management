@@ -17,11 +17,11 @@ package io.gravitee.gateway.platform;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.flow.condition.CompositeConditionEvaluator;
+import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
-import io.gravitee.gateway.flow.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
+import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +39,7 @@ public class OrganizationFlowResolver extends ConditionalFlowResolver {
             new CompositeConditionEvaluator(
                 new HttpMethodConditionEvaluator(),
                 new PathBasedConditionEvaluator(),
-                new ExpressionLanguageBasedConditionEvaluator()
+                new ExpressionLanguageStringConditionEvaluator()
             )
         );
         this.organizationManager = organizationManager;

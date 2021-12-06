@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.flow.condition;
+package io.gravitee.gateway.core.condition;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ConditionEvaluator {
-    boolean evaluate(Flow flow, ExecutionContext context);
+public interface ConditionEvaluator<T> {
+    boolean evaluate(T conditionHolder, ExecutionContext executionContext);
 }

@@ -18,18 +18,19 @@ package io.gravitee.gateway.handlers.api.processor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.flow.BestMatchPolicyResolver;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
 import io.gravitee.gateway.flow.SimpleFlowProvider;
-import io.gravitee.gateway.flow.condition.CompositeConditionEvaluator;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
-import io.gravitee.gateway.flow.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
+import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
@@ -103,10 +104,10 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         applicationContext.getAutowireCapableBeanFactory().autowireBean(securityPolicyResolver);
         add(new SecurityPolicyChainProvider(securityPolicyResolver));
 
-        final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
+        final ConditionEvaluator<Flow> evaluator = new CompositeConditionEvaluator<>(
             new HttpMethodConditionEvaluator(),
             new PathBasedConditionEvaluator(),
-            new ExpressionLanguageBasedConditionEvaluator()
+            new ExpressionLanguageStringConditionEvaluator()
         );
 
         if (loggingDecoratorSupplier != null) {

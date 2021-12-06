@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.logging.condition.evaluation.el;
+package io.gravitee.gateway.core.condition;
 
 import io.gravitee.gateway.api.ExecutionContext;
 
 /**
+ * This {@link ConditionEvaluator} evaluates to true if the condition of the string is evaluated to <code>true</code>.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EvaluableExecutionContext {
+public class ExpressionLanguageStringConditionEvaluator implements ConditionEvaluator<String> {
 
-    private final ExecutionContext executionContext;
+    @Override
+    public boolean evaluate(String condition, ExecutionContext context) {
+        if (condition != null && !condition.isEmpty()) {
+            return context.getTemplateEngine().getValue(condition, Boolean.class);
+        }
 
-    EvaluableExecutionContext(final ExecutionContext executionContext) {
-        this.executionContext = executionContext;
-    }
-
-    public String getPlan() {
-        return (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
-    }
-
-    public String getApplication() {
-        return (String) executionContext.getAttribute(ExecutionContext.ATTR_APPLICATION);
+        return true;
     }
 }

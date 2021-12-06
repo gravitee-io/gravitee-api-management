@@ -21,7 +21,7 @@ import io.gravitee.gateway.core.logging.LimitedLoggableClientRequest;
 import io.gravitee.gateway.core.logging.LimitedLoggableClientResponse;
 import io.gravitee.gateway.core.logging.LoggableClientRequest;
 import io.gravitee.gateway.core.logging.LoggableClientResponse;
-import io.gravitee.gateway.core.logging.condition.evaluation.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import org.slf4j.Logger;

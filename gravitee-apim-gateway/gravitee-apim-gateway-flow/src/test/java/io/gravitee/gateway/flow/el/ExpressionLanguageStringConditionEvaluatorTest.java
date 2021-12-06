@@ -16,19 +16,15 @@
 package io.gravitee.gateway.flow.el;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
-import io.gravitee.gateway.flow.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,9 +36,9 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ExpressionLanguageBasedConditionEvaluatorTest {
+public class ExpressionLanguageStringConditionEvaluatorTest {
 
-    private final ConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator();
+    private final ConditionEvaluator<String> evaluator = new ExpressionLanguageStringConditionEvaluator();
 
     @Mock
     private ExecutionContext context;

@@ -16,19 +16,15 @@
 package io.gravitee.gateway.flow;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.flow.condition.CompositeConditionEvaluator;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -45,59 +41,56 @@ public class CompositeConditionEvaluatorTest {
     private ExecutionContext context;
 
     @Mock
-    private Request request;
-
-    @Mock
     private Flow flow;
 
     @Test
     public void shouldEvaluate_noCondition() {
-        final ConditionEvaluator evaluator = new CompositeConditionEvaluator();
+        final ConditionEvaluator<String> evaluator = new CompositeConditionEvaluator();
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(flow.getCondition(), context));
     }
 
     @Test
     public void shouldEvaluate_invalidSingleCondition() {
-        final ConditionEvaluator condition1 = mock(ConditionEvaluator.class);
-        final ConditionEvaluator evaluator = new CompositeConditionEvaluator(condition1);
+        final ConditionEvaluator<String> condition1 = mock(ConditionEvaluator.class);
+        final ConditionEvaluator<String> evaluator = new CompositeConditionEvaluator(condition1);
 
-        when(condition1.evaluate(flow, context)).thenReturn(false);
+        when(condition1.evaluate(flow.getCondition(), context)).thenReturn(false);
 
-        assertFalse(evaluator.evaluate(flow, context));
+        assertFalse(evaluator.evaluate(flow.getCondition(), context));
     }
 
     @Test
     public void shouldEvaluate_validSingleCondition() {
-        final ConditionEvaluator condition1 = mock(ConditionEvaluator.class);
-        final ConditionEvaluator evaluator = new CompositeConditionEvaluator(condition1);
+        final ConditionEvaluator<String> condition1 = mock(ConditionEvaluator.class);
+        final ConditionEvaluator<String> evaluator = new CompositeConditionEvaluator(condition1);
 
-        when(condition1.evaluate(flow, context)).thenReturn(true);
+        when(condition1.evaluate(flow.getCondition(), context)).thenReturn(true);
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(flow.getCondition(), context));
     }
 
     @Test
     public void shouldEvaluate_invalidMultipleCondition() {
-        final ConditionEvaluator condition1 = mock(ConditionEvaluator.class);
-        final ConditionEvaluator condition2 = mock(ConditionEvaluator.class);
-        final ConditionEvaluator evaluator = new CompositeConditionEvaluator(condition1, condition2);
+        final ConditionEvaluator<String> condition1 = mock(ConditionEvaluator.class);
+        final ConditionEvaluator<String> condition2 = mock(ConditionEvaluator.class);
+        final ConditionEvaluator<String> evaluator = new CompositeConditionEvaluator(condition1, condition2);
 
-        when(condition1.evaluate(flow, context)).thenReturn(true);
-        when(condition2.evaluate(flow, context)).thenReturn(false);
+        when(condition1.evaluate(flow.getCondition(), context)).thenReturn(true);
+        when(condition2.evaluate(flow.getCondition(), context)).thenReturn(false);
 
-        assertFalse(evaluator.evaluate(flow, context));
+        assertFalse(evaluator.evaluate(flow.getCondition(), context));
     }
 
     @Test
     public void shouldEvaluate_validMultipleCondition() {
-        final ConditionEvaluator condition1 = mock(ConditionEvaluator.class);
-        final ConditionEvaluator condition2 = mock(ConditionEvaluator.class);
-        final ConditionEvaluator evaluator = new CompositeConditionEvaluator(condition1, condition2);
+        final ConditionEvaluator<String> condition1 = mock(ConditionEvaluator.class);
+        final ConditionEvaluator<String> condition2 = mock(ConditionEvaluator.class);
+        final ConditionEvaluator<String> evaluator = new CompositeConditionEvaluator(condition1, condition2);
 
-        when(condition1.evaluate(flow, context)).thenReturn(true);
-        when(condition2.evaluate(flow, context)).thenReturn(true);
+        when(condition1.evaluate(flow.getCondition(), context)).thenReturn(true);
+        when(condition2.evaluate(flow.getCondition(), context)).thenReturn(true);
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(flow.getCondition(), context));
     }
 }

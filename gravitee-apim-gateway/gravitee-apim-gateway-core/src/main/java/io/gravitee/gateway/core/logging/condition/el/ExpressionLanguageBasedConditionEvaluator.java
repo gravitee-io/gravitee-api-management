@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.logging.condition.evaluation.el;
+package io.gravitee.gateway.core.logging.condition.el;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.el.EvaluableRequest;
-import io.gravitee.gateway.core.logging.condition.evaluation.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.EvaluableExecutionContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
 import org.springframework.expression.common.LiteralExpression;
@@ -29,7 +30,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvaluator {
+public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvaluator<Request> {
 
     private static final String EXPRESSION_REGEX = "\\{([^#|T|(])";
     private static final String EXPRESSION_REGEX_SUBSTITUTE = "{'{'}$1";

@@ -18,7 +18,7 @@ package io.gravitee.gateway.handlers.api.processor.logging;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.logging.LoggingContext;
-import io.gravitee.gateway.core.logging.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
+import io.gravitee.gateway.core.logging.condition.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
 
 /**

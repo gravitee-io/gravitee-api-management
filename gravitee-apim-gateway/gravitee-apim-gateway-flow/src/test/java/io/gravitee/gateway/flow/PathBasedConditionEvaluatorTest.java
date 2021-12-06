@@ -16,17 +16,14 @@
 package io.gravitee.gateway.flow;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class PathBasedConditionEvaluatorTest {
 
-    private final ConditionEvaluator evaluator = new PathBasedConditionEvaluator();
+    private final ConditionEvaluator<Flow> evaluator = new PathBasedConditionEvaluator();
 
     @Mock
     private ExecutionContext context;
