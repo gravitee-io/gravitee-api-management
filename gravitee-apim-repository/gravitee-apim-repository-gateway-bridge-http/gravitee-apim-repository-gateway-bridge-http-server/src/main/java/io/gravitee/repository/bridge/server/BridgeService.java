@@ -21,7 +21,7 @@ import io.gravitee.repository.bridge.server.handler.*;
 import io.gravitee.repository.bridge.server.http.configuration.HttpServerConfiguration;
 import io.gravitee.repository.bridge.server.version.VersionHandler;
 import io.vertx.core.Vertx;
-import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -60,7 +59,7 @@ public class BridgeService extends AbstractService {
 
     @Autowired
     @Qualifier("bridgeAuthProvider")
-    private AuthProvider authProvider;
+    private AuthenticationProvider authProvider;
 
     @Autowired
     private HttpServerConfiguration httpServerConfiguration;
