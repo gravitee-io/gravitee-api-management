@@ -74,6 +74,9 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         perms: {
           only: ['environment-alert-r'],
         },
+        docs: {
+          page: 'management-alerts',
+        },
       },
       resolve: {
         alerts: (AlertService: AlertService) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
