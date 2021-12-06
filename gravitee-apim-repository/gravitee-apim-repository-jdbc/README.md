@@ -16,8 +16,7 @@ To use Gravitee.io snapshots, you need to declare the following repository in yo
 ## Building
 
 ```shell
-git clone https://github.com/gravitee-io/gravitee-repository-jdbc.git
-cd gravitee-repository-jdbc
+cd gravitee-apim-repository/gravitee-apim-repository-jdbc
 mvn clean package
 ```
 
