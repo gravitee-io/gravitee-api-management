@@ -46,9 +46,6 @@ public class ExpressionLanguageStringConditionEvaluatorTest {
     @Mock
     private TemplateEngine templateEngine;
 
-    @Mock
-    private Flow flow;
-
     @Before
     public void setUp() {
         when(context.getTemplateEngine()).thenReturn(templateEngine);
@@ -56,28 +53,25 @@ public class ExpressionLanguageStringConditionEvaluatorTest {
 
     @Test
     public void shouldEvaluate_noCondition() {
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(null, context));
     }
 
     @Test
     public void shouldEvaluate_emptyCondition() {
-        when(flow.getCondition()).thenReturn("");
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate("", context));
     }
 
     @Test
     public void shouldEvaluate_validCondition() {
-        when(flow.getCondition()).thenReturn("my-condition");
         when(templateEngine.getValue(eq("my-condition"), eq(Boolean.class))).thenReturn(true);
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate("my-condition", context));
     }
 
     @Test
     public void shouldEvaluate_invalidCondition() {
-        when(flow.getCondition()).thenReturn("invalid-condition");
         when(templateEngine.getValue(eq("invalid-condition"), eq(Boolean.class))).thenReturn(false);
 
-        assertFalse(evaluator.evaluate(flow, context));
+        assertFalse(evaluator.evaluate("invalid-condition", context));
     }
 }

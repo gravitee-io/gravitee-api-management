@@ -71,7 +71,7 @@ public class PolicyChainFactory {
 
         final List<Policy> policies = resolvedPolicies
             .stream()
-            .map(policy -> policyManager.create(streamType, policy.getName(), policy.getConfiguration()))
+            .map(policy -> policyManager.create(streamType, policy.getName(), policy.getConfiguration(), policy.getCondition()))
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 

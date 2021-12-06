@@ -17,11 +17,11 @@ package io.gravitee.gateway.core.logging.processor;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.core.logging.LimitedLoggableClientRequest;
 import io.gravitee.gateway.core.logging.LimitedLoggableClientResponse;
 import io.gravitee.gateway.core.logging.LoggableClientRequest;
 import io.gravitee.gateway.core.logging.LoggableClientResponse;
-import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import org.slf4j.Logger;

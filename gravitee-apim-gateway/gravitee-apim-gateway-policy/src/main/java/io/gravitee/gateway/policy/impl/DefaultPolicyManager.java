@@ -279,13 +279,13 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
     }
 
     @Override
-    public io.gravitee.gateway.policy.Policy create(StreamType streamType, String policy, String configuration) {
+    public io.gravitee.gateway.policy.Policy create(StreamType streamType, String policy, String configuration, String condition) {
         PolicyMetadata metadata = policies.get(policy);
 
         if (metadata != null && metadata.accept(streamType)) {
             PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(metadata.configuration(), configuration);
 
-            return policyFactory.create(streamType, metadata, policyConfiguration);
+            return policyFactory.create(streamType, metadata, policyConfiguration, condition);
         }
 
         return null;

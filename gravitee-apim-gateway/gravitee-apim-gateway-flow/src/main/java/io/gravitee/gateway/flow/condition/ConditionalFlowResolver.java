@@ -28,9 +28,9 @@ import java.util.stream.Collectors;
  */
 public abstract class ConditionalFlowResolver extends AbstractFlowResolver {
 
-    private final ConditionEvaluator<String> evaluator;
+    private final ConditionEvaluator<Flow> evaluator;
 
-    public ConditionalFlowResolver(ConditionEvaluator<String> evaluator) {
+    public ConditionalFlowResolver(ConditionEvaluator<Flow> evaluator) {
         this.evaluator = evaluator;
     }
 
@@ -39,7 +39,7 @@ public abstract class ConditionalFlowResolver extends AbstractFlowResolver {
         return resolve0(context)
             .stream()
             .filter(Flow::isEnabled)
-            .filter(flow -> evaluator.evaluate(flow.getCondition(), context))
+            .filter(flow -> evaluator.evaluate(flow, context))
             .collect(Collectors.toList());
     }
 
