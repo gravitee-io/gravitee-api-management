@@ -22,8 +22,7 @@ https://oss.sonatype.org/content/repositories/snapshots
 == Building
 
 ```
-$ git clone https://github.com/gravitee-io/gravitee-repository-redis.git
-$ cd gravitee-repository-redis
+$ cd gravitee-apim-repository/gravitee-apim-repository-redis
 $ mvn clean package
 ```
 
