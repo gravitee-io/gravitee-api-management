@@ -23,7 +23,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +41,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class HttpMethodConditionEvaluatorTest {
 
-    private final ConditionEvaluator evaluator = new HttpMethodConditionEvaluator();
+    private final ConditionEvaluator<Flow> evaluator = new HttpMethodConditionEvaluator();
 
     @Mock
     private ExecutionContext context;

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.core.logging.condition.el.ExpressionLanguageBasedConditionEvaluator;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;

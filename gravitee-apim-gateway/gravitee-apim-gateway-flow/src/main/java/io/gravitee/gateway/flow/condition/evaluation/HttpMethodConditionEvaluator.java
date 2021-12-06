@@ -17,7 +17,7 @@ package io.gravitee.gateway.flow.condition.evaluation;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 
 /**
  * This {@link ConditionEvaluator} evaluates to true if the method of the request is matching the
@@ -26,7 +26,7 @@ import io.gravitee.gateway.flow.condition.ConditionEvaluator;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpMethodConditionEvaluator implements ConditionEvaluator {
+public class HttpMethodConditionEvaluator implements ConditionEvaluator<Flow> {
 
     @Override
     public boolean evaluate(Flow flow, ExecutionContext context) {

@@ -13,24 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.flow.condition.evaluation.el;
+package io.gravitee.gateway.core.condition;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * This {@link ConditionEvaluator} evaluates to true if the condition of the flow is evaluated to <code>true</code>.
- *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvaluator {
+public class CompositeConditionEvaluator<T> implements ConditionEvaluator<T> {
+
+    private final List<ConditionEvaluator<T>> evaluators;
+
+    public CompositeConditionEvaluator(ConditionEvaluator<T>... evaluators) {
+        this.evaluators = Arrays.asList(evaluators);
+    }
 
     @Override
-    public boolean evaluate(Flow flow, ExecutionContext context) {
-        if (flow.getCondition() != null && !flow.getCondition().isEmpty()) {
-            return context.getTemplateEngine().getValue(flow.getCondition(), Boolean.class);
+    public boolean evaluate(T evaluable, ExecutionContext context) {
+        for (ConditionEvaluator<T> evaluator : evaluators) {
+            if (!evaluator.evaluate(evaluable, context)) {
+                return false;
+            }
         }
 
         return true;

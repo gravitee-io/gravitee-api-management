@@ -18,7 +18,7 @@ package io.gravitee.gateway.flow.condition.evaluation;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PathBasedConditionEvaluator implements ConditionEvaluator {
+public class PathBasedConditionEvaluator implements ConditionEvaluator<Flow> {
 
     private static final char OPTIONAL_TRAILING_SEPARATOR = '?';
     private static final String PATH_SEPARATOR = "/";

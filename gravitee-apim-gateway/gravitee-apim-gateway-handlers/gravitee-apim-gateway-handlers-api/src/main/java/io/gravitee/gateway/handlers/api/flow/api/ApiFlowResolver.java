@@ -17,7 +17,7 @@ package io.gravitee.gateway.handlers.api.flow.api;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import java.util.Collections;
@@ -31,7 +31,7 @@ public class ApiFlowResolver extends ConditionalFlowResolver {
 
     private final Api api;
 
-    public ApiFlowResolver(Api api, ConditionEvaluator evaluator) {
+    public ApiFlowResolver(Api api, ConditionEvaluator<Flow> evaluator) {
         super(evaluator);
         this.api = api;
     }

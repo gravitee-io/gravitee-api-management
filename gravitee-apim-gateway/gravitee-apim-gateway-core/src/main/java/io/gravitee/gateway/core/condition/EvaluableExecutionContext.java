@@ -13,33 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.flow.condition;
+package io.gravitee.gateway.core.condition;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CompositeConditionEvaluator implements ConditionEvaluator {
+public class EvaluableExecutionContext {
 
-    private final List<ConditionEvaluator> evaluators;
+    private final ExecutionContext executionContext;
 
-    public CompositeConditionEvaluator(ConditionEvaluator... evaluators) {
-        this.evaluators = Arrays.asList(evaluators);
+    public EvaluableExecutionContext(final ExecutionContext executionContext) {
+        this.executionContext = executionContext;
     }
 
-    @Override
-    public boolean evaluate(Flow flow, ExecutionContext context) {
-        for (ConditionEvaluator evaluator : evaluators) {
-            if (!evaluator.evaluate(flow, context)) {
-                return false;
-            }
-        }
+    public String getPlan() {
+        return (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
+    }
 
-        return true;
+    public String getApplication() {
+        return (String) executionContext.getAttribute(ExecutionContext.ATTR_APPLICATION);
     }
 }
