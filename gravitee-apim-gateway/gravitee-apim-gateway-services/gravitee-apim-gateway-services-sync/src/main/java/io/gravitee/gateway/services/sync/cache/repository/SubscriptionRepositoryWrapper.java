@@ -76,6 +76,11 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
     }
 
     @Override
+    public Set<String> computeRanking(SubscriptionCriteria criteria) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
     public Set<Subscription> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

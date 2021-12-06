@@ -43,6 +43,11 @@ public class SubscriptionRepositoryProxy extends AbstractProxy<SubscriptionRepos
         return target.search(criteria);
     }
 
+    @Override
+    public Set<String> computeRanking(SubscriptionCriteria criteria) throws TechnicalException {
+        return target.computeRanking(criteria);
+    }
+
     public Optional<Subscription> findById(String s) throws TechnicalException {
         return target.findById(s);
     }

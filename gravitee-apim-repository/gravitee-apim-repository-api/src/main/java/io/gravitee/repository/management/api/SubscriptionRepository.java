@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Subscription repository API.
@@ -32,4 +33,11 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Str
     Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException;
 
     List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException;
+
+    /**
+     *
+     * @param criteria
+     * @return
+     */
+    Set<String> computeRanking(SubscriptionCriteria criteria) throws TechnicalException;
 }

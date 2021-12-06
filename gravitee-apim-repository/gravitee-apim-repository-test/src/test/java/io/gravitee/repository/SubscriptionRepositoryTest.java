@@ -25,10 +25,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Subscription;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import org.junit.Test;
 
 /**
@@ -260,5 +257,27 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals("Subscriptions size", 1, subscriptions.size());
         assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldComputeRankingByApi() throws TechnicalException {
+        Set<String> ranking =
+            this.subscriptionRepository.computeRanking(new SubscriptionCriteria.Builder().status(Subscription.Status.PENDING).build());
+
+        assertEquals("Ranking size", 1, ranking.size());
+        assertEquals("Ranking", "api1", ranking.iterator().next());
+    }
+
+    @Test
+    public void shouldComputeRankingByApplications() throws TechnicalException {
+        Set<String> ranking =
+            this.subscriptionRepository.computeRanking(
+                    new SubscriptionCriteria.Builder().applications(Arrays.asList("app1", "app2")).build()
+                );
+
+        assertEquals("Ranking size", 2, ranking.size());
+        Iterator<String> iterator = ranking.iterator();
+        assertEquals("First", "app1", iterator.next());
+        assertEquals("Second", "app2", iterator.next());
     }
 }
