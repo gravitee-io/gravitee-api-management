@@ -166,13 +166,13 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
 
-        final ObjectNode apiDefinition = objectMapper.valueToTree(api);
-        apiDefinition.put("id", apiId);
-
-        final ApiEntity createdApi = apiService.createWithApiDefinition(api, userId, apiDefinition);
-
-        final Optional<String> result = checkContextPath(createdApi);
+        final Optional<String> result = checkContextPath(api);
         if (result.isEmpty()) {
+            final ObjectNode apiDefinition = objectMapper.valueToTree(api);
+            apiDefinition.put("id", apiId);
+
+            final ApiEntity createdApi = apiService.createWithApiDefinition(api, userId, apiDefinition);
+
             pageService.createAsideFolder(apiId, GraviteeContext.getCurrentEnvironment());
             pageService.createOrUpdateSwaggerPage(apiId, swaggerDescriptor, true);
             apiMetadataService.create(api.getMetadata(), createdApi.getId());
@@ -182,7 +182,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         return ApiEntityResult.failure(result.get());
     }
 
-    Optional<String> checkContextPath(ApiEntity api) {
+    Optional<String> checkContextPath(SwaggerApiEntity api) {
         try {
             virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts());
             return Optional.empty();

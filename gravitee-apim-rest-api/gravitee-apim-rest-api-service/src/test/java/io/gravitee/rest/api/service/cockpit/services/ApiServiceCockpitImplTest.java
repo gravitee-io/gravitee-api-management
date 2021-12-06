@@ -121,13 +121,13 @@ public class ApiServiceCockpitImplTest {
 
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
-        api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -149,13 +149,13 @@ public class ApiServiceCockpitImplTest {
     public void should_not_start_a_documented_api() {
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
-        api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -176,13 +176,13 @@ public class ApiServiceCockpitImplTest {
 
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
-        api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -207,13 +207,13 @@ public class ApiServiceCockpitImplTest {
     public void should_start_a_mocked_api() {
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
-        api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -238,13 +238,13 @@ public class ApiServiceCockpitImplTest {
 
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
-        api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -272,13 +272,13 @@ public class ApiServiceCockpitImplTest {
     public void should_start_an_published_api() {
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
-        api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -300,13 +300,13 @@ public class ApiServiceCockpitImplTest {
     public void should_publish_an_published_api() {
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
-        api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -326,13 +326,13 @@ public class ApiServiceCockpitImplTest {
     public void should_publish_swagger_documentation_of_an_published_api() {
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
-        api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -355,13 +355,13 @@ public class ApiServiceCockpitImplTest {
 
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
-        api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
@@ -527,8 +527,7 @@ public class ApiServiceCockpitImplTest {
 
     @Test
     public void should_check_context_path_unique() {
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
+        SwaggerApiEntity api = new SwaggerApiEntity();
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
@@ -543,8 +542,7 @@ public class ApiServiceCockpitImplTest {
 
     @Test
     public void should_check_context_path_not_unique() {
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
+        SwaggerApiEntity api = new SwaggerApiEntity();
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
