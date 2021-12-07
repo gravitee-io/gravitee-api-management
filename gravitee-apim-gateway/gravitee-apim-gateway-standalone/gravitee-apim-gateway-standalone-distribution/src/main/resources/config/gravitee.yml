@@ -154,7 +154,7 @@ reporters:
 #      refresh_interval: 5s
 #    pipeline:
 #      plugins:
-#        ingest: geoip, user_agent
+#        ingest: geoip, user_agent      # geoip and user_agent are enabled by default
 #    security:
 #      username: user
 #      password: secret
