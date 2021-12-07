@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ErrorableManagement, RequestInfo } from '../../model/technical';
-import { Api, ApiDefinition, ApiMember } from '../../model/apis';
+import { Api, ApiDefinition, ApiDeployment, ApiMember } from '../../model/apis';
 import Chainable = Cypress.Chainable;
 import Response = Cypress.Response;
 import { HttpConnector } from '../../model/technical.http';
@@ -58,5 +58,9 @@ export class ApiManagementCommands extends HttpConnector {
 
   addMemberToApi<T extends ErrorableManagement<ApiMember> = ApiMember>(apiId: string, apiMember: ApiMember): Chainable<Response<T>> {
     return this.httpClient.post(`/apis/${apiId}/members`, apiMember);
+  }
+
+  deploy(apiId: string, apiDeployment: ApiDeployment) {
+    return this.httpClient.post(`/apis/${apiId}/deploy`, apiDeployment);
   }
 }
