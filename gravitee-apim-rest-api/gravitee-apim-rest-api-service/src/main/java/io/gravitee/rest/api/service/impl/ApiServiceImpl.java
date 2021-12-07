@@ -1790,7 +1790,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Audit
                 auditService.createApiAuditLog(apiId, Collections.emptyMap(), API_DELETED, new Date(), optApi.get(), null);
                 // remove from search engine
-                searchEngineService.delete(convert(optApi.get()), false);
+                searchEngineService.delete(convert(optApi.get()));
 
                 mediaService.deleteAllByApi(apiId);
 
