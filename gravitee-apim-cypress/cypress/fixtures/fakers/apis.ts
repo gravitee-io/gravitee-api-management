@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as faker from 'faker';
-import { Api, ApiDefinition } from 'model/apis';
+import { Api, ApiDefinition, Plan, PlanSecurityType, PlanStatus, PlanValidation } from 'model/apis';
 
 export class ApiFakers {
   static version() {
@@ -57,6 +57,17 @@ export class ApiFakers {
       name,
       description: faker.commerce.productDescription(),
       version: ApiFakers.version(),
+    };
+  }
+
+  static plan(attributes?: Partial<Plan>): Plan {
+    return <Plan>{
+      validation: PlanValidation.AUTO,
+      securityDefinition: PlanSecurityType.API_KEY,
+      status: PlanStatus.PUBLISHED,
+      ...attributes,
+      name: faker.commerce.productName(),
+      description: faker.commerce.productDescription(),
     };
   }
 }
