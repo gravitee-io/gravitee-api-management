@@ -173,7 +173,7 @@ reporters:
 #      refresh_interval: 5s
 #    pipeline:
 #      plugins:
-#        ingest: geoip, user_agent      # geoip and user_agent are enabled by default for elasticsearch version above 7.x
+#        ingest: geoip, user_agent      # geoip and user_agent are enabled by default
 #    security:
 #      username: user
 #      password: secret
