@@ -1,4 +1,8 @@
+<!DOCTYPE html>
 <html>
+	<head lang="en">
+		<title>API plans data fixed</title>
+	</head>
 	<body style="text-align: center;">
 		<header>
 			<#include "header.html" />
@@ -11,7 +15,7 @@
 			</p>
 			<#if closedPlans?size != 0>
 				<p>
-					<b>Those plans have been closed :</b><br/>
+					<strong>Those plans have been closed :</strong><br/>
 					<#list closedPlans as plan>
 						- Plan <code>${plan.name}</code> (id <code>${api.id}</code>)<br/>
 					</#list>
@@ -19,7 +23,7 @@
 			</#if>
 			<#if createdPlans?size != 0>
 				<p>
-					<b>Those plans have been created :</b><br/>
+					<strong>Those plans have been created :</strong><br/>
 					<#list createdPlans as plan>
 						- Plan <code>${plan.name}</code> (id <code>${plan.id}</code>)<br/>
 					</#list>
