@@ -20,6 +20,9 @@ import { EnvironmentConfigurationManagementCommands } from './management/environ
 import { UserManagementCommands } from './management/user.management.commands';
 import { ApisQualityManagementCommands } from './management/apis-quality.management.commands';
 import { ApisRatingsManagementCommands } from './management/apis-ratings.management.commands';
+import { ApplicationsManagementCommands } from './management/applications.management.commands';
+import { ApisPlansManagementCommands } from './management/apis-plans.management.commands';
+import { ApisSubscriptionsManagementCommands } from './management/apis-subscriptions.management.commands';
 
 export class ManagementCommands extends RequestInfoHolder {
   constructor(requestInfo: RequestInfo) {
@@ -30,12 +33,24 @@ export class ManagementCommands extends RequestInfoHolder {
     return new ApiManagementCommands(this.requestInfo);
   }
 
+  apisPlans(): ApisPlansManagementCommands {
+    return new ApisPlansManagementCommands(this.requestInfo);
+  }
+
   apisQuality(): ApisQualityManagementCommands {
     return new ApisQualityManagementCommands(this.requestInfo);
   }
 
   apisRating(): ApisRatingsManagementCommands {
     return new ApisRatingsManagementCommands(this.requestInfo);
+  }
+
+  apisSubscriptions(): ApisSubscriptionsManagementCommands {
+    return new ApisSubscriptionsManagementCommands(this.requestInfo);
+  }
+
+  applications(): ApplicationsManagementCommands {
+    return new ApplicationsManagementCommands(this.requestInfo);
   }
 
   portalSettings(): PortalSettingsManagementCommands {
