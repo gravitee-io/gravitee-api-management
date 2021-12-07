@@ -61,7 +61,7 @@ public class ES7IndexPreparer extends PerTypeIndexPreparer {
     }
 
     private Completable pipeline() {
-        String pipelineTemplate = pipelineConfiguration.createPipeline(true);
+        String pipelineTemplate = pipelineConfiguration.createPipeline();
 
         if (pipelineTemplate != null && pipelineConfiguration.getPipelineName() != null) {
             return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate)
