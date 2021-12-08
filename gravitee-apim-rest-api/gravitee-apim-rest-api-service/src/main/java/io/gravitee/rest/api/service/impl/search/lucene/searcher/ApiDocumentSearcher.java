@@ -159,9 +159,12 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 pageQuery.add(pageApisFilter, BooleanClause.Occur.MUST);
             }
 
-            mainQuery
+            BooleanQuery.Builder pageOrApiQuery = new BooleanQuery.Builder();
+            pageOrApiQuery
                 .add(new BoostQuery(apiQuery.build(), 2.0f), BooleanClause.Occur.SHOULD)
                 .add(pageQuery.build(), BooleanClause.Occur.SHOULD);
+
+            mainQuery.add(pageOrApiQuery.build(), BooleanClause.Occur.MUST);
 
             // Manage filters
             if (query.getFilters() != null) {
