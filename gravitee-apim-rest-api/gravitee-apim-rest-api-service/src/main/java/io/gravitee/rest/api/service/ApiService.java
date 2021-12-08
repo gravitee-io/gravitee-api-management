@@ -112,6 +112,8 @@ public interface ApiService {
 
     ApiEntity importPathMappingsFromPage(ApiEntity apiEntity, String page);
 
+    Set<CategoryEntity> listCategories(Collection<String> apis);
+
     static UpdateApiEntity convert(ApiEntity apiEntity) {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setProxy(apiEntity.getProxy());

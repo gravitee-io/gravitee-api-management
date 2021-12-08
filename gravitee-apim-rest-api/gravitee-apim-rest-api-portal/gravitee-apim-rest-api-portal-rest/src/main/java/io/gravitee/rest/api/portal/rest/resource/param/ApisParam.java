@@ -129,4 +129,8 @@ public class ApisParam {
     public void setPromoted(Boolean promoted) {
         this.promoted = promoted;
     }
+
+    public boolean isCategoryMode() {
+        return this.getCategory() != null && this.getFilter() == null;
+    }
 }

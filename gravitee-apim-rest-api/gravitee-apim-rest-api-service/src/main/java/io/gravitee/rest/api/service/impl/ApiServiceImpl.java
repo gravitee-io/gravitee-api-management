@@ -923,6 +923,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return new HashSet<>(findByUser(userId, apiQuery, null, null, portal).getContent());
     }
 
+
+    @Override
+    public Set<CategoryEntity> listCategories(Collection<String> apis) {
+        try {
+            return apiRepository
+                .listCategories(new ApiCriteria.Builder().ids(apis.toArray(new String[apis.size()])).build())
+                .stream()
+                .map(categoryId -> categoryService.findById(categoryId))
+                .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to list categories for APIs {}", apis, ex);
+            throw new TechnicalManagementException("An error occurs while trying to list categories for APIs {}" + apis, ex);
+        }
+    }
+
     @Override
     public Page<ApiEntity> findByUser(String userId, ApiQuery apiQuery, Sortable sortable, Pageable pageable, boolean portal) {
         try {
