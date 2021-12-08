@@ -2,7 +2,12 @@
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["es5", "dom"],
-    "types": ["cypress", "node"]
+    "types": ["cypress", "node"],
+    "baseUrl": "./cypress",
+    "paths": {
+      "@fakers/*": ["fakers/*"],
+      "@model/*": ["model/*"]
+    }
   },
   "include": ["**/*.ts"]
 }

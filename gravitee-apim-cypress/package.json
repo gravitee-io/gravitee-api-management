@@ -4,6 +4,7 @@
     "private": true,
     "description": "Gravitee.io APIM - Cypress",
     "scripts": {
+        "test": "cypress open",
         "test:bulk": "cypress run --config-file cypress/integration/bulk/cypress-config.json",
         "test:ci": "cypress run --config-file cypress/integration/nrt/cypress-config.json",
         "test:e2e": "cypress open --config-file cypress/integration/e2e/cypress-config.json",
