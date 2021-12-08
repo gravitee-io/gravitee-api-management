@@ -281,6 +281,17 @@ public class SearchEngineServiceTest {
     }
 
     @Test
+    public void shouldNotFindWithNameAndOwnerFilterIfApiIsExcluded() {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("api", Collections.singleton("api-1"));
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api 2\" AND ownerName: \"Owner 2\"").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 0);
+    }
+
+    @Test
     public void shouldNotFoundWithNameAndWrongOwnerFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
