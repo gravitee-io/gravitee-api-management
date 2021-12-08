@@ -2298,21 +2298,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Search paged APIs by {}", query);
 
-            Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class).setQuery(query).setFilters(filters).build();
+            Set<String> apiIds = this._search(query, filters).collect(toSet());
 
-            SearchResult matchApis = searchEngineService.search(apiQuery);
-
-            /*
-             * Dirty hack to ensure that only APIs viewable by the current user are returned
-             */
-            Stream<String> apiIdStream = matchApis.getDocuments().stream();
-            if (filters.containsKey("api")) {
-                List<String> availableApis = (List) filters.get("api");
-                apiIdStream = apiIdStream.filter(availableApis::contains);
-            }
-            String[] apiIds = apiIdStream.toArray(String[]::new);
-
-            if (apiIds.length == 0) {
+            if (apiIds.size() == 0) {
                 return new Page<>(emptyList(), 0, 0, 0);
             }
 
@@ -2338,20 +2326,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Collection<ApiEntity> search(String query, Map<String, Object> filters) {
+        return this._search(query, filters).map(this::findById).collect(toList());
+    }
+
+    private Stream<String> _search(String query, Map<String, Object> filters) {
         Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class).setQuery(query).setFilters(filters).build();
-
         SearchResult matchApis = searchEngineService.search(apiQuery);
+        return matchApis.getDocuments().parallelStream();
+    }
 
-        /*
-         * Dirty hack to ensure that only APIs viewable by the current user are returned
-         */
-        Stream<String> apiIdStream = matchApis.getDocuments().stream();
-        if (filters.containsKey("api")) {
-            Set<String> availableApis = (Set) filters.get("api");
-            apiIdStream = apiIdStream.filter(availableApis::contains);
-        }
-
-        return apiIdStream.map(this::findById).collect(toList());
+    @Override
+    public Collection<String> searchIds(String query, Map<String, Object> filters) {
+        return this._search(query, filters).collect(toList());
     }
 
     @Override
