@@ -26,8 +26,12 @@ export class ConfigurationService {
 
   constructor(private http: HttpClient) {}
 
-  public get(key: string) {
-    return key.split('.').reduce((prev, curr) => prev && prev[curr], this.config);
+  public get(key: string, defaultValue?: any) {
+    const value = key.split('.').reduce((prev, curr) => prev && prev[curr], this.config);
+    if (value == null) {
+      return defaultValue;
+    }
+    return value;
   }
 
   public load() {
