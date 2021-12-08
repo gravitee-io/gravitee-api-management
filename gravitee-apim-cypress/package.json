@@ -23,7 +23,7 @@
         "@types/faker": "^5.5.7",
         "@types/node": "^14.17.7",
         "cypress": "^8.6.0",
-        "cypress-terminal-report": "^3.3.3",
+        "cypress-terminal-report": "^3.4.0",
         "license-check-and-add": "^4.0.2",
         "prettier": "^2.4.1",
         "typescript": "^4.3.5",
