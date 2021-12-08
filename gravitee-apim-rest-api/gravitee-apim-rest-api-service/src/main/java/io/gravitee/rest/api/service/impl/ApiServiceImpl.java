@@ -2283,11 +2283,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             final ApiCriteria apiCriteria = new ApiCriteria.Builder().ids(apiIds).build();
+
+            List<Api> apiList = apiRepository.search(apiCriteria);
             final Page<Api> apiPage = sortAndPaginate(
-                apiRepository.search(apiCriteria),
+                apiList,
                 pageable,
                 // Keep order done by `searchEngineService` (based on score)
-                buildApiComparator(sortable, pageable, apiRepository.search(apiCriteria), (api1, api2) -> 0)
+                buildApiComparator(sortable, pageable, apiList, null)
             );
 
             // merge all apis
@@ -2986,8 +2988,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (pageable.getPageNumber() < 1 || (totalCount > 0 && startIndex >= totalCount)) {
             throw new PaginationInvalidException();
         }
+        Stream<Api> apiStream = apis.stream();
 
-        List<Api> subsetApis = apis.stream().sorted(comparator).skip(startIndex).limit(pageable.getPageSize()).collect(toList());
+        if (comparator != null) {
+            apiStream.sorted(comparator);
+        }
+
+        List<Api> subsetApis = apiStream.skip(startIndex).limit(pageable.getPageSize()).collect(toList());
 
         return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apis.size());
     }
