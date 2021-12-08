@@ -3,7 +3,7 @@
   "baseUrl": "http://localhost:8083",
   "video": false,
   "screenshotOnRunFailure": false,
-  "integrationFolder": "cypress/integration/nrt",
+  "integrationFolder": "cypress/integration",
   "testFiles": "**/*.ts",
   "env": {
     "failOnStatusCode": false,

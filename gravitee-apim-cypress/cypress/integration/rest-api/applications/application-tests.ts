@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER, API_PUBLISHER_USER, LOW_PERMISSION_USER } from 'fakers/users/users';
-import { ApplicationFakers } from 'fakers/applications';
+import { ADMIN_USER, API_PUBLISHER_USER, LOW_PERMISSION_USER } from 'fixtures/fakers/users/users';
+import { ApplicationFakers } from 'fixtures/fakers/applications';
 import { Application } from 'model/applications';
 import { createApplication, deleteApplication } from 'commands/management/application-management-commands';
 

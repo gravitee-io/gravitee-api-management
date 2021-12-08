@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { ApiFakers } from '../../fakers/apis';
-import { API_PUBLISHER_USER } from '../../fakers/users/users';
-import { Api } from '../../model/apis';
-import { gio } from '../../commands/gravitee.commands';
+import { ApiFakers } from 'fixtures/fakers/apis';
+import { API_PUBLISHER_USER } from 'fixtures/fakers/users/users';
+import { Api } from 'model/apis';
+import { gio } from 'commands/gravitee.commands';
 
 const bulkSize = 50;
 

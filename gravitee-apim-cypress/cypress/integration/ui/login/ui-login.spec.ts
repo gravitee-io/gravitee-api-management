@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER } from '../../fakers/users/users';
+import { ADMIN_USER } from 'fixtures/fakers/users/users';
 
 describe('Login Feature', () => {
   // Here we use a beforeEach and an after each to reset properly all the cookie we want
