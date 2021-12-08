@@ -3,7 +3,7 @@
   "baseUrl": "http://localhost:8083",
   "video": false,
   "screenshotOnRunFailure": false,
-  "integrationFolder": "cypress/integration/",
+  "integrationFolder": "cypress/integration/rest-api",
   "testFiles": "**/*.ts",
   "env": {
     "failOnStatusCode": false,

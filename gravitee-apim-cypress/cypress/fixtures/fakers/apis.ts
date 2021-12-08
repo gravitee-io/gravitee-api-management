@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as faker from 'faker';
-import { Api, ApiDefinition } from '../model/apis';
+import { Api, ApiDefinition } from 'model/apis';
 
 export class ApiFakers {
   static version() {
