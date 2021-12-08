@@ -1,5 +1,10 @@
 {
   "baseURL": "/portal/environments/DEFAULT",
+  "homepage": {
+    "featured": {
+      "size": 9
+    }
+  },
   "loaderURL": "assets/images/gravitee-loader.gif",
   "pagination": {
     "size": {

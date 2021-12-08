@@ -19,6 +19,7 @@ import { Router } from '@angular/router';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 import '@gravitee/ui-components/wc/gv-card-list';
+import { ConfigurationService } from '../../services/configuration.service';
 
 @Component({
   selector: 'app-homepage',
@@ -35,13 +36,16 @@ export class HomepageComponent implements OnInit {
     private router: Router,
     private apiStates: ApiStatesPipe,
     private apiLabels: ApiLabelsPipe,
+    private config: ConfigurationService,
   ) {}
 
   ngOnInit() {
     this.portalService.getPages({ homepage: true }).subscribe((response) => {
       this.homepage = response.data[0];
     });
-    this.apiService.getApis({ filter: 'FEATURED', size: -1 }).subscribe((response) => {
+
+    const size = this.config.get('homepage.featured.size', 9);
+    this.apiService.getApis({ filter: 'FEATURED', size }).subscribe((response) => {
       this.topApis = response.data.map((a) => {
         const metric = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
         // @ts-ignore
