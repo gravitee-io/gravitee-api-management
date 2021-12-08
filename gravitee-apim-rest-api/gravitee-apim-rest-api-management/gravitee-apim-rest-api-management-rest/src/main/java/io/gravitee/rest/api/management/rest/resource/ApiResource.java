@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.MembershipMemberType.USER;
+import static io.gravitee.rest.api.model.MembershipReferenceType.API;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 
@@ -41,11 +43,13 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -103,6 +107,11 @@ public class ApiResource extends AbstractResource {
     )
     public Response getApi() {
         ApiEntity apiEntity = apiService.findById(api);
+
+        if (!canManageApi(apiEntity)) {
+            throw new ForbiddenAccessException();
+        }
+
         if (hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
             setPictures(apiEntity);
         } else {
