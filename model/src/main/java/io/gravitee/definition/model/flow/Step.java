@@ -44,6 +44,9 @@ public class Step implements Serializable {
     @JsonProperty("enabled")
     private boolean enabled = true;
 
+    @JsonProperty("condition")
+    private String condition;
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -82,5 +85,13 @@ public class Step implements Serializable {
 
     public void setConfiguration(String configuration) {
         this.configuration = configuration;
+    }
+
+    public String getCondition() {
+        return condition;
+    }
+
+    public void setCondition(String condition) {
+        this.condition = condition;
     }
 }
