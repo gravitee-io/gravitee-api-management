@@ -20,6 +20,7 @@ const AlertNotificationComponent: ng.IComponentOptions = {
   bindings: {
     notification: '<',
     onNotificationRemove: '&',
+    isReadonly: '<',
   },
   require: {
     parent: '^gvAlertNotifications',
@@ -44,7 +45,7 @@ const AlertNotificationComponent: ng.IComponentOptions = {
     this.reloadNotifierSchema = () => {
       NotifierService.getSchema(this.notification.type).then(
         ({ data }) => {
-          this.notifierJsonSchema = data;
+          this.notifierJsonSchema = { ...data, readonly: this.isReadonly };
           return {
             schema: data,
           };

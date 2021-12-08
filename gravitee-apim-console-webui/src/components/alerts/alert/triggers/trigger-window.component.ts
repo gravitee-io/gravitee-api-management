@@ -19,6 +19,7 @@ const AlertTriggerWindowComponent: ng.IComponentOptions = {
   bindings: {
     label: '<',
     condition: '<',
+    isReadonly: '<',
   },
   template: require('./trigger-window.html'),
   controller: function () {

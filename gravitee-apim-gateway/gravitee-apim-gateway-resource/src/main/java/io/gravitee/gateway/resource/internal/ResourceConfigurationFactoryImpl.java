@@ -31,7 +31,7 @@ public class ResourceConfigurationFactoryImpl implements ResourceConfigurationFa
 
     private final Logger LOGGER = LoggerFactory.getLogger(ResourceConfigurationFactoryImpl.class);
 
-    private final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends ResourceConfiguration> T create(Class<T> resourceConfigurationClass, String configuration) {

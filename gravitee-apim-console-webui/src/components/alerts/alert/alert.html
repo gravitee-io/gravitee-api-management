@@ -48,6 +48,7 @@
                         md-maxlength="50"
                         required
                         autofocus
+                        ng-disabled="$ctrl.isReadonly()"
                         aria-label="Alert name"
                       />
                       <div class="hint" ng-if="$ctrl.formAlert.name.$valid || $ctrl.formAlert.name.$pristine">Alert name.</div>
@@ -68,6 +69,7 @@
                         aria-label="Enable this alert trigger"
                         class="md-primary md-align-top-left"
                         flex
+                        ng-disabled="$ctrl.isReadonly()"
                       >
                         Enable this alert
                       </md-checkbox>
@@ -88,7 +90,7 @@
 
                     <md-input-container class="md-block" flex="30">
                       <label>Severity</label>
-                      <md-select ng-model="$ctrl.alert.severity" required>
+                      <md-select ng-model="$ctrl.alert.severity" required ng-disabled="$ctrl.isReadonly()">
                         <md-option ng-value="severity" ng-repeat="severity in $ctrl.severities"> {{severity | lowercase}} </md-option>
                       </md-select>
                     </md-input-container>
@@ -97,7 +99,12 @@
                   <div layout-gt-sm="row">
                     <md-input-container class="md-block" flex-gt-sm>
                       <label>Description</label>
-                      <input ng-model="$ctrl.alert.description" name="name" aria-label="Alert description" />
+                      <input
+                        ng-model="$ctrl.alert.description"
+                        name="name"
+                        aria-label="Alert description"
+                        ng-disabled="$ctrl.isReadonly()"
+                      />
                     </md-input-container>
                   </div>
                 </div>
@@ -215,7 +222,11 @@
               </div>
 
               <!-- Additional filters -->
-              <gv-alert-trigger-filters alert="$ctrl.alert" form="$ctrl.formAlert"></gv-alert-trigger-filters>
+              <gv-alert-trigger-filters
+                alert="$ctrl.alert"
+                form="$ctrl.formAlert"
+                is-readonly="$ctrl.isReadonly()"
+              ></gv-alert-trigger-filters>
             </md-tab-body>
           </md-tab>
 
@@ -223,9 +234,9 @@
             <md-tab-label>Notifications</md-tab-label>
             <md-tab-body>
               <!-- Dampening -->
-              <gv-alert-trigger-dampening dampening="$ctrl.alert.dampening"></gv-alert-trigger-dampening>
+              <gv-alert-trigger-dampening dampening="$ctrl.alert.dampening" is-readonly="$ctrl.isReadonly()"></gv-alert-trigger-dampening>
 
-              <gv-alert-notifications alert="$ctrl.alert"></gv-alert-notifications>
+              <gv-alert-notifications alert="$ctrl.alert" is-readonly="$ctrl.isReadonly()"></gv-alert-notifications>
             </md-tab-body>
           </md-tab>
 
@@ -240,44 +251,37 @@
         <!-- Form actions -->
         <div class="md-actions gravitee-api-save-button" layout="row">
           <md-button
-            ng-if="$ctrl.updateMode"
+            ng-if="$ctrl.hasPermissionForCurrentScope('alert-u') && $ctrl.updateMode"
             class="md-raised md-primary"
             type="submit"
             ng-disabled="$ctrl.status.available_plugins === 0 || $ctrl.formAlert.$invalid || $ctrl.formAlert.$pristine"
-            permission
-            permission-only="['api-alert-u', 'application-alert-u', 'environment-alert-u']"
           >
             Update
           </md-button>
           <md-button
-            ng-if="!$ctrl.updateMode"
+            ng-if="$ctrl.hasPermissionForCurrentScope('alert-c') && !$ctrl.updateMode"
             class="md-raised md-primary"
             type="submit"
             ng-disabled="$ctrl.status.available_plugins === 0 || $ctrl.formAlert.$invalid || $ctrl.formAlert.$pristine"
-            permission
-            permission-only="['api-alert-c', 'application-alert-c', 'environment-alert-c']"
           >
             Create
           </md-button>
 
           <md-button
+            ng-if="$ctrl.hasPermissionForCurrentScope('alert-d')"
             class="md-raised"
             type="button"
             ng-click="$ctrl.reset()"
-            permission
-            permission-only="['api-alert-d', 'application-alert-d', 'environment-alert-d']"
             ng-disabled="$ctrl.status.available_plugins === 0 || $ctrl.formAlert.$invalid || $ctrl.formAlert.$pristine"
           >
             Reset
           </md-button>
           <md-button
             class="md-raised md-warn float-right"
-            ng-if="$ctrl.updateMode"
+            ng-if="$ctrl.hasPermissionForCurrentScope('alert-d') && $ctrl.updateMode"
             ng-disabled="$ctrl.status.available_plugins === 0"
             type="button"
             ng-click="$ctrl.delete()"
-            permission
-            permission-only="['api-alert-d', 'application-alert-d', 'environment-alert-d']"
           >
             Delete
           </md-button>

@@ -21,6 +21,7 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
   bindings: {
     condition: '<',
     metrics: '<',
+    isReadonly: '<',
   },
   template: require('./trigger-condition-string.html'),
   controller: function ($injector, $state) {

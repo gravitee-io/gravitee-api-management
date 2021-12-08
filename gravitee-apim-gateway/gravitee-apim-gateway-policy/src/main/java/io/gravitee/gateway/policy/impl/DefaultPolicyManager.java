@@ -15,10 +15,12 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
@@ -57,6 +59,8 @@ public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<Po
 
     @Autowired
     protected PolicyConfigurationFactory policyConfigurationFactory;
+
+    private DelegatingClassLoader resourcesClassLoader;
 
     private final Map<String, PolicyMetadata> policies = new HashMap<>();
 
@@ -118,6 +122,9 @@ public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<Po
             .values()
             .forEach(
                 policy -> {
+                    // Cleanup everything possible in PolicyFactory.
+                    policyFactory.cleanup(policy);
+
                     ClassLoader policyClassLoader = policy.classloader();
                     if (policyClassLoader instanceof PluginClassLoader) {
                         try {
@@ -129,8 +136,13 @@ public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<Po
                 }
             );
 
-        // Be sure to remove all references to policies
+        // Be sure to remove all references to policies.
         policies.clear();
+
+        this.resourcesClassLoader = null;
+
+        // This action aims to avoid memory leak by making sure that no Gravitee ClassLoader is still referenced by Jackson TypeFactory.
+        TypeFactory.defaultInstance().clearCache();
     }
 
     protected Set<Policy> dependencies() {
@@ -148,6 +160,30 @@ public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<Po
         ClassLoader globalClassLoader = getClassLoader();
         ResourceLifecycleManager rm = applicationContext.getBean(ResourceLifecycleManager.class);
 
+        ClassLoader parentClassLoader;
+
+        // Load dependant resources to enhance policy classloader
+        Collection<? extends Resource> resources = rm.getResources();
+        if (!resources.isEmpty()) {
+            ClassLoader[] resourceClassLoaders = rm
+                .getResources()
+                .stream()
+                .map(
+                    new Function<Resource, ClassLoader>() {
+                        @Override
+                        public ClassLoader apply(Resource resource) {
+                            return resource.getClass().getClassLoader();
+                        }
+                    }
+                )
+                .toArray(ClassLoader[]::new);
+
+            this.resourcesClassLoader = new DelegatingClassLoader(globalClassLoader, resourceClassLoaders);
+            parentClassLoader = resourcesClassLoader;
+        } else {
+            parentClassLoader = globalClassLoader;
+        }
+
         dependencies()
             .forEach(
                 policy -> {
@@ -157,29 +193,7 @@ public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<Po
                         throw new IllegalStateException("Policy [" + policy.getName() + "] can not be found in policy registry");
                     }
 
-                    PluginClassLoader policyClassLoader;
-
-                    // Load dependant resources to enhance policy classloader
-                    Collection<? extends Resource> resources = rm.getResources();
-                    if (!resources.isEmpty()) {
-                        ClassLoader[] resourceClassLoaders = rm
-                            .getResources()
-                            .stream()
-                            .map(
-                                new Function<Resource, ClassLoader>() {
-                                    @Override
-                                    public ClassLoader apply(Resource resource) {
-                                        return resource.getClass().getClassLoader();
-                                    }
-                                }
-                            )
-                            .toArray(ClassLoader[]::new);
-
-                        DelegatingClassLoader parentClassLoader = new DelegatingClassLoader(globalClassLoader, resourceClassLoaders);
-                        policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, parentClassLoader);
-                    } else {
-                        policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, globalClassLoader);
-                    }
+                    PluginClassLoader policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, parentClassLoader);
 
                     logger.debug("Loading policy {}", policy.getName());
 
