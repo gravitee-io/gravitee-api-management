@@ -34,6 +34,6 @@ module.exports = {
   },
   transformIgnorePatterns: [
     // Ensure these packages are transformed with babel as they contains some ES6+ features (as `await import` and spread operator)
-    '/node_modules/(?!(@gravitee/ui-components|lit-element|lit-html|resize-observer-polyfill)).+\\.js$',
+    '/node_modules/(?!(@gravitee/ui-components|lit|@lit/reactive-element|lit-element|lit-html|resize-observer-polyfill)).+\\.js$',
   ],
 };
