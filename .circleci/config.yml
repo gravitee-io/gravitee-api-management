@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
     slack: circleci/slack@4.4.4
-    gravitee: gravitee-io/gravitee@1.0.42
+    gravitee: gravitee-io/gravitee@1.0.44
     secrethub: secrethub/cli@1.1.0
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
