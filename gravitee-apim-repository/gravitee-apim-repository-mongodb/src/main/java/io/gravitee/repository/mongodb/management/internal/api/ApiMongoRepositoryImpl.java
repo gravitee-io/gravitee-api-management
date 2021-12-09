@@ -77,27 +77,6 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
         List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
 
-        // TODO: need to find the explanation for this
-        if (criteria != null && criteria.getContextPath() != null && !criteria.getContextPath().isEmpty()) {
-            apis =
-                apis
-                    .stream()
-                    .filter(
-                        apiMongo -> {
-                            try {
-                                io.gravitee.definition.model.Api apiDefinition = new GraviteeMapper()
-                                .readValue(apiMongo.getDefinition(), io.gravitee.definition.model.Api.class);
-                                VirtualHost searchedVHost = new VirtualHost();
-                                searchedVHost.setPath(criteria.getContextPath());
-                                return apiDefinition.getProxy().getVirtualHosts().contains(searchedVHost);
-                            } catch (JsonProcessingException e) {
-                                logger.error("Problem occured while parsing api definition", e);
-                                return false;
-                            }
-                        }
-                    )
-                    .collect(Collectors.toList());
-        }
         return new Page<>(apis, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
     }
 

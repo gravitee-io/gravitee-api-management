@@ -385,16 +385,6 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldFindByContextPath() {
-        final List<Api> apis = apiRepository.search(new ApiCriteria.Builder().contextPath("/product").build());
-        assertNotNull(apis);
-        assertFalse(apis.isEmpty());
-        assertEquals(3, apis.size());
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update", "grouped-api")));
-        assertEquals(3, apis.stream().filter(api -> api.getDefinition().contains("\"context_path\" : \"/product\"")).count());
-    }
-
-    @Test
     public void shouldListCategories() throws TechnicalException {
         final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().build());
         assertNotNull(categories);
