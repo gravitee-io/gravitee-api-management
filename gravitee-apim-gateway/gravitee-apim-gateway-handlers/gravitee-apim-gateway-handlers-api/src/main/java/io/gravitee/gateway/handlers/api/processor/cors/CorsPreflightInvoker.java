@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.handlers.api.processor.cors;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
@@ -65,7 +65,7 @@ public class CorsPreflightInvoker implements Invoker {
 
     private static class CorsPreflightProxyResponse implements ProxyResponse {
 
-        private final HttpHeaders headers = new HttpHeaders();
+        private final HttpHeaders headers = HttpHeaders.create();
         private Handler<Void> endHandler;
 
         @Override

@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.http.vertx;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.http.IdGenerator;
@@ -26,6 +25,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.reporter.api.http.Metrics;
@@ -53,7 +53,7 @@ public class VertxHttpServerRequest implements Request {
 
     private MultiValueMap<String, String> pathParameters = null;
 
-    private HttpHeaders headers = null;
+    private HttpHeaders headers;
 
     private final Metrics metrics;
 
@@ -63,7 +63,7 @@ public class VertxHttpServerRequest implements Request {
         this.serverRequest = httpServerRequest;
         this.timestamp = System.currentTimeMillis();
         this.id = idGenerator.randomString();
-
+        this.headers = new VertxHttpHeaders(httpServerRequest.headers());
         this.metrics = Metrics.on(timestamp).build();
         this.metrics.setRequestId(id());
         this.metrics.setHttpMethod(method());
@@ -71,7 +71,7 @@ public class VertxHttpServerRequest implements Request {
         this.metrics.setRemoteAddress(remoteAddress());
         this.metrics.setHost(serverRequest.host());
         this.metrics.setUri(uri());
-        this.metrics.setUserAgent(serverRequest.getHeader(HttpHeaders.USER_AGENT));
+        this.metrics.setUserAgent(serverRequest.getHeader(io.vertx.core.http.HttpHeaders.USER_AGENT));
     }
 
     @Override
@@ -124,14 +124,6 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public HttpHeaders headers() {
-        if (headers == null) {
-            MultiMap vertxHeaders = serverRequest.headers();
-            headers = new HttpHeaders(vertxHeaders.size());
-            for (Map.Entry<String, String> header : vertxHeaders) {
-                headers.add(header.getKey(), header.getValue());
-            }
-        }
-
         return headers;
     }
 
@@ -206,14 +198,7 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public Request endHandler(Handler<Void> endHandler) {
-        serverRequest.endHandler(
-            new io.vertx.core.Handler<Void>() {
-                @Override
-                public void handle(Void event) {
-                    endHandler.handle(event);
-                }
-            }
-        );
+        serverRequest.endHandler(endHandler::handle);
         return this;
     }
 

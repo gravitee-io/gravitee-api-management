@@ -18,13 +18,14 @@ package io.gravitee.gateway.services.healthcheck.rule;
 import static java.lang.System.currentTimeMillis;
 
 import io.gravitee.alert.api.event.Event;
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.endpoint.EndpointException;
+import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.EndpointStatusDecorator;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
@@ -44,7 +45,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -135,7 +135,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             .setPort(port)
             .setHost(request.getHost())
             .setMethod(HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()))
-            .putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
+            .putHeader(io.vertx.reactivex.core.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
             .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
 
         if (step.getRequest().getHeaders() != null) {
@@ -325,8 +325,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             }
 
             // Extract headers
-            HttpHeaders headers = new HttpHeaders();
-            response.headers().names().forEach(headerName -> headers.put(headerName, response.headers().getAll(headerName)));
+            HttpHeaders headers = new VertxHttpHeaders(response.headers());
             healthResponse.setHeaders(headers);
 
             // Store body
@@ -369,12 +368,9 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return stepBuilder.build();
     }
 
-    private HttpHeaders getHttpHeaders(io.gravitee.definition.model.services.healthcheck.Step step) {
-        HttpHeaders reqHeaders = new HttpHeaders();
-        step
-            .getRequest()
-            .getHeaders()
-            .forEach(httpHeader -> reqHeaders.put(httpHeader.getName(), Collections.singletonList(httpHeader.getValue())));
+    private io.gravitee.gateway.api.http.HttpHeaders getHttpHeaders(io.gravitee.definition.model.services.healthcheck.Step step) {
+        io.gravitee.gateway.api.http.HttpHeaders reqHeaders = io.gravitee.gateway.api.http.HttpHeaders.create();
+        step.getRequest().getHeaders().forEach(httpHeader -> reqHeaders.add(httpHeader.getName(), httpHeader.getValue()));
         return reqHeaders;
     }
 

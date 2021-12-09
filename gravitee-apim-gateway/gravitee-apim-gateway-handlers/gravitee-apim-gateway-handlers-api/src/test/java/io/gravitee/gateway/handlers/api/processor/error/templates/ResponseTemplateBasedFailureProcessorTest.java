@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.processor.error.templates;
 
 import static org.mockito.Mockito.*;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -25,6 +24,8 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.reporter.api.http.Metrics;
 import java.util.Collections;
@@ -166,7 +167,7 @@ public class ResponseTemplateBasedFailureProcessorTest {
         failure.setKey("POLICY_ERROR_KEY");
         failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        when(requestHeaders.getAccept()).thenReturn(Collections.singletonList(MediaType.MEDIA_APPLICATION_XML));
+        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 
         processor.handle(context);
@@ -197,7 +198,7 @@ public class ResponseTemplateBasedFailureProcessorTest {
         failure.setKey("POLICY_ERROR_KEY");
         failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        when(requestHeaders.getAccept()).thenReturn(Collections.singletonList(MediaType.MEDIA_APPLICATION_XML));
+        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 
         processor.handle(context);
@@ -224,7 +225,7 @@ public class ResponseTemplateBasedFailureProcessorTest {
         failure.setKey("POLICY_ERROR_KEY");
         failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        when(requestHeaders.getAccept()).thenReturn(Collections.singletonList(MediaType.MEDIA_APPLICATION_JSON));
+        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_JSON));
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 
         processor.handle(context);
@@ -251,8 +252,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
         failure.setKey("POLICY_ERROR_KEY");
         failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.ACCEPT, "text/html, application/json, */*;q=0.8, application/xml;q=0.9");
+        HttpHeaders headers = HttpHeaders.create();
+        headers.set(HttpHeaderNames.ACCEPT, "text/html, application/json, */*;q=0.8, application/xml;q=0.9");
         when(request.headers()).thenReturn(headers);
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 

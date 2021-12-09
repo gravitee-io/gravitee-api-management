@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.core.failover;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
@@ -192,7 +192,7 @@ public class FailoverInvoker extends EndpointInvoker {
 
         @Override
         public HttpHeaders headers() {
-            return new HttpHeaders();
+            return HttpHeaders.create();
         }
 
         @Override

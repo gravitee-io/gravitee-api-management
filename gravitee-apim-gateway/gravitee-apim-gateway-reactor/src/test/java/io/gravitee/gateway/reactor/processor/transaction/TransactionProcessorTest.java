@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.reactor.processor.transaction;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.http.Metrics;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -52,8 +52,8 @@ public class TransactionProcessorTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         context = new SimpleExecutionContext(request, response);
-        Mockito.when(request.headers()).thenReturn(new HttpHeaders());
-        Mockito.when(response.headers()).thenReturn(new HttpHeaders());
+        Mockito.when(request.headers()).thenReturn(HttpHeaders.create());
+        Mockito.when(response.headers()).thenReturn(HttpHeaders.create());
         Mockito.when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
     }
 

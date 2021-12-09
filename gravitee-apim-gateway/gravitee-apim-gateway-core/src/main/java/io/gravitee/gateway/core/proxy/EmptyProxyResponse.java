@@ -15,10 +15,11 @@
  */
 package io.gravitee.gateway.core.proxy;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 
@@ -31,14 +32,14 @@ public class EmptyProxyResponse implements ProxyResponse {
     private Handler<Buffer> bodyHandler;
     private Handler<Void> endHandler;
 
-    private final HttpHeaders httpHeaders = new HttpHeaders();
+    private final HttpHeaders httpHeaders = HttpHeaders.create();
 
     private final int statusCode;
 
     public EmptyProxyResponse(int statusCode) {
         this.statusCode = statusCode;
 
-        httpHeaders.set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        httpHeaders.set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
     }
 
     @Override

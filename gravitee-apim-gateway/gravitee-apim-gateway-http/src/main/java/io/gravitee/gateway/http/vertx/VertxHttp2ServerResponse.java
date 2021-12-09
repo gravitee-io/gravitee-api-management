@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.http.vertx;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.http2.HttpFrame;
+import io.vertx.core.http.HttpHeaders;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,6 +39,8 @@ public class VertxHttp2ServerResponse extends VertxHttpServerResponse {
     protected void writeHeaders() {
         // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
         // connection-specific header fields must be remove from response headers
+        headers.remove(HttpHeaders.CONNECTION).remove(HttpHeaders.KEEP_ALIVE).remove(HttpHeaders.TRANSFER_ENCODING);
+        /*
         headers.forEach(
             (headerName, headerValues) -> {
                 if (
@@ -50,5 +52,6 @@ public class VertxHttp2ServerResponse extends VertxHttpServerResponse {
                 }
             }
         );
+         */
     }
 }

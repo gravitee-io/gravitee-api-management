@@ -98,7 +98,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                     ApiContextHandlerFactory.class.getClassLoader()
                 );
 
-                Class<?> handlerClass = parentClassLoader.loadClass(ApiReactorHandler.class.getName());
+                 */
+                Class<?> handlerClass = this.getClass().getClassLoader().loadClass(ApiReactorHandler.class.getName());
 
                 final ApiReactorHandler handler = (ApiReactorHandler) handlerClass.getConstructor(Api.class).newInstance(api);
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);

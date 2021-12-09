@@ -94,16 +94,8 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
         chain
             .handler(__ -> handleProxyInvocation(context, chain))
-            .streamErrorHandler(
-                failure -> {
-                    handleError(context, failure);
-                }
-            )
-            .errorHandler(
-                failure -> {
-                    handleError(context, failure);
-                }
-            )
+            .streamErrorHandler(failure -> handleError(context, failure))
+            .errorHandler(failure -> handleError(context, failure))
             .exitHandler(
                 __ -> {
                     context.request().resume();
@@ -181,7 +173,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         context.response().reason(proxyResponse.reason());
 
         // Copy HTTP headers
-        proxyResponse.headers().forEach((headerName, headerValues) -> context.response().headers().put(headerName, headerValues));
+        proxyResponse.headers().forEach(entry -> context.response().headers().add(entry.getKey(), entry.getValue()));
 
         final StreamableProcessor<ExecutionContext, Buffer> chain = responseProcessorChain.create();
 
@@ -223,7 +215,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                                 if (proxyResponse.trailers() != null && !proxyResponse.trailers().isEmpty()) {
                                     proxyResponse
                                         .trailers()
-                                        .forEach((headerName, headerValues) -> context.response().trailers().put(headerName, headerValues));
+                                        .forEach((entry -> context.response().trailers().add(entry.getKey(), entry.getValue())));
                                 }
 
                                 context

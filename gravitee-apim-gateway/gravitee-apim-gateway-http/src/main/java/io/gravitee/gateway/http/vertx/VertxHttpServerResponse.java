@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.http.vertx;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.netty.buffer.ByteBuf;
 import io.vertx.core.http.HttpServerResponse;
@@ -33,13 +33,15 @@ public class VertxHttpServerResponse implements Response {
 
     protected final HttpServerResponse serverResponse;
     private final Request serverRequest;
-    protected final HttpHeaders headers = new HttpHeaders();
+    protected final HttpHeaders headers;
 
-    protected HttpHeaders trailers;
+    protected final HttpHeaders trailers;
 
     public VertxHttpServerResponse(final VertxHttpServerRequest serverRequest) {
         this.serverRequest = serverRequest;
         this.serverResponse = serverRequest.getNativeServerRequest().response();
+        this.headers = new VertxHttpHeaders(this.serverResponse.headers());
+        this.trailers = new VertxHttpHeaders(this.serverResponse.trailers());
     }
 
     @Override
@@ -78,9 +80,6 @@ public class VertxHttpServerResponse implements Response {
 
     @Override
     public HttpHeaders trailers() {
-        if (trailers == null) {
-            trailers = new HttpHeaders();
-        }
         return trailers;
     }
 
@@ -91,12 +90,11 @@ public class VertxHttpServerResponse implements Response {
                 writeHeaders();
 
                 // Vertx requires to set the chunked flag if transfer_encoding header as the "chunked" value
-                String transferEncodingHeader = headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
+                String transferEncodingHeader = headers().getFirst(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
                 if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncodingHeader)) {
                     serverResponse.setChunked(true);
                 } else if (transferEncodingHeader == null) {
-                    String connectionHeader = headers().getFirst(HttpHeaders.CONNECTION);
-                    String contentLengthHeader = headers().getFirst(HttpHeaders.CONTENT_LENGTH);
+                    String contentLengthHeader = headers().getFirst(io.vertx.core.http.HttpHeaders.CONTENT_LENGTH);
                     if (contentLengthHeader == null) {
                         serverResponse.setChunked(true);
                     }
@@ -127,7 +125,7 @@ public class VertxHttpServerResponse implements Response {
                 writeHeaders();
             }
 
-            writeTrailers();
+            //    writeTrailers();
 
             serverResponse
                 .end()
@@ -149,17 +147,18 @@ public class VertxHttpServerResponse implements Response {
         return this;
     }
 
+    /*
     protected void writeTrailers() {
         if (trailers != null) {
             trailers.forEach(serverResponse::putTrailer);
         }
     }
-
+*/
     private boolean valid() {
         return !serverResponse.closed() && !serverResponse.ended();
     }
 
     protected void writeHeaders() {
-        headers.forEach(serverResponse::putHeader);
+        //headers.forEach(serverResponse::putHeader);
     }
 }

@@ -15,10 +15,8 @@
  */
 package io.gravitee.gateway.reactor.processor.notfound;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
@@ -56,7 +54,7 @@ public class NotFoundReporter extends AbstractProcessor<ExecutionContext> {
                         log.setClientRequest(new io.gravitee.reporter.api.common.Request());
                         log.getClientRequest().setMethod(context.request().method());
                         log.getClientRequest().setUri(context.request().uri());
-                        log.getClientRequest().setHeaders(new HttpHeaders(context.request().headers()));
+                        log.getClientRequest().setHeaders(context.request().headers());
                         log.getClientRequest().setBody(payload.toString());
 
                         metrics.setLog(log);
