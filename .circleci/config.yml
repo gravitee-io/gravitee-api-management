@@ -1225,7 +1225,6 @@ workflows:
                   requires:
                       - release_secrets_resolution
             - release:
-                  name: maven_n_git_release <<# pipeline.parameters.dry_run >>"DryRun"<</ pipeline.parameters.dry_run >>
                   requires:
                       - prepare-settings
             - nexus-staging-prepare-component:
