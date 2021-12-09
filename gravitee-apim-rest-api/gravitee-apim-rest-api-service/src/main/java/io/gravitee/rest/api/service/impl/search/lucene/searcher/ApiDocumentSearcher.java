@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -197,6 +198,9 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     protected String completeQueryWithFilters(io.gravitee.rest.api.service.search.query.Query query, BooleanQuery.Builder mainQuery) {
+        if (isBlank(query.getQuery())) {
+            return "";
+        }
         try {
             BooleanQuery.Builder restQuery = new BooleanQuery.Builder();
             Set<String> rest = appendExplicitFilters(query.getQuery(), mainQuery, restQuery);
