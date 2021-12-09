@@ -335,10 +335,15 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     private Query getApisFilter(String field, Map<String, Object> filters) {
         Object filter = filters.get(FIELD_API_TYPE_VALUE);
         if (filter != null) {
-            BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
-            ((Collection) filter).stream()
-                .forEach(value1 -> filterApisQuery.add(new TermQuery(new Term(field, (String) value1)), BooleanClause.Occur.SHOULD));
-            return filterApisQuery.build();
+            try {
+                BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
+                ((Collection) filter).stream()
+                    .forEach(value1 -> filterApisQuery.add(new TermQuery(new Term(field, (String) value1)), BooleanClause.Occur.SHOULD));
+                return filterApisQuery.build();
+            } catch (BooleanQuery.TooManyClauses e) {
+                BooleanQuery.setMaxClauseCount(filters.size());
+                return getApisFilter(field, filters);
+            }
         }
         return null;
     }
