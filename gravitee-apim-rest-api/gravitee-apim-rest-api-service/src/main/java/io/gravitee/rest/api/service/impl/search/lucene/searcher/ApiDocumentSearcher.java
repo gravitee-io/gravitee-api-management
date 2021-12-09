@@ -107,6 +107,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_CATEGORIES,
         FIELD_DESCRIPTION,
         FIELD_PATHS,
+        FIELD_TAGS,
     };
 
     @Override
@@ -284,6 +285,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             return new TermQuery(new Term(term.field(), formatCategoryField(term.text())));
         } else if (FIELD_PATHS.equals(term.field())) {
             return new WildcardQuery(new Term(term.field(), term.text()));
+        } else if (FIELD_TAGS.equals(term.field())) {
+            return new TermQuery(new Term(term.field(), term.text()));
         } else {
             return new TermQuery(new Term(term.field() + "_lowercase", term.text().toLowerCase()));
         }

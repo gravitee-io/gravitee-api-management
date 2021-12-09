@@ -367,6 +367,28 @@ public class SearchEngineServiceTest {
         assertEquals(matches.getDocuments(), Arrays.asList("api-2"));
     }
 
+    @Test
+    public void shouldFindWithTag() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("tag-api").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 5);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"));
+    }
+
+    @Test
+    public void shouldFindByTag() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).addFilter("tags", "tag-api-3", true).setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 1);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-3"));
+    }
+
     @Before
     public void initIndexer() {
         // TODO: Remove this hack and use @BeforeAll when move to junit 5.x
@@ -400,6 +422,7 @@ public class SearchEngineServiceTest {
                     // Actually we index hrid categories...
                     apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
                 }
+                apiEntity.setTags(Set.of("tag-" + apiEntity.getId()));
                 searchEngineService.index(apiEntity, false);
             }
             searchEngineService.index(completePage(new ApiPageEntity(), 1, true), false);
