@@ -23,6 +23,7 @@ import io.gravitee.gateway.services.healthcheck.rule.AbstractEndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.ProxyOptions;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,7 +36,12 @@ public class GrpcEndpointRule extends AbstractEndpointRule<GrpcEndpoint> {
     }
 
     @Override
-    public EndpointRuleHandler<GrpcEndpoint> createRunner(Vertx vertx, EndpointRule<GrpcEndpoint> rule, TemplateEngine templateEngine) {
-        return new GrpcEndpointRuleHandler(vertx, rule, templateEngine);
+    public EndpointRuleHandler<GrpcEndpoint> createRunner(
+        Vertx vertx,
+        EndpointRule<GrpcEndpoint> rule,
+        TemplateEngine templateEngine,
+        Environment environment
+    ) throws Exception {
+        return new GrpcEndpointRuleHandler(vertx, rule, templateEngine, environment);
     }
 }

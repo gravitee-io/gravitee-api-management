@@ -26,6 +26,7 @@ import java.util.Map;
 public interface InstallationService {
     String COCKPIT_INSTALLATION_ID = "COCKPIT_INSTALLATION_ID";
     String COCKPIT_INSTALLATION_STATUS = "COCKPIT_INSTALLATION_STATUS";
+    String PLANS_DATA_UPGRADER_STATUS = "PLANS_DATA_UPGRADER_STATUS";
 
     /**
      * Get the current installation.

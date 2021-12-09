@@ -37,9 +37,11 @@ import io.gravitee.plugin.alert.AlertEventProducer;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -68,7 +70,10 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     @Autowired
     private Node node;
 
-    private final Map<Api, List<EndpointRuleCronHandler>> apiHandlers = new HashMap<>();
+    @Autowired
+    private Environment environment;
+
+    private final Map<Api, List<EndpointRuleCronHandler>> apiHandlers = new ConcurrentHashMap<>();
 
     @Override
     public void start(final Promise<Void> startPromise) {
@@ -108,67 +113,70 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
                 }
             );
 
-        // Configure triggers on resolved API endpoints
+        // Configure handlers on resolved API endpoints
         final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
         if (!healthCheckEndpoints.isEmpty()) {
             LOGGER.debug("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
             apiHandlers.put(api, new ArrayList<>());
-            healthCheckEndpoints.forEach(rule -> addTrigger(api, rule));
+            healthCheckEndpoints.forEach(rule -> addHandler(api, rule));
         }
     }
 
     private void stopHealthCheck(Api api) {
-        removeTriggers(api);
+        removeHandlers(api);
     }
 
-    private void addTrigger(Api api, EndpointRule rule) {
-        final HealthCheckContext healthCheckContext = healthCheckContextFactory.create(new ApiTemplateVariableProvider(api));
+    private void addHandler(Api api, EndpointRule rule) {
+        try {
+            final HealthCheckContext healthCheckContext = healthCheckContextFactory.create(new ApiTemplateVariableProvider(api));
 
-        EndpointRuleHandler runner = rule.createRunner(vertx, rule, healthCheckContext.getTemplateEngine());
-        runner.setStatusHandler(statusReporter);
-        runner.setAlertEventProducer(alertEventProducer);
-        runner.setNode(node);
+            EndpointRuleHandler runner = rule.createRunner(vertx, rule, healthCheckContext.getTemplateEngine(), environment);
+            runner.setStatusHandler(statusReporter);
+            runner.setAlertEventProducer(alertEventProducer);
+            runner.setNode(node);
+            EndpointRuleCronHandler cronHandler = new EndpointRuleCronHandler(vertx, rule);
+            cronHandler.schedule(runner);
 
-        EndpointRuleCronHandler cronHandler = new EndpointRuleCronHandler(vertx, rule);
-        cronHandler.schedule(runner);
+            apiHandlers.get(api).add(cronHandler);
 
-        apiHandlers.get(api).add(cronHandler);
-
-        LOGGER.debug(
-            "Add health-check for endpoint name[{}] target[{}] with cron[{}]",
-            rule.endpoint().getName(),
-            rule.endpoint().getTarget(),
-            rule.schedule()
-        );
-    }
-
-    private void removeTriggers(Api api) {
-        List<EndpointRuleCronHandler> triggers = apiHandlers.remove(api);
-        if (triggers != null) {
-            LOGGER.debug("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
-            triggers.forEach(trigger -> trigger.cancel());
+            LOGGER.debug(
+                "Add health-check for endpoint name[{}] target[{}] with cron[{}]",
+                rule.endpoint().getName(),
+                rule.endpoint().getTarget(),
+                rule.schedule()
+            );
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while creating an health-check runner", ex);
         }
     }
 
-    private void removeTrigger(Api api, Endpoint endpoint) {
+    private void removeHandlers(Api api) {
+        List<EndpointRuleCronHandler> handlers = apiHandlers.remove(api);
+        if (handlers != null) {
+            LOGGER.debug("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
+            handlers.forEach(handler -> handler.cancel());
+        }
+    }
+
+    private void removeHandler(Api api, Endpoint endpoint) {
         List<EndpointRuleCronHandler> cronHandlers = apiHandlers.get(api);
         if (cronHandlers != null) {
             Optional<EndpointRuleCronHandler> endpointCronHandler = cronHandlers
                 .stream()
-                .filter(trigger -> trigger.getEndpoint().equals(endpoint))
+                .filter(handler -> handler.getEndpoint().equals(endpoint))
                 .findFirst();
 
             endpointCronHandler.ifPresent(
-                trigger -> {
+                handler -> {
                     LOGGER.debug(
-                        "Remove health-check trigger id[{}] for endpoint name[{}] type[{}] target[{}]",
-                        trigger.getTimerId(),
+                        "Remove health-check handler id[{}] for endpoint name[{}] type[{}] target[{}]",
+                        handler.getTimerId(),
                         endpoint.getName(),
                         endpoint.getType(),
                         endpoint.getTarget()
                     );
-                    trigger.cancel();
-                    cronHandlers.remove(trigger);
+                    handler.cancel();
+                    cronHandlers.remove(handler);
                 }
             );
         }
@@ -191,7 +199,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         public boolean postAdd(Endpoint endpoint) {
             EndpointRule rule = endpointResolver.resolve(api, endpoint);
             if (rule != null) {
-                addTrigger(api, rule);
+                addHandler(api, rule);
             }
             return false;
         }
@@ -203,7 +211,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
         @Override
         public boolean postRemove(Endpoint endpoint) {
-            removeTrigger(api, endpoint);
+            removeHandler(api, endpoint);
             return false;
         }
     }

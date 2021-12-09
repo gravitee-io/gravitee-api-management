@@ -1223,7 +1223,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             // update document in search engine
             if (pageToUpdate.isPublished() && !page.isPublished()) {
-                searchEngineService.delete(convert(pageToUpdate), false);
+                searchEngineService.delete(convert(pageToUpdate));
             } else {
                 index(pageEntity);
             }
@@ -1982,7 +1982,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             );
 
             // remove from search engine
-            searchEngineService.delete(convert(page), false);
+            searchEngineService.delete(convert(page));
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to delete Page {}", pageId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete Page " + pageId, ex);

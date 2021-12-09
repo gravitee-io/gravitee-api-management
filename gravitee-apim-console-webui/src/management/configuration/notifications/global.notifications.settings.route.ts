@@ -80,6 +80,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
+        mode: () => 'detail',
       },
     })
     .state('management.settings.alerts.alertnew', {
@@ -99,6 +100,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
+        mode: () => 'create',
       },
     })
     .state('management.settings.alerts.alert', {
@@ -110,7 +112,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           page: 'management-alerts',
         },
         perms: {
-          only: ['environment-alert-u'],
+          only: ['environment-alert-r'],
         },
       },
       resolve: {

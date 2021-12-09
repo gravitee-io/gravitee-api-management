@@ -49,6 +49,14 @@ public class ApiDocumentTransformerTest {
         assertDocumentMatchesInputApiEntity(toTransform, transformed);
     }
 
+    @Test
+    public void shouldTransformWithoutError_OnMissingReferenceId() {
+        ApiEntity api = new ApiEntity();
+        api.setId("api-uuid");
+        Document doc = cut.transform(api);
+        assertThat(doc.get("id")).isEqualTo(api.getId());
+    }
+
     @NotNull
     private ApiEntity getApiEntity() {
         ApiEntity toTransform = new ApiEntity();

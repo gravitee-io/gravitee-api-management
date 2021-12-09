@@ -117,7 +117,7 @@ const routes: Routes = [
           icon: 'home:book-open',
           title: i18n('route.metadata'),
           animation: { type: 'slide', group: 'app', index: 2 },
-          expectedPermissions: [],
+          expectedPermissions: ['METADATA-R'],
         },
       },
       {
@@ -127,7 +127,7 @@ const routes: Routes = [
           icon: 'home:key',
           title: i18n('route.subscriptions'),
           animation: { type: 'slide', group: 'app', index: 3 },
-          expectedPermissions: [],
+          expectedPermissions: ['SUBSCRIPTION-R'],
         },
       },
       {
@@ -137,7 +137,7 @@ const routes: Routes = [
           icon: 'communication:group',
           title: i18n('route.members'),
           animation: { type: 'slide', group: 'app', index: 4 },
-          expectedPermissions: [],
+          expectedPermissions: ['MEMBER-R'],
         },
       },
       {
@@ -148,7 +148,7 @@ const routes: Routes = [
           menu: { slots: { right: GvSelectDashboardComponent } },
           title: i18n('route.analyticsApplication'),
           animation: { type: 'slide', group: 'app', index: 5 },
-          expectedPermissions: [],
+          expectedPermissions: ['ANALYTICS-R'],
         },
         resolve: {
           dashboards: DashboardsResolver,
@@ -161,7 +161,7 @@ const routes: Routes = [
           icon: 'communication:clipboard-list',
           title: i18n('route.logsApplication'),
           animation: { type: 'slide', group: 'app', index: 6 },
-          expectedPermissions: [],
+          expectedPermissions: ['LOG-R'],
         },
       },
       {
@@ -183,6 +183,7 @@ const routes: Routes = [
           title: i18n('route.alerts'),
           expectedFeature: FeatureEnum.alert,
           animation: { type: 'slide', group: 'app', index: 8 },
+          expectedPermissions: ['ALERT-R'],
         },
       },
     ],

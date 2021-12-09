@@ -116,6 +116,7 @@ public class EmailNotificationBuilder {
         API_REQUEST_FOR_CHANGES(ApiHook.REQUEST_FOR_CHANGES, "requestForChanges.html", "Request for changes on API"),
         API_REVIEW_OK(ApiHook.REVIEW_OK, "reviewOk.html", "API review accepted"),
         API_API_DEPRECATED(ApiHook.API_DEPRECATED, "apiDeprecated.html", "API deprecated"),
+        API_PLANS_DATA_FIXED(ApiHook.MESSAGE, "apiPlansDataFixed.html", "API plans data have been fixed"),
         APPLICATION_SUBSCRIPTION_NEW(
             ApplicationHook.SUBSCRIPTION_NEW,
             "subscriptionCreated.html",

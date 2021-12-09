@@ -36,6 +36,11 @@ public class PolicyFactoryImpl implements PolicyFactory {
     }
 
     @Override
+    public void cleanup(PolicyMetadata policyMetadata) {
+        policyPluginFactory.cleanup(policyMetadata);
+    }
+
+    @Override
     public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
         Object policy = policyPluginFactory.create(policyMetadata.policy(), policyConfiguration);
 
