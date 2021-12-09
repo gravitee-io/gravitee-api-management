@@ -1227,6 +1227,7 @@ workflows:
             - release:
                   requires:
                       - prepare-settings
+                  context: cicd-orchestrator
             - nexus-staging-prepare-component:
                   requires:
                       - release
