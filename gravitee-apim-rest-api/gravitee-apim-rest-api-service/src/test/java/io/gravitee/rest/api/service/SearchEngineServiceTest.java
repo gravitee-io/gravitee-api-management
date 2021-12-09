@@ -74,8 +74,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("My api 1").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 7);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-1", "api-2", "api-3", "api-4", "api-0"));
+        assertEquals(7, matches.getHits());
+        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4", "api-0"), matches.getDocuments());
     }
 
     @Test
@@ -85,8 +85,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("field").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-4"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-4"), matches.getDocuments());
     }
 
     @Test
@@ -96,8 +96,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("machine learning").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 3);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-0", "api-2", "api-4"));
+        assertEquals(3, matches.getHits(), 3);
+        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), matches.getDocuments());
     }
 
     @Test
@@ -107,11 +107,11 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("foobar-3@gravitee.io").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 0);
+        assertEquals(0, matches.getHits());
 
         matches = searchEngineService.search(QueryBuilder.create(ApiEntity.class).setQuery("*@*").setFilters(filters).build());
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 0);
+        assertEquals(0, matches.getHits());
     }
 
     @Test
@@ -121,8 +121,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("My api *").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 7);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"));
+        assertEquals(7, matches.getHits());
+        assertEquals(Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"), matches.getDocuments());
     }
 
     @Test
@@ -132,8 +132,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("Owner 3").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 5);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-3", "api-4", "api-0", "api-1", "api-2"));
+        assertEquals(5, matches.getHits());
+        assertEquals(Arrays.asList("api-3", "api-4", "api-0", "api-1", "api-2"), matches.getDocuments());
     }
 
     @Test
@@ -143,8 +143,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api 1\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-1"));
+        assertEquals(1, matches.getHits(), 1);
+        assertEquals(Arrays.asList("api-1"), matches.getDocuments());
     }
 
     @Test
@@ -154,8 +154,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"my api 1\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-1"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-1"), matches.getDocuments());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api not found\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 0);
+        assertEquals(0, matches.getHits());
     }
 
     @Test
@@ -175,8 +175,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("description:\"Field Hockey\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-4"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-4"), matches.getDocuments());
     }
 
     @Test
@@ -186,8 +186,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("labels: \"In Review 1\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 4);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-1", "api-2", "api-3", "api-4"));
+        assertEquals(4, matches.getHits());
+        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4"), matches.getDocuments());
 
         matches =
             searchEngineService.search(
@@ -198,8 +198,8 @@ public class SearchEngineServiceTest {
                     .build()
             );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-4"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-4"), matches.getDocuments());
 
         matches =
             searchEngineService.search(
@@ -210,8 +210,8 @@ public class SearchEngineServiceTest {
                     .build()
             );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 2);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-3", "api-4"));
+        assertEquals(2, matches.getHits());
+        assertEquals(Arrays.asList("api-3", "api-4"), matches.getDocuments());
 
         matches =
             searchEngineService.search(
@@ -222,8 +222,8 @@ public class SearchEngineServiceTest {
                     .build()
             );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 2);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-3", "api-4"));
+        assertEquals(2, matches.getHits());
+        assertEquals(Arrays.asList("api-3", "api-4"), matches.getDocuments());
     }
 
     @Test
@@ -233,8 +233,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("labels: \"in review 4\" foobar-3@gravitee.io").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-4"));
+        assertEquals(1, matches.getHits(), 1);
+        assertEquals(Arrays.asList("api-4"), matches.getDocuments());
     }
 
     @Test
@@ -244,8 +244,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("categories:\"Machine Learning\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 3);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-0", "api-2", "api-4"));
+        assertEquals(3, matches.getHits(), 3);
+        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), matches.getDocuments());
     }
 
     @Test
@@ -255,8 +255,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("categories: Sports AND Hiking").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-0"));
+        assertEquals(1, matches.getHits(), 1);
+        assertEquals(Arrays.asList("api-0"), matches.getDocuments());
     }
 
     @Test
@@ -266,8 +266,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("categories: *").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 3);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-0", "api-2", "api-4"));
+        assertEquals(3, matches.getHits());
+        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), matches.getDocuments());
     }
 
     @Test
@@ -277,9 +277,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api 2\" AND ownerName: \"Owner 2\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        String[] ids = matches.getDocuments().toArray(new String[0]);
-        assertEquals(ids[0], "api-2");
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-2"), matches.getDocuments());
     }
 
     @Test
@@ -290,7 +289,7 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api 2\" AND ownerName: \"Owner 2\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 0);
+        assertEquals(0, matches.getHits());
     }
 
     @Test
@@ -300,7 +299,7 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api 1\" AND ownerName: \"Owner 2\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 0);
+        assertEquals(0, matches.getHits());
     }
 
     @Test
@@ -310,8 +309,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("Hiking").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-0"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-0"), matches.getDocuments());
     }
 
     @Test
@@ -322,16 +321,16 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-1"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-1"), matches.getDocuments());
     }
 
     @Test
     public void shouldFindAll() {
         SearchResult matches = searchEngineService.search(QueryBuilder.create(ApiEntity.class).build());
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 7);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-1", "api-3", "api-0", "api-2", "api-4"));
+        assertEquals(7, matches.getHits(), 7);
+        assertEquals(Arrays.asList("api-1", "api-3", "api-0", "api-2", "api-4"), matches.getDocuments());
     }
 
     @Test
@@ -341,8 +340,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("/path/api-2").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-2"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-2"), matches.getDocuments());
     }
 
     @Test
@@ -352,8 +351,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).addExplicitFilter("paths", "/path/api-2").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-2"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-2"), matches.getDocuments());
     }
 
     @Test
@@ -363,8 +362,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).addExplicitFilter("paths", "*th/api-2").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-2"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-2"), matches.getDocuments());
     }
 
     @Test
@@ -374,8 +373,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("tag-api").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 5);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"));
+        assertEquals(5, matches.getHits());
+        assertEquals(Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"), matches.getDocuments());
     }
 
     @Test
@@ -385,8 +384,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).addExplicitFilter("tags", "tag-api-3").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 1);
-        assertEquals(matches.getDocuments(), Arrays.asList("api-3"));
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-3"), matches.getDocuments());
     }
 
     @Before
