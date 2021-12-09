@@ -73,10 +73,15 @@ commands:
     prepare-gpg:
         description: Prepare GPG command
         steps:
-            - secrethub/exec:
+            - secrethub/install
+            - run:
                   command: |
-                      echo "-----BEGIN PGP PUBLIC KEY BLOCK-----\n$(echo ${GIO_GPG_PUB_KEY:36:-33} | tr ' ' '\n' )-----END PGP PUBLIC KEY BLOCK----- | gpg --import
-                      echo "-----BEGIN PGP PRIVATE KEY BLOCK-----\n$(echo ${GIO_GPG_PRV_KEY:37:-34} | tr ' ' '\n' )-----END PGP PRIVATE KEY BLOCK----- | gpg --import
+                      secrethub read graviteeio/cicd/graviteebot/gpg/armor_format_pub_key -o pub.key
+                      gpg --import pub.key
+
+                      secrethub read graviteeio/cicd/graviteebot/gpg/armor_format_private_key -o private.key
+                      # Need --batch to be able to import private key
+                      gpg --import --batch private.key
     prepare-tar-for-s3-glacier:
         steps:
             - run:
@@ -899,8 +904,6 @@ jobs:
         environment:
             DRY_RUN: << pipeline.parameters.dry_run >>
             MAVEN_PROFILE_ID: << pipeline.parameters.maven_profile_id >>
-            GIO_GPG_PUB_KEY: "secrethub://graviteeio/cicd/graviteebot/gpg/armor_format_pub_key"
-            GIO_GPG_PRV_KEY: "secrethub://graviteeio/cicd/graviteebot/gpg/armor_format_private_key"
         steps:
             - checkout
             - restore_cache:
