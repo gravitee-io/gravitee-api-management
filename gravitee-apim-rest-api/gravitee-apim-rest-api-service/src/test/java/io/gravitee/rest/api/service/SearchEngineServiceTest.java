@@ -324,6 +324,14 @@ public class SearchEngineServiceTest {
         assertEquals(matches.getDocuments(), Arrays.asList("api-1"));
     }
 
+    @Test
+    public void shouldFindAll() {
+        SearchResult matches = searchEngineService.search(QueryBuilder.create(ApiEntity.class).build());
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 7);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-1", "api-3", "api-0", "api-2", "api-4"));
+    }
+
     @Before
     public void initIndexer() {
         // TODO: Remove this hack and use @BeforeAll when move to junit 5.x
