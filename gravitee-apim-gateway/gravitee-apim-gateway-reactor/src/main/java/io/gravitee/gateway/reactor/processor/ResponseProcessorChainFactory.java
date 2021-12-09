@@ -48,10 +48,7 @@ public class ResponseProcessorChainFactory {
     private String port;
 
     public Processor<ExecutionContext> create() {
-        final List<Processor<ExecutionContext>> processors = Arrays.asList(
-            new ResponseTimeProcessor(),
-            new ReporterProcessor(reporterService)
-        );
+        List<Processor<ExecutionContext>> processors = Arrays.asList(new ResponseTimeProcessor(), new ReporterProcessor(reporterService));
 
         if (!eventProducer.isEmpty()) {
             processors.add(new AlertProcessor(eventProducer, node, port));

@@ -83,7 +83,6 @@ public class VertxDebugConfiguration {
     }
 
     @Bean("gatewayDebugHttpServer")
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public VertxHttpServerFactory vertxHttpServerFactory(
         Vertx vertx,
         @Qualifier("debugHttpServerConfiguration") HttpServerConfiguration httpServerConfiguration,

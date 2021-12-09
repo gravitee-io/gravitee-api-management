@@ -17,12 +17,13 @@ package io.gravitee.gateway.core.logging;
 
 import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
@@ -52,7 +53,7 @@ public class LoggableClientResponse implements Response {
     public WriteStream<Buffer> write(Buffer chunk) {
         if (buffer == null) {
             buffer = Buffer.buffer();
-            isContentTypeLoggable = isContentTypeLoggable(response.headers().contentType(), context);
+            isContentTypeLoggable = isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
         }
 
         if (isContentTypeLoggable && LoggingUtils.isResponsePayloadsLoggable(context)) {

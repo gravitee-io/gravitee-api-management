@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.endpoint.factory.impl;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.connector.api.Connection;
 import io.gravitee.connector.api.Connector;
 import io.gravitee.connector.api.Response;
@@ -24,6 +23,7 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.api.proxy.ProxyConnection;

@@ -38,7 +38,14 @@ public class SimpleGatewayTest extends AbstractWiremockGatewayTest {
     public void call_get_started_api_noBody() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        final HttpResponse response = execute(
+            Request
+                .Get("http://localhost:8082/test/my_team")
+                .addHeader("test", "test01")
+                .addHeader("test", "test02")
+                .addHeader("single", "single")
+        )
+            .returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));

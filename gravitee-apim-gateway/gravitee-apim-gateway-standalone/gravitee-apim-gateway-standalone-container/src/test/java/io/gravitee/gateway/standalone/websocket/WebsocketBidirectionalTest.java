@@ -54,10 +54,10 @@ public class WebsocketBidirectionalTest extends AbstractWebSocketGatewayTest {
                     event.accept();
                     event.frameHandler(
                         frame -> {
-                            Assert.assertTrue(frame.isText());
-                            Assert.assertEquals("PONG", frame.textData());
-
-                            latch.countDown();
+                            if (frame.isText()) {
+                                Assert.assertEquals("PONG", frame.textData());
+                                latch.countDown();
+                            }
                         }
                     );
                     event.writeTextMessage("PING");
@@ -77,10 +77,10 @@ public class WebsocketBidirectionalTest extends AbstractWebSocketGatewayTest {
                     final WebSocket webSocket = event.result();
                     webSocket.frameHandler(
                         frame -> {
-                            Assert.assertTrue(frame.isText());
-                            Assert.assertEquals("PING", frame.textData());
-
-                            webSocket.writeTextMessage("PONG");
+                            if (frame.isText()) {
+                                Assert.assertEquals("PING", frame.textData());
+                                webSocket.writeTextMessage("PONG");
+                            }
                         }
                     );
                 }

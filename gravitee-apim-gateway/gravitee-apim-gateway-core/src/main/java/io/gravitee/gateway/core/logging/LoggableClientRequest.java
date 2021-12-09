@@ -17,12 +17,13 @@ package io.gravitee.gateway.core.logging;
 
 import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.RequestWrapper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.reporter.api.log.Log;
@@ -53,7 +54,7 @@ public class LoggableClientRequest extends RequestWrapper {
         log.getClientRequest().setUri(this.uri());
 
         if (LoggingUtils.isRequestHeadersLoggable(context)) {
-            log.getClientRequest().setHeaders(new HttpHeaders(this.headers()));
+            log.getClientRequest().setHeaders(HttpHeaders.create(this.headers()));
         }
     }
 
@@ -63,7 +64,7 @@ public class LoggableClientRequest extends RequestWrapper {
             chunk -> {
                 if (buffer == null) {
                     buffer = Buffer.buffer();
-                    isContentTypeLoggable = isContentTypeLoggable(request.headers().contentType(), context);
+                    isContentTypeLoggable = isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
                 }
                 bodyHandler.handle(chunk);
                 if (isContentTypeLoggable && LoggingUtils.isRequestPayloadsLoggable(context)) {

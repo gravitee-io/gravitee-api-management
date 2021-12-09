@@ -18,12 +18,12 @@ package io.gravitee.gateway.handlers.api.processor.shutdown;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.node.api.Node;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,7 +83,7 @@ public class ShutdownProcessorTest {
         when(node.lifecycleState()).thenReturn(Lifecycle.State.STOPPING);
         when(request.version()).thenReturn(HttpVersion.HTTP_1_0);
 
-        cut.handler(context -> verify(headers).set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE));
+        cut.handler(context -> verify(headers).set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE));
         cut.handle(context);
     }
 
@@ -92,7 +92,7 @@ public class ShutdownProcessorTest {
         when(node.lifecycleState()).thenReturn(Lifecycle.State.STOPPING);
         when(request.version()).thenReturn(HttpVersion.HTTP_1_1);
 
-        cut.handler(context -> verify(headers).set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE));
+        cut.handler(context -> verify(headers).set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE));
         cut.handle(context);
     }
 
@@ -101,7 +101,7 @@ public class ShutdownProcessorTest {
         when(node.lifecycleState()).thenReturn(Lifecycle.State.STOPPING);
         when(request.version()).thenReturn(HttpVersion.HTTP_2);
 
-        cut.handler(context -> verify(headers).set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_GO_AWAY));
+        cut.handler(context -> verify(headers).set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_GO_AWAY));
         cut.handle(context);
     }
 }

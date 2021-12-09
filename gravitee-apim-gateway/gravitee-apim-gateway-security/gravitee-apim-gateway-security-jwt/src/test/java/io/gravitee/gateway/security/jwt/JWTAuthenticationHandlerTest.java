@@ -18,10 +18,11 @@ package io.gravitee.gateway.security.jwt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.security.core.*;
 import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
 import java.util.Iterator;
@@ -56,7 +57,7 @@ public class JWTAuthenticationHandlerTest {
 
     @Test
     public void shouldNotHandleRequest_noAuthorizationHeader() {
-        when(request.headers()).thenReturn(new HttpHeaders());
+        when(request.headers()).thenReturn(HttpHeaders.create());
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
@@ -64,10 +65,10 @@ public class JWTAuthenticationHandlerTest {
 
     @Test
     public void shouldNotHandleRequest_invalidAuthorizationHeader() {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
-        headers.add(HttpHeaders.AUTHORIZATION, "");
+        headers.add(HttpHeaderNames.AUTHORIZATION, "");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
@@ -75,10 +76,10 @@ public class JWTAuthenticationHandlerTest {
 
     @Test
     public void shouldNotHandleRequest_noBearerAuthorizationHeader() {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
-        headers.add(HttpHeaders.AUTHORIZATION, "Basic xxx-xx-xxx-xx-xx");
+        headers.add(HttpHeaderNames.AUTHORIZATION, "Basic xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
@@ -87,10 +88,10 @@ public class JWTAuthenticationHandlerTest {
 
     @Test
     public void shouldHandleRequest_validAuthorizationHeader() {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
-        headers.add(HttpHeaders.AUTHORIZATION, JWTAuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " xxx-xx-xxx-xx-xx");
+        headers.add(HttpHeaderNames.AUTHORIZATION, JWTAuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
@@ -99,10 +100,10 @@ public class JWTAuthenticationHandlerTest {
 
     @Test
     public void shouldHandleRequest_ignoreCaseAuthorizationHeader() {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
-        headers.add(HttpHeaders.AUTHORIZATION, "BeaRer xxx-xx-xxx-xx-xx");
+        headers.add(HttpHeaderNames.AUTHORIZATION, "BeaRer xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
@@ -111,7 +112,10 @@ public class JWTAuthenticationHandlerTest {
 
     @Test
     public void shouldHandleRequest_validQueryParameter() {
-        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        HttpHeaders headers = HttpHeaders.create();
+        when(request.headers()).thenReturn(headers);
+
+        LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         when(request.parameters()).thenReturn(parameters);
         parameters.add("access_token", "xxx-xx-xxx-xx-xx");
 
@@ -122,10 +126,10 @@ public class JWTAuthenticationHandlerTest {
 
     @Test
     public void shouldNotHandleRequest_noBearerValue() {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
-        headers.add(HttpHeaders.AUTHORIZATION, JWTAuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " ");
+        headers.add(HttpHeaderNames.AUTHORIZATION, JWTAuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " ");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);

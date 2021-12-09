@@ -17,10 +17,11 @@ package io.gravitee.gateway.core.logging;
 
 import static io.gravitee.gateway.core.logging.utils.LoggingUtils.*;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
@@ -97,7 +98,7 @@ public class LoggableProxyConnection implements ProxyConnection {
     public WriteStream<Buffer> write(Buffer chunk) {
         if (buffer == null) {
             buffer = Buffer.buffer();
-            isContentTypeLoggable = isContentTypeLoggable(proxyRequest.headers().contentType(), context);
+            isContentTypeLoggable = isContentTypeLoggable(proxyRequest.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
         }
 
         proxyConnection.write(chunk);
@@ -164,7 +165,7 @@ public class LoggableProxyConnection implements ProxyConnection {
                 chunk -> {
                     if (buffer == null) {
                         buffer = Buffer.buffer();
-                        isContentTypeLoggable = isContentTypeLoggable(proxyResponse.headers().contentType(), context);
+                        isContentTypeLoggable = isContentTypeLoggable(proxyResponse.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
                     }
 
                     if (isContentTypeLoggable && LoggingUtils.isProxyResponsePayloadsLoggable(context)) {

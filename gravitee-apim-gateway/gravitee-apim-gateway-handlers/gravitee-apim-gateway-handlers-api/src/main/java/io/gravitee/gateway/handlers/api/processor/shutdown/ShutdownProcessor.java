@@ -16,14 +16,12 @@
 package io.gravitee.gateway.handlers.api.processor.shutdown;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.node.api.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.vertx.core.http.HttpHeaders;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
