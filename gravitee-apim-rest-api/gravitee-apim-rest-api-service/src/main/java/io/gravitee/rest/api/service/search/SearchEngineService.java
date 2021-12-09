@@ -19,7 +19,6 @@ import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.query.Query;
-import java.util.Collection;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

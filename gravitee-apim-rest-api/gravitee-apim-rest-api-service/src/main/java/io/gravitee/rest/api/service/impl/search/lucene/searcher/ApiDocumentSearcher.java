@@ -106,6 +106,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_LABELS,
         FIELD_CATEGORIES,
         FIELD_DESCRIPTION,
+        FIELD_PATHS,
     };
 
     @Override
@@ -242,7 +243,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             TermQuery tQuery = (TermQuery) query;
             Term term = tQuery.getTerm();
             if (Arrays.stream(AUTHORIZED_EXPLICIT_FILTER).anyMatch(field -> field.equals(term.field()))) {
-                mainQuery.add(new TermQuery(buildTermFilter(term)), currentOccur);
+                mainQuery.add(buildQueryFilter(term), currentOccur);
             } else if (clause != null) {
                 restQuery.add(buildApiFields(term.text(), BooleanClause.Occur.SHOULD), clause.getOccur());
             } else {
@@ -278,11 +279,13 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         return rest;
     }
 
-    private Term buildTermFilter(Term term) {
+    private Query buildQueryFilter(Term term) {
         if (FIELD_CATEGORIES.equals(term.field())) {
-            return new Term(term.field(), formatCategoryField(term.text()));
+            return new TermQuery(new Term(term.field(), formatCategoryField(term.text())));
+        } else if (FIELD_PATHS.equals(term.field())) {
+            return new WildcardQuery(new Term(term.field(), term.text()));
         } else {
-            return new Term(term.field() + "_lowercase", term.text().toLowerCase());
+            return new TermQuery(new Term(term.field() + "_lowercase", term.text().toLowerCase()));
         }
     }
 

@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.service.search.query;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.search.Indexable;
 import java.util.Map;
+import org.apache.lucene.queryparser.classic.QueryParser;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,6 +45,15 @@ public class QueryBuilder<T extends Indexable> {
 
     public QueryBuilder<T> addFilter(String name, Object value) {
         query.getFilters().put(name, value);
+        return this;
+    }
+
+    public QueryBuilder<T> addExplicitFilter(String name, String value) {
+        StringBuilder sb = new StringBuilder(name).append(":").append(QueryParser.escape(value));
+        if (!isBlank(this.query.getQuery())) {
+            sb.append(" ").append(this.query.getQuery());
+        }
+        this.query.setQuery(sb.toString());
         return this;
     }
 
