@@ -77,7 +77,7 @@
         <gravitee-policy-request-validation.version>1.11.0</gravitee-policy-request-validation.version>
         <gravitee-policy-resource-filtering.version>1.8.0</gravitee-policy-resource-filtering.version>
         <gravitee-policy-rest-to-soap.version>1.11.1</gravitee-policy-rest-to-soap.version>
-        <gravitee-policy-retry.version>1.0.1</gravitee-policy-retry.version>
+        <gravitee-policy-retry.version>1.0.2</gravitee-policy-retry.version>
         <gravitee-policy-role-based-access-control.version>1.1.0</gravitee-policy-role-based-access-control.version>
         <gravitee-policy-ssl-enforcement.version>1.2.0</gravitee-policy-ssl-enforcement.version>
         <gravitee-policy-transformheaders.version>1.8.2</gravitee-policy-transformheaders.version>
