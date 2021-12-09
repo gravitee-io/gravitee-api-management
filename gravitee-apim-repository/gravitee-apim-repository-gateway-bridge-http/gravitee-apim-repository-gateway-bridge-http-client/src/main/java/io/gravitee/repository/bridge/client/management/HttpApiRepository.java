@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +57,12 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
-    public Page<Api> search(ApiCriteria apiCriteria, Pageable pageable) {
+    public Page<Api> search(
+        ApiCriteria apiCriteria,
+        Sortable sortable,
+        Pageable pageable,
+        ApiFieldExclusionFilter apiFieldExclusionFilter
+    ) {
         throw new IllegalStateException();
     }
 

@@ -19,16 +19,11 @@ import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -221,19 +216,24 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     @Override
-    public Page<Api> search(ApiCriteria apiCriteria, Pageable page) {
-        final List<Api> apis = findByCriteria(apiCriteria, null);
-        return getResultAsPage(page, apis);
+    public Page<Api> search(
+        ApiCriteria apiCriteria,
+        Sortable sortable,
+        Pageable pageable,
+        ApiFieldExclusionFilter apiFieldExclusionFilter
+    ) {
+        final List<Api> apis = findByCriteria(apiCriteria, sortable, null);
+        return getResultAsPage(pageable, apis);
     }
 
     @Override
     public List<Api> search(ApiCriteria apiCriteria) {
-        return findByCriteria(apiCriteria, null);
+        return findByCriteria(apiCriteria, null, null);
     }
 
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        return findByCriteria(apiCriteria, apiFieldExclusionFilter);
+        return findByCriteria(apiCriteria, null, apiFieldExclusionFilter);
     }
 
     @Override
@@ -282,7 +282,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         );
     }
 
-    private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+    private List<Api> findByCriteria(ApiCriteria apiCriteria, Sortable sortable, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         LOGGER.debug("JdbcApiRepository.search({})", apiCriteria);
         final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
@@ -316,37 +316,32 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 sbQuery.append("where ").append(clauses).append(" ");
             }
         }
-        sbQuery.append("order by a.name");
+
+        applySortable(sortable, sbQuery);
 
         jdbcTemplate.query(sbQuery.toString(), ps -> fillPreparedStatement(apiCriteria, ps, 1), rowMapper);
         List<Api> apis = rowMapper.getRows();
-
-        if (apiCriteria != null && apiCriteria.getContextPath() != null && !apiCriteria.getContextPath().isEmpty()) {
-            apis =
-                apis
-                    .stream()
-                    .filter(
-                        apiMongo -> {
-                            try {
-                                io.gravitee.definition.model.Api apiDefinition = new GraviteeMapper()
-                                .readValue(apiMongo.getDefinition(), io.gravitee.definition.model.Api.class);
-                                VirtualHost searchedVHost = new VirtualHost();
-                                searchedVHost.setPath(apiCriteria.getContextPath());
-                                return apiDefinition.getProxy().getVirtualHosts().contains(searchedVHost);
-                            } catch (JsonProcessingException e) {
-                                LOGGER.error("Problem occured while parsing api definition", e);
-                                return false;
-                            }
-                        }
-                    )
-                    .collect(Collectors.toList());
-        }
 
         for (final Api api : apis) {
             addLabels(api);
             addGroups(api);
         }
         return apis;
+    }
+
+    private void applySortable(Sortable sortable, StringBuilder query) {
+        if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
+            query.append("order by ");
+            if ("created_at".equals(sortable.field())) {
+                query.append("a.").append(sortable.field());
+            } else {
+                query.append(" lower(a.").append(sortable.field()).append(") ");
+            }
+
+            query.append(sortable.order().equals(Order.ASC) ? " asc " : " desc ");
+        } else {
+            query.append("order by a.name");
+        }
     }
 
     private int fillPreparedStatement(ApiCriteria apiCriteria, PreparedStatement ps, int lastIndex) throws java.sql.SQLException {

@@ -20,15 +20,11 @@ import static com.mongodb.client.model.Filters.in;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.AggregateIterable;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.bson.Document;
@@ -55,13 +51,23 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
     @Override
     public Page<ApiMongo> search(
-        final ApiCriteria criteria,
-        final Pageable pageable,
-        final ApiFieldExclusionFilter apiFieldExclusionFilter
+        ApiCriteria criteria,
+        Sortable sortable,
+        Pageable pageable,
+        ApiFieldExclusionFilter apiFieldExclusionFilter
     ) {
         final Query query = buildQuery(apiFieldExclusionFilter, criteria);
 
-        query.with(Sort.by(ASC, "name"));
+        if (sortable != null) {
+            query.with(
+                Sort.by(
+                    sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
+                    FieldUtils.toCamelCase(sortable.field())
+                )
+            );
+        } else {
+            query.with(Sort.by(ASC, "name"));
+        }
 
         long total = mongoTemplate.count(query, ApiMongo.class);
 
