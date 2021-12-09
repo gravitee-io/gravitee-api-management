@@ -364,7 +364,6 @@ class ChartDirective {
             }
 
             if (scope.type === 'map') {
-              // eslint-disable-next-line import/namespace
               Highmaps.mapChart(chartElement, _.cloneDeep(newOptions));
             } else {
               Highcharts.chart(chartElement, _.cloneDeep(newOptions));

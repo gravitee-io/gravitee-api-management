@@ -18,7 +18,8 @@ import _ = require('lodash');
 
 import { Alert, Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';
-import { IScope } from 'angular';
+import AlertService from '../../../services/alert.service';
+import NotificationService from '../../../services/notification.service';
 import UserService from '../../../services/user.service';
 
 const AlertComponent: ng.IComponentOptions = {
