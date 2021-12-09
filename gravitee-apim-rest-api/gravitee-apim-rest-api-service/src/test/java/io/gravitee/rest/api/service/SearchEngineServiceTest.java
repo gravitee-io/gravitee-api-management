@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.ApiPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -332,6 +334,39 @@ public class SearchEngineServiceTest {
         assertEquals(matches.getDocuments(), Arrays.asList("api-1", "api-3", "api-0", "api-2", "api-4"));
     }
 
+    @Test
+    public void shouldFindWithContextPath() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("/path/api-2").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 1);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-2"));
+    }
+
+    @Test
+    public void shouldFindByContextPath() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).addFilter("paths", "/path/api-2", true).setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 1);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-2"));
+    }
+
+    @Test
+    public void shouldFindByContextPathWildcard() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).addFilter("paths", "*th/api-2", true).setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 1);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-2"));
+    }
+
     @Before
     public void initIndexer() {
         // TODO: Remove this hack and use @BeforeAll when move to junit 5.x
@@ -348,6 +383,14 @@ public class SearchEngineServiceTest {
                 apiEntity.setUpdatedAt(new Date());
                 apiEntity.setLabels(labels);
                 apiEntity.setDescription(DESCRIPTIONS[i]);
+
+                Proxy proxy = new Proxy();
+                List<VirtualHost> hosts = new ArrayList<>();
+                VirtualHost host = new VirtualHost();
+                host.setPath("/path/" + apiEntity.getId());
+                hosts.add(host);
+                proxy.setVirtualHosts(hosts);
+                apiEntity.setProxy(proxy);
                 PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
                 owner.setId("user-" + i);
                 owner.setDisplayName("Owner " + i);
