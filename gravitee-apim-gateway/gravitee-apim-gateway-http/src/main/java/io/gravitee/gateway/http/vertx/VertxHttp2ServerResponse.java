@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.http.vertx;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.http2.HttpFrame;
+import io.vertx.core.http.HttpHeaders;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,23 +38,16 @@ public class VertxHttp2ServerResponse extends VertxHttpServerResponse {
     }
 
     protected void writeHeaders() {
+        if (
+            headers.contains(HttpHeaders.CONNECTION) &&
+            headers.getAll(HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)
+        ) {
+            // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of the node itself will shutdown.
+            this.getNativeConnection().shutdown();
+        }
+
         // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
         // connection-specific header fields must be remove from response headers
-        headers.forEach(
-            (headerName, headerValues) -> {
-                if (
-                    !headerName.equalsIgnoreCase(HttpHeaders.CONNECTION) &&
-                    !headerName.equalsIgnoreCase(HttpHeaders.KEEP_ALIVE) &&
-                    !headerName.equalsIgnoreCase(HttpHeaders.TRANSFER_ENCODING)
-                ) {
-                    serverResponse.putHeader(headerName, headerValues);
-                } else if (
-                    headerName.equalsIgnoreCase(HttpHeaders.CONNECTION) && headerValues.contains(HttpHeadersValues.CONNECTION_GO_AWAY)
-                ) {
-                    // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of the node itself will shutdown.
-                    this.getNativeConnection().shutdown();
-                }
-            }
-        );
+        headers.remove(HttpHeaders.CONNECTION).remove(HttpHeaders.KEEP_ALIVE).remove(HttpHeaders.TRANSFER_ENCODING);
     }
 }

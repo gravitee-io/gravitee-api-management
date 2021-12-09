@@ -63,8 +63,6 @@ import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
-import java.net.URL;
-import java.net.URLClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,11 +100,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     public ReactorHandler create(Api api) {
         try {
             if (api.isEnabled()) {
-                ReactorHandlerClassLoader parentClassLoader = new ReactorHandlerClassLoader(
-                    ApiContextHandlerFactory.class.getClassLoader()
-                );
-
-                Class<?> handlerClass = parentClassLoader.loadClass(ApiReactorHandler.class.getName());
+                Class<?> handlerClass = this.getClass().getClassLoader().loadClass(ApiReactorHandler.class.getName());
 
                 final ApiReactorHandler handler = (ApiReactorHandler) handlerClass.getConstructor(Api.class).newInstance(api);
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
@@ -363,12 +357,5 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
-    }
-
-    private static class ReactorHandlerClassLoader extends URLClassLoader {
-
-        public ReactorHandlerClassLoader(ClassLoader parent) {
-            super(new URL[] {}, parent);
-        }
     }
 }

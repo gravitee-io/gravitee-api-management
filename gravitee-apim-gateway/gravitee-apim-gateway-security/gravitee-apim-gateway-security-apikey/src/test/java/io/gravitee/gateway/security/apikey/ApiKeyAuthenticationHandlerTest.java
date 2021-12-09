@@ -20,12 +20,12 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import io.gravitee.common.http.GraviteeHttpHeader;
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
@@ -94,7 +94,7 @@ public class ApiKeyAuthenticationHandlerTest {
     @Test
     public void shouldNotHandleRequest() {
         when(authenticationContext.request()).thenReturn(request);
-        when(request.headers()).thenReturn(new HttpHeaders());
+        when(request.headers()).thenReturn(HttpHeaders.create());
         when(api.getId()).thenReturn("api-id");
 
         MultiValueMap<String, String> parameters = mock(MultiValueMap.class);
@@ -109,7 +109,7 @@ public class ApiKeyAuthenticationHandlerTest {
         when(authenticationContext.request()).thenReturn(request);
         when(request.metrics()).thenReturn(metrics);
         when(api.getId()).thenReturn("api-id");
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);
         when(apiKeyRepository.findByKeyAndApi("xxxxx-xxxx-xxxxx", "api-id")).thenReturn(of(new ApiKey()));
@@ -130,7 +130,7 @@ public class ApiKeyAuthenticationHandlerTest {
         when(request.parameters()).thenReturn(parameters);
         when(apiKeyRepository.findByKeyAndApi("xxxxx-xxxx-xxxxx", "api-id")).thenReturn(of(new ApiKey()));
 
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
@@ -146,7 +146,7 @@ public class ApiKeyAuthenticationHandlerTest {
         parameters.put("api-key", Collections.singletonList(""));
         when(request.parameters()).thenReturn(parameters);
 
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);

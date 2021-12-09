@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
@@ -94,16 +95,8 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
         chain
             .handler(__ -> handleProxyInvocation(context, chain))
-            .streamErrorHandler(
-                failure -> {
-                    handleError(context, failure);
-                }
-            )
-            .errorHandler(
-                failure -> {
-                    handleError(context, failure);
-                }
-            )
+            .streamErrorHandler(failure -> handleError(context, failure))
+            .errorHandler(failure -> handleError(context, failure))
             .exitHandler(
                 __ -> {
                     context.request().resume();
@@ -181,7 +174,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         context.response().reason(proxyResponse.reason());
 
         // Copy HTTP headers
-        proxyResponse.headers().forEach((headerName, headerValues) -> context.response().headers().put(headerName, headerValues));
+        proxyResponse.headers().forEach(entry -> context.response().headers().set(entry.getKey(), entry.getValue()));
 
         final StreamableProcessor<ExecutionContext, Buffer> chain = responseProcessorChain.create();
 
@@ -220,10 +213,9 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                         .endHandler(
                             __ -> {
                                 // Write trailers
-                                if (proxyResponse.trailers() != null && !proxyResponse.trailers().isEmpty()) {
-                                    proxyResponse
-                                        .trailers()
-                                        .forEach((headerName, headerValues) -> context.response().trailers().put(headerName, headerValues));
+                                final HttpHeaders trailers = proxyResponse.trailers();
+                                if (trailers != null && !trailers.isEmpty()) {
+                                    trailers.forEach((entry -> context.response().trailers().add(entry.getKey(), entry.getValue())));
                                 }
 
                                 context

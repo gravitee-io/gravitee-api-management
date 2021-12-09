@@ -46,7 +46,7 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
     protected final WireMockRule wireMockRule = getWiremockRule();
 
     @Before
-    public void initExecutor() {
+    public void initExecutor() throws Exception {
         // Create a dedicated HttpClient for each test with no pooling to avoid side effects.
         final CloseableHttpClient client = HttpClients.custom().build();
 

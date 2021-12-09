@@ -17,9 +17,10 @@ package io.gravitee.gateway.security.core;
 
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class TokenExtractorTest {
 
     @Test
     public void shouldNotExtract_noAuthorizationHeader() {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
         when(request.parameters()).thenReturn(new LinkedMultiValueMap<>());
 
@@ -55,8 +56,8 @@ public class TokenExtractorTest {
     public void shouldNotExtract_unknownAuthorizationHeader() {
         String jwt = "dummy-token";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Basic " + jwt);
+        HttpHeaders headers = HttpHeaders.create();
+        headers.add(HttpHeaderNames.AUTHORIZATION, "Basic " + jwt);
         when(request.headers()).thenReturn(headers);
 
         String token = TokenExtractor.extract(request);
@@ -66,10 +67,8 @@ public class TokenExtractorTest {
 
     @Test
     public void shouldNotExtract_bearerAuthorizationHeader_noValue() {
-        String jwt = "dummy-token";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", TokenExtractor.BEARER);
+        HttpHeaders headers = HttpHeaders.create();
+        headers.add(HttpHeaderNames.AUTHORIZATION, TokenExtractor.BEARER);
         when(request.headers()).thenReturn(headers);
 
         String token = TokenExtractor.extract(request);
@@ -81,8 +80,8 @@ public class TokenExtractorTest {
     public void shouldExtract_fromHeader() {
         String jwt = "dummy-token";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", TokenExtractor.BEARER + ' ' + jwt);
+        HttpHeaders headers = HttpHeaders.create();
+        headers.add(HttpHeaderNames.AUTHORIZATION, TokenExtractor.BEARER + ' ' + jwt);
         when(request.headers()).thenReturn(headers);
 
         String token = TokenExtractor.extract(request);
@@ -95,7 +94,7 @@ public class TokenExtractorTest {
     public void shouldExtract_fromQueryParameter() {
         String jwt = "dummy-token";
 
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
         LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();

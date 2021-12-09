@@ -18,10 +18,10 @@ package io.gravitee.gateway.reactor.handler;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactor.Reactable;
 import java.util.List;
 import java.util.Set;
@@ -60,7 +60,7 @@ public class DummyReactorHandler extends AbstractReactorHandler<Reactable> {
     @Override
     protected void doHandle(ExecutionContext executionContext) {
         Response proxyResponse = mock(Response.class);
-        when(proxyResponse.headers()).thenReturn(new HttpHeaders());
+        when(proxyResponse.headers()).thenReturn(HttpHeaders.create());
         when(proxyResponse.status()).thenReturn(HttpStatusCode.OK_200);
     }
 }

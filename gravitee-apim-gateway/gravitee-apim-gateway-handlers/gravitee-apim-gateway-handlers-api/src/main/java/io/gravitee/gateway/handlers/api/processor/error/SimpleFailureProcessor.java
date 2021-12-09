@@ -18,12 +18,12 @@ package io.gravitee.gateway.handlers.api.processor.error;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import java.util.List;
@@ -63,10 +63,10 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
         context.request().metrics().setErrorKey(failure.key());
 
         response.status(failure.statusCode());
-        response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        response.headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
         if (failure.message() != null) {
-            List<String> accepts = context.request().headers().get(HttpHeaders.ACCEPT);
+            List<String> accepts = context.request().headers().getAll(HttpHeaderNames.ACCEPT);
 
             Buffer payload;
             String contentType;
@@ -94,8 +94,8 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
                 payload = Buffer.buffer(failure.message());
             }
 
-            response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(payload.length()));
-            response.headers().set(HttpHeaders.CONTENT_TYPE, contentType);
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
             response.write(payload);
         }
     }

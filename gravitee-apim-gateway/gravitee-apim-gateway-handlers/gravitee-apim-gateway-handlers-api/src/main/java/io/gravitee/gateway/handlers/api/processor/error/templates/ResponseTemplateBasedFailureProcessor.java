@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.handlers.api.processor.error.templates;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.el.EvaluableRequest;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
 import java.util.List;
@@ -72,7 +72,7 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
         final ProcessorFailure failure
     ) {
         // Extract the content-type from the request
-        List<MediaType> acceptMediaTypes = context.request().headers().getAccept();
+        final List<MediaType> acceptMediaTypes = MediaType.parseMediaTypes(context.request().headers().getAll(HttpHeaderNames.ACCEPT));
 
         // If no accept header, check if there is a template for type matching '*/*'
         if (acceptMediaTypes == null || acceptMediaTypes.isEmpty()) {
@@ -111,10 +111,10 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
 
     private void handleTemplate(final ExecutionContext context, final ResponseTemplate template, final ProcessorFailure failure) {
         context.response().status(template.getStatusCode());
-        context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        context.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
-            context.response().headers().set(HttpHeaders.CONTENT_TYPE, context.request().headers().getFirst(HttpHeaders.ACCEPT));
+            context.response().headers().set(HttpHeaderNames.CONTENT_TYPE, context.request().headers().getFirst(HttpHeaderNames.ACCEPT));
         }
 
         if (template.getHeaders() != null) {
@@ -134,7 +134,7 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
             // Apply templating
             String body = context.getTemplateEngine().getValue(template.getBody(), String.class);
             Buffer payload = Buffer.buffer(body);
-            context.response().headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(payload.length()));
+            context.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
             context.response().write(payload);
         }
     }

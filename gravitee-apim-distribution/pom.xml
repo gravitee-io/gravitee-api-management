@@ -46,51 +46,51 @@
     <properties>
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
-        <gravitee-connector-http.version>1.0.0</gravitee-connector-http.version>
-        <gravitee-connector-kafka.version>1.0.1</gravitee-connector-kafka.version>
-        <gravitee-policy-apikey.version>2.3.0</gravitee-policy-apikey.version>
+        <gravitee-connector-http.version>1.1.0-SNAPSHOT</gravitee-connector-http.version>
+        <gravitee-connector-kafka.version>1.1.0-SNAPSHOT</gravitee-connector-kafka.version>
+        <gravitee-policy-apikey.version>2.4.0-SNAPSHOT</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
-        <gravitee-policy-assign-content.version>1.6.0</gravitee-policy-assign-content.version>
-        <gravitee-policy-cache.version>1.13.0</gravitee-policy-cache.version>
-        <gravitee-policy-callout-http.version>1.14.0</gravitee-policy-callout-http.version>
+        <gravitee-policy-assign-content.version>1.7.0-SNAPSHOT</gravitee-policy-assign-content.version>
+        <gravitee-policy-cache.version>1.14.0-SNAPSHOT</gravitee-policy-cache.version>
+        <gravitee-policy-callout-http.version>1.15.0-SNAPSHOT</gravitee-policy-callout-http.version>
         <gravitee-policy-dynamic-routing.version>1.11.1</gravitee-policy-dynamic-routing.version>
-        <gravitee-policy-generate-http-signature.version>1.0.0</gravitee-policy-generate-http-signature.version>
+        <gravitee-policy-generate-http-signature.version>1.1.0-SNAPSHOT</gravitee-policy-generate-http-signature.version>
         <gravitee-policy-generate-jwt.version>1.5.0</gravitee-policy-generate-jwt.version>
-        <gravitee-policy-groovy.version>1.16.0</gravitee-policy-groovy.version>
+        <gravitee-policy-groovy.version>2.1.0-SNAPSHOT</gravitee-policy-groovy.version>
         <gravitee-policy-html-json.version>1.6.0</gravitee-policy-html-json.version>
-        <gravitee-policy-http-signature.version>1.4.0</gravitee-policy-http-signature.version>
-        <gravitee-policy-ipfiltering.version>1.8.0</gravitee-policy-ipfiltering.version>
-        <gravitee-policy-json-threat-protection.version>1.2.2</gravitee-policy-json-threat-protection.version>
+        <gravitee-policy-http-signature.version>1.5.0-SNAPSHOT</gravitee-policy-http-signature.version>
+        <gravitee-policy-ipfiltering.version>1.9.0-SNAPSHOT</gravitee-policy-ipfiltering.version>
+        <gravitee-policy-json-threat-protection.version>1.3.0-SNAPSHOT</gravitee-policy-json-threat-protection.version>
         <gravitee-policy-json-to-json.version>1.6.0</gravitee-policy-json-to-json.version>
         <gravitee-policy-json-validation.version>1.6.0</gravitee-policy-json-validation.version>
-        <gravitee-policy-json-xml.version>1.0.0</gravitee-policy-json-xml.version>
+        <gravitee-policy-json-xml.version>1.1.0-SNAPSHOT</gravitee-policy-json-xml.version>
         <gravitee-policy-jws.version>1.3.0</gravitee-policy-jws.version>
-        <gravitee-policy-jwt.version>1.21.0</gravitee-policy-jwt.version>
+        <gravitee-policy-jwt.version>1.22.0-SNAPSHOT</gravitee-policy-jwt.version>
         <gravitee-policy-keyless.version>1.4.0</gravitee-policy-keyless.version>
         <gravitee-policy-latency.version>1.4.0</gravitee-policy-latency.version>
-        <gravitee-policy-metrics-reporter.version>1.1.0</gravitee-policy-metrics-reporter.version>
-        <gravitee-policy-mock.version>1.12.0</gravitee-policy-mock.version>
-        <gravitee-policy-oauth2.version>1.18.0</gravitee-policy-oauth2.version>
-        <gravitee-policy-openid-connect-userinfo.version>1.4.0</gravitee-policy-openid-connect-userinfo.version>
+        <gravitee-policy-metrics-reporter.version>1.2.0-SNAPSHOT</gravitee-policy-metrics-reporter.version>
+        <gravitee-policy-mock.version>1.13.0-SNAPSHOT</gravitee-policy-mock.version>
+        <gravitee-policy-oauth2.version>1.19.0-SNAPSHOT</gravitee-policy-oauth2.version>
+        <gravitee-policy-openid-connect-userinfo.version>1.5.0-SNAPSHOT</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>1.3.0</gravitee-policy-override-http-method.version>
         <!--	Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit	-->
         <!--	<gravitee-policy-quota.version>1.13.0</gravitee-policy-quota.version>	-->
         <!--	<gravitee-policy-spikearrest.version>1.13.0</gravitee-policy-spikearrest.version>	-->
-        <gravitee-policy-ratelimit.version>1.14.0</gravitee-policy-ratelimit.version>
-        <gravitee-policy-regex-threat-protection.version>1.2.0</gravitee-policy-regex-threat-protection.version>
-        <gravitee-policy-request-content-limit.version>1.7.0</gravitee-policy-request-content-limit.version>
-        <gravitee-policy-request-validation.version>1.12.0</gravitee-policy-request-validation.version>
+        <gravitee-policy-ratelimit.version>1.15.0-SNAPSHOT</gravitee-policy-ratelimit.version>
+        <gravitee-policy-regex-threat-protection.version>1.3.0-SNAPSHOT</gravitee-policy-regex-threat-protection.version>
+        <gravitee-policy-request-content-limit.version>1.8.0-SNAPSHOT</gravitee-policy-request-content-limit.version>
+        <gravitee-policy-request-validation.version>1.13.0-SNAPSHOT</gravitee-policy-request-validation.version>
         <gravitee-policy-resource-filtering.version>1.8.0</gravitee-policy-resource-filtering.version>
         <gravitee-policy-rest-to-soap.version>1.12.0</gravitee-policy-rest-to-soap.version>
-        <gravitee-policy-retry.version>2.0.0</gravitee-policy-retry.version>
+        <gravitee-policy-retry.version>2.1.0-SNAPSHOT</gravitee-policy-retry.version>
         <gravitee-policy-role-based-access-control.version>1.1.0</gravitee-policy-role-based-access-control.version>
         <gravitee-policy-ssl-enforcement.version>1.2.0</gravitee-policy-ssl-enforcement.version>
         <gravitee-policy-traffic-shadowing.version>1.1.0</gravitee-policy-traffic-shadowing.version>
-        <gravitee-policy-transformheaders.version>1.8.2</gravitee-policy-transformheaders.version>
+        <gravitee-policy-transformheaders.version>1.9.0-SNAPSHOT</gravitee-policy-transformheaders.version>
         <gravitee-policy-transformqueryparams.version>1.6.0</gravitee-policy-transformqueryparams.version>
-        <gravitee-policy-url-rewriting.version>1.4.0</gravitee-policy-url-rewriting.version>
-        <gravitee-policy-xml-json.version>1.7.0</gravitee-policy-xml-json.version>
-        <gravitee-policy-xml-threat-protection.version>1.2.1</gravitee-policy-xml-threat-protection.version>
+        <gravitee-policy-url-rewriting.version>1.5.0-SNAPSHOT</gravitee-policy-url-rewriting.version>
+        <gravitee-policy-xml-json.version>1.8.0-SNAPSHOT</gravitee-policy-xml-json.version>
+        <gravitee-policy-xml-threat-protection.version>1.3.0-SNAPSHOT</gravitee-policy-xml-threat-protection.version>
         <gravitee-policy-xml-validation.version>1.1.0</gravitee-policy-xml-validation.version>
         <gravitee-policy-xslt.version>1.6.0</gravitee-policy-xslt.version>
         <gravitee-resource-cache.version>1.7.0-SNAPSHOT</gravitee-resource-cache.version>
@@ -107,8 +107,8 @@
         <gravitee-repository-elasticsearch.version>3.10.0-SNAPSHOT</gravitee-repository-elasticsearch.version>
         <!-- Gateway Only -->
         <gravitee-reporter-elasticsearch.version>3.10.0-SNAPSHOT</gravitee-reporter-elasticsearch.version>
-        <gravitee-reporter-file.version>2.4.3</gravitee-reporter-file.version>
-        <gravitee-reporter-tcp.version>1.3.3</gravitee-reporter-tcp.version>
+        <gravitee-reporter-file.version>2.5.0-SNAPSHOT</gravitee-reporter-file.version>
+        <gravitee-reporter-tcp.version>1.4.0-SNAPSHOT</gravitee-reporter-tcp.version>
         <!--	Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit	-->
         <!--	<gravitee-gateway-services-ratelimit.version>1.13.0</gravitee-gateway-services-ratelimit.version>	-->
         <gravitee-tracer-jaeger.version>1.0.1</gravitee-tracer-jaeger.version>

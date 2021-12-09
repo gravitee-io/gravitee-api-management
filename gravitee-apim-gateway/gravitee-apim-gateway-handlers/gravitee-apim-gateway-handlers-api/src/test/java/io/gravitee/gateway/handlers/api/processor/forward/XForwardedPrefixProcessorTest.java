@@ -18,11 +18,12 @@ package io.gravitee.gateway.handlers.api.processor.forward;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,7 +51,7 @@ public class XForwardedPrefixProcessorTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         context = new SimpleExecutionContext(request, response);
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = HttpHeaders.create();
         Mockito.when(request.headers()).thenReturn(headers);
     }
 
@@ -61,7 +62,7 @@ public class XForwardedPrefixProcessorTest {
         new XForwardedPrefixProcessor()
             .handler(
                 context -> {
-                    List<String> xForwardedPrefixList = context.request().headers().get(HttpHeaders.X_FORWARDED_PREFIX);
+                    List<String> xForwardedPrefixList = context.request().headers().getAll(HttpHeaderNames.X_FORWARDED_PREFIX);
                     assertEquals(xForwardedPrefixList.size(), 1);
                     assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
                 }
@@ -73,14 +74,14 @@ public class XForwardedPrefixProcessorTest {
     public void testXForwardedPrefixInHeader() {
         when(request.contextPath()).thenReturn(CONTEXT_PATH);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.X_FORWARDED_PREFIX, "randomPrefix");
+        HttpHeaders headers = HttpHeaders.create();
+        headers.add(HttpHeaderNames.X_FORWARDED_PREFIX, "randomPrefix");
         when(request.headers()).thenReturn(headers);
 
         new XForwardedPrefixProcessor()
             .handler(
                 context -> {
-                    List<String> xForwardedPrefixList = context.request().headers().get(HttpHeaders.X_FORWARDED_PREFIX);
+                    List<String> xForwardedPrefixList = context.request().headers().getAll(HttpHeaderNames.X_FORWARDED_PREFIX);
                     assertEquals(xForwardedPrefixList.size(), 1);
                     assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
                 }

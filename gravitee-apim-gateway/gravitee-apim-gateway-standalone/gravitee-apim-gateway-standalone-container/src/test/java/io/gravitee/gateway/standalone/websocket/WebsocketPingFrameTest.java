@@ -55,9 +55,10 @@ public class WebsocketPingFrameTest extends AbstractWebSocketGatewayTest {
                     event.accept();
                     event.frameHandler(
                         frame -> {
-                            Assert.assertTrue(frame.isPing());
-                            Assert.assertEquals("PING", frame.textData());
-                            latch.countDown();
+                            if (frame.isPing()) {
+                                Assert.assertEquals("PING", frame.textData());
+                                latch.countDown();
+                            }
                         }
                     );
                 }

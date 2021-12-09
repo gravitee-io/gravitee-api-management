@@ -19,15 +19,14 @@ import static io.gravitee.reporter.api.http.Metrics.on;
 import static java.lang.System.currentTimeMillis;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
-import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
