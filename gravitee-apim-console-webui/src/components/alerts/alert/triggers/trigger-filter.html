@@ -18,7 +18,13 @@
 
 <div class="gv-form-content" layout="row" style="margin-bottom: 3px">
   <div flex="5" layout="row" layout-align="center center" style="border-right: 1px solid lightgrey; margin-right: 10px">
-    <ng-md-icon icon="close" style="fill: grey" size="20px" ng-click="$ctrl.deleteFilter()"></ng-md-icon>
+    <ng-md-icon icon="close" style="fill: grey" size="20px" ng-click="$ctrl.deleteFilter()" ng-if="!$ctrl.isReadonly"></ng-md-icon>
   </div>
-  <gv-alert-trigger-condition condition="$ctrl.condition" metrics="$ctrl.metrics" label="false" flex></gv-alert-trigger-condition>
+  <gv-alert-trigger-condition
+    condition="$ctrl.condition"
+    metrics="$ctrl.metrics"
+    label="false"
+    flex
+    is-readonly="$ctrl.isReadonly"
+  ></gv-alert-trigger-condition>
 </div>

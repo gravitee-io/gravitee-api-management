@@ -1236,7 +1236,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             userRepository.update(user);
 
             final UserEntity userEntity = convert(optionalUser.get(), false);
-            searchEngineService.delete(userEntity, false);
+            searchEngineService.delete(userEntity);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete user", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete user", ex);

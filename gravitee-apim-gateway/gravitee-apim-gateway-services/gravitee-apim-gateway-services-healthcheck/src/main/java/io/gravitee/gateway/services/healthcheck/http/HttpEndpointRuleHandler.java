@@ -36,6 +36,7 @@ import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.*;
 import java.net.URI;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,12 +48,11 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     private static final String WSS_SCHEME = "wss";
     private static final String GRPCS_SCHEME = "grpcs";
 
-    private final HttpEndpoint endpoint;
     private final ProxyOptions systemProxyOptions;
 
-    public HttpEndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine) {
-        super(vertx, rule, templateEngine);
-        this.endpoint = rule.endpoint();
+    public HttpEndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment)
+        throws Exception {
+        super(vertx, rule, templateEngine, environment);
         this.systemProxyOptions = rule.getSystemProxyOptions();
     }
 
@@ -69,12 +69,18 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     }
 
     @Override
-    protected HttpClientOptions createHttpClientOptions(final URI requestUri) throws Exception {
+    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URI requestUri) throws Exception {
         // Prepare HTTP client
-        HttpClientOptions httpClientOptions = new HttpClientOptions().setMaxPoolSize(1).setKeepAlive(false).setTcpKeepAlive(false);
+        HttpClientOptions httpClientOptions = new HttpClientOptions().setMaxPoolSize(1);
 
         if (endpoint.getHttpClientOptions() != null) {
+            if (environment.getProperty("http.ssl.openssl", Boolean.class, false)) {
+                httpClientOptions.setSslEngineOptions(new OpenSSLEngineOptions());
+            }
+
             httpClientOptions
+                .setKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
+                .setTcpKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
                 .setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000))
                 .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
                 .setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());

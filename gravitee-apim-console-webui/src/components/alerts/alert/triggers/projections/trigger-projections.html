@@ -28,7 +28,7 @@
 
   <a
     style="margin-bottom: 5px"
-    ng-if="$ctrl.condition.projections === undefined || $ctrl.condition.projections.length < 1"
+    ng-if="!$ctrl.isReadonly && ($ctrl.condition.projections === undefined || $ctrl.condition.projections.length < 1)"
     ng-click="$ctrl.addProjection()"
     style="font-style: italic"
     >> Set a projection</a
@@ -39,6 +39,7 @@
     ng-repeat="projection in $ctrl.condition.projections"
     projection="projection"
     on-projection-remove="$ctrl.removeProjection($index)"
+    is-readonly="$ctrl.isReadonly"
   >
     ></gv-alert-trigger-projection
   >

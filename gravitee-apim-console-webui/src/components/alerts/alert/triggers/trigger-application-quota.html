@@ -30,6 +30,7 @@
       name="threshold"
       aria-label="trigger threshold"
       ng-change="$ctrl.calculateMultiplier()"
+      ng-disabled="$ctrl.parent.isReadonly()"
     />
     <div ng-messages="$ctrl.parent.formAlert.threshold.$error">
       <div ng-message="required">Threshold is required.</div>

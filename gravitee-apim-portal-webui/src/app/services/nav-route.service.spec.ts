@@ -16,7 +16,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { createHttpFactory, createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator';
+import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator';
 import { UserTestingModule } from '../test/user-testing-module';
 import { NavRouteService } from './nav-route.service';
 import { TranslateService } from '@ngx-translate/core';

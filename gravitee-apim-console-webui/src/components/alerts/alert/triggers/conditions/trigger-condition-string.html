@@ -18,7 +18,14 @@
 
 <md-input-container class="md-block" ng-if="!$ctrl.displaySelect()">
   <label>Pattern</label>
-  <input ng-model="$ctrl.condition.pattern" required type="text" name="condition-string-value" aria-label="string value condition" />
+  <input
+    ng-model="$ctrl.condition.pattern"
+    required
+    type="text"
+    name="condition-string-value"
+    aria-label="string value condition"
+    ng-disabled="$ctrl.isReadonly"
+  />
   <!--
   <div class="hint">
     The pattern value to compare to.
@@ -31,7 +38,7 @@
 
 <md-input-container class="md-block" ng-if="$ctrl.displaySelect()">
   <label>Value</label>
-  <md-select ng-model="$ctrl.condition.pattern" required>
+  <md-select ng-model="$ctrl.condition.pattern" required ng-disabled="$ctrl.isReadonly">
     <md-option ng-value="type.key" ng-repeat="type in $ctrl.values"> {{::type.value}} </md-option>
   </md-select>
   <!--

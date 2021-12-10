@@ -25,6 +25,7 @@
       min="1"
       name="condition-compare-multiplier"
       aria-label="compare multiplier"
+      ng-disabled="$ctrl.isReadonly"
     />
     <div ng-messages="$ctrl.formAlert['condition-compare-multiplier'].$error">
       <div ng-message="required">Multiplier is required.</div>
@@ -34,7 +35,13 @@
 
   <md-input-container class="md-block" flex-gt-sm flex="30">
     <label>Property</label>
-    <md-select ng-model="$ctrl.condition.property2" required name="condition-compare-property" aria-label="compare property">
+    <md-select
+      ng-model="$ctrl.condition.property2"
+      required
+      name="condition-compare-property"
+      aria-label="compare property"
+      ng-disabled="$ctrl.isReadonly"
+    >
       <md-option ng-value="type.key" ng-repeat="type in $ctrl.metrics"> {{::type.name}} </md-option>
     </md-select>
     <div ng-messages="$ctrl.formAlert['condition-compare-property'].$error">

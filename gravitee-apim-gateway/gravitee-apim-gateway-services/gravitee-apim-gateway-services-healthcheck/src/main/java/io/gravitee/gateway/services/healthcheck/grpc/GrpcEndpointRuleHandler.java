@@ -25,6 +25,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import java.net.URI;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,8 +35,9 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
 
     private static final String GRPC_TRAILERS_TE = "trailers";
 
-    GrpcEndpointRuleHandler(Vertx vertx, EndpointRule<HttpEndpoint> rule, TemplateEngine templateEngine) {
-        super(vertx, rule, templateEngine);
+    GrpcEndpointRuleHandler(Vertx vertx, EndpointRule<HttpEndpoint> rule, TemplateEngine templateEngine, Environment environment)
+        throws Exception {
+        super(vertx, rule, templateEngine, environment);
     }
 
     @Override
@@ -69,8 +71,8 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
     }
 
     @Override
-    protected HttpClientOptions createHttpClientOptions(final URI requestUri) throws Exception {
-        HttpClientOptions httpClientOptions = super.createHttpClientOptions(requestUri);
+    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URI requestUri) throws Exception {
+        HttpClientOptions httpClientOptions = super.createHttpClientOptions((HttpEndpoint) endpoint, requestUri);
 
         // Force HTTP_2 and disable Upgrade
         httpClientOptions.setProtocolVersion(HttpVersion.HTTP_2).setHttp2ClearTextUpgrade(false);

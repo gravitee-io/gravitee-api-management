@@ -33,7 +33,7 @@ public class EndpointRuleCronHandler implements Handler<Long>, Serializable {
     private final transient Vertx vertx;
     private final CronTrigger expression;
     private final Endpoint endpoint;
-    private transient Handler<Long> handler;
+    private transient EndpointRuleHandler handler;
     private long timerId;
 
     public EndpointRuleCronHandler(Vertx vertx, EndpointRule rule) {
@@ -42,7 +42,7 @@ public class EndpointRuleCronHandler implements Handler<Long>, Serializable {
         this.endpoint = rule.endpoint();
     }
 
-    public EndpointRuleCronHandler schedule(Handler<Long> handler) {
+    public EndpointRuleCronHandler schedule(EndpointRuleHandler handler) {
         if (handler == null) {
             throw new IllegalArgumentException("Handler is null.");
         }
@@ -66,6 +66,7 @@ public class EndpointRuleCronHandler implements Handler<Long>, Serializable {
 
     public void cancel() {
         vertx.cancelTimer(timerId);
+        handler.close();
     }
 
     public long getTimerId() {

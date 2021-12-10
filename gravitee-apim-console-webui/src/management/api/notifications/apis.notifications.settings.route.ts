@@ -108,6 +108,7 @@ function apisNotificationsRouterConfig($stateProvider) {
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 0).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
+        mode: () => 'create',
       },
     })
     .state('management.apis.detail.alerts.alert', {
@@ -119,7 +120,7 @@ function apisNotificationsRouterConfig($stateProvider) {
           page: 'management-alerts',
         },
         perms: {
-          only: ['api-alert-u'],
+          only: ['api-alert-r'],
         },
       },
       resolve: {
@@ -128,6 +129,7 @@ function apisNotificationsRouterConfig($stateProvider) {
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 0).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
+        mode: () => 'detail',
       },
     });
 }
