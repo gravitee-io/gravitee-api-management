@@ -1231,6 +1231,13 @@ workflows:
                   requires:
                       - prepare-settings
                   context: cicd-orchestrator
+                  pre-steps:
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/git/user/name
+                            var-name: GIT_USER_NAME
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/git/user/email
+                            var-name: GIT_USER_EMAIL
             - nexus-staging-prepare-component:
                   requires:
                       - release
