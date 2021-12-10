@@ -34,7 +34,10 @@ import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.node.api.Node;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,8 +45,13 @@ import io.gravitee.gateway.policy.StreamType;
  */
 public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
 
+    @Autowired
+    private Node node;
+
     @Override
     public void afterPropertiesSet() {
+        add(() -> new ShutdownProcessor(node));
+
         if (api.getDefinitionVersion() == DefinitionVersion.V1) {
             add(new ApiPolicyChainProvider(StreamType.ON_RESPONSE, new ApiPolicyResolver(), chainFactory));
             add(new PlanPolicyChainProvider(StreamType.ON_RESPONSE, new PlanPolicyResolver(api), chainFactory));

@@ -23,6 +23,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.netty.buffer.ByteBuf;
+import io.vertx.core.http.HttpConnection;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 
 /**
@@ -141,5 +143,9 @@ public class VertxHttpServerResponse implements Response {
 
     protected void writeHeaders() {
         headers.forEach(serverResponse::putHeader);
+    }
+
+    public HttpConnection getNativeConnection() {
+        return ((VertxHttpServerRequest) serverRequest).getNativeServerRequest().connection();
     }
 }
