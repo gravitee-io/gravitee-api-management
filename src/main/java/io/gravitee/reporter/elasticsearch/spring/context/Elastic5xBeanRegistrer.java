@@ -18,6 +18,7 @@ package io.gravitee.reporter.elasticsearch.spring.context;
 import io.gravitee.reporter.elasticsearch.indexer.es5.ES5BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.MultiTypeIndexNameGenerator;
+import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es5.ES5MultiTypeIndexPreparer;
@@ -39,7 +40,7 @@ public class Elastic5xBeanRegistrer {
         BeanDefinitionBuilder beanIndexPreparer = BeanDefinitionBuilder.rootBeanDefinition(indexPreparerClass);
         beanFactory.registerBeanDefinition("indexPreparer", beanIndexPreparer.getBeanDefinition());
 
-        Class<? extends IndexNameGenerator> indexNameGeneratorClass = (perTypeIndex) ? PerTypeIndexNameGenerator.class : MultiTypeIndexNameGenerator.class;
+        Class<? extends IndexNameGenerator> indexNameGeneratorClass = (perTypeIndex) ? PerTypeAndDateIndexNameGenerator.class : MultiTypeIndexNameGenerator.class;
         BeanDefinitionBuilder beanIndexNameGenerator = BeanDefinitionBuilder.rootBeanDefinition(indexNameGeneratorClass);
         beanFactory.registerBeanDefinition("indexNameGenerator", beanIndexNameGenerator.getBeanDefinition());
     }
