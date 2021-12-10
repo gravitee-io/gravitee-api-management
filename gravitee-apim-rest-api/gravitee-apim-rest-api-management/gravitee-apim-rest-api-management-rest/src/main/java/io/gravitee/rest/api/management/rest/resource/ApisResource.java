@@ -364,7 +364,8 @@ public class ApisResource extends AbstractResource {
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled();
 
-        final Page<ApiEntity> apis = apiService.search(query, filters, sortable, commonPageable);
+        //TODO: sortable ?
+        final Page<ApiEntity> apis = apiService.search(query, filters, commonPageable);
 
         return new PagedResult<>(
             apis.getContent().stream().map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled)).collect(toList()),

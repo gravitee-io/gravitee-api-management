@@ -135,18 +135,18 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals("C", applicationsResponse.getData().get(2).getId());
         assertEquals("D", applicationsResponse.getData().get(3).getId());
 
-        Mockito.verify(filteringService, times(0)).getEntitiesOrderByNumberOfSubscriptions(anyCollection(), eq(false), eq(false));
+        Mockito.verify(filteringService, times(0)).getApplicationsOrderByNumberOfSubscriptions(anySet());
     }
 
     @Test
     public void shouldGetApplicationsOrderByNbSubscriptionsDesc() {
-        FilteredEntities<ApplicationListItem> mockFilteredApp = new FilteredEntities<ApplicationListItem>(Collections.emptyList(), null);
-        doReturn(mockFilteredApp).when(filteringService).getEntitiesOrderByNumberOfSubscriptions(anyCollection(), isNull(), eq(false));
+        FilteredEntities<ApplicationListItem> mockFilteredApp = new FilteredEntities<>(Collections.emptyList(), null);
+        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anySet());
 
         final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(filteringService).getEntitiesOrderByNumberOfSubscriptions(anyCollection(), isNull(), eq(false));
+        Mockito.verify(filteringService).getApplicationsOrderByNumberOfSubscriptions(anySet());
     }
 
     @Test

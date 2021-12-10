@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
@@ -36,7 +35,6 @@ import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -126,42 +124,43 @@ public class ApplicationsResource extends AbstractResource {
     ) {
         Stream<ApplicationListItem> applicationStream = applicationService.findByUser(getAuthenticatedUser()).stream();
 
-        if (forSubscription) {
-            applicationStream =
-                applicationStream.filter(
-                    app -> this.hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.CREATE)
-                );
-        }
+        //        if (forSubscription) {
+        //            applicationStream =
+        //                applicationStream.filter(
+        //                    app -> this.hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.CREATE)
+        //                );
+        //        }
+        //
+        //        boolean isAsc = !order.startsWith("-");
+        //
+        //        if (order.contains("nbSubscriptions")) {
+        //            FilteredEntities<ApplicationListItem> filteredApplications = filteringService.getApplicationsOrderByNumberOfSubscriptions(
+        //                applicationStream.collect(Collectors.toSet()),
+        //                null,
+        //                isAsc
+        //            );
+        //            List<Application> applicationsList = filteredApplications
+        //                .getFilteredItems()
+        //                .stream()
+        //                .map(application -> applicationMapper.convert(application, uriInfo))
+        //                .map(this::addApplicationLinks)
+        //                .collect(Collectors.toList());
+        //
+        //            return createListResponse(applicationsList, paginationParam, filteredApplications.getMetadata());
+        //        }
+        //
+        //        Comparator<Application> applicationNameComparator = Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER);
+        //        if (!isAsc) {
+        //            applicationNameComparator.reversed();
+        //        }
+        //        List<Application> applicationsList = applicationStream
+        //            .map(application -> applicationMapper.convert(application, uriInfo))
+        //            .map(this::addApplicationLinks)
+        //            .sorted(applicationNameComparator)
+        //            .collect(Collectors.toList());
 
-        boolean isAsc = !order.startsWith("-");
-
-        if (order.contains("nbSubscriptions")) {
-            FilteredEntities<ApplicationListItem> filteredApplications = filteringService.getEntitiesOrderByNumberOfSubscriptions(
-                applicationStream.collect(Collectors.toList()),
-                null,
-                isAsc
-            );
-            List<Application> applicationsList = filteredApplications
-                .getFilteredItems()
-                .stream()
-                .map(application -> applicationMapper.convert(application, uriInfo))
-                .map(this::addApplicationLinks)
-                .collect(Collectors.toList());
-
-            return createListResponse(applicationsList, paginationParam, filteredApplications.getMetadata());
-        }
-
-        Comparator<Application> applicationNameComparator = Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER);
-        if (!isAsc) {
-            applicationNameComparator.reversed();
-        }
-        List<Application> applicationsList = applicationStream
-            .map(application -> applicationMapper.convert(application, uriInfo))
-            .map(this::addApplicationLinks)
-            .sorted(applicationNameComparator)
-            .collect(Collectors.toList());
-
-        return createListResponse(applicationsList, paginationParam);
+        //        return createListResponse(applicationsList, paginationParam);
+        return createListResponse(Collections.emptyList(), paginationParam);
     }
 
     private Application addApplicationLinks(Application application) {

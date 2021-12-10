@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.api;
 
 import io.gravitee.rest.api.model.Visibility;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -24,7 +25,7 @@ import java.util.List;
  */
 public class ApiQuery {
 
-    private List<String> ids;
+    private Collection<String> ids;
     private String category;
     private List<String> groups;
     private String contextPath;
@@ -36,11 +37,11 @@ public class ApiQuery {
     private String tag;
     private List<ApiLifecycleState> lifecycleStates;
 
-    public List<String> getIds() {
+    public Collection<String> getIds() {
         return ids;
     }
 
-    public void setIds(List<String> ids) {
+    public void setIds(Collection<String> ids) {
         this.ids = ids;
     }
 

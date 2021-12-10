@@ -48,6 +48,8 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -74,6 +76,7 @@ import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
@@ -118,7 +121,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -923,6 +925,93 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return new HashSet<>(findByUser(userId, apiQuery, null, null, portal).getContent());
     }
 
+    @Override
+    public Set<String> findIdsByUser(String userId, ApiQuery apiQuery, Sortable sortable, boolean portal) {
+        Optional<List<String>> optionalTargetIds = this.searchInDefinition(apiQuery);
+
+        if (optionalTargetIds.isPresent()) {
+            List<String> targetIds = optionalTargetIds.get();
+            if (targetIds.isEmpty()) {
+                return Collections.emptySet();
+            }
+            apiQuery.setIds(targetIds);
+        }
+
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        if (portal) {
+            // for portal, we get all public apis
+            apiCriteriaList.add(queryToCriteria(apiQuery).visibility(PUBLIC).build());
+        }
+
+        if (apiQuery == null) {
+            apiQuery = new ApiQuery();
+        }
+
+        // for others, user must be authenticated
+        if (userId != null) {
+            // get user apis
+            final Set<String> userApiIds = membershipService
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+                .stream()
+                .map(MembershipEntity::getReferenceId)
+                .collect(toSet());
+            // add dedicated criteria for user apis
+            if (!userApiIds.isEmpty()) {
+                apiCriteriaList.add(queryToCriteria(apiQuery).ids(userApiIds).build());
+            }
+
+            // get user groups apis
+            final Set<String> groupIds = membershipService
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
+                .stream()
+                .filter(
+                    m -> {
+                        final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
+                        if (!portal) {
+                            return (
+                                m.getRoleId() != null &&
+                                roleInGroup.getScope().equals(RoleScope.API) &&
+                                canManageApi(roleInGroup.getPermissions())
+                            );
+                        }
+                        return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
+                    }
+                )
+                .map(MembershipEntity::getReferenceId)
+                .collect(toSet());
+
+            // add dedicated criteria for groups apis
+            if (!groupIds.isEmpty()) {
+                apiCriteriaList.add(queryToCriteria(apiQuery).groups(groupIds).build());
+            }
+
+            // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
+            if (portal) {
+                final Set<String> applications = applicationService
+                    .findByUser(userId)
+                    .stream()
+                    .map(ApplicationListItem::getId)
+                    .collect(toSet());
+                if (!applications.isEmpty()) {
+                    final SubscriptionQuery query = new SubscriptionQuery();
+                    query.setApplications(applications);
+                    final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
+                    if (subscriptions != null && !subscriptions.isEmpty()) {
+                        apiCriteriaList.add(
+                            queryToCriteria(apiQuery)
+                                .ids(subscriptions.stream().map(SubscriptionEntity::getApi).distinct().collect(toList()))
+                                .build()
+                        );
+                    }
+                }
+            }
+        }
+
+        // Just one call to apiRepository to preserve sort
+        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
+        List<String> apiIds = apiRepository.searchIds(convert(sortable), apiCriteria);
+        return new LinkedHashSet(apiIds);
+    }
 
     @Override
     public Set<CategoryEntity> listCategories(Collection<String> apis) {
@@ -943,38 +1032,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Find APIs page by user {}", userId);
 
-            List<Api> allApis = findApisByUser(userId, apiQuery, portal);
+            Set<String> apiIds = findIdsByUser(userId, apiQuery, sortable, portal);
 
-            final Page<Api> apiPage = sortAndPaginate(
-                allApis,
-                pageable,
-                buildApiComparator(sortable, pageable, allApis, comparing(api -> api.getName().toLowerCase()))
-            );
-
-            // merge all apis
-            final List<ApiEntity> apis = convert(apiPage.getContent());
-
-            return new Page<>(
-                filterApiByQuery(apis.stream(), apiQuery).collect(toList()),
-                apiPage.getPageNumber(),
-                (int) apiPage.getPageElements(),
-                apiPage.getTotalElements()
-            );
+            return loadPage(apiIds, pageable);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
-        }
-    }
-
-    @Override
-    public List<String> findIdsByUser(String userId, ApiQuery apiQuery, boolean portal) {
-        try {
-            LOGGER.debug("Search API ids by user {} and {}", userId, apiQuery);
-            return findApisByUser(userId, apiQuery, portal).stream().map(Api::getId).collect(toList());
-        } catch (Exception ex) {
-            final String errorMessage = "An error occurs while trying to search for API ids for user " + userId + ": " + apiQuery;
-            LOGGER.error(errorMessage, ex);
-            throw new TechnicalManagementException(errorMessage, ex);
         }
     }
 
@@ -999,102 +1062,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private List<Api> findApisByUser(String userId, ApiQuery apiQuery, boolean portal) {
-        //get all public apis
-        List<Api> publicApis;
-        if (portal) {
-            // Pictures are not required when looking for APIs
-            publicApis =
-                apiRepository.search(
-                    queryToCriteria(apiQuery).visibility(PUBLIC).build(),
-                    new ApiFieldExclusionFilter.Builder().excludePicture().build()
-                );
-        } else {
-            publicApis = emptyList();
-        }
-
-        List<Api> userApis = emptyList();
-        List<Api> groupApis = emptyList();
-        List<Api> subscribedApis = emptyList();
-
-        // for others API, user must be authenticated
-        if (userId != null) {
-            // get user apis
-            final String[] userApiIds = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
-                .stream()
-                .map(MembershipEntity::getReferenceId)
-                .filter(
-                    apiId -> {
-                        if (apiQuery != null && !CollectionUtils.isEmpty(apiQuery.getIds())) {
-                            // We already have api ids to focus on.
-                            return apiQuery.getIds().contains(apiId);
-                        } else {
-                            return true;
-                        }
-                    }
-                )
-                .toArray(String[]::new);
-
-            if (userApiIds.length > 0) {
-                userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
-            }
-
-            // get user groups apis
-            final String[] groupIds = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
-                .stream()
-                .filter(
-                    m -> {
-                        final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
-                        if (!portal) {
-                            return (
-                                m.getRoleId() != null &&
-                                roleInGroup.getScope().equals(RoleScope.API) &&
-                                canManageApi(roleInGroup.getPermissions())
-                            );
-                        }
-                        return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
-                    }
-                )
-                .map(MembershipEntity::getReferenceId)
-                .toArray(String[]::new);
-            if (groupIds.length > 0 && groupIds[0] != null) {
-                groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
-            }
-
-            // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
-            if (portal) {
-                final Set<String> applications = applicationService
-                    .findByUser(userId)
-                    .stream()
-                    .map(ApplicationListItem::getId)
-                    .collect(toSet());
-                if (!applications.isEmpty()) {
-                    final SubscriptionQuery query = new SubscriptionQuery();
-                    query.setApplications(applications);
-                    final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
-                    if (subscriptions != null && !subscriptions.isEmpty()) {
-                        subscribedApis =
-                            apiRepository.search(
-                                queryToCriteria(apiQuery)
-                                    .ids(subscriptions.stream().map(SubscriptionEntity::getApi).distinct().toArray(String[]::new))
-                                    .build()
-                            );
-                    }
-                }
-            }
-        }
-
-        List<Api> allApis = new ArrayList<>();
-        allApis.addAll(publicApis);
-        allApis.addAll(userApis);
-        allApis.addAll(groupApis);
-        allApis.addAll(subscribedApis);
-
-        return allApis.stream().distinct().collect(toList());
-    }
-
     private boolean canManageApi(Map<String, char[]> permissions) {
         return permissions
             .entrySet()
@@ -1117,6 +1084,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
         apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
         return findByUser(userId, apiQuery, true);
+    }
+
+    @Override
+    public Set<String> findPublishedIdsByUser(String userId, ApiQuery apiQuery) {
+        if (apiQuery == null) {
+            apiQuery = new ApiQuery();
+        }
+        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+        return findIdsByUser(userId, apiQuery, true);
     }
 
     @Override
@@ -2207,26 +2183,23 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Search paginated APIs by {}", query);
 
-            // We need to sort on fields which cannot be sort using db engine (ex: api's definition fields). Retrieve all the apis, then sort and paginate in memory.
-            // Pictures are not required when looking for APIs
-            final List<Api> search = apiRepository.search(
-                queryToCriteria(query).build(),
-                new ApiFieldExclusionFilter.Builder().excludePicture().build()
-            );
+            Optional<List<String>> optionalTargetIds = this.searchInDefinition(query);
 
-            Page<Api> apiPage = sortAndPaginate(
-                search,
-                pageable,
-                buildApiComparator(sortable, pageable, search, comparing(api -> api.getName().toLowerCase()))
-            );
+            if (optionalTargetIds.isPresent()) {
+                List<String> targetIds = optionalTargetIds.get();
+                if (targetIds.isEmpty()) {
+                    return new Page(Collections.emptyList(), 0, 0, 0);
+                }
+                query.setIds(targetIds);
+            }
 
-            // Unfortunately, for now, filterApiByQuery can't be invoked because it could break pagination and sort.
-            // Pagination MUST be applied before calls to convert as it involved a lot of data fetching and can be very slow.
-            return new Page<>(
-                this.convert(apiPage.getContent()),
-                apiPage.getPageNumber(),
-                (int) apiPage.getPageElements(),
-                apiPage.getTotalElements()
+            return convert(
+                apiRepository.search(
+                    queryToCriteria(query).build(),
+                    convert(sortable),
+                    convert(pageable),
+                    new ApiFieldExclusionFilter.Builder().excludePicture().build()
+                )
             );
         } catch (TechnicalException ex) {
             final String errorMessage = "An error occurs while trying to search for paginated APIs: " + query;
@@ -2235,11 +2208,41 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    private Page<ApiEntity> convert(Page<Api> page) throws TechnicalException {
+        return new Page<>(this.convert(page.getContent()), page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements());
+    }
+
+    private io.gravitee.repository.management.api.search.Pageable convert(Pageable pageable) {
+        if (pageable != null) {
+            return new PageableBuilder().pageNumber(pageable.getPageNumber()).pageSize(pageable.getPageSize()).build();
+        }
+        return null;
+    }
+
+    private io.gravitee.repository.management.api.search.Sortable convert(Sortable sortable) {
+        if (sortable != null) {
+            return new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build();
+        }
+        return null;
+    }
+
     @Override
     public Collection<ApiEntity> search(final ApiQuery query) {
         try {
             LOGGER.debug("Search APIs by {}", query);
-            return filterApiByQuery(this.convert(apiRepository.search(queryToCriteria(query).build())).stream(), query).collect(toList());
+
+            Optional<List<String>> optionalTargetIds = this.searchInDefinition(query);
+
+            if (optionalTargetIds.isPresent()) {
+                List<String> targetIds = optionalTargetIds.get();
+                if (targetIds.isEmpty()) {
+                    return Collections.emptySet();
+                }
+                query.setIds(targetIds);
+            }
+
+            List<Api> apis = apiRepository.search(queryToCriteria(query).build());
+            return this.convert(apis);
         } catch (TechnicalException ex) {
             final String errorMessage = "An error occurs while trying to search for APIs: " + query;
             LOGGER.error(errorMessage, ex);
@@ -2251,7 +2254,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Collection<String> searchIds(ApiQuery query) {
         try {
             LOGGER.debug("Search API ids by {}", query);
-            return apiRepository.search(queryToCriteria(query).build()).stream().map(Api::getId).collect(toList());
+            Optional<List<String>> optionalTargetIds = this.searchInDefinition(query);
+
+            if (optionalTargetIds.isPresent()) {
+                List<String> targetIds = optionalTargetIds.get();
+                if (targetIds.isEmpty()) {
+                    return Collections.emptySet();
+                }
+                query.setIds(targetIds);
+            }
+
+            return apiRepository.searchIds(queryToCriteria(query).build());
         } catch (Exception ex) {
             final String errorMessage = "An error occurs while trying to search for API ids: " + query;
             LOGGER.error(errorMessage, ex);
@@ -2260,7 +2273,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Page<ApiEntity> search(String query, Map<String, Object> filters, Sortable sortable, Pageable pageable) {
+    public Page<ApiEntity> search(String query, Map<String, Object> filters, Pageable pageable) {
         try {
             LOGGER.debug("Search paged APIs by {}", query);
 
@@ -2270,20 +2283,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 return new Page<>(emptyList(), 0, 0, 0);
             }
 
-            final ApiCriteria apiCriteria = new ApiCriteria.Builder().ids(apiIds).build();
-
-            List<Api> apiList = apiRepository.search(apiCriteria);
-            final Page<Api> apiPage = sortAndPaginate(
-                apiList,
-                pageable,
-                // Keep order done by `searchEngineService` (based on score)
-                buildApiComparator(sortable, pageable, apiList, null)
-            );
-
-            // merge all apis
-            final List<ApiEntity> apis = convert(apiPage.getContent());
-
-            return new Page<>(apis, apiPage.getPageNumber(), (int) apiPage.getPageElements(), apiPage.getTotalElements());
+            return loadPage(apiIds, pageable);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to search paged apis", ex);
             throw new TechnicalManagementException("An error occurs while trying to search paged apis", ex);
@@ -2293,6 +2293,48 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Collection<ApiEntity> search(String query, Map<String, Object> filters) {
         return this._search(query, filters).map(this::findById).collect(toList());
+    }
+
+    /**
+     * This method use ApiQuery to search in indexer for fields in api definition
+     * @param apiQuery
+     * @return Optional<List < String>> an optional list of api ids and Optional.empty()
+     * if ApiQuery doesn't contain fields stores in the api definition.
+     */
+    private Optional<List<String>> searchInDefinition(ApiQuery apiQuery) {
+        if (apiQuery == null) {
+            return Optional.empty();
+        }
+        Query<ApiEntity> searchEngineQuery = convert(apiQuery).build();
+        if (isBlank(searchEngineQuery.getQuery())) {
+            return Optional.empty();
+        }
+        SearchResult matchApis = searchEngineService.search(searchEngineQuery);
+        return Optional.of(matchApis.getDocuments());
+    }
+
+    private QueryBuilder<ApiEntity> convert(ApiQuery query) {
+        QueryBuilder<ApiEntity> searchEngineQuery = QueryBuilder.create(ApiEntity.class);
+        if (query.getIds() != null && !query.getIds().isEmpty()) {
+            Map<String, Object> filters = new HashMap<>();
+            filters.put("api", query.getIds());
+            searchEngineQuery.setFilters(filters);
+        }
+
+        if (!isBlank(query.getContextPath()) || !isBlank(query.getTag())) {
+            if (!isBlank(query.getContextPath())) {
+                searchEngineQuery.addFilter("paths", query.getContextPath(), true);
+            }
+            if (!isBlank(query.getTag())) {
+                searchEngineQuery.addFilter("tag", query.getTag(), true);
+            }
+        }
+        return searchEngineQuery;
+    }
+
+    private Stream<String> _search(Query<? extends Indexable> searchEngineQuery) {
+        SearchResult matchApis = searchEngineService.search(searchEngineQuery);
+        return matchApis.getDocuments().parallelStream();
     }
 
     private Stream<String> _search(String query, Map<String, Object> filters) {
@@ -2580,7 +2622,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             builder.category(categoryService.findById(query.getCategory()).getId());
         }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
-            builder.groups(query.getGroups().toArray(new String[0]));
+            builder.groups(query.getGroups());
         }
         if (!isBlank(query.getState())) {
             builder.state(LifecycleState.valueOf(query.getState()));
@@ -2598,12 +2640,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
         }
         if (query.getIds() != null && !query.getIds().isEmpty()) {
-            builder.ids(query.getIds().toArray(new String[0]));
+            builder.ids(query.getIds());
         }
 
-        if (!isBlank(query.getContextPath())) {
-            builder.contextPath(query.getContextPath());
-        }
         return builder;
     }
 
@@ -2962,27 +3001,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return proxyModelEntity;
     }
 
-    /*
-        Sort then paginate the provided list of apis.
-     */
-    private Page<Api> sortAndPaginate(List<Api> apis, Pageable pageable, final Comparator<Api> comparator) {
+    private Page<ApiEntity> loadPage(Collection<String> apiIds, Pageable pageable) throws TechnicalException {
         pageable = buildPageable(pageable);
 
-        int totalCount = apis.size();
+        int totalCount = apiIds.size();
         int startIndex = (pageable.getPageNumber() - 1) * pageable.getPageSize();
 
         if (pageable.getPageNumber() < 1 || (totalCount > 0 && startIndex >= totalCount)) {
             throw new PaginationInvalidException();
         }
-        Stream<Api> apiStream = apis.stream();
-
-        if (comparator != null) {
-            apiStream.sorted(comparator);
-        }
-
-        List<Api> subsetApis = apiStream.skip(startIndex).limit(pageable.getPageSize()).collect(toList());
-
-        return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apis.size());
+        List<String> subsetApiIds = apiIds.stream().skip(startIndex).limit(pageable.getPageSize()).collect(toList());
+        List<ApiEntity> subsetApis = convert(apiRepository.search(queryToCriteria(null).ids(subsetApiIds).build()));
+        return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apiIds.size());
     }
 
     /*
@@ -2995,80 +3025,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return pageable;
-    }
-
-    /*
-        Build and returns a comparator that can be used to sort the provided apis list.
-        Depending on the field to compare, it maintains a map of api definitions internally.
-        This increase the complexity but avoid unnecessary multiple json deserialization
-     */
-    private Comparator<Api> buildApiComparator(
-        Sortable sortable,
-        Pageable pageable,
-        List<Api> apis,
-        final Comparator<Api> paginationDefaultComparator
-    ) {
-        Comparator<Api> comparator = (api1, api2) -> 0;
-
-        if (pageable != null) {
-            // Pagination requires sorting apis to be able to navigate through pages.
-            comparator = paginationDefaultComparator;
-        }
-
-        if (sortable != null) {
-            // We only support sorting by name or virtual_hosts. Sort by name by default.
-            comparator = comparing(api -> api.getName().toLowerCase());
-
-            if (sortable.getField().equalsIgnoreCase("virtual_hosts")) {
-                Map<String, io.gravitee.definition.model.Api> apiDefinitions = new HashMap<>(apis.size());
-
-                apis
-                    .stream()
-                    .filter(api -> api.getDefinition() != null)
-                    .forEach(
-                        api -> {
-                            try {
-                                apiDefinitions.put(
-                                    api.getId(),
-                                    objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)
-                                );
-                            } catch (JsonProcessingException e) {
-                                // Ignore invalid api definition.
-                            }
-                        }
-                    );
-
-                comparator =
-                    (api1, api2) -> {
-                        io.gravitee.definition.model.Api apiDefinition1 = apiDefinitions.get(api1.getId());
-                        io.gravitee.definition.model.Api apiDefinition2 = apiDefinitions.get(api2.getId());
-
-                        if (apiDefinition1 != null && apiDefinition2 != null) {
-                            if (
-                                apiDefinition1.getProxy().getVirtualHosts() != null &&
-                                !apiDefinition1.getProxy().getVirtualHosts().isEmpty() &&
-                                apiDefinition2.getProxy().getVirtualHosts() != null &&
-                                !apiDefinition2.getProxy().getVirtualHosts().isEmpty()
-                            ) {
-                                return apiDefinition1
-                                    .getProxy()
-                                    .getVirtualHosts()
-                                    .get(0)
-                                    .getPath()
-                                    .toLowerCase()
-                                    .compareTo(apiDefinition2.getProxy().getVirtualHosts().get(0).getPath().toLowerCase());
-                            }
-                        }
-                        return api1.getName().toLowerCase().compareTo(api2.getName().toLowerCase());
-                    };
-            }
-
-            if (!sortable.isAscOrder()) {
-                comparator = comparator.reversed();
-            }
-        }
-
-        return comparator;
     }
 
     protected void encryptProperties(List<PropertyEntity> properties) {
@@ -3100,4 +3056,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             notifierService.trigger(hook, apiId, new NotificationParamsBuilder().api(apiEntity).user(userService.findById(userId)).build());
         }
     }
+
+    private class EmptySearchException extends Throwable {}
 }
