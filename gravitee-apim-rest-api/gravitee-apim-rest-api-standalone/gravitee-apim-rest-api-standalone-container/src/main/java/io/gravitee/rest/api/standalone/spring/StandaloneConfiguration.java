@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.standalone.spring;
 
 import io.gravitee.node.api.NodeMetadataResolver;
+import io.gravitee.node.certificates.spring.NodeCertificatesConfiguration;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
 import io.gravitee.rest.api.management.rest.spring.RestManagementConfiguration;
@@ -35,7 +36,15 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({ VertxConfiguration.class, RepositoryConfiguration.class, RestManagementConfiguration.class, RestPortalConfiguration.class })
+@Import(
+    {
+        VertxConfiguration.class,
+        RepositoryConfiguration.class,
+        RestManagementConfiguration.class,
+        RestPortalConfiguration.class,
+        NodeCertificatesConfiguration.class,
+    }
+)
 public class StandaloneConfiguration {
 
     @Bean
