@@ -130,7 +130,7 @@
         <wiremock-jre8.version>2.28.0</wiremock-jre8.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <!-- Plugins version -->
-        <gatling-maven-plugin.version>3.1.1</gatling-maven-plugin.version>
+        <gatling-maven-plugin.version>3.1.2</gatling-maven-plugin.version>
         <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
         <prettier-maven-plugin.version>0.12</prettier-maven-plugin.version>
     </properties>
