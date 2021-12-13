@@ -31,7 +31,7 @@ export class HealthcheckMetrics extends Metrics {
     'status.old',
     'Old Status',
     [StringCondition.TYPE],
-    true,
+    false,
     undefined,
     statusloader,
   );
@@ -40,12 +40,12 @@ export class HealthcheckMetrics extends Metrics {
     'status.new',
     'New Status',
     [StringCondition.TYPE],
-    true,
+    false,
     undefined,
     statusloader,
   );
 
-  static ENDPOINT_NAME: HealthcheckMetrics = new HealthcheckMetrics('endpoint.name', 'Endpoint name', [StringCondition.TYPE]);
+  static ENDPOINT_NAME: HealthcheckMetrics = new HealthcheckMetrics('endpoint.name', 'Endpoint name', [StringCondition.TYPE], true);
 
   static RESPONSE_TIME: HealthcheckMetrics = new HealthcheckMetrics('response_time', 'Response Time (ms)', [
     ThresholdCondition.TYPE,
