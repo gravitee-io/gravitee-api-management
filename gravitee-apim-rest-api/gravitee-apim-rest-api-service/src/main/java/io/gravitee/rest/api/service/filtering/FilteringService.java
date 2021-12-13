@@ -15,23 +15,29 @@
  */
 package io.gravitee.rest.api.service.filtering;
 
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.filtering.FilterableItem;
-import io.gravitee.rest.api.model.filtering.FilteredEntities;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import java.util.Collection;
+import java.util.Set;
 
 public interface FilteringService {
-    <T extends FilterableItem> FilteredEntities<T> getEntitiesOrderByNumberOfSubscriptions(
-        Collection<T> items,
-        Boolean excluded,
-        boolean isAsc
+    Collection<String> getApisOrderByNumberOfSubscriptions(final Collection<String> ids, final boolean excluded);
+
+    Collection<String> getApplicationsOrderByNumberOfSubscriptions(final Collection<String> ids);
+
+    Collection<String> filterApis(final Set<String> apis, final FilterType filterType, final FilterType excludedFilterType);
+
+    Collection<String> filterApis(
+        final String userId,
+        final FilterType filterType,
+        final FilterType excludedFilterType,
+        final ApiQuery apiQuery
     );
 
-    FilteredEntities<ApiEntity> filterApis(
-        final Collection<ApiEntity> apis,
-        final FilterType filterType,
-        final FilterType excludedFilterType
-    );
+    Collection<String> searchApis(final String userId, final String query) throws TechnicalException;
+
+    Set<CategoryEntity> listCategories(final String userId, final FilterType filterType, final FilterType excludedFilterType);
 
     enum FilterType {
         ALL,

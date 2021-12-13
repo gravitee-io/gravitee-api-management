@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Date;
 import java.util.Objects;
@@ -28,7 +27,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationListItem implements FilterableItem {
+public class ApplicationListItem {
 
     @ApiModelProperty(value = "Application's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
