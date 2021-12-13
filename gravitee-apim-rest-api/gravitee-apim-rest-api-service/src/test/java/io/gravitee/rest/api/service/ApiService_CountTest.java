@@ -18,7 +18,7 @@ package io.gravitee.rest.api.service;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
@@ -113,7 +113,7 @@ public class ApiService_CountTest {
 
         final Api api1 = new Api();
         api1.setId("api-1");
-        api1.setCategories(Set.of(category1.getId()));
+        api1.setCategories(Set.of(category1.getId(), category2.getId()));
 
         final Api api2 = new Api();
         api2.setId("api-2");
@@ -121,17 +121,25 @@ public class ApiService_CountTest {
 
         final Api api3 = new Api();
         api3.setId("api-3");
-        api3.setCategories(Set.of(category3.getId()));
+        api3.setCategories(Set.of(category3.getId(), category2.getId(), category1.getId()));
 
         HashSet<Api> apiMocks = new HashSet<>(List.of(api1, api2, api3));
 
         when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldInclusionFilter.class))).thenReturn(apiMocks);
 
-        when(categoryService.getTotalApisByCategoryId(any(), anyString())).thenReturn(1L);
+        when(categoryService.getTotalApisByCategoryId(any(), eq(category1.getId()))).thenReturn(2L);
+        when(categoryService.getTotalApisByCategoryId(any(), eq(category2.getId()))).thenReturn(3L);
+        when(categoryService.getTotalApisByCategoryId(any(), eq(category3.getId()))).thenReturn(1L);
 
-        Map<String, Long> expectedCounts = Map.of(category1.getId(), 1L, category2.getId(), 1L, category3.getId(), 1L);
+        Map<String, Long> expectedCounts = Map.of(category1.getId(), 2L, category2.getId(), 3L, category3.getId(), 1L);
         Map<String, Long> counts = apiService.countPublishedByUserGroupedByCategories(USER_ID);
 
         assertEquals(expectedCounts, counts);
+
+        // check getTotalApisByCategoryId has been called only once per category id
+        verify(categoryService, times(1)).getTotalApisByCategoryId(any(), eq(category1.getId()));
+        verify(categoryService, times(1)).getTotalApisByCategoryId(any(), eq(category2.getId()));
+        verify(categoryService, times(1)).getTotalApisByCategoryId(any(), eq(category3.getId()));
+        verifyNoMoreInteractions(categoryService);
     }
 }
