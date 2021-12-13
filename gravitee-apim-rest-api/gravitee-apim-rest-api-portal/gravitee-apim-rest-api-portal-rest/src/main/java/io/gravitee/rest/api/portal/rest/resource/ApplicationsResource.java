@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
@@ -37,6 +36,7 @@ import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -51,7 +51,7 @@ import javax.ws.rs.core.Response;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationsResource extends AbstractResource {
+public class ApplicationsResource extends AbstractResource<Application, ApplicationListItem> {
 
     @Context
     private ResourceContext resourceContext;
@@ -129,46 +129,54 @@ public class ApplicationsResource extends AbstractResource {
         @QueryParam("forSubscription") final boolean forSubscription,
         @QueryParam("order") @DefaultValue("name") final String order
     ) {
-        Stream<ApplicationListItem> applicationStream = applicationService
-            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), getAuthenticatedUser())
-            .stream();
+        Supplier<Stream<ApplicationListItem>> appSupplier = () -> {
+            Stream<ApplicationListItem> appStream = applicationService
+                .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), getAuthenticatedUser())
+                .stream();
+            if (forSubscription) {
+                appStream =
+                    appStream.filter(
+                        app -> this.hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.CREATE)
+                    );
+            }
+            return appStream;
+        };
 
-        if (forSubscription) {
-            applicationStream =
-                applicationStream.filter(
-                    app -> this.hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.CREATE)
-                );
-        }
-
-        boolean isAsc = !order.startsWith("-");
-
+        Comparator<ApplicationListItem> orderingComparator;
         if (order.contains("nbSubscriptions")) {
-            FilteredEntities<ApplicationListItem> filteredApplications = filteringService.getEntitiesOrderByNumberOfSubscriptions(
-                applicationStream.collect(Collectors.toList()),
-                null,
-                isAsc
+            List<String> applicationIds = appSupplier.get().map(ApplicationListItem::getId).collect(Collectors.toList());
+
+            List<String> idsOrderedBySubscriptions = new ArrayList<>(
+                filteringService.getApplicationsOrderByNumberOfSubscriptions(applicationIds)
             );
-            List<Application> applicationsList = filteredApplications
-                .getFilteredItems()
-                .stream()
-                .map(application -> applicationMapper.convert(application, uriInfo))
-                .map(this::addApplicationLinks)
-                .collect(Collectors.toList());
-
-            return createListResponse(applicationsList, paginationParam, filteredApplications.getMetadata());
+            orderingComparator = Comparator.comparingInt(idsOrderedBySubscriptions::indexOf);
+        } else {
+            orderingComparator = Comparator.comparing(ApplicationListItem::getName, String.CASE_INSENSITIVE_ORDER);
         }
-
-        Comparator<Application> applicationNameComparator = Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER);
+        boolean isAsc = !order.startsWith("-");
         if (!isAsc) {
-            applicationNameComparator.reversed();
+            orderingComparator.reversed();
         }
-        List<Application> applicationsList = applicationStream
-            .map(application -> applicationMapper.convert(application, uriInfo))
-            .map(this::addApplicationLinks)
-            .sorted(applicationNameComparator)
-            .collect(Collectors.toList());
+
+        List<ApplicationListItem> applicationsList = appSupplier.get().sorted(orderingComparator).collect(Collectors.toList());
 
         return createListResponse(applicationsList, paginationParam);
+    }
+
+    @Override
+    protected List<Application> transformPageContent(List<ApplicationListItem> pageContent) {
+        if (pageContent.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return pageContent
+            .stream()
+            .map(
+                applicationListItem -> {
+                    Application application = applicationMapper.convert(applicationListItem, uriInfo);
+                    return addApplicationLinks(application);
+                }
+            )
+            .collect(Collectors.toList());
     }
 
     private Application addApplicationLinks(Application application) {
@@ -186,25 +194,5 @@ public class ApplicationsResource extends AbstractResource {
     @Path("{applicationId}")
     public ApplicationResource getApplicationResource() {
         return resourceContext.getResource(ApplicationResource.class);
-    }
-
-    private class FilteredApplication {
-
-        List<Application> filteredApplications;
-        Map<String, Map<String, Object>> metadata;
-
-        public FilteredApplication(List<Application> filteredApplications, Map<String, Map<String, Object>> metadata) {
-            super();
-            this.filteredApplications = filteredApplications;
-            this.metadata = metadata;
-        }
-
-        public List<Application> getFilteredApplications() {
-            return filteredApplications;
-        }
-
-        public Map<String, Map<String, Object>> getMetadata() {
-            return metadata;
-        }
     }
 }
