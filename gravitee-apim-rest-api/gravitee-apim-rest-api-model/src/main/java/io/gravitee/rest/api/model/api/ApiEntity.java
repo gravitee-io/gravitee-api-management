@@ -16,9 +16,7 @@
 package io.gravitee.rest.api.model.api;
 
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.jackson.datatype.api.deser.PropertiesDeserializer;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Flow;
@@ -28,7 +26,6 @@ import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
-import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.*;
@@ -48,7 +45,7 @@ import javax.validation.constraints.NotNull;
  * @author GraviteeSource Team
  */
 @JsonFilter("apiMembershipTypeFilter")
-public class ApiEntity implements Indexable, FilterableItem {
+public class ApiEntity implements Indexable {
 
     @ApiModelProperty(value = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;

@@ -17,22 +17,16 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApisResponse;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -41,7 +35,6 @@ import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -108,10 +101,8 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         anotherPublishedApi.setName("C");
         anotherPublishedApi.setId("C");
 
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi, anotherPublishedApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(isNull(), any(ApiQuery.class));
-
-        doReturn(new FilteredEntities<ApiEntity>(new ArrayList<>(mockApis), null)).when(filteringService).filterApis(any(), any(), any());
+        doReturn(Arrays.asList("A", "C")).when(filteringService).filterApis(any(), any(), any(), any());
+        doReturn(Arrays.asList(publishedApi, anotherPublishedApi)).when(apiService).search(any());
 
         doReturn(false).when(ratingService).isEnabled();
 
@@ -121,11 +112,9 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetpublishedApi() {
+    public void shouldGetPublishedApi() {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        Mockito.verify(apiService).findPublishedByUser(isNull(), any(ApiQuery.class));
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(2, apiResponse.getData().size());

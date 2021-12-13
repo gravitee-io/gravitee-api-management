@@ -110,8 +110,13 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldFindByUser() throws TechnicalException {
+        when(api.getId()).thenReturn("api-1");
         when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build()))
             .thenReturn(singletonList(api));
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids("api-1").build());
+        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
+        when(apiRepository.searchIds(null, apiCriteria)).thenReturn(singletonList("api-1"));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setId("id");
@@ -158,6 +163,11 @@ public class ApiService_FindByUserTest {
         api2.setId("api2");
         api2.setName("api2");
 
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId(), api2.getId()).build());
+        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
+        when(apiRepository.searchIds(any(), any())).thenReturn(Arrays.asList(api2.getId(), api1.getId()));
+
         MembershipEntity membership1 = new MembershipEntity();
         membership1.setId("id1");
         membership1.setMemberId(USER_NAME);
@@ -176,8 +186,8 @@ public class ApiService_FindByUserTest {
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
             .thenReturn(new HashSet<>(Arrays.asList(membership1, membership2)));
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId(), api2.getId()).build()))
-            .thenReturn(Arrays.asList(api1, api2));
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId()).build()))
+            .thenReturn(singletonList(api1));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");

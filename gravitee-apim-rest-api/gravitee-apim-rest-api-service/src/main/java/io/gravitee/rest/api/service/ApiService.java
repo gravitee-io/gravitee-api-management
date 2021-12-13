@@ -58,9 +58,19 @@ public interface ApiService {
 
     Set<ApiEntity> findPublishedByUser(String userId);
 
-    List<String> findIdsByUser(String userId, ApiQuery apiQuery, boolean portal);
+    default Set<String> findIdsByUser(String userId, ApiQuery apiQuery, boolean portal) {
+        return findIdsByUser(userId, apiQuery, null, portal);
+    }
+
+    Set<String> findIdsByUser(String userId, ApiQuery apiQuery, Sortable sortable, boolean portal);
 
     Set<ApiEntity> findPublishedByUser(String userId, ApiQuery apiQuery);
+
+    Set<String> findPublishedIdsByUser(String userId, ApiQuery apiQuery);
+
+    default Set<String> findPublishedIdsByUser(String userId) {
+        return findPublishedIdsByUser(userId, null);
+    }
 
     Set<ApiEntity> findByVisibility(Visibility visibility);
 
@@ -112,7 +122,7 @@ public interface ApiService {
 
     ApiEntity importPathMappingsFromPage(ApiEntity apiEntity, String page);
 
-    Set<CategoryEntity> listCategories(Collection<String> apis);
+    Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
 
     static UpdateApiEntity convert(ApiEntity apiEntity) {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
@@ -148,7 +158,9 @@ public interface ApiService {
 
     Collection<String> searchIds(ApiQuery query);
 
-    Page<ApiEntity> search(String query, Map<String, Object> filters, Sortable sortable, Pageable pageable);
+    Collection<String> searchIds(String query, Map<String, Object> filters) throws TechnicalException;
+
+    Page<ApiEntity> search(String query, Map<String, Object> filters, Pageable pageable);
 
     Collection<ApiEntity> search(String query, Map<String, Object> filters) throws TechnicalException;
 

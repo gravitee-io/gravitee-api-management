@@ -143,13 +143,16 @@ public class ApiService_SearchTest {
         membership2.setReferenceType(MembershipReferenceType.API);
         membership2.setRoleId("API_USER");
 
+        Page<Api> page = new Page<>(Arrays.asList(api1), 2, 1, 2);
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId("DEFAULT").build(),
-                new ApiFieldExclusionFilter.Builder().excludePicture().build()
+                eq(new ApiCriteria.Builder().environmentId("DEFAULT").build()),
+                any(),
+                any(),
+                eq(new ApiFieldExclusionFilter.Builder().excludePicture().build())
             )
         )
-            .thenReturn(Arrays.asList(api1, api2));
+            .thenReturn(page);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -196,7 +199,7 @@ public class ApiService_SearchTest {
 
         when(searchEngineService.search(any(Query.class))).thenReturn(searchResult);
 
-        when(apiRepository.search(new ApiCriteria.Builder().ids(api3.getId(), api1.getId(), api2.getId()).build()))
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build()))
             .thenReturn(Arrays.asList(api3, api1, api2));
 
         RoleEntity poRole = new RoleEntity();
@@ -215,7 +218,7 @@ public class ApiService_SearchTest {
         when(membershipService.getMembersByReferencesAndRole(eq(MembershipReferenceType.API), anyList(), eq("API_PRIMARY_OWNER")))
             .thenReturn(new HashSet<>(Arrays.asList(poMember, poMember2, poMember3)));
 
-        final Page<ApiEntity> apiPage = apiService.search("API Test", emptyMap(), null, new PageableImpl(1, 10));
+        final Page<ApiEntity> apiPage = apiService.search("API Test", emptyMap(), new PageableImpl(1, 10));
 
         assertThat(apiPage.getPageNumber()).isEqualTo(1);
         assertThat(apiPage.getPageElements()).isEqualTo(3);

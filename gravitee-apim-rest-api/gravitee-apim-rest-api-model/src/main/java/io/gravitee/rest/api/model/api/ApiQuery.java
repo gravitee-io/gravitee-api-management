@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.model.api;
 
 import io.gravitee.rest.api.model.Visibility;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -24,7 +26,7 @@ import java.util.List;
  */
 public class ApiQuery {
 
-    private List<String> ids;
+    private Collection<String> ids;
     private String category;
     private List<String> groups;
     private String contextPath;
@@ -36,11 +38,11 @@ public class ApiQuery {
     private String tag;
     private List<ApiLifecycleState> lifecycleStates;
 
-    public List<String> getIds() {
+    public Collection<String> getIds() {
         return ids;
     }
 
-    public void setIds(List<String> ids) {
+    public void setIds(Collection<String> ids) {
         this.ids = ids;
     }
 
@@ -122,6 +124,31 @@ public class ApiQuery {
 
     public void setLifecycleStates(List<ApiLifecycleState> lifecycleStates) {
         this.lifecycleStates = lifecycleStates;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApiQuery apiQuery = (ApiQuery) o;
+        return (
+            Objects.equals(ids, apiQuery.ids) &&
+            Objects.equals(category, apiQuery.category) &&
+            Objects.equals(groups, apiQuery.groups) &&
+            Objects.equals(contextPath, apiQuery.contextPath) &&
+            Objects.equals(label, apiQuery.label) &&
+            Objects.equals(state, apiQuery.state) &&
+            visibility == apiQuery.visibility &&
+            Objects.equals(version, apiQuery.version) &&
+            Objects.equals(name, apiQuery.name) &&
+            Objects.equals(tag, apiQuery.tag) &&
+            Objects.equals(lifecycleStates, apiQuery.lifecycleStates)
+        );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ids, category, groups, contextPath, label, state, visibility, version, name, tag, lifecycleStates);
     }
 
     @Override

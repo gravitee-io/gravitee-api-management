@@ -58,7 +58,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractResource {
+public abstract class AbstractResource<T, K> {
 
     public static final String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
 
@@ -265,7 +265,13 @@ public abstract class AbstractResource {
         return paginatedLinks;
     }
 
-    protected List paginateResultList(List list, Integer totalItems, Integer page, Integer size, Map<String, Object> paginationMetadata) {
+    protected List paginateResultList(
+        Collection list,
+        Integer totalItems,
+        Integer page,
+        Integer size,
+        Map<String, Object> paginationMetadata
+    ) {
         Integer startIndex = (page - 1) * size;
         Integer lastIndex = Math.min(startIndex + size, totalItems);
         Integer totalPages = (int) Math.ceil((double) totalItems / size);
@@ -282,12 +288,12 @@ public abstract class AbstractResource {
             paginationMetadata.put(METADATA_PAGINATION_TOTAL_KEY, totalItems);
             paginationMetadata.put(METADATA_PAGINATION_TOTAL_PAGE_KEY, totalPages);
 
-            return list.subList(startIndex, lastIndex);
+            return new ArrayList(list).subList(startIndex, lastIndex);
         }
     }
 
     protected DataResponse createDataResponse(
-        List dataList,
+        Collection dataList,
         PaginationParam paginationParam,
         Map<String, Map<String, Object>> metadata,
         boolean withPagination
@@ -297,35 +303,35 @@ public abstract class AbstractResource {
 
         int totalItems = dataList.size();
 
-        List paginatedList;
+        List pageContent;
         if (withPagination && totalItems > 0 && paginationParam.getSize() > 0) {
-            paginatedList =
+            pageContent =
                 this.paginateResultList(dataList, totalItems, paginationParam.getPage(), paginationParam.getSize(), paginationMetadata);
         } else {
             if (paginationParam.getSize() < -1) {
                 throw new BadRequestException("Pagination size is not valid");
             }
-            paginatedList = dataList;
+            pageContent = new ArrayList(dataList);
         }
 
         if (metadata != null && metadata.containsKey(METADATA_DATA_KEY)) {
             dataMetadata.put(METADATA_DATA_TOTAL_KEY, metadata.get(METADATA_DATA_KEY).get(METADATA_DATA_TOTAL_KEY));
         } else {
-            dataMetadata.put(METADATA_DATA_TOTAL_KEY, paginatedList.size());
+            dataMetadata.put(METADATA_DATA_TOTAL_KEY, pageContent.size());
         }
 
         if (withPagination && paginationParam.getSize() == 0) {
-            paginatedList = new ArrayList();
+            pageContent = new ArrayList();
         }
 
         return new DataResponse()
-            .data(populatePage(paginatedList))
+            .data(transformPageContent(pageContent))
             .metadata(this.computeMetadata(metadata, dataMetadata, paginationMetadata))
             .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
     }
 
-    protected List populatePage(List paginatedList) {
-        return paginatedList;
+    protected List<T> transformPageContent(List<K> pageContent) {
+        return (List<T>) pageContent;
     }
 
     protected Map<String, Map<String, Object>> computeMetadata(
@@ -343,20 +349,20 @@ public abstract class AbstractResource {
         return metadata;
     }
 
-    protected Response createListResponse(List dataList, PaginationParam paginationParam) {
+    protected Response createListResponse(Collection dataList, PaginationParam paginationParam) {
         return createListResponse(dataList, paginationParam, null, true);
     }
 
-    protected Response createListResponse(List dataList, PaginationParam paginationParam, boolean withPagination) {
+    protected Response createListResponse(Collection dataList, PaginationParam paginationParam, boolean withPagination) {
         return createListResponse(dataList, paginationParam, null, withPagination);
     }
 
-    protected Response createListResponse(List dataList, PaginationParam paginationParam, Map<String, Map<String, Object>> metadata) {
+    protected Response createListResponse(Collection dataList, PaginationParam paginationParam, Map<String, Map<String, Object>> metadata) {
         return createListResponse(dataList, paginationParam, metadata, true);
     }
 
     protected Response createListResponse(
-        List dataList,
+        Collection dataList,
         PaginationParam paginationParam,
         Map<String, Map<String, Object>> metadata,
         boolean withPagination
