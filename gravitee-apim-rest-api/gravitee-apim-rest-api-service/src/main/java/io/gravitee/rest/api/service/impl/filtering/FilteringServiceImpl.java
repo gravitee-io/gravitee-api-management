@@ -73,11 +73,14 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     }
 
     @Override
-    public Collection<String> getApplicationsOrderByNumberOfSubscriptions(Set<String> ids) {
+    public Collection<String> getApplicationsOrderByNumberOfSubscriptions(Collection<String> ids) {
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
         subscriptionQuery.setApplications(ids);
-        return subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery);
+        Set<String> ranking = subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery);
+        // add apis already sorted by name to apis sorted by subscriptions
+        ranking.addAll(ids);
+        return ranking;
     }
 
     @Override
