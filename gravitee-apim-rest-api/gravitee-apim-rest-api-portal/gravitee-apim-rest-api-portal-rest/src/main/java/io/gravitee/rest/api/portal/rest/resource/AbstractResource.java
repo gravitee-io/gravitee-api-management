@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -44,12 +43,8 @@ import javax.imageio.stream.ImageInputStream;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.Status;
-import org.glassfish.jersey.message.internal.HttpHeaderReader;
-import org.glassfish.jersey.message.internal.MatchingEntityTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -92,10 +87,6 @@ public abstract class AbstractResource<T, K> {
     @Inject
     ApiService apiService;
 
-    UserDetails getAuthenticatedUserDetails() {
-        return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    }
-
     protected String getAuthenticatedUser() {
         return securityContext.getUserPrincipal().getName();
     }
@@ -114,28 +105,6 @@ public abstract class AbstractResource<T, K> {
 
     protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
         return isAuthenticated() && (permissionService.hasPermission(permission, referenceId, acls));
-    }
-
-    Response.ResponseBuilder evaluateIfMatch(final HttpHeaders headers, final String etagValue) {
-        String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
-        if (ifMatch == null || ifMatch.isEmpty()) {
-            return null;
-        }
-
-        // Handle case for -gzip appended automatically (and sadly) by Apache
-        ifMatch = ifMatch.replace("-gzip", "");
-
-        try {
-            Set<MatchingEntityTag> matchingTags = HttpHeaderReader.readMatchingEntityTag(ifMatch);
-            MatchingEntityTag ifMatchHeader = matchingTags.iterator().next();
-            EntityTag eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
-
-            return matchingTags != MatchingEntityTag.ANY_MATCH && !matchingTags.contains(eTag)
-                ? Response.status(Status.PRECONDITION_FAILED)
-                : null;
-        } catch (java.text.ParseException e) {
-            return null;
-        }
     }
 
     String checkAndScaleImage(final String encodedPicture) {
