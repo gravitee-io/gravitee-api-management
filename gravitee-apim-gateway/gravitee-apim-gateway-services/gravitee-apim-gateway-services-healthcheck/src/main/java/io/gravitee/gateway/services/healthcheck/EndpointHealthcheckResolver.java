@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
@@ -97,25 +98,15 @@ public class EndpointHealthcheckResolver implements InitializingBean {
             .getGroups()
             .stream()
             .filter(group -> group.getEndpoints() != null)
-            .peek(
+            .flatMap(
                 group ->
                     group
                         .getEndpoints()
                         .stream()
                         .map(this::convertToHttpEndpoint)
-                        .filter(this::shouldOverrideHttp)
-                        .peek(
-                            endpoint -> {
-                                endpoint.setHttpClientOptions(group.getHttpClientOptions());
-                                endpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
-                                endpoint.setHttpProxy(group.getHttpProxy());
-                                endpoint.setHeaders(group.getHeaders());
-                            }
-                        )
-            )
-            .flatMap(group -> group.getEndpoints().stream())
-            .map(this::convertToHttpEndpoint)
-            .filter(Objects::nonNull);
+                        .filter(Objects::nonNull)
+                        .peek(endpoint -> applyGroupSettings(group, endpoint))
+            );
 
         // Filtering endpoints according to tenancy configuration
         if (gatewayConfiguration.tenant().isPresent()) {
@@ -180,6 +171,15 @@ public class EndpointHealthcheckResolver implements InitializingBean {
     // FIXME: https://github.com/gravitee-io/issues/issues/6437
     private boolean isHttpEndpoint(Endpoint endpoint) {
         return "http".equalsIgnoreCase(endpoint.getType()) || "grpc".equalsIgnoreCase(endpoint.getType());
+    }
+
+    private void applyGroupSettings(EndpointGroup group, HttpEndpoint endpoint) {
+        if (shouldOverrideHttp(endpoint)) {
+            endpoint.setHttpClientOptions(group.getHttpClientOptions());
+            endpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
+            endpoint.setHttpProxy(group.getHttpProxy());
+            endpoint.setHeaders(group.getHeaders());
+        }
     }
 
     private boolean shouldOverrideHttp(HttpEndpoint endpoint) {
