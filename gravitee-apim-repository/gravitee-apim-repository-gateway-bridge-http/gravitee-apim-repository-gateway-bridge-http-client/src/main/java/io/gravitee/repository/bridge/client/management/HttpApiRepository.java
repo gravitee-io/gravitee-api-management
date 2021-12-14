@@ -58,7 +58,12 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
-    public Page<Api> search(ApiCriteria apiCriteria, Pageable pageable) {
+    public Page<Api> search(
+        ApiCriteria apiCriteria,
+        Sortable sortable,
+        Pageable pageable,
+        ApiFieldExclusionFilter apiFieldExclusionFilter
+    ) {
         throw new IllegalStateException();
     }
 

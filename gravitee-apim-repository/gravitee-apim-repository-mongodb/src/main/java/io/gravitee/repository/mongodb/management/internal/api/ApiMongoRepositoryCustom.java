@@ -30,7 +30,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiMongoRepositoryCustom {
-    Page<ApiMongo> search(ApiCriteria criteria, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
+    Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
     List<ApiMongo> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
 

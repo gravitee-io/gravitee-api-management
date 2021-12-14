@@ -32,7 +32,15 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiRepository extends CrudRepository<Api, String> {
-    Page<Api> search(ApiCriteria apiCriteria, Pageable pageable);
+    default Page<Api> search(ApiCriteria apiCriteria, Pageable pageable) {
+        return search(apiCriteria, null, pageable, null);
+    }
+
+    default Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable) {
+        return search(apiCriteria, sortable, pageable, null);
+    }
+
+    Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
     List<Api> search(ApiCriteria apiCriteria);
 

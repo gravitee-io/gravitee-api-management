@@ -37,6 +37,11 @@ public class SortableBuilder {
         return this;
     }
 
+    public SortableBuilder setAsc(boolean isAsc) {
+        this.order = isAsc ? Order.ASC : Order.DESC;
+        return this;
+    }
+
     public Sortable build() {
         return new SortableImpl(field, order);
     }

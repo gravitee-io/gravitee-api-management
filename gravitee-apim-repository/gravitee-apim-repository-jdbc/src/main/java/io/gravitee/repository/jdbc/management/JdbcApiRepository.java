@@ -220,19 +220,24 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     @Override
-    public Page<Api> search(ApiCriteria apiCriteria, Pageable page) {
-        final List<Api> apis = findByCriteria(apiCriteria, null);
-        return getResultAsPage(page, apis);
+    public Page<Api> search(
+        ApiCriteria apiCriteria,
+        Sortable sortable,
+        Pageable pageable,
+        ApiFieldExclusionFilter apiFieldExclusionFilter
+    ) {
+        final List<Api> apis = findByCriteria(apiCriteria, sortable, null);
+        return getResultAsPage(pageable, apis);
     }
 
     @Override
     public List<Api> search(ApiCriteria apiCriteria) {
-        return findByCriteria(apiCriteria, null);
+        return findByCriteria(apiCriteria, null, null);
     }
 
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        return findByCriteria(apiCriteria, apiFieldExclusionFilter);
+        return findByCriteria(apiCriteria, null, apiFieldExclusionFilter);
     }
 
     @Override
@@ -308,7 +313,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         );
     }
 
-    private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+    private List<Api> findByCriteria(ApiCriteria apiCriteria, Sortable sortable, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
             CHILD_ADDER,
@@ -330,7 +335,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         final StringBuilder sbQuery = new StringBuilder("select ").append(projection).append(" from ").append(this.tableName).append(" a ");
         sbQuery.append("left join " + API_CATEGORIES + " ac on a.id = ac.api_id ");
         addCriteriaClauses(sbQuery, apiCriteria);
-        sbQuery.append("order by a.name");
+        applySortable(sortable, sbQuery);
 
         List<Api> apis = executeQuery(sbQuery, apiCriteria, rowMapper);
 
