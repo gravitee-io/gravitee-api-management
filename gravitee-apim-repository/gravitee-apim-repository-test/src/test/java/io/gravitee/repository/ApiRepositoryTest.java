@@ -15,6 +15,16 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
+import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static io.gravitee.repository.utils.DateUtils.parse;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.*;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -26,19 +36,8 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import org.junit.Test;
-
 import java.util.*;
-
-import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
-import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static io.gravitee.repository.utils.DateUtils.parse;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -217,6 +216,18 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
         assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update", "big-name")));
+    }
+
+    @Test
+    public void shouldFindIdsWithMultipleApiCriteria() {
+        List<String> apis = apiRepository.searchIds(
+            new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build(),
+            new ApiCriteria.Builder().environments(Arrays.asList("DEV", "DEVS")).build()
+        );
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(3, apis.size());
+        assertTrue(apis.containsAll(asList("api-to-delete", "api-to-update", "big-name")));
     }
 
     @Test(expected = IllegalStateException.class)

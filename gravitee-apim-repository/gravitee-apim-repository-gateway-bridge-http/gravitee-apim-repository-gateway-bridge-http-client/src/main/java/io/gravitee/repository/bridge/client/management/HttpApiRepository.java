@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
 import java.util.Optional;
@@ -80,6 +81,11 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);
         }
+    }
+
+    @Override
+    public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
+        throw new IllegalStateException();
     }
 
     @Override

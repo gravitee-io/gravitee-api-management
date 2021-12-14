@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
@@ -96,6 +97,16 @@ public class MongoApiRepository implements ApiRepository {
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         return findByCriteria(apiCriteria, apiFieldExclusionFilter);
+    }
+
+    @Override
+    public List<String> searchIds(ApiCriteria... apiCriteria) {
+        return internalApiRepo.searchIds(null, apiCriteria);
+    }
+
+    @Override
+    public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
+        return internalApiRepo.searchIds(sortable, apiCriteria);
     }
 
     @Override

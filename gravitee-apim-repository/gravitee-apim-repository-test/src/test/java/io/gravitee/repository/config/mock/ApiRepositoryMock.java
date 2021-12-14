@@ -43,8 +43,8 @@ import io.gravitee.repository.management.model.Visibility;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import org.mockito.Mockito;
 import java.util.Set;
+import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 
 /**
@@ -143,6 +143,14 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         when(apiRepository.search(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build()))
             .thenReturn(asList(apiToUpdate, apiToDelete, apiBigName));
+
+        when(
+            apiRepository.searchIds(
+                eq(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build()),
+                eq(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build())
+            )
+        )
+            .thenReturn(asList("api-to-delete", "api-to-update", "big-name"));
 
         when(apiRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
