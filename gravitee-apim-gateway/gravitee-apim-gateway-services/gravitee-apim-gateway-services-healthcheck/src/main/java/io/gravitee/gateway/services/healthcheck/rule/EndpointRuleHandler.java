@@ -41,6 +41,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.net.ProxyOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -90,10 +91,12 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     private Node node;
 
     private final HttpClient httpClient;
+    protected final ProxyOptions systemProxyOptions;
 
     public EndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, Environment environment) throws Exception{
         this.rule = rule;
         this.environment = environment;
+        this.systemProxyOptions = rule.getSystemProxyOptions();
 
         endpointStatus = new EndpointStatusDecorator(rule.endpoint());
 
