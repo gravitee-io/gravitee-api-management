@@ -52,13 +52,23 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
     @Override
     public Page<ApiMongo> search(
-        final ApiCriteria criteria,
-        final Pageable pageable,
-        final ApiFieldExclusionFilter apiFieldExclusionFilter
+        ApiCriteria criteria,
+        Sortable sortable,
+        Pageable pageable,
+        ApiFieldExclusionFilter apiFieldExclusionFilter
     ) {
         final Query query = buildQuery(apiFieldExclusionFilter, criteria);
 
-        query.with(Sort.by(ASC, "name"));
+        if (sortable != null) {
+            query.with(
+                Sort.by(
+                    sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
+                    FieldUtils.toCamelCase(sortable.field())
+                )
+            );
+        } else {
+            query.with(Sort.by(ASC, "name"));
+        }
 
         long total = mongoTemplate.count(query, ApiMongo.class);
 
