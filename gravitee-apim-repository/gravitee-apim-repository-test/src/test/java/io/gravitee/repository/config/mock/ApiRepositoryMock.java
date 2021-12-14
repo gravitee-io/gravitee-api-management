@@ -36,11 +36,15 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
-import java.util.Arrays;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.mockito.Mockito;
+import java.util.Set;
 import org.mockito.internal.util.collections.Sets;
 
 /**
@@ -186,5 +190,16 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         when(apiRepository.search(any(), any(ApiFieldInclusionFilter.class)))
             .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjection, bigNameApiProjection));
+
+        Set<String> categories = new LinkedHashSet<>();
+        categories.add("category-1");
+        categories.add("cycling");
+        categories.add("hiking");
+        categories.add("my-category");
+        when(apiRepository.listCategories(eq(new ApiCriteria.Builder().build()))).thenReturn(categories);
+
+        Set<String> apiCategories = new LinkedHashSet<>();
+        apiCategories.add("my-category");
+        when(apiRepository.listCategories(eq(new ApiCriteria.Builder().ids("api-to-findById").build()))).thenReturn(apiCategories);
     }
 }

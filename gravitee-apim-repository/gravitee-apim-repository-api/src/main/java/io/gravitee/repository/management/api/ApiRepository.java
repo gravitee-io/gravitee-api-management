@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -37,4 +38,6 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
     Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
+
+    Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException;
 }

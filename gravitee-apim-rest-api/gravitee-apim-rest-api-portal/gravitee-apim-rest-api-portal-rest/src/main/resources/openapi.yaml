@@ -99,6 +99,29 @@ paths:
                 $ref: '#/components/schemas/ApisResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /apis/categories:
+    get:
+      tags:
+        - Api
+      parameters:
+        - $ref: '#/components/parameters/apiFilterQueryParam'
+      summary: List Categories
+      description: |
+        For anonymous requests, list all categories of public APIs.
+        For authenticated requests, list all categories of all the APIs the current user can access.
+
+        The list is sorted by alphabetic order.
+      operationId: listCategories
+      security: [ ]
+      responses:
+        200:
+          description: List used categories in accessible APIs for current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
