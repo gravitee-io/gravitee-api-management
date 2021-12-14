@@ -40,7 +40,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>false</addClasspath>
-                            <mainClass>io.gravitee.apim.gateway.standalone.boostrap.Bootstrap</mainClass>
+                            <mainClass>io.gravitee.gateway.standalone.boostrap.Bootstrap</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
