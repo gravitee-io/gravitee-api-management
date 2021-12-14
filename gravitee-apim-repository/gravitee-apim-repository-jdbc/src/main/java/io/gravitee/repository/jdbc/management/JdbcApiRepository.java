@@ -27,9 +27,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -264,6 +262,52 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         return new HashSet<>(apis);
     }
 
+    @Override
+    public List<String> searchIds(Sortable sortable, ApiCriteria... criteria) {
+        LOGGER.debug("JdbcApiRepository.searchIds({})", criteria);
+
+        final StringBuilder sbQuery = new StringBuilder("select a.id from ")
+            .append(this.tableName)
+            .append(" a left join ")
+            .append(API_CATEGORIES)
+            .append(" ac on a.id = ac.api_id ");
+
+        Optional<ApiCriteria> hasGroups = Arrays.stream(criteria).filter(apiCriteria -> !isEmpty(apiCriteria.getGroups())).findFirst();
+        Optional<ApiCriteria> hasLabels = Arrays.stream(criteria).filter(apiCriteria -> hasText(apiCriteria.getLabel())).findFirst();
+        if (hasGroups.isPresent()) {
+            sbQuery.append("join " + API_GROUPS + " ag on a.id = ag.api_id ");
+        }
+        if (hasLabels.isPresent()) {
+            sbQuery.append("join " + API_LABELS + " al on a.id = al.api_id ");
+        }
+
+        List<String> clauses = Arrays.stream(criteria).map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
+
+        if (!clauses.isEmpty()) {
+            sbQuery.append("where (").append(String.join(") or (", clauses)).append(") ");
+        }
+
+        applySortable(sortable, sbQuery);
+
+        return jdbcTemplate.query(
+            sbQuery.toString(),
+            (PreparedStatement ps) -> {
+                int lastIndex = 1;
+                for (ApiCriteria apiCriteria : criteria) {
+                    lastIndex = fillPreparedStatement(apiCriteria, ps, lastIndex);
+                }
+            },
+            resultSet -> {
+                List<String> ids = new ArrayList<>();
+                while (resultSet.next()) {
+                    String id = resultSet.getString(1);
+                    ids.add(id);
+                }
+                return ids;
+            }
+        );
+    }
+
     private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
@@ -299,97 +343,21 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     private void addCriteriaClauses(StringBuilder sbQuery, ApiCriteria apiCriteria) {
         if (apiCriteria != null) {
-            if (!isEmpty(apiCriteria.getGroups())) {
-                sbQuery.append("join " + API_GROUPS + " ag on a.id = ag.api_id ");
-            }
-            if (hasText(apiCriteria.getLabel())) {
-                sbQuery.append("join " + API_LABELS + " al on a.id = al.api_id ");
-            }
-
-            sbQuery.append("where 1 = 1 ");
-            if (!isEmpty(apiCriteria.getGroups())) {
-                sbQuery.append("and ag.group_id in (").append(getOrm().buildInClause(apiCriteria.getGroups())).append(") ");
-            }
-            if (!isEmpty(apiCriteria.getIds())) {
-                sbQuery.append("and a.id in (").append(getOrm().buildInClause(apiCriteria.getIds())).append(") ");
-            }
-            if (hasText(apiCriteria.getLabel())) {
-                sbQuery.append("and al.label = ? ");
-            }
-            if (hasText(apiCriteria.getName())) {
-                sbQuery.append("and a.name = ? ");
-            }
-            if (apiCriteria.getState() != null) {
-                sbQuery.append("and a.lifecycle_state = ? ");
-            }
-            if (hasText(apiCriteria.getVersion())) {
-                sbQuery.append("and a.version = ? ");
-            }
-            if (hasText(apiCriteria.getCategory())) {
-                sbQuery.append("and ac.category = ? ");
-            }
-            if (apiCriteria.getVisibility() != null) {
-                sbQuery.append("and a.visibility = ? ");
-            }
-            if (!StringUtils.isEmpty(apiCriteria.getLifecycleStates())) {
-                sbQuery
-                    .append("and a.api_lifecycle_state in (")
-                    .append(getOrm().buildInClause(apiCriteria.getLifecycleStates()))
-                    .append(") ");
-            }
-            if (hasText(apiCriteria.getEnvironmentId())) {
-                sbQuery.append("and a.environment_id = ? ");
-            }
-            if (!isEmpty(apiCriteria.getEnvironments())) {
-                sbQuery.append("and a.environment_id in (").append(getOrm().buildInClause(apiCriteria.getEnvironments())).append(") ");
+            String clauses = convert(apiCriteria);
+            if (clauses != null) {
+                if (!isEmpty(apiCriteria.getGroups())) {
+                    sbQuery.append("join " + API_GROUPS + " ag on a.id = ag.api_id ");
+                }
+                if (hasText(apiCriteria.getLabel())) {
+                    sbQuery.append("join " + API_LABELS + " al on a.id = al.api_id ");
+                }
+                sbQuery.append("where ").append(clauses).append(" ");
             }
         }
     }
 
     private List<Api> executeQuery(StringBuilder sbQuery, ApiCriteria apiCriteria, JdbcHelper.CollatingRowMapper<Api> rowMapper) {
-        jdbcTemplate.query(
-            sbQuery.toString(),
-            (PreparedStatement ps) -> {
-                int lastIndex = 1;
-                if (apiCriteria != null) {
-                    if (!isEmpty(apiCriteria.getGroups())) {
-                        lastIndex = getOrm().setArguments(ps, apiCriteria.getGroups(), lastIndex);
-                    }
-                    if (!isEmpty(apiCriteria.getIds())) {
-                        lastIndex = getOrm().setArguments(ps, apiCriteria.getIds(), lastIndex);
-                    }
-                    if (hasText(apiCriteria.getLabel())) {
-                        ps.setString(lastIndex++, apiCriteria.getLabel());
-                    }
-                    if (hasText(apiCriteria.getName())) {
-                        ps.setString(lastIndex++, apiCriteria.getName());
-                    }
-                    if (apiCriteria.getState() != null) {
-                        ps.setString(lastIndex++, apiCriteria.getState().name());
-                    }
-                    if (hasText(apiCriteria.getVersion())) {
-                        ps.setString(lastIndex++, apiCriteria.getVersion());
-                    }
-                    if (hasText(apiCriteria.getCategory())) {
-                        ps.setString(lastIndex++, apiCriteria.getCategory());
-                    }
-                    if (apiCriteria.getVisibility() != null) {
-                        ps.setString(lastIndex++, apiCriteria.getVisibility().name());
-                    }
-                    if (!isEmpty(apiCriteria.getLifecycleStates())) {
-                        getOrm().setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex++);
-                    }
-                    if (hasText(apiCriteria.getEnvironmentId())) {
-                        ps.setString(lastIndex++, apiCriteria.getEnvironmentId());
-                    }
-                    if (!isEmpty(apiCriteria.getEnvironments())) {
-                        getOrm().setArguments(ps, apiCriteria.getEnvironments(), lastIndex++);
-                    }
-                }
-            },
-            rowMapper
-        );
-
+        jdbcTemplate.query(sbQuery.toString(), ps -> fillPreparedStatement(apiCriteria, ps, 1), rowMapper);
         List<Api> apis = rowMapper.getRows();
 
         if (apiCriteria != null && apiCriteria.getContextPath() != null && !apiCriteria.getContextPath().isEmpty()) {
@@ -414,6 +382,121 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
 
         return apis;
+    }
+
+    private void applySortable(Sortable sortable, StringBuilder query) {
+        if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
+            query.append("order by ");
+            if ("created_at".equals(sortable.field())) {
+                query.append("a.").append(sortable.field());
+            } else {
+                query.append(" lower(a.").append(sortable.field()).append(") ");
+            }
+
+            query.append(sortable.order().equals(Order.ASC) ? " asc " : " desc ");
+        } else {
+            query.append("order by a.name");
+        }
+    }
+
+    private int fillPreparedStatement(ApiCriteria apiCriteria, PreparedStatement ps, int lastIndex) throws java.sql.SQLException {
+        if (apiCriteria != null) {
+            if (!isEmpty(apiCriteria.getGroups())) {
+                lastIndex = getOrm().setArguments(ps, apiCriteria.getGroups(), lastIndex);
+            }
+            if (!isEmpty(apiCriteria.getIds())) {
+                lastIndex = getOrm().setArguments(ps, apiCriteria.getIds(), lastIndex);
+            }
+            if (hasText(apiCriteria.getLabel())) {
+                ps.setString(lastIndex++, apiCriteria.getLabel());
+            }
+            if (hasText(apiCriteria.getName())) {
+                ps.setString(lastIndex++, apiCriteria.getName());
+            }
+            if (apiCriteria.getState() != null) {
+                ps.setString(lastIndex++, apiCriteria.getState().name());
+            }
+            if (hasText(apiCriteria.getVersion())) {
+                ps.setString(lastIndex++, apiCriteria.getVersion());
+            }
+            if (hasText(apiCriteria.getCategory())) {
+                ps.setString(lastIndex++, apiCriteria.getCategory());
+            }
+            if (apiCriteria.getVisibility() != null) {
+                ps.setString(lastIndex++, apiCriteria.getVisibility().name());
+            }
+            if (!isEmpty(apiCriteria.getLifecycleStates())) {
+                getOrm().setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex++);
+            }
+            if (hasText(apiCriteria.getEnvironmentId())) {
+                ps.setString(lastIndex++, apiCriteria.getEnvironmentId());
+            }
+            if (!isEmpty(apiCriteria.getEnvironments())) {
+                getOrm().setArguments(ps, apiCriteria.getEnvironments(), lastIndex++);
+            }
+        }
+        return lastIndex;
+    }
+
+    private String convert(ApiCriteria apiCriteria) {
+        List<String> clauses = new ArrayList<>();
+        if (!isEmpty(apiCriteria.getGroups())) {
+            clauses.add(
+                new StringBuilder()
+                    .append("ag.group_id in (")
+                    .append(getOrm().buildInClause(apiCriteria.getGroups()))
+                    .append(")")
+                    .toString()
+            );
+        }
+        if (!isEmpty(apiCriteria.getIds())) {
+            clauses.add(
+                new StringBuilder().append("a.id in (").append(getOrm().buildInClause(apiCriteria.getIds())).append(")").toString()
+            );
+        }
+        if (hasText(apiCriteria.getLabel())) {
+            clauses.add("al.label = ?");
+        }
+        if (hasText(apiCriteria.getName())) {
+            clauses.add("a.name = ?");
+        }
+        if (apiCriteria.getState() != null) {
+            clauses.add("a.lifecycle_state = ?");
+        }
+        if (hasText(apiCriteria.getVersion())) {
+            clauses.add("a.version = ?");
+        }
+        if (hasText(apiCriteria.getCategory())) {
+            clauses.add("ac.category = ?");
+        }
+        if (apiCriteria.getVisibility() != null) {
+            clauses.add("a.visibility = ?");
+        }
+        if (!StringUtils.isEmpty(apiCriteria.getLifecycleStates())) {
+            clauses.add(
+                new StringBuilder()
+                    .append("a.api_lifecycle_state in (")
+                    .append(getOrm().buildInClause(apiCriteria.getLifecycleStates()))
+                    .append(")")
+                    .toString()
+            );
+        }
+        if (hasText(apiCriteria.getEnvironmentId())) {
+            clauses.add("a.environment_id = ?");
+        }
+        if (!isEmpty(apiCriteria.getEnvironments())) {
+            clauses.add(
+                new StringBuilder()
+                    .append("a.environment_id in (")
+                    .append(getOrm().buildInClause(apiCriteria.getEnvironments()))
+                    .append(")")
+                    .toString()
+            );
+        }
+        if (!clauses.isEmpty()) {
+            return String.join(" and ", clauses);
+        }
+        return null;
     }
 
     @Override
