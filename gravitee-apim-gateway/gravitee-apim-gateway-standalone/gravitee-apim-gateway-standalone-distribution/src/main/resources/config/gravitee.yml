@@ -391,6 +391,15 @@ ds:
 #    config:
 #      path: ${gravitee.home}/config/hazelcast.xml
 
+# Configuration of geoip (requires geoip-plugin)
+#geoip:
+#  database:
+#    city:
+#      filename: /path/to/GeoLite2-City.mmdb #if null defaults to the embedded db
+#      watch: true  #if null defaults to false
+#      cache:
+#        capacity: 8200  #if null defaults to 4096
+
 # Encrypt API properties using this secret
 api:
   properties:
