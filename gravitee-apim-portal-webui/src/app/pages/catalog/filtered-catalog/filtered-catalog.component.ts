@@ -233,9 +233,9 @@ export class FilteredCatalogComponent implements OnInit {
         });
 
         if (this.hasCategoryMode() && this.categories == null) {
-          this.apiService.getApis({ size: -1, filter: this.filterApiQuery }).subscribe((apisResponse) => {
+          this.apiService.listCategories({ filter: this.filterApiQuery }).subscribe((categoriesResponse) => {
             // @ts-ignore
-            const categories = this._getCategories(apisResponse.data.slice(1));
+            const categories = categoriesResponse.data.map((category) => ({ value: category.id, label: category.name }));
             if (categories.length > 0) {
               // @ts-ignore
               this.categories = [this.defaultCategory].concat(categories);
@@ -252,20 +252,6 @@ export class FilteredCatalogComponent implements OnInit {
       .finally(() => {
         this.updateEmptyState(this.allApis);
       });
-  }
-
-  private _getCategories(allPage) {
-    return []
-      .concat(
-        ...new Set(
-          [].concat(
-            ...allPage.map((api) => {
-              return api.categories;
-            }),
-          ),
-        ).values(),
-      )
-      .sort((a: string, b: string) => a.localeCompare(b));
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
