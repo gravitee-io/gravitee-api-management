@@ -954,6 +954,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiQuery.setIds(targetIds);
         }
 
+        List<ApiCriteria> apiCriteriaList = computeApiCriteriaForUser(userId, apiQuery, portal);
+
+        // Just one call to apiRepository to preserve sort
+        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
+        List<String> apiIds = apiRepository.searchIds(convert(sortable), apiCriteria);
+        return new LinkedHashSet<>(apiIds);
+    }
+
+    @NotNull
+    private List<ApiCriteria> computeApiCriteriaForUser(String userId, ApiQuery apiQuery, boolean portal) {
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
         if (portal) {
             // for portal, we get all public apis
@@ -981,19 +991,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final Set<String> groupIds = membershipService
                 .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
                 .stream()
-                .filter(
-                    m -> {
-                        final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
-                        if (!portal) {
-                            return (
-                                m.getRoleId() != null &&
-                                roleInGroup.getScope().equals(RoleScope.API) &&
-                                canManageApi(roleInGroup.getPermissions())
-                            );
-                        }
-                        return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
-                    }
-                )
+                .filter(m -> filterApiGroup(m, portal))
                 .map(MembershipEntity::getReferenceId)
                 .collect(toSet());
 
@@ -1023,11 +1021,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
             }
         }
+        return apiCriteriaList;
+    }
 
-        // Just one call to apiRepository to preserve sort
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        List<String> apiIds = apiRepository.searchIds(convert(sortable), apiCriteria);
-        return new LinkedHashSet<>(apiIds);
+    private boolean filterApiGroup(MembershipEntity membershipEntity, boolean portal) {
+        final RoleEntity roleInGroup = roleService.findById(membershipEntity.getRoleId());
+        if (!portal) {
+            return (
+                membershipEntity.getRoleId() != null &&
+                roleInGroup.getScope().equals(RoleScope.API) &&
+                canManageApi(roleInGroup.getPermissions())
+            );
+        }
+        return membershipEntity.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
     }
 
     @Override
