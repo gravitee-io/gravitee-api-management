@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -31,4 +32,6 @@ public interface ApiMongoRepositoryCustom {
     Page<ApiMongo> search(ApiCriteria criteria, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
     List<ApiMongo> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
+
+    Set<String> listCategories(ApiCriteria apiCriteria);
 }

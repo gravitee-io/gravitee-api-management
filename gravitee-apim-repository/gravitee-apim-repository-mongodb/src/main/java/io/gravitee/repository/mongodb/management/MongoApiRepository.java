@@ -98,6 +98,11 @@ public class MongoApiRepository implements ApiRepository {
         return findByCriteria(apiCriteria, apiFieldExclusionFilter);
     }
 
+    @Override
+    public Set<String> listCategories(ApiCriteria apiCriteria) {
+        return internalApiRepo.listCategories(apiCriteria);
+    }
+
     private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, apiFieldExclusionFilter);
         return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);

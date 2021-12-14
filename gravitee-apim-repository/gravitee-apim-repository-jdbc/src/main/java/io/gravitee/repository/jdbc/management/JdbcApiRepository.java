@@ -427,4 +427,39 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             throw new TechnicalException(error, ex);
         }
     }
+
+    @Override
+    public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.listCategories({})", apiCriteria);
+        try {
+            boolean hasInClause = apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty();
+
+            StringBuilder queryBuilder = new StringBuilder("SELECT category from ").append(API_CATEGORIES);
+
+            if (hasInClause) {
+                queryBuilder.append(" where api_id IN (").append(getOrm().buildInClause(apiCriteria.getIds())).append(") ");
+            }
+            queryBuilder.append(" group by category order by category asc");
+
+            return jdbcTemplate.query(
+                queryBuilder.toString(),
+                ps -> {
+                    if (hasInClause) {
+                        getOrm().setArguments(ps, apiCriteria.getIds(), 1);
+                    }
+                },
+                resultSet -> {
+                    Set<String> distinctCategories = new LinkedHashSet<>();
+                    while (resultSet.next()) {
+                        String referenceId = resultSet.getString(1);
+                        distinctCategories.add(referenceId);
+                    }
+                    return distinctCategories;
+                }
+            );
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to list categories api:", ex);
+            throw new TechnicalException("Failed to list categories", ex);
+        }
+    }
 }

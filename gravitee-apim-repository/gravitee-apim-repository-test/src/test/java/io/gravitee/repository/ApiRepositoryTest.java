@@ -15,16 +15,6 @@
  */
 package io.gravitee.repository;
 
-import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
-import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static io.gravitee.repository.utils.DateUtils.parse;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
-
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -36,10 +26,19 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import java.io.IOException;
-import java.util.*;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
+
+import java.util.*;
+
+import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
+import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static io.gravitee.repository.utils.DateUtils.parse;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -403,5 +402,26 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         List<String> categories = apis.stream().map(Api::getCategories).filter(Objects::nonNull).flatMap(Set::stream).collect(toList());
         assertTrue(categories.contains("category-1"));
+    }
+
+    @Test
+    public void shouldListCategories() throws TechnicalException {
+        final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().build());
+        assertNotNull(categories);
+        Set<String> expectedCategories = new LinkedHashSet<>();
+        expectedCategories.add("category-1");
+        expectedCategories.add("cycling");
+        expectedCategories.add("hiking");
+        expectedCategories.add("my-category");
+        assertEquals(expectedCategories, categories);
+    }
+
+    @Test
+    public void shouldListCategoriesWithCriteria() throws TechnicalException {
+        final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().ids("api-to-findById").build());
+        assertNotNull(categories);
+        Set<String> expectedCategories = new LinkedHashSet<>();
+        expectedCategories.add("my-category");
+        assertEquals(expectedCategories, categories);
     }
 }
