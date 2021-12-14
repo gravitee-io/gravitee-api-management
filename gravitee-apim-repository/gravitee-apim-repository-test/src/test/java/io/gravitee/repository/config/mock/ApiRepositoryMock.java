@@ -183,8 +183,6 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         when(apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build()))
             .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));
-        when(apiRepository.search(new ApiCriteria.Builder().contextPath("/product").build()))
-            .thenReturn(asList(apiToDelete, apiToUpdate, groupedApi));
 
         Api apiToUpdateProjection = Mockito.mock(Api.class);
         when(apiToUpdateProjection.getId()).thenReturn("api-to-update");

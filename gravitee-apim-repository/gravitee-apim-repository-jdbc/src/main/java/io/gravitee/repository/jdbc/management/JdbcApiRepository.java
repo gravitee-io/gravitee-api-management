@@ -19,10 +19,7 @@ import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
@@ -364,28 +361,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     private List<Api> executeQuery(StringBuilder sbQuery, ApiCriteria apiCriteria, JdbcHelper.CollatingRowMapper<Api> rowMapper) {
         jdbcTemplate.query(sbQuery.toString(), ps -> fillPreparedStatement(apiCriteria, ps, 1), rowMapper);
         List<Api> apis = rowMapper.getRows();
-
-        if (apiCriteria != null && apiCriteria.getContextPath() != null && !apiCriteria.getContextPath().isEmpty()) {
-            apis =
-                apis
-                    .stream()
-                    .filter(
-                        apiMongo -> {
-                            try {
-                                io.gravitee.definition.model.Api apiDefinition = new GraviteeMapper()
-                                .readValue(apiMongo.getDefinition(), io.gravitee.definition.model.Api.class);
-                                VirtualHost searchedVHost = new VirtualHost();
-                                searchedVHost.setPath(apiCriteria.getContextPath());
-                                return apiDefinition.getProxy().getVirtualHosts().contains(searchedVHost);
-                            } catch (JsonProcessingException e) {
-                                LOGGER.error("Problem occured while parsing api definition", e);
-                                return false;
-                            }
-                        }
-                    )
-                    .collect(Collectors.toList());
-        }
-
         return apis;
     }
 
