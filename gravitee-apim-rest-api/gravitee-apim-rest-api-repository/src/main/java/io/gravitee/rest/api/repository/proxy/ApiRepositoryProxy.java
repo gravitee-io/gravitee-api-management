@@ -68,6 +68,11 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
+    public Page<Api> search(ApiCriteria apiCriteria, Pageable pageable) {
+        return target.search(apiCriteria, pageable);
+    }
+
+    @Override
     public List<Api> search(ApiCriteria apiCriteria) {
         return target.search(apiCriteria);
     }
@@ -95,5 +100,10 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     @Override
     public Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
         return target.search(apiCriteria, apiFieldInclusionFilter);
+    }
+
+    @Override
+    public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
+        return target.listCategories(apiCriteria);
     }
 }
