@@ -33,7 +33,7 @@ RUN jlink --verbose \
         --no-header-files \
         --no-man-pages \
         --output jre \
-        --add-modules java.base,jdk.zipfs,java.naming,java.desktop,java.management,java.sql \
+        --add-modules java.base,jdk.zipfs,java.naming,jdk.naming.dns,java.desktop,java.management,java.sql,jdk.unsupported,jdk.net,java.scripting,jdk.dynalink,jdk.management.agent \
     && mv /tmp/gravitee-apim-gateway-distribution-${GRAVITEEIO_VERSION}/* ${GRAVITEEIO_HOME}
 
 FROM alpine:latest
@@ -45,10 +45,12 @@ ENV JAVA_HOME=${GRAVITEEIO_HOME}/jre
 COPY --from=jre-build ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
 
 RUN apk update \
-	&& apk add --update --no-cache netcat-openbsd wget curl htop \
+	&& apk add --update --no-cache netcat-openbsd wget curl htop openssl libssl1.1 ca-certificates \
     && rm -rf /tmp/* \
 	&& chgrp -R 0 ${GRAVITEEIO_HOME} \
     && chmod -R g=u ${GRAVITEEIO_HOME}
+
+RUN ln -s /lib/libcrypto.so.1.1 /lib/libcrypt.so.1
 
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
