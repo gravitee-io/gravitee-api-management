@@ -17,14 +17,20 @@
 -->
 
 <div class="gv-form-content" layout="row" style="margin-bottom: 3px">
-  <div flex="5" layout="row" layout-align="center center" style="border-right: 1px solid lightgrey; margin-right: 10px">
+  <div
+    flex="5"
+    layout="row"
+    layout-align="center center"
+    style="border-right: 1px solid lightgrey; margin-right: 10px"
+    ng-if="!$ctrl.isReadonly"
+  >
     <ng-md-icon icon="close" style="fill: grey" size="20px" ng-click="$ctrl.deleteProjection()"></ng-md-icon>
   </div>
 
   <div layout-gt-sm="row" flex="30">
     <md-input-container class="md-block" flex-gt-sm flex="50">
       <label>Property</label>
-      <md-select ng-model="$ctrl.projection.property" required>
+      <md-select ng-model="$ctrl.projection.property" required ng-disabled="$ctrl.isReadonly">
         <md-option ng-value="type.key" ng-repeat="type in $ctrl.metrics"> {{::type.name}} </md-option>
       </md-select>
     </md-input-container>

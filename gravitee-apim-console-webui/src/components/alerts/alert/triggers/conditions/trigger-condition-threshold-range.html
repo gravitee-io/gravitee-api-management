@@ -19,7 +19,15 @@
 <div layout="row">
   <md-input-container>
     <label>Low threshold</label>
-    <input ng-model="$ctrl.condition.thresholdLow" required type="number" min="1" name="thresholdLow" aria-label="trigger threshold low" />
+    <input
+      ng-model="$ctrl.condition.thresholdLow"
+      required
+      type="number"
+      min="1"
+      name="thresholdLow"
+      aria-label="trigger threshold low"
+      ng-disabled="$ctrl.isReadonly"
+    />
     <!--
     <div class="hint">
       The low threshold value.
@@ -42,6 +50,7 @@
       min="{{$ctrl.condition.thresholdLow}}"
       name="thresholdHigh"
       aria-label="trigger threshold high"
+      ng-disabled="$ctrl.isReadonly"
     />
     <!--
     <div class="hint">

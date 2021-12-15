@@ -23,6 +23,7 @@ const AlertTriggerFilterComponent: ng.IComponentOptions = {
     condition: '<',
     alert: '<',
     onFilterRemove: '&',
+    isReadonly: '<',
   },
   template: require('./trigger-filter.html'),
   controller: function () {

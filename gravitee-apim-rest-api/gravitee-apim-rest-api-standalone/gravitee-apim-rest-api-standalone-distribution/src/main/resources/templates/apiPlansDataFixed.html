@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head lang="en">
+		<title>API plans data fixed</title>
+	</head>
+	<body style="text-align: center;">
+		<header>
+			<#include "header.html" />
+		</header>
+		<div style="margin-top: 50px; color: #424e5a;">
+			<h3>Hi,</h3>
+			<p>
+				We detected database anomalies in your plans data on api <code>${api.name}</code> (id <code>${api.id}</code>), and fixed it.<br/>
+				See the details in related <a href="https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8">documentation</a>
+			</p>
+			<#if closedPlans?size != 0>
+				<p>
+					<strong>Those plans have been closed :</strong><br/>
+					<#list closedPlans as plan>
+						- Plan <code>${plan.name}</code> (id <code>${api.id}</code>)<br/>
+					</#list>
+				</p>
+			</#if>
+			<#if createdPlans?size != 0>
+				<p>
+					<strong>Those plans have been created :</strong><br/>
+					<#list createdPlans as plan>
+						- Plan <code>${plan.name}</code> (id <code>${plan.id}</code>)<br/>
+					</#list>
+				</p>
+			</#if>
+		</div>
+	</body>
+</html>

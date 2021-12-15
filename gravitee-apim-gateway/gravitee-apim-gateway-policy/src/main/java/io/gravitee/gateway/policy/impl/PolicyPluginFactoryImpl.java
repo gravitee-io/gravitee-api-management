@@ -19,6 +19,7 @@ import static org.reflections.ReflectionUtils.withModifier;
 import static org.reflections.ReflectionUtils.withParametersCount;
 
 import com.google.common.base.Predicate;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.lang.reflect.*;
@@ -48,6 +49,13 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
 
         //TODO: could we reuse policy instance ?
         return createInstance(policyClass, policyConfiguration);
+    }
+
+    @Override
+    public void cleanup(PolicyMetadata policyMetadata) {
+        if (policyMetadata != null) {
+            constructors.remove(policyMetadata.policy());
+        }
     }
 
     @Override

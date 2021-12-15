@@ -25,6 +25,7 @@ const AlertTriggerProjectionComponent: ng.IComponentOptions = {
     projection: '<',
     alert: '<',
     onProjectionRemove: '&',
+    isReadonly: '<',
   },
   template: require('./trigger-projection.html'),
   controller: function () {

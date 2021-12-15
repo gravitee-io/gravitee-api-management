@@ -46,7 +46,13 @@ export class AuthService {
     return new Promise((resolve) => {
       if (this.getProviderId()) {
         this._fetchProviderAndConfigure().then(() => {
-          this.oauthService.tryLoginCodeFlow().finally(() => resolve(true));
+          this.oauthService
+            .tryLoginCodeFlow({
+              // 📝 The clear of the hash doesn't work correctly and keeps a piece of string which distorts angular routing and
+              // displays a 404. Disabling it solves the problem and the clear will be done with an angular internal redirection.
+              preventClearHashAfterLogin: true,
+            })
+            .finally(() => resolve(true));
         });
       } else {
         resolve(true);
@@ -83,11 +89,12 @@ export class AuthService {
     );
   };
 
-  authenticate(provider) {
+  authenticate(provider, redirectUrl: string) {
     if (provider) {
       this.storeProviderId(provider.id);
       this._configure(provider);
-      this.oauthService.initCodeFlow();
+      // 📝 Save `redirectUrl` into OAuth state to retrieve it after redirect
+      this.oauthService.initCodeFlow(redirectUrl);
     }
   }
 

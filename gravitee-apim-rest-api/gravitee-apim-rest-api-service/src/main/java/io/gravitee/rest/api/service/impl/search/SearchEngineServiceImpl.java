@@ -93,6 +93,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Override
     public void index(Indexable source, boolean locally, boolean commit) {
         indexLocally(source, commit);
+
         if (!locally) {
             CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
             content.setAction(ACTION_INDEX);
@@ -105,16 +106,13 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
-    public void delete(Indexable source, boolean locally) {
-        deleteLocally(source);
-        if (!locally) {
-            CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
-            content.setAction(ACTION_DELETE);
-            content.setId(source.getId());
-            content.setClazz(source.getClass().getName());
+    public void delete(Indexable source) {
+        CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
+        content.setAction(ACTION_DELETE);
+        content.setId(source.getId());
+        content.setClazz(source.getClass().getName());
 
-            sendCommands(content);
-        }
+        sendCommands(content);
     }
 
     @Override

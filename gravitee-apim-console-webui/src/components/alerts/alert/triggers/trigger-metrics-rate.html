@@ -15,14 +15,18 @@
     limitations under the License.
 
 -->
-<gv-alert-trigger-condition condition="$ctrl.alert.conditions[0].comparison" metrics="$ctrl.metrics"></gv-alert-trigger-condition>
+<gv-alert-trigger-condition
+  condition="$ctrl.alert.conditions[0].comparison"
+  metrics="$ctrl.metrics"
+  is-readonly="$ctrl.parent.isReadonly()"
+></gv-alert-trigger-condition>
 
 <div layout-gt-sm="row">
   <span flex="15" style="display: grid; align-items: center" align="center">If rate is</span>
 
   <md-input-container class="md-block" flex-gt-sm flex="20">
     <label>Operator</label>
-    <md-select ng-model="$ctrl.alert.conditions[0].operator" required>
+    <md-select ng-model="$ctrl.alert.conditions[0].operator" required ng-disabled="$ctrl.parent.isReadonly()">
       <md-option ng-value="type.key" ng-repeat="type in $ctrl.operators"> {{::type.name}} </md-option>
     </md-select>
   </md-input-container>
@@ -39,6 +43,7 @@
       max="99"
       name="threshold"
       aria-label="trigger threshold"
+      ng-disabled="$ctrl.parent.isReadonly()"
     />
     <div ng-messages="$ctrl.parent.formAlert.threshold.$error">
       <div ng-message="required">Threshold is required.</div>
@@ -48,7 +53,11 @@
   </md-input-container>
 </div>
 
-<gv-alert-trigger-window condition="$ctrl.alert.conditions[0]"></gv-alert-trigger-window>
+<gv-alert-trigger-window condition="$ctrl.alert.conditions[0]" is-readonly="$ctrl.parent.isReadonly()"></gv-alert-trigger-window>
 
 <!-- Additional projections -->
-<gv-alert-trigger-projections condition="$ctrl.alert.conditions[0]" alert="$ctrl.alert"></gv-alert-trigger-projections>
+<gv-alert-trigger-projections
+  condition="$ctrl.alert.conditions[0]"
+  alert="$ctrl.alert"
+  is-readonly="$ctrl.parent.isReadonly()"
+></gv-alert-trigger-projections>

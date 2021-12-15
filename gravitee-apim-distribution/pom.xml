@@ -47,7 +47,7 @@
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
         <gravitee-connector-http.version>1.0.0</gravitee-connector-http.version>
-        <gravitee-connector-kafka.version>1.0.0</gravitee-connector-kafka.version>
+        <gravitee-connector-kafka.version>1.0.1-SNAPSHOT</gravitee-connector-kafka.version>
         <gravitee-policy-apikey.version>2.3.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.6.0</gravitee-policy-assign-content.version>
@@ -111,7 +111,7 @@
         <gravitee-reporter-tcp.version>1.3.3</gravitee-reporter-tcp.version>
         <!--	Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit	-->
         <!--	<gravitee-gateway-services-ratelimit.version>1.13.0</gravitee-gateway-services-ratelimit.version>	-->
-        <gravitee-tracer-jaeger.version>1.0.0</gravitee-tracer-jaeger.version>
+        <gravitee-tracer-jaeger.version>1.0.1</gravitee-tracer-jaeger.version>
 
     </properties>
 

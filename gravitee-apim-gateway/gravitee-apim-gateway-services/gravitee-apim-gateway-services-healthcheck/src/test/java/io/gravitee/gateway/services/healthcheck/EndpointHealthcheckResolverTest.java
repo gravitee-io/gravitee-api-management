@@ -19,14 +19,13 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRule;
+import io.vertx.core.json.JsonObject;
 import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -380,5 +379,47 @@ public class EndpointHealthcheckResolverTest {
         assertNotNull(resolve);
         assertEquals(1, resolve.size());
         assertEquals("api-id", resolve.get(0).api());
+    }
+
+    @Test
+    public void shouldResolveEndpointUsingGroupProxy() {
+        Services services = new Services();
+        HealthCheckService healthCheckService = new HealthCheckService();
+        healthCheckService.setEnabled(true);
+        services.set(Set.of(healthCheckService));
+
+        when(mockApi.getServices()).thenReturn(services);
+
+        HttpProxy groupProxy = new HttpProxy();
+        groupProxy.setHost("localhost");
+        groupProxy.setPort(9001);
+
+        when(mockEndpointGroup.getHttpProxy()).thenReturn(groupProxy);
+
+        JsonObject endpointConfig = new JsonObject()
+            .put("backup", false)
+            .put("inherit", true)
+            .put("name", "default")
+            .put("weight", 1)
+            .put("type", "http")
+            .put("target", "http://localhost:2000");
+
+        when(mockEndpoint.getConfiguration()).thenReturn(endpointConfig.encode());
+
+        List<EndpointRule> resolved = endpointHealthcheckResolver.resolve(mockApi);
+
+        assertNotNull(resolved);
+        assertEquals(1, resolved.size());
+
+        Endpoint endpoint = resolved.get(0).endpoint();
+
+        assertEquals(HttpEndpoint.class, endpoint.getClass());
+
+        HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
+        HttpProxy httpProxy = httpEndpoint.getHttpProxy();
+
+        assertNotNull(httpProxy);
+        assertEquals("localhost", httpProxy.getHost());
+        assertEquals(9001, httpProxy.getPort());
     }
 }

@@ -15,11 +15,18 @@
     limitations under the License.
 
 -->
-<a style="margin-top: 5px; margin-bottom: 5px" ng-click="$ctrl.addNotification()" style="font-style: italic">> Add a notification</a>
+<a
+  style="margin-top: 5px; margin-bottom: 5px"
+  ng-click="$ctrl.addNotification()"
+  style="font-style: italic"
+  ng-if="!$ctrl.parent.isReadonly()"
+  >> Add a notification</a
+>
 
 <gv-alert-notification
   ng-repeat="notification in $ctrl.alert.notifications"
   notification="notification"
   on-notification-remove="$ctrl.removeNotification($index)"
+  is-readonly="$ctrl.parent.isReadonly()"
 >
 </gv-alert-notification>

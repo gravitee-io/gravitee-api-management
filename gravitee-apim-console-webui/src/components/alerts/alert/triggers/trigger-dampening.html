@@ -25,7 +25,7 @@
   <div class="gv-form-content" layout="column">
     <md-input-container class="md-block">
       <label>Mode</label>
-      <md-select ng-model="$ctrl.dampening.mode" required ng-change="$ctrl.onModeChange()">
+      <md-select ng-model="$ctrl.dampening.mode" required ng-change="$ctrl.onModeChange()" ng-disabled="$ctrl.parent.isReadonly()">
         <md-option ng-value="mode.type" ng-repeat="mode in $ctrl.modes"> {{::mode.description}} </md-option>
       </md-select>
       <div class="hint">Select the most appropriate dampening mode for this alert.</div>
@@ -44,6 +44,7 @@
             max="100"
             name="dampening.trueevaluations"
             aria-label="dampening true evaluations"
+            ng-disabled="$ctrl.parent.isReadonly()"
           />
           <div class="hint">The number of consecutive true evaluations.</div>
           <div ng-messages="$ctrl.parent.formAlert['dampening.trueevaluations'].$error">
@@ -65,6 +66,7 @@
             max="100"
             name="dampening.trueevaluations"
             aria-label="dampening true evaluations"
+            ng-disabled="$ctrl.parent.isReadonly()"
           />
           <div class="hint">The number of true evaluations.</div>
           <div ng-messages="$ctrl.parent.formAlert['dampening.trueevaluations'].$error">
@@ -85,6 +87,7 @@
             max="100"
             name="dampening.totalevaluations"
             aria-label="dampening total evaluations"
+            ng-disabled="$ctrl.parent.isReadonly()"
           />
           <div class="hint">The number of total evaluations.</div>
           <div ng-messages="$ctrl.parent.formAlert['dampening.totalevaluations'].$error">
@@ -106,6 +109,7 @@
             max="100"
             name="dampening.duration"
             aria-label="dampening duration"
+            ng-disabled="$ctrl.parent.isReadonly()"
           />
           <div ng-messages="$ctrl.parent.formAlert['dampening.duration'].$error">
             <div ng-message="required">Number of true evaluations is required.</div>
@@ -115,7 +119,7 @@
 
         <md-input-container class="md-block" flex-gt-sm flex="15">
           <label>TimeUnit</label>
-          <md-select ng-model="$ctrl.dampening.timeUnit" required>
+          <md-select ng-model="$ctrl.dampening.timeUnit" required ng-disabled="$ctrl.parent.isReadonly()">
             <md-option ng-value="unit.key" ng-repeat="unit in $ctrl.timeUnits"> {{::unit.name}} </md-option>
           </md-select>
         </md-input-container>
@@ -133,6 +137,7 @@
             max="100"
             name="dampening.trueevaluations"
             aria-label="dampening true evaluations"
+            ng-disabled="$ctrl.parent.isReadonly()"
           />
           <div class="hint">The number of true evaluations.</div>
           <div ng-messages="$ctrl.parent.formAlert['dampening.trueevaluations'].$error">
@@ -153,6 +158,7 @@
             max="100"
             name="dampening.duration"
             aria-label="dampening duration"
+            ng-disabled="$ctrl.parent.isReadonly()"
           />
           <div ng-messages="$ctrl.parent.formAlert['dampening.duration'].$error">
             <div ng-message="required">Number of true evaluations is required.</div>
@@ -162,7 +168,7 @@
 
         <md-input-container class="md-block" flex-gt-sm flex="15">
           <label>TimeUnit</label>
-          <md-select ng-model="$ctrl.dampening.timeUnit" required>
+          <md-select ng-model="$ctrl.dampening.timeUnit" required ng-disabled="$ctrl.parent.isReadonly()">
             <md-option ng-value="unit.key" ng-repeat="unit in $ctrl.timeUnits"> {{::unit.name}} </md-option>
           </md-select>
         </md-input-container>

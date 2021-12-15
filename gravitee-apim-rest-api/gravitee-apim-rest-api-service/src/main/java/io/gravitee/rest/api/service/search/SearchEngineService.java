@@ -32,7 +32,7 @@ public interface SearchEngineService {
 
     void index(Indexable source, boolean locally, boolean commit);
 
-    void delete(Indexable source, boolean locally);
+    void delete(Indexable source);
 
     void commit();
 
