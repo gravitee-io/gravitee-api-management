@@ -467,7 +467,12 @@ jobs:
             - store_test_results:
                   path: << parameters.apim-ui-project >>/coverage
 
-    console-webui-build:
+    webui-build:
+        parameters:
+            apim-ui-project:
+                type: string
+                default: ""
+                description: the name of the UI project to build
         executor:
             name: node-lts
             class: large
@@ -481,18 +486,18 @@ jobs:
                   environment:
                       NODE_OPTIONS: --max_old_space_size=4086
                       BACKEND_ENV: element-zero
-                  working_directory: gravitee-apim-console-webui
+                  working_directory: << parameters.apim-ui-project >>
             - run:
                   name: Zip dist folder
                   # TODO:
                   #  - Use gzip instead of zip
                   command: zip -r dist.zip dist
-                  working_directory: gravitee-apim-console-webui
+                  working_directory: << parameters.apim-ui-project >>
             - notify-on-failure
             - persist_to_workspace:
                   root: .
                   paths:
-                      - gravitee-apim-console-webui/dist
+                      - << parameters.apim-ui-project >>/dist
 
     console-webui-build-storybook:
         executor:
@@ -663,32 +668,6 @@ jobs:
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       az acr run --cmd "acr purge --filter 'apim-management-ui:master-.*' --untagged --ago 1d --keep 3" --registry graviteeio /dev/null
             - notify-on-failure
-
-    portal-webui-build:
-        executor:
-            name: node-lts
-            class: large
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - run:
-                  name: Build
-                  command: npm run build:prod
-                  environment:
-                      NODE_OPTIONS: --max_old_space_size=4086
-                  working_directory: gravitee-apim-portal-webui
-            - run:
-                  name: Zip dist folder
-                  # TODO:
-                  #  - Use gzip instead of zip
-                  command: zip -r dist.zip dist
-                  working_directory: gravitee-apim-portal-webui
-            - notify-on-failure
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - gravitee-apim-portal-webui/dist
 
     portal-webui-publish-images-azure-registry:
         docker:
@@ -1051,7 +1030,9 @@ workflows:
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
-            - console-webui-build:
+            - webui-build:
+                  name: Build APIM Console
+                  apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
             - console-webui-build-storybook:
@@ -1070,7 +1051,7 @@ workflows:
                             secret-path: graviteeio/cicd/azure/application-secret
                             var-name: AZURE_APPLICATION_SECRET
                   requires:
-                      - console-webui-build
+                      - Build APIM Console
             - console-webui-comment-pr-after-deployment:
                   context: cicd-orchestrator
                   pre-steps:
@@ -1103,7 +1084,7 @@ workflows:
                             secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
                             var-name: DOCKERHUB_BOT_USER_TOKEN
                   requires:
-                      - console-webui-build
+                      - Build APIM Console
                       - compute-apim-tag
                   filters:
                       branches:
@@ -1132,7 +1113,9 @@ workflows:
                   requires:
                       - Lint & test APIM Console
                       - Lint & test APIM Portal
-            - portal-webui-build:
+            - webui-build:
+                  name: Build APIM Portal
+                  apim-ui-project: gravitee-apim-portal-webui
                   requires:
                       - Install APIM Portal
             - portal-webui-publish-images-azure-registry:
@@ -1151,7 +1134,7 @@ workflows:
                             secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
                             var-name: DOCKERHUB_BOT_USER_TOKEN
                   requires:
-                      - portal-webui-build
+                      - Build APIM Portal
                       - compute-apim-tag
                   filters:
                       branches:
