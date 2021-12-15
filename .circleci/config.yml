@@ -431,10 +431,18 @@ jobs:
                     paths:
                         - << parameters.apim-ui-project >>/node_modules
 
-    console-webui-lint-test:
+    webui-lint-test:
+        parameters:
+            apim-ui-project:
+                type: string
+                default: ""
+                description: the name of the UI project to build
+            resource-class:
+                type: string
+                default: medium
         executor:
             name: node-lts
-            class: medium
+            class: << parameters.resource-class>>
         steps:
             - checkout
             - attach_workspace:
@@ -442,22 +450,22 @@ jobs:
             - run:
                   name: Check License
                   command: npm run lint:license
-                  working_directory: gravitee-apim-console-webui
+                  working_directory: << parameters.apim-ui-project >>
             - run:
                   name: Run Prettier and ESLint
                   command: npm run lint
-                  working_directory: gravitee-apim-console-webui
+                  working_directory: << parameters.apim-ui-project >>
             - run:
                   name: Run unit tests
-                  command: npm run test:ci
-                  working_directory: gravitee-apim-console-webui
+                  command: npm run test:coverage
+                  working_directory: << parameters.apim-ui-project >>
             - notify-on-failure
             - persist_to_workspace:
                   root: .
                   paths:
-                      - gravitee-apim-console-webui/coverage
+                      - << parameters.apim-ui-project >>/coverage
             - store_test_results:
-                  path: gravitee-apim-console-webui/coverage
+                  path: << parameters.apim-ui-project >>/coverage
 
     console-webui-build:
         executor:
@@ -655,34 +663,6 @@ jobs:
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       az acr run --cmd "acr purge --filter 'apim-management-ui:master-.*' --untagged --ago 1d --keep 3" --registry graviteeio /dev/null
             - notify-on-failure
-
-    portal-webui-lint-test:
-        executor:
-            name: node-lts
-            class: large
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - run:
-                  name: Check License
-                  command: npm run lint:license
-                  working_directory: gravitee-apim-portal-webui
-            - run:
-                  name: Run Prettier and ESLint
-                  command: npm run lint
-                  working_directory: gravitee-apim-portal-webui
-            - run:
-                  name: Run unit tests
-                  command: npm run test:coverage
-                  working_directory: gravitee-apim-portal-webui
-            - notify-on-failure
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - gravitee-apim-portal-webui/coverage
-            - store_test_results:
-                  path: gravitee-apim-portal-webui/coverage
 
     portal-webui-build:
         executor:
@@ -1066,7 +1046,9 @@ workflows:
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - load-snapshot-configuration
-            - console-webui-lint-test:
+            - webui-lint-test:
+                  name: Lint & test APIM Console
+                  apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
             - console-webui-build:
@@ -1133,7 +1115,10 @@ workflows:
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
                       - load-snapshot-configuration
-            - portal-webui-lint-test:
+            - webui-lint-test:
+                  name: Lint & test APIM Portal
+                  apim-ui-project: gravitee-apim-portal-webui
+                  resource-class: large
                   requires:
                       - Install APIM Portal
             - sonarcloud-analysis:
@@ -1145,8 +1130,8 @@ workflows:
                               - gravitee-apim-portal-webui
                   context: cicd-orchestrator
                   requires:
-                      - console-webui-lint-test
-                      - portal-webui-lint-test
+                      - Lint & test APIM Console
+                      - Lint & test APIM Portal
             - portal-webui-build:
                   requires:
                       - Install APIM Portal
