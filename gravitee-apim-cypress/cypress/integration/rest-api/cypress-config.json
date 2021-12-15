@@ -17,6 +17,7 @@
     "admin_user_password": "admin",
     "managementApi": "/management/organizations/DEFAULT/environments/DEFAULT",
     "managementUI": "http://localhost:8084",
+    "gatewayServer": "http://localhost:8082",
     "portalApi": "/portal/environments/DEFAULT"
   }
 }
