@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.definition</groupId>
     <artifactId>gravitee-definition</artifactId>
-    <version>1.30.1</version>
+    <version>1.30.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Definition</name>
 
