@@ -162,7 +162,7 @@
             </goals>
             <phase>test</phase>
             <configuration>
-              <arguments>run test:ci</arguments>
+              <arguments>run test:coverage</arguments>
             </configuration>
           </execution>
           <execution>

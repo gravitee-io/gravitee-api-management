@@ -163,6 +163,6 @@
     "serve:prod": "node scripts/serve.js",
     "test": "jest --detectOpenHandles",
     "test:auto": "jest --watch",
-    "test:ci": "NODE_OPTIONS=--max-old-space-size=3072 jest --runInBand --ci --collectCoverage=true"
+    "test:coverage": "NODE_OPTIONS=--max-old-space-size=3072 jest --runInBand --ci --collectCoverage=true"
   }
 }
