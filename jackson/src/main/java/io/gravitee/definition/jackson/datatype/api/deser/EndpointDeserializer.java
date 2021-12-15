@@ -102,6 +102,11 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
         }
 
         // Manage retro compatibility before SME...
+        JsonNode healthcheckNode = node.get("healthcheck");
+        if (healthcheckNode != null && !healthcheckNode.isObject()) {
+            ((ObjectNode) node).remove("healthcheck");
+        }
+
         JsonNode headersNode = node.get("headers");
         if (headersNode != null && !headersNode.isEmpty(null)) {
             if (headersNode.isObject()) {
