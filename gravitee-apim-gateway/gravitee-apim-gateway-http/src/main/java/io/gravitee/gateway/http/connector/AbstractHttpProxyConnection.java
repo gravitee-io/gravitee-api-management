@@ -19,6 +19,7 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
+import io.gravitee.gateway.http.connector.http.HttpProxyConnection;
 import io.vertx.core.http.HttpClient;
 
 /**
@@ -40,7 +41,7 @@ public abstract class AbstractHttpProxyConnection implements ProxyConnection {
         int port,
         String host,
         String uri,
-        Handler<Void> connectionHandler,
+        Handler<AbstractHttpProxyConnection> connectionHandler,
         Handler<Void> tracker
     );
 

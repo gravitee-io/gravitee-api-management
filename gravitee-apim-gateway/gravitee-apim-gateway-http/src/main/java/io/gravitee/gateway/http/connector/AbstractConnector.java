@@ -142,7 +142,7 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
                 port,
                 url.getHost(),
                 (url.getQuery() == null) ? url.getPath() : url.getPath() + URI_QUERY_DELIMITER_CHAR + url.getQuery(),
-                connect -> proxyConnectionHandler.handle(connection),
+                proxyConnectionHandler::handle,
                 result -> requestTracker.decrementAndGet()
             );
         } catch (MalformedURLException ex) {

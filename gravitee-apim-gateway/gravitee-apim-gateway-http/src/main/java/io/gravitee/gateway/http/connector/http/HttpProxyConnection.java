@@ -88,7 +88,14 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
     }
 
     @Override
-    public void connect(HttpClient httpClient, int port, String host, String uri, Handler<Void> connectionHandler, Handler<Void> tracker) {
+    public void connect(
+        HttpClient httpClient,
+        int port,
+        String host,
+        String uri,
+        Handler<AbstractHttpProxyConnection> connectionHandler,
+        Handler<Void> tracker
+    ) {
         // Remove HOP-by-HOP headers
         for (CharSequence header : HOP_HEADERS) {
             proxyRequest.headers().remove(header.toString());
@@ -96,35 +103,32 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
         Future<HttpClientRequest> request = prepareUpstreamRequest(httpClient, port, host, uri);
         request.onComplete(
-            new io.vertx.core.Handler<>() {
-                @Override
-                public void handle(AsyncResult<HttpClientRequest> event) {
-                    cancelHandler(tracker);
+            event -> {
+                cancelHandler(tracker);
 
-                    if (event.succeeded()) {
-                        httpClientRequest = event.result();
+                if (event.succeeded()) {
+                    httpClientRequest = event.result();
 
-                        httpClientRequest.response(
-                            response -> {
-                                // Prepare upstream response
-                                handleUpstreamResponse(response, tracker);
+                    httpClientRequest.response(
+                        response -> {
+                            // Prepare upstream response
+                            handleUpstreamResponse(response, tracker);
+                        }
+                    );
+
+                    httpClientRequest.exceptionHandler(
+                        exEvent -> {
+                            if (!isCanceled() && !isTransmitted()) {
+                                handleException(event.cause());
+                                tracker.handle(null);
                             }
-                        );
-
-                        httpClientRequest.exceptionHandler(
-                            exEvent -> {
-                                if (!isCanceled() && !isTransmitted()) {
-                                    handleException(event.cause());
-                                    tracker.handle(null);
-                                }
-                            }
-                        );
-                        connectionHandler.handle(null);
-                    } else {
-                        connectionHandler.handle(null);
-                        handleException(event.cause());
-                        tracker.handle(null);
-                    }
+                        }
+                    );
+                    connectionHandler.handle(HttpProxyConnection.this);
+                } else {
+                    connectionHandler.handle(null);
+                    handleException(event.cause());
+                    tracker.handle(null);
                 }
             }
         );

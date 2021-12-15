@@ -64,7 +64,14 @@ public class WebSocketProxyConnection extends AbstractHttpProxyConnection {
     }
 
     @Override
-    public void connect(HttpClient httpClient, int port, String host, String uri, Handler<Void> connectionHandler, Handler<Void> tracker) {
+    public void connect(
+        HttpClient httpClient,
+        int port,
+        String host,
+        String uri,
+        Handler<AbstractHttpProxyConnection> connectionHandler,
+        Handler<Void> tracker
+    ) {
         // Remove hop-by-hop headers.
         for (CharSequence header : WS_HOP_HEADERS) {
             wsProxyRequest.headers().remove(header);
@@ -158,7 +165,7 @@ public class WebSocketProxyConnection extends AbstractHttpProxyConnection {
                                             }
                                         );
 
-                                    connectionHandler.handle(null);
+                                    connectionHandler.handle(WebSocketProxyConnection.this);
 
                                     // Tell the reactor that the request has been handled by the HTTP client
                                     sendToClient(new SwitchProtocolProxyResponse());
