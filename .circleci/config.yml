@@ -622,7 +622,16 @@ jobs:
 
             - notify-on-failure
 
-    console-webui-publish-images-azure-registry:
+    webui-publish-images-azure-registry:
+        parameters:
+            apim-ui-project:
+                type: string
+                default: ""
+                description: the name of the UI project to build
+            docker-image-name:
+                type: string
+                default: ""
+                description: the name of the docker image to create
         docker:
             - image: cimg/openjdk:11.0
         resource_class: small
@@ -638,8 +647,8 @@ jobs:
                       cp -fr docker/config .
                       cp -fr docker/run.sh .
 
-                      export PUBLIC_IMAGE_TAG=graviteeio/apim-management-ui:${TAG}
-                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-ui:${TAG}
+                      export PUBLIC_IMAGE_TAG=graviteeio/<< parameters.docker-image-name >>:${TAG}
+                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/<< parameters.docker-image-name >>:${TAG}
                       docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} -t ${PUBLIC_IMAGE_TAG} .
 
                       if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
@@ -652,7 +661,7 @@ jobs:
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${PRIVATE_IMAGE_TAG}
                       docker logout graviteeio.azurecr.io
-                  working_directory: gravitee-apim-console-webui
+                  working_directory: << parameters.apim-ui-project >>
             - notify-on-failure
 
     purge-master-azure-registry:
@@ -667,39 +676,6 @@ jobs:
                   command: |
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       az acr run --cmd "acr purge --filter 'apim-management-ui:master-.*' --untagged --ago 1d --keep 3" --registry graviteeio /dev/null
-            - notify-on-failure
-
-    portal-webui-publish-images-azure-registry:
-        docker:
-            - image: cimg/openjdk:11.0
-        resource_class: small
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - setup_remote_docker
-            - get-apim-tag
-            - run:
-                  name: Build & Publish Web UI Docker Image to Azure Registry
-                  command: |
-                      cp -fr docker/config .
-                      cp -fr docker/run.sh .
-
-                      export PUBLIC_IMAGE_TAG=graviteeio/apim-portal-ui:${TAG}
-                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-portal-ui:${TAG}
-                      docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} -t ${PUBLIC_IMAGE_TAG} .
-
-                      if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
-                      then
-                        echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
-                        docker push ${PUBLIC_IMAGE_TAG}
-                        docker logout
-                      fi
-
-                      echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-                      docker push ${PRIVATE_IMAGE_TAG}
-                      docker logout graviteeio.azurecr.io
-                  working_directory: gravitee-apim-portal-webui
             - notify-on-failure
 
     deploy-on-azure-cluster:
@@ -1068,7 +1044,10 @@ workflows:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
                             var-name: GITHUB_TOKEN
-            - console-webui-publish-images-azure-registry:
+            - webui-publish-images-azure-registry:
+                  name: Build and publish APIM Console docker image
+                  apim-ui-project: gravitee-apim-console-webui
+                  docker-image-name: apim-management-ui
                   context: cicd-orchestrator
                   pre-steps:
                       - secrethub/env-export:
@@ -1118,7 +1097,10 @@ workflows:
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
                       - Install APIM Portal
-            - portal-webui-publish-images-azure-registry:
+            - webui-publish-images-azure-registry:
+                  name: Build and publish APIM Portal docker image
+                  apim-ui-project: gravitee-apim-portal-webui
+                  docker-image-name: apim-portal-ui
                   context: cicd-orchestrator
                   pre-steps:
                       - secrethub/env-export:
@@ -1155,8 +1137,8 @@ workflows:
                             var-name: AZURE_APPLICATION_SECRET
                   requires:
                       - publish-images-azure-registry
-                      - console-webui-publish-images-azure-registry
-                      - portal-webui-publish-images-azure-registry
+                      - Build and publish APIM Console docker image
+                      - Build and publish APIM Portal docker image
                   filters:
                       branches:
                           only:
