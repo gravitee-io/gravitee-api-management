@@ -18,6 +18,7 @@ const AlertTriggerProjectionsComponent: ng.IComponentOptions = {
     alert: '<',
     condition: '<',
     metrics: '<',
+    isReadonly: '<',
   },
   template: require('./trigger-projections.html'),
   controller: function () {

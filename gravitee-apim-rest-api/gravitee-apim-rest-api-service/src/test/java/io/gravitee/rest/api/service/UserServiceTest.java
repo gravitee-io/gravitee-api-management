@@ -1079,7 +1079,7 @@ public class UserServiceTest {
             //success
             verify(membershipService, never()).removeMemberMemberships(MembershipMemberType.USER, USER_NAME);
             verify(userRepository, never()).update(any());
-            verify(searchEngineService, never()).delete(any(), eq(false));
+            verify(searchEngineService, never()).delete(any());
         }
     }
 
@@ -1098,7 +1098,7 @@ public class UserServiceTest {
             //success
             verify(membershipService, never()).removeMemberMemberships(MembershipMemberType.USER, USER_NAME);
             verify(userRepository, never()).update(any());
-            verify(searchEngineService, never()).delete(any(), eq(false));
+            verify(searchEngineService, never()).delete(any());
         }
     }
 
@@ -1144,7 +1144,7 @@ public class UserServiceTest {
                     }
                 )
             );
-        verify(searchEngineService, times(1)).delete(any(), eq(false));
+        verify(searchEngineService, times(1)).delete(any());
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
         verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
@@ -1197,7 +1197,7 @@ public class UserServiceTest {
                     }
                 )
             );
-        verify(searchEngineService, times(1)).delete(any(), eq(false));
+        verify(searchEngineService, times(1)).delete(any());
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
         verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));

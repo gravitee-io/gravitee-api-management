@@ -26,4 +26,6 @@ import io.gravitee.policy.api.PolicyConfiguration;
  */
 public interface PolicyFactory {
     Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration);
+
+    void cleanup(PolicyMetadata policyMetadata);
 }

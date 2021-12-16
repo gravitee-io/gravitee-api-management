@@ -18,12 +18,24 @@
 <div class="gv-form">
   <h2 layout="row">
     Notification
-    <ng-md-icon icon="cancel" style="top: 5px; margin-right: 10px; fill: grey" size="20px" ng-click="$ctrl.remove()"></ng-md-icon>
+    <ng-md-icon
+      icon="cancel"
+      style="top: 5px; margin-right: 10px; fill: grey"
+      size="20px"
+      ng-click="$ctrl.remove()"
+      ng-if="!$ctrl.isReadonly"
+    ></ng-md-icon>
   </h2>
   <div class="gv-form-content" layout="column">
     <md-input-container class="md-block" flex-gt-xs>
       <label>Channel</label>
-      <md-select ng-model="$ctrl.notification.type" placeholder="Channel" required ng-change="$ctrl.onNotifierChange()">
+      <md-select
+        ng-model="$ctrl.notification.type"
+        placeholder="Channel"
+        required
+        ng-change="$ctrl.onNotifierChange()"
+        ng-disabled="$ctrl.isReadonly"
+      >
         <md-option ng-repeat="type in $ctrl.parent.parent.notifiers" ng-value="type.id">{{type.name}}</md-option>
       </md-select>
     </md-input-container>

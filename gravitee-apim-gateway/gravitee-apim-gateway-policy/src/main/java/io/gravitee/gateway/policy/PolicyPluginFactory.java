@@ -25,4 +25,6 @@ public interface PolicyPluginFactory {
     <T> T create(Class<T> policyClass, PolicyConfiguration policyConfiguration);
 
     void clearCache();
+
+    void cleanup(PolicyMetadata policyMetadata);
 }

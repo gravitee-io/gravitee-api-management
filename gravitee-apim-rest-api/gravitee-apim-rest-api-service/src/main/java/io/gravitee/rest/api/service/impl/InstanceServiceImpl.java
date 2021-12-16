@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.model.Event;
@@ -184,8 +186,12 @@ public class InstanceServiceImpl implements InstanceService {
         Map<String, String> props = event.getProperties();
         InstanceEntity instance = new InstanceEntity(props.get("id"));
         instance.setEvent(event.getId());
-        instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
-        instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
+        if (!isBlank(props.get("last_heartbeat_at"))) {
+            instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
+        }
+        if (!isBlank(props.get("started_at"))) {
+            instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
+        }
         instance.setEnvironments(event.getEnvironments());
         instance.setEnvironmentsHrids(environments);
         instance.setOrganizationsHrids(organizations);
@@ -216,7 +222,9 @@ public class InstanceServiceImpl implements InstanceService {
             }
         } else {
             instance.setState(InstanceState.STOPPED);
-            instance.setStoppedAt(new Date(Long.parseLong(props.get("stopped_at"))));
+            if (!isBlank(props.get("stopped_at"))) {
+                instance.setStoppedAt(new Date(Long.parseLong(props.get("stopped_at"))));
+            }
         }
 
         return instance;

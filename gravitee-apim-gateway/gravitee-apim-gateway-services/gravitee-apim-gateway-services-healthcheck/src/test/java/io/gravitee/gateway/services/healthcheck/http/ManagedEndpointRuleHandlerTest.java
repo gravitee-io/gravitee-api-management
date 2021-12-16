@@ -16,8 +16,13 @@
 package io.gravitee.gateway.services.healthcheck.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -36,12 +41,14 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.util.Collections;
+import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,18 +60,21 @@ public class ManagedEndpointRuleHandlerTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
+    private Environment environment;
     private Vertx vertx;
 
     @Mock
     private TemplateEngine templateEngine;
 
     @Before
-    public void before(TestContext context) {
+    public void before() {
         vertx = Vertx.vertx();
+        environment = mock(Environment.class);
+        when(environment.getProperty("http.ssl.openssl", Boolean.class, false)).thenReturn(false);
     }
 
     @Test
-    public void shouldNotValidate_invalidEndpoint(TestContext context) {
+    public void shouldNotValidate_invalidEndpoint(TestContext context) throws Exception {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/")).willReturn(notFound()));
 
@@ -81,7 +91,7 @@ public class ManagedEndpointRuleHandlerTest {
 
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
         Async async = context.async();
 
         // Verify
@@ -104,7 +114,7 @@ public class ManagedEndpointRuleHandlerTest {
     }
 
     @Test
-    public void shouldValidate(TestContext context) throws InterruptedException {
+    public void shouldValidate(TestContext context) throws Exception {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"green\"}")));
 
@@ -121,7 +131,7 @@ public class ManagedEndpointRuleHandlerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         Async async = context.async();
 
@@ -145,7 +155,7 @@ public class ManagedEndpointRuleHandlerTest {
     }
 
     @Test
-    public void shouldNotValidate_invalidResponseBody(TestContext context) throws InterruptedException {
+    public void shouldNotValidate_invalidResponseBody(TestContext context) throws Exception {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"yellow\"}")));
 
@@ -162,7 +172,7 @@ public class ManagedEndpointRuleHandlerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         Async async = context.async();
 
@@ -192,7 +202,7 @@ public class ManagedEndpointRuleHandlerTest {
     }
 
     @Test
-    public void shouldValidateFromRoot(TestContext context) throws InterruptedException {
+    public void shouldValidateFromRoot(TestContext context) throws Exception {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/")).willReturn(ok()));
 
@@ -212,7 +222,7 @@ public class ManagedEndpointRuleHandlerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         Async async = context.async();
 

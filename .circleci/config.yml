@@ -589,6 +589,7 @@ jobs:
                         echo "PR is not opened, stopping the job here."
                         exit 0
                       fi
+
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       export PR_BODY_UI_SECTION="
                       <!-- UI placeholder -->

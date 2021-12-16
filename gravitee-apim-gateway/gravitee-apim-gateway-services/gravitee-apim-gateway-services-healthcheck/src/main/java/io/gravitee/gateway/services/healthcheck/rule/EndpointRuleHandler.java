@@ -48,7 +48,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -79,7 +82,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     private static final String PROP_MESSAGE = "message";
 
     protected final EndpointRule<T> rule;
-    private final Vertx vertx;
+    protected final Environment environment;
     private final EndpointStatusDecorator endpointStatus;
     private TemplateEngine templateEngine;
     private Handler<EndpointStatus> statusHandler;
@@ -87,12 +90,24 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     private AlertEventProducer alertEventProducer;
     private Node node;
 
-    public EndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine) {
-        this.vertx = vertx;
+    private final HttpClient httpClient;
+
+    public EndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment) throws Exception {
         this.rule = rule;
+        this.environment = environment;
 
         endpointStatus = new EndpointStatusDecorator(rule.endpoint());
         this.templateEngine = templateEngine;
+
+        if (!rule.steps().isEmpty()) {
+            // For now, we only allow one step per rule.
+            URI uri = createRequest(rule.endpoint(), rule.steps().get(0));
+
+            HttpClientOptions clientOptions = createHttpClientOptions(rule.endpoint(), uri);
+            httpClient = vertx.createHttpClient(clientOptions);
+        } else {
+            httpClient = null;
+        }
     }
 
     @Override
@@ -106,13 +121,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         }
     }
 
-    protected abstract HttpClientOptions createHttpClientOptions(final URI requestUri) throws Exception;
-
-    protected HttpClient createHttpClient(final URI requestUri) throws Exception {
-        HttpClientOptions options = createHttpClientOptions(requestUri);
-
-        return vertx.createHttpClient(options);
-    }
+    protected abstract HttpClientOptions createHttpClientOptions(final T endpoint, final URI requestUri) throws Exception;
 
     protected Future<HttpClientRequest> createHttpClientRequest(
         final HttpClient httpClient,
@@ -189,8 +198,6 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     protected void runStep(T endpoint, io.gravitee.definition.model.services.healthcheck.Step step) {
         try {
             URI hcRequestUri = createRequest(endpoint, step);
-
-            HttpClient httpClient = createHttpClient(hcRequestUri);
             Future<HttpClientRequest> healthRequestPromise = createHttpClientRequest(httpClient, hcRequestUri, step);
 
             healthRequestPromise.onComplete(
@@ -229,18 +236,13 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                                             healthBuilder.step(healthCheckStep);
 
                                             report(healthBuilder.build());
-
-                                            // Close client
-                                            httpClient.close();
                                         }
                                     );
                                     response.exceptionHandler(
-                                        throwable -> {
-                                            closeThrowable(httpClient, throwable);
-                                        }
+                                        throwable -> logger.error("An error has occurred during Health check response handler", throwable)
                                     );
                                 } else {
-                                    closeThrowable(httpClient, healthRequestEvent.cause());
+                                    logger.error("An error has occurred during Health check response handler", healthRequestEvent.cause());
                                 }
                             }
                         );
@@ -261,20 +263,9 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     }
                 }
             );
-        } catch (EndpointException ee) {
-            logger.error(
-                "An error occurs while configuring the endpoint " + endpoint.getName() + ". Healthcheck is skipped for this endpoint.",
-                ee
-            );
         } catch (Exception ex) {
             logger.error("An unexpected error has occurred while configuring Healthcheck for API : {}", rule.api(), ex);
         }
-    }
-
-    private void closeThrowable(HttpClient httpClient, Throwable throwable) {
-        logger.error("An error has occurred during Health check response handler", throwable);
-        // Close client
-        httpClient.close();
     }
 
     private void reportThrowable(
@@ -292,13 +283,6 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         healthBuilder.step(failingStep);
 
         report(healthBuilder.build());
-
-        try {
-            // Close client
-            httpClient.close();
-        } catch (IllegalStateException ise) {
-            // Do not take care about exception when closing client
-        }
     }
 
     private Step buildStep(
@@ -456,5 +440,11 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     public void setNode(Node node) {
         this.node = node;
+    }
+
+    public void close() {
+        if (httpClient != null) {
+            httpClient.close();
+        }
     }
 }

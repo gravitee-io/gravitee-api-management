@@ -22,6 +22,7 @@ import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.ProxyOptions;
 import java.util.List;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,5 +39,6 @@ public interface EndpointRule<T extends Endpoint> {
 
     ProxyOptions getSystemProxyOptions();
 
-    EndpointRuleHandler<T> createRunner(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine);
+    EndpointRuleHandler<T> createRunner(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment)
+        throws Exception;
 }

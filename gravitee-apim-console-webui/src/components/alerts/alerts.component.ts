@@ -18,6 +18,7 @@ import { StateService } from '@uirouter/core';
 import { Alert, Scope } from '../../entities/alert';
 import AlertService from '../../services/alert.service';
 import NotificationService from '../../services/notification.service';
+import UserService from '../../services/user.service';
 
 const AlertsComponent: ng.IComponentOptions = {
   bindings: {
@@ -31,6 +32,7 @@ const AlertsComponent: ng.IComponentOptions = {
     $state: StateService,
     AlertService: AlertService,
     NotificationService: NotificationService,
+    UserService: UserService,
     $mdDialog,
   ) {
     'ngInject';
@@ -106,6 +108,16 @@ const AlertsComponent: ng.IComponentOptions = {
         case 'CRITICAL':
           return '#d73a49';
       }
+    };
+
+    this.hasPermissionForCurrentScope = (permission: string): boolean => {
+      let scope = 'environment';
+      if ($stateParams.apiId) {
+        scope = 'api';
+      } else if ($stateParams.applicationId) {
+        scope = 'application';
+      }
+      return UserService.isUserHasPermissions([`${scope}-${permission}`]);
     };
   },
 };
