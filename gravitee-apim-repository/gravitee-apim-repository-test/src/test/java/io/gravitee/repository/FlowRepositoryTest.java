@@ -78,6 +78,7 @@ public class FlowRepositoryTest extends AbstractRepositoryTest {
         FlowStep preStep = new FlowStep();
         preStep.setName("pre-step");
         preStep.setPolicy("policy");
+        preStep.setCondition("pre-condition");
         preStep.setOrder(1);
         flow.setPre(Arrays.asList(preStep));
         flow.setReferenceId("my-orga");
@@ -105,6 +106,7 @@ public class FlowRepositoryTest extends AbstractRepositoryTest {
         assertEquals(flow.getConsumers().get(0), flowCreated.getConsumers().get(0));
         assertEquals(flow.getOrder(), flowCreated.getOrder());
         assertEquals(flow.getPre().get(0).getOrder(), flowCreated.getPre().get(0).getOrder());
+        assertEquals(flow.getPre().get(0).getCondition(), flowCreated.getPre().get(0).getCondition());
     }
 
     @Test

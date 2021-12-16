@@ -29,6 +29,7 @@
         "enabled": true,
         "description": "Step description",
         "configuration": "{\n          \"rate\": {\n            \"limit\": 10,\n            \"periodTime\": 1,\n            \"periodTimeUnit\": \"MINUTES\"\n          }\n        }",
+        "condition": "pre-condition",
         "order": 1
       },
       {

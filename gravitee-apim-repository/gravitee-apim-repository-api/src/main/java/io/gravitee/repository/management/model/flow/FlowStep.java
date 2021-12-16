@@ -47,6 +47,11 @@ public class FlowStep {
      */
     private int order;
 
+    /**
+     * Condition attached to the FlowStep
+     */
+    private String condition;
+
     public String getName() {
         return name;
     }
@@ -95,6 +100,14 @@ public class FlowStep {
         this.order = order;
     }
 
+    public String getCondition() {
+        return condition;
+    }
+
+    public void setCondition(String condition) {
+        this.condition = condition;
+    }
+
     @Override
     public String toString() {
         return (
@@ -115,6 +128,9 @@ public class FlowStep {
             enabled +
             ", order=" +
             order +
+            ", condition='" +
+            condition +
+            '\'' +
             '}'
         );
     }
