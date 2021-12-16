@@ -39,6 +39,7 @@ const OldPolicyStudioWrapperComponent: ng.IComponentOptions = {
     policies: '<',
     dynamicPropertySchema: '<',
     debugResponse: '<',
+    hasConditionalSteps: '@',
   },
   template: require('./old-policy-studio-wrapper.html'),
   controller: function (
