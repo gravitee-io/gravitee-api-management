@@ -44,14 +44,15 @@ public class FlowRepositoryMock extends AbstractRepositoryMock<FlowRepository> {
         when(flow1.getReferenceId()).thenReturn("orga-1");
         FlowStep tag1PreStep1 = mock(FlowStep.class);
         when(tag1PreStep1.getOrder()).thenReturn(1);
+        when(tag1PreStep1.getCondition()).thenReturn("pre-condition");
         FlowStep tag1PreStep2 = mock(FlowStep.class);
 
         FlowStep tag1PostStep1 = mock(FlowStep.class);
-        FlowStep tag1ostStep2 = mock(FlowStep.class);
+        FlowStep tag1PostStep2 = mock(FlowStep.class);
         FlowStep tag1PostStep3 = mock(FlowStep.class);
 
         when(flow1.getPre()).thenReturn(Arrays.asList(tag1PreStep1, tag1PreStep2));
-        when(flow1.getPost()).thenReturn(Arrays.asList(tag1PostStep1, tag1ostStep2, tag1PostStep3));
+        when(flow1.getPost()).thenReturn(Arrays.asList(tag1PostStep1, tag1PostStep2, tag1PostStep3));
         when(flow1.getCondition()).thenReturn("my-condition");
         when(flow1.getCreatedAt()).thenReturn(new Date(1470157767000L));
         when(flow1.getId()).thenReturn("flow-tag1");
@@ -96,7 +97,7 @@ public class FlowRepositoryMock extends AbstractRepositoryMock<FlowRepository> {
         when(updated.getOperator()).thenReturn(FlowOperator.STARTS_WITH);
         when(updated.getUpdatedAt()).thenReturn(new Date(1470157797000L));
         when(updated.getPre()).thenReturn(Arrays.asList(tag1PreStep1, tag1PreStep2));
-        when(updated.getPost()).thenReturn(Arrays.asList(tag1PostStep1, tag1ostStep2, tag1PostStep3));
+        when(updated.getPost()).thenReturn(Arrays.asList(tag1PostStep1, tag1PostStep2, tag1PostStep3));
         when(updated.getConsumers()).thenReturn(consumers);
         when(repository.update(any())).thenReturn(updated);
 

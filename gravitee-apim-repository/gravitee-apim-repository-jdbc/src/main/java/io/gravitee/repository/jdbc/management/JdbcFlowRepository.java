@@ -18,7 +18,6 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.*;
@@ -60,6 +59,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 .addColumn("name", Types.NVARCHAR, String.class)
                 .addColumn("configuration", Types.NVARCHAR, String.class)
                 .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("condition", Types.NVARCHAR, String.class)
                 .build();
     }
 
@@ -226,7 +226,9 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 FLOW_STEPS +
                 " ( flow_id, name, policy, description, configuration, enabled, " +
                 escapeReservedWord("order") +
-                ", phase ) values ( ?, ?, ?, ?, ? , ?, ?, ?)",
+                ", " +
+                escapeReservedWord("condition") +
+                ", phase ) values ( ?, ?, ?, ?, ? , ?, ?, ?, ?)",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -238,7 +240,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                         ps.setString(5, flowStep.getConfiguration());
                         ps.setBoolean(6, flowStep.isEnabled());
                         ps.setInt(7, flowStep.getOrder());
-                        ps.setString(8, phase.name());
+                        ps.setString(8, flowStep.getCondition());
+                        ps.setString(9, phase.name());
                     }
 
                     @Override
