@@ -222,6 +222,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
         flowStep.setEnabled(step.isEnabled());
         flowStep.setConfiguration(step.getConfiguration());
         flowStep.setDescription(step.getDescription());
+        flowStep.setCondition(step.getCondition());
         return flowStep;
     }
 
@@ -232,6 +233,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
         step.setEnabled(flowStep.isEnabled());
         step.setConfiguration(flowStep.getConfiguration());
         step.setDescription(flowStep.getDescription());
+        step.setCondition(flowStep.getCondition());
         return step;
     }
 }
