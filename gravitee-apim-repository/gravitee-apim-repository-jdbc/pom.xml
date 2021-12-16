@@ -32,15 +32,15 @@
 
     <properties>
         <!-- Dependencies version -->
-        <HikariCP.version>3.4.5</HikariCP.version>
-        <liquibase.version>3.8.0</liquibase.version>
-        <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
-        <mariaDB.version>2.4.0</mariaDB.version>
-        <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
+        <HikariCP.version>5.0.0</HikariCP.version>
+        <liquibase.version>3.10.3</liquibase.version>
+        <liquibase-slf4j.version>4.0.0</liquibase-slf4j.version>
+        <mariaDB.version>2.5.3</mariaDB.version>
+        <mssql-jdbc.version>9.4.1.jre8</mssql-jdbc.version>
         <mysql-connector-java.version>8.0.17</mysql-connector-java.version>
-        <postgresql.version>42.2.16</postgresql.version>
+        <postgresql.version>42.3.1</postgresql.version>
         <postgresql-embedded.version>2.10</postgresql-embedded.version>
-        <testcontainers.version>1.15.3</testcontainers.version>
+        <testcontainers.version>1.16.2</testcontainers.version>
         <wix-embedded-mysql.version>4.6.1</wix-embedded-mysql.version>
 
         <!-- Plugin configuration -->
