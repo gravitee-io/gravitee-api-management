@@ -63,7 +63,7 @@ export class FilteredCatalogComponent implements OnInit {
   paginationData: any;
   options: any[];
   currentDisplay: string;
-  empty: boolean;
+  empty = true;
   category: Category;
   fragments: any = {
     pagination: 'pagination',
@@ -182,7 +182,6 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   async _loadPromotedApi(requestParams) {
-    this.empty = false;
     return this.apiService
       .getApis(requestParams)
       .toPromise()
@@ -191,15 +190,7 @@ export class FilteredCatalogComponent implements OnInit {
         if (promoted) {
           this.promotedMetrics = await this.apiService.getApiMetricsByApiId({ apiId: promoted.id }).toPromise();
           this.promotedApiPath = `/catalog/api/${promoted.id}`;
-        } else {
-          const key = this.inCategory() ? i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery}.emptyMessage`;
-          this.translateService
-            .get(key)
-            .toPromise()
-            .then((translation) => {
-              this.emptyMessage = translation;
-              this.empty = true;
-            });
+          this.empty = false;
         }
         return promoted;
       });
@@ -257,6 +248,9 @@ export class FilteredCatalogComponent implements OnInit {
       })
       .catch(() => {
         this.allApis = [];
+      })
+      .finally(() => {
+        this.updateEmptyState(this.allApis);
       });
   }
 
@@ -321,6 +315,17 @@ export class FilteredCatalogComponent implements OnInit {
     }
   }
 
+  get layoutClassName() {
+    const className = 'catalog__section';
+    const viewMode = this.hasRandomCardsAside() ? 'random-aside' : 'all';
+    const promotedMode = this.hasPromotedApiMode() ? 'promoted' : 'no-promoted';
+    return `${className}__${viewMode}__${promotedMode}`;
+  }
+
+  hasRandomCardsAside() {
+    return this.hasPromotedApiMode() && !this.empty && !this.inCategory() && !this.inCategoryAll();
+  }
+
   get showCards() {
     return this.currentDisplay === FilteredCatalogComponent.DEFAULT_DISPLAY;
   }
@@ -372,5 +377,16 @@ export class FilteredCatalogComponent implements OnInit {
 
   goToSearchByTag(tag: string) {
     this.router.navigate(['catalog/search'], { queryParams: { q: `labels:"${tag}"` } });
+  }
+
+  async updateEmptyState(data = []) {
+    const isEmpty = data.filter(Boolean).length === 0;
+    if (isEmpty) {
+      const key = this.inCategory() ? i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery}.emptyMessage`;
+      this.emptyMessage = await this.translateService.get(key).toPromise();
+      this.empty = true;
+    } else {
+      this.empty = false;
+    }
   }
 }
