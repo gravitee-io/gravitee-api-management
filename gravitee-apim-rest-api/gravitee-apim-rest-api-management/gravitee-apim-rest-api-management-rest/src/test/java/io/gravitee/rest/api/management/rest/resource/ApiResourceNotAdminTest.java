@@ -116,69 +116,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotAccessToApi_BecauseAccessIsNotGranted() {
-        final Response response = envTarget(API).request().get();
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
-    public void shouldGetApi_BecauseDirectMember() {
-        MembershipEntity userMembership = mock(MembershipEntity.class);
-        when(userMembership.getReferenceId()).thenReturn(API);
-        when(userMembership.getReferenceType()).thenReturn(MembershipReferenceType.API);
-        when(userMembership.getMemberType()).thenReturn(MembershipMemberType.USER);
-
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.API)
-            )
-        )
-            .thenReturn(Sets.newSet(userMembership));
-
-        final Response response = envTarget(API).request().get();
-
-        assertEquals(OK_200, response.getStatus());
-
-        final ApiEntity responseApi = response.readEntity(ApiEntity.class);
-        assertNotNull(responseApi);
-        assertEquals(API, responseApi.getName());
-    }
-
-    @Test
-    public void shouldGetApi_BecauseGroupMember() {
-        final String groupId = "group_id";
-        final String roleId = "role_id";
-        MembershipEntity groupMemberShip = mock(MembershipEntity.class);
-        when(groupMemberShip.getRoleId()).thenReturn(roleId);
-        when(groupMemberShip.getReferenceId()).thenReturn(groupId);
-        when(groupMemberShip.getReferenceType()).thenReturn(MembershipReferenceType.GROUP);
-
-        RoleEntity role = mock(RoleEntity.class);
-        when(role.getScope()).thenReturn(RoleScope.API);
-
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.API)
-            )
-        )
-            .thenReturn(Collections.emptySet());
-
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.GROUP)
-            )
-        )
-            .thenReturn(Sets.newSet(groupMemberShip));
-
-        when(roleService.findById(eq(roleId))).thenReturn(role);
-        when(apiService.searchIds(any())).thenReturn(Collections.singletonList(API));
-
+    public void shouldGetApi() {
         final Response response = envTarget(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
