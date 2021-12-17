@@ -16,6 +16,7 @@
 package io.gravitee.gateway.platform;
 
 import io.gravitee.definition.model.Policy;
+import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
@@ -40,6 +41,8 @@ public class PlatformPolicyManager extends DefaultPolicyManager {
     private Set<Policy> dependencies;
 
     public PlatformPolicyManager(
+        final boolean legacyMode,
+        final DefaultClassLoader classLoader,
         final PolicyFactory policyFactory,
         final PolicyConfigurationFactory policyConfigurationFactory,
         final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
@@ -48,6 +51,8 @@ public class PlatformPolicyManager extends DefaultPolicyManager {
         final ComponentProvider componentProvider
     ) {
         super(
+            legacyMode,
+            classLoader,
             policyFactory,
             policyConfigurationFactory,
             policyPluginManager,

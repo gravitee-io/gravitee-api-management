@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.connector.ConnectorRegistry;
+import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
@@ -89,6 +90,9 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 
     @Value("${handlers.request.headers.x-forwarded-prefix:false}")
     private boolean overrideXForwardedPrefix;
+
+    @Value("${classloader.legacy.enabled:true}")
+    private boolean classLoaderLegacyMode;
 
     @Override
     public ReactorHandler create(Api api) {
@@ -212,6 +216,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         );
 
         return new ApiPolicyManager(
+            classLoaderLegacyMode,
+            applicationContext.getBean(DefaultClassLoader.class),
             api,
             factory,
             policyConfigurationFactory,
@@ -240,7 +246,15 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
             beanNamesForType[0]
         );
 
-        return new ResourceManagerImpl(api, cpm, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
+        return new ResourceManagerImpl(
+            classLoaderLegacyMode,
+            applicationContext.getBean(DefaultClassLoader.class),
+            api,
+            cpm,
+            resourceClassLoaderFactory,
+            resourceConfigurationFactory,
+            applicationContext
+        );
     }
 
     public ResourceConfigurationFactory resourceConfigurationFactory() {

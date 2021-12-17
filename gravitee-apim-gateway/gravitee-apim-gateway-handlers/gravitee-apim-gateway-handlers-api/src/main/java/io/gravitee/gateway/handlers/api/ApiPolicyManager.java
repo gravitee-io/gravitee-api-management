@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api;
 
 import io.gravitee.definition.model.Policy;
+import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
@@ -36,6 +37,8 @@ public class ApiPolicyManager extends DefaultPolicyManager {
     private final Reactable reactable;
 
     public ApiPolicyManager(
+        final boolean legacyMode,
+        final DefaultClassLoader classLoader,
         final Reactable reactable,
         final PolicyFactory policyFactory,
         final PolicyConfigurationFactory policyConfigurationFactory,
@@ -45,6 +48,8 @@ public class ApiPolicyManager extends DefaultPolicyManager {
         final ComponentProvider componentProvider
     ) {
         super(
+            legacyMode,
+            classLoader,
             policyFactory,
             policyConfigurationFactory,
             policyPluginManager,
@@ -58,10 +63,5 @@ public class ApiPolicyManager extends DefaultPolicyManager {
     @Override
     protected Set<Policy> dependencies() {
         return reactable.dependencies(Policy.class);
-    }
-
-    @Override
-    protected ClassLoader getClassLoader() {
-        return reactable.getClass().getClassLoader();
     }
 }
