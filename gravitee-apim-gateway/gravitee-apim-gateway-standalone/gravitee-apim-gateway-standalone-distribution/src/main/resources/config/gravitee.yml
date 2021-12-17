@@ -390,3 +390,12 @@ ds:
 #  hazelcast:
 #    config:
 #      path: ${gravitee.home}/config/hazelcast.xml
+
+# Graceful shutdown.
+#gracefulShutdown:
+  # Default delay is 0 but it can be useful to set it to an adequate value depending on how much time the load balancer takes to stop routing traffic to a gateway instance which is shutting down.
+  # When SIGTERM is sent to the gateway, the shutdown process begin, each client will be explicitly asked for closing connection and the shutdown delay will be applied.
+  # The shutdown delay should allow enough time to client to close their current active connections and create new one. In the same time the load balancer should progressively stop routing traffic to the gateway.
+  # After the delay is expired, the gateway continue the shutdown process. Any pending request will have a chance to finish gracefully and the gateway will stop normally unless it takes too much time and a SIGKILL signal is sent to the gateway.
+#  delay: 0
+#  unit: MILLISECONDS
