@@ -23,14 +23,14 @@
     <parent>
         <groupId>io.gravitee.apim</groupId>
         <artifactId>gravitee-api-management</artifactId>
-        <version>3.5.26-SNAPSHOT</version>
+        <version>3.5.26</version>
     </parent>
 
     <groupId>io.gravitee.apim.repository</groupId>
     <artifactId>gravitee-apim-repository</artifactId>
     <packaging>pom</packaging>
 
-    <version>3.5.26-SNAPSHOT</version>
+    <version>3.5.26</version>
     <name>Gravitee.io APIM - Repository</name>
 
     <modules>
