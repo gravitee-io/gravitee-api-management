@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.spring;
 
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -49,6 +50,11 @@ public class ApiHandlerConfiguration {
     @Bean
     public ApiManager apiManager() {
         return new ApiManagerImpl();
+    }
+
+    @Bean
+    public DefaultClassLoader classLoader() {
+        return new DefaultClassLoader(this.getClass().getClassLoader());
     }
 
     @Bean

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.platform.spring;
 
+import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
@@ -35,6 +36,7 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +51,9 @@ public class PlatformConfiguration {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Value("${classloader.legacy.enabled:false}")
+    private boolean classLoaderLegacyMode;
 
     @Bean
     public OrganizationManager organizationManager(PlatformPolicyManager policyManager) {
@@ -82,6 +87,8 @@ public class PlatformConfiguration {
         );
 
         return new PlatformPolicyManager(
+            classLoaderLegacyMode,
+            applicationContext.getBean(DefaultClassLoader.class),
             factory,
             policyConfigurationFactory,
             cpm,
@@ -109,7 +116,15 @@ public class PlatformConfiguration {
             beanNamesForType[0]
         );
 
-        return new ResourceManagerImpl(null, cpm, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
+        return new ResourceManagerImpl(
+            classLoaderLegacyMode,
+            applicationContext.getBean(DefaultClassLoader.class),
+            null,
+            cpm,
+            resourceClassLoaderFactory,
+            resourceConfigurationFactory,
+            applicationContext
+        );
     }
 
     @Bean

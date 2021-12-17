@@ -17,9 +17,11 @@ package io.gravitee.gateway.resource.internal;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.plugins.resources.Resource;
+import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.gateway.resource.internal.legacy.LegacyResourceManagerImpl;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
@@ -38,196 +40,82 @@ import org.springframework.util.ClassUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceManager> implements ResourceLifecycleManager {
+public class ResourceManagerImpl extends LegacyResourceManagerImpl {
 
     private final Logger logger = LoggerFactory.getLogger(ResourceManagerImpl.class);
-
-    private final Map<String, io.gravitee.resource.api.Resource> resources = new HashMap<>();
-    private final Map<String, PluginClassLoader> classloaders = new HashMap<>();
-
-    private final Reactable reactable;
-    private final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager;
-    private final ResourceClassLoaderFactory resourceClassLoaderFactory;
-    private final ResourceConfigurationFactory resourceConfigurationFactory;
-    private final ApplicationContext applicationContext;
+    private final boolean legacyMode;
+    private final DefaultClassLoader classLoader;
 
     public ResourceManagerImpl(
+        final boolean legacyMode,
+        final DefaultClassLoader classLoader,
         final Reactable reactable,
         final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
         final ResourceClassLoaderFactory resourceClassLoaderFactory,
         final ResourceConfigurationFactory resourceConfigurationFactory,
         final ApplicationContext applicationContext
     ) {
-        this.reactable = reactable;
-        this.resourcePluginManager = resourcePluginManager;
-        this.resourceClassLoaderFactory = resourceClassLoaderFactory;
-        this.resourceConfigurationFactory = resourceConfigurationFactory;
-        this.applicationContext = applicationContext;
+        super(reactable, resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
+        this.legacyMode = legacyMode;
+        this.classLoader = classLoader;
     }
 
-    @Override
-    protected void doStart() throws Exception {
-        // Initialize required resources
-        initialize();
+    protected void initialize() {
+        if (legacyMode) {
+            super.initialize();
+        } else {
+            Set<Resource> resourceDeps = reactable.dependencies(Resource.class);
 
-        // Start resources
-        resources
-            .entrySet()
-            .stream()
-            .forEach(
+            resourceDeps.forEach(
                 resource -> {
-                    try {
-                        logger.info("Start resource {} [{}]", resource.getKey(), resource.getValue().getClass());
-                        resource.getValue().start();
-                    } catch (Exception ex) {
-                        logger.error("Unable to start resource", ex);
+                    final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
+                    if (resourcePlugin == null) {
+                        logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
+                        throw new IllegalStateException("Resource [" + resource.getType() + "] can not be found in plugin registry");
                     }
-                }
-            );
-    }
 
-    @Override
-    protected void doStop() throws Exception {
-        // Stop resources
-        resources
-            .entrySet()
-            .stream()
-            .forEach(
-                resource -> {
-                    try {
-                        logger.info("Stop resource {} [{}]", resource.getKey(), resource.getValue().getClass());
-                        resource.getValue().stop();
-                    } catch (Exception ex) {
-                        logger.error("Unable to stop resource", ex);
-                    }
-                }
-            );
-
-        // Close resource classLoaders
-        resources
-            .values()
-            .forEach(
-                resource -> {
-                    ClassLoader resourceClassLoader = resource.getClass().getClassLoader();
-                    if (resourceClassLoader instanceof PluginClassLoader) {
-                        try {
-                            ((PluginClassLoader) resourceClassLoader).close();
-                        } catch (IOException ioe) {
-                            logger.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
-                        }
-                    }
-                }
-            );
-
-        // Be sure to remove all references to resources
-        resources.clear();
-    }
-
-    private void initialize() {
-        Set<Resource> resourceDeps = reactable.dependencies(Resource.class);
-
-        resourceDeps.forEach(
-            resource -> {
-                final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
-                if (resourcePlugin == null) {
-                    logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
-                    throw new IllegalStateException("Resource [" + resource.getType() + "] can not be found in plugin registry");
-                }
-
-                PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
-                    resourcePlugin.id(),
-                    s -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
-                );
-
-                logger.debug("Loading resource {} for {}", resource.getName(), reactable);
-
-                try {
-                    Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
-                        resourcePlugin.resource().getName(),
-                        resourceClassLoader
+                    classLoader.addClassLoader(
+                        resourcePlugin.resource().getCanonicalName(),
+                        () -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
                     );
-                    Map<Class<?>, Object> injectables = new HashMap<>();
 
-                    if (resourcePlugin.configuration() != null) {
-                        Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<? extends ResourceConfiguration>) ClassUtils.forName(
-                            resourcePlugin.configuration().getName(),
-                            resourceClassLoader
+                    logger.debug("Loading resource {} for {}", resource.getName(), reactable);
+
+                    try {
+                        Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
+                            resourcePlugin.resource().getName(),
+                            classLoader
                         );
-                        injectables.put(
-                            resourceConfigurationClass,
-                            resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())
-                        );
-                    }
+                        Map<Class<?>, Object> injectables = new HashMap<>();
 
-                    io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
+                        if (resourcePlugin.configuration() != null) {
+                            Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<? extends ResourceConfiguration>) ClassUtils.forName(
+                                resourcePlugin.configuration().getName(),
+                                classLoader
+                            );
+                            injectables.put(
+                                resourceConfigurationClass,
+                                resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())
+                            );
+                        }
 
-                    if (resourceInstance instanceof ApplicationContextAware) {
-                        ((ApplicationContextAware) resourceInstance).setApplicationContext(applicationContext);
-                    }
+                        io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
 
-                    resources.put(resource.getName(), resourceInstance);
-                } catch (Exception ex) {
-                    logger.error("Unable to create resource", ex);
-                    if (resourceClassLoader != null) {
+                        if (resourceInstance instanceof ApplicationContextAware) {
+                            ((ApplicationContextAware) resourceInstance).setApplicationContext(applicationContext);
+                        }
+
+                        resources.put(resource.getName(), resourceInstance);
+                    } catch (Exception ex) {
+                        logger.error("Unable to create resource", ex);
                         try {
-                            resourceClassLoader.close();
+                            classLoader.removeClassLoader(resourcePlugin.resource().getCanonicalName());
                         } catch (IOException ioe) {
                             logger.error("Unable to close classloader for resource", ioe);
                         }
                     }
                 }
-            }
-        );
-    }
-
-    @Override
-    public Object getResource(String name) {
-        return resources.get(name);
-    }
-
-    @Override
-    public <T> T getResource(Class<T> requiredType) {
-        Optional<T> resource = (Optional<T>) resources
-            .values()
-            .stream()
-            .filter(resourceEntry -> resourceEntry.getClass().isAssignableFrom(requiredType))
-            .findFirst();
-
-        return resource.orElse(null);
-    }
-
-    @Override
-    public <T> T getResource(String name, Class<T> requiredType) {
-        Object resource = getResource(name);
-        if (resource == null) {
-            return null;
+            );
         }
-
-        if (requiredType.isAssignableFrom(resource.getClass())) {
-            return (T) resource;
-        } else {
-            throw new IllegalArgumentException("Required type parameter does not match the resource type");
-        }
-    }
-
-    @Override
-    public Class<?> getType(String name) {
-        io.gravitee.resource.api.Resource resource = (io.gravitee.resource.api.Resource) getResource(name);
-
-        if (resource != null) {
-            return resource.getClass();
-        }
-
-        return null;
-    }
-
-    @Override
-    public boolean containsResource(String name) {
-        return resources.containsKey(name);
-    }
-
-    @Override
-    public Collection<? extends io.gravitee.resource.api.Resource> getResources() {
-        return new ArrayList<>(resources.values());
     }
 }

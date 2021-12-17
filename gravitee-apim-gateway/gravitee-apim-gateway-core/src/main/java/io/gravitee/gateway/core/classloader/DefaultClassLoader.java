@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy.impl;
+package io.gravitee.gateway.core.classloader;
+
+import io.gravitee.plugin.core.api.PluginClassLoader;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * A classloader that delegates first to the parent and then to a delegate loader
@@ -21,28 +27,45 @@ package io.gravitee.gateway.policy.impl;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-class DelegatingClassLoader extends ClassLoader {
+public class DefaultClassLoader extends ClassLoader {
 
-    private final ClassLoader[] delegates;
+    private final Map<String, ClassLoader> delegates;
     private final ClassLoader mParentLoader;
 
     /**
      * Constructor for special classloader to give to proxy making code
      *
      * @param parent               the java-style classloader parent of this loader
-     * @param classLoaderDelegates other classloaders to delegate to
      */
-    DelegatingClassLoader(ClassLoader parent, ClassLoader... classLoaderDelegates) {
+    public DefaultClassLoader(ClassLoader parent) {
         super(parent);
-        delegates = classLoaderDelegates;
-
-        ClassLoader systemCL = getSystemClassLoader();
-        mParentLoader = (parent != null) ? parent : systemCL;
+        delegates = new ConcurrentHashMap<>();
+        mParentLoader = (parent != null) ? parent : getSystemClassLoader();
     }
 
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         return loadClass(name, false);
+    }
+
+    public boolean containsClassLoader(String name) {
+        return delegates.containsKey(name);
+    }
+
+    public void addClassLoader(String id, ClassLoader childClassLoader) {
+        delegates.putIfAbsent(id, childClassLoader);
+    }
+
+    public void addClassLoader(String id, Supplier<ClassLoader> childClassLoader) {
+        delegates.computeIfAbsent(id, key -> childClassLoader.get());
+    }
+
+    public void removeClassLoader(String id) throws IOException {
+        final ClassLoader classLoader = delegates.remove(id);
+
+        if (classLoader != null && classLoader instanceof PluginClassLoader) {
+            ((PluginClassLoader) classLoader).close();
+        }
     }
 
     @Override
@@ -91,7 +114,7 @@ class DelegatingClassLoader extends ClassLoader {
         boolean found = false;
         Class sharedClass = null;
 
-        for (ClassLoader classloader : delegates) {
+        for (ClassLoader classloader : delegates.values()) {
             try {
                 sharedClass = classloader.loadClass(name);
 
