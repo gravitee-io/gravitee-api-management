@@ -54,11 +54,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     AuditService auditService;
 
     @Override
-    public ApiHeaderEntity create(NewApiHeaderEntity newEntity) {
-        return this.create(newEntity, GraviteeContext.getCurrentEnvironment());
-    }
-
-    private ApiHeaderEntity create(NewApiHeaderEntity newEntity, String environmentId) {
+    public ApiHeaderEntity create(final String environmentId, NewApiHeaderEntity newEntity) {
         try {
             int order = apiHeaderRepository.findAllByEnvironment(environmentId).size() + 1;
 
@@ -72,6 +68,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
             apiHeader.setUpdatedAt(apiHeader.getCreatedAt());
 
             auditService.createEnvironmentAuditLog(
+                GraviteeContext.getCurrentEnvironment(),
                 Collections.singletonMap(API_HEADER, apiHeader.getId()),
                 API_HEADER_CREATED,
                 apiHeader.getCreatedAt(),
@@ -87,7 +84,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     }
 
     @Override
-    public void delete(String apiHeaderId) {
+    public void delete(final String environmentId, String apiHeaderId) {
         try {
             Optional<ApiHeader> optionalApiHeader = apiHeaderRepository.findById(apiHeaderId);
             if (!optionalApiHeader.isPresent()) {
@@ -97,6 +94,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
             apiHeaderRepository.delete(apiHeaderId);
 
             auditService.createEnvironmentAuditLog(
+                GraviteeContext.getCurrentEnvironment(),
                 Collections.singletonMap(API_HEADER, apiHeaderId),
                 API_HEADER_DELETED,
                 new Date(),
@@ -106,11 +104,11 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             //reorder headers
             int currentOrder = 1;
-            for (ApiHeaderEntity apiHeaderEntity : this.findAll()) {
+            for (ApiHeaderEntity apiHeaderEntity : this.findAll(environmentId)) {
                 if (apiHeaderEntity.getOrder() != currentOrder) {
                     UpdateApiHeaderEntity updateEntity = convert(apiHeaderEntity);
                     updateEntity.setOrder(currentOrder);
-                    this.update(updateEntity);
+                    this.update(environmentId, updateEntity);
                     break;
                 }
                 currentOrder++;
@@ -122,7 +120,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     }
 
     @Override
-    public ApiHeaderEntity update(UpdateApiHeaderEntity updateEntity) {
+    public ApiHeaderEntity update(final String environmentId, UpdateApiHeaderEntity updateEntity) {
         try {
             Optional<ApiHeader> optionalApiHeader = apiHeaderRepository.findById(updateEntity.getId());
             if (!optionalApiHeader.isPresent()) {
@@ -136,11 +134,12 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             if (updatedHeader.getOrder() != updateEntity.getOrder()) {
                 updatedHeader.setOrder(updateEntity.getOrder());
-                reorderAndSave(updatedHeader);
+                reorderAndSave(environmentId, updatedHeader);
                 return convert(updatedHeader);
             } else {
                 ApiHeader header = apiHeaderRepository.update(updatedHeader);
                 auditService.createEnvironmentAuditLog(
+                    GraviteeContext.getCurrentEnvironment(),
                     singletonMap(API_HEADER, header.getId()),
                     API_HEADER_UPDATED,
                     header.getUpdatedAt(),
@@ -156,10 +155,10 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     }
 
     @Override
-    public List<ApiHeaderEntity> findAll() {
+    public List<ApiHeaderEntity> findAll(final String environmentId) {
         try {
             return apiHeaderRepository
-                .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
+                .findAllByEnvironment(environmentId)
                 .stream()
                 .sorted(Comparator.comparingInt(ApiHeader::getOrder))
                 .map(this::convert)
@@ -170,9 +169,9 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
         }
     }
 
-    private void reorderAndSave(final ApiHeader headerToReorder) throws TechnicalException {
+    private void reorderAndSave(final String environmentId, final ApiHeader headerToReorder) throws TechnicalException {
         ApiHeader[] headers = apiHeaderRepository
-            .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
+            .findAllByEnvironment(environmentId)
             .stream()
             .filter(h -> !Objects.equals(h.getId(), headerToReorder.getId()))
             .sorted(Comparator.comparingInt(ApiHeader::getOrder))
@@ -201,15 +200,15 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
         h.setName("api.version");
         h.setValue("${api.version}");
-        this.create(h, environmentId);
+        create(environmentId, h);
 
         h.setName("api.owner");
         h.setValue("${api.primaryOwner.displayName}");
-        this.create(h, environmentId);
+        create(environmentId, h);
 
         h.setName("api.publishedAt");
         h.setValue("${(api.deployedAt?date)!}");
-        this.create(h, environmentId);
+        create(environmentId, h);
     }
 
     private ApiHeaderEntity convert(ApiHeader apiHeader) {

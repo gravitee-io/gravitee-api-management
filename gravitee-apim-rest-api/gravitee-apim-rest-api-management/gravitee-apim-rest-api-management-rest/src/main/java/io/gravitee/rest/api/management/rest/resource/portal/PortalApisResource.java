@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
 import java.util.Collection;
 import java.util.HashMap;
@@ -95,7 +96,7 @@ public class PortalApisResource extends AbstractResource {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
                 if (isAuthenticated()) {
                     apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, true);
-                } else if (configService.portalLoginForced()) {
+                } else if (configService.portalLoginForced(GraviteeContext.getCurrentEnvironment())) {
                     // if portal requires login, this endpoint should hide the APIS even PUBLIC ones
                     return Response.ok().entity(emptyList()).build();
                 } else {

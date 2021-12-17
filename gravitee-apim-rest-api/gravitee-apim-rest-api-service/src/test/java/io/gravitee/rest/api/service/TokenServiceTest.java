@@ -35,6 +35,7 @@ import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
 import io.gravitee.rest.api.service.impl.TokenServiceImpl;
 import java.util.Collection;
@@ -196,7 +197,15 @@ public class TokenServiceTest {
 
         tokenService.create(newToken);
 
-        verify(auditService).createEnvironmentAuditLog(anyMap(), eq(TOKEN_CREATED), any(Date.class), isNull(), any());
+        verify(auditService)
+            .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
+                anyMap(),
+                eq(TOKEN_CREATED),
+                any(Date.class),
+                isNull(),
+                any()
+            );
         verify(tokenRepository).create(any());
         verify(tokenRepository).findByReference(eq(USER.name()), eq(USER_ID));
     }
@@ -215,7 +224,15 @@ public class TokenServiceTest {
     public void shouldRevoke() throws TechnicalException {
         tokenService.revoke(TOKEN_ID);
 
-        verify(auditService).createEnvironmentAuditLog(anyMap(), eq(TOKEN_DELETED), any(Date.class), isNull(), eq(token));
+        verify(auditService)
+            .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
+                anyMap(),
+                eq(TOKEN_DELETED),
+                any(Date.class),
+                isNull(),
+                eq(token)
+            );
         verify(tokenRepository).delete(TOKEN_ID);
     }
 
@@ -225,7 +242,15 @@ public class TokenServiceTest {
 
         tokenService.revokeByUser(USER_ID);
 
-        verify(auditService).createEnvironmentAuditLog(anyMap(), eq(TOKEN_DELETED), any(Date.class), isNull(), eq(token));
+        verify(auditService)
+            .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
+                anyMap(),
+                eq(TOKEN_DELETED),
+                any(Date.class),
+                isNull(),
+                eq(token)
+            );
         verify(tokenRepository).delete(TOKEN_ID);
     }
 }

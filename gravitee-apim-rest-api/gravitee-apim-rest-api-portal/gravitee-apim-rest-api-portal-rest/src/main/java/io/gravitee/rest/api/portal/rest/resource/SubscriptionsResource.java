@@ -37,6 +37,7 @@ import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -131,7 +132,11 @@ public class SubscriptionsResource extends AbstractResource {
 
         final Map<String, Map<String, Object>> metadata = new HashMap<>();
         if (applicationId == null) {
-            final Set<ApplicationListItem> applications = applicationService.findByUser(getAuthenticatedUser());
+            final Set<ApplicationListItem> applications = applicationService.findByUser(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                getAuthenticatedUser()
+            );
             if (applications == null || applications.isEmpty()) {
                 return createListResponse(emptyList(), paginationParam, !withoutPagination);
             }

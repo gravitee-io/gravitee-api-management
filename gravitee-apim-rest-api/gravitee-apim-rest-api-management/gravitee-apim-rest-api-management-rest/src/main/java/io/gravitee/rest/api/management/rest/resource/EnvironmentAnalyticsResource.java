@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -101,7 +102,11 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 fieldName = APPLICATION_FIELD;
                 ids =
                     applicationService
-                        .findByUser(getAuthenticatedUser())
+                        .findByUser(
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment(),
+                            getAuthenticatedUser()
+                        )
                         .stream()
                         .map(ApplicationListItem::getId)
                         .filter(appId -> permissionService.hasPermission(APPLICATION_ANALYTICS, appId, READ))
@@ -170,9 +175,19 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 }
             case APPLICATION_FIELD:
                 if (isAdmin()) {
-                    return buildCountStat(applicationService.findAll().size());
+                    return buildCountStat(
+                        applicationService.findAll(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment()).size()
+                    );
                 } else {
-                    return buildCountStat(applicationService.findByUser(getAuthenticatedUser()).size());
+                    return buildCountStat(
+                        applicationService
+                            .findByUser(
+                                GraviteeContext.getCurrentOrganization(),
+                                GraviteeContext.getCurrentEnvironment(),
+                                getAuthenticatedUser()
+                            )
+                            .size()
+                    );
                 }
             default:
                 return analyticsService.execute(query);
@@ -214,7 +229,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
             query.setAggregations(aggregationList);
         }
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
     }
 
     private Analytics executeGroupBy(AnalyticsParam analyticsParam, String extraFilter) {
@@ -252,7 +267,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                     return getTopHitsAnalytics(api -> api.getLifecycleState().name());
                 }
             default:
-                return analyticsService.execute(query);
+                return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
         }
     }
 

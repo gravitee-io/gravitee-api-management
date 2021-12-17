@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -145,7 +146,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             auditService.createApiAuditLog(plan.getApi(), properties, APIKEY_RENEWED, newApiKey.getCreatedAt(), null, newApiKey);
 
             // Notification
-            final ApplicationEntity application = applicationService.findById(newApiKey.getApplication());
+            final ApplicationEntity application = applicationService.findById(
+                GraviteeContext.getCurrentEnvironment(),
+                newApiKey.getApplication()
+            );
             final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             final Map<String, Object> params = new NotificationParamsBuilder()
@@ -238,7 +242,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             // notify
             if (notify) {
-                final ApplicationEntity application = applicationService.findById(key.getApplication());
+                final ApplicationEntity application = applicationService.findById(
+                    GraviteeContext.getCurrentEnvironment(),
+                    key.getApplication()
+                );
                 final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 final Map<String, Object> params = new NotificationParamsBuilder()
@@ -474,7 +481,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             apiKeyRepository.update(key);
 
             //notify
-            final ApplicationEntity application = applicationService.findById(key.getApplication());
+            final ApplicationEntity application = applicationService.findById(
+                GraviteeContext.getCurrentEnvironment(),
+                key.getApplication()
+            );
             final PlanEntity plan = planService.findById(key.getPlan());
             final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();

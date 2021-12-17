@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.ws.rs.client.Entity;
@@ -285,7 +286,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveAllButPromotedApiIfCategoryWithoutHighLightedApi() throws TechnicalException {
-        doReturn(new CategoryEntity()).when(categoryService).findById("myCat");
+        doReturn(new CategoryEntity()).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
         final Response response = target()
             .queryParam("size", 3)
@@ -309,7 +310,7 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldHaveAllButPromotedApiIfCategoryWithHighLightedApi() throws TechnicalException {
         CategoryEntity myCatEntity = new CategoryEntity();
         myCatEntity.setHighlightApi("4");
-        doReturn(myCatEntity).when(categoryService).findById("myCat");
+        doReturn(myCatEntity).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
         final Response response = target()
             .queryParam("size", 3)
@@ -333,7 +334,7 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldHaveAllButPromotedApiIfCategoryWithHighLightedApiNotInFilteredList() throws TechnicalException {
         CategoryEntity myCatEntity = new CategoryEntity();
         myCatEntity.setHighlightApi("7");
-        doReturn(myCatEntity).when(categoryService).findById("myCat");
+        doReturn(myCatEntity).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
         final Response response = target()
             .queryParam("size", 3)
@@ -370,7 +371,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldHavePromotedApiIfCategoryWithoutHighLightedApi() throws TechnicalException {
-        doReturn(new CategoryEntity()).when(categoryService).findById("myCat");
+        doReturn(new CategoryEntity()).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
         final Response response = target()
             .queryParam("size", 3)
@@ -394,7 +395,7 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldHavePromotedApiIfCategoryWithHighLightedApi() throws TechnicalException {
         CategoryEntity myCatEntity = new CategoryEntity();
         myCatEntity.setHighlightApi("4");
-        doReturn(myCatEntity).when(categoryService).findById("myCat");
+        doReturn(myCatEntity).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
         final Response response = target()
             .queryParam("size", 3)
@@ -418,7 +419,7 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldHavePromotedApiIfCategoryWithHighLightedApiNotInFilteredList() throws TechnicalException {
         CategoryEntity myCatEntity = new CategoryEntity();
         myCatEntity.setHighlightApi("7");
-        doReturn(myCatEntity).when(categoryService).findById("myCat");
+        doReturn(myCatEntity).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
         final Response response = target()
             .queryParam("size", 3)

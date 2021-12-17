@@ -24,6 +24,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 import java.util.Date;
 import java.util.List;
@@ -50,7 +51,7 @@ public class CategoryService_FindTest {
     public void shouldDoNothingWithEmptyResult() throws TechnicalException {
         when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(emptySet());
 
-        List<CategoryEntity> list = categoryService.findAll();
+        List<CategoryEntity> list = categoryService.findAll(GraviteeContext.getCurrentEnvironment());
 
         assertTrue(list.isEmpty());
         verify(mockCategoryRepository, times(1)).findAllByEnvironment(any());
@@ -68,7 +69,7 @@ public class CategoryService_FindTest {
         when(category.getCreatedAt()).thenReturn(new Date(9876543210L));
         when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(singleton(category));
 
-        List<CategoryEntity> list = categoryService.findAll();
+        List<CategoryEntity> list = categoryService.findAll(GraviteeContext.getCurrentEnvironment());
 
         assertFalse(list.isEmpty());
         assertEquals("one element", 1, list.size());

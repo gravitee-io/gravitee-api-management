@@ -92,7 +92,7 @@ public class ApiResource extends AbstractResource {
                 List<Page> pages = pageService
                     .search(new PageQuery.Builder().api(apiId).published(true).build(), GraviteeContext.getCurrentEnvironment())
                     .stream()
-                    .filter(page -> accessControlService.canAccessPageFromPortal(page))
+                    .filter(page -> accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), page))
                     .map(pageMapper::convert)
                     .collect(Collectors.toList());
                 api.setPages(pages);
@@ -223,7 +223,7 @@ public class ApiResource extends AbstractResource {
                 GraviteeContext.getCurrentEnvironment()
             )
             .stream()
-            .filter(accessControlService::canAccessPageFromPortal)
+            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity))
             .filter(p -> !PageType.FOLDER.name().equals(p.getType()) && !PageType.MARKDOWN_TEMPLATE.name().equals(p.getType()))
             .map(
                 p -> {

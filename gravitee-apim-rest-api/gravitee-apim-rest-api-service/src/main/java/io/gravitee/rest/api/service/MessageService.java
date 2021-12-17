@@ -17,8 +17,6 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.plan.PlanQuery;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -28,26 +26,29 @@ import java.util.Set;
 public interface MessageService {
     /**
      * send a message to api consumers according to recipients filters
+     * @param environmentId
      * @param apiId api id
      * @param message message
      * @return the number of recipients
      */
-    int create(String apiId, MessageEntity message);
+    int create(final String environmentId, String apiId, MessageEntity message);
 
     /**
      * send a message to all users according to recipients filters
+     * @param environmentId
      * @param message message
      * @return the number of recipients
      */
-    int create(MessageEntity message);
+    int create(final String environmentId, MessageEntity message);
 
     /**
      * get the user ids of recipients
+     * @param environment
      * @param api api
      * @param message message
      * @return a user id list
      */
-    Set<String> getRecipientsId(Api api, MessageEntity message);
+    Set<String> getRecipientsId(final String environment, Api api, MessageEntity message);
 
     /**
      * get the user ids of recipients

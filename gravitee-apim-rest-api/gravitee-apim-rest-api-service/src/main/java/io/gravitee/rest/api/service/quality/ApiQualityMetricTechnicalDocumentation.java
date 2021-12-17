@@ -38,13 +38,10 @@ public class ApiQualityMetricTechnicalDocumentation implements ApiQualityMetric 
     }
 
     @Override
-    public boolean isValid(ApiEntity api) {
+    public boolean isValid(ApiEntity api, final String environmentId) {
         return (
             pageService
-                .search(
-                    new PageQuery.Builder().api(api.getId()).published(true).type(PageType.SWAGGER).build(),
-                    GraviteeContext.getCurrentEnvironment()
-                )
+                .search(new PageQuery.Builder().api(api.getId()).published(true).type(PageType.SWAGGER).build(), environmentId)
                 .size() >
             0L
         );

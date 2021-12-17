@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
@@ -63,7 +64,7 @@ public class CategoryResource extends AbstractCategoryResource {
     )
     public CategoryEntity getCategory() {
         boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
-        CategoryEntity category = categoryService.findById(categoryId);
+        CategoryEntity category = categoryService.findById(categoryId, GraviteeContext.getCurrentEnvironment());
 
         if (!canShowCategory && category.isHidden()) {
             throw new UnauthorizedAccessException();
@@ -79,7 +80,7 @@ public class CategoryResource extends AbstractCategoryResource {
     @ApiOperation(value = "Get the category's picture", notes = "User must have the PORTAL_CATEGORY[READ] permission to use this service")
     @ApiResponses({ @ApiResponse(code = 200, message = "Category's picture"), @ApiResponse(code = 500, message = "Internal server error") })
     public Response getCategoryPicture(@Context Request request) throws CategoryNotFoundException {
-        return getImageResponse(request, categoryService.getPicture(categoryId));
+        return getImageResponse(request, categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), categoryId));
     }
 
     @GET
@@ -89,12 +90,12 @@ public class CategoryResource extends AbstractCategoryResource {
         { @ApiResponse(code = 200, message = "Category's background"), @ApiResponse(code = 500, message = "Internal server error") }
     )
     public Response getCategoryBackground(@Context Request request) throws CategoryNotFoundException {
-        return getImageResponse(request, categoryService.getBackground(categoryId));
+        return getImageResponse(request, categoryService.getBackground(GraviteeContext.getCurrentEnvironment(), categoryId));
     }
 
     private Response getImageResponse(Request request, InlinePictureEntity image) {
         boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
-        CategoryEntity category = categoryService.findById(categoryId);
+        CategoryEntity category = categoryService.findById(categoryId, GraviteeContext.getCurrentEnvironment());
 
         if (!canShowCategory && category.isHidden()) {
             throw new UnauthorizedAccessException();

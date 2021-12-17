@@ -175,7 +175,7 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn("/context");
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
 
-        when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 
@@ -319,6 +319,8 @@ public class ApiService_CreateTest {
 
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
@@ -345,7 +347,7 @@ public class ApiService_CreateTest {
         user.setSourceId("ref-user");
         when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
         when(userService.findById(admin.getId())).thenReturn(admin);
-        when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
@@ -368,9 +370,20 @@ public class ApiService_CreateTest {
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(admin.getId());
         memberEntity.setRoles(Collections.singletonList(poRoleEntity));
-        when(membershipService.addRoleToMemberOnReference(any(), any(), any())).thenReturn(memberEntity);
         when(
             membershipService.addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                any(),
+                any()
+            )
+        )
+            .thenReturn(memberEntity);
+        when(
+            membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 MembershipReferenceType.API,
                 API_ID,
                 MembershipMemberType.USER,
@@ -385,15 +398,32 @@ public class ApiService_CreateTest {
         verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(admin.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
         verify(membershipService, times(1))
-            .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
+            .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                user.getId(),
+                "API_OWNER"
+            );
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
-        verify(membershipService, never()).transferApiOwnership(any(), any(), any());
+        verify(membershipService, never())
+            .transferApiOwnership(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                any(),
+                any()
+            );
         verify(genericNotificationConfigService, times(1)).create(any());
     }
 }

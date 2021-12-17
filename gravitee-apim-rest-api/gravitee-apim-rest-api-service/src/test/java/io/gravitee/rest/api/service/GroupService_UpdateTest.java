@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
 import java.util.Collections;
 import java.util.Optional;
@@ -79,7 +80,7 @@ public class GroupService_UpdateTest {
         when(permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, "DEFAULT", CREATE, UPDATE, DELETE)).thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
-        groupService.update(GROUP_ID, updatedGroupEntity);
+        groupService.update(GraviteeContext.getCurrentEnvironment(), GROUP_ID, updatedGroupEntity);
 
         verify(groupRepository)
             .update(
@@ -98,6 +99,8 @@ public class GroupService_UpdateTest {
 
         verify(membershipService)
             .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 argThat(
                     membershipReference ->
                         membershipReference.getType() == MembershipReferenceType.API && membershipReference.getId() == null
@@ -123,9 +126,24 @@ public class GroupService_UpdateTest {
         when(permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, "DEFAULT", CREATE, UPDATE, DELETE)).thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
-        groupService.update(GROUP_ID, updatedGroupEntity);
+        groupService.update(GraviteeContext.getCurrentEnvironment(), GROUP_ID, updatedGroupEntity);
 
-        verify(membershipService, never()).deleteReferenceMember(any(), any(), any(), any());
-        verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
+        verify(membershipService, never())
+            .deleteReferenceMember(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                any(),
+                any(),
+                any()
+            );
+        verify(membershipService, never())
+            .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                any(),
+                any()
+            );
     }
 }

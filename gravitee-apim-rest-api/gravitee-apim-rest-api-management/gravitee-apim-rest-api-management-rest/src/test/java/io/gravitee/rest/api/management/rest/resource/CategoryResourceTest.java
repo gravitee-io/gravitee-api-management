@@ -23,6 +23,7 @@ import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.UpdateCategoryEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -55,7 +56,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
         mockCategory.setId(CATEGORY);
         mockCategory.setName(CATEGORY);
         mockCategory.setUpdatedAt(new Date());
-        doReturn(mockCategory).when(categoryService).findById(CATEGORY);
+        doReturn(mockCategory).when(categoryService).findById(CATEGORY, GraviteeContext.getCurrentEnvironment());
 
         updateCategoryEntity = new UpdateCategoryEntity();
         updateCategoryEntity.setDescription("toto");

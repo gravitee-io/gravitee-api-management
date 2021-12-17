@@ -22,8 +22,8 @@ import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
-import java.net.URI;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -62,7 +62,7 @@ public class GroupsResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroups() {
-        return Response.ok(groupService.findAll()).build();
+        return Response.ok(groupService.findAll(GraviteeContext.getCurrentEnvironment())).build();
     }
 
     @POST
@@ -74,7 +74,7 @@ public class GroupsResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE) })
     public Response createGroup(@ApiParam(name = "group", required = true) @Valid @NotNull final NewGroupEntity newGroupEntity) {
-        GroupEntity groupEntity = groupService.create(newGroupEntity);
+        GroupEntity groupEntity = groupService.create(GraviteeContext.getCurrentEnvironment(), newGroupEntity);
         if (groupEntity != null) {
             return Response.created(this.getLocationHeader(groupEntity.getId())).entity(groupEntity).build();
         }

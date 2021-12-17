@@ -93,7 +93,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                     .stream()
                     .map(MembershipEntity::getMemberId)
                     .collect(Collectors.toSet());
-                final GroupEntity group = groupService.findById(invitation.getReferenceId());
+                final GroupEntity group = groupService.findById(GraviteeContext.getCurrentEnvironment(), invitation.getReferenceId());
                 if (groupUsers.contains(user.getId())) {
                     throw new MemberEmailAlreadyExistsException(invitation.getEmail());
                 }
@@ -188,6 +188,8 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         }
         if (defaultRoleName != null) {
             membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipReference(MembershipReferenceType.valueOf(referenceType), referenceId),
                 new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(roleScope, defaultRoleName)
@@ -198,7 +200,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
     private void sendGroupInvitationEmail(NewInvitationEntity invitation) {
         final UserEntity userEntity = new UserEntity();
         userEntity.setEmail(invitation.getEmail());
-        final GroupEntity group = groupService.findById(invitation.getReferenceId());
+        final GroupEntity group = groupService.findById(GraviteeContext.getCurrentEnvironment(), invitation.getReferenceId());
         emailService.sendEmailNotification(
             new EmailNotificationBuilder()
                 .to(invitation.getEmail())

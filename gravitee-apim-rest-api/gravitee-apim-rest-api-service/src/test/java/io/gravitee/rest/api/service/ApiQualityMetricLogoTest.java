@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLogo;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +52,7 @@ public class ApiQualityMetricLogoTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertFalse(valid);
     }
@@ -65,7 +65,7 @@ public class ApiQualityMetricLogoTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertTrue(valid);
     }

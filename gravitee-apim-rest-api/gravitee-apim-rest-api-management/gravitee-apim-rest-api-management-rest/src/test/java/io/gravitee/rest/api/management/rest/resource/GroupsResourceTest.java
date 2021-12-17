@@ -17,16 +17,14 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.NewGroupEntity;
-import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
-import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
-import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
-import java.util.Collections;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -52,7 +50,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         GroupEntity createdGroup = new GroupEntity();
         createdGroup.setId("my-group-id");
-        doReturn(createdGroup).when(groupService).create(any());
+        doReturn(createdGroup).when(groupService).create(eq(GraviteeContext.getCurrentEnvironment()), any());
 
         final Response response = envTarget().request().post(Entity.json(newGroupEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());

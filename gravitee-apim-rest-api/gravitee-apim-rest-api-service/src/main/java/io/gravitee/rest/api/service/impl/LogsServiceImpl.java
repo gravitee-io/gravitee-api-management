@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.log.extended.Response;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.*;
@@ -320,7 +321,7 @@ public class LogsServiceImpl implements LogsService {
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApplicationEntity applicationEntity = applicationService.findById(application);
+                    ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
                     metadata.put(METADATA_NAME, applicationEntity.getName());
                     if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
                         metadata.put(METADATA_DELETED, Boolean.TRUE.toString());

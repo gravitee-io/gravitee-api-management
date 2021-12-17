@@ -25,7 +25,7 @@ import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.GroupEventRule;
 import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,7 +69,7 @@ public class GroupService_FindByEventTest {
 
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
-        Set<GroupEntity> groupEntities = groupService.findByEvent(API_CREATE);
+        Set<GroupEntity> groupEntities = groupService.findByEvent(GraviteeContext.getCurrentEnvironment(), API_CREATE);
 
         assertNotNull(groupEntities);
         assertFalse(groupEntities.isEmpty());
@@ -91,7 +91,7 @@ public class GroupService_FindByEventTest {
         findAll.add(grp2);
         when(groupRepository.findAllByEnvironment(any())).thenReturn(findAll);
 
-        Set<GroupEntity> groupEntities = groupService.findByEvent(API_CREATE);
+        Set<GroupEntity> groupEntities = groupService.findByEvent(GraviteeContext.getCurrentEnvironment(), API_CREATE);
 
         assertNotNull(groupEntities);
         assertTrue(groupEntities.isEmpty());

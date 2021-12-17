@@ -27,6 +27,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -89,7 +90,8 @@ public class ApisResource extends AbstractResource {
             if (isCategoryMode) {
                 // If apis are searched in a category, looks for the category highlighted API (HL API) and if this HL API is in the searchResult.
                 // If it is, then the HL API becomes the promoted API
-                String highlightedApiId = this.categoryService.findById(categoryFilter).getHighlightApi();
+                String highlightedApiId =
+                    this.categoryService.findById(categoryFilter, GraviteeContext.getCurrentEnvironment()).getHighlightApi();
                 if (highlightedApiId != null) {
                     Optional<ApiEntity> highlightedApiInResult = filteredApisList
                         .stream()

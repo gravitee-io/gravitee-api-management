@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.model.TokenReferenceType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.TokenService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
 import java.util.*;
@@ -81,6 +82,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             final String decodedToken = UUID.toString(UUID.random());
             final Token token = convert(newToken, TokenReferenceType.USER, username, passwordEncoder.encode(decodedToken));
             auditService.createEnvironmentAuditLog(
+                GraviteeContext.getCurrentEnvironment(),
                 Collections.singletonMap(TOKEN, token.getId()),
                 TOKEN_CREATED,
                 token.getCreatedAt(),
@@ -108,6 +110,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             if (tokenOptional.isPresent()) {
                 tokenRepository.delete(tokenId);
                 auditService.createEnvironmentAuditLog(
+                    GraviteeContext.getCurrentEnvironment(),
                     Collections.singletonMap(TOKEN, tokenId),
                     TOKEN_DELETED,
                     new Date(),

@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.analytics.query.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AnalyticsService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
 import java.util.List;
 import java.util.Map;
@@ -135,7 +136,7 @@ public class ApiAnalyticsResource extends AbstractResource {
 
             query.setAggregations(aggregationList);
         }
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
     }
 
     private Analytics executeGroupBy(String api, AnalyticsParam analyticsParam) {
@@ -162,6 +163,6 @@ public class ApiAnalyticsResource extends AbstractResource {
 
             query.setGroups(rangeMap);
         }
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
     }
 }

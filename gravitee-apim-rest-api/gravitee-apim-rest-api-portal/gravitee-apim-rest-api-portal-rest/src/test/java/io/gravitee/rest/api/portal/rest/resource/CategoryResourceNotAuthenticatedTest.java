@@ -24,6 +24,7 @@ import static org.mockito.Mockito.doReturn;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Category;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.Principal;
@@ -94,7 +95,7 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setId(CATEGORY_ID);
         categoryEntity.setHidden(false);
-        doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID);
+        doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
 
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
@@ -107,7 +108,7 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         final Response response = target(CATEGORY_ID).request().get();
         assertEquals(OK_200, response.getStatus());
 
-        Mockito.verify(categoryService).findNotHiddenById(CATEGORY_ID);
+        Mockito.verify(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
         Mockito.verify(apiService).findPublishedByUser(null);
         Mockito.verify(categoryService).getTotalApisByCategory(any(), any());
         Mockito.verify(categoryMapper).convert(any(), any());

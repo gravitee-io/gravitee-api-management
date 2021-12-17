@@ -15,14 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
-import io.gravitee.rest.api.model.api.header.UpdateApiHeaderEntity;
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +42,7 @@ public class DefaultApiHeaderUpgrader implements Upgrader, Ordered {
     @Override
     public boolean upgrade() {
         // Initialize default headers
-        if (apiHeaderService.findAll().size() == 0) {
+        if (apiHeaderService.findAll(GraviteeContext.getCurrentEnvironment()).size() == 0) {
             logger.info("Create default API Headers configuration for default environment");
             apiHeaderService.initialize(GraviteeContext.getDefaultEnvironment());
         }

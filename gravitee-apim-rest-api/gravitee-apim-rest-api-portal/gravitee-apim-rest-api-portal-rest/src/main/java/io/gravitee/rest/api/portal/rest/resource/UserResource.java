@@ -28,6 +28,7 @@ import io.gravitee.rest.api.portal.rest.model.UserInput;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.net.URI;
@@ -75,7 +76,8 @@ public class UserResource extends AbstractResource {
             User currentUser = userMapper.convert(userEntity);
             boolean withManagement = (authenticatedUser != null && permissionService.hasManagementRights(authenticatedUser));
             if (withManagement) {
-                Management managementConfig = this.configService.getConsoleSettings().getManagement();
+                Management managementConfig =
+                    this.configService.getConsoleSettings(GraviteeContext.getCurrentOrganization()).getManagement();
                 if (managementConfig != null && managementConfig.getUrl() != null) {
                     UserConfig userConfig = new UserConfig();
                     userConfig.setManagementUrl(managementConfig.getUrl());

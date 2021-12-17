@@ -24,6 +24,7 @@ import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import java.util.List;
 import javax.inject.Inject;
@@ -58,7 +59,7 @@ public class PageResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
-        if (accessControlService.canAccessPageFromPortal(pageEntity)) {
+        if (accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity)) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
             }
@@ -89,7 +90,7 @@ public class PageResource extends AbstractResource {
     public Response getPageContentByPageId(@PathParam("pageId") String pageId) {
         PageEntity pageEntity = pageService.findById(pageId, null);
 
-        if (accessControlService.canAccessPageFromPortal(pageEntity)) {
+        if (accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity)) {
             pageService.transformWithTemplate(pageEntity, null);
             return Response.ok(pageEntity.getContent()).build();
         } else {

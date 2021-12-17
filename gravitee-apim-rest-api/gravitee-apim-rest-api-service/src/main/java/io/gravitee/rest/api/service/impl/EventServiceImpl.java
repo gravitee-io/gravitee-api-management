@@ -78,7 +78,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity create(NewEventEntity newEventEntity) {
+    public EventEntity create(final Set<String> environmentsIds, NewEventEntity newEventEntity) {
         String hostAddress = "";
         try {
             hostAddress = InetAddress.getLocalHost().getHostAddress();
@@ -86,7 +86,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             Event event = convert(newEventEntity);
             event.setId(UuidString.generateRandom());
-            event.setEnvironments(Collections.singleton(GraviteeContext.getCurrentEnvironment()));
+            event.setEnvironments(environmentsIds);
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
             // Set date fields
@@ -109,12 +109,12 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity create(EventType type, String payload, Map<String, String> properties) {
+    public EventEntity create(final Set<String> environmentsIds, EventType type, String payload, Map<String, String> properties) {
         NewEventEntity event = new NewEventEntity();
         event.setType(type);
         event.setPayload(payload);
         event.setProperties(properties);
-        return create(event);
+        return create(environmentsIds, event);
     }
 
     @Override
@@ -128,19 +128,16 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         }
     }
 
-    private Set<EventEntity> findByProperty(String property, String value) {
-        return convert(
-            eventRepository.search(
-                new EventCriteria.Builder()
-                    .environments(Collections.singletonList(GraviteeContext.getCurrentEnvironment()))
-                    .property(property, value)
-                    .build()
-            )
-        );
-    }
-
     @Override
-    public Page<EventEntity> search(List<EventType> eventTypes, Map<String, Object> properties, long from, long to, int page, int size) {
+    public Page<EventEntity> search(
+        List<EventType> eventTypes,
+        Map<String, Object> properties,
+        long from,
+        long to,
+        int page,
+        int size,
+        final List<String> environmentsIds
+    ) {
         EventCriteria.Builder builder = new EventCriteria.Builder().from(from).to(to);
 
         if (eventTypes != null) {
@@ -156,7 +153,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             properties.forEach(builder::property);
         }
 
-        builder.environments(Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
+        builder.environments(environmentsIds);
 
         Page<Event> pageEvent = eventRepository.search(builder.build(), new PageableBuilder().pageNumber(page).pageSize(size).build());
 
@@ -173,9 +170,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         long to,
         int page,
         int size,
-        Function<EventEntity, T> mapper
+        Function<EventEntity, T> mapper,
+        final List<String> environmentsIds
     ) {
-        return search(eventTypes, properties, from, to, page, size, mapper, (T t) -> true);
+        return search(eventTypes, properties, from, to, page, size, mapper, (T t) -> true, environmentsIds);
     }
 
     @Override
@@ -187,9 +185,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         int page,
         int size,
         Function<EventEntity, T> mapper,
-        Predicate<T> filter
+        Predicate<T> filter,
+        final List<String> environmentsIds
     ) {
-        Page<EventEntity> result = search(eventTypes, properties, from, to, page, size);
+        Page<EventEntity> result = search(eventTypes, properties, from, to, page, size, environmentsIds);
         return new Page<>(
             result.getContent().stream().map(mapper).filter(filter).collect(Collectors.toList()),
             page,
@@ -206,7 +205,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     private EventCriteria.Builder queryToCriteria(EventQuery query) {
         final EventCriteria.Builder builder = new EventCriteria.Builder()
-        .environments(Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
+        // FIXME: Move this environments filter to EventQuery
+            .environments(Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
         if (query == null) {
             return builder;
         }

@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.*;
 import java.io.IOException;
@@ -84,9 +85,13 @@ public class ApiPageMediaResource extends AbstractResource {
     ) throws IOException {
         final String mediaId;
 
-        if (request.getContentLength() > this.mediaService.getMediaMaxSize()) {
+        if (request.getContentLength() > this.mediaService.getMediaMaxSize(GraviteeContext.getCurrentEnvironment())) {
             throw new UploadUnauthorized(
-                "Max size is " + this.mediaService.getMediaMaxSize() + "bytes. Actual size is " + request.getContentLength() + "bytes."
+                "Max size is " +
+                this.mediaService.getMediaMaxSize(GraviteeContext.getCurrentEnvironment()) +
+                "bytes. Actual size is " +
+                request.getContentLength() +
+                "bytes."
             );
         }
         final String originalFileName = fileDetail.getFileName();

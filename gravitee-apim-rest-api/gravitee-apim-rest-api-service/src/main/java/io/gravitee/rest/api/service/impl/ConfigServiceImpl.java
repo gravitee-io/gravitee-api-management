@@ -30,7 +30,6 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,9 +67,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private static final String SENSITIVE_VALUE = "********";
 
     @Override
-    public boolean portalLoginForced() {
+    public boolean portalLoginForced(final String environmentId) {
         boolean result = false;
-        final PortalAuthentication auth = getPortalSettings().getAuthentication();
+        final PortalAuthentication auth = getPortalSettings(environmentId).getAuthentication();
         if (auth.getForceLogin() != null) {
             result = auth.getForceLogin().isEnabled();
         }
@@ -78,13 +77,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     @Override
-    public PortalConfigEntity getPortalConfig() {
-        return MAPPER.convertValue(getPortalSettings(), PortalConfigEntity.class);
-    }
-
-    @Override
-    public PortalSettingsEntity getPortalSettings() {
-        return this.getPortalSettings(GraviteeContext.getCurrentEnvironment());
+    public PortalConfigEntity getPortalConfig(final String environmentId) {
+        return MAPPER.convertValue(getPortalSettings(environmentId), PortalConfigEntity.class);
     }
 
     @Override
@@ -99,17 +93,12 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     @Override
-    public ConsoleConfigEntity getConsoleConfig() {
-        return MAPPER.convertValue(getConsoleSettings(), ConsoleConfigEntity.class);
+    public ConsoleConfigEntity getConsoleConfig(final String organizationId) {
+        return MAPPER.convertValue(getConsoleSettings(organizationId), ConsoleConfigEntity.class);
     }
 
     @Override
-    public ConsoleSettingsEntity getConsoleSettings() {
-        return this.getConsoleSettings(GraviteeContext.getCurrentOrganization());
-    }
-
-    @Override
-    public ConsoleSettingsEntity getConsoleSettings(String organizationId) {
+    public ConsoleSettingsEntity getConsoleSettings(final String organizationId) {
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
         Object[] objects = getObjectArray(consoleConfigEntity);
 
@@ -269,15 +258,15 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     @Override
-    public void save(PortalSettingsEntity portalSettingsEntity) {
+    public void save(final String environmentId, PortalSettingsEntity portalSettingsEntity) {
         Object[] objects = getObjectArray(portalSettingsEntity);
-        saveConfigByReference(objects, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT);
+        saveConfigByReference(objects, environmentId, ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override
-    public void save(ConsoleSettingsEntity consoleSettingsEntity) {
+    public void save(final String organizationId, ConsoleSettingsEntity consoleSettingsEntity) {
         Object[] objects = getObjectArray(consoleSettingsEntity);
-        saveConfigByReference(objects, GraviteeContext.getCurrentOrganization(), ParameterReferenceType.ORGANIZATION);
+        saveConfigByReference(objects, organizationId, ParameterReferenceType.ORGANIZATION);
     }
 
     private void saveConfigByReference(Object[] objects, String referenceId, ParameterReferenceType referenceType) {
