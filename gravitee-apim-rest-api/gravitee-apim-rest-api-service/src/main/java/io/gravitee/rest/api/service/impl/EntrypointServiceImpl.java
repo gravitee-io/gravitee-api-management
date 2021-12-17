@@ -94,8 +94,8 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         try {
             final Entrypoint entrypoint = convert(entrypointEntity, referenceId, referenceType);
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
-            auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+            auditService.createOrganizationAuditLog(
+                referenceId,
                 Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
                 ENTRYPOINT_CREATED,
                 new Date(),
@@ -127,8 +127,8 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 entrypoint.setReferenceId(existingEntrypoint.getReferenceId());
                 entrypoint.setReferenceType(existingEntrypoint.getReferenceType());
                 final EntrypointEntity savedEntryPoint = convert(entrypointRepository.update(entrypoint));
-                auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                auditService.createOrganizationAuditLog(
+                    referenceId,
                     Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
                     ENTRYPOINT_UPDATED,
                     new Date(),
@@ -155,8 +155,8 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
             );
             if (entrypointOptional.isPresent()) {
                 entrypointRepository.delete(entrypointId);
-                auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                auditService.createOrganizationAuditLog(
+                    referenceId,
                     Collections.singletonMap(ENTRYPOINT, entrypointId),
                     ENTRYPOINT_DELETED,
                     new Date(),
