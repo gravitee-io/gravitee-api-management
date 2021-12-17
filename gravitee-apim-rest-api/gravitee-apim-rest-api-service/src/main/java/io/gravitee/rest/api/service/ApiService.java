@@ -158,4 +158,6 @@ public interface ApiService {
 
     ApiEntity migrate(String api);
     String getConfigurationSchema();
+
+    boolean canManageApi(RoleEntity role);
 }

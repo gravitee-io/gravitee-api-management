@@ -25,14 +25,18 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.management.model.Role;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -122,10 +126,19 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApi_BecauseDirectMember() {
+        String userRoleId = "role-id";
+
+        RoleEntity userRole = mock(RoleEntity.class);
+        when(userRole.getScope()).thenReturn(RoleScope.API);
+        when(userRole.getId()).thenReturn(userRoleId);
+
+        when(roleService.findById(userRoleId)).thenReturn(userRole);
+
+        when(apiService.canManageApi(userRole)).thenReturn(true);
+
         MembershipEntity userMembership = mock(MembershipEntity.class);
         when(userMembership.getReferenceId()).thenReturn(API);
-        when(userMembership.getReferenceType()).thenReturn(MembershipReferenceType.API);
-        when(userMembership.getMemberType()).thenReturn(MembershipMemberType.USER);
+        when(userMembership.getRoleId()).thenReturn(userRoleId);
 
         when(
             membershipService.getMembershipsByMemberAndReference(
@@ -134,7 +147,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
                 eq(MembershipReferenceType.API)
             )
         )
-            .thenReturn(Sets.newSet(userMembership));
+            .thenReturn(Set.of(userMembership));
 
         final Response response = envTarget(API).request().get();
 
@@ -177,6 +190,8 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
         when(role.getScope()).thenReturn(RoleScope.API);
         when(roleService.findById(eq(roleId))).thenReturn(role);
+
+        when(apiService.canManageApi(role)).thenReturn(true);
 
         mockApi.setGroups(Collections.singleton(groupId));
 
