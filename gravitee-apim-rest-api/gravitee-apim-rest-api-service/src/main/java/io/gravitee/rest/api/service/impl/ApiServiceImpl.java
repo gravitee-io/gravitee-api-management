@@ -20,6 +20,8 @@ import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
+import static io.gravitee.rest.api.model.MembershipMemberType.USER;
+import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
@@ -912,7 +914,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private Api findApiById(String apiId) {
         try {
             Optional<Api> optApi = apiRepository.findById(apiId);
-
             if (optApi.isPresent()) {
                 return optApi.get();
             }
@@ -948,6 +949,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final String[] userApiIds = membershipService
                 .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
                 .stream()
+                .filter(membership -> membership.getRoleId() != null)
+                .filter(
+                    membership -> {
+                        final RoleEntity role = roleService.findById(membership.getRoleId());
+                        if (!portal) {
+                            return canManageApi(role);
+                        }
+                        return role.getScope().equals(RoleScope.API);
+                    }
+                )
                 .map(MembershipEntity::getReferenceId)
                 .filter(
                     apiId -> {
@@ -969,21 +980,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final String[] groupIds = membershipService
                 .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
                 .stream()
+                .filter(membership -> membership.getRoleId() != null)
                 .filter(
-                    m -> {
-                        final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
+                    membership -> {
+                        final RoleEntity role = roleService.findById(membership.getRoleId());
                         if (!portal) {
-                            return (
-                                m.getRoleId() != null &&
-                                roleInGroup.getScope().equals(RoleScope.API) &&
-                                canManageApi(roleInGroup.getPermissions())
-                            );
+                            return canManageApi(role);
                         }
-                        return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
+                        return role.getScope().equals(RoleScope.API);
                     }
                 )
                 .map(MembershipEntity::getReferenceId)
                 .toArray(String[]::new);
+
             if (groupIds.length > 0 && groupIds[0] != null) {
                 groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
             }
@@ -1020,19 +1029,29 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return allApis.stream().distinct().collect(toList());
     }
 
-    private boolean canManageApi(Map<String, char[]> permissions) {
-        return permissions
-            .entrySet()
-            .stream()
-            .filter(
-                entry -> !entry.getKey().equals(ApiPermission.RATING.name()) && !entry.getKey().equals(ApiPermission.RATING_ANSWER.name())
-            )
-            .anyMatch(
-                entry -> {
-                    String stringPerm = new String(entry.getValue());
-                    return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
-                }
-            );
+    @Override
+    public boolean canManageApi(RoleEntity role) {
+        return (
+            role.getScope().equals(RoleScope.API) &&
+            role
+                .getPermissions()
+                .entrySet()
+                .stream()
+                .filter(entry -> isManagementPermission(entry.getKey()))
+                .anyMatch(
+                    entry -> {
+                        String stringPerm = new String(entry.getValue());
+                        return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
+                    }
+                )
+        );
+    }
+
+    private boolean isManagementPermission(String permissionAsString) {
+        return Arrays
+            .stream(ApiPermission.values())
+            .filter(permission -> permission != ApiPermission.RATING && permission != ApiPermission.RATING_ANSWER)
+            .anyMatch(permission -> permission.name().equals(permissionAsString));
     }
 
     @Override
