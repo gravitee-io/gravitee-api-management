@@ -26,7 +26,7 @@
 	<parent>
         <groupId>io.gravitee.apim.rest.api.portal</groupId>
         <artifactId>gravitee-apim-rest-api-portal</artifactId>
-        <version>3.5.26</version>
+        <version>3.5.27-SNAPSHOT</version>
     </parent>
 
 	<artifactId>gravitee-apim-rest-api-portal-security</artifactId>
