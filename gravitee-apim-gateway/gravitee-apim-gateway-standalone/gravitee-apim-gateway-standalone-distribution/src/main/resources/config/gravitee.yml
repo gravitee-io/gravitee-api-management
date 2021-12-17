@@ -414,3 +414,9 @@ api:
   # After the delay is expired, the gateway continue the shutdown process. Any pending request will have a chance to finish gracefully and the gateway will stop normally unless it takes too much time and a SIGKILL signal is sent to the gateway.
 #  delay: 0
 #  unit: MILLISECONDS
+
+# Since v3.15.0, a new internal classloader used to load api policies is in place.
+# Setting it to true or removing this setting will switch back to the legacy mode used prior the v3.15.0.
+classloader:
+  legacy:
+    enabled: false

@@ -15,10 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.PolicyMetadata;
-import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.policy.*;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,8 +39,8 @@ public class CachedPolicyFactory implements PolicyFactory {
     @Override
     public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
         return policies.computeIfAbsent(
-            getKey(streamType, policyMetadata, policyConfiguration, null),
-            k -> delegate.create(streamType, policyMetadata, policyConfiguration)
+                getKey(streamType, policyMetadata, policyConfiguration, null),
+                k -> delegate.create(streamType, policyMetadata, policyConfiguration)
         );
     }
 
@@ -62,13 +59,13 @@ public class CachedPolicyFactory implements PolicyFactory {
 
     private String getKey(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
         return (
-            getHashCode(streamType) +
-            "-" +
-            getHashCode(policyMetadata) +
-            "-" +
-            getHashCode(policyConfiguration) +
-            "-" +
-            getHashCode(condition)
+                getHashCode(streamType) +
+                        "-" +
+                        getHashCode(policyMetadata) +
+                        "-" +
+                        getHashCode(policyConfiguration) +
+                        "-" +
+                        getHashCode(condition)
         );
     }
 
@@ -79,6 +76,7 @@ public class CachedPolicyFactory implements PolicyFactory {
 
         return o.hashCode();
     }
+
     public void clear() {
         policies.clear();
     }
