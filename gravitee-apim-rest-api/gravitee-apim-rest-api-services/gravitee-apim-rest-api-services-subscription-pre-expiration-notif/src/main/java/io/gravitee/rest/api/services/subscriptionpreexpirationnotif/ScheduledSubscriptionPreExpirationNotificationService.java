@@ -143,7 +143,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         SubscriptionEntity subscription = subscriptionService.findById(apiKey.getSubscription());
         ApiEntity api = apiService.findById(subscription.getApi());
         PlanEntity plan = planService.findById(subscription.getPlan());
-        ApplicationEntity application = applicationService.findById(subscription.getApplication());
+        ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication());
 
         findEmailsToNotify(subscription, application)
             .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, apiKey));
@@ -155,7 +155,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         ApiEntity api = apiService.findById(subscription.getApi());
         PlanEntity plan = planService.findById(subscription.getPlan());
 
-        ApplicationEntity application = applicationService.findById(subscription.getApplication());
+        ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication());
 
         findEmailsToNotify(subscription, application)
             .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, null));

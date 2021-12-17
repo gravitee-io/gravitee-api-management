@@ -143,7 +143,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         if (application != null && !application.trim().isEmpty()) {
             query.setApplication(application);
         } else if (isAuthenticated()) {
-            Set<ApplicationListItem> applications = applicationService.findByUser(getAuthenticatedUsername());
+            Set<ApplicationListItem> applications = applicationService.findByUser(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                getAuthenticatedUsername()
+            );
             query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toList()));
         }
 
@@ -227,7 +231,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             }
 
-            ApplicationEntity applicationEntity = applicationService.findById(application);
+            ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
             if (ApplicationStatus.ARCHIVED.name().equals(applicationEntity.getStatus())) {
                 throw new ApplicationArchivedException(applicationEntity.getName());
             }
@@ -507,7 +511,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             subscription = subscriptionRepository.update(subscription);
 
-            final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+            final ApplicationEntity application = applicationService.findById(
+                GraviteeContext.getCurrentEnvironment(),
+                subscription.getApplication()
+            );
             final PlanEntity plan = planService.findById(subscription.getPlan());
             final String apiId = plan.getApi();
             final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
@@ -624,7 +631,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription = subscriptionRepository.update(subscription);
 
                     // Send an email to subscriber
-                    final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+                    final ApplicationEntity application = applicationService.findById(
+                        GraviteeContext.getCurrentEnvironment(),
+                        subscription.getApplication()
+                    );
                     final PlanEntity plan = planService.findById(subscription.getPlan());
                     String apiId = plan.getApi();
                     final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
@@ -700,7 +710,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription = subscriptionRepository.update(subscription);
 
                 // Send an email to subscriber
-                final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+                final ApplicationEntity application = applicationService.findById(
+                    GraviteeContext.getCurrentEnvironment(),
+                    subscription.getApplication()
+                );
                 final PlanEntity plan = planService.findById(subscription.getPlan());
                 String apiId = plan.getApi();
                 final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
@@ -769,7 +782,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription = subscriptionRepository.update(subscription);
 
                 // Send an email to subscriber
-                final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+                final ApplicationEntity application = applicationService.findById(
+                    GraviteeContext.getCurrentEnvironment(),
+                    subscription.getApplication()
+                );
                 final PlanEntity plan = planService.findById(subscription.getPlan());
                 String apiId = plan.getApi();
                 final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
@@ -1037,7 +1053,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 apiKeyService.update(apiKey);
             }
 
-            final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+            final ApplicationEntity application = applicationService.findById(
+                GraviteeContext.getCurrentEnvironment(),
+                subscription.getApplication()
+            );
             final PlanEntity plan = planService.findById(subscription.getPlan());
             final String apiId = plan.getApi();
             final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
@@ -1140,7 +1159,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         subscriptions.forEach(
             subscription -> {
                 if (!metadata.containsKey(subscription.getApplication())) {
-                    ApplicationEntity applicationEntity = applicationService.findById(subscription.getApplication());
+                    ApplicationEntity applicationEntity = applicationService.findById(
+                        GraviteeContext.getCurrentEnvironment(),
+                        subscription.getApplication()
+                    );
                     metadata.put(subscription.getApplication(), "name", applicationEntity.getName());
                 }
 

@@ -26,21 +26,17 @@ import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
  * @author GraviteeSource Team
  */
 public interface ConfigService {
-    boolean portalLoginForced();
+    boolean portalLoginForced(final String environmentId);
 
-    PortalSettingsEntity getPortalSettings();
+    PortalSettingsEntity getPortalSettings(final String environmentId);
 
-    PortalSettingsEntity getPortalSettings(String environmentId);
+    void save(final String environment, PortalSettingsEntity portalSettingsEntity);
 
-    void save(PortalSettingsEntity portalSettingsEntity);
+    ConsoleSettingsEntity getConsoleSettings(final String organizationId);
 
-    ConsoleSettingsEntity getConsoleSettings();
+    void save(final String organization, ConsoleSettingsEntity consoleSettingsEntity);
 
-    ConsoleSettingsEntity getConsoleSettings(String organizationId);
+    ConsoleConfigEntity getConsoleConfig(final String organizationId);
 
-    void save(ConsoleSettingsEntity consoleSettingsEntity);
-
-    ConsoleConfigEntity getConsoleConfig();
-
-    PortalConfigEntity getPortalConfig();
+    PortalConfigEntity getPortalConfig(final String environmentId);
 }

@@ -47,6 +47,7 @@ public interface AuditService {
     );
 
     void createEnvironmentAuditLog(
+        final String environmentId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
         Date createdAt,
@@ -55,6 +56,7 @@ public interface AuditService {
     );
 
     void createOrganizationAuditLog(
+        final String organization,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
         Date createdAt,

@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.annotations.*;
@@ -80,7 +81,7 @@ public class ApiMembersResource extends AbstractResource {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                permissions = membershipService.getUserMemberPermissions(apiEntity, userId);
+                permissions = membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), apiEntity, userId);
             }
         }
         return Response.ok(permissions).build();
@@ -139,13 +140,31 @@ public class ApiMembersResource extends AbstractResource {
 
         MemberEntity membership = null;
         if (apiMembership.getId() != null) {
-            MemberEntity userMember = membershipService.getUserMember(MembershipReferenceType.API, api, apiMembership.getId());
+            MemberEntity userMember = membershipService.getUserMember(
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                api,
+                apiMembership.getId()
+            );
             if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
-                membership = membershipService.updateRoleToMemberOnReference(reference, member, role);
+                membership =
+                    membershipService.updateRoleToMemberOnReference(
+                        GraviteeContext.getCurrentOrganization(),
+                        GraviteeContext.getCurrentEnvironment(),
+                        reference,
+                        member,
+                        role
+                    );
             }
         }
         if (membership == null) {
-            membershipService.addRoleToMemberOnReference(reference, member, role);
+            membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                reference,
+                member,
+                role
+            );
         }
 
         return Response.status(Response.Status.CREATED).build();
@@ -176,6 +195,8 @@ public class ApiMembersResource extends AbstractResource {
 
         apiService.findById(api);
         membershipService.transferApiOwnership(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             api,
             new MembershipService.MembershipMember(
                 transferOwnership.getId(),
@@ -205,7 +226,14 @@ public class ApiMembersResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        membershipService.deleteReferenceMember(MembershipReferenceType.API, api, MembershipMemberType.USER, userId);
+        membershipService.deleteReferenceMember(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            MembershipReferenceType.API,
+            api,
+            MembershipMemberType.USER,
+            userId
+        );
         return Response.ok().build();
     }
 }

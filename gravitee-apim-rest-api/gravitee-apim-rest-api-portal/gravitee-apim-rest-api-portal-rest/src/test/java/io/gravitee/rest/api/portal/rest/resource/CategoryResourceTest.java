@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import java.io.File;
 import java.io.IOException;
@@ -68,7 +69,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setId(CATEGORY_ID);
         categoryEntity.setHidden(false);
-        doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID);
+        doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
 
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
@@ -79,7 +80,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
         apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
-        doReturn(mockImage).when(categoryService).getPicture(CATEGORY_ID);
+        doReturn(mockImage).when(categoryService).getPicture(GraviteeContext.getCurrentEnvironment(), CATEGORY_ID);
     }
 
     @Test
@@ -87,7 +88,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
         final Response response = target(CATEGORY_ID).request().get();
         assertEquals(OK_200, response.getStatus());
 
-        Mockito.verify(categoryService).findNotHiddenById(CATEGORY_ID);
+        Mockito.verify(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
         Mockito.verify(apiService).findPublishedByUser(USER_NAME);
         Mockito.verify(categoryService).getTotalApisByCategory(any(), any());
         Mockito.verify(categoryMapper).convert(any(), any());
@@ -98,7 +99,9 @@ public class CategoryResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetCategory() {
-        doThrow(new CategoryNotFoundException(UNKNOWN_CATEGORY)).when(categoryService).findNotHiddenById(UNKNOWN_CATEGORY);
+        doThrow(new CategoryNotFoundException(UNKNOWN_CATEGORY))
+            .when(categoryService)
+            .findNotHiddenById(UNKNOWN_CATEGORY, GraviteeContext.getCurrentEnvironment());
 
         final Response response = target(UNKNOWN_CATEGORY).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());

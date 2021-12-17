@@ -28,12 +28,9 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -92,7 +89,8 @@ public class ApiEventsResource extends AbstractResource {
             eventSearchParam.getFrom(),
             eventSearchParam.getTo(),
             eventSearchParam.getPage(),
-            eventSearchParam.getSize()
+            eventSearchParam.getSize(),
+            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
         apiEvents

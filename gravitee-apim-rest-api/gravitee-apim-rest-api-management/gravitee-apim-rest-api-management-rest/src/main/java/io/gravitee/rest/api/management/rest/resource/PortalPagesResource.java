@@ -332,14 +332,14 @@ public class PortalPagesResource extends AbstractResource {
     }
 
     private boolean isDisplayable(PageEntity pageEntity) {
-        if (!isAuthenticated() && configService.portalLoginForced()) {
+        if (!isAuthenticated() && configService.portalLoginForced(GraviteeContext.getCurrentEnvironment())) {
             // if portal requires login, this endpoint should hide the api pages even PUBLIC ones
             return false;
         } else if (isAuthenticated() && isAdmin()) {
             // if user is org admin
             return true;
         } else {
-            return accessControlService.canAccessPageFromPortal(pageEntity);
+            return accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity);
         }
     }
 

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
 import java.util.Set;
@@ -50,7 +51,10 @@ public class ApplicationService_FindByGroupTest {
 
     @Test
     public void shouldTryFindByGroup() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findByGroups(Collections.singletonList(GROUP_ID));
+        Set<ApplicationListItem> set = applicationService.findByGroups(
+            GraviteeContext.getCurrentOrganization(),
+            Collections.singletonList(GROUP_ID)
+        );
         assertNotNull(set);
         assertTrue("result is empty", set.isEmpty());
         verify(applicationRepository, times(1)).findByGroups(Collections.singletonList(GROUP_ID), ApplicationStatus.ACTIVE);

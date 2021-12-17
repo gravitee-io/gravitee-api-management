@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.observers.TestObserver;
 import java.util.List;
@@ -111,6 +112,8 @@ public class MembershipCommandHandlerTest {
 
         verify(membershipService)
             .updateRolesToMemberOnReference(
+                eq("orga#1"),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 membershipReference.capture(),
                 membershipMember.capture(),
                 membershipRoles.capture(),
@@ -169,6 +172,8 @@ public class MembershipCommandHandlerTest {
 
         verify(membershipService)
             .updateRolesToMemberOnReference(
+                eq("orga#1"),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 membershipReference.capture(),
                 membershipMember.capture(),
                 membershipRoles.capture(),
@@ -227,6 +232,8 @@ public class MembershipCommandHandlerTest {
 
         verify(membershipService)
             .updateRolesToMemberOnReference(
+                eq("orga#1"),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 membershipReference.capture(),
                 membershipMember.capture(),
                 membershipRoles.capture(),

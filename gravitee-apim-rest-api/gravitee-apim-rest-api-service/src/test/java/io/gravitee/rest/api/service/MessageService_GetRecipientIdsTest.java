@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
 import io.gravitee.rest.api.service.impl.MessageServiceImpl;
 import java.util.*;
@@ -89,7 +90,7 @@ public class MessageService_GetRecipientIdsTest {
         try {
             Api api = new Api();
             api.setId(apiId);
-            messageService.getRecipientsId(api, message);
+            messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, message);
             fail("should throw MessageRecipientFormatException");
         } catch (MessageRecipientFormatException ex) {
             // ok
@@ -113,7 +114,7 @@ public class MessageService_GetRecipientIdsTest {
 
         messageService.getRecipientsId(messageEntity);
 
-        verify(mockGroupService, never()).findById(any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, never()).getMembershipsByReferencesAndRole(any(), any(), any());
         verify(mockRoleService, never()).findByScopeAndName(any(), any());
@@ -142,7 +143,7 @@ public class MessageService_GetRecipientIdsTest {
         assertNotNull("not null", recipientIds);
         assertEquals("size=1", 1, recipientIds.size());
         assertTrue("user=user-id", recipientIds.contains("user-id"));
-        verify(mockGroupService, never()).findById(any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
         verify(mockMembershipService, times(1)).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, never()).getMembershipsByReferencesAndRole(any(), any(), any());
         verify(mockRoleService, times(1)).findByScopeAndName(RoleScope.ENVIRONMENT, "API_PUBLISHER");
@@ -165,9 +166,9 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_PUBLISHER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        messageService.getRecipientsId(api, messageEntity);
+        messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
 
-        verify(mockGroupService, never()).findById(any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, never()).getMembershipsByReferencesAndRole(any(), any(), any());
         verify(mockRoleService, never()).findByScopeAndName(any(), any());
@@ -206,13 +207,13 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("OWNER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(api, messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
 
         // then
         assertNotNull("not null", recipientIds);
         assertEquals("size=1", 1, recipientIds.size());
         assertTrue("user=user-id", recipientIds.contains("user-id"));
-        verify(mockGroupService, never()).findById(any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, times(1)).getMembershipsByReferencesAndRole(any(), any(), any());
         verify(mockRoleService, times(1)).findByScopeAndName(RoleScope.APPLICATION, "OWNER");
@@ -260,7 +261,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("OWNER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(api, messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
 
         // then
         assertNotNull("not null", recipientIds);
@@ -302,7 +303,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_SUBSCRIBERS"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(api, messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
 
         // then
         assertNotNull("not null", recipientIds);

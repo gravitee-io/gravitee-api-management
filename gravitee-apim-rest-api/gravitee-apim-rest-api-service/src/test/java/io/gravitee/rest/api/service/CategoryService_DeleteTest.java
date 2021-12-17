@@ -23,8 +23,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 import java.util.Optional;
 import org.junit.Test;
@@ -60,19 +59,22 @@ public class CategoryService_DeleteTest {
 
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, never()).delete(any());
-        verify(mockAuditService, never()).createEnvironmentAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
+        verify(mockAuditService, never()).createEnvironmentAuditLog(any(), any(), eq(CATEGORY_UPDATED), any(), any(), any());
         verify(mockApiService, never()).deleteCategoryFromAPIs(eq("unknown"));
     }
 
     @Test
     public void shouldDeleteCategory() throws TechnicalException {
-        when(mockCategoryRepository.findById("known")).thenReturn(Optional.of(new Category()));
+        Category categoryToDelete = new Category();
+        categoryToDelete.setId("known");
+        categoryToDelete.setEnvironmentId("DEFAULT");
+        when(mockCategoryRepository.findById("known")).thenReturn(Optional.of(categoryToDelete));
 
         categoryService.delete("known");
 
         verify(mockCategoryRepository, times(1)).findById("known");
         verify(mockCategoryRepository, times(1)).delete("known");
-        verify(mockAuditService, times(1)).createEnvironmentAuditLog(any(), eq(CATEGORY_DELETED), any(), any(), any());
+        verify(mockAuditService, times(1)).createEnvironmentAuditLog(eq("DEFAULT"), any(), eq(CATEGORY_DELETED), any(), any(), any());
         verify(mockApiService, times(1)).deleteCategoryFromAPIs(eq("known"));
     }
 }

@@ -31,10 +31,7 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
@@ -122,7 +119,12 @@ public class ApplicationService_UpdateTest {
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
-        final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
+        final ApplicationEntity applicationEntity = applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            existingApplication
+        );
 
         verify(applicationRepository)
             .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
@@ -135,7 +137,12 @@ public class ApplicationService_UpdateTest {
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
 
-        applicationService.update(APPLICATION_ID, existingApplication);
+        applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            existingApplication
+        );
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -152,7 +159,12 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getDescription()).thenReturn("My description");
 
-        applicationService.update(APPLICATION_ID, existingApplication);
+        applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            existingApplication
+        );
     }
 
     @Test
@@ -187,7 +199,12 @@ public class ApplicationService_UpdateTest {
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
-        final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
+        final ApplicationEntity applicationEntity = applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            existingApplication
+        );
 
         verify(applicationRepository)
             .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
@@ -218,6 +235,11 @@ public class ApplicationService_UpdateTest {
 
         when(existingApplication.getSettings()).thenReturn(settings);
 
-        applicationService.update(APPLICATION_ID, existingApplication);
+        applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            existingApplication
+        );
     }
 }

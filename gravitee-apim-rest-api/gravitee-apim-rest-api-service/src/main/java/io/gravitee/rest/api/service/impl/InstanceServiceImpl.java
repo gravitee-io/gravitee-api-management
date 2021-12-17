@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import java.io.IOException;
@@ -119,7 +120,8 @@ public class InstanceServiceImpl implements InstanceService {
                     return item;
                 }
             },
-            filter
+            filter,
+            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
     }
 

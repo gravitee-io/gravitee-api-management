@@ -30,11 +30,13 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -95,7 +97,8 @@ public class PlatformEventsResource extends AbstractResource {
             eventSearchParam.getFrom(),
             eventSearchParam.getTo(),
             eventSearchParam.getPage(),
-            eventSearchParam.getSize()
+            eventSearchParam.getSize(),
+            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
         events

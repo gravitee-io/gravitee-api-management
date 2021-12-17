@@ -25,6 +25,7 @@ import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import java.util.Collections;
@@ -66,7 +67,7 @@ public class ApiPageResource extends AbstractResource {
 
             PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
-            if (accessControlService.canAccessPageFromPortal(apiId, pageEntity)) {
+            if (accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), apiId, pageEntity)) {
                 pageService.transformSwagger(pageEntity, apiId);
 
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
@@ -102,7 +103,7 @@ public class ApiPageResource extends AbstractResource {
         apiQuery.setIds(Collections.singletonList(apiId));
         if (accessControlService.canAccessApiFromPortal(apiId)) {
             PageEntity pageEntity = pageService.findById(pageId, null);
-            if (accessControlService.canAccessPageFromPortal(apiId, pageEntity)) {
+            if (accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), apiId, pageEntity)) {
                 pageService.transformSwagger(pageEntity, apiId);
                 return Response.ok(pageEntity.getContent()).build();
             } else {

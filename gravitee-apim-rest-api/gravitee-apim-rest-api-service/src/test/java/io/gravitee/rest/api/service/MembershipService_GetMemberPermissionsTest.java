@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
 import java.util.*;
 import org.junit.Test;
@@ -81,7 +82,11 @@ public class MembershipService_GetMemberPermissionsTest {
                 API_ID
             );
 
-        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(api, USERNAME);
+        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
+            GraviteeContext.getCurrentEnvironment(),
+            api,
+            USERNAME
+        );
 
         assertNotNull(permissions);
         assertTrue(permissions.isEmpty());
@@ -125,7 +130,11 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(rolePerms).when(roleEntity).getPermissions();
         doReturn(roleEntity).when(roleService).findById("API_" + ROLENAME);
 
-        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(api, USERNAME);
+        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
+            GraviteeContext.getCurrentEnvironment(),
+            api,
+            USERNAME
+        );
 
         assertNotNull(permissions);
         assertPermissions(rolePerms, permissions);
@@ -188,7 +197,11 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(RoleScope.API).when(roleEntity).getScope();
         doReturn(roleEntity).when(roleService).findById("API_" + ROLENAME);
 
-        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(api, USERNAME);
+        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
+            GraviteeContext.getCurrentEnvironment(),
+            api,
+            USERNAME
+        );
 
         assertNotNull(permissions);
         assertPermissions(rolePerms, permissions);
@@ -263,7 +276,11 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(RoleScope.API).when(roleEntity2).getScope();
         doReturn(roleEntity2).when(roleService).findById("API_" + ROLENAME2);
 
-        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(api, USERNAME);
+        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
+            GraviteeContext.getCurrentEnvironment(),
+            api,
+            USERNAME
+        );
 
         assertNotNull(permissions);
         Map<String, char[]> expectedPermissions = new HashMap<>();

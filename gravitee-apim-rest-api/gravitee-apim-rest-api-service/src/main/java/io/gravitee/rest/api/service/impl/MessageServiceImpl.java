@@ -124,7 +124,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public int create(String apiId, MessageEntity message) {
+    public int create(final String environmentId, String apiId, MessageEntity message) {
         assertMessageNotEmpty(message);
         try {
             Optional<Api> optionalApi = apiRepository.findById(apiId);
@@ -133,7 +133,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             }
             Api api = optionalApi.get();
 
-            int msgSize = send(api, message, getRecipientsId(api, message));
+            int msgSize = send(api, message, getRecipientsId(environmentId, api, message));
 
             auditService.createApiAuditLog(apiId, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
             return msgSize;
@@ -144,12 +144,12 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public int create(MessageEntity message) {
+    public int create(final String environmentId, MessageEntity message) {
         assertMessageNotEmpty(message);
 
         int msgSize = send(null, message, getRecipientsId(message));
 
-        auditService.createEnvironmentAuditLog(Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
+        auditService.createEnvironmentAuditLog(environmentId, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
         return msgSize;
     }
 
@@ -166,6 +166,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                             .param("message", message.getText())
                             .param("messageSubject", message.getTitle())
                             .build(),
+                        // FIXME: Remove this context
                         GraviteeContext.getCurrentContext()
                     );
                 }
@@ -217,11 +218,11 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         if (MessageChannel.HTTP.equals(message.getChannel())) {
             return Collections.singleton(message.getRecipient().getUrl());
         }
-        return getRecipientsId(null, message);
+        return getRecipientsId(GraviteeContext.getCurrentEnvironment(), null, message);
     }
 
     @Override
-    public Set<String> getRecipientsId(Api api, MessageEntity message) {
+    public Set<String> getRecipientsId(final String environmentId, Api api, MessageEntity message) {
         if (message != null && MessageChannel.HTTP.equals(message.getChannel())) {
             return Collections.singleton(message.getRecipient().getUrl());
         }
@@ -244,11 +245,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                     if (optRole.isPresent()) {
                         recipientIds.addAll(
                             membershipService
-                                .getMembershipsByReferenceAndRole(
-                                    MembershipReferenceType.ENVIRONMENT,
-                                    GraviteeContext.getCurrentEnvironment(),
-                                    optRole.get().getId()
-                                )
+                                .getMembershipsByReferenceAndRole(MembershipReferenceType.ENVIRONMENT, environmentId, optRole.get().getId())
                                 .stream()
                                 .map(MembershipEntity::getMemberId)
                                 .collect(Collectors.toSet())

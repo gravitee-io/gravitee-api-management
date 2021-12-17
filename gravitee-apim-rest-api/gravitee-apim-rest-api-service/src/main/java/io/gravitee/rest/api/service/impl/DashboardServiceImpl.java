@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.DashboardService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.DashboardNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -127,6 +128,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             final List<Dashboard> dashboards = dashboardRepository.findByReferenceType(dashboardEntity.getReferenceType().name());
             Dashboard dashboard = dashboardRepository.create(convert(dashboardEntity, dashboards));
             auditService.createEnvironmentAuditLog(
+                GraviteeContext.getCurrentEnvironment(),
                 Collections.singletonMap(DASHBOARD, dashboard.getId()),
                 DASHBOARD_CREATED,
                 dashboard.getCreatedAt(),
@@ -154,6 +156,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                     savedDashboard = convert(dashboardRepository.update(dashboard));
                 }
                 auditService.createEnvironmentAuditLog(
+                    GraviteeContext.getCurrentEnvironment(),
                     Collections.singletonMap(DASHBOARD, dashboard.getId()),
                     DASHBOARD_UPDATED,
                     new Date(),
@@ -234,6 +237,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 dashboardRepository.delete(dashboardId);
                 reorderAndSaveDashboards(dashboardOptional.get(), true);
                 auditService.createEnvironmentAuditLog(
+                    GraviteeContext.getCurrentEnvironment(),
                     Collections.singletonMap(DASHBOARD, dashboardId),
                     DASHBOARD_DELETED,
                     new Date(),

@@ -30,7 +30,7 @@ public class ApiQualityMetricLabels implements ApiQualityMetric {
     }
 
     @Override
-    public boolean isValid(ApiEntity api) {
+    public boolean isValid(ApiEntity api, final String environmentId) {
         return api.getLabels() != null && !api.getLabels().isEmpty();
     }
 }

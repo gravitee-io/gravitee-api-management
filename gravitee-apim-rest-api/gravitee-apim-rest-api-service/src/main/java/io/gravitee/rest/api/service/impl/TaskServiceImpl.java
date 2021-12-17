@@ -21,7 +21,6 @@ import static io.gravitee.rest.api.model.permissions.ApiPermission.*;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.UserCriteria;
@@ -227,7 +226,10 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                     final SubscriptionEntity subscription = (SubscriptionEntity) data;
 
                     if (!metadata.containsKey(subscription.getApplication())) {
-                        ApplicationEntity applicationEntity = applicationService.findById(subscription.getApplication());
+                        ApplicationEntity applicationEntity = applicationService.findById(
+                            GraviteeContext.getCurrentEnvironment(),
+                            subscription.getApplication()
+                        );
                         metadata.put(subscription.getApplication(), "name", applicationEntity.getName());
                     }
 

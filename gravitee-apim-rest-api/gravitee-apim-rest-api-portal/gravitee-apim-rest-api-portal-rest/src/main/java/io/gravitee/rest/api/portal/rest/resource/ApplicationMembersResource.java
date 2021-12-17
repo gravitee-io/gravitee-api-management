@@ -34,6 +34,7 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +74,7 @@ public class ApplicationMembersResource extends AbstractResource {
         @BeanParam PaginationParam paginationParam
     ) {
         //Does application exist ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         List<Member> membersList = membershipService
             .getMembersByReference(MembershipReferenceType.APPLICATION, applicationId)
@@ -93,7 +94,7 @@ public class ApplicationMembersResource extends AbstractResource {
         @Valid @NotNull(message = "Input must not be null.") MemberInput memberInput
     ) {
         //Does application exist ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         //There can be only one
         if (SystemRole.PRIMARY_OWNER.name().equals(memberInput.getRole())) {
@@ -101,6 +102,8 @@ public class ApplicationMembersResource extends AbstractResource {
         }
 
         MemberEntity membership = membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
             new MembershipService.MembershipMember(memberInput.getUser(), memberInput.getReference(), MembershipMemberType.USER),
             new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole())
@@ -118,12 +121,17 @@ public class ApplicationMembersResource extends AbstractResource {
         @PathParam("memberId") String memberId
     ) {
         //Does application exist ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         //Does user exist ?
         userService.findById(memberId);
 
-        MemberEntity memberEntity = membershipService.getUserMember(MembershipReferenceType.APPLICATION, applicationId, memberId);
+        MemberEntity memberEntity = membershipService.getUserMember(
+            GraviteeContext.getCurrentEnvironment(),
+            MembershipReferenceType.APPLICATION,
+            applicationId,
+            memberId
+        );
         if (memberEntity != null) {
             return Response.ok(memberMapper.convert(memberEntity, uriInfo)).build();
         }
@@ -136,12 +144,19 @@ public class ApplicationMembersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationMember(@PathParam("applicationId") String applicationId, @PathParam("memberId") String memberId) {
         //Does application exist ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         //Does user exist ?
         userService.findById(memberId);
 
-        membershipService.deleteReferenceMember(MembershipReferenceType.APPLICATION, applicationId, MembershipMemberType.USER, memberId);
+        membershipService.deleteReferenceMember(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            MembershipReferenceType.APPLICATION,
+            applicationId,
+            MembershipMemberType.USER,
+            memberId
+        );
         return Response.noContent().build();
     }
 
@@ -156,7 +171,7 @@ public class ApplicationMembersResource extends AbstractResource {
         @Valid @NotNull(message = "Input must not be null.") MemberInput memberInput
     ) {
         //Does application exist ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         //Does user exist ?
         userService.findById(memberId);
@@ -171,6 +186,8 @@ public class ApplicationMembersResource extends AbstractResource {
         }
 
         MemberEntity membership = membershipService.updateRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
             new MembershipService.MembershipMember(memberId, memberInput.getReference(), MembershipMemberType.USER),
             new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole())
@@ -189,7 +206,7 @@ public class ApplicationMembersResource extends AbstractResource {
         @NotNull(message = "Input must not be null.") TransferOwnershipInput transferOwnershipInput
     ) {
         //Does application exist ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         //There can be only one
         if (SystemRole.PRIMARY_OWNER.name().equals(transferOwnershipInput.getPrimaryOwnerNewrole())) {
@@ -208,6 +225,8 @@ public class ApplicationMembersResource extends AbstractResource {
         // else condition doesn't matter because default role will be applied on former PrimaryOwner
 
         membershipService.transferApplicationOwnership(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             applicationId,
             new MembershipService.MembershipMember(
                 transferOwnershipInput.getNewPrimaryOwnerId(),

@@ -26,7 +26,6 @@ import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.*;
@@ -108,7 +107,11 @@ public class ApplicationService_FindByUserTest {
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
-        Set<ApplicationListItem> apps = applicationService.findByUser(USERNAME);
+        Set<ApplicationListItem> apps = applicationService.findByUser(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            USERNAME
+        );
 
         Assert.assertNotNull(apps);
         Assert.assertFalse("should find app", apps.isEmpty());
@@ -123,7 +126,11 @@ public class ApplicationService_FindByUserTest {
             .thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).thenReturn(Collections.singleton(application));
 
-        Set<ApplicationListItem> apps = applicationService.findByUser(USERNAME);
+        Set<ApplicationListItem> apps = applicationService.findByUser(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            USERNAME
+        );
 
         Assert.assertNotNull(apps);
         Assert.assertTrue("should not find app", apps.isEmpty());
@@ -177,7 +184,11 @@ public class ApplicationService_FindByUserTest {
         memberships.add(poGroupApp);
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(memberships);
 
-        Set<ApplicationListItem> apps = applicationService.findByUser(USERNAME);
+        Set<ApplicationListItem> apps = applicationService.findByUser(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            USERNAME
+        );
 
         Assert.assertNotNull(apps);
         Assert.assertFalse("should find apps", apps.isEmpty());

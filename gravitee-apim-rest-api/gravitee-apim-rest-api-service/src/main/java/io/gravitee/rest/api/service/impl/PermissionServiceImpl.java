@@ -70,6 +70,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
         }
 
         Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
+            GraviteeContext.getCurrentEnvironment(),
             membershipReferenceType,
             referenceId,
             getAuthenticatedUsername()

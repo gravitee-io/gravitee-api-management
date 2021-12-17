@@ -24,8 +24,8 @@ import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
-import java.net.URI;
 import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -107,7 +107,10 @@ public class ApplicationMetadataResource extends AbstractResource {
         // prevent creation of a metadata on an another APPLICATION
         metadata.setApplicationId(application);
 
-        final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(metadata);
+        final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(
+            GraviteeContext.getCurrentEnvironment(),
+            metadata
+        );
         return Response.created(this.getLocationHeader(applicationMetadataEntity.getKey())).entity(applicationMetadataEntity).build();
     }
 
@@ -133,7 +136,7 @@ public class ApplicationMetadataResource extends AbstractResource {
         // prevent update of a metadata on an another APPLICATION
         metadata.setApplicationId(application);
 
-        return Response.ok(metadataService.update(metadata)).build();
+        return Response.ok(metadataService.update(GraviteeContext.getCurrentEnvironment(), metadata)).build();
     }
 
     @DELETE

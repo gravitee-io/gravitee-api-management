@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
@@ -142,7 +143,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             }
 
             if (ticketEntity.getApplication() != null && !ticketEntity.getApplication().isEmpty()) {
-                applicationEntity = applicationService.findById(ticketEntity.getApplication());
+                applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), ticketEntity.getApplication());
                 parameters.put("application", applicationEntity);
             } else {
                 applicationEntity = null;
@@ -277,7 +278,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     private Ticket getApiNameAndApplicationName(Ticket ticket) {
         //Retrieve application name
         if (StringUtils.isNotEmpty(ticket.getApplication())) {
-            ApplicationEntity application = applicationService.findById(ticket.getApplication());
+            ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), ticket.getApplication());
             ticket.setApplication(application.getName());
         }
 

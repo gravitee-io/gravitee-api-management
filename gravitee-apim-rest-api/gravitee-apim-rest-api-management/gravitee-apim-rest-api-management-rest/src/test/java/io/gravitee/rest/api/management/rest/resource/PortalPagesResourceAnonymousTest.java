@@ -19,25 +19,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
-import java.io.IOException;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
-import java.security.Principal;
-import java.util.Collections;
-import javax.annotation.Priority;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
 import org.junit.Test;
 
 /**
@@ -95,7 +85,7 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
         page.setPublished(true);
         page.setVisibility(Visibility.PUBLIC);
         doReturn(page).when(pageService).findById(any(), any());
-        doReturn(false).when(configService).portalLoginForced();
+        doReturn(false).when(configService).portalLoginForced(GraviteeContext.getCurrentEnvironment());
         //        final Response response = envTarget(PAGE_NAME).request().get();
         //
         //        assertNotNull("Response should be present", response);
@@ -108,7 +98,7 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
         page.setPublished(true);
         page.setVisibility(Visibility.PUBLIC);
         doReturn(page).when(pageService).findById(any(), any());
-        doReturn(true).when(configService).portalLoginForced();
+        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getCurrentEnvironment());
         //        final Response response = envTarget(PAGE_NAME).request().get();
         //
         //        assertNotNull("Response should be present", response);

@@ -29,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.model.AlertInput;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationAlertService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationAlertMaximumException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.util.Comparator;
@@ -93,7 +94,11 @@ public class ApplicationAlertsResource extends AbstractResource {
 
         final NewAlertTriggerEntity newAlertTriggerEntity = alertMapper.convert(alertInput);
 
-        final AlertTriggerEntity alert = applicationAlertService.create(applicationId, newAlertTriggerEntity);
+        final AlertTriggerEntity alert = applicationAlertService.create(
+            GraviteeContext.getCurrentEnvironment(),
+            applicationId,
+            newAlertTriggerEntity
+        );
 
         return Response.created(this.getLocationHeader(alert.getId())).entity(alertMapper.convert(alert)).build();
     }

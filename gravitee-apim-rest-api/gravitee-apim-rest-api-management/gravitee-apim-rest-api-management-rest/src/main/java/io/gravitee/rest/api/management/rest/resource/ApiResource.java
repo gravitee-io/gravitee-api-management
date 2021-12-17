@@ -551,7 +551,7 @@ public class ApiResource extends AbstractResource {
     public ApiQualityMetricsEntity getApiQualityMetrics() {
         canReadApi(api);
         final ApiEntity apiEntity = apiService.findById(api);
-        return qualityMetricsService.getMetrics(apiEntity);
+        return qualityMetricsService.getMetrics(apiEntity, GraviteeContext.getCurrentEnvironment());
     }
 
     @POST
@@ -564,7 +564,7 @@ public class ApiResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_MESSAGE, acls = RolePermissionAction.CREATE) })
     public Response createApiMessage(final MessageEntity message) {
-        return Response.ok(messageService.create(api, message)).build();
+        return Response.ok(messageService.create(GraviteeContext.getCurrentEnvironment(), api, message)).build();
     }
 
     @GET
@@ -711,7 +711,9 @@ public class ApiResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response promoteAPI(@RequestBody @Valid @NotNull final PromotionRequestEntity promotionRequest) {
-        return Response.ok(promotionService.promote(this.api, promotionRequest, getAuthenticatedUser())).build();
+        return Response
+            .ok(promotionService.promote(GraviteeContext.getCurrentEnvironment(), this.api, promotionRequest, getAuthenticatedUser()))
+            .build();
     }
 
     @Path("keys")

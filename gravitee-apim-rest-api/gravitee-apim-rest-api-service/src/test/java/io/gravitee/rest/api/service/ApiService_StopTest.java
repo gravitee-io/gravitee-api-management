@@ -33,6 +33,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.mixin.ApiMixin;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
@@ -101,7 +102,14 @@ public class ApiService_StopTest {
         when(u.getId()).thenReturn("uid");
         when(userService.findById(any())).thenReturn(u);
         MembershipEntity po = mock(MembershipEntity.class);
-        when(membershipService.getPrimaryOwner(eq(io.gravitee.rest.api.model.MembershipReferenceType.API), anyString())).thenReturn(po);
+        when(
+            membershipService.getPrimaryOwner(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(io.gravitee.rest.api.model.MembershipReferenceType.API),
+                anyString()
+            )
+        )
+            .thenReturn(po);
         when(api.getId()).thenReturn(API_ID);
     }
 
@@ -121,7 +129,8 @@ public class ApiService_StopTest {
         verify(api).setUpdatedAt(any());
         verify(api).setLifecycleState(LifecycleState.STOPPED);
         verify(apiRepository).update(api);
-        verify(eventService).create(EventType.STOP_API, event.getPayload(), event.getProperties());
+        verify(eventService)
+            .create(singleton(GraviteeContext.getCurrentEnvironment()), EventType.STOP_API, event.getPayload(), event.getProperties());
         verify(notifierService, times(1)).trigger(eq(ApiHook.API_STOPPED), eq(API_ID), any());
     }
 

@@ -97,7 +97,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
 
             // And create event
-            eventService.create(EventType.PUBLISH_DICTIONARY, mapper.writeValueAsString(dictionary), properties);
+            eventService.create(
+                Collections.singleton(GraviteeContext.getCurrentEnvironment()),
+                EventType.PUBLISH_DICTIONARY,
+                mapper.writeValueAsString(dictionary),
+                properties
+            );
             return convert(dictionary);
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to deploy dictionary {}", id, ex);
@@ -125,7 +130,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
 
             // And create event
-            eventService.create(EventType.UNPUBLISH_DICTIONARY, mapper.writeValueAsString(dictionary), properties);
+            eventService.create(
+                Collections.singleton(GraviteeContext.getCurrentEnvironment()),
+                EventType.UNPUBLISH_DICTIONARY,
+                mapper.writeValueAsString(dictionary),
+                properties
+            );
             return convert(dictionary);
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
@@ -154,7 +164,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
 
             // And create event
-            eventService.create(EventType.START_DICTIONARY, null, properties);
+            eventService.create(
+                Collections.singleton(GraviteeContext.getCurrentEnvironment()),
+                EventType.START_DICTIONARY,
+                null,
+                properties
+            );
 
             // Audit
             createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getCreatedAt(), optDictionary.get(), dictionary);
@@ -187,7 +202,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
 
             // And create event
-            eventService.create(EventType.STOP_DICTIONARY, null, properties);
+            eventService.create(
+                Collections.singleton(GraviteeContext.getCurrentEnvironment()),
+                EventType.STOP_DICTIONARY,
+                null,
+                properties
+            );
 
             // Audit
             createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getCreatedAt(), optDictionary.get(), dictionary);
@@ -253,7 +273,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             if (updatedDictionary.getState() == LifecycleState.STARTED) {
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
-                eventService.create(EventType.START_DICTIONARY, null, properties);
+                eventService.create(
+                    Collections.singleton(GraviteeContext.getCurrentEnvironment()),
+                    EventType.START_DICTIONARY,
+                    null,
+                    properties
+                );
             }
 
             // Audit
@@ -312,7 +337,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private void createAuditLog(Audit.AuditEvent event, Date createdAt, Dictionary oldValue, Dictionary newValue) {
         String dictionaryName = oldValue != null ? oldValue.getName() : newValue.getName();
 
-        auditService.createEnvironmentAuditLog(Collections.singletonMap(DICTIONARY, dictionaryName), event, createdAt, oldValue, newValue);
+        auditService.createEnvironmentAuditLog(
+            GraviteeContext.getCurrentEnvironment(),
+            Collections.singletonMap(DICTIONARY, dictionaryName),
+            event,
+            createdAt,
+            oldValue,
+            newValue
+        );
     }
 
     private DictionaryEntity convert(Dictionary dictionary) {

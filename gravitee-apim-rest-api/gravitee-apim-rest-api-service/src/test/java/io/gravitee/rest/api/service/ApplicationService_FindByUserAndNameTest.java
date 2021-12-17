@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,7 +59,14 @@ public class ApplicationService_FindByUserAndNameTest {
 
     @Test
     public void shouldNotFindByNameWhenNull() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus("myUser", null, "ACTIVE");
+        Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus(
+            "myUser",
+            false,
+            null,
+            "ACTIVE",
+            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getCurrentOrganization()
+        );
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         verifyNoInteractions(applicationRepository);
@@ -66,7 +74,14 @@ public class ApplicationService_FindByUserAndNameTest {
 
     @Test
     public void shouldNotFindByNameWhenEmpty() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus("myUser", "", "ACTIVE");
+        Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus(
+            "myUser",
+            false,
+            "",
+            "ACTIVE",
+            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getCurrentOrganization()
+        );
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         verifyNoInteractions(applicationRepository);
@@ -75,7 +90,14 @@ public class ApplicationService_FindByUserAndNameTest {
     @Test
     public void shouldNotFindByName() throws Exception {
         when(applicationRepository.search(any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
-        Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus("myUser", true, "a", "ACTIVE");
+        Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus(
+            "myUser",
+            true,
+            "a",
+            "ACTIVE",
+            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getCurrentOrganization()
+        );
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         ArgumentCaptor<ApplicationCriteria> queryCaptor = ArgumentCaptor.forClass(ApplicationCriteria.class);
@@ -91,7 +113,14 @@ public class ApplicationService_FindByUserAndNameTest {
             .thenReturn(new HashSet<>());
 
         // call
-        Set<ApplicationListItem> resultSet = applicationService.findByUserAndNameAndStatus("myUser", "random search", "ACTIVE");
+        Set<ApplicationListItem> resultSet = applicationService.findByUserAndNameAndStatus(
+            "myUser",
+            false,
+            "random search",
+            "ACTIVE",
+            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getCurrentOrganization()
+        );
 
         // check applicationRepository search has not been called, and so it returns empty
         assertTrue(resultSet.isEmpty());
@@ -103,7 +132,14 @@ public class ApplicationService_FindByUserAndNameTest {
         when(applicationRepository.search(any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
         // call
-        applicationService.findByUserAndNameAndStatus("myUser", true, "random search", "ACTIVE");
+        applicationService.findByUserAndNameAndStatus(
+            "myUser",
+            true,
+            "random search",
+            "ACTIVE",
+            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getCurrentOrganization()
+        );
 
         // check membership hasn't been retrieved
         verify(membershipService, never()).getMembershipsByMemberAndReference(any(), any(), any());
@@ -132,7 +168,14 @@ public class ApplicationService_FindByUserAndNameTest {
             .thenReturn(memberships);
 
         // call
-        applicationService.findByUserAndNameAndStatus("myUser", "random search", "ACTIVE");
+        applicationService.findByUserAndNameAndStatus(
+            "myUser",
+            false,
+            "random search",
+            "ACTIVE",
+            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getCurrentOrganization()
+        );
 
         // check applicationRepository search has been called with applications
         ArgumentCaptor<ApplicationCriteria> queryCaptor = ArgumentCaptor.forClass(ApplicationCriteria.class);

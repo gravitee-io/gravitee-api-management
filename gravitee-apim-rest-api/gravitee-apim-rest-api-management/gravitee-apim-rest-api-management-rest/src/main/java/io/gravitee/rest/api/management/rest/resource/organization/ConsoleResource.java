@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -60,7 +61,7 @@ public class ConsoleResource {
         }
     )
     public ConsoleConfigEntity getConsoleConfig() {
-        return configService.getConsoleConfig();
+        return configService.getConsoleConfig(GraviteeContext.getCurrentOrganization());
     }
 
     @Deprecated
@@ -76,7 +77,7 @@ public class ConsoleResource {
     )
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
     public Response saveConsoleConfig(@ApiParam(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
-        configService.save(consoleSettingsEntity);
+        configService.save(GraviteeContext.getCurrentOrganization(), consoleSettingsEntity);
         return Response.ok().entity(consoleSettingsEntity).build();
     }
 }

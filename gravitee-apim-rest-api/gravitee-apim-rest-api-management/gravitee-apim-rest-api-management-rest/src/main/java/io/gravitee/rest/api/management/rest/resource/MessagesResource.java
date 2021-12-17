@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.MessageEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MessageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -57,6 +58,6 @@ public class MessagesResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_MESSAGE, acls = RolePermissionAction.CREATE) })
     public Response createMessage(final MessageEntity message) {
-        return Response.ok(messageService.create(message)).build();
+        return Response.ok(messageService.create(GraviteeContext.getCurrentEnvironment(), message)).build();
     }
 }
