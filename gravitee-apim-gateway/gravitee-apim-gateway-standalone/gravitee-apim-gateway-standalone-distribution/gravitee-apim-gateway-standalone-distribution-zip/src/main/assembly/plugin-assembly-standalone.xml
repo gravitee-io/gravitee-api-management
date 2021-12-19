@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -19,7 +19,8 @@
 <assembly
         xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+        xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd"
+>
     <id>bin</id>
 
     <formats>
@@ -29,64 +30,19 @@
     <includeBaseDirectory>true</includeBaseDirectory>
 
     <fileSets>
-        <!-- Copy startup scripts and config files -->
         <fileSet>
-            <directory>../target/distribution/config</directory>
-            <outputDirectory>config</outputDirectory>
+            <directory>../target/gravitee-apim-gateway-distribution-${project.version}</directory>
+            <outputDirectory>.</outputDirectory>
             <includes>
-                <include>**/*</include>
+                <include>bin/*</include>
+                <include>config/*</include>
+                <include>lib/**</include>
+                <include>logs</include>
+                <include>metrics</include>
+                <include>plugins/gravitee-apim-gateway-*</include>
+                <include>plugins/ext/*</include>
             </includes>
-            <fileMode>644</fileMode>
-            <filtered>true</filtered>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/lib</directory>
-            <outputDirectory>lib</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <fileMode>644</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/bin</directory>
-            <outputDirectory>bin</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <fileMode>755</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>target/staging/gateway_plugins</directory>
-            <outputDirectory>plugins</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <excludes>
-                <exclude>**/.work/**</exclude>
-            </excludes>
-            <fileMode>755</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/boot</directory>
-            <outputDirectory>boot</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <fileMode>755</fileMode>
-        </fileSet>
-
-        <!-- Just to create an empty logs directory -->
-        <fileSet>
-            <directory>src/main/assembly</directory>
-            <outputDirectory>logs</outputDirectory>
-            <excludes>
-                <exclude>*</exclude>
-            </excludes>
         </fileSet>
     </fileSets>
-</assembly>
 
+</assembly>

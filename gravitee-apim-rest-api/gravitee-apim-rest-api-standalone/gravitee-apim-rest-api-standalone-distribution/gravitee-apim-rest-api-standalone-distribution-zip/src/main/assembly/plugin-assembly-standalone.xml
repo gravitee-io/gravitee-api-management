@@ -30,112 +30,21 @@
     <includeBaseDirectory>true</includeBaseDirectory>
 
     <fileSets>
-        <!-- Copy startup scripts and config files -->
         <fileSet>
-            <directory>../target/distribution/config</directory>
-            <outputDirectory>config</outputDirectory>
+            <directory>../target/gravitee-apim-rest-api-distribution-${project.version}</directory>
+            <outputDirectory>.</outputDirectory>
             <includes>
-                <include>**/*</include>
+                <include>bin/*</include>
+                <include>config/*</include>
+                <include>dashboards/*</include>
+                <include>data</include>
+                <include>lib/**</include>
+                <include>logs</include>
+                <include>plugins/gravitee-apim-rest-api-*</include>
+                <include>plugins/ext/*</include>
+                <include>templates/*</include>
+                <include>themes/*</include>
             </includes>
-            <excludes>
-                <exclude>**/*.png</exclude>
-            </excludes>
-            <fileMode>644</fileMode>
-            <filtered>true</filtered>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/config</directory>
-            <outputDirectory>config</outputDirectory>
-            <includes>
-                <include>**/*.png</include>
-            </includes>
-            <fileMode>644</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/lib</directory>
-            <outputDirectory>lib</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <fileMode>644</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>target/staging/apim_plugins</directory>
-            <outputDirectory>plugins</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <excludes>
-                <exclude>**/.work/**</exclude>
-            </excludes>
-            <fileMode>755</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/logs</directory>
-            <outputDirectory>logs</outputDirectory>
-            <fileMode>644</fileMode>
-            <excludes>
-                <exclude>*</exclude>
-            </excludes>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/data</directory>
-            <outputDirectory>data</outputDirectory>
-            <fileMode>644</fileMode>
-            <excludes>
-                <exclude>*</exclude>
-            </excludes>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/bin</directory>
-            <outputDirectory>bin</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <fileMode>755</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/templates</directory>
-            <outputDirectory>templates</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <fileMode>755</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/themes</directory>
-            <outputDirectory>themes</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <fileMode>755</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/dashboards</directory>
-            <outputDirectory>dashboards</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <fileMode>755</fileMode>
-        </fileSet>
-
-        <fileSet>
-            <directory>../target/distribution/assets</directory>
-            <outputDirectory>assets</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <fileMode>644</fileMode>
         </fileSet>
     </fileSets>
-
 </assembly>

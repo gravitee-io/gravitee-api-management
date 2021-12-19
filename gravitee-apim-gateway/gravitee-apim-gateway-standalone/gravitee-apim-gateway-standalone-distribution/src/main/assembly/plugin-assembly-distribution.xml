@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<assembly
+    xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd"
+>
+	<id>bin</id>
+
+	<formats>
+		<format>tar.gz</format>
+	</formats>
+
+	<includeBaseDirectory>true</includeBaseDirectory>
+
+	<fileSets>
+		<fileSet>
+			<directory>src/main/resources/apis</directory>
+			<outputDirectory>bin</outputDirectory>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
+			<fileMode>644</fileMode>
+		</fileSet>
+
+		<fileSet>
+			<directory>src/main/resources/bin</directory>
+			<outputDirectory>bin</outputDirectory>
+			<includes>
+				<include>**/*</include>
+			</includes>
+			<fileMode>755</fileMode>
+		</fileSet>
+
+		<fileSet>
+			<directory>src/main/resources/config</directory>
+			<outputDirectory>config</outputDirectory>
+			<includes>
+				<include>**/*</include>
+			</includes>
+			<fileMode>644</fileMode>
+			<filtered>true</filtered>
+		</fileSet>
+
+		<fileSet>
+			<directory>src/main/resources/lib</directory>
+			<outputDirectory>lib</outputDirectory>
+			<includes>
+				<include>*.*</include>
+			</includes>
+			<fileMode>644</fileMode>
+		</fileSet>
+
+		<fileSet>
+			<directory>src/main/resources/logs</directory>
+			<outputDirectory>logs</outputDirectory>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
+			<fileMode>644</fileMode>
+		</fileSet>
+
+		<fileSet>
+			<directory>src/main/resources/metrics</directory>
+			<outputDirectory>metrics</outputDirectory>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
+			<fileMode>644</fileMode>
+		</fileSet>
+
+		<fileSet>
+			<directory>src/main/resources/plugins</directory>
+			<outputDirectory>plugins</outputDirectory>
+			<includes>
+				<include>**.*</include>
+			</includes>
+			<fileMode>755</fileMode>
+		</fileSet>
+		<!-- Just to create an empty directory -->
+		<fileSet>
+			<directory>src/main/assembly</directory>
+			<outputDirectory>plugins/ext/repository-jdbc</outputDirectory>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
+		</fileSet>
+	</fileSets>
+
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<unpack>false</unpack>
+			<includes>
+				<include>io.gravitee.*:*:jar</include>
+				<include>com.graviteesource.*:*:jar</include>
+			</includes>
+			<scope>compile</scope>
+			<useProjectArtifact>false</useProjectArtifact>
+			<fileMode>644</fileMode>
+		</dependencySet>
+		<dependencySet>
+			<outputDirectory>lib/ext</outputDirectory>
+			<unpack>false</unpack>
+			<excludes>
+				<exclude>io.gravitee.*:*:*</exclude>
+				<exclude>com.graviteesource.*:*:*</exclude>
+			</excludes>
+			<scope>compile</scope>
+			<useProjectArtifact>false</useProjectArtifact>
+			<fileMode>644</fileMode>
+		</dependencySet>
+
+		<dependencySet>
+			<outputDirectory>plugins</outputDirectory>
+			<unpack>false</unpack>
+			<excludes>
+				<exclude>*:*:jar</exclude>
+				<exclude>io.gravitee.fetcher:*:zip</exclude>
+				<exclude>io.gravitee.cockpit:gravitee-cockpit-connectors-ws:zip</exclude>
+				<exclude>io.gravitee.repository:gravitee-repository-elasticsearch:zip</exclude>
+			</excludes>
+			<useProjectArtifact>false</useProjectArtifact>
+			<fileMode>755</fileMode>
+		</dependencySet>
+	</dependencySets>
+
+</assembly>
