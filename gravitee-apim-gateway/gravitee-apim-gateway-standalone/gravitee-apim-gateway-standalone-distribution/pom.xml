@@ -45,6 +45,9 @@
         <packaging.gravitee.gateway.services.dir>/etc/init.d</packaging.gravitee.gateway.services.dir>
         <packaging.gravitee.gateway.user>gravitee</packaging.gravitee.gateway.user>
         <packaging.gravitee.gateway.group>gravitee</packaging.gravitee.gateway.group>
+
+        <!--suppress UnresolvedMavenProperty -->
+        <gravitee.gateway.log.dir>${gravitee.home}/logs</gravitee.gateway.log.dir>
     </properties>
 
     <modules>
@@ -65,6 +68,7 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- APIM Gateway plugins -->
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-healthcheck</artifactId>
@@ -139,65 +143,41 @@
     </dependencies>
 
     <build>
-        <finalName>distribution</finalName>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
+				<artifactId>maven-jar-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy-gateway-plugins</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}/target/staging/gateway_plugins</outputDirectory>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>io.gravitee.apim.gateway.services</groupId>
-                                    <artifactId>gravitee-apim-gateway-services-healthcheck</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>io.gravitee.apim.gateway.services</groupId>
-                                    <artifactId>gravitee-apim-gateway-services-sync</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>io.gravitee.apim.gateway.services</groupId>
-                                    <artifactId>gravitee-apim-gateway-services-localregistry</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>io.gravitee.apim.gateway.services</groupId>
-                                    <artifactId>gravitee-apim-gateway-services-heartbeat</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>io.gravitee.apim.gateway.services</groupId>
-                                    <artifactId>gravitee-apim-gateway-services-endpoint-discovery</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>io.gravitee.apim.gateway.services</groupId>
-                                    <artifactId>gravitee-apim-gateway-services-debug</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                </artifactItem>
-                            </artifactItems>
+						<id>default-jar</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<!-- avoid the execution defined in APIM parent pom.xml to be executed -->
+						<id>make-plugin-assembly</id>
+						<phase>none</phase>
+					</execution>
+					<execution>
+						<id>make-distribution</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<attach>false</attach>
+							<finalName>gravitee-apim-gateway-distribution-${project.version}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
+							</descriptors>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
