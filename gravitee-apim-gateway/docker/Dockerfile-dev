@@ -25,7 +25,7 @@ ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
 
 WORKDIR ${GRAVITEEIO_HOME}
 
-ADD ./gravitee-apim-gateway-distribution-${GRAVITEEIO_VERSION}.tar.gz /tmp
+ADD ./gravitee-apim-gateway-distribution-${GRAVITEEIO_VERSION} ${GRAVITEEIO_HOME}/
 
 RUN jlink --verbose \
         --compress 2 \
@@ -33,8 +33,7 @@ RUN jlink --verbose \
         --no-header-files \
         --no-man-pages \
         --output jre \
-        --add-modules java.base,jdk.zipfs,java.naming,jdk.naming.dns,java.desktop,java.management,java.sql,jdk.unsupported,jdk.net,java.scripting,jdk.dynalink,jdk.management.agent,jdk.crypto.ec \
-    && mv /tmp/gravitee-apim-gateway-distribution-${GRAVITEEIO_VERSION}/* ${GRAVITEEIO_HOME}
+        --add-modules java.base,jdk.zipfs,java.naming,jdk.naming.dns,java.desktop,java.management,java.sql,jdk.unsupported,jdk.net,java.scripting,jdk.dynalink,jdk.management.agent,jdk.crypto.ec
 
 FROM ubuntu:focal
 LABEL maintainer="contact@graviteesource.com"
