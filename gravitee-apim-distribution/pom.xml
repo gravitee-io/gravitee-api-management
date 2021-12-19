@@ -614,5 +614,57 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>distribution-ee</id>
+            <properties>
+                <!-- Versions of the plugins for the full distribution on dev environment-->
+                <!-- Management API & Gateway -->
+                <gravitee-ae-connectors-ws.version>1.5.4</gravitee-ae-connectors-ws.version>
+                <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
+                <!-- Management API Only -->
+                <gravitee-notifier-email.version>1.3.0</gravitee-notifier-email.version>
+                <gravitee-notifier-slack.version>1.2.0</gravitee-notifier-slack.version>
+                <gravitee-notifier-webhook.version>1.1.0</gravitee-notifier-webhook.version>
+                <!-- Gateway Only -->
+            </properties>
+            <dependencies>
+                <!-- License jar to put in /lib -->
+                <dependency>
+                    <groupId>com.graviteesource.license</groupId>
+                    <artifactId>gravitee-license-node-enterprise</artifactId>
+                    <version>${gravitee-license-node.version}</version>
+                </dependency>
+                <!-- Connectors -->
+                <dependency>
+                    <groupId>com.graviteesource.ae.connectors</groupId>
+                    <artifactId>gravitee-ae-connectors-ws</artifactId>
+                    <version>${gravitee-ae-connectors-ws.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <!-- Notifiers -->
+                <dependency>
+                    <groupId>io.gravitee.notifier</groupId>
+                    <artifactId>gravitee-notifier-email</artifactId>
+                    <version>${gravitee-notifier-email.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.notifier</groupId>
+                    <artifactId>gravitee-notifier-slack</artifactId>
+                    <version>${gravitee-notifier-slack.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>io.gravitee.notifier</groupId>
+                    <artifactId>gravitee-notifier-webhook</artifactId>
+                    <version>${gravitee-notifier-webhook.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 </project>
