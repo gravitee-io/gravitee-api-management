@@ -31,7 +31,7 @@
 	<name>Gravitee.io APIM - Repository - Redis</name>
 
 	<properties>
-		<lettuce.version>5.3.4.RELEASE</lettuce.version>
+		<lettuce.version>5.3.7.RELEASE</lettuce.version>
 		<spring-data-redis.version>2.3.4.RELEASE</spring-data-redis.version>
 	</properties>
 
