@@ -45,15 +45,23 @@ describe('ApiGeneralComponent', () => {
   });
 
   describe('goToSearch', () => {
-    it('should navigate', () => {
-      const navigateSpy = spyOn(router, 'navigate');
+    it('should navigateByUrl with built urlTree', () => {
+      const navigateByUrlSpy = spyOn(router, 'navigateByUrl');
 
-      const key = 'labels';
+      const myTestUrlTree = {};
+      spyOn<any>(component, 'getSearchUrlTree').and.returnValue(myTestUrlTree);
 
-      expect(component.isSearchable(key)).toBeTruthy();
-      component.goToSearch(key, 'TheLabel');
+      component.goToSearch('labels', 'TheLabel');
 
-      expect(navigateSpy).toHaveBeenCalledWith(['catalog/search'], { queryParams: { q: 'labels:"TheLabel"' } });
+      expect(navigateByUrlSpy).toHaveBeenCalledWith(myTestUrlTree);
+    });
+  });
+
+  describe('getSearchUrl', () => {
+    it('should return the search url', () => {
+      const resultUrl = component.getSearchUrl('labels', 'myTestValue');
+
+      expect(resultUrl).toBe('/catalog/search?q=labels:%22myTestValue%22');
     });
   });
 });
