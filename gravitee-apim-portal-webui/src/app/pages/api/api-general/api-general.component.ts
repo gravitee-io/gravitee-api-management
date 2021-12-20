@@ -274,7 +274,15 @@ export class ApiGeneralComponent implements OnInit {
   }
 
   goToSearch(key: SearchableKeys, value: string) {
-    this.router.navigate(['catalog/search'], { queryParams: { q: `${searchableKeysMapping[key]}:"${value}"` } });
+    return this.router.navigateByUrl(this.getSearchUrlTree(key, value));
+  }
+
+  getSearchUrl(key: string, value: string) {
+    return this.getSearchUrlTree(key, value).toString();
+  }
+
+  private getSearchUrlTree(key: string, value: string) {
+    return this.router.createUrlTree(['catalog/search'], { queryParams: { q: `${searchableKeysMapping[key]}:"${value}"` } });
   }
 
   goToExtern(url: string) {
