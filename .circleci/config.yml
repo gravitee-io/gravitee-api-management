@@ -814,7 +814,7 @@ jobs:
                       - release.settings.xml
     release:
         docker:
-            - image: cimg/openjdk:11.0.12
+            - image: cimg/openjdk:11.0.13
         resource_class: large
 
         environment:
