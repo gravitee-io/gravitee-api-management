@@ -60,7 +60,7 @@
         <gravitee-parent.version>19.2.3</gravitee-parent.version>
         <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
         <gravitee-common.version>1.19.5</gravitee-common.version>
-        <gravitee-definition.version>1.25.1</gravitee-definition.version>
+        <gravitee-definition.version>1.30.0</gravitee-definition.version>
         <gravitee-expression-language.version>1.5.2</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.23.0</gravitee-gateway-api.version>
