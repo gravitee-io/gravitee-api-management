@@ -143,24 +143,9 @@ jobs:
 
     compute-apim-tag:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/base:stable
         resource_class: small
         steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - restore_cache:
-                  name: Restore Maven cache for compute-tag job
-                  keys:
-                      - gravitee-api-management-compute-tag-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - run:
-                  name: Compute APIM Version
-                  command: |
-                      export APIM_VERSION=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive --quiet --settings .gravitee.settings.xml)
-                      echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
-                      echo "Gravitee APIM version: ${APIM_VERSION}"
-                      echo $APIM_VERSION > .apim-version.txt
-
             - run:
                   name: Compute Tag for Docker images
                   command: |
@@ -169,16 +154,39 @@ jobs:
                       echo "export TAG=$TAG" >> $BASH_ENV
                       echo "Docker images will be tagged with: ${TAG}"
                       echo $TAG > .docker-tag.txt
-            - save_cache:
-                  name: Save Maven cache for compute-tag job
-                  paths:
-                      - ~/.m2
-                  key: gravitee-api-management-compute-tag-{{ .Branch }}-{{ checksum "pom.xml" }}
-                  when: always
             - persist_to_workspace:
                   root: .
                   paths:
                       - .docker-tag.txt
+
+    compute-apim-version:
+        docker:
+            - image: cimg/openjdk:11.0
+        resource_class: small
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: .
+            - restore_cache:
+                  name: Restore Maven cache for compute-version job
+                  keys:
+                      - gravitee-api-management-compute-version-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - run:
+                  name: Compute APIM Version
+                  command: |
+                      export APIM_VERSION=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive --quiet --settings .gravitee.settings.xml)
+                      echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
+                      echo "Gravitee APIM version: ${APIM_VERSION}"
+                      echo $APIM_VERSION > .apim-version.txt
+            - save_cache:
+                  name: Save Maven cache for compute-tag job
+                  paths:
+                      - ~/.m2
+                  key: gravitee-api-management-compute-version-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  when: always
+            - persist_to_workspace:
+                  root: .
+                  paths:
                       - .apim-version.txt
 
     sonarcloud-analysis:
@@ -915,13 +923,13 @@ workflows:
         jobs:
             - load-maven-configuration:
                   context: cicd-orchestrator
-            - compute-apim-tag:
+            - compute-apim-version:
                   requires:
                       - load-maven-configuration
             - validate:
                   context: gravitee-qa
                   requires:
-                      - compute-apim-tag
+                      - compute-apim-version
             - build:
                   context: gravitee-qa
                   requires:
@@ -958,10 +966,12 @@ workflows:
                               - fix-nexus-pb
                   requires:
                       - test
+            - compute-apim-tag
             - publish-images-azure-registry:
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - compute-apim-tag
                   pre-steps:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
