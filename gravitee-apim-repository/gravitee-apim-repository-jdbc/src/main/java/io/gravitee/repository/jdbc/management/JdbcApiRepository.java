@@ -406,13 +406,13 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 ps.setString(lastIndex++, apiCriteria.getVisibility().name());
             }
             if (!isEmpty(apiCriteria.getLifecycleStates())) {
-                getOrm().setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex++);
+                lastIndex = getOrm().setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex);
             }
             if (hasText(apiCriteria.getEnvironmentId())) {
                 ps.setString(lastIndex++, apiCriteria.getEnvironmentId());
             }
             if (!isEmpty(apiCriteria.getEnvironments())) {
-                getOrm().setArguments(ps, apiCriteria.getEnvironments(), lastIndex++);
+                lastIndex = getOrm().setArguments(ps, apiCriteria.getEnvironments(), lastIndex);
             }
         }
         return lastIndex;
