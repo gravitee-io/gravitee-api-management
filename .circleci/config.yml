@@ -1140,15 +1140,11 @@ workflows:
         when:
             equal: [release, << pipeline.parameters.gio_action >>]
         jobs:
-            - gravitee/d_release_secrets:
-                  context: cicd-orchestrator
-                  name: release_secrets_resolution
             - load-maven-configuration:
                   context: cicd-orchestrator
             - release:
                   name: release <<# pipeline.parameters.dry_run >>- Dry run<</ pipeline.parameters.dry_run >>
                   requires:
-                      - release_secrets_resolution
                       - load-maven-configuration
                   context: cicd-orchestrator
                   pre-steps:
