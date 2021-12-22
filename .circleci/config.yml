@@ -795,23 +795,7 @@ jobs:
                                 --endpoint-url https://cellar-c2.services.clever-cloud.com \
                                 --acl public-read
                             name: S3 Copy ${CIRCLE_PROJECT_REPONAME}.tar.bz2 -> s3://${S3_BUCKET_NAME}/${CIRCLE_PROJECT_REPONAME}/project/
-    prepare-settings:
-        docker:
-            - image: cimg/base:stable
-        resource_class: small
-        steps:
-            - attach_workspace:
-                  at: /tmp
-            - run:
-                  name: "Setup [settings.xml] <<# pipeline.parameters.dry_run >>for dry-run<</ pipeline.parameters.dry_run >>"
-                  command: |
-                      cp -f /tmp/gravit33bot/.secrets/<<^ pipeline.parameters.dry_run >>non.<</ pipeline.parameters.dry_run >>dry.release.settings.xml /tmp/release.settings.xml
-                      echo "Here is the settings.xml which will be used:"
-                      cat /tmp/release.settings.xml | sed "s#<passphrase>.*</passphrase>#<passphrase>obfuscated</passphrase>#g" | sed "s#<password>.*</password>#<password>obfuscated</password>#g" | sed "s#<username>.*</username>#<username>obfuscated</username>#g"
-            - persist_to_workspace:
-                  root: /tmp
-                  paths:
-                      - release.settings.xml
+
     release:
         docker:
             - image: cimg/openjdk:11.0.13
@@ -819,22 +803,21 @@ jobs:
 
         environment:
             DRY_RUN: << pipeline.parameters.dry_run >>
-            MAVEN_PROFILE_ID: << pipeline.parameters.maven_profile_id >>
         steps:
             - checkout
             - restore_cache:
                   keys:
                       - gio-gravitee-release-dependencies-{{ .Branch }}
             - attach_workspace:
-                  at: /tmp
+                  at: .
             - run:
                   name: Update maven dependencies versions from properties and remove `-SNAPSHOT` from versions
                   command: |
                       # Update maven dependencies versions from properties
-                      mvn versions:update-properties --batch-mode -Dmaven.version.rules.serverId=artifactory-gravitee-releases -Dincludes=io.gravitee.*:* -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false --settings /tmp/release.settings.xml --update-snapshots
+                      mvn versions:update-properties --batch-mode -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes=io.gravitee.*:* -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false --settings .gravitee.settings.xml --update-snapshots
 
                       # Remove `-SNAPSHOT` from versions
-                      mvn versions:set --batch-mode -DremoveSnapshot=true -DgenerateBackupPoms=false --settings /tmp/release.settings.xml
+                      mvn versions:set --batch-mode -DremoveSnapshot=true -DgenerateBackupPoms=false --settings .gravitee.settings.xml
             - prepare-gpg
             - run:
                   name: Prepare env variables used in [version.properties] files and Maven deploy to Gravitee's private Artifactory"
@@ -843,8 +826,7 @@ jobs:
                       export BUILD_NUMBER=${CIRCLE_BUILD_NUM}
                       export GIT_COMMIT=$(git rev-parse --short HEAD)
 
-                      echo "  MAVEN_PROFILE_ID=[${MAVEN_PROFILE_ID}]  "
-                      mvn clean deploy --activate-profiles ${MAVEN_PROFILE_ID} --batch-mode -DskipTests -Dskip.validation=true --settings /tmp/release.settings.xml --update-snapshots
+                      mvn clean deploy --activate-profiles gio-artifactory-release,gio-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
             - run:
                   name: "Exclude Gravitee internal dependencies from cache"
                   command: |
@@ -876,7 +858,7 @@ jobs:
             - run:
                   name: Git release
                   command: |
-                      export MVN_PRJ_VERSION=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive --quiet --settings /tmp/release.settings.xml)
+                      export MVN_PRJ_VERSION=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive --quiet --settings .gravitee.settings.xml)
                       export MVN_PRJ_VERSION_MAJOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $1}')
                       export MVN_PRJ_VERSION_MINOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $2}')
                       export MVN_PRJ_VERSION_PATCH=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $3}')
@@ -893,7 +875,7 @@ jobs:
                       if [ "x${GIT_BRANCH_FILTER}" == "x" ]; then
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
                         # Set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings /tmp/release.settings.xml
+                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings .gravitee.settings.xml
                         git add --update
                         git commit -m 'chore: prepare next version [skip ci]'
                         if [ "${DRY_RUN}" == "false" ]; then
@@ -910,10 +892,10 @@ jobs:
                       if [ "${MVN_PRJ_VERSION_PATCH}" == "0" ]; then
                         export NEXT_MINOR_VERSION=$((${MVN_PRJ_VERSION_MINOR}+1))
                         export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${NEXT_MINOR_VERSION}.0-SNAPSHOT"
-                        mvn versions:set --batch-mode -DnewVersion=${NEXT_SNAPSHOT_VERSION} -DgenerateBackupPoms=false --settings /tmp/release.settings.xml
+                        mvn versions:set --batch-mode -DnewVersion=${NEXT_SNAPSHOT_VERSION} -DgenerateBackupPoms=false --settings .gravitee.settings.xml
                       else
                         # Else just set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings /tmp/release.settings.xml 
+                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings .gravitee.settings.xml
                       fi;
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
@@ -1161,12 +1143,12 @@ workflows:
             - gravitee/d_release_secrets:
                   context: cicd-orchestrator
                   name: release_secrets_resolution
-            - prepare-settings:
-                  requires:
-                      - release_secrets_resolution
+            - load-maven-configuration:
+                  context: cicd-orchestrator
             - release:
                   requires:
-                      - prepare-settings
+                      - release_secrets_resolution
+                      - load-maven-configuration
                   context: cicd-orchestrator
                   pre-steps:
                       - secrethub/env-export:
