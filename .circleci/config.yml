@@ -1146,6 +1146,7 @@ workflows:
             - load-maven-configuration:
                   context: cicd-orchestrator
             - release:
+                  name: release <<# pipeline.parameters.dry_run >>- Dry run<</ pipeline.parameters.dry_run >>
                   requires:
                       - release_secrets_resolution
                       - load-maven-configuration
@@ -1159,7 +1160,7 @@ workflows:
                             var-name: GIT_USER_EMAIL
             - nexus-staging-prepare-component:
                   requires:
-                      - release
+                      - release <<# pipeline.parameters.dry_run >>- Dry run<</ pipeline.parameters.dry_run >>
                   context: cicd-orchestrator
                   pre-steps:
                       - secrethub/env-export:
