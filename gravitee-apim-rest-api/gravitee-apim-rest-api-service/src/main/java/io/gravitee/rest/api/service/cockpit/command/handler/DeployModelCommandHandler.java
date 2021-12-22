@@ -81,8 +81,10 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         DeploymentMode mode = DeploymentMode.fromDeployModelPayload(payload);
 
         try {
-            final UserEntity user = userService.findBySource("cockpit", userId, false);
             final EnvironmentEntity environment = environmentService.findByCockpitId(environmentId);
+            GraviteeContext.setCurrentEnvironment(environment.getId());
+            GraviteeContext.setCurrentOrganization(environment.getOrganizationId());
+            final UserEntity user = userService.findBySource("cockpit", userId, false);
 
             ApiEntityResult result;
 
