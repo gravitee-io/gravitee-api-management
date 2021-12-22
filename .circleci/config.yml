@@ -128,18 +128,18 @@ parameters:
         description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
 
 jobs:
-    load-snapshot-configuration:
+    load-maven-configuration:
         docker:
             - image: cimg/base:stable
         environment:
-            MAVEN_SETTINGS: "secrethub://graviteeio/cicd/graviteebot/infra/maven/gravitee-snapshot.settings.xml"
+            MAVEN_SETTINGS: "secrethub://graviteeio/cicd/graviteebot/infra/maven/gravitee.settings.xml"
         steps:
             - secrethub/exec:
-                  command: echo $MAVEN_SETTINGS > /tmp/.gravitee-snapshot.settings.xml
+                  command: echo $MAVEN_SETTINGS > /tmp/.gravitee.settings.xml
             - persist_to_workspace:
                   root: /tmp
                   paths:
-                      - .gravitee-snapshot.settings.xml
+                      - .gravitee.settings.xml
 
     compute-apim-tag:
         docker:
@@ -156,7 +156,7 @@ jobs:
             - run:
                   name: Compute APIM Version
                   command: |
-                      export APIM_VERSION=$(mvn -s .gravitee-snapshot.settings.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+                      export APIM_VERSION=$(mvn -s .gravitee.settings.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
                       echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
                       echo "Gravitee APIM version: ${APIM_VERSION}"
                       echo $APIM_VERSION > .apim-version.txt
@@ -219,7 +219,7 @@ jobs:
             - run:
                   name: "validate project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml validate --no-transfer-progress -T 2C
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml validate --no-transfer-progress -T 2C
 
             - notify-on-failure
             - save-maven-cache
@@ -236,7 +236,7 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
@@ -262,7 +262,7 @@ jobs:
                   name: Run tests
                   command: |
                       # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml package --no-transfer-progress -Dskip.validation=true -T 2C
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml package --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -287,7 +287,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
+                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
             - save-maven-cache
             - notify-on-failure
 
@@ -303,7 +303,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Nexus Snapshots"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml
+                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml
             - save-maven-cache
             - notify-on-failure
 
@@ -931,11 +931,11 @@ workflows:
             and:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
         jobs:
-            - load-snapshot-configuration:
+            - load-maven-configuration:
                   context: cicd-orchestrator
             - compute-apim-tag:
                   requires:
-                      - load-snapshot-configuration
+                      - load-maven-configuration
             - validate:
                   context: gravitee-qa
                   requires:
@@ -1002,7 +1002,7 @@ workflows:
                   name: Install APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
-                      - load-snapshot-configuration
+                      - load-maven-configuration
             - webui-lint-test:
                   name: Lint & test APIM Console
                   apim-ui-project: gravitee-apim-console-webui
@@ -1076,7 +1076,7 @@ workflows:
                   name: Install APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
-                      - load-snapshot-configuration
+                      - load-maven-configuration
             - webui-lint-test:
                   name: Lint & test APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
