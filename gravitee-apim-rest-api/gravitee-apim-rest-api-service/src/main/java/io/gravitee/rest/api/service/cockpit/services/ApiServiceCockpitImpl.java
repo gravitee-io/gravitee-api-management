@@ -71,8 +71,6 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     @Override
     public ApiEntityResult createApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
-        GraviteeContext.setCurrentEnvironment(environmentId);
-
         if (mode == DeploymentMode.API_MOCKED) {
             logger.debug("Create Mocked Api [{}].", apiId);
             return createMockedApi(apiId, userId, swaggerDefinition, environmentId);
@@ -89,8 +87,6 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     @Override
     public ApiEntityResult updateApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
-        GraviteeContext.setCurrentEnvironment(environmentId);
-
         if (mode == DeploymentMode.API_DOCUMENTED) {
             logger.debug("Update Documented Api [{}].", apiId);
             return updateDocumentedApi(apiId, swaggerDefinition);

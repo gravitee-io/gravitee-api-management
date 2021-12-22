@@ -54,6 +54,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest(GraviteeContext.class)
 public class DeployModelCommandHandlerTest {
 
+    public static final String ENVIRONMENT_ID = "environment#id";
+    public static final String ORGANIZATION_ID = "organization#id";
+
     @Mock
     private UserService userService;
 
@@ -100,7 +103,8 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
+        environment.setOrganizationId(ORGANIZATION_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
@@ -127,6 +131,10 @@ public class DeployModelCommandHandlerTest {
 
         obs.awaitTerminalEvent();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+
+        PowerMockito.verifyStatic(GraviteeContext.class);
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
     }
 
     @Test
@@ -147,7 +155,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_MOCKED))
@@ -194,7 +202,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_PUBLISHED))
@@ -241,7 +249,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(
@@ -290,7 +298,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), payload.getModelId(), DeploymentMode.API_MOCKED))
@@ -337,7 +345,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), payload.getModelId(), DeploymentMode.API_PUBLISHED))
@@ -384,7 +392,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
@@ -431,7 +439,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
@@ -473,7 +481,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
@@ -512,7 +520,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(
@@ -553,7 +561,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
@@ -602,7 +610,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
@@ -635,7 +643,7 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("environment#id");
+        environment.setId(ENVIRONMENT_ID);
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(permissionChecker.checkCreatePermission(user.getId(), environment.getId(), DeploymentMode.API_DOCUMENTED))
