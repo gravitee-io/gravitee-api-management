@@ -813,11 +813,9 @@ jobs:
             DRY_RUN: << pipeline.parameters.dry_run >>
         steps:
             - checkout
-            - restore_cache:
-                  keys:
-                      - gio-gravitee-release-dependencies-{{ .Branch }}
             - attach_workspace:
                   at: .
+            - restore-maven-cache
             - run:
                   name: Update maven dependencies versions from properties and remove `-SNAPSHOT` from versions
                   command: |
@@ -835,20 +833,7 @@ jobs:
                       export GIT_COMMIT=$(git rev-parse --short HEAD)
 
                       mvn clean deploy --activate-profiles gio-artifactory-release,gio-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
-            - run:
-                  name: "Exclude Gravitee internal dependencies from cache"
-                  command: |
-                      if [ -d ${HOME}/.m2/io/gravitee ]; then
-                        rm -fr ${HOME}/.m2/io/gravitee
-                      fi;
-                      if [ -d ${HOME}/.m2/com/graviteesource ]; then
-                        rm -fr ${HOME}/.m2/com/graviteesource
-                      fi;
-            - save_cache:
-                  paths:
-                      - ~/.m2
-                  key: gio-gravitee-release-dependencies-{{ .Branch }}
-                  when: always
+            - save-maven-cache
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run >>
