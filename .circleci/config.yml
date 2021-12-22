@@ -862,11 +862,11 @@ jobs:
                   command: |
                       git config --global user.name "${GIT_USER_NAME}"
                       git config --global user.email "${GIT_USER_EMAIL}"
-
+            - get-apim-version
             - run:
                   name: Git release
                   command: |
-                      export MVN_PRJ_VERSION=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive --quiet --settings .gravitee.settings.xml)
+                      export MVN_PRJ_VERSION=${APIM_VERSION}
                       export MVN_PRJ_VERSION_MAJOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $1}')
                       export MVN_PRJ_VERSION_MINOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $2}')
                       export MVN_PRJ_VERSION_PATCH=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $3}')
@@ -1152,10 +1152,13 @@ workflows:
         jobs:
             - load-maven-configuration:
                   context: cicd-orchestrator
+            - compute-apim-version:
+                  requires:
+                      - load-maven-configuration
             - release:
                   name: release <<# pipeline.parameters.dry_run >>- Dry run<</ pipeline.parameters.dry_run >>
                   requires:
-                      - load-maven-configuration
+                      - compute-apim-version
                   context: cicd-orchestrator
                   pre-steps:
                       - secrethub/env-export:
