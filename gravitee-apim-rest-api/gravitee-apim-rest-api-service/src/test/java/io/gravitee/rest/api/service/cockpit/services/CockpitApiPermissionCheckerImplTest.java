@@ -127,6 +127,14 @@ public class CockpitApiPermissionCheckerImplTest {
         assertThat(result).isEmpty();
     }
 
+    @Test
+    public void returns_empty_optional_when_user_is_admin() {
+        makeUserAdmin();
+
+        var result = permissionChecker.checkUpdatePermission(USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_MOCKED);
+        assertThat(result).isEmpty();
+    }
+
     private void allowApiUpdate() {
         when(permissionService.hasPermission(USER_ID, RolePermission.ENVIRONMENT_API, ENVIRONMENT_ID, RolePermissionAction.UPDATE))
             .thenReturn(true);
@@ -139,5 +147,9 @@ public class CockpitApiPermissionCheckerImplTest {
 
     private void allowApiDefinitionUpdate() {
         when(permissionService.hasPermission(USER_ID, RolePermission.API_DEFINITION, API_ID, RolePermissionAction.UPDATE)).thenReturn(true);
+    }
+
+    private void makeUserAdmin() {
+        when(permissionService.hasManagementRights(USER_ID)).thenReturn(true);
     }
 }

@@ -60,18 +60,33 @@ public class CockpitApiPermissionCheckerImpl implements CockpitApiPermissionChec
     }
 
     private boolean isNotAllowedToCreateApi(String userId, String environmentId) {
-        return !permissionService.hasPermission(userId, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.CREATE);
+        return (
+            !isAdmin(userId) &&
+            !permissionService.hasPermission(userId, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.CREATE)
+        );
     }
 
     private boolean isNotAllowedToUpdateApi(String userId, String environmentId) {
-        return !permissionService.hasPermission(userId, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.UPDATE);
+        return (
+            !isAdmin(userId) &&
+            !permissionService.hasPermission(userId, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.UPDATE)
+        );
     }
 
     private boolean isNotAllowedToUpdateDocumentation(String userId, String apiId) {
-        return !permissionService.hasPermission(userId, RolePermission.API_DOCUMENTATION, apiId, RolePermissionAction.UPDATE);
+        return (
+            !isAdmin(userId) &&
+            !permissionService.hasPermission(userId, RolePermission.API_DOCUMENTATION, apiId, RolePermissionAction.UPDATE)
+        );
     }
 
     private boolean isNotAllowedToUpdateApiDefinition(String userId, String apiId) {
-        return !permissionService.hasPermission(userId, RolePermission.API_DEFINITION, apiId, RolePermissionAction.UPDATE);
+        return (
+            !isAdmin(userId) && !permissionService.hasPermission(userId, RolePermission.API_DEFINITION, apiId, RolePermissionAction.UPDATE)
+        );
+    }
+
+    protected boolean isAdmin(String userId) {
+        return permissionService.hasManagementRights(userId);
     }
 }
