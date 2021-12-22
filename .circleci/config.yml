@@ -156,7 +156,7 @@ jobs:
             - run:
                   name: Compute APIM Version
                   command: |
-                      export APIM_VERSION=$(mvn -s .gravitee.settings.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+                      export APIM_VERSION=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive --quiet --settings .gravitee.settings.xml)
                       echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
                       echo "Gravitee APIM version: ${APIM_VERSION}"
                       echo $APIM_VERSION > .apim-version.txt
@@ -219,7 +219,7 @@ jobs:
             - run:
                   name: "validate project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml validate --no-transfer-progress -T 2C
+                      mvn validate --no-transfer-progress --projects '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' --settings .gravitee.settings.xml  --threads 2C
 
             - notify-on-failure
             - save-maven-cache
@@ -236,7 +236,7 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mvn clean package --activate-profiles distribution-dev -DskipTests -Dskip.validation=true --no-transfer-progress --projects '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' --settings .gravitee.settings.xml  --threads 2C
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
@@ -262,7 +262,7 @@ jobs:
                   name: Run tests
                   command: |
                       # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml package --no-transfer-progress -Dskip.validation=true -T 2C
+                      mvn package -Dskip.validation=true --no-transfer-progress --projects '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' --settings .gravitee.settings.xml  --threads 2C
             - run:
                   name: Save test results
                   command: |
@@ -287,7 +287,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
+                      mvn deploy --activate-profiles gio-artifactory-snapshot -DskipTests -Dskip.validation=true --no-transfer-progress --projects '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' --settings .gravitee.settings.xml  --threads 2C
             - save-maven-cache
             - notify-on-failure
 
@@ -303,7 +303,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Nexus Snapshots"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml
+                      mvn deploy -DskipTests -Dskip.validation=true --no-transfer-progress --projects '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' --settings .gravitee.settings.xml  --threads 2C
             - save-maven-cache
             - notify-on-failure
 
@@ -831,10 +831,10 @@ jobs:
                   name: Update maven dependencies versions from properties and remove `-SNAPSHOT` from versions
                   command: |
                       # Update maven dependencies versions from properties
-                      mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee-releases -Dincludes=io.gravitee.*:* -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false
+                      mvn versions:update-properties --batch-mode -Dmaven.version.rules.serverId=artifactory-gravitee-releases -Dincludes=io.gravitee.*:* -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false --settings /tmp/release.settings.xml --update-snapshots
 
                       # Remove `-SNAPSHOT` from versions
-                      mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+                      mvn versions:set --batch-mode -DremoveSnapshot=true -DgenerateBackupPoms=false --settings /tmp/release.settings.xml
             - prepare-gpg
             - run:
                   name: Prepare env variables used in [version.properties] files and Maven deploy to Gravitee's private Artifactory"
@@ -844,7 +844,7 @@ jobs:
                       export GIT_COMMIT=$(git rev-parse --short HEAD)
 
                       echo "  MAVEN_PROFILE_ID=[${MAVEN_PROFILE_ID}]  "
-                      mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation
+                      mvn clean deploy --activate-profiles ${MAVEN_PROFILE_ID} --batch-mode -DskipTests -Dskip.validation=true --settings /tmp/release.settings.xml --update-snapshots
             - run:
                   name: "Exclude Gravitee internal dependencies from cache"
                   command: |
@@ -876,7 +876,7 @@ jobs:
             - run:
                   name: Git release
                   command: |
-                      export MVN_PRJ_VERSION=$(mvn -s /tmp/release.settings.xml -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec -q)
+                      export MVN_PRJ_VERSION=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive --quiet --settings /tmp/release.settings.xml)
                       export MVN_PRJ_VERSION_MAJOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $1}')
                       export MVN_PRJ_VERSION_MINOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $2}')
                       export MVN_PRJ_VERSION_PATCH=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $3}')
@@ -893,7 +893,7 @@ jobs:
                       if [ "x${GIT_BRANCH_FILTER}" == "x" ]; then
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
                         # Set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B versions:set -DnextSnapshot=true -DgenerateBackupPoms=false
+                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings /tmp/release.settings.xml
                         git add --update
                         git commit -m 'chore: prepare next version [skip ci]'
                         if [ "${DRY_RUN}" == "false" ]; then
@@ -910,10 +910,10 @@ jobs:
                       if [ "${MVN_PRJ_VERSION_PATCH}" == "0" ]; then
                         export NEXT_MINOR_VERSION=$((${MVN_PRJ_VERSION_MINOR}+1))
                         export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${NEXT_MINOR_VERSION}.0-SNAPSHOT"
-                        mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B versions:set -DnewVersion=${NEXT_SNAPSHOT_VERSION} -DgenerateBackupPoms=false
+                        mvn versions:set --batch-mode -DnewVersion=${NEXT_SNAPSHOT_VERSION} -DgenerateBackupPoms=false --settings /tmp/release.settings.xml
                       else
                         # Else just set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B versions:set -DnextSnapshot=true -DgenerateBackupPoms=false
+                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings /tmp/release.settings.xml 
                       fi;
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
