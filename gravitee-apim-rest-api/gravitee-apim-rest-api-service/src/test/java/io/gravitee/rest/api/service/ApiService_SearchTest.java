@@ -218,7 +218,7 @@ public class ApiService_SearchTest {
         when(membershipService.getMembersByReferencesAndRole(eq(MembershipReferenceType.API), anyList(), eq("API_PRIMARY_OWNER")))
             .thenReturn(new HashSet<>(Arrays.asList(poMember, poMember2, poMember3)));
 
-        final Page<ApiEntity> apiPage = apiService.search("API Test", emptyMap(), new PageableImpl(1, 10));
+        final Page<ApiEntity> apiPage = apiService.search("API Test", emptyMap(), null, new PageableImpl(1, 10));
 
         assertThat(apiPage.getPageNumber()).isEqualTo(1);
         assertThat(apiPage.getPageElements()).isEqualTo(3);

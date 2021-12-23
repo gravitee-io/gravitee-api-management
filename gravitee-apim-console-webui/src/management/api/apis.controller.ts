@@ -115,14 +115,12 @@ export class ApisController {
   }
 
   sort(order: string, field: string) {
-    if (order === this.currentOrder || (order !== undefined && !order.includes(field))) {
+    if (order === this.currentOrder || (order != null && !order.includes(field))) {
       return;
     }
-
-    if (order !== undefined) {
+    if (order) {
       this.currentOrder = order;
     }
-
     this.gotToPage(1);
   }
 
@@ -137,7 +135,6 @@ export class ApisController {
 
     this.$scope.apisLoading = true;
     this.$scope.searchResult = true;
-    let promise;
 
     if (requestedPage > this.currentApisResponse.page.total_pages) {
       // The last page has been reached, no need to search for more;
@@ -145,13 +142,7 @@ export class ApisController {
       return;
     }
 
-    if (this.query) {
-      promise = this.ApiService.searchApis(this.query, requestedPage, this.currentOrder);
-    } else {
-      promise = this.ApiService.list(null, false, requestedPage, this.currentOrder);
-    }
-
-    promise.then((response) => {
+    this.ApiService.searchApis(this.query || '', requestedPage, this.currentOrder).then((response) => {
       this.currentApisResponse = response.data;
       if (requestedPage > 1) {
         this.apis = this.apis.concat(this.currentApisResponse.data);

@@ -138,11 +138,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
       controllerAs: '$ctrl',
       resolve: {
         resolvedApis: function ($stateParams, ApiService: ApiService) {
-          if ($stateParams.q) {
-            return ApiService.searchApis($stateParams.q, 1);
-          }
-
-          return ApiService.list(null, false, 1);
+          return ApiService.searchApis($stateParams.q || '', 1);
         },
       },
       data: {
