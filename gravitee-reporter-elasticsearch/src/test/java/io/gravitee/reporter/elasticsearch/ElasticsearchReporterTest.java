@@ -19,11 +19,13 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.elasticsearch.version.Version;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.JvmInfo;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.monitor.OsInfo;
@@ -249,6 +251,56 @@ public class ElasticsearchReporterTest {
         metrics1.assertNoErrors();
     }
 
+    @Test
+    public void shouldReportLog() {
+        Log log = new Log(Instant.now().toEpochMilli());
+
+        log.setApi("my-api");
+        log.setRequestId("my-request-id");
+
+        Request clientReq = new Request();
+        clientReq.setUri("http//gateway-url");
+        clientReq.setMethod(HttpMethod.POST);
+        clientReq.setBody("request-payload");
+        HttpHeaders clientReqHeaders = HttpHeaders.create();
+        clientReqHeaders.add("my-header", "my-header-value");
+        clientReq.setHeaders(clientReqHeaders);
+
+        Request proxyReq = new Request();
+        proxyReq.setUri("http//backend-url");
+        proxyReq.setMethod(HttpMethod.POST);
+        proxyReq.setBody("request-payload");
+        HttpHeaders proxyReqHeaders = HttpHeaders.create();
+        proxyReqHeaders.add("my-header", "my-header-value");
+        proxyReq.setHeaders(proxyReqHeaders);
+
+        Response proxyResp = new Response();
+        proxyResp.setStatus(HttpStatusCode.OK_200);
+        proxyResp.setBody("response-payload");
+        HttpHeaders proxyRespHeaders = HttpHeaders.create();
+        proxyRespHeaders.add("my-header", "my-header-value");
+        proxyResp.setHeaders(proxyRespHeaders);
+
+        Response clientResp = new Response();
+        clientResp.setStatus(HttpStatusCode.OK_200);
+        clientResp.setBody("response-payload");
+        HttpHeaders clientRespHeaders = HttpHeaders.create();
+        clientRespHeaders.add("my-header", "my-header-value");
+        clientResp.setHeaders(clientRespHeaders);
+
+        log.setClientRequest(clientReq);
+        log.setProxyRequest(proxyReq);
+        log.setProxyResponse(proxyResp);
+        log.setClientResponse(clientResp);
+
+        TestObserver logObs = reporter.rxReport(log).test();
+
+        // advance time manually
+        testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+
+        logObs.awaitTerminalEvent();
+        logObs.assertNoErrors();
+    }
     @Test
     public void reportTest() {
         TestObserver metrics1 = reporter.rxReport(mockRequestMetrics()).test();
