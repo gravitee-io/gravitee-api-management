@@ -21,18 +21,13 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.analyzer.CustomWhitespaceAnalyzer;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.TopScoreDocCollector;
+import org.apache.lucene.search.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,21 +72,15 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
                 topDocs = searcher.search(query, Integer.MAX_VALUE);
             }
 
-            final List<String> results = new ArrayList<>();
-
-            final List<Integer> orderdedDocsId = Arrays
-                .stream(topDocs.scoreDocs)
-                .sorted((doc1, doc2) -> Float.compare(doc2.score, doc1.score))
-                .map(doc -> doc.doc)
-                .collect(Collectors.toList());
+            final Set<String> results = new LinkedHashSet<>();
 
             logger.debug("Found {} total matching documents", topDocs.totalHits);
-
-            for (Integer docId : orderdedDocsId) {
-                results.add(getReference(searcher.doc(docId)));
+            for (ScoreDoc doc : topDocs.scoreDocs) {
+                String reference = getReference(searcher.doc(doc.doc));
+                results.add(reference);
             }
 
-            return new SearchResult(results.stream().distinct().collect(Collectors.toList()), topDocs.totalHits);
+            return new SearchResult(results, results.size());
         } catch (IOException ioe) {
             logger.error("An error occurs while getting documents from search result", ioe);
             throw new TechnicalException("An error occurs while getting documents from search result", ioe);

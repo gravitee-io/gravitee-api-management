@@ -22,10 +22,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,9 +45,9 @@ public interface UserService {
 
     UserEntity findBySource(String source, String sourceId, boolean loadRoles);
 
-    Set<UserEntity> findByIds(List<String> ids);
+    Set<UserEntity> findByIds(Collection<String> ids);
 
-    Set<UserEntity> findByIds(List<String> ids, boolean withUserMetadata);
+    Set<UserEntity> findByIds(Collection<String> ids, boolean withUserMetadata);
 
     UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
 

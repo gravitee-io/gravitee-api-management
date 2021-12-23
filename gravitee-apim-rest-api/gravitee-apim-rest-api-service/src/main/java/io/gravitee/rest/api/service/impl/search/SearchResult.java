@@ -15,24 +15,24 @@
  */
 package io.gravitee.rest.api.service.impl.search;
 
-import java.util.List;
+import java.util.Collection;
 
 public class SearchResult {
 
-    private final List<String> documents;
+    private final Collection<String> documents;
 
     private long hits;
 
-    public SearchResult(final List<String> documents) {
+    public SearchResult(final Collection<String> documents) {
         this.documents = documents;
     }
 
-    public SearchResult(final List<String> documents, long hits) {
+    public SearchResult(final Collection<String> documents, long hits) {
         this.documents = documents;
         this.hits = hits;
     }
 
-    public List<String> getDocuments() {
+    public Collection<String> getDocuments() {
         return documents;
     }
 

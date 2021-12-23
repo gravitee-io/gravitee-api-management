@@ -16,7 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.user;
 
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserMongoRepository extends MongoRepository<UserMongo, String>, UserMongoRepositoryCustom {
     @Query(value = "{ _id: {$in: ?0} }", fields = "{'picture': 0}")
-    Set<UserMongo> findByIds(List<String> ids);
+    Set<UserMongo> findByIds(Collection<String> ids);
 
     @Query(value = "{ 'source': ?0, 'sourceId': {$regex: '^?1$', $options: 'i'}, 'organizationId': ?2 }")
     UserMongo findBySourceAndSourceId(String source, String sourceId, String organizationId);

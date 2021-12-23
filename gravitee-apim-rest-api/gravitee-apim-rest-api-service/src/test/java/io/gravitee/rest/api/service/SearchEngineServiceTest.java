@@ -74,8 +74,19 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("My api 1").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(7, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4", "api-0"), matches.getDocuments());
+        assertEquals(5, matches.getHits());
+        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4", "api-0"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindBestResultsWithApiNameInfo() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("My 1").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(5, matches.getHits());
+        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4", "api-0"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -86,18 +97,18 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-4"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
     public void shouldFindBestResultsWithCategory() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("machine learning").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("machine-learning").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(3, matches.getHits(), 3);
-        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), matches.getDocuments());
+        assertEquals(3, matches.getHits());
+        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -121,8 +132,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("My api *").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(7, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"), matches.getDocuments());
+        assertEquals(5, matches.getHits());
+        assertEquals(Arrays.asList("api-0", "api-2", "api-4", "api-1", "api-3"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -132,30 +143,41 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("Owner 3").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-3", "api-4", "api-0", "api-1", "api-2"), matches.getDocuments());
+        assertEquals(2, matches.getHits());
+        assertEquals(Arrays.asList("api-3", "api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
     public void shouldFindWithExplicitNameFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api 1\"").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api 1\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(1, matches.getHits(), 1);
-        assertEquals(Arrays.asList("api-1"), matches.getDocuments());
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
     public void shouldFindWithExplicitNameUnSensitiveFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("name:\"my api 1\"").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"my awesome api 1\"").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-1"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindWithExplicitNameWildcardFilter() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"my * api 1\"").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -176,7 +198,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-4"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -187,7 +209,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(4, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4"), new ArrayList(matches.getDocuments()));
 
         matches =
             searchEngineService.search(
@@ -199,7 +221,7 @@ public class SearchEngineServiceTest {
             );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-4"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-4"), new ArrayList(matches.getDocuments()));
 
         matches =
             searchEngineService.search(
@@ -211,7 +233,7 @@ public class SearchEngineServiceTest {
             );
         assertNotNull(matches);
         assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-3", "api-4"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-3", "api-4"), new ArrayList(matches.getDocuments()));
 
         matches =
             searchEngineService.search(
@@ -223,7 +245,7 @@ public class SearchEngineServiceTest {
             );
         assertNotNull(matches);
         assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-3", "api-4"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-3", "api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -233,8 +255,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("labels: \"in review 4\" foobar-3@gravitee.io").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(1, matches.getHits(), 1);
-        assertEquals(Arrays.asList("api-4"), matches.getDocuments());
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -244,8 +266,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("categories:\"Machine Learning\"").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(3, matches.getHits(), 3);
-        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), matches.getDocuments());
+        assertEquals(3, matches.getHits());
+        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -255,8 +277,8 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("categories: Sports AND Hiking").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(1, matches.getHits(), 1);
-        assertEquals(Arrays.asList("api-0"), matches.getDocuments());
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-0"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -267,18 +289,22 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(3, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
     public void shouldFindWithNameAndOwnerFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api 2\" AND ownerName: \"Owner 2\"").setFilters(filters).build()
+            QueryBuilder
+                .create(ApiEntity.class)
+                .setQuery("name:\"My Awesome api 2\" AND ownerName: \"Owner 2\"")
+                .setFilters(filters)
+                .build()
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-2"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-2"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -310,7 +336,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-0"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-0"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -322,15 +348,15 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-1"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
     public void shouldFindAll() {
         SearchResult matches = searchEngineService.search(QueryBuilder.create(ApiEntity.class).build());
         assertNotNull(matches);
-        assertEquals(7, matches.getHits(), 7);
-        assertEquals(Arrays.asList("api-1", "api-3", "api-0", "api-2", "api-4"), matches.getDocuments());
+        assertEquals(5, matches.getHits());
+        assertEquals(Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -341,7 +367,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-2"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-2"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -352,7 +378,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-2"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-2"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -363,18 +389,18 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-2"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-2"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
-    public void shouldFindWithTag() {
+    public void shouldFindWithTagWildcard() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("tag-api").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("tag-api-").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -385,7 +411,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-3"), matches.getDocuments());
+        assertEquals(Arrays.asList("api-3"), new ArrayList(matches.getDocuments()));
     }
 
     @Before
@@ -394,7 +420,7 @@ public class SearchEngineServiceTest {
         if (!isIndexed) {
             List<String> labels = new ArrayList();
             for (int i = 0; i < 5; i++) {
-                String apiName = "My api " + i;
+                String apiName = "My Awesome api " + i;
                 ApiEntity apiEntity = new ApiEntity();
                 apiEntity.setId("api-" + i);
                 labels.add("In Review " + i);
@@ -422,12 +448,12 @@ public class SearchEngineServiceTest {
                     apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
                 }
                 apiEntity.setTags(Set.of("tag-" + apiEntity.getId()));
-                searchEngineService.index(apiEntity, false);
+                searchEngineService.index(apiEntity, true, false);
             }
-            searchEngineService.index(completePage(new ApiPageEntity(), 1, true), false);
-            searchEngineService.index(completePage(new PageEntity(), 2, true), false);
-            searchEngineService.index(completePage(new ApiPageEntity(), 3, false), false);
-
+            searchEngineService.index(completePage(new ApiPageEntity(), 1, true), true, false);
+            searchEngineService.index(completePage(new PageEntity(), 2, true), true, false);
+            searchEngineService.index(completePage(new ApiPageEntity(), 3, false), true, false);
+            searchEngineService.commit();
             isIndexed = true;
         }
     }

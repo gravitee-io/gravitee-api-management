@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -73,7 +74,7 @@ public class MongoUserRepository implements UserRepository {
     }
 
     @Override
-    public Set<User> findByIds(List<String> ids) {
+    public Set<User> findByIds(Collection<String> ids) {
         logger.debug("Find user by identifiers user [{}]", ids);
 
         Set<UserMongo> usersMongo = internalUserRepo.findByIds(ids);

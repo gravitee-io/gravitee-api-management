@@ -21,7 +21,7 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -65,7 +65,7 @@ public class UserRepositoryProxy extends AbstractProxy<UserRepository> implement
     }
 
     @Override
-    public Set<User> findByIds(List<String> ids) throws TechnicalException {
+    public Set<User> findByIds(Collection<String> ids) throws TechnicalException {
         return target.findByIds(ids);
     }
 
