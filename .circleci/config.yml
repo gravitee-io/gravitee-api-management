@@ -279,9 +279,37 @@ jobs:
                       - ./gateway-docker-context
 
     test:
+        docker:
+            - image: cimg/openjdk:11.0
+        resource_class: medium
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: .
+            - restore-maven-cache
+            - run:
+                  name: Run tests
+                  command: |
+                      mvn -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C
+            - run:
+                  name: Save test results
+                  command: |
+                      mkdir -p ~/test-results/junit/
+                      find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+                  when: always
+            - notify-on-failure
+            - store_test_results:
+                  path: ~/test-results
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                      - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
+                      - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
+
+    test-repository:
         machine:
-            image: ubuntu-2004:202107-02
-        resource_class: xlarge
+            image: ubuntu-2004:current
+        resource_class: large
         steps:
             - checkout
             - attach_workspace:
@@ -292,7 +320,8 @@ jobs:
                   command: |
                       # Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos 
                       # and then collect and merge all coverage reports
-                      mvn -s .gravitee.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
+                      cd gravitee-apim-repository
+                      mvn -s ../.gravitee.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -300,15 +329,12 @@ jobs:
                       find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
                   when: always
             - notify-on-failure
-            - save-maven-cache
             - store_test_results:
                   path: ~/test-results
             - persist_to_workspace:
                   root: .
                   paths:
-                      - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
                       - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
-                      - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
 
     publish-on-artifactory:
         docker:
@@ -1161,6 +1187,9 @@ workflows:
             - test:
                   requires:
                       - build
+            - test-repository:
+                  requires:
+                      - build
             - run_postman_tests:
                   requires:
                       - build
@@ -1180,28 +1209,30 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - test-repository
             - publish-on-artifactory:
                   filters:
                       branches:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - fix-nexus-pb
                   requires:
                       - test
+                      - test-repository
             - publish-on-nexus:
                   filters:
                       branches:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - fix-nexus-pb
                   requires:
                       - test
+                      - test-repository
             - publish-images-azure-registry:
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - test-repository
                   filters:
                       branches:
                           only:
