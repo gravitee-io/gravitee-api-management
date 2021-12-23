@@ -2299,11 +2299,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Page<ApiEntity> search(String query, Map<String, Object> filters, Pageable pageable) {
+    public Page<ApiEntity> search(String query, Map<String, Object> filters, Sortable sortable, Pageable pageable) {
         try {
             LOGGER.debug("Search paged APIs by {}", query);
 
-            Collection<String> apiIds = this.searchIds(query, filters);
+            Collection<String> apiIds = this.searchIds(query, filters, sortable);
 
             if (apiIds.isEmpty()) {
                 return new Page<>(emptyList(), 0, 0, 0);
@@ -2340,7 +2340,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private SearchResult searchInDefinition(String query, Map<String, Object> filters) {
-        Query<ApiEntity> searchEngineQuery = QueryBuilder.create(ApiEntity.class).setQuery(query).setFilters(filters).build();
+        return this.searchInDefinition(query, filters, null);
+    }
+
+    private SearchResult searchInDefinition(String query, Map<String, Object> filters, Sortable sortable) {
+        Query<ApiEntity> searchEngineQuery = QueryBuilder
+            .create(ApiEntity.class)
+            .setQuery(query)
+            .setSort(sortable)
+            .setFilters(filters)
+            .build();
         return searchEngineService.search(searchEngineQuery);
     }
 
@@ -2364,8 +2373,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Collection<String> searchIds(String query, Map<String, Object> filters) {
-        return this.searchInDefinition(query, filters).getDocuments();
+    public Collection<String> searchIds(String query, Map<String, Object> filters, Sortable sortable) {
+        return this.searchInDefinition(query, filters, sortable).getDocuments();
     }
 
     @Override

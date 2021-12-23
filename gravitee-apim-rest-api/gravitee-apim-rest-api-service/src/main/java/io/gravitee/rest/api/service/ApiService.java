@@ -158,9 +158,13 @@ public interface ApiService {
 
     Collection<String> searchIds(ApiQuery query);
 
-    Collection<String> searchIds(String query, Map<String, Object> filters) throws TechnicalException;
+    default Collection<String> searchIds(String query, Map<String, Object> filters) throws TechnicalException {
+        return searchIds(query, filters, null);
+    }
 
-    Page<ApiEntity> search(String query, Map<String, Object> filters, Pageable pageable);
+    Collection<String> searchIds(String query, Map<String, Object> filters, Sortable sortable) throws TechnicalException;
+
+    Page<ApiEntity> search(String query, Map<String, Object> filters, Sortable sortable, Pageable pageable);
 
     Collection<ApiEntity> search(String query, Map<String, Object> filters) throws TechnicalException;
 
