@@ -28,7 +28,6 @@ import io.gravitee.rest.api.service.impl.search.lucene.transformer.PageDocumentT
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -119,27 +118,17 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER)
             .add(envCriteria, BooleanClause.Occur.FILTER);
 
-        Query apisFilter = getApisFilter(FIELD_ID, query.getFilters());
+        Query apisFilter = this.buildFilterQuery(FIELD_ID, query.getFilters());
         if (apisFilter != null) {
             apiQuery.add(apisFilter, BooleanClause.Occur.FILTER);
         }
         return apiQuery;
     }
 
-    private Optional<BooleanQuery> buildPageQuery(io.gravitee.rest.api.service.search.query.Query query) throws ParseException {
-        if (!isBlank(query.getQuery())) {
-            BooleanQuery.Builder mainQuery = new BooleanQuery.Builder()
-                .add(new TermQuery(new Term(FIELD_TYPE, PageDocumentTransformer.FIELD_TYPE_VALUE)), BooleanClause.Occur.FILTER)
-                .add(new TermQuery(new Term(FIELD_REFERENCE_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER);
-            Query apisFilter = getApisFilter(FIELD_REFERENCE_ID, query.getFilters());
-            if (apisFilter != null) {
-                mainQuery.add(apisFilter, BooleanClause.Occur.FILTER);
-            }
-            MultiFieldQueryParser apiParser = new MultiFieldQueryParser(PAGE_FIELD_SEARCH, analyzer, PAGE_FIELD_BOOST);
-            apiParser.setAllowLeadingWildcard(true);
-            String queryEscaped = QueryParser.escape(query.getQuery());
-            Query queryParsed = apiParser.parse(queryEscaped);
-            mainQuery.add(queryParsed, BooleanClause.Occur.MUST);
+    private Optional<BooleanQuery> buildIdsQuery(io.gravitee.rest.api.service.search.query.Query query) throws ParseException {
+        if (!isBlank(query.getQuery()) && query.getIds() != null && !query.getIds().isEmpty()) {
+            BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
+            query.getIds().forEach(id -> mainQuery.add(new TermQuery(new Term(FIELD_ID, (String) id)), BooleanClause.Occur.SHOULD));
             return Optional.of(mainQuery.build());
         }
         return Optional.empty();
@@ -179,16 +168,16 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             Optional<BooleanQuery> filtersQuery = this.buildExplicitQuery(query);
             Optional<BooleanQuery> exactMatchQuery = this.buildExactMatchQuery(query);
             Optional<BooleanQuery> wildcardQuery = this.buildWildcardQuery(query);
-            Optional<BooleanQuery> pageQuery = this.buildPageQuery(query);
+            Optional<BooleanQuery> idsQuery = this.buildIdsQuery(query);
 
             BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
 
             filtersQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.MUST));
             exactMatchQuery.ifPresent(query1 -> apiQuery.add(new BoostQuery(query1, 4.0f), BooleanClause.Occur.SHOULD));
             wildcardQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.SHOULD));
-            pageQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.SHOULD));
+            idsQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.SHOULD));
 
-            return this.search(apiQuery.build());
+            return this.search(apiQuery.build(), query.getSort());
         } catch (ParseException pe) {
             logger.error("Invalid query to search for API documents", pe);
             throw new TechnicalException("Invalid query to search for API documents", pe);
@@ -346,45 +335,6 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             .build();
     }
 
-    private Query getApisFilter(String apiReferenceField, Map<String, Object> filters) {
-        if (filters == null || filters.isEmpty()) {
-            return null;
-        }
-        BooleanQuery.Builder filtersQuery = new BooleanQuery.Builder();
-        if (filters.containsKey(FIELD_API_TYPE_VALUE)) {
-            Object values = filters.get(FIELD_API_TYPE_VALUE);
-            if (Collection.class.isAssignableFrom(values.getClass())) {
-                Collection valuesAsCollection = (Collection) values;
-                if (valuesAsCollection.size() > BooleanQuery.getMaxClauseCount()) {
-                    BooleanQuery.setMaxClauseCount(valuesAsCollection.size());
-                }
-                BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
-                ((Collection<?>) values).forEach(
-                        value -> filterApisQuery.add(new TermQuery(new Term(apiReferenceField, (String) value)), BooleanClause.Occur.SHOULD)
-                    );
-                if (valuesAsCollection.size() > 0) {
-                    filtersQuery.add(filterApisQuery.build(), BooleanClause.Occur.MUST);
-                }
-            }
-        }
-
-        final boolean[] hasClause = { false };
-        filters.forEach(
-            (field, value) -> {
-                if (!Collection.class.isAssignableFrom(value.getClass())) {
-                    filtersQuery.add(new TermQuery(new Term(field, QueryParserBase.escape((String) value))), BooleanClause.Occur.MUST);
-                    hasClause[0] = true;
-                }
-            }
-        );
-
-        if (hasClause[0]) {
-            filtersQuery.add(filtersQuery.build(), BooleanClause.Occur.MUST);
-        }
-
-        return filtersQuery.build();
-    }
-
     private boolean hasExplicitFilter(String query) {
         if (query != null) {
             return Arrays.asList(AUTHORIZED_EXPLICIT_FILTER).stream().anyMatch(field -> query.contains(field + ":"));
@@ -395,17 +345,5 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     @Override
     public boolean handle(Class<? extends Indexable> source) {
         return source.isAssignableFrom(ApiEntity.class);
-    }
-
-    @Override
-    protected String getReference(Document document) {
-        String type = document.get(FIELD_TYPE);
-        if (FIELD_API_TYPE_VALUE.equals(type)) {
-            return document.get(FIELD_ID);
-        } else if (FIELD_PAGE_TYPE_VALUE.equals(type)) {
-            return document.get(FIELD_REFERENCE_ID);
-        }
-
-        return null;
     }
 }

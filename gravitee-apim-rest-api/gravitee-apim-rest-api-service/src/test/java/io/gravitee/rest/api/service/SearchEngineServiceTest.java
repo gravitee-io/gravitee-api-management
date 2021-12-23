@@ -27,6 +27,8 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchEngineServiceImpl;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
@@ -34,6 +36,8 @@ import io.gravitee.rest.api.service.impl.search.configuration.SearchEngineConfig
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
+import io.gravitee.rest.api.service.impl.search.lucene.searcher.PageDocumentSearcher;
+import io.gravitee.rest.api.service.impl.search.lucene.searcher.UserDocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.PageDocumentTransformer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -151,7 +155,7 @@ public class SearchEngineServiceTest {
     public void shouldFindWithExplicitNameFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api 1\"").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api / 1\"").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
@@ -162,7 +166,7 @@ public class SearchEngineServiceTest {
     public void shouldFindWithExplicitNameUnSensitiveFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("name:\"my awesome api 1\"").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"my awesome api / 1\"").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
@@ -173,7 +177,7 @@ public class SearchEngineServiceTest {
     public void shouldFindWithExplicitNameWildcardFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("name:\"my * api 1\"").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"my * api * 1\"").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(1, matches.getHits());
@@ -298,7 +302,7 @@ public class SearchEngineServiceTest {
         SearchResult matches = searchEngineService.search(
             QueryBuilder
                 .create(ApiEntity.class)
-                .setQuery("name:\"My Awesome api 2\" AND ownerName: \"Owner 2\"")
+                .setQuery("name:\"My Awesome api / 2\" AND ownerName: \"Owner 2\"")
                 .setFilters(filters)
                 .build()
         );
@@ -414,13 +418,61 @@ public class SearchEngineServiceTest {
         assertEquals(Arrays.asList("api-3"), new ArrayList(matches.getDocuments()));
     }
 
+    @Test
+    public void shouldFindBestResultsWithCategorySortByNameAsc() {
+        Map<String, Object> filters = new HashMap<>();
+        Sortable sortByName = new SortableImpl("name", true);
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("machine learning").setFilters(filters).setSort(sortByName).build()
+        );
+        assertNotNull(matches);
+        assertEquals(3, matches.getHits());
+        assertEquals(Arrays.asList("api-4", "api-2", "api-0"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindBestResultsWithPageContentAndSortByNameDesc() {
+        Map<String, Object> filters = new HashMap<>();
+        Sortable sortByName = new SortableImpl("name", false);
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).setSort(sortByName).build()
+        );
+        assertNotNull(matches);
+        assertEquals(2, matches.getHits());
+        assertEquals(Arrays.asList("api-1", "api-3"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindBestResultsWithPageContentAndSortByPathsAsc() {
+        Map<String, Object> filters = new HashMap<>();
+        Sortable sortByPath = new SortableImpl("paths", true);
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).setSort(sortByPath).build()
+        );
+        assertNotNull(matches);
+        assertEquals(2, matches.getHits());
+        assertEquals(Arrays.asList("api-3", "api-1"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindBestResultsWithPageContentAndSortByPathsDesc() {
+        Map<String, Object> filters = new HashMap<>();
+        Sortable sortByPath = new SortableImpl("paths", false);
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).setSort(sortByPath).build()
+        );
+        assertNotNull(matches);
+        assertEquals(2, matches.getHits());
+        assertEquals(Arrays.asList("api-1", "api-3"), new ArrayList(matches.getDocuments()));
+    }
+
     @Before
     public void initIndexer() {
         // TODO: Remove this hack and use @BeforeAll when move to junit 5.x
         if (!isIndexed) {
             List<String> labels = new ArrayList();
             for (int i = 0; i < 5; i++) {
-                String apiName = "My Awesome api " + i;
+                String apiName = "My Awesome api / " + i;
                 ApiEntity apiEntity = new ApiEntity();
                 apiEntity.setId("api-" + i);
                 labels.add("In Review " + i);
@@ -494,6 +546,16 @@ public class SearchEngineServiceTest {
         }
 
         @Bean
+        public PageDocumentSearcher pageDocumentSearcher() {
+            return new PageDocumentSearcher();
+        }
+
+        @Bean
+        public UserDocumentSearcher userDocumentSearcher() {
+            return new UserDocumentSearcher();
+        }
+
+        @Bean
         public SearchEngineService searchEngineService() {
             return new SearchEngineServiceImpl();
         }
@@ -505,7 +567,7 @@ public class SearchEngineServiceTest {
 
         @Bean
         public Collection<DocumentSearcher> searchers() {
-            return Arrays.asList(new ApiDocumentSearcher());
+            return Arrays.asList(new ApiDocumentSearcher(), new PageDocumentSearcher(), new UserDocumentSearcher());
         }
 
         @Bean

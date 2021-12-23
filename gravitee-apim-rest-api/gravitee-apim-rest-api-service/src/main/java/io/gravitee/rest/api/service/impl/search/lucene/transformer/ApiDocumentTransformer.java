@@ -19,6 +19,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import org.apache.lucene.document.*;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.util.BytesRef;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,6 +72,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
 
         if (api.getName() != null) {
             doc.add(new StringField(FIELD_NAME, api.getName(), Field.Store.NO));
+            doc.add(new SortedDocValuesField(FIELD_NAME, new BytesRef(QueryParser.escape(api.getName()))));
             doc.add(new StringField(FIELD_NAME_LOWERCASE, api.getName().toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_NAME_SPLIT, api.getName(), Field.Store.NO));
         }
@@ -87,6 +90,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
         }
 
         if (api.getProxy() != null) {
+            final int[] pathIndex = { 0 };
             api
                 .getProxy()
                 .getVirtualHosts()
@@ -97,6 +101,9 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
                         if (virtualHost.getHost() != null && !virtualHost.getHost().isEmpty()) {
                             doc.add(new StringField(FIELD_HOSTS, virtualHost.getHost(), Field.Store.NO));
                             doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
+                        }
+                        if (pathIndex[0]++ == 0) {
+                            doc.add(new SortedDocValuesField(FIELD_PATHS, new BytesRef(QueryParser.escape(virtualHost.getPath()))));
                         }
                     }
                 );

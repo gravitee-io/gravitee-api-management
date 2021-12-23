@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.search.query;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.search.Indexable;
 import java.util.Map;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -69,6 +70,11 @@ public class QueryBuilder<T extends Indexable> {
 
     public QueryBuilder<T> setPage(Pageable pageable) {
         query.setPage(pageable);
+        return this;
+    }
+
+    public QueryBuilder<T> setSort(Sortable sortable) {
+        query.setSort(sortable);
         return this;
     }
 

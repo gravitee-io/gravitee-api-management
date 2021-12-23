@@ -36,8 +36,11 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import io.gravitee.rest.api.service.impl.search.lucene.SearchEngineIndexer;
+import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -226,6 +229,18 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             .flatMap(
                 searcher -> {
                     try {
+                        if (searcher instanceof ApiDocumentSearcher) {
+                            Optional<DocumentSearcher> pageDocumentSearcher = searchers
+                                .stream()
+                                .filter(s -> s.handle(PageEntity.class))
+                                .findFirst();
+                            if (pageDocumentSearcher.isPresent()) {
+                                SearchResult apiReferences = pageDocumentSearcher.get().searchReference(query);
+                                if (!apiReferences.getDocuments().isEmpty()) {
+                                    query.setIds(apiReferences.getDocuments());
+                                }
+                            }
+                        }
                         return Optional.of(searcher.search(query));
                     } catch (TechnicalException te) {
                         logger.error("Unexpected error while searching a document", te);

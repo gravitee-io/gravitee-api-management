@@ -27,7 +27,10 @@ import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.WildcardQuery;
 import org.springframework.stereotype.Component;
 
 /**
@@ -83,7 +86,7 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
 
             userQuery.add(orgCriteria.build(), BooleanClause.Occur.FILTER);
 
-            return search(userQuery.build(), query.getPage());
+            return search(userQuery.build(), null, query.getPage());
         } catch (ParseException pe) {
             logger.error("Invalid query to search for user documents", pe);
             throw new TechnicalException("Invalid query to search for user documents", pe);
