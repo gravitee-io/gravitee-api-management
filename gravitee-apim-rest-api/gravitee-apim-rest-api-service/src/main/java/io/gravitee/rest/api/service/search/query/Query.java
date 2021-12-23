@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service.search.query;
 
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.search.Indexable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +35,10 @@ public class Query<T extends Indexable> {
     private final Class<T> root;
 
     private Pageable page;
+
+    private Sortable sort;
+
+    private Collection<String> ids;
 
     Query(final Class<T> root) {
         this.root = root;
@@ -64,5 +70,21 @@ public class Query<T extends Indexable> {
 
     public void setPage(Pageable page) {
         this.page = page;
+    }
+
+    public Sortable getSort() {
+        return sort;
+    }
+
+    public void setSort(Sortable sort) {
+        this.sort = sort;
+    }
+
+    public void setIds(Collection<String> ids) {
+        this.ids = ids;
+    }
+
+    public Collection<String> getIds() {
+        return ids;
     }
 }
