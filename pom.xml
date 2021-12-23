@@ -55,9 +55,9 @@
 
     <properties>
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-gateway-standalone-container -->
-        <vertx.version>4.2.1</vertx.version>
+        <vertx.version>4.2.3</vertx.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>1.5-SNAPSHOT</gravitee-bom.version>
+        <gravitee-bom.version>2.0-SNAPSHOT</gravitee-bom.version>
         <gravitee-alert-api.version>1.8.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.9.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.25.0-SNAPSHOT</gravitee-common.version>
@@ -69,7 +69,7 @@
         <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
         <gravitee-node.version>1.20.0-SNAPSHOT</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
-        <gravitee-plugin.version>1.20.0</gravitee-plugin.version>
+        <gravitee-plugin.version>1.22.0-SNAPSHOT</gravitee-plugin.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
         <gravitee-reporter-api.version>1.21.0</gravitee-reporter-api.version>
         <gravitee-resource-cache-provider-api.version>1.1.0</gravitee-resource-cache-provider-api.version>
