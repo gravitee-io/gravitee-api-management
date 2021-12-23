@@ -15,9 +15,11 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import io.gravitee.gateway.policy.*;
+import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.PolicyFactory;
+import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -53,7 +55,8 @@ public class CachedPolicyFactory implements PolicyFactory {
         }
     }
 
-    public void clear() {
-        policies.clear();
+    @Override
+    public void cleanup(PolicyMetadata policyMetadata) {
+        delegate.cleanup(policyMetadata);
     }
 }
