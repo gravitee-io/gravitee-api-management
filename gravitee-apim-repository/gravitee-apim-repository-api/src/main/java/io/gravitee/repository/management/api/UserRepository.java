@@ -20,7 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
@@ -56,7 +56,7 @@ public interface UserRepository extends CrudRepository<User, String> {
      * @param ids Identifier of the searched users
      * @return list of users found
      */
-    Set<User> findByIds(List<String> ids) throws TechnicalException;
+    Set<User> findByIds(Collection<String> ids) throws TechnicalException;
 
     /**
      * search {@link User}s

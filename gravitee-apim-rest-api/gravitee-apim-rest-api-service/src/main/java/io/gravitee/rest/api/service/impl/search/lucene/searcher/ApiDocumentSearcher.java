@@ -26,7 +26,6 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.PageDocumentTransformer;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
@@ -50,14 +49,15 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private static final Map<String, Float> API_FIELD_BOOST = new HashMap<>() {
         {
-            put(FIELD_NAME, 12.0f);
-            put(FIELD_NAME_LOWERCASE, 12.0f);
-            put(FIELD_NAME_SPLIT, 10.0f);
+            put(FIELD_NAME, 20.0f);
+            put(FIELD_NAME_LOWERCASE, 20.0f);
+            put(FIELD_NAME_SPLIT, 18.0f);
             put(FIELD_PATHS, 10.0f);
             put(FIELD_HOSTS, 10.0f);
             put(FIELD_LABELS, 8.0f);
-            put(FIELD_DESCRIPTION, 6.0f);
+            put(FIELD_DESCRIPTION, 5.0f);
             put(FIELD_METADATA, 4.0f);
+            put(FIELD_TAGS, 1.0f);
         }
     };
 
@@ -110,93 +110,99 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_TAGS,
     };
 
+    private BooleanQuery.Builder buildApiQuery(io.gravitee.rest.api.service.search.query.Query query) {
+        BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
+        BooleanQuery envCriteria = buildEnvCriteria();
+
+        // Search in API fields
+        apiQuery
+            .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER)
+            .add(envCriteria, BooleanClause.Occur.FILTER);
+
+        Query apisFilter = getApisFilter(FIELD_ID, query.getFilters());
+        if (apisFilter != null) {
+            apiQuery.add(apisFilter, BooleanClause.Occur.FILTER);
+        }
+        return apiQuery;
+    }
+
+    private Optional<BooleanQuery> buildPageQuery(io.gravitee.rest.api.service.search.query.Query query) throws ParseException {
+        if (!isBlank(query.getQuery())) {
+            BooleanQuery.Builder mainQuery = new BooleanQuery.Builder()
+                .add(new TermQuery(new Term(FIELD_TYPE, PageDocumentTransformer.FIELD_TYPE_VALUE)), BooleanClause.Occur.FILTER)
+                .add(new TermQuery(new Term(FIELD_REFERENCE_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER);
+            Query apisFilter = getApisFilter(FIELD_REFERENCE_ID, query.getFilters());
+            if (apisFilter != null) {
+                mainQuery.add(apisFilter, BooleanClause.Occur.FILTER);
+            }
+            MultiFieldQueryParser apiParser = new MultiFieldQueryParser(PAGE_FIELD_SEARCH, analyzer, PAGE_FIELD_BOOST);
+            apiParser.setAllowLeadingWildcard(true);
+            String queryEscaped = QueryParser.escape(query.getQuery());
+            Query queryParsed = apiParser.parse(queryEscaped);
+            mainQuery.add(queryParsed, BooleanClause.Occur.MUST);
+            return Optional.of(mainQuery.build());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<BooleanQuery> buildExactMatchQuery(io.gravitee.rest.api.service.search.query.Query query) throws ParseException {
+        if (!isBlank(query.getQuery())) {
+            BooleanQuery.Builder mainQuery = buildApiQuery(query);
+            MultiFieldQueryParser apiParser = new MultiFieldQueryParser(API_FIELD_SEARCH, new KeywordAnalyzer(), API_FIELD_BOOST);
+            String queryEscaped = QueryParserBase.escape(query.getQuery());
+            Query queryParsed = apiParser.parse(queryEscaped);
+            mainQuery.add(queryParsed, BooleanClause.Occur.MUST);
+            return Optional.of(mainQuery.build());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<BooleanQuery> buildWildcardQuery(io.gravitee.rest.api.service.search.query.Query query) throws ParseException {
+        if (!isBlank(query.getQuery())) {
+            BooleanQuery.Builder mainQuery = buildApiQuery(query);
+
+            MultiFieldQueryParser apiParser = new MultiFieldQueryParser(API_FIELD_SEARCH, new KeywordAnalyzer(), API_FIELD_BOOST);
+            apiParser.setAllowLeadingWildcard(true);
+            apiParser.setFuzzyMinSim(0.6f);
+            String queryEscaped = QueryParserBase.escape(query.getQuery());
+            Query queryParsed = apiParser.parse(queryEscaped);
+            mainQuery.add(queryParsed, BooleanClause.Occur.SHOULD);
+            mainQuery.add(buildApiFields(query.getQuery(), BooleanClause.Occur.SHOULD), BooleanClause.Occur.MUST);
+            return Optional.of(mainQuery.build());
+        }
+        return Optional.empty();
+    }
+
     @Override
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
-        BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
         try {
-            String rest = completeQueryWithFilters(query, mainQuery);
+            Optional<BooleanQuery> filtersQuery = this.buildExplicitQuery(query);
+            Optional<BooleanQuery> exactMatchQuery = this.buildExactMatchQuery(query);
+            Optional<BooleanQuery> wildcardQuery = this.buildWildcardQuery(query);
+            Optional<BooleanQuery> pageQuery = this.buildPageQuery(query);
 
-            MultiFieldQueryParser apiParser = new MultiFieldQueryParser(API_FIELD_SEARCH, analyzer, API_FIELD_BOOST);
-            apiParser.setFuzzyMinSim(0.6f);
-            apiParser.setAllowLeadingWildcard(true);
-
-            QueryParser pageParser = new MultiFieldQueryParser(PAGE_FIELD_SEARCH, analyzer, PAGE_FIELD_BOOST);
-            pageParser.setFuzzyMinSim(0.6f);
-            pageParser.setAllowLeadingWildcard(true);
-
-            BooleanQuery.Builder pageFieldsQuery = new BooleanQuery.Builder();
             BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
-            String inputQuery = QueryParserBase.escape(rest);
-            if (!inputQuery.isEmpty()) {
-                Query parsePage = pageParser.parse(inputQuery);
-                pageFieldsQuery.add(parsePage, BooleanClause.Occur.SHOULD);
-                Query parseApi = apiParser.parse(inputQuery);
-                apiQuery.add(buildApiFields(rest, parseApi, BooleanClause.Occur.SHOULD), BooleanClause.Occur.MUST);
-            }
 
-            BooleanQuery envCriteria = buildEnvCriteria();
+            filtersQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.MUST));
+            exactMatchQuery.ifPresent(query1 -> apiQuery.add(new BoostQuery(query1, 4.0f), BooleanClause.Occur.SHOULD));
+            wildcardQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.SHOULD));
+            pageQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.SHOULD));
 
-            // Search in API fields
-            apiQuery
-                .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.MUST)
-                .add(envCriteria, BooleanClause.Occur.FILTER);
-
-            Query apisFilter = getApisFilter(FIELD_ID, query.getFilters());
-            if (apisFilter != null) {
-                apiQuery.add(apisFilter, BooleanClause.Occur.MUST);
-            }
-
-            // Search in page fields
-            pageFieldsQuery
-                .add(toWildcard(PageDocumentTransformer.FIELD_NAME, rest), BooleanClause.Occur.SHOULD)
-                .add(toWildcard(PageDocumentTransformer.FIELD_NAME_LOWERCASE, rest.toLowerCase()), BooleanClause.Occur.SHOULD)
-                .add(toWildcard(PageDocumentTransformer.FIELD_CONTENT, rest), BooleanClause.Occur.SHOULD);
-
-            BooleanQuery.Builder pageQuery = new BooleanQuery.Builder()
-                .add(pageFieldsQuery.build(), BooleanClause.Occur.MUST)
-                .add(new TermQuery(new Term(FIELD_TYPE, PageDocumentTransformer.FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST)
-                .add(new TermQuery(new Term(FIELD_REFERENCE_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.MUST);
-
-            Query pageApisFilter = getApisFilter(FIELD_REFERENCE_ID, query.getFilters());
-            if (pageApisFilter != null) {
-                pageQuery.add(pageApisFilter, BooleanClause.Occur.MUST);
-            }
-
-            BooleanQuery.Builder pageOrApiQuery = new BooleanQuery.Builder();
-            pageOrApiQuery
-                .add(new BoostQuery(apiQuery.build(), 2.0f), BooleanClause.Occur.SHOULD)
-                .add(pageQuery.build(), BooleanClause.Occur.SHOULD);
-
-            mainQuery.add(pageOrApiQuery.build(), BooleanClause.Occur.MUST);
-
-            // Manage filters
-            if (query.getFilters() != null) {
-                BooleanQuery.Builder filtersQuery = new BooleanQuery.Builder();
-                final boolean[] hasClause = { false };
-                query
-                    .getFilters()
-                    .forEach(
-                        (BiConsumer<String, Object>) (field, value) -> {
-                            if (!Collection.class.isAssignableFrom(value.getClass())) {
-                                filtersQuery.add(
-                                    new TermQuery(new Term(field, QueryParserBase.escape((String) value))),
-                                    BooleanClause.Occur.MUST
-                                );
-                                hasClause[0] = true;
-                            }
-                        }
-                    );
-
-                if (hasClause[0]) {
-                    filtersQuery.add(envCriteria, BooleanClause.Occur.FILTER);
-                    mainQuery.add(filtersQuery.build(), BooleanClause.Occur.MUST);
-                }
-            }
-            return search(mainQuery.build());
+            return this.search(apiQuery.build());
         } catch (ParseException pe) {
             logger.error("Invalid query to search for API documents", pe);
             throw new TechnicalException("Invalid query to search for API documents", pe);
         }
+    }
+
+    private Optional<BooleanQuery> buildExplicitQuery(io.gravitee.rest.api.service.search.query.Query query) {
+        BooleanQuery.Builder filtersQuery = buildApiQuery(query);
+        String rest = completeQueryWithFilters(query, filtersQuery);
+        if (!rest.equals(query.getQuery())) {
+            query.setQuery(rest);
+            return Optional.of(filtersQuery.build());
+        }
+        return Optional.empty();
     }
 
     protected String completeQueryWithFilters(io.gravitee.rest.api.service.search.query.Query query, BooleanQuery.Builder mainQuery) {
@@ -281,15 +287,19 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     private Query buildQueryFilter(Term term) {
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        String field = term.field();
+        String text = term.text();
         if (FIELD_CATEGORIES.equals(term.field())) {
-            return new TermQuery(new Term(term.field(), formatCategoryField(term.text())));
-        } else if (FIELD_PATHS.equals(term.field())) {
-            return new WildcardQuery(new Term(term.field(), term.text()));
-        } else if (FIELD_TAGS.equals(term.field())) {
-            return new TermQuery(new Term(term.field(), term.text()));
-        } else {
-            return new TermQuery(new Term(term.field() + "_lowercase", term.text().toLowerCase()));
+            text = formatCategoryField(term.text());
+        } else if (!FIELD_PATHS.equals(term.field()) && !FIELD_TAGS.equals(term.field())) {
+            text = text.toLowerCase();
+            field = field.concat("_lowercase");
         }
+        return builder
+            .add(new PhraseQuery(field, text), BooleanClause.Occur.SHOULD)
+            .add(new WildcardQuery(new Term(field, text)), BooleanClause.Occur.SHOULD)
+            .build();
     }
 
     public static String formatCategoryField(String category) {
@@ -301,54 +311,78 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         return new WildcardQuery(new Term(field, '*' + query + '*'));
     }
 
-    private BooleanQuery buildApiFields(String query, BooleanClause.Occur occur) {
-        return buildApiFields(query, null, occur);
-    }
-
-    private BooleanQuery buildApiFields(String query, Query queryParsed, BooleanClause.Occur occur) {
+    private BooleanQuery buildApiFields(String query, BooleanClause.Occur occur, Query... queries) {
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        if (queryParsed != null) {
-            builder.add(queryParsed, occur);
+        if (queries != null) {
+            for (Query q : queries) {
+                builder.add(q, occur);
+            }
         }
 
-        return builder
-            .add(toWildcard(FIELD_NAME, query), occur)
-            .add(toWildcard(FIELD_NAME_LOWERCASE, query.toLowerCase()), occur)
-            .add(toWildcard(FIELD_PATHS, query), occur)
-            .add(toWildcard(FIELD_DESCRIPTION, query), occur)
-            .add(toWildcard(FIELD_DESCRIPTION_LOWERCASE, query.toLowerCase()), occur)
-            .add(toWildcard(FIELD_HOSTS, query), occur)
-            .add(toWildcard(FIELD_LABELS, query), occur)
-            .add(toWildcard(FIELD_CATEGORIES, query), occur)
-            .add(toWildcard(FIELD_TAGS, query), occur)
-            .add(toWildcard(FIELD_METADATA, query), occur)
-            .build();
+        String[] tokens = query.split(" ");
+        for (String token : tokens) {
+            builder
+                .add(new BoostQuery(toWildcard(FIELD_NAME, token), 12.0f), occur)
+                .add(new BoostQuery(toWildcard(FIELD_NAME_LOWERCASE, token.toLowerCase()), 10.0f), occur)
+                .add(new BoostQuery(toWildcard(FIELD_PATHS, token), 8.0f), occur)
+                .add(toWildcard(FIELD_DESCRIPTION, token), occur)
+                .add(toWildcard(FIELD_DESCRIPTION_LOWERCASE, token.toLowerCase()), occur)
+                .add(toWildcard(FIELD_HOSTS, token), occur)
+                .add(toWildcard(FIELD_LABELS, token), occur)
+                .add(toWildcard(FIELD_CATEGORIES, token), occur)
+                .add(toWildcard(FIELD_TAGS, token), occur)
+                .add(toWildcard(FIELD_METADATA, token), occur);
+        }
+        return builder.build();
     }
 
     private BooleanQuery buildEnvCriteria() {
         return new BooleanQuery.Builder()
             .add(
                 new TermQuery(new Term(FIELD_REFERENCE_TYPE, GraviteeContext.ReferenceContextType.ENVIRONMENT.name())),
-                BooleanClause.Occur.MUST
+                BooleanClause.Occur.FILTER
             )
-            .add(new TermQuery(new Term(FIELD_REFERENCE_ID, GraviteeContext.getCurrentEnvironmentOrDefault())), BooleanClause.Occur.MUST)
+            .add(new TermQuery(new Term(FIELD_REFERENCE_ID, GraviteeContext.getCurrentEnvironmentOrDefault())), BooleanClause.Occur.FILTER)
             .build();
     }
 
-    private Query getApisFilter(String field, Map<String, Object> filters) {
-        Object filter = filters.get(FIELD_API_TYPE_VALUE);
-        if (filter != null) {
-            try {
+    private Query getApisFilter(String apiReferenceField, Map<String, Object> filters) {
+        if (filters == null || filters.isEmpty()) {
+            return null;
+        }
+        BooleanQuery.Builder filtersQuery = new BooleanQuery.Builder();
+        if (filters.containsKey(FIELD_API_TYPE_VALUE)) {
+            Object values = filters.get(FIELD_API_TYPE_VALUE);
+            if (Collection.class.isAssignableFrom(values.getClass())) {
+                Collection valuesAsCollection = (Collection) values;
+                if (valuesAsCollection.size() > BooleanQuery.getMaxClauseCount()) {
+                    BooleanQuery.setMaxClauseCount(valuesAsCollection.size());
+                }
                 BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
-                ((Collection) filter).stream()
-                    .forEach(value1 -> filterApisQuery.add(new TermQuery(new Term(field, (String) value1)), BooleanClause.Occur.SHOULD));
-                return filterApisQuery.build();
-            } catch (BooleanQuery.TooManyClauses e) {
-                BooleanQuery.setMaxClauseCount(filters.size());
-                return getApisFilter(field, filters);
+                ((Collection<?>) values).forEach(
+                        value -> filterApisQuery.add(new TermQuery(new Term(apiReferenceField, (String) value)), BooleanClause.Occur.SHOULD)
+                    );
+                if (valuesAsCollection.size() > 0) {
+                    filtersQuery.add(filterApisQuery.build(), BooleanClause.Occur.MUST);
+                }
             }
         }
-        return null;
+
+        final boolean[] hasClause = { false };
+        filters.forEach(
+            (field, value) -> {
+                if (!Collection.class.isAssignableFrom(value.getClass())) {
+                    filtersQuery.add(new TermQuery(new Term(field, QueryParserBase.escape((String) value))), BooleanClause.Occur.MUST);
+                    hasClause[0] = true;
+                }
+            }
+        );
+
+        if (hasClause[0]) {
+            filtersQuery.add(filtersQuery.build(), BooleanClause.Occur.MUST);
+        }
+
+        return filtersQuery.build();
     }
 
     private boolean hasExplicitFilter(String query) {

@@ -79,7 +79,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
             doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, api.getDescription(), Field.Store.NO));
         }
         if (api.getPrimaryOwner() != null) {
-            doc.add(new TextField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), Field.Store.NO));
+            doc.add(new StringField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), Field.Store.NO));
             doc.add(new StringField(FIELD_OWNER_LOWERCASE, api.getPrimaryOwner().getDisplayName().toLowerCase(), Field.Store.NO));
             if (api.getPrimaryOwner().getEmail() != null) {
                 doc.add(new TextField(FIELD_OWNER_MAIL, api.getPrimaryOwner().getEmail(), Field.Store.NO));
@@ -105,7 +105,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
         // labels
         if (api.getLabels() != null) {
             for (String label : api.getLabels()) {
-                doc.add(new StringField(FIELD_LABELS, label, Field.Store.NO));
+                doc.add(new StringField(FIELD_LABELS, label, Field.Store.YES));
                 doc.add(new StringField(FIELD_LABELS_LOWERCASE, label.toLowerCase(), Field.Store.NO));
                 doc.add(new TextField(FIELD_LABELS_SPLIT, label, Field.Store.NO));
             }

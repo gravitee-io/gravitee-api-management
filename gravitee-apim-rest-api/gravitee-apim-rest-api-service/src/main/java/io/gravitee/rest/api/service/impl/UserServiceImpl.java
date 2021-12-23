@@ -366,12 +366,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public Set<UserEntity> findByIds(List<String> ids) {
+    public Set<UserEntity> findByIds(Collection<String> ids) {
         return this.findByIds(ids, true);
     }
 
     @Override
-    public Set<UserEntity> findByIds(List<String> ids, boolean withUserMetadata) {
+    public Set<UserEntity> findByIds(Collection<String> ids, boolean withUserMetadata) {
         try {
             LOGGER.debug("Find users by ID: {}", ids);
 
