@@ -60,12 +60,12 @@ export class RoleService {
       .pipe(map((role) => ({ ...role, scope: role.scope.toUpperCase() as RoleScope })));
   }
 
-  create(role: Role): Observable<void> {
-    return this.http.post<void>(`${this.constants.org.baseURL}/configuration/rolescopes/${role.scope}/roles`, role);
+  create(role: Role): Observable<Role> {
+    return this.http.post<Role>(`${this.constants.org.baseURL}/configuration/rolescopes/${role.scope}/roles`, role);
   }
 
-  update(role: Role): Observable<void> {
-    return this.http.put<void>(`${this.constants.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`, role);
+  update(role: Role): Observable<Role> {
+    return this.http.put<Role>(`${this.constants.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`, role);
   }
 
   delete(scope: string, roleName: string): Observable<void> {
