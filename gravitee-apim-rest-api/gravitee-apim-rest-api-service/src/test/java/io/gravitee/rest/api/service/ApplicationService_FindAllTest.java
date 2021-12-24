@@ -28,6 +28,7 @@ import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
@@ -73,14 +74,20 @@ public class ApplicationService_FindAllTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
             .thenReturn(new HashSet<>(Collections.singletonList(new MembershipEntity())));
 
-        Set<ApplicationListItem> set = applicationService.findAll();
+        Set<ApplicationListItem> set = applicationService.findAll(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
         assertThat(set).hasSize(1);
         verify(applicationRepository, times(1)).findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE);
     }
 
     @Test
     public void shouldTryFindAll_noResult() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findAll();
+        Set<ApplicationListItem> set = applicationService.findAll(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
         assertThat(set).isEmpty();
         verify(applicationRepository, times(1)).findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE);
     }
@@ -88,6 +95,9 @@ public class ApplicationService_FindAllTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldTryFindAll_exception() throws Exception {
         when(applicationRepository.findAllByEnvironment(eq("DEFAULT"), eq(ApplicationStatus.ACTIVE))).thenThrow(TechnicalException.class);
-        Set<ApplicationListItem> set = applicationService.findAll();
+        Set<ApplicationListItem> set = applicationService.findAll(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
     }
 }

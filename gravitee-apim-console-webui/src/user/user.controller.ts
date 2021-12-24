@@ -137,7 +137,8 @@ class UserController {
         clickOutsideToClose: false,
         escapeToClose: false,
         locals: {
-          msg: 'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
+          msg:
+            'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
           title: 'Generate Personal Access Token',
         },
       })
@@ -156,7 +157,8 @@ class UserController {
         template: require('../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          msg: 'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
+          msg:
+            'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
           title: 'Are you sure you want to revoke the token "' + token.name + '"?',
           confirmButton: 'Revoke',
         },

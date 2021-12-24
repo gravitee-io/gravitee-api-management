@@ -19,6 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -26,6 +27,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -56,12 +58,14 @@ public class PermissionsResourceTest extends AbstractResourceTest {
         ApplicationListItem mockAppListItem = new ApplicationListItem();
         mockAppListItem.setId(APPLICATION);
         Set<ApplicationListItem> mockApps = new HashSet<>(Arrays.asList(mockAppListItem));
-        doReturn(mockApps).when(applicationService).findByUser(any());
+        doReturn(mockApps)
+            .when(applicationService)
+            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
 
         ApplicationEntity mockAppEntity = new ApplicationEntity();
         mockAppEntity.setId(APPLICATION);
 
-        doReturn(mockAppEntity).when(applicationService).findById(any());
+        doReturn(mockAppEntity).when(applicationService).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
     }
 
     @Test

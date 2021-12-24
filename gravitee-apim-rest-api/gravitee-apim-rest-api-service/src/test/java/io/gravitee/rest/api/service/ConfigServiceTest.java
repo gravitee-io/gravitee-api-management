@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.model.settings.Logging;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ConfigServiceImpl;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -77,7 +78,7 @@ public class ConfigServiceTest {
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
-        PortalSettingsEntity portalSettings = configService.getPortalSettings();
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getCurrentEnvironment());
 
         assertNotNull(portalSettings);
         assertEquals("force login", true, portalSettings.getAuthentication().getForceLogin().isEnabled());
@@ -115,7 +116,7 @@ public class ConfigServiceTest {
         when(environment.containsProperty(Key.PORTAL_ANALYTICS_ENABLED.key())).thenReturn(true);
         when(environment.containsProperty(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key())).thenReturn(true);
 
-        PortalSettingsEntity portalSettings = configService.getPortalSettings();
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getCurrentEnvironment());
 
         assertNotNull(portalSettings);
         assertEquals("force login", true, portalSettings.getAuthentication().getForceLogin().isEnabled());
@@ -149,7 +150,7 @@ public class ConfigServiceTest {
         portalSettingsEntity.getPortal().setUrl("ACME");
         when(mockParameterService.save(PORTAL_URL, "ACME", "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(new Parameter());
 
-        configService.save(portalSettingsEntity);
+        configService.save(GraviteeContext.getCurrentEnvironment(), portalSettingsEntity);
 
         verify(mockParameterService, times(1)).save(PORTAL_URL, "ACME", "DEFAULT", ParameterReferenceType.ENVIRONMENT);
     }
@@ -166,7 +167,7 @@ public class ConfigServiceTest {
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
-        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings();
+        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getCurrentOrganization());
 
         assertNotNull(consoleSettings);
         assertEquals("scheduler notifications", Integer.valueOf(11), consoleSettings.getScheduler().getNotificationsInSeconds());
@@ -188,7 +189,7 @@ public class ConfigServiceTest {
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
-        ConsoleConfigEntity consoleConfig = configService.getConsoleConfig();
+        ConsoleConfigEntity consoleConfig = configService.getConsoleConfig(GraviteeContext.getCurrentOrganization());
 
         assertNotNull(consoleConfig);
         assertEquals("scheduler notifications", Integer.valueOf(11), consoleConfig.getScheduler().getNotificationsInSeconds());
@@ -213,7 +214,7 @@ public class ConfigServiceTest {
         when(environment.containsProperty(eq(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key()))).thenReturn(true);
         when(environment.containsProperty(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
 
-        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings();
+        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getCurrentOrganization());
 
         assertNotNull(consoleSettings);
         assertEquals("scheduler notifications", Integer.valueOf(11), consoleSettings.getScheduler().getNotificationsInSeconds());
@@ -256,7 +257,7 @@ public class ConfigServiceTest {
         when(mockParameterService.save(LOGGING_AUDIT_TRAIL_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION))
             .thenReturn(new Parameter());
 
-        configService.save(consoleSettingsEntity);
+        configService.save(GraviteeContext.getCurrentOrganization(), consoleSettingsEntity);
 
         verify(mockParameterService, times(1)).save(ALERT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
         verify(mockParameterService, times(1)).save(LOGGING_DEFAULT_MAX_DURATION, "3000", "DEFAULT", ParameterReferenceType.ORGANIZATION);

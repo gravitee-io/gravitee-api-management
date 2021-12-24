@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.analytics.query.Aggregation;
@@ -26,6 +27,7 @@ import io.gravitee.rest.api.model.analytics.query.CountQuery;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery.Order;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.Response;
@@ -62,7 +64,7 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<DateHistogramQuery> queryCaptor = ArgumentCaptor.forClass(DateHistogramQuery.class);
-        Mockito.verify(analyticsService).execute(queryCaptor.capture());
+        Mockito.verify(analyticsService).execute(eq(GraviteeContext.getCurrentOrganization()), queryCaptor.capture());
         final DateHistogramQuery query = queryCaptor.getValue();
         assertEquals(0, query.getFrom());
         assertEquals(100, query.getTo());
@@ -95,7 +97,7 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<GroupByQuery> queryCaptor = ArgumentCaptor.forClass(GroupByQuery.class);
-        Mockito.verify(analyticsService).execute(queryCaptor.capture());
+        Mockito.verify(analyticsService).execute(eq(GraviteeContext.getCurrentOrganization()), queryCaptor.capture());
         final GroupByQuery query = queryCaptor.getValue();
         assertEquals(0, query.getFrom());
         assertEquals(100, query.getTo());

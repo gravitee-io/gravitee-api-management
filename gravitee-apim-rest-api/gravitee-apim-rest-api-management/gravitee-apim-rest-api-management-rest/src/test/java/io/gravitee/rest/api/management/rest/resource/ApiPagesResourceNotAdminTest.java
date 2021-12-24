@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import javax.annotation.Priority;
@@ -67,7 +68,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         pageMock.setName(PAGE_NAME);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
-        doReturn(true).when(accessControlService).canAccessPageFromConsole(apiMock, pageMock);
+        doReturn(true).when(accessControlService).canAccessPageFromConsole(GraviteeContext.getCurrentEnvironment(), apiMock, pageMock);
 
         final Response response = envTarget().request().get();
 

@@ -35,6 +35,7 @@ import io.gravitee.rest.api.portal.rest.model.Group;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
@@ -120,7 +121,7 @@ public class ApplicationMapperTest {
         GroupEntity grpEntity = new GroupEntity();
         grpEntity.setId(APPLICATION_GROUP_ID);
         grpEntity.setName(APPLICATION_GROUP_NAME);
-        when(groupService.findById(APPLICATION_GROUP_ID)).thenReturn(grpEntity);
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_GROUP_ID)).thenReturn(grpEntity);
 
         UserEntity userEntity = Mockito.mock(UserEntity.class);
         when(userEntity.getDisplayName()).thenReturn(APPLICATION_USER_DISPLAYNAME);

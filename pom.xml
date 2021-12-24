@@ -60,13 +60,13 @@
         <gravitee-bom.version>1.4</gravitee-bom.version>
         <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.8.0</gravitee-cockpit-api.version>
-        <gravitee-common.version>1.22.2</gravitee-common.version>
-        <gravitee-definition.version>1.29.1</gravitee-definition.version>
+        <gravitee-common.version>1.22.3</gravitee-common.version>
+        <gravitee-definition.version>1.29.2-SNAPSHOT</gravitee-definition.version>
         <gravitee-expression-language.version>1.7.2</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.28.2</gravitee-gateway-api.version>
         <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
-        <gravitee-node.version>1.17.2</gravitee-node.version>
+        <gravitee-node.version>1.17.3</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
         <gravitee-plugin.version>1.18.0</gravitee-plugin.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>

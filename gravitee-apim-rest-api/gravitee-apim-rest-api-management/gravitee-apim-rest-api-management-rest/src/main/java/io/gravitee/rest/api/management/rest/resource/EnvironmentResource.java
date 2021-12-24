@@ -163,7 +163,8 @@ public class EnvironmentResource extends AbstractResource {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                permissions = membershipService.getUserMemberPermissions(environmentEntity, username);
+                permissions =
+                    membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), environmentEntity, username);
             }
         }
         return Response.ok(permissions).build();

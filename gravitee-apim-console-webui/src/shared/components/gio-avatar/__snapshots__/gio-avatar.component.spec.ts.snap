@@ -36,7 +36,7 @@ GioAvatarComponent {
     "nativeElement": <div
       _nghost-a-c0=""
       id="root0"
-      ng-version="12.2.13"
+      ng-version="12.2.15"
     >
       <div
         _ngcontent-a-c0=""
@@ -95,7 +95,7 @@ GioAvatarComponent {
     "nativeElement": <div
       _nghost-a-c1=""
       id="root1"
-      ng-version="12.2.13"
+      ng-version="12.2.15"
     >
       <div
         _ngcontent-a-c1=""

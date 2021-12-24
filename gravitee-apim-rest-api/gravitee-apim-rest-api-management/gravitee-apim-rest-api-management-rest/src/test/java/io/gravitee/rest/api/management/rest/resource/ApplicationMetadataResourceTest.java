@@ -18,10 +18,12 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -50,7 +52,7 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
 
         ApplicationMetadataEntity createdMetadata = new ApplicationMetadataEntity();
         createdMetadata.setKey("my-metadata-id");
-        when(applicationMetadataService.create(any())).thenReturn(createdMetadata);
+        when(applicationMetadataService.create(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(createdMetadata);
 
         final Response response = envTarget().path(APPLICATION).path("metadata").request().post(Entity.json(newMetadata));
         assertEquals(CREATED_201, response.getStatus());

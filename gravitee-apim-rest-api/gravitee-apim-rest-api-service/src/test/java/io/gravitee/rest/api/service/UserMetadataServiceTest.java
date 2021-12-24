@@ -41,6 +41,7 @@ import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewUserMetadataEntity;
 import io.gravitee.rest.api.model.UpdateUserMetadataEntity;
 import io.gravitee.rest.api.model.UserMetadataEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.UserMetadataServiceImpl;
 import java.util.Arrays;
 import java.util.Collections;
@@ -132,7 +133,15 @@ public class UserMetadataServiceTest {
             .put(Audit.AuditProperties.USER, USER_ID)
             .put(METADATA, newUserMetadata.getKey())
             .build();
-        verify(auditService).createOrganizationAuditLog(eq(properties), eq(METADATA_CREATED), any(), eq(null), eq(newUserMetadata));
+        verify(auditService)
+            .createOrganizationAuditLog(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(properties),
+                eq(METADATA_CREATED),
+                any(),
+                eq(null),
+                eq(newUserMetadata)
+            );
     }
 
     @Test
@@ -167,7 +176,15 @@ public class UserMetadataServiceTest {
             .put(Audit.AuditProperties.USER, USER_ID)
             .put(METADATA, toUserMetadata.getKey())
             .build();
-        verify(auditService).createOrganizationAuditLog(eq(properties), eq(METADATA_UPDATED), any(), any(), any());
+        verify(auditService)
+            .createOrganizationAuditLog(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(properties),
+                eq(METADATA_UPDATED),
+                any(),
+                any(),
+                any()
+            );
     }
 
     @Test

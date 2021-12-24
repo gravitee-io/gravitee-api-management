@@ -203,7 +203,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
                 Set<String> groupIdsToImport = xGraviteeIODefinition
                     .getGroups()
                     .stream()
-                    .flatMap(group -> groupService.findByName(group).stream())
+                    .flatMap(group -> groupService.findByName(GraviteeContext.getCurrentEnvironment(), group).stream())
                     .map(GroupEntity::getId)
                     .collect(Collectors.toSet());
                 apiEntity.setGroups(groupIdsToImport);

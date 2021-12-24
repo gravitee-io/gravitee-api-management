@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -85,7 +86,11 @@ public class PlatformAnalyticsResource extends AbstractResource {
                 fieldName = "application";
                 ids =
                     applicationService
-                        .findByUser(getAuthenticatedUser())
+                        .findByUser(
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment(),
+                            getAuthenticatedUser()
+                        )
                         .stream()
                         .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
                         .map(ApplicationListItem::getId)
@@ -179,7 +184,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
             query.setAggregations(aggregationList);
         }
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
     }
 
     private Analytics executeGroupBy(AnalyticsParam analyticsParam, String extraFilter) {
@@ -205,7 +210,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
             query.setGroups(rangeMap);
         }
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
     }
 
     private void addExtraFilter(AbstractQuery query, String extraFilter) {

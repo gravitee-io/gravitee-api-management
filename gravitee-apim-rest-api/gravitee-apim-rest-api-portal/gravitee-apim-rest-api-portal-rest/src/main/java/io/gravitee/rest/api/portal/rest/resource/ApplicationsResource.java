@@ -32,6 +32,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
@@ -102,7 +103,11 @@ public class ApplicationsResource extends AbstractResource {
         }
         newApplicationEntity.setSettings(newApplicationEntitySettings);
 
-        ApplicationEntity createdApplicationEntity = applicationService.create(newApplicationEntity, getAuthenticatedUser());
+        ApplicationEntity createdApplicationEntity = applicationService.create(
+            GraviteeContext.getCurrentEnvironment(),
+            newApplicationEntity,
+            getAuthenticatedUser()
+        );
 
         return Response
             .created(this.getLocationHeader(createdApplicationEntity.getId()))
@@ -123,7 +128,9 @@ public class ApplicationsResource extends AbstractResource {
         @QueryParam("forSubscription") final boolean forSubscription,
         @QueryParam("order") @DefaultValue("name") final String order
     ) {
-        Stream<ApplicationListItem> applicationStream = applicationService.findByUser(getAuthenticatedUser()).stream();
+        Stream<ApplicationListItem> applicationStream = applicationService
+            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), getAuthenticatedUser())
+            .stream();
 
         if (forSubscription) {
             applicationStream =

@@ -23,6 +23,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
  * @author GraviteeSource Team
  */
 public interface QualityMetricsService {
-    ApiQualityMetricsEntity getMetrics(ApiEntity apiEntity);
+    ApiQualityMetricsEntity getMetrics(ApiEntity apiEntity, final String environmentId);
     boolean isApiMetricsEnabled();
 }

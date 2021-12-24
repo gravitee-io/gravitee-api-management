@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.configuration.identity.google.GoogleIdentityPr
 import io.gravitee.rest.api.model.configuration.identity.oidc.OIDCIdentityProviderEntity;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationIdentitiesResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -83,7 +84,7 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
             .findAll(any());
 
         PortalSettingsEntity configEntity = new PortalSettingsEntity();
-        doReturn(configEntity).when(configService).getPortalSettings();
+        doReturn(configEntity).when(configService).getPortalSettings(GraviteeContext.getCurrentEnvironment());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

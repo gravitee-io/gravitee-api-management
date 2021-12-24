@@ -29,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.*;
 import javax.ws.rs.client.Invocation.Builder;
@@ -69,7 +70,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         page1.setVisibility(Visibility.PUBLIC);
         page1.setContent(PAGE_CONTENT);
         doReturn(page1).when(pageService).findById(PAGE, null);
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(API, page1);
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), API, page1);
 
         doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
@@ -139,7 +140,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetApiPage() {
         final Builder request = target(API).path("pages").path(PAGE).request();
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(API), any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), eq(API), any());
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
@@ -215,7 +216,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetApiPageContent() {
         final Builder request = target(API).path("pages").path(PAGE).path("content").request();
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(API), any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), eq(API), any());
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());

@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -541,7 +542,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     private void triggerNotifierService(ApiHook apiHook, ApiKey key, NotificationParamsBuilder paramsBuilder) {
         PlanEntity plan = planService.findById(key.getPlan());
-        ApplicationEntity application = applicationService.findById(key.getApplication());
+        ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), key.getApplication());
         ApiModelEntity api = apiService.findByIdForTemplates(key.getApi());
         PrimaryOwnerEntity owner = application.getPrimaryOwner();
         Map<String, Object> params = paramsBuilder.application(application).plan(plan).api(api).owner(owner).apikey(key).build();

@@ -135,7 +135,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public HistogramAnalytics execute(DateHistogramQuery query) {
+    public HistogramAnalytics execute(final String organizationId, DateHistogramQuery query) {
         try {
             DateHistogramQueryBuilder queryBuilder = QueryBuilders
                 .dateHistogram()
@@ -153,7 +153,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             DateHistogramResponse response = analyticsRepository.query(queryBuilder.build());
-            return convert(response);
+            return convert(organizationId, response);
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -161,7 +161,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public TopHitsAnalytics execute(GroupByQuery query) {
+    public TopHitsAnalytics execute(final String organizationId, GroupByQuery query) {
         try {
             GroupByQueryBuilder queryBuilder = QueryBuilders
                 .groupBy()
@@ -186,14 +186,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             GroupByResponse response = analyticsRepository.query(queryBuilder.build());
-            return convert(response);
+            return convert(organizationId, response);
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
 
-    private HistogramAnalytics convert(DateHistogramResponse histogramResponse) {
+    private HistogramAnalytics convert(final String organizationId, DateHistogramResponse histogramResponse) {
         final HistogramAnalytics analytics = new HistogramAnalytics();
         final List<Long> timestamps = histogramResponse.timestamps();
         if (timestamps != null && timestamps.size() > 1) {
@@ -205,7 +205,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
             List<Bucket> buckets = new ArrayList<>(histogramResponse.values().size());
             for (io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
-                Bucket analyticsBucket = convertBucket(histogramResponse.timestamps(), from, interval, bucket);
+                Bucket analyticsBucket = convertBucket(organizationId, histogramResponse.timestamps(), from, interval, bucket);
                 buckets.add(analyticsBucket);
             }
             analytics.setValues(buckets);
@@ -214,6 +214,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private Bucket convertBucket(
+        final String organizationId,
         List<Long> timestamps,
         long from,
         long interval,
@@ -226,7 +227,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         List<Bucket> childBuckets = new ArrayList<>();
 
         for (io.gravitee.repository.analytics.query.response.histogram.Bucket childBucket : bucket.buckets()) {
-            childBuckets.add(convertBucket(timestamps, from, interval, childBucket));
+            childBuckets.add(convertBucket(organizationId, timestamps, from, interval, childBucket));
         }
 
         if (FIELD_APPLICATION.equals(analyticsBucket.getField())) {
@@ -244,7 +245,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         } else if (FIELD_TENANT.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().forEach(tenant -> metadata.put(tenant, getTenantMetadata(tenant)));
+            bucket.data().keySet().forEach(tenant -> metadata.put(tenant, getTenantMetadata(organizationId, tenant)));
 
             analyticsBucket.setMetadata(metadata);
         }
@@ -291,7 +292,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return hitsAnalytics;
     }
 
-    private TopHitsAnalytics convert(GroupByResponse groupByResponse) {
+    private TopHitsAnalytics convert(final String organizationId, GroupByResponse groupByResponse) {
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
 
         // Set results
@@ -332,7 +333,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                             metadata.put(key, getPlanMetadata(key));
                             break;
                         case FIELD_TENANT:
-                            metadata.put(key, getTenantMetadata(key));
+                            metadata.put(key, getTenantMetadata(organizationId, key));
                             break;
                         case FIELD_GEOIP_COUNTRY_ISO_CODE:
                             metadata.put(key, getCountryName(key));
@@ -383,7 +384,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                ApplicationEntity applicationEntity = applicationService.findById(application);
+                ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
                 metadata.put(METADATA_NAME, applicationEntity.getName());
                 if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
                     metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
@@ -415,15 +416,11 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return metadata;
     }
 
-    private Map<String, String> getTenantMetadata(String tenant) {
+    private Map<String, String> getTenantMetadata(final String organizationId, String tenant) {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            TenantEntity tenantEntity = tenantService.findByIdAndReference(
-                tenant,
-                GraviteeContext.getCurrentOrganization(),
-                TenantReferenceType.ORGANIZATION
-            );
+            TenantEntity tenantEntity = tenantService.findByIdAndReference(tenant, organizationId, TenantReferenceType.ORGANIZATION);
             metadata.put(METADATA_NAME, tenantEntity.getName());
         } catch (TenantNotFoundException tnfe) {
             metadata.put(METADATA_DELETED, Boolean.TRUE.toString());

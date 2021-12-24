@@ -217,6 +217,8 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                     }
                     try {
                         membershipService.addRoleToMemberOnReference(
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment(),
                             membershipRef,
                             new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                             new MembershipService.MembershipRole(roleScope, roleName)

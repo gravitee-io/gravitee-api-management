@@ -55,7 +55,7 @@ public class ApiQualityMetricTechnicalDocumentationTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertTrue(valid);
     }
@@ -66,7 +66,7 @@ public class ApiQualityMetricTechnicalDocumentationTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertFalse(valid);
     }

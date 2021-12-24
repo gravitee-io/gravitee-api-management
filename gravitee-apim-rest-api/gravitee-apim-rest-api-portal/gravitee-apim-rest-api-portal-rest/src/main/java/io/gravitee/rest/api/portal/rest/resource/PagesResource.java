@@ -73,7 +73,7 @@ public class PagesResource extends AbstractResource {
                 GraviteeContext.getCurrentEnvironment()
             )
             .stream()
-            .filter(accessControlService::canAccessPageFromPortal)
+            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity))
             .map(pageMapper::convert)
             .map(this::addPageLink);
 

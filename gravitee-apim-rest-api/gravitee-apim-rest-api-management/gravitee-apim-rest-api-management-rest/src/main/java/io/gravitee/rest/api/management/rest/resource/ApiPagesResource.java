@@ -206,6 +206,9 @@ public class ApiPagesResource extends AbstractResource {
     }
 
     private boolean isDisplayable(ApiEntity api, PageEntity page) {
-        return (isAuthenticated() && isAdmin()) || accessControlService.canAccessPageFromConsole(api, page);
+        return (
+            (isAuthenticated() && isAdmin()) ||
+            accessControlService.canAccessPageFromConsole(GraviteeContext.getCurrentEnvironment(), api, page)
+        );
     }
 }

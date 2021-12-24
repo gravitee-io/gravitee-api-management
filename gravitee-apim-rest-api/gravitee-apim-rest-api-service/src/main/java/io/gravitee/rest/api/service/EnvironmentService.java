@@ -24,9 +24,9 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface EnvironmentService {
-    List<EnvironmentEntity> findByUser(String userId);
+    List<EnvironmentEntity> findByUser(final String organizationId, String userId);
 
-    List<EnvironmentEntity> findByUserAndIdOrHrid(String userId, String idOrHrid);
+    List<EnvironmentEntity> findByUserAndIdOrHrid(final String organizationId, String userId, String idOrHrid);
 
     List<EnvironmentEntity> findByOrganization(String organizationId);
 

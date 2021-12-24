@@ -409,6 +409,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 } else if (!value.equals(optionalParameter.get().getValue())) {
                     final Parameter updatedParameter = parameterRepository.update(parameter);
                     auditService.createEnvironmentAuditLog(
+                        GraviteeContext.getCurrentEnvironment(),
                         singletonMap(PARAMETER, updatedParameter.getKey()),
                         PARAMETER_UPDATED,
                         new Date(),
@@ -426,6 +427,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 }
                 final Parameter savedParameter = parameterRepository.create(parameter);
                 auditService.createEnvironmentAuditLog(
+                    GraviteeContext.getCurrentEnvironment(),
                     singletonMap(PARAMETER, savedParameter.getKey()),
                     PARAMETER_CREATED,
                     new Date(),

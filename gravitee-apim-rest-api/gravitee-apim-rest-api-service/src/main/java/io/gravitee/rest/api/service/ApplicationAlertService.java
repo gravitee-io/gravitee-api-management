@@ -24,15 +24,21 @@ import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import java.util.List;
 
 public interface ApplicationAlertService {
-    AlertTriggerEntity create(String applicationId, NewAlertTriggerEntity alert);
+    AlertTriggerEntity create(final String environmentId, String applicationId, NewAlertTriggerEntity alert);
+
     List<AlertTriggerEntity> findByApplication(String applicationId);
+
     AlertTriggerEntity update(String applicationId, UpdateAlertTriggerEntity alert);
+
     void delete(String alertId, String applicationId);
+
     AlertStatusEntity getStatus();
 
-    void addMemberToApplication(String applicationId, String email);
-    void deleteMemberFromApplication(String applicationId, String email);
+    void addMemberToApplication(final String environment, String applicationId, String email);
+
+    void deleteMemberFromApplication(final String environment, String applicationId, String email);
 
     void deleteAll(String applicationId);
+
     void handleEvent(Event<ApplicationAlertEventType, Object> event);
 }

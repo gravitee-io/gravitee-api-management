@@ -30,6 +30,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -77,7 +78,12 @@ public class ApiSubscribersResource extends AbstractResource {
 
             ApiEntity api = optionalApi.get();
             if (!api.getPrimaryOwner().getId().equals(currentUser)) {
-                Set<ApplicationListItem> userApplications = this.applicationService.findByUser(currentUser);
+                Set<ApplicationListItem> userApplications =
+                    this.applicationService.findByUser(
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment(),
+                            currentUser
+                        );
                 if (userApplications == null || userApplications.isEmpty()) {
                     return createListResponse(Collections.emptyList(), paginationParam);
                 }
@@ -91,7 +97,7 @@ public class ApiSubscribersResource extends AbstractResource {
                 .stream()
                 .map(SubscriptionEntity::getApplication)
                 .distinct()
-                .map(application -> applicationService.findById(application))
+                .map(application -> applicationService.findById(GraviteeContext.getCurrentEnvironment(), application))
                 .map(application -> applicationMapper.convert(application, uriInfo))
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());
@@ -130,7 +136,7 @@ public class ApiSubscribersResource extends AbstractResource {
         query.setRootIdentifier(apiId);
 
         try {
-            final TopHitsAnalytics analytics = analyticsService.execute(query);
+            final TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
             if (analytics != null) {
                 return analytics.getValues();
             }

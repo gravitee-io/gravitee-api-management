@@ -41,7 +41,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 /**
@@ -127,7 +126,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         // For pages
         doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(pagePublished);
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pagePublished);
         // For plans
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
 
@@ -273,7 +272,7 @@ public class ApiResourceTest extends AbstractResourceTest {
                 }
             );
 
-        when(accessControlService.canAccessPageFromPortal(any())).thenReturn(true);
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(true);
 
         final Response response = target(API).path("links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

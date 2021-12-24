@@ -66,7 +66,7 @@ public class GroupResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public GroupEntity getGroup() {
-        return groupService.findById(group);
+        return groupService.findById(GraviteeContext.getCurrentEnvironment(), group);
     }
 
     @DELETE
@@ -77,7 +77,7 @@ public class GroupResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE) })
     public Response deleteGroup() {
         checkRights();
-        groupService.delete(group);
+        groupService.delete(GraviteeContext.getCurrentEnvironment(), group);
         return Response.noContent().build();
     }
 
@@ -121,7 +121,7 @@ public class GroupResource extends AbstractResource {
                 updateGroupEntity.getRoles().put(RoleScope.APPLICATION, groupEntity.getRoles().get(RoleScope.APPLICATION));
             }
         }
-        return groupService.update(group, updateGroupEntity);
+        return groupService.update(GraviteeContext.getCurrentEnvironment(), group, updateGroupEntity);
     }
 
     @GET
@@ -131,7 +131,7 @@ public class GroupResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroupMemberships(@QueryParam("type") String type) {
         if ("api".equalsIgnoreCase(type)) {
-            return Response.ok(groupService.getApis(group)).build();
+            return Response.ok(groupService.getApis(GraviteeContext.getCurrentEnvironment(), group)).build();
         } else if ("application".equalsIgnoreCase(type)) {
             return Response.ok(groupService.getApplications(group)).build();
         }

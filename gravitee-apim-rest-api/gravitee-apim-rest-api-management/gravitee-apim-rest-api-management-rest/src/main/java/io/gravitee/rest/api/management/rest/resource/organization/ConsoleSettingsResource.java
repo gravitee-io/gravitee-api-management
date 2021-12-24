@@ -68,7 +68,7 @@ public class ConsoleSettingsResource {
     )
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = READ) })
     public ConsoleSettingsEntity getConsoleSettings() {
-        return configService.getConsoleSettings();
+        return configService.getConsoleSettings(GraviteeContext.getCurrentOrganization());
     }
 
     @POST
@@ -86,7 +86,7 @@ public class ConsoleSettingsResource {
         // reject settings update if maintenanceMode isn't disabled into the payload
         checkMaintenanceMode(consoleSettingsEntity);
 
-        configService.save(consoleSettingsEntity);
+        configService.save(GraviteeContext.getCurrentOrganization(), consoleSettingsEntity);
         return Response.ok().entity(consoleSettingsEntity).build();
     }
 

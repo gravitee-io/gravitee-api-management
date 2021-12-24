@@ -27,11 +27,9 @@ public interface AccessControlService {
 
     boolean canAccessApiFromPortal(ApiEntity apiEntity);
 
-    boolean canAccessPageFromPortal(PageEntity pageEntity);
+    boolean canAccessPageFromPortal(final String environmentId, PageEntity pageEntity);
 
-    boolean canAccessPageFromPortal(String apiId, PageEntity pageEntity);
+    boolean canAccessPageFromPortal(final String environmentId, String apiId, PageEntity pageEntity);
 
-    boolean canAccessPageFromConsole(PageEntity pageEntity);
-
-    boolean canAccessPageFromConsole(ApiEntity apiEntity, PageEntity pageEntity);
+    boolean canAccessPageFromConsole(final String environmentId, ApiEntity apiEntity, PageEntity pageEntity);
 }

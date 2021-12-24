@@ -24,5 +24,5 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 public interface ApiQualityMetric {
     Key getWeightKey();
-    boolean isValid(ApiEntity api);
+    boolean isValid(ApiEntity api, final String environmentId);
 }

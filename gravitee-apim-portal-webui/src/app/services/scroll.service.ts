@@ -34,10 +34,18 @@ export class ScrollService {
     return Math.max(homepageHeaderHeight, headerHeight);
   }
 
+  static getAnchorElement(anchor: string): Element {
+    if (!anchor.startsWith('#')) {
+      return document.getElementById(anchor);
+    }
+    return document.querySelector(anchor) || document.querySelector(`a[name=${anchor.substr(1)}]`);
+  }
+
   scrollToAnchor(anchor) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       setTimeout(() => {
-        const element = anchor.startsWith('#') ? document.querySelector(anchor) : document.getElementById(anchor);
+        const element = ScrollService.getAnchorElement(anchor);
+
         if (element) {
           this.scrollToStickyMenu();
           setTimeout(() => {

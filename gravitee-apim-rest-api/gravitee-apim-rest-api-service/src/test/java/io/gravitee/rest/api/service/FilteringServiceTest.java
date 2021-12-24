@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.filtering.FilteringServiceImpl;
 import java.util.*;
@@ -145,7 +146,9 @@ public class FilteringServiceTest {
         appB.setId("B");
         ApplicationListItem appC = new ApplicationListItem();
         appC.setId("C");
-        doReturn(new HashSet<ApplicationListItem>(Arrays.asList(appC, appB, appA))).when(applicationService).findByUser(any());
+        doReturn(new HashSet<ApplicationListItem>(Arrays.asList(appC, appB, appA)))
+            .when(applicationService)
+            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
 
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");

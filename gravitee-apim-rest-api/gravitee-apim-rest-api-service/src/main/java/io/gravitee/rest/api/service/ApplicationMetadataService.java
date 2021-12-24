@@ -29,9 +29,9 @@ public interface ApplicationMetadataService {
 
     ApplicationMetadataEntity findByIdAndApplication(String metadataId, String applicationId);
 
-    ApplicationMetadataEntity create(NewApplicationMetadataEntity metadata);
+    ApplicationMetadataEntity create(final String environmentId, NewApplicationMetadataEntity metadata);
 
-    ApplicationMetadataEntity update(UpdateApplicationMetadataEntity metadata);
+    ApplicationMetadataEntity update(final String environmentId, UpdateApplicationMetadataEntity metadata);
 
     void delete(String metadataId, String application);
 }

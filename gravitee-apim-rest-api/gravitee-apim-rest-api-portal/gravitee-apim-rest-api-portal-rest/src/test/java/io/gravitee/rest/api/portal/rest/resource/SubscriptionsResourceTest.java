@@ -35,7 +35,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.model.*;
-import java.util.Arrays;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -95,7 +95,9 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     public void shouldGetSubscriptionsForApi() {
         final ApplicationListItem application = new ApplicationListItem();
         application.setId(APPLICATION);
-        doReturn(newSet(application)).when(applicationService).findByUser(any());
+        doReturn(newSet(application))
+            .when(applicationService)
+            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
 
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

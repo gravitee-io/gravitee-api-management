@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.io.IOException;
@@ -480,10 +481,13 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserCreation(identityProvider, userInfoBody, createdUser);
 
         //mock group search and association
-        when(groupService.findById("Example group")).thenReturn(mockGroupEntity("group_id_1", "Example group"));
-        when(groupService.findById("soft user")).thenReturn(mockGroupEntity("group_id_2", "soft user"));
-        when(groupService.findById("Others")).thenReturn(mockGroupEntity("group_id_3", "Others"));
-        when(groupService.findById("Api consumer")).thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Example group"))
+            .thenReturn(mockGroupEntity("group_id_1", "Example group"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "soft user"))
+            .thenReturn(mockGroupEntity("group_id_2", "soft user"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Others")).thenReturn(mockGroupEntity("group_id_3", "Others"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Api consumer"))
+            .thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
         // mock role to add from roleMapping
         doAnswer(
@@ -576,6 +580,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         //verify group creations
         verify(membershipService, times(0))
             .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class)
@@ -609,10 +615,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock group search and association
-        when(groupService.findByName("Example group")).thenReturn(Collections.emptyList());
-        when(groupService.findByName("soft user")).thenReturn(Collections.emptyList());
-        when(groupService.findByName("Others")).thenReturn(Collections.emptyList());
-        when(groupService.findByName("Api consumer")).thenReturn(Collections.emptyList());
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Example group")).thenReturn(Collections.emptyList());
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "soft user")).thenReturn(Collections.emptyList());
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Others")).thenReturn(Collections.emptyList());
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Api consumer")).thenReturn(Collections.emptyList());
 
         NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
         UserEntity createdUser = mockUserEntity();
@@ -636,6 +642,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         //verify group creations
         verify(membershipService, times(0))
             .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class)

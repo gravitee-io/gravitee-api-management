@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.NotAuthorizedMembershipException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
@@ -91,7 +92,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         newMembership.setReferenceId(API_ID);
         newMembership.setMemberId(GROUP_ID);
         newMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.GROUP);
-        when(groupService.findById(GROUP_ID)).thenReturn(mock(GroupEntity.class));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), GROUP_ID)).thenReturn(mock(GroupEntity.class));
         when(
             membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 userEntity.getId(),
@@ -104,6 +105,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(membershipRepository.create(any())).thenReturn(newMembership);
 
         membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
             new MembershipService.MembershipMember("my name", null, MembershipMemberType.USER),
             new MembershipService.MembershipRole(RoleScope.API, "OWNER")
@@ -141,7 +144,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         newMembership.setReferenceId(API_ID);
         newMembership.setMemberId(GROUP_ID);
         newMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.GROUP);
-        when(groupService.findById(GROUP_ID)).thenReturn(mock(GroupEntity.class));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), GROUP_ID)).thenReturn(mock(GroupEntity.class));
         when(
             membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 userEntity.getId(),
@@ -154,6 +157,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(membershipRepository.create(any())).thenReturn(newMembership);
 
         membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
             new MembershipService.MembershipMember("my name", null, MembershipMemberType.USER),
             new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER")
@@ -176,6 +181,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     public void shouldDisallowAddUnknownRoleOnApi() throws Exception {
         when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.empty());
         membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
             new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
             new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
@@ -186,6 +193,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     public void shouldDisallowAddUnknownRoleOnApplication() throws Exception {
         when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.empty());
         membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, APPLICATION_ID),
             new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
             new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
@@ -198,6 +207,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(role.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
         when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(role));
         membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
             new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
             new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
@@ -220,6 +231,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         )
             .thenReturn(Collections.singleton(mock(Membership.class)));
         membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
             new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
             new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER")
@@ -233,6 +246,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(role.getName()).thenReturn("PRIMARY_OWNER");
         when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(role));
         membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
             new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
             new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER")

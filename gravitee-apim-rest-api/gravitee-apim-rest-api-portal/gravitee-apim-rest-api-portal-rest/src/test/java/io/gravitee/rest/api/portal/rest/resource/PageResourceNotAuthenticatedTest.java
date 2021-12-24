@@ -18,13 +18,13 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
@@ -106,7 +106,9 @@ public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
     @Test
     public void shouldHaveMetadataCleared() {
         doReturn(true).when(accessControlService).canAccessApiFromPortal(anyString());
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(any(PageEntity.class));
+        doReturn(true)
+            .when(accessControlService)
+            .canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any(PageEntity.class));
 
         Response anotherResponse = target(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());
