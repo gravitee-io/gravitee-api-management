@@ -47,7 +47,7 @@
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
         <gravitee-connector-http.version>1.0.0</gravitee-connector-http.version>
-        <gravitee-connector-kafka.version>1.0.1-SNAPSHOT</gravitee-connector-kafka.version>
+        <gravitee-connector-kafka.version>1.0.1</gravitee-connector-kafka.version>
         <gravitee-policy-apikey.version>2.3.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.6.0</gravitee-policy-assign-content.version>
