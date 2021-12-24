@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee.apim.repository</groupId>
 		<artifactId>gravitee-apim-repository</artifactId>
-		<version>3.12.6</version>
+		<version>3.12.7-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>gravitee-apim-repository-hazelcast</artifactId>
