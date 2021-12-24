@@ -17,89 +17,100 @@ package io.gravitee.reporter.elasticsearch.config;
 
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.anyMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
  *
+ * @author GraviteeSource Team
  * @author Guillaume Gillon
- *
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PipelineConfigurationTest {
 
-    @Mock
-    private ReporterConfiguration config;
+    @InjectMocks
+    private PipelineConfiguration pipelineConfiguration;
 
     @Mock
     private FreeMarkerComponent freeMarkerComponent;
 
-    @InjectMocks
-    private PipelineConfiguration pipelineConfiguration;
-
-    @Before
-    public void init() {
-        //MockitoAnnotations.initMocks(this);
-        when(freeMarkerComponent.generateFromTemplate(eq("geoip.ftl"), anyMap())).thenReturn("{\"geoip\" : {\"field\" : \"remote-address\"}}");
-        Map<String,Object> processorsMap = new HashMap<>(1);
-        processorsMap.put("processors", freeMarkerComponent.generateFromTemplate("geoip.ftl", Collections.emptyMap()));
-        when(freeMarkerComponent.generateFromTemplate("pipeline.ftl",processorsMap)).thenReturn("{\"description\":\"Gravitee pipeline\",\"processors\":[{\"geoip\":{\"field\":\"remote-address\"}}]}");
-    }
-
     @Test
-    public void should_valid_pipeline_with_ingest_geoip() {
-        pipelineConfiguration.setIngestorPlugins("geoip");
-
-        String result = "{\"description\":\"Gravitee pipeline\",\"processors\":[{\"geoip\":{\"field\":\"remote-address\"}}]}";
-
+    public void createPipeline_should_not_create_pipeline_if_no_plugin() {
+        pipelineConfiguration.setIngestPlugins("");
         String pipeline = pipelineConfiguration.createPipeline();
 
-        Assert.assertEquals(result, pipeline);
+        assertNull(pipeline);
     }
 
     @Test
-    public void should_valid_pipeline_with_ingest_geoip_if_es_version_superior_to_7() {
-        pipelineConfiguration.setIngestorPlugins(null);
-        when(freeMarkerComponent.generateFromTemplate(eq("pipeline.ftl"), anyMap()))
-                .thenReturn("{\"description\":\"Gravitee pipeline\",\"processors\":[{\"geoip\":{\"field\":\"remote-address\"}}, {\"user_agent\" : {\"field\" : \"user-agent\"}}]}");
+    public void createPipeline_should_create_pipeline_with_geoip_plugin() {
+        mockPluginJson("geoip", "{my-geoip-plugin}");
+        mockPipelineJsonForPlugins("{my-geoip-plugin}", "{my-pipeline}");
 
-        String result = "{\"description\":\"Gravitee pipeline\",\"processors\":[{\"geoip\":{\"field\":\"remote-address\"}}, {\"user_agent\" : {\"field\" : \"user-agent\"}}]}";
+        pipelineConfiguration.setIngestPlugins("geoip");
+        String pipeline = pipelineConfiguration.createPipeline();
 
-        String pipeline = pipelineConfiguration.createPipeline(true);
-
-        Assert.assertEquals(result, pipeline);
+        assertEquals("{my-pipeline}", pipeline);
     }
 
     @Test
-    public void should_return_pipeline_name() {
-        //String result = "{\"description\":\"Gravitee pipeline\",\"processors\":[{\"geoip\":{\"field\":\"remote-address\"}}]}";
+    public void createPipeline_should_create_pipeline_with_geoip_and_useragent_plugin() {
+        mockPluginJson("geoip", "{my-geoip-plugin}");
+        mockPluginJson("user_agent", "{my-useragent-plugin}");
+        mockPipelineJsonForPlugins("{my-geoip-plugin},{my-useragent-plugin}", "{my-pipeline}");
 
-        String builder2 = pipelineConfiguration.createPipeline();
+        pipelineConfiguration.setIngestPlugins("geoip, user_agent");
+        String pipeline = pipelineConfiguration.createPipeline();
+
+        assertEquals("{my-pipeline}", pipeline);
+    }
+
+    @Test
+    public void createPipeline_should_create_pipeline_ignoring_additional_unknown_plugins() {
+        mockPluginJson("geoip", "{my-geoip-plugin}");
+        mockPluginJson("user_agent", "{my-useragent-plugin}");
+        mockPipelineJsonForPlugins("{my-geoip-plugin},{my-useragent-plugin}", "{my-pipeline}");
+
+        pipelineConfiguration.setIngestPlugins("geoip, testAnother, unknown, user_agent, this does not exists");
+        String pipeline = pipelineConfiguration.createPipeline();
+
+        assertEquals("{my-pipeline}", pipeline);
+    }
+
+    @Test
+    public void createPipeline_should_return_pipeline_name() {
+        pipelineConfiguration.createPipeline();
         pipelineConfiguration.valid();
 
-        Assert.assertEquals("gravitee_pipeline", pipelineConfiguration.getPipeline());
-        Assert.assertEquals("gravitee_pipeline", pipelineConfiguration.getPipelineName());
+        assertEquals("gravitee_pipeline", pipelineConfiguration.getPipeline());
+        assertEquals("gravitee_pipeline", pipelineConfiguration.getPipelineName());
     }
 
     @Test
-    public void should_not_return_pipeline_name_when_not_valided() {
-
-        String builder2 = pipelineConfiguration.createPipeline();
+    public void createPipeline_should_not_return_pipeline_name_when_not_valided() {
+        pipelineConfiguration.createPipeline();
 
         Assert.assertNull(pipelineConfiguration.getPipeline());
-        Assert.assertEquals("gravitee_pipeline", pipelineConfiguration.getPipelineName());
+        assertEquals("gravitee_pipeline", pipelineConfiguration.getPipelineName());
 
+    }
+
+    private void mockPluginJson(String pluginName, String pluginJson) {
+        when(freeMarkerComponent.generateFromTemplate(eq(pluginName + ".ftl"), any())).thenReturn(pluginJson);
+    }
+
+    private void mockPipelineJsonForPlugins(String pluginsJson, String pipelineJson) {
+        when(freeMarkerComponent.generateFromTemplate("pipeline.ftl", Map.of("processors", pluginsJson))).thenReturn(pipelineJson);
     }
 }
