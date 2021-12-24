@@ -93,6 +93,9 @@ public abstract class ScheduledServiceDeserializer<T extends ScheduledService> e
         List<String> scheduleList = Arrays.asList("*", "*", "*", "*", "*", "*");
         List<TimeUnit> timeUnits = Arrays.asList(TimeUnit.SECONDS, TimeUnit.MINUTES, TimeUnit.HOURS, TimeUnit.DAYS);
         int index = timeUnits.indexOf(unit);
+        for (int i = 0; i < index; i++) {
+            scheduleList.set(i, "0");
+        }
         scheduleList.set(index, "*/" + rate);
         schedule = String.join(" ", scheduleList);
         return schedule;
