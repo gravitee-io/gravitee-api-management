@@ -20,29 +20,21 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.analytics.query.DateHistogramQuery;
-import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
-import java.util.HashSet;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -51,8 +43,6 @@ import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -77,7 +67,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApp() {
-        when(applicationService.findByUser(any())).thenReturn(Collections.emptySet());
+        when(
+            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
+        )
+            .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "date_histo")
@@ -96,7 +89,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApp() {
-        when(applicationService.findByUser(any())).thenReturn(Collections.emptySet());
+        when(
+            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
+        )
+            .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "group_by")
@@ -115,7 +111,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApp() {
-        when(applicationService.findByUser(any())).thenReturn(Collections.emptySet());
+        when(
+            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
+        )
+            .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "count")
@@ -133,7 +132,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApp() {
-        when(applicationService.findByUser(any())).thenReturn(Collections.emptySet());
+        when(
+            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
+        )
+            .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "stats")
@@ -253,7 +255,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApplicationListItem app = new ApplicationListItem();
         app.setId("appId");
 
-        when(applicationService.findByUser(any())).thenReturn(Collections.singleton(app));
+        when(
+            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
+        )
+            .thenReturn(Collections.singleton(app));
         when(permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ)).thenReturn(true);
 
         Response response = envTarget()

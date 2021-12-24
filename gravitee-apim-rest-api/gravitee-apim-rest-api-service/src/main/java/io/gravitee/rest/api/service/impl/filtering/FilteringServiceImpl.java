@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.*;
@@ -259,7 +260,11 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     private FilteredEntities<ApiEntity> getCurrentUserSubscribedApis(Collection<ApiEntity> apis, boolean excluded) {
         //get Current user applications
         List<String> currentUserApplicationsId = applicationService
-            .findByUser(getAuthenticatedUser().getUsername())
+            .findByUser(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                getAuthenticatedUser().getUsername()
+            )
             .stream()
             .map(ApplicationListItem::getId)
             .collect(Collectors.toList());

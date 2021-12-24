@@ -157,8 +157,8 @@ public class MediaServiceImpl implements MediaService {
     }
 
     @Override
-    public Long getMediaMaxSize() {
-        return Long.valueOf(configService.getPortalSettings().getPortal().getUploadMedia().getMaxSizeInOctet());
+    public Long getMediaMaxSize(final String environmentId) {
+        return Long.valueOf(configService.getPortalSettings(environmentId).getPortal().getUploadMedia().getMaxSizeInOctet());
     }
 
     @Override

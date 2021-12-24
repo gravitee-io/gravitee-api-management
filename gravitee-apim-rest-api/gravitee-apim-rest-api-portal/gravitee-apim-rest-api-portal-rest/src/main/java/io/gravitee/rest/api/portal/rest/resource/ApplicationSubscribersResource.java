@@ -29,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -64,7 +65,11 @@ public class ApplicationSubscribersResource extends AbstractResource {
         @QueryParam("statuses") List<SubscriptionStatus> statuses
     ) {
         String currentUser = getAuthenticatedUserOrNull();
-        Collection<ApplicationListItem> userApplications = applicationService.findByUser(currentUser);
+        Collection<ApplicationListItem> userApplications = applicationService.findByUser(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            currentUser
+        );
         Optional<ApplicationListItem> optionalApplication = userApplications
             .stream()
             .filter(a -> a.getId().equals(applicationId))
@@ -127,7 +132,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
         query.setRootField("application");
         query.setRootIdentifier(applicationId);
 
-        TopHitsAnalytics analytics = analyticsService.execute(query);
+        TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
         if (analytics != null) {
             return analytics.getValues();
         }

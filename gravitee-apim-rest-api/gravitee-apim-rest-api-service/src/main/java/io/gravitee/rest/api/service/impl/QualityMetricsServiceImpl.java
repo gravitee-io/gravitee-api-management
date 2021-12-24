@@ -86,7 +86,7 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
     }
 
     @Override
-    public ApiQualityMetricsEntity getMetrics(ApiEntity apiEntity) {
+    public ApiQualityMetricsEntity getMetrics(ApiEntity apiEntity, final String environmentId) {
         if (!isApiMetricsEnabled()) {
             throw new ApiQualityMetricsDisableException();
         }
@@ -107,7 +107,7 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
         } else {
             Map<String, ApiQualityMetric> apiMetrics = getApiMetricsMap();
             for (Map.Entry<String, Integer> weight : weights.entrySet()) {
-                boolean passed = apiMetrics.get(weight.getKey()).isValid(apiEntity);
+                boolean passed = apiMetrics.get(weight.getKey()).isValid(apiEntity, environmentId);
                 result.getMetricsPassed().put(weight.getKey(), passed);
                 score += weight.getValue() * (passed ? 1 : 0);
                 maxScore += weight.getValue();

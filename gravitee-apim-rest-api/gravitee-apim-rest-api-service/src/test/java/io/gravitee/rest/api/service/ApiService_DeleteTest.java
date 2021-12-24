@@ -29,6 +29,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
@@ -144,7 +145,13 @@ public class ApiService_DeleteTest {
         when(planService.findByApi(API_ID)).thenReturn(Collections.emptySet());
 
         apiService.delete(API_ID);
-        verify(membershipService, times(1)).deleteReference(MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+            .deleteReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID
+            );
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(API_ID);
     }
@@ -157,7 +164,13 @@ public class ApiService_DeleteTest {
         when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
 
         apiService.delete(API_ID);
-        verify(membershipService, times(1)).deleteReference(MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+            .deleteReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID
+            );
     }
 
     @Test
@@ -171,7 +184,13 @@ public class ApiService_DeleteTest {
         apiService.delete(API_ID);
 
         verify(planService, times(1)).delete(PLAN_ID);
-        verify(membershipService, times(1)).deleteReference(MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+            .deleteReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID
+            );
     }
 
     @Test
@@ -186,7 +205,13 @@ public class ApiService_DeleteTest {
 
         verify(planService, times(1)).delete(PLAN_ID);
         verify(apiQualityRuleRepository, times(1)).deleteByApi(API_ID);
-        verify(membershipService, times(1)).deleteReference(MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+            .deleteReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID
+            );
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(API_ID);
     }

@@ -36,7 +36,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
@@ -119,7 +118,7 @@ public class GroupMembersResource extends AbstractResource {
     )
     public PagedResult<GroupMemberEntity> getGroupMembers(@Valid @BeanParam Pageable pageable) {
         //check that group exists
-        groupService.findById(group);
+        groupService.findById(GraviteeContext.getCurrentEnvironment(), group);
 
         io.gravitee.rest.api.model.common.Pageable commonPageable = null;
 
@@ -184,7 +183,7 @@ public class GroupMembersResource extends AbstractResource {
     )
     public Response addOrUpdateGroupMember(@Valid @NotNull final List<GroupMembership> memberships) {
         // Check that group exists
-        final GroupEntity groupEntity = groupService.findById(group);
+        final GroupEntity groupEntity = groupService.findById(GraviteeContext.getCurrentEnvironment(), group);
 
         // check if user is a 'simple group admin' or a platform admin
         final boolean hasPermission = permissionService.hasPermission(
@@ -268,6 +267,8 @@ public class GroupMembersResource extends AbstractResource {
                     }
                     updatedMembership =
                         membershipService.addRoleToMemberOnReference(
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment(),
                             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
                             new MembershipService.MembershipMember(
                                 membership.getId(),
@@ -303,6 +304,8 @@ public class GroupMembersResource extends AbstractResource {
                     }
                     updatedMembership =
                         membershipService.addRoleToMemberOnReference(
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment(),
                             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
                             new MembershipService.MembershipMember(
                                 membership.getId(),
@@ -325,6 +328,8 @@ public class GroupMembersResource extends AbstractResource {
                 if (groupRoleEntity != null && !groupRoleEntity.equals(previousGroupRole)) {
                     updatedMembership =
                         membershipService.addRoleToMemberOnReference(
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment(),
                             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
                             new MembershipService.MembershipMember(
                                 membership.getId(),

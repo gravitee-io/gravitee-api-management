@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricCategories;
 import java.util.Collections;
 import org.junit.Test;
@@ -43,7 +44,7 @@ public class ApiQualityMetricCategoriesTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getCategories()).thenReturn(Collections.singleton("category"));
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertTrue(valid);
     }
@@ -53,7 +54,7 @@ public class ApiQualityMetricCategoriesTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getCategories()).thenReturn(Collections.emptySet());
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertFalse(valid);
     }
@@ -63,7 +64,7 @@ public class ApiQualityMetricCategoriesTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getCategories()).thenReturn(null);
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertFalse(valid);
     }

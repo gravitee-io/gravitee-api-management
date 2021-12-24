@@ -25,13 +25,13 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApiHeaderService {
-    ApiHeaderEntity create(NewApiHeaderEntity newEntity);
+    ApiHeaderEntity create(final String environmentId, NewApiHeaderEntity newEntity);
 
-    void delete(String apiHeaderId);
+    void delete(final String environmentId, String apiHeaderId);
 
-    ApiHeaderEntity update(UpdateApiHeaderEntity updateEntity);
+    ApiHeaderEntity update(final String environmentId, UpdateApiHeaderEntity updateEntity);
 
-    List<ApiHeaderEntity> findAll();
+    List<ApiHeaderEntity> findAll(final String environmentId);
 
     void initialize(String environmentId);
 }

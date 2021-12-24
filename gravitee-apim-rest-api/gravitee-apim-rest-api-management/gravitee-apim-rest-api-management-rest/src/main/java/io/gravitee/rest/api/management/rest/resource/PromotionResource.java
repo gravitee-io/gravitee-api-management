@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -57,6 +58,16 @@ public class PromotionResource extends AbstractResource {
         }
     )
     public Response processPromotion(boolean accepted) {
-        return Response.ok(promotionService.processPromotion(promotion, accepted, getAuthenticatedUser())).build();
+        return Response
+            .ok(
+                promotionService.processPromotion(
+                    GraviteeContext.getCurrentOrganization(),
+                    GraviteeContext.getCurrentEnvironment(),
+                    promotion,
+                    accepted,
+                    getAuthenticatedUser()
+                )
+            )
+            .build();
     }
 }

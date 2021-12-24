@@ -27,7 +27,6 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -139,6 +138,8 @@ public class RoleUsersResource extends AbstractResource {
         }
 
         membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
             new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
             new MembershipService.MembershipMember(roleMembership.getId(), roleMembership.getReference(), MembershipMemberType.USER),
             new MembershipService.MembershipRole(roleScope, roleName)

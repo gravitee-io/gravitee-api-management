@@ -80,7 +80,7 @@ public class ApplicationService_FindByIdTest {
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
 
-        final ApplicationEntity applicationEntity = applicationService.findById(APPLICATION_ID);
+        final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
 
         assertNotNull(applicationEntity);
     }
@@ -88,13 +88,13 @@ public class ApplicationService_FindByIdTest {
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotFindByIdBecauseNotExists() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
-        applicationService.findById(APPLICATION_ID);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenThrow(TechnicalException.class);
 
-        applicationService.findById(APPLICATION_ID);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
     }
 }

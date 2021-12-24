@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -64,7 +65,7 @@ public class ApplicationAnalyticsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ) })
     public Response hits(@PathParam("applicationId") String applicationId, @BeanParam AnalyticsParam analyticsParam) {
         //Does application exists ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         analyticsParam.validate();
 
@@ -141,7 +142,7 @@ public class ApplicationAnalyticsResource extends AbstractResource {
 
             query.setAggregations(aggregationList);
         }
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
     }
 
     private Analytics executeGroupBy(String application, AnalyticsParam analyticsParam) {
@@ -168,6 +169,6 @@ public class ApplicationAnalyticsResource extends AbstractResource {
 
             query.setGroups(rangeMap);
         }
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
     }
 }

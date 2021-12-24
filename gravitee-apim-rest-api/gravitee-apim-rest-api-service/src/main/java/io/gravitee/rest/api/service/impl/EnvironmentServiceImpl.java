@@ -76,16 +76,16 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     }
 
     @Override
-    public List<EnvironmentEntity> findByUser(String userId) {
-        return findByUserAndIdOrHrid(userId, null);
+    public List<EnvironmentEntity> findByUser(final String organizationId, String userId) {
+        return findByUserAndIdOrHrid(organizationId, userId, null);
     }
 
     @Override
-    public List<EnvironmentEntity> findByUserAndIdOrHrid(String userId, String idOrHrid) {
+    public List<EnvironmentEntity> findByUserAndIdOrHrid(final String organizationId, String userId, String idOrHrid) {
         try {
             LOGGER.debug("Find all environments by user");
 
-            Stream<Environment> envStream = environmentRepository.findByOrganization(GraviteeContext.getCurrentOrganization()).stream();
+            Stream<Environment> envStream = environmentRepository.findByOrganization(organizationId).stream();
 
             if (userId != null) {
                 final List<String> stringStream = membershipService

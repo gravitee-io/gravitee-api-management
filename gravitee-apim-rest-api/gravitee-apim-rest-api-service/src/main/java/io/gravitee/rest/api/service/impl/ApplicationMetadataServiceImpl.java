@@ -58,13 +58,19 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
     }
 
     @Override
-    public ApplicationMetadataEntity create(final NewApplicationMetadataEntity metadataEntity) {
-        return convert(create(metadataEntity, APPLICATION, metadataEntity.getApplicationId(), false), metadataEntity.getApplicationId());
+    public ApplicationMetadataEntity create(final String environmentId, final NewApplicationMetadataEntity metadataEntity) {
+        return convert(
+            create(metadataEntity, APPLICATION, metadataEntity.getApplicationId(), false, environmentId),
+            metadataEntity.getApplicationId()
+        );
     }
 
     @Override
-    public ApplicationMetadataEntity update(final UpdateApplicationMetadataEntity metadataEntity) {
-        return convert(update(metadataEntity, APPLICATION, metadataEntity.getApplicationId(), false), metadataEntity.getApplicationId());
+    public ApplicationMetadataEntity update(final String environmentId, final UpdateApplicationMetadataEntity metadataEntity) {
+        return convert(
+            update(metadataEntity, APPLICATION, metadataEntity.getApplicationId(), false, environmentId),
+            metadataEntity.getApplicationId()
+        );
     }
 
     @Override
@@ -72,9 +78,10 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
         MetadataFormat format,
         String value,
         MetadataReferenceType referenceType,
-        String referenceId
+        String referenceId,
+        final String environmentId
     ) {
-        final ApplicationEntity applicationEntity = applicationService.findById(referenceId);
+        final ApplicationEntity applicationEntity = applicationService.findById(environmentId, referenceId);
         metadataService.checkMetadataFormat(format, value, referenceType, applicationEntity);
     }
 

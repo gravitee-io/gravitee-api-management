@@ -25,9 +25,7 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.service.ApiKeyService;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
@@ -96,7 +94,13 @@ public class ApplicationService_ArchiveTest {
         applicationService.archive(APPLICATION_ID);
 
         verify(apiKeyService, times(1)).delete("key");
-        verify(membershipService, times(1)).deleteReference(MembershipReferenceType.APPLICATION, APPLICATION_ID);
+        verify(membershipService, times(1))
+            .deleteReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID
+            );
         verify(subscriptionService, times(1)).close("sub");
         verify(application, times(1)).setStatus(ApplicationStatus.ARCHIVED);
         verify(applicationRepository, times(1)).update(application);

@@ -116,7 +116,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     }
 
     @Override
-    public PromotionEntity promote(String apiId, PromotionRequestEntity promotionRequest, String userId) {
+    public PromotionEntity promote(final String sourceEnvironmentId, String apiId, PromotionRequestEntity promotionRequest, String userId) {
         // TODO: do we have to use filteredFields like for duplicate (i think no need members and groups)
         // FIXME: can we get the version from target environment
         String apiDefinition = apiDuplicatorService.exportAsJson(
@@ -127,7 +127,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             "groups"
         );
 
-        EnvironmentEntity currentEnvironmentEntity = environmentService.findById(GraviteeContext.getCurrentEnvironment());
+        EnvironmentEntity currentEnvironmentEntity = environmentService.findById(sourceEnvironmentId);
         UserEntity author = userService.findById(userId);
 
         PromotionQuery promotionQuery = new PromotionQuery();
@@ -234,7 +234,13 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     }
 
     @Override
-    public PromotionEntity processPromotion(String promotion, boolean accepted, String user) {
+    public PromotionEntity processPromotion(
+        final String organizationId,
+        final String environmentId,
+        String promotion,
+        boolean accepted,
+        String user
+    ) {
         try {
             final Promotion existing = promotionRepository.findById(promotion).orElseThrow(() -> new PromotionNotFoundException(promotion));
 
@@ -265,12 +271,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                     }
 
                     promoted =
-                        apiDuplicatorService.createWithImportedDefinition(
-                            existing.getApiDefinition(),
-                            user,
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment()
-                        );
+                        apiDuplicatorService.createWithImportedDefinition(existing.getApiDefinition(), user, organizationId, environmentId);
                 } else {
                     if (!permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), UPDATE)) {
                         throw new ForbiddenAccessException();
@@ -283,8 +284,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                             existingApi.getId(),
                             existing.getApiDefinition(),
                             user,
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment()
+                            organizationId,
+                            environmentId
                         );
                 }
                 existing.setTargetApiId(promoted.getId());

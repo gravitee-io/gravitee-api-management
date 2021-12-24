@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -78,7 +79,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public ApplicationEntity getApplication() {
-        return applicationService.findById(application);
+        return applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
     }
 
     @GET
@@ -96,7 +97,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationType() {
-        ApplicationEntity applicationEntity = applicationService.findById(application);
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
         ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
         return Response.ok(applicationType).build();
     }
@@ -130,7 +131,12 @@ public class ApplicationResource extends AbstractResource {
             updatedApplication.setSettings(settings);
         }
 
-        return applicationService.update(application, updatedApplication);
+        return applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            application,
+            updatedApplication
+        );
     }
 
     @GET
@@ -141,7 +147,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationPicture(@Context Request request) throws ApplicationNotFoundException {
-        return getImageResponse(request, applicationService.getPicture(application));
+        return getImageResponse(request, applicationService.getPicture(GraviteeContext.getCurrentEnvironment(), application));
     }
 
     @GET
@@ -152,7 +158,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationBackground(@Context Request request) throws ApplicationNotFoundException {
-        return getImageResponse(request, applicationService.getBackground(application));
+        return getImageResponse(request, applicationService.getBackground(GraviteeContext.getCurrentEnvironment(), application));
     }
 
     private Response getImageResponse(final Request request, PictureEntity picture) {
@@ -200,7 +206,11 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public ApplicationEntity renewApplicationClientSecret() {
-        return applicationService.renewClientSecret(application);
+        return applicationService.renewClientSecret(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            application
+        );
     }
 
     @POST

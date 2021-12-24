@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundException;
 import io.gravitee.rest.api.service.impl.NotificationTemplateServiceImpl;
 import io.gravitee.rest.api.service.notification.HookScope;
@@ -176,7 +177,14 @@ public class NotificationTemplateServiceTest {
         notificationTemplateService.create(newNotificationTemplateEntity);
         verify(notificationTemplateRepository, times(1)).create(any());
         verify(auditService, times(1))
-            .createOrganizationAuditLog(any(), eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_CREATED), any(), isNull(), any());
+            .createOrganizationAuditLog(
+                eq(GraviteeContext.getCurrentOrganization()),
+                any(),
+                eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_CREATED),
+                any(),
+                isNull(),
+                any()
+            );
     }
 
     @Test
@@ -197,6 +205,7 @@ public class NotificationTemplateServiceTest {
         verify(notificationTemplateRepository, times(1)).update(any());
         verify(auditService, times(1))
             .createOrganizationAuditLog(
+                eq(GraviteeContext.getCurrentOrganization()),
                 any(),
                 eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),
                 any(),

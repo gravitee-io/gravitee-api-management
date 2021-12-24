@@ -74,7 +74,12 @@ public class PermissionServiceImpl extends AbstractService implements Permission
                 membershipReferenceType = null;
         }
 
-        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(membershipReferenceType, referenceId, userId);
+        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
+            GraviteeContext.getCurrentEnvironment(),
+            membershipReferenceType,
+            referenceId,
+            userId
+        );
         if (permissions == null) {
             return false;
         }

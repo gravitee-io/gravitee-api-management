@@ -49,6 +49,7 @@ import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderE
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.UserServiceImpl;
@@ -520,7 +521,8 @@ public class UserServiceTest {
         environment2.setId("envId2");
         EnvironmentEntity environment3 = new EnvironmentEntity();
         environment3.setId("envId3");
-        when(environmentService.findByUser(any())).thenReturn(Arrays.asList(environment1, environment2, environment3));
+        when(environmentService.findByUser(eq(GraviteeContext.getCurrentOrganization()), any()))
+            .thenReturn(Arrays.asList(environment1, environment2, environment3));
 
         ApplicationListItem defaultApp = new ApplicationListItem();
         defaultApp.setName("Default application");
@@ -529,8 +531,8 @@ public class UserServiceTest {
 
         userService.connect(USER_NAME);
 
-        verify(applicationService, times(1)).create(any(), eq(USER_NAME), eq("envId2"));
-        verify(applicationService, times(1)).create(any(), eq(USER_NAME), eq("envId3"));
+        verify(applicationService, times(1)).create(eq("envId2"), any(), eq(USER_NAME));
+        verify(applicationService, times(1)).create(eq("envId3"), any(), eq(USER_NAME));
     }
 
     @Test
@@ -541,7 +543,7 @@ public class UserServiceTest {
 
         userService.connect(USER_NAME);
 
-        verify(applicationService, never()).create(any(), eq(USER_NAME));
+        verify(applicationService, never()).create(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(USER_NAME));
     }
 
     @Test
@@ -551,7 +553,7 @@ public class UserServiceTest {
 
         userService.connect(USER_NAME);
 
-        verify(applicationService, never()).create(any(), eq(USER_NAME));
+        verify(applicationService, never()).create(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(USER_NAME));
     }
 
     @Test(expected = UserRegistrationUnavailableException.class)
@@ -609,7 +611,14 @@ public class UserServiceTest {
         userService.finalizeResetPassword(userEntity);
 
         verify(auditService)
-            .createOrganizationAuditLog(anyMap(), argThat(evt -> evt.equals(User.AuditEvent.PASSWORD_CHANGED)), any(), any(), any());
+            .createOrganizationAuditLog(
+                eq(GraviteeContext.getCurrentOrganization()),
+                anyMap(),
+                argThat(evt -> evt.equals(User.AuditEvent.PASSWORD_CHANGED)),
+                any(),
+                any(),
+                any()
+            );
     }
 
     @Test(expected = PasswordFormatInvalidException.class)
@@ -916,7 +925,8 @@ public class UserServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = mock(PrimaryOwnerEntity.class);
         when(applicationListItem.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
         when(primaryOwnerEntity.getId()).thenReturn(USER_NAME);
-        when(applicationService.findByUser(USER_NAME)).thenReturn(Collections.singleton(applicationListItem));
+        when(applicationService.findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), USER_NAME))
+            .thenReturn(Collections.singleton(applicationListItem));
 
         try {
             userService.delete(USER_NAME);
@@ -936,7 +946,8 @@ public class UserServiceTest {
         String lastName = "last";
         String email = "email";
         when(apiService.findByUser(userId, null, false)).thenReturn(Collections.emptySet());
-        when(applicationService.findByUser(userId)).thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId))
+            .thenReturn(Collections.emptySet());
         User user = new User();
         user.setId(userId);
         user.setSourceId("sourceId");
@@ -950,7 +961,8 @@ public class UserServiceTest {
         userService.delete(userId);
 
         verify(apiService, times(1)).findByUser(userId, null, false);
-        verify(applicationService, times(1)).findByUser(userId);
+        verify(applicationService, times(1))
+            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId);
         verify(membershipService, times(1)).removeMemberMemberships(MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(
@@ -987,7 +999,8 @@ public class UserServiceTest {
         String lastName = "last";
         String email = "email";
         when(apiService.findByUser(userId, null, false)).thenReturn(Collections.emptySet());
-        when(applicationService.findByUser(userId)).thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId))
+            .thenReturn(Collections.emptySet());
         User user = new User();
         user.setId(userId);
         user.setSourceId("sourceId");
@@ -1002,7 +1015,8 @@ public class UserServiceTest {
         userService.delete(userId);
 
         verify(apiService, times(1)).findByUser(userId, null, false);
-        verify(applicationService, times(1)).findByUser(userId);
+        verify(applicationService, times(1))
+            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId);
         verify(membershipService, times(1)).removeMemberMemberships(MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(
@@ -1135,6 +1149,8 @@ public class UserServiceTest {
         //verify group creations
         verify(membershipService, never())
             .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class)
@@ -1155,9 +1171,12 @@ public class UserServiceTest {
         when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION)).thenReturn(Optional.empty());
 
         //mock group search and association
-        when(groupService.findById("Example group")).thenReturn(mockGroupEntity("group_id_1", "Example group"));
-        when(groupService.findById("soft user")).thenReturn(mockGroupEntity("group_id_2", "soft user"));
-        when(groupService.findById("Api consumer")).thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Example group"))
+            .thenReturn(mockGroupEntity("group_id_1", "Example group"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "soft user"))
+            .thenReturn(mockGroupEntity("group_id_2", "soft user"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Api consumer"))
+            .thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
         // mock role search
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
@@ -1173,6 +1192,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1187,6 +1208,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1201,6 +1224,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1215,6 +1240,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1233,6 +1260,8 @@ public class UserServiceTest {
         //verify group creations
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1245,6 +1274,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1257,6 +1288,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(0))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1269,6 +1302,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1281,6 +1316,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1306,9 +1343,12 @@ public class UserServiceTest {
         when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION)).thenReturn(Optional.empty());
 
         //mock group search and association
-        when(groupService.findById("Example group")).thenReturn(mockGroupEntity("group_id_1", "Example group"));
-        when(groupService.findById("soft user")).thenReturn(mockGroupEntity("group_id_2", "soft user"));
-        when(groupService.findById("Api consumer")).thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Example group"))
+            .thenReturn(mockGroupEntity("group_id_1", "Example group"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "soft user"))
+            .thenReturn(mockGroupEntity("group_id_2", "soft user"));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Api consumer"))
+            .thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
         // mock role search
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
@@ -1339,6 +1379,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1353,6 +1395,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1367,6 +1411,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1381,6 +1427,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1399,6 +1447,8 @@ public class UserServiceTest {
         //verify group creations
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1411,6 +1461,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1423,6 +1475,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(0))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1435,6 +1489,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1447,6 +1503,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(
@@ -1459,6 +1517,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .deleteReferenceMemberBySource(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(MembershipReferenceType.GROUP),
                 eq("membershipId"),
                 eq(MembershipMemberType.USER),
@@ -1485,6 +1545,8 @@ public class UserServiceTest {
         //verify group creations
         verify(membershipService, never())
             .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class)

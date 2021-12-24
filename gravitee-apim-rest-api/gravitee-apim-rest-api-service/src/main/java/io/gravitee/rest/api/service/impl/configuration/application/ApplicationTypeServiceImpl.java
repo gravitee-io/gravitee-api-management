@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntit
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
 import io.gravitee.rest.api.model.settings.Application;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -89,7 +90,7 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
     }
 
     public JsonNode getApplicationTypesConfiguration() {
-        Application applicationConfig = configService.getPortalSettings().getApplication();
+        Application applicationConfig = configService.getPortalSettings(GraviteeContext.getCurrentEnvironment()).getApplication();
         Application.ApplicationTypes types = applicationConfig.getTypes();
         if (!applicationConfig.getRegistration().getEnabled()) {
             types.getBrowserType().setEnabled(false);

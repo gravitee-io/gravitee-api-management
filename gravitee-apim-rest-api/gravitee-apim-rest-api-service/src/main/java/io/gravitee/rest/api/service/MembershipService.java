@@ -31,8 +31,16 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface MembershipService {
-    MemberEntity addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role);
     MemberEntity addRoleToMemberOnReference(
+        final String organizationId,
+        final String environmentId,
+        MembershipReference reference,
+        MembershipMember member,
+        MembershipRole role
+    );
+    MemberEntity addRoleToMemberOnReference(
+        final String organizationId,
+        final String environmentId,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
@@ -40,6 +48,8 @@ public interface MembershipService {
         String role
     );
     MemberEntity addRoleToMemberOnReference(
+        final String organizationId,
+        final String environmentId,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
@@ -47,10 +57,24 @@ public interface MembershipService {
         String role,
         String source
     );
-    void deleteMembership(String membershipId);
-    void deleteReference(MembershipReferenceType referenceType, String referenceId);
-    void deleteReferenceMember(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
+    void deleteMembership(final String organizationId, final String environmentId, String membershipId);
+    void deleteReference(
+        final String organizationId,
+        final String environmentId,
+        MembershipReferenceType referenceType,
+        String referenceId
+    );
+    void deleteReferenceMember(
+        final String organizationId,
+        final String environmentId,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        MembershipMemberType memberType,
+        String memberId
+    );
     void deleteReferenceMemberBySource(
+        final String organizationId,
+        final String environmentId,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
@@ -98,14 +122,19 @@ public interface MembershipService {
     Set<MembershipEntity> getMembershipsByReference(MembershipReferenceType referenceType, String referenceId);
     Set<MembershipEntity> getMembershipsByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, String role);
     Set<MembershipEntity> getMembershipsByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role);
-    MembershipEntity getPrimaryOwner(MembershipReferenceType referenceType, String referenceId);
+    MembershipEntity getPrimaryOwner(final String organizationId, MembershipReferenceType referenceType, String referenceId);
     Set<RoleEntity> getRoles(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
-    MemberEntity getUserMember(MembershipReferenceType referenceType, String referenceId, String userId);
-    Map<String, char[]> getUserMemberPermissions(MembershipReferenceType referenceType, String referenceId, String userId);
-    Map<String, char[]> getUserMemberPermissions(ApiEntity api, String userId);
-    Map<String, char[]> getUserMemberPermissions(ApplicationEntity application, String userId);
-    Map<String, char[]> getUserMemberPermissions(GroupEntity group, String userId);
-    Map<String, char[]> getUserMemberPermissions(EnvironmentEntity environment, String userId);
+    MemberEntity getUserMember(final String environmentId, MembershipReferenceType referenceType, String referenceId, String userId);
+    Map<String, char[]> getUserMemberPermissions(
+        final String environmentId,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String userId
+    );
+    Map<String, char[]> getUserMemberPermissions(final String environmentId, ApiEntity api, String userId);
+    Map<String, char[]> getUserMemberPermissions(final String environmentId, ApplicationEntity application, String userId);
+    Map<String, char[]> getUserMemberPermissions(final String environmentId, GroupEntity group, String userId);
+    Map<String, char[]> getUserMemberPermissions(final String environmentId, EnvironmentEntity environment, String userId);
     void removeRole(
         MembershipReferenceType referenceType,
         String referenceId,
@@ -115,10 +144,31 @@ public interface MembershipService {
     );
     void removeRoleUsage(String oldRoleId, String newRoleId);
     void removeMemberMemberships(MembershipMemberType memberType, String memberId);
-    void transferApiOwnership(String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
-    void transferApplicationOwnership(String applicationId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
-    MemberEntity updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role);
+    void transferApiOwnership(
+        final String organizationId,
+        final String environmentId,
+        String apiId,
+        MembershipMember member,
+        List<RoleEntity> newPrimaryOwnerRoles
+    );
+
+    void transferApplicationOwnership(
+        final String organizationId,
+        final String environmentId,
+        String applicationId,
+        MembershipMember member,
+        List<RoleEntity> newPrimaryOwnerRoles
+    );
+    MemberEntity updateRoleToMemberOnReference(
+        final String organizationId,
+        final String environmentId,
+        MembershipReference reference,
+        MembershipMember member,
+        MembershipRole role
+    );
     List<MemberEntity> updateRolesToMemberOnReference(
+        final String organizationId,
+        final String environmentId,
         MembershipReference reference,
         MembershipMember member,
         Collection<MembershipRole> roles,
@@ -126,6 +176,8 @@ public interface MembershipService {
         boolean notify
     );
     List<MemberEntity> updateRolesToMemberOnReferenceBySource(
+        final String organizationId,
+        final String environmentId,
         MembershipReference reference,
         MembershipMember member,
         Collection<MembershipRole> roles,

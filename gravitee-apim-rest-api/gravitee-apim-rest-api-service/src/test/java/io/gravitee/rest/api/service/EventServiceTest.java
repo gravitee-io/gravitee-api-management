@@ -107,7 +107,7 @@ public class EventServiceTest {
         when(newEvent.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(newEvent.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        final EventEntity eventEntity = eventService.create(newEvent);
+        final EventEntity eventEntity = eventService.create(Collections.singleton(GraviteeContext.getCurrentEnvironment()), newEvent);
 
         assertNotNull(eventEntity);
         assertEquals(EventType.PUBLISH_API.toString(), eventEntity.getType().toString());
@@ -173,7 +173,8 @@ public class EventServiceTest {
             1420070400000L,
             1422748800000L,
             0,
-            10
+            10,
+            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
         assertTrue(0L == eventPageEntity.getTotalElements());
     }
@@ -215,7 +216,8 @@ public class EventServiceTest {
             1420070400000L,
             1422748800000L,
             0,
-            10
+            10,
+            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
         assertTrue(2L == eventPageEntity.getTotalElements());
@@ -256,7 +258,8 @@ public class EventServiceTest {
             1420070400000L,
             1422748800000L,
             0,
-            10
+            10,
+            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
         assertTrue(2L == eventPageEntity.getTotalElements());
@@ -294,7 +297,15 @@ public class EventServiceTest {
         )
             .thenReturn(eventPage);
 
-        Page<EventEntity> eventPageEntity = eventService.search(null, values, 1420070400000L, 1422748800000L, 0, 10);
+        Page<EventEntity> eventPageEntity = eventService.search(
+            null,
+            values,
+            1420070400000L,
+            1422748800000L,
+            0,
+            10,
+            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
+        );
 
         assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
@@ -338,7 +349,8 @@ public class EventServiceTest {
             1420070400000L,
             1422748800000L,
             0,
-            10
+            10,
+            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
         assertTrue(2L == eventPageEntity.getTotalElements());
@@ -376,7 +388,8 @@ public class EventServiceTest {
                 map.put("id", evt.getId());
                 map.put("state", evt.getType().name());
                 return map;
-            }
+            },
+            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
         assertNotNull(page);
         assertNotNull(page.getContent());
@@ -397,7 +410,8 @@ public class EventServiceTest {
                     map.put("state", evt.getType().name());
                     return map;
                 },
-                map -> !map.get("state").equals(io.gravitee.rest.api.model.EventType.GATEWAY_STOPPED.name())
+                map -> !map.get("state").equals(io.gravitee.rest.api.model.EventType.GATEWAY_STOPPED.name()),
+                Collections.singletonList(GraviteeContext.getCurrentEnvironment())
             );
         assertNotNull(page);
         assertNotNull(page.getContent());

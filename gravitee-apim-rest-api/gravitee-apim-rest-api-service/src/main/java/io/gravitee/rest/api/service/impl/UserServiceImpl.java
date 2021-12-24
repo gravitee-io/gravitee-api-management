@@ -243,7 +243,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     defaultApp.setSettings(settings);
 
                     try {
-                        environmentService.findByUser(userId).forEach(env -> applicationService.create(defaultApp, userId, env.getId()));
+                        environmentService
+                            .findByUser(GraviteeContext.getCurrentOrganization(), userId)
+                            .forEach(env -> applicationService.create(env.getId(), defaultApp, userId));
                     } catch (IllegalStateException ex) {
                         //do not fail to create a user even if we are not able to create its default app
                         LOGGER.warn("Not able to create default app for user {}", userId);
@@ -261,6 +263,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             User updatedUser = userRepository.update(user);
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(USER, userId),
                 User.AuditEvent.USER_CONNECTED,
                 user.getUpdatedAt(),
@@ -513,6 +516,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             user = userRepository.update(user);
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(USER, user.getId()),
                 User.AuditEvent.USER_CREATED,
                 user.getUpdatedAt(),
@@ -564,6 +568,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user = userRepository.update(user);
 
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(USER, user.getId()),
                 User.AuditEvent.PASSWORD_CHANGED,
                 user.getUpdatedAt(),
@@ -685,6 +690,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             User createdUser = userRepository.create(user);
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(USER, user.getId()),
                 User.AuditEvent.USER_CREATED,
                 user.getCreatedAt(),
@@ -727,6 +733,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             switch (defaultRoleByScope.getScope()) {
                 case ORGANIZATION:
                     membershipService.addRoleToMemberOnReference(
+                        GraviteeContext.getCurrentOrganization(),
+                        GraviteeContext.getCurrentEnvironment(),
                         new MembershipService.MembershipReference(
                             MembershipReferenceType.ORGANIZATION,
                             GraviteeContext.getCurrentOrganization()
@@ -737,6 +745,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     break;
                 case ENVIRONMENT:
                     membershipService.addRoleToMemberOnReference(
+                        GraviteeContext.getCurrentOrganization(),
+                        GraviteeContext.getCurrentEnvironment(),
                         new MembershipService.MembershipReference(
                             MembershipReferenceType.ENVIRONMENT,
                             GraviteeContext.getCurrentEnvironmentOrDefault()
@@ -885,6 +895,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             GraviteeContext.getCurrentContext()
         );
         auditService.createEnvironmentAuditLog(
+            GraviteeContext.getCurrentEnvironment(),
             Collections.singletonMap(USER, processedUser.getId()),
             accepted ? User.AuditEvent.USER_CONFIRMED : User.AuditEvent.USER_REJECTED,
             processedUser.getUpdatedAt(),
@@ -1048,6 +1059,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             User updatedUser = userRepository.update(user);
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(USER, user.getId()),
                 User.AuditEvent.USER_UPDATED,
                 user.getUpdatedAt(),
@@ -1188,7 +1200,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .filter(entity -> entity.getPrimaryOwner().getId().equals(id))
                 .count();
             long applicationCount = applicationService
-                .findByUser(id)
+                .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), id)
                 .stream()
                 .filter(app -> app.getPrimaryOwner() != null)
                 .filter(app -> app.getPrimaryOwner().getId().equals(id))
@@ -1322,6 +1334,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             notifierService.trigger(PortalHook.PASSWORD_RESET, params);
 
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(USER, user.getId()),
                 User.AuditEvent.PASSWORD_RESET,
                 new Date(),
@@ -1727,6 +1740,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment());
             }
             membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 ref,
                 new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName())
@@ -1771,7 +1786,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             if (match) {
                 for (String groupName : mapping.getGroups()) {
                     try {
-                        groups.add(groupService.findById(groupName));
+                        groups.add(groupService.findById(GraviteeContext.getCurrentEnvironment(), groupName));
                     } catch (GroupNotFoundException gnfe) {
                         LOGGER.warn("Unable to map user groups, missing group in repository: {}", groupName);
                     }
@@ -1920,6 +1935,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     // if there is no mapping configured on the social idp, we do not remove / reset it
                     if (hasMapping) {
                         membershipService.deleteReferenceMemberBySource(
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment(),
                             MembershipReferenceType.valueOf(membership.getReferenceType().name()),
                             membership.getReferenceId(),
                             MembershipMemberType.USER,
@@ -1951,7 +1968,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 memberMapping.forEach(
                     (member, sourceMapping) ->
                         sourceMapping.forEach(
-                            (source, roles) -> membershipService.updateRolesToMemberOnReferenceBySource(reference, member, roles, source)
+                            (source, roles) ->
+                                membershipService.updateRolesToMemberOnReferenceBySource(
+                                    GraviteeContext.getCurrentOrganization(),
+                                    GraviteeContext.getCurrentEnvironment(),
+                                    reference,
+                                    member,
+                                    roles,
+                                    source
+                                )
                         )
                 )
         );
@@ -1975,7 +2000,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     public void updateUserRoles(String userId, MembershipReferenceType referenceType, String referenceId, List<String> roleIds) {
         // check if user exist
         this.findById(userId);
-        MemberEntity userMember = membershipService.getUserMember(referenceType, referenceId, userId);
+        MemberEntity userMember = membershipService.getUserMember(
+            GraviteeContext.getCurrentEnvironment(),
+            referenceType,
+            referenceId,
+            userId
+        );
         if (userMember != null) {
             userMember
                 .getRoles()

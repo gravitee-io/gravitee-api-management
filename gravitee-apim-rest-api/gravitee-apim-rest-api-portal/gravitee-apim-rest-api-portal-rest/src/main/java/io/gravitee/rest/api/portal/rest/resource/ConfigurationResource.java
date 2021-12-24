@@ -78,7 +78,14 @@ public class ConfigurationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalConfiguration() {
-        return Response.ok(configMapper.convert(configService.getPortalSettings(), configService.getConsoleSettings())).build();
+        return Response
+            .ok(
+                configMapper.convert(
+                    configService.getPortalSettings(GraviteeContext.getCurrentEnvironment()),
+                    configService.getConsoleSettings(GraviteeContext.getCurrentOrganization())
+                )
+            )
+            .build();
     }
 
     @GET
@@ -195,7 +202,7 @@ public class ConfigurationResource extends AbstractResource {
                     if (PageType.FOLDER.name().equals(p.getType()) || PageType.MARKDOWN_TEMPLATE.name().equals(p.getType())) {
                         return false;
                     }
-                    return accessControlService.canAccessPageFromPortal(p);
+                    return accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), p);
                 }
             )
             .map(ConfigurationResource::convertToLink)

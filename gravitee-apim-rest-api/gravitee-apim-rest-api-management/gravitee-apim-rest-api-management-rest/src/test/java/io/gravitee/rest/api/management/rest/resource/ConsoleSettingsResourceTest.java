@@ -26,13 +26,8 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.model.settings.Maintenance;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,7 +64,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
-        verify(configService).save(any(ConsoleSettingsEntity.class));
+        verify(configService).save(eq(GraviteeContext.getCurrentOrganization()), any(ConsoleSettingsEntity.class));
     }
 
     @Test
@@ -91,7 +86,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
-        verify(configService).save(any(ConsoleSettingsEntity.class));
+        verify(configService).save(eq(GraviteeContext.getCurrentOrganization()), any(ConsoleSettingsEntity.class));
     }
 
     @Test
@@ -113,7 +108,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(response.readEntity(String.class), SERVICE_UNAVAILABLE_503, response.getStatus());
-        verify(configService, never()).save(any(ConsoleSettingsEntity.class));
+        verify(configService, never()).save(eq(GraviteeContext.getCurrentOrganization()), any(ConsoleSettingsEntity.class));
     }
 
     @Test
@@ -132,6 +127,6 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(response.readEntity(String.class), SERVICE_UNAVAILABLE_503, response.getStatus());
-        verify(configService, never()).save(any(ConsoleSettingsEntity.class));
+        verify(configService, never()).save(eq(GraviteeContext.getCurrentOrganization()), any(ConsoleSettingsEntity.class));
     }
 }
