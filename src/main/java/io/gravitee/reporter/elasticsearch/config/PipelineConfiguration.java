@@ -27,15 +27,15 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  *
+ * @author GraviteeSource Team
  * @author Guillaume Gillon
  */
 public class PipelineConfiguration {
 
-    private static final List<String> INGEST_PLUGINS = Arrays.asList("geoip", "user_agent", "gravitee");
-    private static final String DEFAULT_INGEST_PLUGINS_AFTER_7_X = "geoip,user_agent,";
+    private static final List<String> RETAINED_INGEST_PLUGINS = Arrays.asList("geoip", "user_agent", "gravitee");
 
-    @Value("${reporters.elasticsearch.pipeline.plugins.ingest:#{null}}")
-    private String ingestorPlugins;
+    @Value("${reporters.elasticsearch.pipeline.plugins.ingest:geoip,user_agent}")
+    private String ingestPlugins;
 
     @Value("${reporters.elasticsearch.user_agent.regex_file:#{null}}")
     private String userAgentRegexFile;
@@ -51,16 +51,9 @@ public class PipelineConfiguration {
     private boolean valid = false;
 
     public String createPipeline() {
-        return createPipeline(false);
-    }
-
-    public String createPipeline(boolean isVersionAfter7X) {
-        String plugins = isVersionAfter7X ?
-                DEFAULT_INGEST_PLUGINS_AFTER_7_X.concat(Objects.toString(ingestorPlugins, ""))
-                : ingestorPlugins;
-        if (plugins != null && ! plugins.isEmpty()) {
-            final Set<String> configuredPlugin = Stream.of(plugins.split(",")).map(String::trim).collect(toSet());
-            configuredPlugin.retainAll(INGEST_PLUGINS);
+        if (ingestPlugins != null && ! ingestPlugins.isEmpty()) {
+            final Set<String> configuredPlugin = Stream.of(ingestPlugins.split(",")).map(String::trim).collect(toSet());
+            configuredPlugin.retainAll(RETAINED_INGEST_PLUGINS);
 
             final Map<String, Object> data = new HashMap<>();
             data.put("userAgentRegexFile", userAgentRegexFile);
@@ -87,11 +80,11 @@ public class PipelineConfiguration {
         this.valid = true;
     }
 
-    public String getIngestorPlugins() {
-        return ingestorPlugins;
+    public String getIngestPlugins() {
+        return ingestPlugins;
     }
 
-    public void setIngestorPlugins(String ingestorPlugins) {
-        this.ingestorPlugins = ingestorPlugins;
+    public void setIngestPlugins(String ingestorPlugins) {
+        this.ingestPlugins = ingestorPlugins;
     }
 }
