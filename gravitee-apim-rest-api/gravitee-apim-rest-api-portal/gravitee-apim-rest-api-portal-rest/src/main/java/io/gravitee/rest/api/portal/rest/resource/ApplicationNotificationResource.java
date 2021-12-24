@@ -26,6 +26,7 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.HashSet;
 import java.util.Set;
 import javax.validation.constraints.NotNull;
@@ -53,7 +54,7 @@ public class ApplicationNotificationResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ) })
     public Response get(@PathParam("applicationId") String applicationId) {
         //Does application exists ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         final PortalNotificationConfigEntity portalConfig = portalNotificationConfigService.findById(
             getAuthenticatedUser(),
@@ -78,7 +79,7 @@ public class ApplicationNotificationResource extends AbstractResource {
         @NotNull(message = "Input must not be null.") NotificationInput notification
     ) {
         //Does application exists ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         final PortalNotificationConfigEntity portalConfig = portalNotificationConfigService.findById(
             getAuthenticatedUser(),

@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationMetadataNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.Arrays;
@@ -80,20 +81,20 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
         doReturn(applicationMetadataEntity1).when(applicationMetadataService).findByIdAndApplication(METADATA_1, APPLICATION);
         doReturn(null).when(applicationMetadataService).findByIdAndApplication(METADATA_2, APPLICATION);
 
-        when(applicationMetadataService.create(any()))
+        when(applicationMetadataService.create(eq(GraviteeContext.getCurrentEnvironment()), any()))
             .thenAnswer(
                 invocation -> {
-                    NewApplicationMetadataEntity newApplicationMetadataEntity = invocation.getArgument(0);
+                    NewApplicationMetadataEntity newApplicationMetadataEntity = invocation.getArgument(1);
                     if (newApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
                         throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
                     }
                     return applicationMetadataEntity1;
                 }
             );
-        when(applicationMetadataService.update(any()))
+        when(applicationMetadataService.update(eq(GraviteeContext.getCurrentEnvironment()), any()))
             .thenAnswer(
                 invocation -> {
-                    UpdateApplicationMetadataEntity updateApplicationMetadataEntity = invocation.getArgument(0);
+                    UpdateApplicationMetadataEntity updateApplicationMetadataEntity = invocation.getArgument(1);
                     if (updateApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
                         throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
                     }
@@ -218,7 +219,7 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<NewApplicationMetadataEntity> newMetadataEntityCaptor = ArgumentCaptor.forClass(NewApplicationMetadataEntity.class);
 
-        Mockito.verify(applicationMetadataService).create(newMetadataEntityCaptor.capture());
+        Mockito.verify(applicationMetadataService).create(eq(GraviteeContext.getCurrentEnvironment()), newMetadataEntityCaptor.capture());
         final NewApplicationMetadataEntity newMetadataEntityCaptorValue = newMetadataEntityCaptor.getValue();
         assertEquals(APPLICATION, newMetadataEntityCaptorValue.getApplicationId());
         assertEquals(METADATA_1_NAME, newMetadataEntityCaptorValue.getName());
@@ -241,7 +242,9 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
             UpdateApplicationMetadataEntity.class
         );
 
-        Mockito.verify(applicationMetadataService).update(updateMetadataEntityCaptor.capture());
+        Mockito
+            .verify(applicationMetadataService)
+            .update(eq(GraviteeContext.getCurrentEnvironment()), updateMetadataEntityCaptor.capture());
         final UpdateApplicationMetadataEntity uodateMetadataEntityCaptorValue = updateMetadataEntityCaptor.getValue();
         assertEquals(APPLICATION, uodateMetadataEntityCaptorValue.getApplicationId());
         assertEquals(METADATA_1, uodateMetadataEntityCaptorValue.getKey());

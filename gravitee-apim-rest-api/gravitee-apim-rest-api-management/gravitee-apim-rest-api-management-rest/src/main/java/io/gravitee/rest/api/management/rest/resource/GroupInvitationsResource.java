@@ -93,7 +93,7 @@ public class GroupInvitationsResource extends AbstractResource {
     )
     public InvitationEntity createGroupInvitation(@Valid @NotNull final NewInvitationEntity invitationEntity) {
         // Check that group exists
-        final GroupEntity groupEntity = groupService.findById(group);
+        final GroupEntity groupEntity = groupService.findById(GraviteeContext.getCurrentEnvironment(), group);
         // check if user is a 'simple group admin' or a platform admin
         final boolean hasPermission = permissionService.hasPermission(
             RolePermission.ENVIRONMENT_GROUP,

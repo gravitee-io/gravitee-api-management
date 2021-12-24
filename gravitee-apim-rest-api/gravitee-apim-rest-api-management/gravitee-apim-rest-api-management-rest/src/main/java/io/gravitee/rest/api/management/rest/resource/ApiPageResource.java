@@ -30,9 +30,9 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.swagger.annotations.*;
-import java.util.Arrays;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -231,7 +231,10 @@ public class ApiPageResource extends AbstractResource {
     }
 
     private boolean isDisplayable(ApiEntity api, PageEntity pageEntity) {
-        return (isAuthenticated() && isAdmin()) || accessControlService.canAccessPageFromConsole(api, pageEntity);
+        return (
+            (isAuthenticated() && isAdmin()) ||
+            accessControlService.canAccessPageFromConsole(GraviteeContext.getCurrentEnvironment(), api, pageEntity)
+        );
     }
 
     @Path("media")

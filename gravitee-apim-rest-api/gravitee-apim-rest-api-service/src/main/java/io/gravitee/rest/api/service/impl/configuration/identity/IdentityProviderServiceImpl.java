@@ -97,6 +97,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             );
 
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 singletonMap(IDENTITY_PROVIDER, createdIdentityProvider.getId()),
                 IdentityProvider.AuditEvent.IDENTITY_PROVIDER_CREATED,
                 createdIdentityProvider.getUpdatedAt(),
@@ -135,6 +136,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             // Audit
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 singletonMap(IDENTITY_PROVIDER, id),
                 IdentityProvider.AuditEvent.IDENTITY_PROVIDER_UPDATED,
                 identityProvider.getUpdatedAt(),
@@ -181,6 +183,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             identityProviderRepository.delete(id);
 
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(IDENTITY_PROVIDER, id),
                 IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DELETED,
                 new Date(),

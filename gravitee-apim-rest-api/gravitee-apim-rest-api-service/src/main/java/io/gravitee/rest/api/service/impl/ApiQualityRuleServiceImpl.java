@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.ApiQualityRule;
 import io.gravitee.rest.api.model.quality.*;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.Collections;
 import java.util.Date;
@@ -74,6 +75,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             }
             final ApiQualityRule apiQualityRule = convert(newEntity);
             auditService.createEnvironmentAuditLog(
+                GraviteeContext.getCurrentEnvironment(),
                 Collections.singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
                 ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED,
                 apiQualityRule.getCreatedAt(),
@@ -100,6 +102,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             }
             final ApiQualityRule apiQualityRule = apiQualityRuleRepository.update(convert(updateEntity));
             auditService.createEnvironmentAuditLog(
+                GraviteeContext.getCurrentEnvironment(),
                 singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
                 ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED,
                 apiQualityRule.getUpdatedAt(),

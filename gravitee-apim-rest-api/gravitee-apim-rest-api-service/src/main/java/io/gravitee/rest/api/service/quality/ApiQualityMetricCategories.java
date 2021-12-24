@@ -30,7 +30,7 @@ public class ApiQualityMetricCategories implements ApiQualityMetric {
     }
 
     @Override
-    public boolean isValid(ApiEntity api) {
+    public boolean isValid(ApiEntity api, final String environmentId) {
         return api.getCategories() != null && !api.getCategories().isEmpty();
     }
 }

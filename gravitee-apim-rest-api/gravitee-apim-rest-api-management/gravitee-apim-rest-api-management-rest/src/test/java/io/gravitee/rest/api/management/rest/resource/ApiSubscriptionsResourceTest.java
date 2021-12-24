@@ -24,6 +24,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -82,7 +83,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         when(userService.findById(any())).thenReturn(fakeUserEntity);
         when(planService.findById(any())).thenReturn(fakePlanEntity);
-        when(applicationService.findById(any())).thenReturn(fakeApplicationEntity);
+        when(applicationService.findById(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(fakeApplicationEntity);
     }
 
     @Test

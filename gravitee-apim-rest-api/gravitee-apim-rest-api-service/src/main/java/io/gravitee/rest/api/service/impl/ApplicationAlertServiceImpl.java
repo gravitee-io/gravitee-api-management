@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.ApplicationAlertService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.AlertHook;
 import io.gravitee.rest.api.service.notification.HookScope;
@@ -107,8 +108,8 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     }
 
     @Override
-    public AlertTriggerEntity create(String applicationId, NewAlertTriggerEntity alert) {
-        final ApplicationEntity application = applicationService.findById(applicationId);
+    public AlertTriggerEntity create(final String environmentId, String applicationId, NewAlertTriggerEntity alert) {
+        final ApplicationEntity application = applicationService.findById(environmentId, applicationId);
 
         alert.setName(generateAlertName(application, alert));
         alert.setReferenceType(AlertReferenceType.APPLICATION);
@@ -181,13 +182,13 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     }
 
     @Override
-    public void addMemberToApplication(String applicationId, String email) {
+    public void addMemberToApplication(final String environmentId, String applicationId, String email) {
         if (StringUtils.isEmpty(email)) {
             return;
         }
 
         // check existence of application
-        applicationService.findById(applicationId);
+        applicationService.findById(environmentId, applicationId);
 
         alertService
             .findByReference(AlertReferenceType.APPLICATION, applicationId)
@@ -228,13 +229,13 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     }
 
     @Override
-    public void deleteMemberFromApplication(String applicationId, String email) {
+    public void deleteMemberFromApplication(final String environmentId, String applicationId, String email) {
         if (StringUtils.isEmpty(email)) {
             return;
         }
 
         // check existence of application
-        applicationService.findById(applicationId);
+        applicationService.findById(environmentId, applicationId);
 
         alertService
             .findByReference(AlertReferenceType.APPLICATION, applicationId)
@@ -310,17 +311,26 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                 }
                 break;
             case APPLICATION_MEMBERSHIP_UPDATE:
-                updateAlertsRecipients((ApplicationAlertMembershipEvent) event.content());
+                updateAlertsRecipients(
+                    (ApplicationAlertMembershipEvent) event.content(),
+                    // FIXME: remove this calls to getCurrentXXXX
+                    GraviteeContext.getCurrentOrganization(),
+                    GraviteeContext.getCurrentEnvironment()
+                );
                 break;
         }
     }
 
-    private void updateAlertsRecipients(ApplicationAlertMembershipEvent alertMembershipEvent) {
+    private void updateAlertsRecipients(
+        ApplicationAlertMembershipEvent alertMembershipEvent,
+        final String organizationId,
+        final String environmentId
+    ) {
         // get all applications ids to update
         final Set<String> applicationIds = new HashSet<>(alertMembershipEvent.getApplicationIds());
         if (!CollectionUtils.isEmpty(alertMembershipEvent.getGroupIds())) {
             applicationService
-                .findByGroups(new ArrayList<>(alertMembershipEvent.getGroupIds()))
+                .findByGroups(organizationId, new ArrayList<>(alertMembershipEvent.getGroupIds()))
                 .stream()
                 .map(ApplicationListItem::getId)
                 .forEach(applicationIds::add);
@@ -328,7 +338,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
         // get recipients for each application
         final Map<String, List<String>> recipientsByApplicationId = applicationService
-            .findByIds(new ArrayList<>(applicationIds))
+            .findByIds(organizationId, environmentId, new ArrayList<>(applicationIds))
             .stream()
             .collect(Collectors.toMap(ApplicationListItem::getId, app -> getNotificationRecipients(app.getId(), app.getGroups())));
 

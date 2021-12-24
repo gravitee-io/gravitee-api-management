@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
@@ -62,7 +63,7 @@ public class GroupMemberResource extends AbstractResource {
         }
     )
     public Response deleteGroupMember(@PathParam("member") String userId) {
-        groupService.deleteUserFromGroup(group, userId);
+        groupService.deleteUserFromGroup(GraviteeContext.getCurrentEnvironment(), group, userId);
 
         return Response.ok().build();
     }

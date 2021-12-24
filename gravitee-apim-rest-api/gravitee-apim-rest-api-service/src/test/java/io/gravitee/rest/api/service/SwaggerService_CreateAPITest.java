@@ -33,6 +33,7 @@ import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
@@ -47,7 +48,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -93,8 +93,8 @@ public class SwaggerService_CreateAPITest {
         grp1.setId("group1");
         GroupEntity grp2 = new GroupEntity();
         grp2.setId("group2");
-        when(groupService.findByName("group1")).thenReturn(Arrays.asList(grp1));
-        when(groupService.findByName("group2")).thenReturn(Arrays.asList(grp2));
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "group1")).thenReturn(Arrays.asList(grp1));
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "group2")).thenReturn(Arrays.asList(grp2));
 
         TagEntity tag1 = new TagEntity();
         tag1.setId("tagId1");

@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.api.header.UpdateApiHeaderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiHeaderService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -56,7 +57,7 @@ public class ApiHeaderResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.UPDATE) })
     public ApiHeaderEntity updateApiHeader(@PathParam("id") String id, @Valid @NotNull final UpdateApiHeaderEntity updateApiHeaderEntity) {
         updateApiHeaderEntity.setId(id);
-        return apiHeaderService.update(updateApiHeaderEntity);
+        return apiHeaderService.update(GraviteeContext.getCurrentEnvironment(), updateApiHeaderEntity);
     }
 
     @DELETE
@@ -71,6 +72,6 @@ public class ApiHeaderResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.DELETE) })
     public void deleteApiHeader(@PathParam("id") String id) {
-        apiHeaderService.delete(id);
+        apiHeaderService.delete(GraviteeContext.getCurrentEnvironment(), id);
     }
 }

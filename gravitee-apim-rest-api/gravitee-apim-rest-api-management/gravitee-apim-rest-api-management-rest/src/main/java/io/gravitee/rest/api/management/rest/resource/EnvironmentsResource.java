@@ -15,15 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EnvironmentPermissionsEntity;
-import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -61,7 +56,7 @@ public class EnvironmentsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List available environments for current user organization")
     public Collection<EnvironmentEntity> getEnvironments() {
-        return this.environmentService.findByUser(getAuthenticatedUserOrNull());
+        return this.environmentService.findByUser(GraviteeContext.getCurrentOrganization(), getAuthenticatedUserOrNull());
     }
 
     @Path("{envId}")
@@ -94,7 +89,8 @@ public class EnvironmentsResource extends AbstractResource {
     public Collection<EnvironmentPermissionsEntity> getEnvironmentsPermissions(
         @ApiParam("To filter on environment id or hrid") @QueryParam("idOrHrid") String id
     ) {
-        List<EnvironmentEntity> environments = this.environmentService.findByUserAndIdOrHrid(getAuthenticatedUserOrNull(), id);
+        List<EnvironmentEntity> environments =
+            this.environmentService.findByUserAndIdOrHrid(GraviteeContext.getCurrentOrganization(), getAuthenticatedUserOrNull(), id);
 
         return environments
             .stream()
@@ -103,7 +99,8 @@ public class EnvironmentsResource extends AbstractResource {
                     Map<String, char[]> permissions = new HashMap<>();
                     if (isAuthenticated()) {
                         final String username = getAuthenticatedUser();
-                        permissions = membershipService.getUserMemberPermissions(environment, username);
+                        permissions =
+                            membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), environment, username);
                     }
 
                     EnvironmentPermissionsEntity environmentPermissions = new EnvironmentPermissionsEntity();

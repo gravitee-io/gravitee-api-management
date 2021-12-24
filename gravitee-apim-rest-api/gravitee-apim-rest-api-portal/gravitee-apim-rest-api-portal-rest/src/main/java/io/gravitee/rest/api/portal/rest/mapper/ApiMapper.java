@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
@@ -119,7 +120,7 @@ public class ApiMapper {
                     .filter(
                         categoryId -> {
                             try {
-                                categoryService.findNotHiddenById(categoryId);
+                                categoryService.findNotHiddenById(categoryId, GraviteeContext.getCurrentEnvironment());
                                 return true;
                             } catch (CategoryNotFoundException v) {
                                 return false;

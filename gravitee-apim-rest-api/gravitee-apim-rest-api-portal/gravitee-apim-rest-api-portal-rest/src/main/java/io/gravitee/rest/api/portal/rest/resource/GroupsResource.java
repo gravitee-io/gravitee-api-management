@@ -29,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -57,7 +58,7 @@ public class GroupsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response findAll(@BeanParam PaginationParam paginationParam) {
         List<Group> groups = groupService
-            .findAll()
+            .findAll(GraviteeContext.getCurrentEnvironment())
             .stream()
             .map(group -> new Group().id(group.getId()).name(group.getName()))
             .collect(Collectors.toList());
@@ -70,7 +71,7 @@ public class GroupsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getMembersByGroupId(@PathParam("groupId") String groupId, @BeanParam PaginationParam paginationParam) {
         //check that group exists
-        groupService.findById(groupId);
+        groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId);
 
         List<Member> groupsMembers = membershipService
             .getMembersByReference(MembershipReferenceType.GROUP, groupId)

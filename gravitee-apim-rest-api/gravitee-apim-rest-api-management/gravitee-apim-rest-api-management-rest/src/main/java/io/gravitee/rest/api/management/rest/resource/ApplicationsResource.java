@@ -84,14 +84,35 @@ public class ApplicationsResource extends AbstractResource {
         }
 
         if (query != null && !query.trim().isEmpty()) {
-            applications = applicationService.findByUserAndNameAndStatus(getAuthenticatedUser(), isAdmin(), query, status);
+            applications =
+                applicationService.findByUserAndNameAndStatus(
+                    getAuthenticatedUser(),
+                    isAdmin(),
+                    query,
+                    status,
+                    GraviteeContext.getCurrentEnvironment(),
+                    GraviteeContext.getCurrentOrganization()
+                );
         } else if (isAdmin()) {
             applications =
                 group != null
-                    ? applicationService.findByGroupsAndStatus(Collections.singletonList(group), status)
-                    : applicationService.findByStatus(status);
+                    ? applicationService.findByGroupsAndStatus(
+                        GraviteeContext.getCurrentOrganization(),
+                        Collections.singletonList(group),
+                        status
+                    )
+                    : applicationService.findByStatus(
+                        GraviteeContext.getCurrentOrganization(),
+                        GraviteeContext.getCurrentEnvironment(),
+                        status
+                    );
         } else {
-            applications = applicationService.findByUser(getAuthenticatedUser());
+            applications =
+                applicationService.findByUser(
+                    GraviteeContext.getCurrentOrganization(),
+                    GraviteeContext.getCurrentEnvironment(),
+                    getAuthenticatedUser()
+                );
             if (group != null && !group.isEmpty()) {
                 applications =
                     applications
@@ -168,7 +189,11 @@ public class ApplicationsResource extends AbstractResource {
             application.setSettings(settings);
         }
 
-        ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUser());
+        ApplicationEntity newApplication = applicationService.create(
+            GraviteeContext.getCurrentEnvironment(),
+            application,
+            getAuthenticatedUser()
+        );
         if (newApplication != null) {
             return Response.created(this.getLocationHeader(newApplication.getId())).entity(newApplication).build();
         }

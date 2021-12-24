@@ -132,7 +132,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         // Useful for plans
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
         // For pages
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(any());
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
         callResourceAndCheckResult(1, 2);
     }
 
@@ -141,7 +141,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         // Useful for plans
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
         // For pages
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
         callResourceAndCheckResult(0, 0);
     }
 

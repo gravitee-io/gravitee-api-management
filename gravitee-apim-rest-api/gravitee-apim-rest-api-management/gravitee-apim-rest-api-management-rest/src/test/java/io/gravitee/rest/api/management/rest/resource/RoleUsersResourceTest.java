@@ -17,10 +17,10 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.management.rest.model.ApiMembership;
 import io.gravitee.rest.api.management.rest.model.RoleMembership;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -70,7 +70,13 @@ public class RoleUsersResourceTest extends AbstractResourceTest {
 
         Mockito
             .verify(membershipService)
-            .addRoleToMemberOnReference(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
+            .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                memberShipRefCaptor.capture(),
+                memberShipUserCaptor.capture(),
+                memberShipRoleCaptor.capture()
+            );
         assertEquals(GraviteeContext.getCurrentOrganization(), memberShipRefCaptor.getValue().getId());
         assertEquals(MembershipReferenceType.ORGANIZATION, memberShipRefCaptor.getValue().getType());
         assertEquals(ROLE, memberShipRoleCaptor.getValue().getName());

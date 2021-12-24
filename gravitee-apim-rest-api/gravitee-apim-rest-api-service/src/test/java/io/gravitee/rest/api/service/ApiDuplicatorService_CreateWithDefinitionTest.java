@@ -27,10 +27,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
@@ -38,7 +35,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -188,7 +184,15 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         verify(pageService, times(1))
             .duplicatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
         verify(membershipService, times(1))
-            .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
+            .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                user.getId(),
+                "API_OWNER"
+            );
     }
 
     @Test
@@ -254,8 +258,23 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
         verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
         verify(membershipService, times(1))
-            .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
-        verify(membershipService, never()).transferApiOwnership(any(), any(), any());
+            .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                user.getId(),
+                "API_OWNER"
+            );
+        verify(membershipService, never())
+            .transferApiOwnership(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                any(),
+                any()
+            );
     }
 
     @Test

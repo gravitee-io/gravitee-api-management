@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.annotations.*;
 import java.util.Date;
@@ -248,7 +249,10 @@ public class ApiSubscriptionsResource extends AbstractResource {
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
-        ApplicationEntity application = applicationService.findById(subscriptionEntity.getApplication());
+        ApplicationEntity application = applicationService.findById(
+            GraviteeContext.getCurrentEnvironment(),
+            subscriptionEntity.getApplication()
+        );
         subscription.setApplication(
             new Subscription.Application(
                 application.getId(),

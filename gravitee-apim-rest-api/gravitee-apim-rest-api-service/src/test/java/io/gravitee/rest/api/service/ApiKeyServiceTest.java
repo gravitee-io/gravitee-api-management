@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiKeyServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -193,7 +194,7 @@ public class ApiKeyServiceTest {
 
         // Stub
         when(apiKeyRepository.findByKeyAndApi(API_KEY, API_ID)).thenReturn(Optional.of(apiKey));
-        when(applicationService.findById(subscription.getApplication())).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication())).thenReturn(application);
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
         when(apiService.findByIdForTemplates(any())).thenReturn(api);
 
@@ -384,7 +385,7 @@ public class ApiKeyServiceTest {
         when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
-        when(applicationService.findById(subscription.getApplication())).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication())).thenReturn(application);
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
         when(apiService.findByIdForTemplates(any())).thenReturn(api);
 
@@ -434,7 +435,7 @@ public class ApiKeyServiceTest {
         when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
-        when(applicationService.findById(subscription.getApplication())).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication())).thenReturn(application);
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
         when(apiService.findByIdForTemplates(any())).thenReturn(api);
 
@@ -502,7 +503,7 @@ public class ApiKeyServiceTest {
         subscriptionEntity.setEndingAt(new Date());
         when(subscriptionService.findById(any())).thenReturn(subscriptionEntity);
         //notification mocks
-        when(applicationService.findById(any())).thenReturn(mock(ApplicationEntity.class));
+        when(applicationService.findById(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(mock(ApplicationEntity.class));
         PlanEntity mockedPlan = mock(PlanEntity.class);
         when(planService.findById(any())).thenReturn(mockedPlan);
         when(apiService.findByIdForTemplates(any())).thenReturn(mock(ApiModelEntity.class));

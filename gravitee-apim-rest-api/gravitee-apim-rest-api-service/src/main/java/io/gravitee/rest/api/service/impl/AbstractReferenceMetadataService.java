@@ -31,6 +31,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.*;
 import java.util.function.Function;
@@ -153,13 +154,14 @@ public abstract class AbstractReferenceMetadataService {
         final NewReferenceMetadataEntity metadataEntity,
         final MetadataReferenceType referenceType,
         final String referenceId,
-        final boolean withDefaults
+        final boolean withDefaults,
+        final String environmentId
     ) {
         // if no format defined, we just set String format
         if (metadataEntity.getFormat() == null) {
             metadataEntity.setFormat(MetadataFormat.STRING);
         }
-        checkReferenceMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
+        checkReferenceMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId, environmentId);
         // First we prevent the duplicate metadata name
         final Optional<ReferenceMetadataEntity> optionalMetadata = findAllByReference(referenceType, referenceId, withDefaults)
             .stream()
@@ -191,7 +193,8 @@ public abstract class AbstractReferenceMetadataService {
         MetadataFormat format,
         String value,
         MetadataReferenceType referenceType,
-        String referenceId
+        String referenceId,
+        final String environmentId
     );
 
     private void createReferenceAuditLog(
@@ -226,6 +229,7 @@ public abstract class AbstractReferenceMetadataService {
                 break;
             case USER:
                 auditService.createOrganizationAuditLog(
+                    GraviteeContext.getCurrentOrganization(),
                     Maps.<Audit.AuditProperties, String>builder().put(USER, referenceId).put(METADATA, key).build(),
                     auditEvent,
                     updatedAt,
@@ -240,9 +244,10 @@ public abstract class AbstractReferenceMetadataService {
         final UpdateReferenceMetadataEntity metadataEntity,
         final MetadataReferenceType referenceType,
         final String referenceId,
-        final boolean withDefaults
+        final boolean withDefaults,
+        final String environmentId
     ) {
-        checkReferenceMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
+        checkReferenceMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId, environmentId);
         try {
             final Optional<Metadata> referenceMetadata = metadataRepository.findById(metadataEntity.getKey(), referenceId, referenceType);
 

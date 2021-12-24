@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as jsyaml from 'js-yaml';
-
 import { Component, OnInit } from '@angular/core';
 import { Page, User } from '../../../../projects/portal-webclient-sdk/src/lib';
 
@@ -22,6 +20,7 @@ import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { CurrentUserService } from 'src/app/services/current-user.service';
 import { PageService } from 'src/app/services/page.service';
 import { PlatformLocation } from '@angular/common';
+import { readYaml } from '../../utils/yaml-parser';
 
 @Component({
   selector: 'app-gv-page-swaggerui',
@@ -100,7 +99,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
     try {
       contentAsJson = JSON.parse(page.content);
     } catch (e) {
-      contentAsJson = jsyaml.safeLoad(page.content);
+      contentAsJson = readYaml(page.content);
     }
 
     const cfg: any = {

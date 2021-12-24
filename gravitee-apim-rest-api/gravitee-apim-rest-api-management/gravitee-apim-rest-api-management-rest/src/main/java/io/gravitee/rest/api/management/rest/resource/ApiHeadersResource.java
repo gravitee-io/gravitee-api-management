@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.api.header.NewApiHeaderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiHeaderService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -61,7 +62,7 @@ public class ApiHeadersResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.READ) })
     public List<ApiHeaderEntity> getApiHeaders() {
-        return apiHeaderService.findAll();
+        return apiHeaderService.findAll(GraviteeContext.getCurrentEnvironment());
     }
 
     @POST
@@ -76,7 +77,7 @@ public class ApiHeadersResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.CREATE) })
     public ApiHeaderEntity createApiHeader(@Valid @NotNull final NewApiHeaderEntity newApiHeaderEntity) {
-        return apiHeaderService.create(newApiHeaderEntity);
+        return apiHeaderService.create(GraviteeContext.getCurrentEnvironment(), newApiHeaderEntity);
     }
 
     @Path("{id}")

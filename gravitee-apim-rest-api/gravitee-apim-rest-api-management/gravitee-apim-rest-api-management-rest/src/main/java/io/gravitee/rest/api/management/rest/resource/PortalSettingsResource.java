@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -60,7 +61,7 @@ public class PortalSettingsResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = READ) })
     public PortalSettingsEntity getPortalSettings() {
-        return configService.getPortalSettings();
+        return configService.getPortalSettings(GraviteeContext.getCurrentEnvironment());
     }
 
     @POST
@@ -75,7 +76,7 @@ public class PortalSettingsResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
     public Response savePortalSettings(@ApiParam(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
-        configService.save(portalSettingsEntity);
+        configService.save(GraviteeContext.getCurrentEnvironment(), portalSettingsEntity);
         return Response.ok().entity(portalSettingsEntity).build();
     }
 }

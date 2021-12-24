@@ -25,7 +25,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -223,7 +222,8 @@ public class ApiService_UpdateTest {
             .thenReturn("toDecode=decoded-value");
         MembershipEntity primaryOwner = new MembershipEntity();
         primaryOwner.setMemberType(MembershipMemberType.USER);
-        when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), any())).thenReturn(primaryOwner);
+        when(membershipService.getPrimaryOwner(eq(GraviteeContext.getCurrentOrganization()), eq(MembershipReferenceType.API), any()))
+            .thenReturn(primaryOwner);
         reset(searchEngineService);
     }
 
@@ -816,7 +816,8 @@ public class ApiService_UpdateTest {
 
         final MembershipEntity membership = new MembershipEntity();
         membership.setMemberId(USER_NAME);
-        when(membershipService.getPrimaryOwner(MembershipReferenceType.API, API_ID)).thenReturn(membership);
+        when(membershipService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), MembershipReferenceType.API, API_ID))
+            .thenReturn(membership);
 
         when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
 

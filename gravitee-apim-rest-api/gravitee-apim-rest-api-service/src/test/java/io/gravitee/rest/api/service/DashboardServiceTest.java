@@ -34,6 +34,7 @@ import io.gravitee.repository.management.model.DashboardReferenceType;
 import io.gravitee.rest.api.model.DashboardEntity;
 import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DashboardNotFoundException;
 import io.gravitee.rest.api.service.impl.DashboardServiceImpl;
 import java.util.Date;
@@ -210,6 +211,7 @@ public class DashboardServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_CREATED),
                 any(Date.class),
@@ -279,6 +281,7 @@ public class DashboardServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_UPDATED),
                 any(Date.class),
@@ -307,6 +310,7 @@ public class DashboardServiceTest {
         verify(dashboardRepository, times(1)).delete(DASHBOARD_ID);
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_DELETED),
                 any(Date.class),
