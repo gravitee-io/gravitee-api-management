@@ -173,9 +173,9 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
       )
-      .subscribe(() => {
+      .subscribe((resultingRole) => {
         if (!this.isEditMode) {
-          this.ajsState.go('organization.settings.ng-roleedit', { roleScope: this.roleScope, role: roleFormValue.name.toUpperCase() });
+          this.ajsState.go('organization.settings.ng-roleedit', { roleScope: this.roleScope, role: resultingRole.name });
         } else {
           this.ngOnInit();
         }

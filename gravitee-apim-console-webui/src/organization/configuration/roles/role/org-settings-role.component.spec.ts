@@ -317,10 +317,15 @@ describe('OrgSettingsRoleComponent', () => {
         },
         system: false,
       });
-      req.flush(null);
+      req.flush({
+        name: 'CREATED_ROLE_NAME',
+      });
       fixture.detectChanges();
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.settings.ng-roleedit', { role: 'NEW NAME', roleScope: 'ORGANIZATION' });
+      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.settings.ng-roleedit', {
+        role: 'CREATED_ROLE_NAME',
+        roleScope: 'ORGANIZATION',
+      });
     });
   });
 
