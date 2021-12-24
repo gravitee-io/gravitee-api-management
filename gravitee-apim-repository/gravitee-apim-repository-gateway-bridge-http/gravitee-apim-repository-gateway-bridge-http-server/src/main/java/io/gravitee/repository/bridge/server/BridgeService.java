@@ -168,6 +168,11 @@ public class BridgeService extends AbstractService {
             applicationContext.getAutowireCapableBeanFactory().autowireBean(organizationsHandler);
             bridgeRouter.get("/organizations").handler(organizationsHandler::findAll);
             bridgeRouter.get("/organizations/_byHrids").handler(organizationsHandler::findByHrids);
+
+            // Installation handler
+            InstallationHandler installationHandler = new InstallationHandler();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(installationHandler);
+            bridgeRouter.get("/installation").handler(installationHandler::find);
         }
     }
 
