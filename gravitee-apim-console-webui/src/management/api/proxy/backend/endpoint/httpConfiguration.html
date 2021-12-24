@@ -240,7 +240,7 @@
               type="number"
               min="0"
               max="65536"
-              ng-required="$ctrl.httpConfiguration.proxy.enabled"
+              ng-required="$ctrl.isUserDefinedProxy()"
               ng-disabled="!$ctrl.isUserDefinedProxy()"
             />
             <div class="hint">Proxy port to connect to</div>
