@@ -14,7 +14,6 @@ npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
 sed -i.bak "s|{ DateHistoAnalytics \| GroupByAnalytics \| CountAnalytics }|{ CountAnalytics, DateHistoAnalytics, GroupByAnalytics }|" projects/portal-webclient-sdk/src/lib/api/analytics.service.ts
 sed -i.bak "s|{ DateHistoAnalytics \| GroupByAnalytics \| CountAnalytics }|{ CountAnalytics, DateHistoAnalytics, GroupByAnalytics }|" projects/portal-webclient-sdk/src/lib/api/application.service.ts
 sed -i.bak "/export...from....analytics.service';/d" projects/portal-webclient-sdk/src/lib/api/api.ts
+find projects/portal-webclient-sdk/src -name "*.ts" -exec sed -i.bak "/* The version of the OpenAPI document/d" {} \;
 # must delete .bak files
-rm projects/portal-webclient-sdk/src/lib/api/analytics.service.ts.bak
-rm projects/portal-webclient-sdk/src/lib/api/application.service.ts.bak
-rm projects/portal-webclient-sdk/src/lib/api/api.ts.bak
+find projects/portal-webclient-sdk/src -name "*.ts.bak" -exec rm -f {} \;
