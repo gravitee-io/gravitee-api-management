@@ -109,7 +109,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_TAGS,
     };
 
-    private BooleanQuery.Builder buildApiQuery(io.gravitee.rest.api.service.search.query.Query query) {
+    private BooleanQuery.Builder buildApiQuery(Optional<Query> filterQuery) {
         BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
         BooleanQuery envCriteria = buildEnvCriteria();
 
@@ -118,14 +118,12 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER)
             .add(envCriteria, BooleanClause.Occur.FILTER);
 
-        Query apisFilter = this.buildFilterQuery(FIELD_ID, query.getFilters());
-        if (apisFilter != null) {
-            apiQuery.add(apisFilter, BooleanClause.Occur.FILTER);
-        }
+        filterQuery.ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.FILTER));
+
         return apiQuery;
     }
 
-    private Optional<BooleanQuery> buildIdsQuery(io.gravitee.rest.api.service.search.query.Query query) throws ParseException {
+    private Optional<BooleanQuery> buildIdsQuery(io.gravitee.rest.api.service.search.query.Query query) {
         if (!isBlank(query.getQuery()) && query.getIds() != null && !query.getIds().isEmpty()) {
             BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
             query.getIds().forEach(id -> mainQuery.add(new TermQuery(new Term(FIELD_ID, (String) id)), BooleanClause.Occur.SHOULD));
@@ -134,21 +132,25 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         return Optional.empty();
     }
 
-    private Optional<BooleanQuery> buildExactMatchQuery(io.gravitee.rest.api.service.search.query.Query query) throws ParseException {
+    private Optional<BooleanQuery> buildExactMatchQuery(io.gravitee.rest.api.service.search.query.Query query, Optional<Query> filterQuery)
+        throws ParseException {
         if (!isBlank(query.getQuery())) {
-            BooleanQuery.Builder mainQuery = buildApiQuery(query);
+            BooleanQuery.Builder apiQuery = buildApiQuery(filterQuery);
             MultiFieldQueryParser apiParser = new MultiFieldQueryParser(API_FIELD_SEARCH, new KeywordAnalyzer(), API_FIELD_BOOST);
             String queryEscaped = QueryParserBase.escape(query.getQuery());
             Query queryParsed = apiParser.parse(queryEscaped);
-            mainQuery.add(queryParsed, BooleanClause.Occur.MUST);
-            return Optional.of(mainQuery.build());
+            apiQuery.add(queryParsed, BooleanClause.Occur.MUST);
+            return Optional.of(apiQuery.build());
         }
         return Optional.empty();
     }
 
-    private Optional<BooleanQuery> buildWildcardQuery(io.gravitee.rest.api.service.search.query.Query query) throws ParseException {
+    private Optional<BooleanQuery> buildWildcardQuery(
+        io.gravitee.rest.api.service.search.query.Query query,
+        Optional<Query> baseFilterQuery
+    ) throws ParseException {
         if (!isBlank(query.getQuery())) {
-            BooleanQuery.Builder mainQuery = buildApiQuery(query);
+            BooleanQuery.Builder mainQuery = buildApiQuery(baseFilterQuery);
 
             MultiFieldQueryParser apiParser = new MultiFieldQueryParser(API_FIELD_SEARCH, new KeywordAnalyzer(), API_FIELD_BOOST);
             apiParser.setAllowLeadingWildcard(true);
@@ -165,17 +167,15 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     @Override
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
         try {
-            Optional<BooleanQuery> filtersQuery = this.buildExplicitQuery(query);
-            Optional<BooleanQuery> exactMatchQuery = this.buildExactMatchQuery(query);
-            Optional<BooleanQuery> wildcardQuery = this.buildWildcardQuery(query);
-            Optional<BooleanQuery> idsQuery = this.buildIdsQuery(query);
+            final Optional<Query> baseFilterQuery = this.buildFilterQuery(FIELD_ID, query.getFilters());
 
             BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
 
-            filtersQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.MUST));
-            exactMatchQuery.ifPresent(query1 -> apiQuery.add(new BoostQuery(query1, 4.0f), BooleanClause.Occur.SHOULD));
-            wildcardQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.SHOULD));
-            idsQuery.ifPresent(query1 -> apiQuery.add(query1, BooleanClause.Occur.SHOULD));
+            this.buildExplicitQuery(query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST));
+            this.buildExactMatchQuery(query, baseFilterQuery)
+                .ifPresent(q -> apiQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD));
+            this.buildWildcardQuery(query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
+            this.buildIdsQuery(query).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
 
             return this.search(apiQuery.build(), query.getSort());
         } catch (ParseException pe) {
@@ -184,8 +184,11 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         }
     }
 
-    private Optional<BooleanQuery> buildExplicitQuery(io.gravitee.rest.api.service.search.query.Query query) {
-        BooleanQuery.Builder filtersQuery = buildApiQuery(query);
+    private Optional<BooleanQuery> buildExplicitQuery(
+        io.gravitee.rest.api.service.search.query.Query query,
+        Optional<Query> baseFilterQuery
+    ) {
+        BooleanQuery.Builder filtersQuery = buildApiQuery(baseFilterQuery);
         String rest = completeQueryWithFilters(query, filtersQuery);
         if (!rest.equals(query.getQuery())) {
             query.setQuery(rest);

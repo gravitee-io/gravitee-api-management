@@ -22,10 +22,7 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.analyzer.CustomWhitespaceAnalyzer;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
@@ -114,9 +111,9 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
         return new IndexSearcher(DirectoryReader.open(indexWriter));
     }
 
-    protected Query buildFilterQuery(String apiReferenceField, Map<String, Object> filters) {
+    protected Optional<Query> buildFilterQuery(String apiReferenceField, Map<String, Object> filters) {
         if (filters == null || filters.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
         BooleanQuery.Builder filtersQuery = new BooleanQuery.Builder();
         if (filters.containsKey(FIELD_API_TYPE_VALUE)) {
@@ -150,6 +147,6 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             filtersQuery.add(filtersQuery.build(), BooleanClause.Occur.MUST);
         }
 
-        return filtersQuery.build();
+        return Optional.of(filtersQuery.build());
     }
 }
