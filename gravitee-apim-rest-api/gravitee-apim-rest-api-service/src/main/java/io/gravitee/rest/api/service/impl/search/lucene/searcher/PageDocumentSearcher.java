@@ -21,6 +21,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import java.util.Optional;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -82,10 +83,8 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
 
         pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
         pageQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
-        Query apisFilter = this.buildFilterQuery(FIELD_REFERENCE_ID, query.getFilters());
-        if (apisFilter != null) {
-            pageQuery.add(apisFilter, BooleanClause.Occur.FILTER);
-        }
+        Optional<Query> baseFilterQuery = this.buildFilterQuery(FIELD_REFERENCE_ID, query.getFilters());
+        baseFilterQuery.ifPresent(q -> pageQuery.add(q, BooleanClause.Occur.FILTER));
         return pageQuery;
     }
 
