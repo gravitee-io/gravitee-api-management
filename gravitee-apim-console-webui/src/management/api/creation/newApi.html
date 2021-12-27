@@ -38,7 +38,7 @@
         </div>
       </div>
     </div>
-    <div layout="row" class="card-container" layout-align="center" style="margin-top: 40px">
+    <div layout="column" class="card-container" layout-align="center center" style="margin-top: 40px">
       <div layout="column" ng-class="{selected: $ctrl.definitionVersion ==='2.0.0', 'definition-container': true}">
         <div class="card" ng-click="$ctrl.definitionVersion='2.0.0'">
           <span class="title">{{$ctrl.getDefinitionVersionTitle('2.0.0')}}</span>
@@ -55,24 +55,8 @@
         </div>
       </div>
 
-      <div
-        layout="column"
-        ng-class="{ selected: $ctrl.definitionVersion==='1.0.0', 'definition-container': true}"
-        ng-if="$ctrl.allowsPathBasedCreation"
-      >
-        <div class="card" ng-click="$ctrl.definitionVersion='1.0.0'">
-          <span class="title">{{$ctrl.getDefinitionVersionTitle('1.0.0')}}</span>
-          <gv-image src="assets/api-design-paths.png"></gv-image>
-          <span class="description">{{$ctrl.getDefinitionVersionDescription('1.0.0')}}</span>
-        </div>
-
-        <div class="actions">
-          <gv-button icon="general:upload" outlined ng-click="$ctrl.isImport = true">Import</gv-button>
-          <gv-button class="import-action" icon="code:left-circle" outlined ng-click="$ctrl.isImport = false">Cancel </gv-button>
-          <gv-button icon-right="code:right-circle" ui-sref="management.apis.create({definitionVersion: $ctrl.definitionVersion})"
-            >Create
-          </gv-button>
-        </div>
+      <div class="deprecated-action" ng-if="$ctrl.allowsPathBasedCreation">
+        <span>Or use <a ui-sref="management.apis.create({ definitionVersion: '1.0.0' })">Path Based Creation</a></span>
       </div>
     </div>
   </div>

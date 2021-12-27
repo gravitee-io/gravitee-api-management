@@ -20,6 +20,7 @@ import angular = require('angular');
 import EnvironmentService from '../services/environment.service';
 import PortalConfigService from '../services/portalConfig.service';
 import UserService from '../services/user.service';
+import ConsoleSettingsService from '../services/consoleSettings.service';
 
 function runBlock(
   $rootScope,
@@ -36,10 +37,26 @@ function runBlock(
   ApiService,
   EnvironmentService: EnvironmentService,
   PortalConfigService: PortalConfigService,
+  ConsoleSettingsService: ConsoleSettingsService,
 ) {
   'ngInject';
 
   $transitions.onStart(
+    {
+      to: (state) => state.name === 'management.apis.create',
+    },
+    async (trans) => {
+      const { definitionVersion } = trans.params();
+      if (definitionVersion === '2.0.0') {
+        return;
+      }
+
+      const settings = await ConsoleSettingsService.get();
+      const hasPathBasedApiCreation = settings?.data?.management?.pathBasedApiCreation?.enabled;
+      if (!hasPathBasedApiCreation) {
+        return trans.router.stateService.target('management.apis.new');
+      }
+    },
     {
       to: (state) =>
         state.name !== 'login' &&
