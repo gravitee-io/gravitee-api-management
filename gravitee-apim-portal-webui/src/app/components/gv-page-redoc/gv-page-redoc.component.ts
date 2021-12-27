@@ -35,7 +35,6 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
   @ViewChild('redoc', { static: true }) redocContainer;
 
   @Input() fragment: string;
-  private lastTop: number;
 
   constructor(private notificationService: NotificationService, private pageService: PageService) {}
 
@@ -48,10 +47,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
   @HostListener('window:scroll')
   onScroll() {
     window.requestAnimationFrame(() => {
-      this.lastTop = GvDocumentationComponent.updateMenuPosition(this.redocMenu, this.lastTop);
-      if (this.lastTop) {
-        this.lastTop -= 108;
-      }
+      GvDocumentationComponent.updateMenuPosition(this.redocMenu);
     });
   }
 
