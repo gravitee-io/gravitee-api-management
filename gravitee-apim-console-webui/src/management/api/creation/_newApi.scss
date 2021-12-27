@@ -18,7 +18,12 @@
     }
   }
 
-  .card-import {
+  .deprecated-action {
+    align-self: flex-end;
+  }
+
+  .card-import,
+  .deprecated-action {
     min-width: 490px;
   }
 
