@@ -22,6 +22,8 @@ import { SwaggerUIBundle } from 'swagger-ui-dist';
 
 import UserService from '../../../services/user.service';
 
+const yamlSchema = jsyaml.Schema.create(jsyaml.FAILSAFE_SCHEMA, []);
+
 const DisableTryItOutPlugin = function () {
   return {
     statePlugins: {
@@ -75,7 +77,7 @@ class PageSwaggerComponentController implements IController {
     try {
       contentAsJson = angular.fromJson(this.pageContent);
     } catch (e) {
-      contentAsJson = jsyaml.safeLoad(this.pageContent);
+      contentAsJson = jsyaml.safeLoad(this.pageContent, { schema: yamlSchema });
     }
     return contentAsJson;
   }

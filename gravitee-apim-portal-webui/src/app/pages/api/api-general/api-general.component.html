@@ -118,7 +118,7 @@
             <li class="info__miscellaneous_item" *ngFor="let apiInformation of apiInformations">
               <ng-container *ngIf="isSearchable(apiInformation.name)">
                 <span>{{ apiInformation.name | translate }}</span>
-                <a href="#" (click)="goToSearch(apiInformation.name, apiInformation.value)">{{ apiInformation.value }}</a>
+                <a [href]="getSearchUrl(apiInformation.name, apiInformation.value)">{{ apiInformation.value }}</a>
               </ng-container>
               <ng-container *ngIf="!isSearchable(apiInformation.name)">
                 <span>{{ apiInformation.name | translate }}</span> {{ apiInformation.value }}

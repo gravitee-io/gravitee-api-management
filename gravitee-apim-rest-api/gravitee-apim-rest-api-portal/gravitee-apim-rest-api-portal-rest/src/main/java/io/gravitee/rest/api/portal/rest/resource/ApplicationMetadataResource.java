@@ -28,6 +28,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -74,7 +75,10 @@ public class ApplicationMetadataResource extends AbstractResource {
         // prevent creation of a metadata on an another APPLICATION
         NewApplicationMetadataEntity newApplicationMetadataEntity = this.referenceMetadataMapper.convert(metadata, applicationId);
 
-        final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(newApplicationMetadataEntity);
+        final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(
+            GraviteeContext.getCurrentEnvironment(),
+            newApplicationMetadataEntity
+        );
         return Response
             .created(this.getLocationHeader(applicationMetadataEntity.getKey()))
             .entity(this.referenceMetadataMapper.convert(applicationMetadataEntity))
@@ -106,7 +110,13 @@ public class ApplicationMetadataResource extends AbstractResource {
         UpdateApplicationMetadataEntity updateApplicationMetadataEntity =
             this.referenceMetadataMapper.convert(metadata, applicationId, metadataId);
 
-        return Response.ok(this.referenceMetadataMapper.convert(metadataService.update(updateApplicationMetadataEntity))).build();
+        return Response
+            .ok(
+                this.referenceMetadataMapper.convert(
+                        metadataService.update(GraviteeContext.getCurrentEnvironment(), updateApplicationMetadataEntity)
+                    )
+            )
+            .build();
     }
 
     @DELETE

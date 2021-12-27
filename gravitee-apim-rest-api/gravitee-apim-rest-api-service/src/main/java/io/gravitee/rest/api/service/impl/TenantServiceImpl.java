@@ -25,7 +25,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.rest.api.model.NewTenantEntity;
-import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.TenantEntity;
 import io.gravitee.rest.api.model.TenantReferenceType;
 import io.gravitee.rest.api.model.UpdateTenantEntity;
@@ -114,6 +113,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                     Tenant tenant = convert(tenantEntity, referenceId, referenceType);
                     savedTenants.add(convert(tenantRepository.create(tenant)));
                     auditService.createEnvironmentAuditLog(
+                        GraviteeContext.getCurrentEnvironment(),
                         Collections.singletonMap(TENANT, tenant.getId()),
                         TENANT_CREATED,
                         new Date(),
@@ -147,6 +147,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                         tenant.setReferenceType(existingTenant.getReferenceType());
                         savedTenants.add(convert(tenantRepository.update(tenant)));
                         auditService.createEnvironmentAuditLog(
+                            GraviteeContext.getCurrentEnvironment(),
                             Collections.singletonMap(TENANT, tenant.getId()),
                             TENANT_UPDATED,
                             new Date(),
@@ -174,6 +175,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
             if (tenantOptional.isPresent()) {
                 tenantRepository.delete(tenantId);
                 auditService.createEnvironmentAuditLog(
+                    GraviteeContext.getCurrentEnvironment(),
                     Collections.singletonMap(TENANT, tenantId),
                     TENANT_DELETED,
                     new Date(),

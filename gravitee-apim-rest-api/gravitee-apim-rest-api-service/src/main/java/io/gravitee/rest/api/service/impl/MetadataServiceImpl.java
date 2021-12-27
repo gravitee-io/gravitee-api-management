@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.NewMetadataEntity;
 import io.gravitee.rest.api.model.UpdateMetadataEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -112,7 +113,9 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             metadata.setUpdatedAt(now);
             metadataRepository.create(metadata);
             // Audit
+            // FIXME: Use OrganizationAuditLog?
             auditService.createEnvironmentAuditLog(
+                GraviteeContext.getCurrentEnvironment(),
                 singletonMap(METADATA, metadata.getKey()),
                 METADATA_CREATED,
                 metadata.getCreatedAt(),
@@ -151,7 +154,9 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             metadata.setUpdatedAt(now);
             metadataRepository.update(metadata);
             // Audit
+            // FIXME: Use OrganizationAuditLog?
             auditService.createEnvironmentAuditLog(
+                GraviteeContext.getCurrentEnvironment(),
                 singletonMap(METADATA, metadata.getKey()),
                 METADATA_UPDATED,
                 metadata.getCreatedAt(),
@@ -179,7 +184,15 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             if (optMetadata.isPresent()) {
                 metadataRepository.delete(key, DEFAULT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
                 // Audit
-                auditService.createEnvironmentAuditLog(singletonMap(METADATA, key), METADATA_DELETED, new Date(), optMetadata.get(), null);
+                // FIXME: Use OrganizationAuditLog?
+                auditService.createEnvironmentAuditLog(
+                    GraviteeContext.getCurrentEnvironment(),
+                    singletonMap(METADATA, key),
+                    METADATA_DELETED,
+                    new Date(),
+                    optMetadata.get(),
+                    null
+                );
                 // delete all overridden API metadata
                 final List<Metadata> apiMetadata = metadataRepository.findByKeyAndReferenceType(key, MetadataReferenceType.API);
 

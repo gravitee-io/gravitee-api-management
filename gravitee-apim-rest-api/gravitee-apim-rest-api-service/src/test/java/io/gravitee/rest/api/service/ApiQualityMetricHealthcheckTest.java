@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricHealthcheck;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +48,7 @@ public class ApiQualityMetricHealthcheckTest {
     @Test
     public void shouldBeValid() {
         when(apiService.hasHealthCheckEnabled(any(), eq(true))).thenReturn(true);
-        boolean valid = srv.isValid(mock(ApiEntity.class));
+        boolean valid = srv.isValid(mock(ApiEntity.class), GraviteeContext.getCurrentEnvironment());
 
         assertTrue(valid);
     }
@@ -55,7 +56,7 @@ public class ApiQualityMetricHealthcheckTest {
     @Test
     public void shouldNotBeValid() {
         when(apiService.hasHealthCheckEnabled(any(), eq(true))).thenReturn(false);
-        boolean valid = srv.isValid(mock(ApiEntity.class));
+        boolean valid = srv.isValid(mock(ApiEntity.class), GraviteeContext.getCurrentEnvironment());
 
         assertFalse(valid);
     }

@@ -30,13 +30,13 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationsResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.*;
 import javax.ws.rs.core.Response;
@@ -101,7 +101,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         mockedValues.put("B", 20L);
         mockedValues.put("C", 30L);
         mockAnalytics.setValues(mockedValues);
-        doReturn(mockAnalytics).when(analyticsService).execute(any(GroupByQuery.class));
+        doReturn(mockAnalytics).when(analyticsService).execute(eq(GraviteeContext.getCurrentOrganization()), any(GroupByQuery.class));
 
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
@@ -116,17 +116,17 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
 
         ApplicationEntity appA = new ApplicationEntity();
         appA.setId("A");
-        doReturn(appA).when(applicationService).findById("A");
+        doReturn(appA).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "A");
         doReturn(new Application().id("A")).when(applicationMapper).convert(eq(appA), any());
 
         ApplicationEntity appB = new ApplicationEntity();
         appB.setId("B");
-        doReturn(appB).when(applicationService).findById("B");
+        doReturn(appB).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "B");
         doReturn(new Application().id("B")).when(applicationMapper).convert(eq(appB), any());
 
         ApplicationEntity appC = new ApplicationEntity();
         appC.setId("C");
-        doReturn(appC).when(applicationService).findById("C");
+        doReturn(appC).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "C");
         doReturn(new Application().id("C")).when(applicationMapper).convert(eq(appC), any());
 
         final Response response = target(API).path("subscribers").request().get();
@@ -148,7 +148,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         mockedValues.put("C", 0L);
         mockedValues.put("B", 0L);
         mockAnalytics.setValues(mockedValues);
-        doReturn(mockAnalytics).when(analyticsService).execute(any(GroupByQuery.class));
+        doReturn(mockAnalytics).when(analyticsService).execute(eq(GraviteeContext.getCurrentOrganization()), any(GroupByQuery.class));
 
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
@@ -164,19 +164,19 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         ApplicationEntity appA = new ApplicationEntity();
         appA.setId("A");
         appA.setName("A");
-        doReturn(appA).when(applicationService).findById("A");
+        doReturn(appA).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "A");
         doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(appA), any());
 
         ApplicationEntity appB = new ApplicationEntity();
         appB.setId("B");
         appB.setName("B");
-        doReturn(appB).when(applicationService).findById("B");
+        doReturn(appB).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "B");
         doReturn(new Application().id("B").name("B")).when(applicationMapper).convert(eq(appB), any());
 
         ApplicationEntity appC = new ApplicationEntity();
         appC.setId("C");
         appC.setName("C");
-        doReturn(appC).when(applicationService).findById("C");
+        doReturn(appC).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "C");
         doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(eq(appC), any());
 
         final Response response = target(API).path("subscribers").request().get();
@@ -207,7 +207,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         mockedValues.put("B", 20L);
         mockedValues.put("C", 30L);
         mockAnalytics.setValues(mockedValues);
-        doReturn(mockAnalytics).when(analyticsService).execute(any(GroupByQuery.class));
+        doReturn(mockAnalytics).when(analyticsService).execute(eq(GraviteeContext.getCurrentOrganization()), any(GroupByQuery.class));
 
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
@@ -219,19 +219,21 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
 
         ApplicationEntity appA = new ApplicationEntity();
         appA.setId("A");
-        doReturn(appA).when(applicationService).findById("A");
+        doReturn(appA).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "A");
         doReturn(new Application().id("A")).when(applicationMapper).convert(eq(appA), any());
 
         ApplicationEntity appC = new ApplicationEntity();
         appC.setId("C");
-        doReturn(appC).when(applicationService).findById("C");
+        doReturn(appC).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "C");
         doReturn(new Application().id("C")).when(applicationMapper).convert(eq(appC), any());
 
         ApplicationListItem appLIA = new ApplicationListItem();
         appLIA.setId("A");
         ApplicationListItem appLIC = new ApplicationListItem();
         appLIC.setId("C");
-        doReturn(new HashSet<>(Arrays.asList(appLIA, appLIC))).when(applicationService).findByUser(USER_NAME);
+        doReturn(new HashSet<>(Arrays.asList(appLIA, appLIC)))
+            .when(applicationService)
+            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), USER_NAME);
 
         final Response response = target(API).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());

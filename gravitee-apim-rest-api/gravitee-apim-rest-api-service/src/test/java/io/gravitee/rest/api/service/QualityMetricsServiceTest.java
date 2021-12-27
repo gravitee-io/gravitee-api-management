@@ -17,8 +17,7 @@ package io.gravitee.rest.api.service;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +27,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.quality.ApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiQualityMetricsDisableException;
 import io.gravitee.rest.api.service.impl.QualityMetricsServiceImpl;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricCategories;
@@ -82,7 +82,7 @@ public class QualityMetricsServiceTest {
         when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.FALSE);
         ApiEntity api = mock(ApiEntity.class);
 
-        srv.getMetrics(api);
+        srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
 
         fail();
     }
@@ -94,7 +94,7 @@ public class QualityMetricsServiceTest {
             .thenReturn(Collections.emptyMap());
         ApiEntity api = mock(ApiEntity.class);
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api);
+        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
 
         assertEquals(1, metrics.getScore(), 0);
         assertTrue(metrics.getMetricsPassed().isEmpty());
@@ -108,10 +108,10 @@ public class QualityMetricsServiceTest {
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
-        when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.FALSE);
+        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.FALSE);
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api);
+        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
 
         assertEquals(0.5, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
@@ -127,10 +127,10 @@ public class QualityMetricsServiceTest {
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
-        when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api);
+        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
 
         assertEquals(1, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
@@ -146,10 +146,10 @@ public class QualityMetricsServiceTest {
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(2));
         when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
-        when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.FALSE);
+        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.FALSE);
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api);
+        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
 
         assertEquals(0.33, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
@@ -166,8 +166,8 @@ public class QualityMetricsServiceTest {
         when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn("apiID");
-        when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
 
         final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
         when(qualityRule.getId()).thenReturn("1");
@@ -180,7 +180,7 @@ public class QualityMetricsServiceTest {
         when(apiQualityRule.isChecked()).thenReturn(true);
         when(apiQualityRuleService.findByApi("apiID")).thenReturn(singletonList(apiQualityRule));
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api);
+        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
 
         assertEquals(1, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
@@ -198,8 +198,8 @@ public class QualityMetricsServiceTest {
         when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn("apiID");
-        when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
 
         final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
         when(qualityRule.getId()).thenReturn("1");
@@ -212,7 +212,7 @@ public class QualityMetricsServiceTest {
         when(apiQualityRule.isChecked()).thenReturn(false);
         when(apiQualityRuleService.findByApi("apiID")).thenReturn(singletonList(apiQualityRule));
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api);
+        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
 
         assertEquals(0.5, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());

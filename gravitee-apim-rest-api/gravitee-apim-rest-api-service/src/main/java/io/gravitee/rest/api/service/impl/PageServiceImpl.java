@@ -2449,7 +2449,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
         String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
         if (apiId == null) {
-            auditService.createEnvironmentAuditLog(Collections.singletonMap(PAGE, pageId), event, createdAt, oldValue, newValue);
+            auditService.createEnvironmentAuditLog(
+                GraviteeContext.getCurrentEnvironment(),
+                Collections.singletonMap(PAGE, pageId),
+                event,
+                createdAt,
+                oldValue,
+                newValue
+            );
         } else {
             auditService.createApiAuditLog(apiId, Collections.singletonMap(PAGE, pageId), event, createdAt, oldValue, newValue);
         }

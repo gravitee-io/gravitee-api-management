@@ -40,12 +40,12 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
-import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationAlertServiceImpl;
 import io.gravitee.rest.api.service.notification.AlertHook;
@@ -126,8 +126,8 @@ public class ApplicationAlertServiceTest {
         ApplicationEntity application = getApplication();
         prepareForCreation(newAlert);
 
-        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
-        cut.create(APPLICATION_ID, newAlert);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        cut.create(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, newAlert);
 
         verify(alertService, times(1)).create(newAlert);
         verify(notificationTemplateService, times(1))
@@ -143,8 +143,8 @@ public class ApplicationAlertServiceTest {
         ApplicationEntity application = getApplication();
         prepareForCreation(newAlert);
 
-        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
-        cut.create(APPLICATION_ID, newAlert);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        cut.create(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, newAlert);
 
         verify(alertService, times(1)).create(newAlert);
         verify(notificationTemplateService, times(1))
@@ -160,10 +160,10 @@ public class ApplicationAlertServiceTest {
         ApplicationEntity application = getApplication();
         prepareForCreation(newAlert);
 
-        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
         when(mapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
 
-        cut.create(APPLICATION_ID, newAlert);
+        cut.create(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, newAlert);
     }
 
     @Test
@@ -207,7 +207,7 @@ public class ApplicationAlertServiceTest {
         when(mapper.readTree(notification.getConfiguration())).thenReturn(emailNode);
         when(mapper.readTree(notification2.getConfiguration())).thenReturn(emailNode);
 
-        cut.addMemberToApplication(APPLICATION_ID, "add@mail.gio");
+        cut.addMemberToApplication(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, "add@mail.gio");
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
@@ -226,9 +226,9 @@ public class ApplicationAlertServiceTest {
         triggers.add(trigger1);
 
         when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
-        when(applicationService.findById(APPLICATION_ID)).thenReturn(getApplication());
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(getApplication());
 
-        cut.addMemberToApplication(APPLICATION_ID, "add@mail.gio");
+        cut.addMemberToApplication(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, "add@mail.gio");
 
         ArgumentCaptor<List<Notification>> notificationsCaptor = ArgumentCaptor.forClass(List.class);
 
@@ -242,7 +242,7 @@ public class ApplicationAlertServiceTest {
 
     @Test
     public void shouldNotAddMemberEmptyMail() throws Exception {
-        cut.addMemberToApplication(APPLICATION_ID, "");
+        cut.addMemberToApplication(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, "");
         verify(alertService, never()).update(any());
     }
 
@@ -261,7 +261,7 @@ public class ApplicationAlertServiceTest {
 
         when(mapper.readTree(notification.getConfiguration())).thenThrow(JsonProcessingException.class);
 
-        cut.addMemberToApplication(APPLICATION_ID, "add@mail.gio");
+        cut.addMemberToApplication(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, "add@mail.gio");
     }
 
     @Test
@@ -292,7 +292,7 @@ public class ApplicationAlertServiceTest {
         when(mapper.readTree(notification.getConfiguration())).thenReturn(emailNode);
         when(mapper.readTree(notification2.getConfiguration())).thenReturn(emailNode);
 
-        cut.deleteMemberFromApplication(APPLICATION_ID, "delete@mail.gio");
+        cut.deleteMemberFromApplication(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, "delete@mail.gio");
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
@@ -305,7 +305,7 @@ public class ApplicationAlertServiceTest {
 
     @Test
     public void shouldNotDeleteMemberEmptyMail() throws Exception {
-        cut.deleteMemberFromApplication(APPLICATION_ID, "");
+        cut.deleteMemberFromApplication(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, "");
         verify(alertService, never()).update(any());
     }
 
@@ -324,7 +324,7 @@ public class ApplicationAlertServiceTest {
 
         when(mapper.readTree(notification.getConfiguration())).thenThrow(JsonProcessingException.class);
 
-        cut.deleteMemberFromApplication(APPLICATION_ID, "delete@mail.gio");
+        cut.deleteMemberFromApplication(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, "delete@mail.gio");
     }
 
     @Test

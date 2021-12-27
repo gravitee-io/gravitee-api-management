@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
@@ -232,6 +233,7 @@ public class ApiService_FindByUserTest {
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
         verify(membershipService, times(0))
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
-        verify(applicationService, times(0)).findByUser(null);
+        verify(applicationService, times(0))
+            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), null);
     }
 }

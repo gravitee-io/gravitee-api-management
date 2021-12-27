@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -38,13 +37,10 @@ public class ApiQualityMetricFunctionalDocumentation implements ApiQualityMetric
     }
 
     @Override
-    public boolean isValid(ApiEntity api) {
+    public boolean isValid(ApiEntity api, final String environmentId) {
         return (
             pageService
-                .search(
-                    new PageQuery.Builder().api(api.getId()).published(true).type(PageType.MARKDOWN).build(),
-                    GraviteeContext.getCurrentEnvironment()
-                )
+                .search(new PageQuery.Builder().api(api.getId()).published(true).type(PageType.MARKDOWN).build(), environmentId)
                 .size() >
             0L
         );

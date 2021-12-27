@@ -24,6 +24,7 @@ import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
 import java.util.Map;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -50,7 +51,7 @@ public class CategoryResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @RequirePortalAuth
     public Response get(@PathParam("categoryId") String categoryId) {
-        CategoryEntity category = categoryService.findNotHiddenById(categoryId);
+        CategoryEntity category = categoryService.findNotHiddenById(categoryId, GraviteeContext.getCurrentEnvironment());
 
         Map<String, Long> countByCategory = apiService.countPublishedByUserGroupedByCategories(getAuthenticatedUserOrNull());
         category.setTotalApis(countByCategory.getOrDefault(category.getId(), 0L));
@@ -62,16 +63,16 @@ public class CategoryResource extends AbstractResource {
     @Path("picture")
     @RequirePortalAuth
     public Response picture(@Context Request request, @PathParam("categoryId") String categoryId) {
-        categoryService.findNotHiddenById(categoryId);
-        InlinePictureEntity image = categoryService.getPicture(categoryId);
+        categoryService.findNotHiddenById(categoryId, GraviteeContext.getCurrentEnvironment());
+        InlinePictureEntity image = categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), categoryId);
         return createPictureResponse(request, image);
     }
 
     @GET
     @Path("background")
     public Response background(@Context Request request, @PathParam("categoryId") String categoryId) {
-        categoryService.findNotHiddenById(categoryId);
-        InlinePictureEntity image = categoryService.getBackground(categoryId);
+        categoryService.findNotHiddenById(categoryId, GraviteeContext.getCurrentEnvironment());
+        InlinePictureEntity image = categoryService.getBackground(GraviteeContext.getCurrentEnvironment(), categoryId);
         return createPictureResponse(request, image);
     }
 }

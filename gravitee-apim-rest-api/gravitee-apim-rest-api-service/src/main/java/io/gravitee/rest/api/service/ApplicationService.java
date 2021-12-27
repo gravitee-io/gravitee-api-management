@@ -29,37 +29,47 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApplicationService {
-    ApplicationEntity findById(String applicationId);
-    Set<ApplicationListItem> findByIds(List<String> applicationIds);
+    ApplicationEntity findById(final String environment, String applicationId);
 
-    Set<ApplicationListItem> findByUser(String username);
+    Set<ApplicationListItem> findByIds(final String organizationId, final String environmentId, List<String> applicationIds);
 
-    Set<ApplicationListItem> findByUserAndNameAndStatus(String username, boolean isAdminUser, String name, String status);
+    Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username);
 
-    Set<ApplicationListItem> findByUserAndNameAndStatus(String username, String name, String status);
+    Set<ApplicationListItem> findByUserAndNameAndStatus(
+        String username,
+        boolean isAdminUser,
+        String name,
+        String status,
+        final String environmentId,
+        final String organizationId
+    );
 
     Set<ApplicationListItem> findByOrganization(String organizationId);
 
-    Set<ApplicationListItem> findByGroups(List<String> groupId);
-    Set<ApplicationListItem> findByGroupsAndStatus(List<String> groupId, String status);
+    Set<ApplicationListItem> findByGroups(final String organizationId, List<String> groupId);
 
-    Set<ApplicationListItem> findAll();
+    Set<ApplicationListItem> findByGroupsAndStatus(final String organizationId, List<String> groupId, String status);
 
-    Set<ApplicationListItem> findByStatus(String status);
+    Set<ApplicationListItem> findAll(final String organizationId, final String environmentId);
 
-    ApplicationEntity create(NewApplicationEntity application, String username);
+    Set<ApplicationListItem> findByStatus(final String organizationId, final String environmentId, String status);
 
-    ApplicationEntity create(NewApplicationEntity application, String username, String environmentId);
+    ApplicationEntity create(final String environmentId, NewApplicationEntity application, String username);
 
-    ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
+    ApplicationEntity update(
+        final String organizationId,
+        final String environmentId,
+        String applicationId,
+        UpdateApplicationEntity application
+    );
 
-    ApplicationEntity renewClientSecret(String applicationId);
+    ApplicationEntity renewClientSecret(final String organizationId, final String environmentId, String applicationId);
 
     ApplicationEntity restore(String applicationId);
 
     void archive(String applicationId);
 
-    InlinePictureEntity getPicture(String apiId);
+    InlinePictureEntity getPicture(final String environmentId, String apiId);
 
-    InlinePictureEntity getBackground(String application);
+    InlinePictureEntity getBackground(final String environmentId, String application);
 }

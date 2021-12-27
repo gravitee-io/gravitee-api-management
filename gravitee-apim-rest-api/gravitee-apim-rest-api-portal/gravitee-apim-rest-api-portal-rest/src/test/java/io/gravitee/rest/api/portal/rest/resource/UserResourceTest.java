@@ -32,6 +32,7 @@ import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserConfig;
 import io.gravitee.rest.api.portal.rest.model.UserInput;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -91,7 +92,7 @@ public class UserResourceTest extends AbstractResourceTest {
     public void shouldGetCurrentUserWithEmptyManagementConfig() {
         when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
-        when(configService.getConsoleSettings()).thenReturn(new ConsoleSettingsEntity());
+        when(configService.getConsoleSettings(GraviteeContext.getCurrentOrganization())).thenReturn(new ConsoleSettingsEntity());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -112,7 +113,7 @@ public class UserResourceTest extends AbstractResourceTest {
         when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
-        when(configService.getConsoleSettings()).thenReturn(consoleConfigEntity);
+        when(configService.getConsoleSettings(GraviteeContext.getCurrentOrganization())).thenReturn(consoleConfigEntity);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -136,7 +137,7 @@ public class UserResourceTest extends AbstractResourceTest {
         Management managementConfig = new Management();
         managementConfig.setUrl("URL");
         consoleConfigEntity.setManagement(managementConfig);
-        when(configService.getConsoleSettings()).thenReturn(consoleConfigEntity);
+        when(configService.getConsoleSettings(GraviteeContext.getCurrentOrganization())).thenReturn(consoleConfigEntity);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

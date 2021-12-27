@@ -29,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.model.Group;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -65,7 +66,7 @@ public class ApplicationMapper {
         if (groupEntities != null && !groupEntities.isEmpty()) {
             List<Group> groups = groupEntities
                 .stream()
-                .map(groupService::findById)
+                .map(groupId -> groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId))
                 .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
                 .collect(Collectors.toList());
             application.setGroups(groups);
@@ -121,7 +122,7 @@ public class ApplicationMapper {
         if (groupEntities != null && !groupEntities.isEmpty()) {
             List<Group> groups = groupEntities
                 .stream()
-                .map(groupService::findById)
+                .map(groupId -> groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId))
                 .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
                 .collect(Collectors.toList());
             application.setGroups(groups);

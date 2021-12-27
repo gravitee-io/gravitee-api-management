@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -133,6 +134,8 @@ public class AuthenticationSuccessListenerTest {
         verify(userServiceMock, times(1)).create(any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1))
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
                 new MembershipService.MembershipMember(userDetailsMock.getUsername(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ROLE")
@@ -169,6 +172,8 @@ public class AuthenticationSuccessListenerTest {
         verify(userServiceMock, times(1)).create(any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1))
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
                 new MembershipService.MembershipMember(userDetailsMock.getUsername(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ROLE1")
@@ -202,6 +207,8 @@ public class AuthenticationSuccessListenerTest {
         verify(userServiceMock, times(1)).create(any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1))
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
                 new MembershipService.MembershipMember(userDetailsMock.getUsername(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ROLE")
@@ -233,6 +240,8 @@ public class AuthenticationSuccessListenerTest {
         verify(userServiceMock, times(1)).create(any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1))
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
                 new MembershipService.MembershipMember(userDetailsMock.getUsername(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ADMIN")

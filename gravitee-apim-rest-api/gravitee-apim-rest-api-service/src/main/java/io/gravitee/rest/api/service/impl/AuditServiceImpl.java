@@ -89,8 +89,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         Builder criteria = new Builder().from(query.getFrom()).to(query.getTo());
 
         if (query.isCurrentEnvironmentLogsOnly()) {
+            // FIXME: Rework AuditQuery to remove call to GraviteeContext.getCurrentEnvironment() here
             criteria.references(Audit.AuditReferenceType.ENVIRONMENT, Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
         } else if (query.isCurrentOrganizationLogsOnly()) {
+            // FIXME: Rework AuditQuery to remove call to GraviteeContext.getCurrentOrganization() here
             criteria.references(Audit.AuditReferenceType.ORGANIZATION, Collections.singletonList(GraviteeContext.getCurrentOrganization()));
         } else if (query.getApiIds() != null && !query.getApiIds().isEmpty()) {
             criteria.references(Audit.AuditReferenceType.API, query.getApiIds());
@@ -260,40 +262,26 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Override
     public void createEnvironmentAuditLog(
+        final String environmentId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
         Date createdAt,
         Object oldValue,
         Object newValue
     ) {
-        createAuditLog(
-            Audit.AuditReferenceType.ENVIRONMENT,
-            GraviteeContext.getCurrentEnvironment(),
-            properties,
-            event,
-            createdAt,
-            oldValue,
-            newValue
-        );
+        createAuditLog(Audit.AuditReferenceType.ENVIRONMENT, environmentId, properties, event, createdAt, oldValue, newValue);
     }
 
     @Override
     public void createOrganizationAuditLog(
+        final String organizationId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
         Date createdAt,
         Object oldValue,
         Object newValue
     ) {
-        createAuditLog(
-            Audit.AuditReferenceType.ORGANIZATION,
-            GraviteeContext.getCurrentOrganization(),
-            properties,
-            event,
-            createdAt,
-            oldValue,
-            newValue
-        );
+        createAuditLog(Audit.AuditReferenceType.ORGANIZATION, organizationId, properties, event, createdAt, oldValue, newValue);
     }
 
     @Async

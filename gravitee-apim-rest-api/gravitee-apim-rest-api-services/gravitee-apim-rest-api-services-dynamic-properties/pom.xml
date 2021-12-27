@@ -32,10 +32,6 @@
     <artifactId>gravitee-apim-rest-api-services-dynamic-properties</artifactId>
     <name>Gravitee.io APIM - Management API - Services - Dynamic Properties</name>
 
-    <properties>
-        <jolt.version>0.1.5</jolt.version>
-    </properties>
-
     <dependencies>
         <!-- Vert.x -->
         <dependency>
@@ -48,18 +44,10 @@
         <dependency>
             <groupId>com.bazaarvoice.jolt</groupId>
             <artifactId>jolt-core</artifactId>
-            <version>${jolt.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bazaarvoice.jolt</groupId>
             <artifactId>json-utils</artifactId>
-            <version>${jolt.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Spring dependencies -->

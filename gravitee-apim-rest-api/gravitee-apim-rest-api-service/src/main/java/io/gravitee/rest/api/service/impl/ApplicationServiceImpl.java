@@ -124,20 +124,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public ApplicationEntity findById(String applicationId) {
+    public ApplicationEntity findById(final String environmentId, String applicationId) {
         try {
             LOGGER.debug("Find application by ID: {}", applicationId);
 
             Optional<Application> applicationOptional = applicationRepository.findById(applicationId);
 
-            if (GraviteeContext.getCurrentEnvironment() != null) {
-                applicationOptional =
-                    applicationOptional.filter(result -> result.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()));
+            if (environmentId != null) {
+                applicationOptional = applicationOptional.filter(result -> result.getEnvironmentId().equals(environmentId));
             }
 
             if (applicationOptional.isPresent()) {
                 Application application = applicationOptional.get();
                 MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
+                    GraviteeContext.getCurrentOrganization(),
                     MembershipReferenceType.APPLICATION,
                     application.getId()
                 );
@@ -159,7 +159,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByIds(List<String> applicationIds) {
+    public Set<ApplicationListItem> findByIds(final String organizationId, final String environmentId, List<String> applicationIds) {
         try {
             LOGGER.debug("Find application by IDs: {}", applicationIds);
 
@@ -167,14 +167,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 .findByIds(applicationIds)
                 .stream()
                 .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
-                .filter(app -> app.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
+                .filter(app -> app.getEnvironmentId().equals(environmentId))
                 .collect(toSet());
 
             if (applications.isEmpty()) {
                 return emptySet();
             }
 
-            return this.convertToList(applications);
+            return this.convertToList(applications, organizationId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications by ids {}", applicationIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications by ids {}" + applicationIds, ex);
@@ -182,24 +182,24 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByUser(String username) {
+    public Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username) {
         try {
             LOGGER.debug("Find applications for user {}", username);
 
-            Set<String> userApplicationsIds = findUserApplicationsIds(username);
+            Set<String> userApplicationsIds = findUserApplicationsIds(username, organizationId);
 
             final Set<Application> applications = applicationRepository
                 .findByIds(new ArrayList<>(userApplicationsIds))
                 .stream()
                 .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
-                .filter(app -> app.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
+                .filter(app -> app.getEnvironmentId().equals(environmentId))
                 .collect(toSet());
 
             if (applications.isEmpty()) {
                 return emptySet();
             }
 
-            return this.convertToList(applications);
+            return this.convertToList(applications, organizationId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for user {}", username, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for user " + username, ex);
@@ -207,12 +207,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByUserAndNameAndStatus(String userName, String name, String status) {
-        return findByUserAndNameAndStatus(userName, false, name, status);
-    }
-
-    @Override
-    public Set<ApplicationListItem> findByUserAndNameAndStatus(String userName, boolean isAdminUser, String name, String status) {
+    public Set<ApplicationListItem> findByUserAndNameAndStatus(
+        String userName,
+        boolean isAdminUser,
+        String name,
+        String status,
+        final String environmentId,
+        final String organizationId
+    ) {
         LOGGER.debug("Find applications by user {} and name {}, with isAdminUser {})", userName, name, isAdminUser);
         if (name == null || name.trim().isEmpty()) {
             return emptySet();
@@ -220,13 +222,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         Set<String> userApplicationsIds = emptySet();
         if (!isAdminUser) {
-            userApplicationsIds = findUserApplicationsIds(userName);
+            userApplicationsIds = findUserApplicationsIds(userName, organizationId);
             if (userApplicationsIds.isEmpty()) {
                 return emptySet();
             }
         }
 
-        return searchApplicationsByNameAndStatusAndIds(name, status, userApplicationsIds.toArray(new String[0]));
+        return searchApplicationsByNameAndStatusAndIds(
+            name,
+            status,
+            userApplicationsIds.toArray(new String[0]),
+            environmentId,
+            organizationId
+        );
     }
 
     @Override
@@ -256,18 +264,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByGroups(List<String> groupIds) {
-        return this.findByGroupsAndStatus(groupIds, ApplicationStatus.ACTIVE.name());
+    public Set<ApplicationListItem> findByGroups(final String organizationId, List<String> groupIds) {
+        return this.findByGroupsAndStatus(organizationId, groupIds, ApplicationStatus.ACTIVE.name());
     }
 
     @Override
-    public Set<ApplicationListItem> findByGroupsAndStatus(List<String> groupIds, String status) {
+    public Set<ApplicationListItem> findByGroupsAndStatus(final String organizationId, List<String> groupIds, String status) {
         LOGGER.debug("Find applications by groups {}", groupIds);
         try {
             ApplicationStatus requestedStatus = ApplicationStatus.valueOf(status.toUpperCase());
             Set<Application> applications = applicationRepository.findByGroups(groupIds, ApplicationStatus.valueOf(status.toUpperCase()));
 
-            return ApplicationStatus.ACTIVE.equals(requestedStatus) ? convertToList(applications) : convertToSimpleList(applications);
+            return ApplicationStatus.ACTIVE.equals(requestedStatus)
+                ? convertToList(applications, organizationId)
+                : convertToSimpleList(applications);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for groups {}", groupIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for groups " + groupIds, ex);
@@ -275,20 +285,17 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findAll() {
+    public Set<ApplicationListItem> findAll(final String organizationId, final String environmentId) {
         try {
             LOGGER.debug("Find all applications");
 
-            final Set<Application> applications = applicationRepository.findAllByEnvironment(
-                GraviteeContext.getCurrentEnvironment(),
-                ApplicationStatus.ACTIVE
-            );
+            final Set<Application> applications = applicationRepository.findAllByEnvironment(environmentId, ApplicationStatus.ACTIVE);
 
             if (applications == null || applications.isEmpty()) {
                 return emptySet();
             }
 
-            return this.convertToList(applications);
+            return this.convertToList(applications, organizationId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all applications", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all applications", ex);
@@ -296,21 +303,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByStatus(String status) {
+    public Set<ApplicationListItem> findByStatus(final String organizationId, final String environmentId, String status) {
         try {
             LOGGER.debug("Find all applications");
 
             ApplicationStatus requestedStatus = ApplicationStatus.valueOf(status.toUpperCase());
-            final Set<Application> applications = applicationRepository.findAllByEnvironment(
-                GraviteeContext.getCurrentEnvironment(),
-                requestedStatus
-            );
+            final Set<Application> applications = applicationRepository.findAllByEnvironment(environmentId, requestedStatus);
 
             if (applications == null || applications.isEmpty()) {
                 return emptySet();
             }
 
-            return ApplicationStatus.ACTIVE.equals(requestedStatus) ? convertToList(applications) : convertToSimpleList(applications);
+            return ApplicationStatus.ACTIVE.equals(requestedStatus)
+                ? convertToList(applications, organizationId)
+                : convertToSimpleList(applications);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all applications", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all applications", ex);
@@ -318,12 +324,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String userId) {
-        return this.create(newApplicationEntity, userId, GraviteeContext.getCurrentEnvironment());
-    }
-
-    @Override
-    public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String userId, String environmentId) {
+    public ApplicationEntity create(String environmentId, NewApplicationEntity newApplicationEntity, String userId) {
         LOGGER.debug("Create {} for user {}", newApplicationEntity, userId);
 
         // Check that only one settings is defined
@@ -404,7 +405,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         // Add Default groups
         Set<String> defaultGroups = groupService
-            .findByEvent(GroupEvent.APPLICATION_CREATE)
+            .findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.APPLICATION_CREATE)
             .stream()
             .map(GroupEntity::getId)
             .collect(toSet());
@@ -440,6 +441,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             // Add the primary owner of the newly created Application
             membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                environmentId,
                 new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, createdApplication.getId()),
                 new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name())
@@ -502,7 +505,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public ApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity) {
+    public ApplicationEntity update(
+        final String organizationId,
+        final String environmentId,
+        String applicationId,
+        UpdateApplicationEntity updateApplicationEntity
+    ) {
         try {
             LOGGER.debug("Update application {}", applicationId);
             if (updateApplicationEntity.getGroups() != null && !updateApplicationEntity.getGroups().isEmpty()) {
@@ -542,7 +550,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 if (clientId != null && !clientId.trim().isEmpty()) {
                     LOGGER.debug("Check that client_id is unique among all applications");
                     final Set<Application> applications = applicationRepository.findAllByEnvironment(
-                        GraviteeContext.getCurrentEnvironment(),
+                        environmentId,
                         ApplicationStatus.ACTIVE
                     );
                     final Optional<Application> byClientId = applications
@@ -556,7 +564,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 }
             } else {
                 // Check that client registration is enabled
-                checkClientRegistrationEnabled();
+                checkClientRegistrationEnabled(environmentId);
                 checkClientSettings(updateApplicationEntity.getSettings().getoAuthClient());
 
                 // Update an OAuth client
@@ -618,7 +626,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         }
                     }
                 );
-            return convert(Collections.singleton(updatedApplication)).iterator().next();
+            return convert(Collections.singleton(updatedApplication), organizationId).iterator().next();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update application {}", applicationId, ex);
             throw new TechnicalManagementException(
@@ -629,7 +637,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public ApplicationEntity renewClientSecret(String applicationId) {
+    public ApplicationEntity renewClientSecret(final String organizationId, final String environmentId, String applicationId) {
         try {
             LOGGER.debug("Renew client secret for application {}", applicationId);
 
@@ -643,10 +651,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             // Check that client registration is enabled
-            checkClientRegistrationEnabled();
+            checkClientRegistrationEnabled(environmentId);
 
             Application application = optApplicationToUpdate.get();
-            ApplicationEntity applicationEntity = findById(applicationId);
+            ApplicationEntity applicationEntity = findById(environmentId, applicationId);
 
             // Check that the application can be updated with a new client secret
             if (
@@ -683,7 +691,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     updatedApplication
                 );
 
-                return convert(Collections.singleton(updatedApplication)).iterator().next();
+                return convert(Collections.singleton(updatedApplication), organizationId).iterator().next();
             }
 
             throw new ApplicationRenewClientSecretException(application.getName());
@@ -713,9 +721,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setUpdatedAt(new Date());
 
             String userId = getAuthenticatedUsername();
-            membershipService.deleteReference(MembershipReferenceType.APPLICATION, applicationId);
+            membershipService.deleteReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.APPLICATION,
+                applicationId
+            );
             // Add the primary owner of the newly created Application
             membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
                 new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name())
@@ -757,10 +772,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             LOGGER.error("An error occurs while trying to restore {}", applicationId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to restore %s", applicationId), ex);
         }
-    }
-
-    private void checkClientRegistrationEnabled() {
-        checkClientRegistrationEnabled(GraviteeContext.getCurrentEnvironment());
     }
 
     private void checkClientRegistrationEnabled(String environmentId) {
@@ -820,7 +831,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // remove notifications
             genericNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
             // delete memberships
-            membershipService.deleteReference(MembershipReferenceType.APPLICATION, applicationId);
+            membershipService.deleteReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.APPLICATION,
+                applicationId
+            );
             // delete alerts
             applicationAlertService.deleteAll(applicationId);
             // Audit
@@ -841,14 +857,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private Set<ApplicationEntity> convert(Set<Application> applications) throws TechnicalException {
+    private Set<ApplicationEntity> convert(Set<Application> applications, final String organizationId) throws TechnicalException {
         if (applications == null || applications.isEmpty()) {
             return Collections.emptySet();
         }
-        RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(
-            GraviteeContext.getCurrentOrganization(),
-            RoleScope.APPLICATION
-        );
+        RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.APPLICATION);
         if (primaryOwnerRole == null) {
             throw new RoleNotFoundException("APPLICATION_PRIMARY_OWNER");
         }
@@ -913,8 +926,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .collect(toSet());
     }
 
-    private Set<ApplicationListItem> convertToList(Set<Application> applications) throws TechnicalException {
-        Set<ApplicationEntity> entities = convert(applications);
+    private Set<ApplicationListItem> convertToList(Set<Application> applications, final String organizationId) throws TechnicalException {
+        Set<ApplicationEntity> entities = convert(applications, organizationId);
 
         return entities
             .stream()
@@ -1080,8 +1093,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public InlinePictureEntity getPicture(String applicationId) {
-        ApplicationEntity applicationEntity = findById(applicationId);
+    public InlinePictureEntity getPicture(final String environmentId, String applicationId) {
+        ApplicationEntity applicationEntity = findById(environmentId, applicationId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         if (applicationEntity.getPicture() != null) {
             String[] parts = applicationEntity.getPicture().split(";", 2);
@@ -1093,8 +1106,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public InlinePictureEntity getBackground(String applicationId) {
-        ApplicationEntity applicationEntity = findById(applicationId);
+    public InlinePictureEntity getBackground(final String environmentId, String applicationId) {
+        ApplicationEntity applicationEntity = findById(environmentId, applicationId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         if (applicationEntity.getBackground() != null) {
             String[] parts = applicationEntity.getBackground().split(";", 2);
@@ -1105,7 +1118,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return imageEntity;
     }
 
-    private Set<String> findUserApplicationsIds(String username) {
+    private Set<String> findUserApplicationsIds(String username, final String organizationId) {
         //find applications where the user is a member
         Set<String> appIds = membershipService
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.APPLICATION)
@@ -1120,21 +1133,27 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .map(MembershipEntity::getReferenceId)
             .collect(toList());
 
-        appIds.addAll(this.findByGroups(groupIds).stream().map(ApplicationListItem::getId).collect(toSet()));
+        appIds.addAll(this.findByGroups(organizationId, groupIds).stream().map(ApplicationListItem::getId).collect(toSet()));
 
         return appIds;
     }
 
-    private Set<ApplicationListItem> searchApplicationsByNameAndStatusAndIds(String name, String status, String[] ids) {
+    private Set<ApplicationListItem> searchApplicationsByNameAndStatusAndIds(
+        String name,
+        String status,
+        String[] ids,
+        final String environmentId,
+        final String organizationId
+    ) {
         try {
             ApplicationCriteria criteria = new ApplicationCriteria.Builder()
                 .status(ApplicationStatus.valueOf(status))
                 .name(name.trim())
-                .environmentIds(singletonList(GraviteeContext.getCurrentEnvironment()))
+                .environmentIds(singletonList(environmentId))
                 .ids(ids)
                 .build();
             Page<Application> applications = applicationRepository.search(criteria, null);
-            return convertToList(new HashSet<>(applications.getContent()));
+            return convertToList(new HashSet<>(applications.getContent()), organizationId);
         } catch (TechnicalException ex) {
             String errorMessage = String.format("An error occurs while trying to find applications by name %s and id %s", name, ids);
             LOGGER.error(errorMessage, ex);

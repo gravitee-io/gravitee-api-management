@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
@@ -256,7 +257,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                     List<String> groups = new ArrayList<>();
                     groupNames.forEach(
                         groupName -> {
-                            List<GroupEntity> groupsFound = groupService.findByName(groupName);
+                            List<GroupEntity> groupsFound = groupService.findByName(GraviteeContext.getCurrentEnvironment(), groupName);
 
                             if (groupsFound != null && groupsFound.size() == 1) {
                                 groups.add(groupsFound.get(0).getId());

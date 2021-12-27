@@ -98,6 +98,9 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
             );
 
             membershipService.updateRolesToMemberOnReference(
+                // FIXME: I think both these values aren't defined in this context
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 membershipReference,
                 membershipMember,
                 Collections.singletonList(membershipRole),

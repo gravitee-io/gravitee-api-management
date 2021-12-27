@@ -27,16 +27,19 @@
     </gv-message>
   </section>
 
-  <section class="catalog__section__top" *ngIf="!empty">
-    <gv-promote
-      [item]="promotedApi"
-      [metrics]="promotedMetrics"
-      [href]="this.promotedApiPath"
-      (:gv-promote:click)="goToApi(promotedApi)"
-      (:gv-tag:click)="goToSearchByTag($event.detail.tagValue)"
-    ></gv-promote>
+  <section [ngClass]="layoutClassName">
+    <section class="catalog__section__promoted">
+      <gv-promote
+        *ngIf="hasPromotedApiMode()"
+        [item]="promotedApi"
+        [metrics]="promotedMetrics"
+        [href]="this.promotedApiPath"
+        (:gv-promote:click)="goToApi(promotedApi)"
+        (:gv-tag:click)="goToSearchByTag($event.detail.tagValue)"
+      ></gv-promote>
+    </section>
 
-    <article class="catalog__article__random" *ngIf="!inCategory() && !inCategoryAll()">
+    <section class="catalog__section__random" *ngIf="hasRandomCardsAside()">
       <h3 class="title">
         {{ 'catalog.othersApi.title' | translate }}
         <p>{{ 'catalog.othersApi.subTitle' | translate }}</p>
@@ -45,40 +48,41 @@
       <div class="catalog__cards catalog__cards__random">
         <gv-card *ngFor="let api of randomList" [item]="api" (click)="goToApi(api)"></gv-card>
       </div>
-    </article>
-  </section>
+    </section>
 
-  <section class="catalog__section__top" *ngIf="inCategory() && currentCategoryDocumentationPage">
-    <div class="catalog__category__documentation" [ngClass]="{ hidden: allApis.length > 0 && isDocHidden }">
-      <gv-button *ngIf="allApis.length > 0" link (click)="toggleDocumentationPage($event)">
-        <span class="hideDoc">{{ 'catalog.category.documentation.hide' | translate }}</span>
-        <span class="showDoc">{{ 'catalog.category.documentation.show' | translate }}</span>
-      </gv-button>
-      <app-gv-page [page]="currentCategoryDocumentationPage" class="page__box"></app-gv-page>
-    </div>
-  </section>
+    <section class="catalog__section__top" *ngIf="inCategory() && currentCategoryDocumentationPage">
+      <div class="catalog__category__documentation" [ngClass]="{ hidden: allApis.length > 0 && isDocHidden }">
+        <gv-button *ngIf="allApis.length > 0" link (click)="toggleDocumentationPage($event)">
+          <span class="hideDoc">{{ 'catalog.category.documentation.hide' | translate }}</span>
+          <span class="showDoc">{{ 'catalog.category.documentation.show' | translate }}</span>
+        </gv-button>
+        <app-gv-page [page]="currentCategoryDocumentationPage" class="page__box"></app-gv-page>
+      </div>
+    </section>
 
-  <section class="catalog__section__content">
-    <div class="catalog__section__content__title" [id]="fragments.filter">
-      <h2 class="title"></h2>
-      <gv-select
-        *ngIf="canFilter"
-        [value]="this.currentCategory"
-        (input)="this.onSelectCategory($event)"
-        [attr.placeholder]="'catalog.filter' | translate"
-        [options]="this.categories"
-      >
-      </gv-select>
-      <gv-option [options]="options" *ngIf="allApis.length > 0" [value]="this.currentDisplay"></gv-option>
-    </div>
+    <section class="catalog__section__main">
+      <div class="catalog__section__content__title" [id]="fragments.filter">
+        <h2 class="title"></h2>
+        <gv-select
+          *ngIf="canFilter"
+          [value]="this.currentCategory"
+          (input)="this.onSelectCategory($event)"
+          [attr.placeholder]="'catalog.filter' | translate"
+          [options]="this.categories"
+        >
+        </gv-select>
+        <gv-option [options]="options" *ngIf="allApis.length > 0" [value]="this.currentDisplay"></gv-option>
+      </div>
 
-    <gv-card-list *ngIf="showCards" [items]="allApis" (:gv-tag:click)="goToSearchByTag($event.detail.tagValue)"></gv-card-list>
+      <gv-card-list *ngIf="showCards" [items]="allApis" (:gv-tag:click)="goToSearchByTag($event.detail.tagValue)"></gv-card-list>
 
-    <div *ngIf="!showCards" class="catalog__list catalog__list__all">
-      <gv-row *ngFor="let api of allApis" [item]="api.item" (click)="goToApi(api.item)"></gv-row>
-    </div>
-    <div class="catalog__section__content__pagination" [id]="fragments.pagination">
-      <gv-pagination [data]="paginationData" hide-empty="true"></gv-pagination>
-    </div>
+      <div *ngIf="!showCards" class="catalog__list catalog__list__all">
+        <gv-row *ngFor="let api of allApis" [item]="api.item" (click)="goToApi(api.item)"></gv-row>
+      </div>
+
+      <div class="catalog__section__content__pagination" [id]="fragments.pagination">
+        <gv-pagination [data]="paginationData" hide-empty="true"></gv-pagination>
+      </div>
+    </section>
   </section>
 </div>

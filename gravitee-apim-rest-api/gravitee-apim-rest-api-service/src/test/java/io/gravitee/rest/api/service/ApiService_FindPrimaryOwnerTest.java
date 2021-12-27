@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.NoPrimaryOwnerGroupForUserException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -381,7 +382,7 @@ public class ApiService_FindPrimaryOwnerTest {
     private void defineGroup(String groupId) {
         GroupEntity groupEntity = new GroupEntity();
         groupEntity.setId(groupId);
-        when(groupService.findById(groupId)).thenReturn(groupEntity);
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId)).thenReturn(groupEntity);
     }
 
     private void setPoUserNonExisting() {
@@ -389,6 +390,7 @@ public class ApiService_FindPrimaryOwnerTest {
     }
 
     private void setPoGroupNonExisting() {
-        when(groupService.findById(PO_GROUP_ID)).thenThrow(new GroupNotFoundException(PO_GROUP_ID));
+        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), PO_GROUP_ID))
+            .thenThrow(new GroupNotFoundException(PO_GROUP_ID));
     }
 }

@@ -29,6 +29,6 @@ import io.gravitee.rest.api.model.analytics.query.*;
 public interface AnalyticsService {
     StatsAnalytics execute(StatsQuery query);
     HitsAnalytics execute(CountQuery query);
-    HistogramAnalytics execute(DateHistogramQuery query);
-    TopHitsAnalytics execute(GroupByQuery query);
+    HistogramAnalytics execute(final String organizationId, DateHistogramQuery query);
+    TopHitsAnalytics execute(final String organizationId, GroupByQuery query);
 }

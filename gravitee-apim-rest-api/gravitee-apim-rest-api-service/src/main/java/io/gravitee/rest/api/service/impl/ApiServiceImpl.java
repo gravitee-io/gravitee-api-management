@@ -296,7 +296,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Stream<GroupEntity> groupEntityStream = groupService.findByIds(groups).stream();
 
         if (apiId != null) {
-            final MembershipEntity primaryOwner = membershipService.getPrimaryOwner(MembershipReferenceType.API, apiId);
+            final MembershipEntity primaryOwner = membershipService.getPrimaryOwner(
+                GraviteeContext.getCurrentOrganization(),
+                MembershipReferenceType.API,
+                apiId
+            );
             if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
                 // don't remove the primary owner group of this API.
                 groupEntityStream =
@@ -416,7 +420,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             repoApi.setVisibility(api.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(api.getVisibility().toString()));
 
             // Add Default groups
-            Set<String> defaultGroups = groupService.findByEvent(GroupEvent.API_CREATE).stream().map(GroupEntity::getId).collect(toSet());
+            Set<String> defaultGroups = groupService
+                .findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE)
+                .stream()
+                .map(GroupEntity::getId)
+                .collect(toSet());
             if (repoApi.getGroups() == null) {
                 repoApi.setGroups(defaultGroups.isEmpty() ? null : defaultGroups);
             } else {
@@ -450,6 +458,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Add the primary owner of the newly created API
             membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
                 new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
@@ -523,7 +533,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
                 if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerFromDefinition.getType())) {
                     try {
-                        return new PrimaryOwnerEntity(groupService.findById(primaryOwnerFromDefinition.getId()));
+                        return new PrimaryOwnerEntity(
+                            groupService.findById(GraviteeContext.getCurrentEnvironment(), primaryOwnerFromDefinition.getId())
+                        );
                     } catch (GroupNotFoundException unfe) {
                         return getFirstPoGroupUserBelongsTo(userId);
                     }
@@ -553,7 +565,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
                 if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerFromDefinition.getType())) {
                     try {
-                        return new PrimaryOwnerEntity(groupService.findById(primaryOwnerFromDefinition.getId()));
+                        return new PrimaryOwnerEntity(
+                            groupService.findById(GraviteeContext.getCurrentEnvironment(), primaryOwnerFromDefinition.getId())
+                        );
                     } catch (GroupNotFoundException unfe) {
                         try {
                             return getFirstPoGroupUserBelongsTo(userId);
@@ -762,6 +776,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public PrimaryOwnerEntity getPrimaryOwner(String apiId) throws TechnicalManagementException {
         MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
+            GraviteeContext.getCurrentOrganization(),
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             apiId
         );
@@ -770,7 +785,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             throw new TechnicalManagementException("The API " + apiId + " doesn't have any primary owner.");
         }
         if (MembershipMemberType.GROUP == primaryOwnerMemberEntity.getMemberType()) {
-            return new PrimaryOwnerEntity(groupService.findById(primaryOwnerMemberEntity.getMemberId()));
+            return new PrimaryOwnerEntity(
+                groupService.findById(GraviteeContext.getCurrentEnvironment(), primaryOwnerMemberEntity.getMemberId())
+            );
         }
         return new PrimaryOwnerEntity(userService.findById(primaryOwnerMemberEntity.getMemberId()));
     }
@@ -1052,7 +1069,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
             if (portal) {
                 final Set<String> applications = applicationService
-                    .findByUser(userId)
+                    .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId)
                     .stream()
                     .map(ApplicationListItem::getId)
                     .collect(toSet());
@@ -1709,7 +1726,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (getAuthenticatedUser() != null) {
                     properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
                 }
-                eventService.create(EventType.UNPUBLISH_API, null, properties);
+                eventService.create(singleton(GraviteeContext.getCurrentEnvironment()), EventType.UNPUBLISH_API, null, properties);
 
                 // Delete pages
                 pageService.deleteAllByApi(apiId, GraviteeContext.getCurrentEnvironment());
@@ -1719,7 +1736,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Delete API
                 apiRepository.delete(apiId);
                 // Delete memberships
-                membershipService.deleteReference(MembershipReferenceType.API, apiId);
+                membershipService.deleteReference(
+                    GraviteeContext.getCurrentOrganization(),
+                    GraviteeContext.getCurrentEnvironment(),
+                    MembershipReferenceType.API,
+                    apiId
+                );
                 // Delete notifications
                 genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
                 portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
@@ -1792,7 +1814,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 0,
                 0,
                 0,
-                1
+                1,
+                singletonList(GraviteeContext.getCurrentEnvironment())
             );
 
             if (!events.getContent().isEmpty()) {
@@ -1902,7 +1925,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             addDeploymentLabelToProperties(apiId, eventType, properties, apiDeploymentEntity);
 
             // And create event
-            eventService.create(eventType, objectMapper.writeValueAsString(apiValue), properties);
+            eventService.create(
+                singleton(GraviteeContext.getCurrentEnvironment()),
+                eventType,
+                objectMapper.writeValueAsString(apiValue),
+                properties
+            );
 
             final ApiEntity deployed = convert(singletonList(apiValue)).iterator().next();
 
@@ -1973,7 +2001,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 lastPublishedAPI.setPicture(null);
 
                 // And create event
-                eventService.create(eventType, objectMapper.writeValueAsString(lastPublishedAPI), properties);
+                eventService.create(
+                    singleton(GraviteeContext.getCurrentEnvironment()),
+                    eventType,
+                    objectMapper.writeValueAsString(lastPublishedAPI),
+                    properties
+                );
                 return null;
             } else {
                 // this is the first time we start the api without previously deployed id.
@@ -2306,7 +2339,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public List<ApiHeaderEntity> getPortalHeaders(String apiId) {
-        List<ApiHeaderEntity> entities = apiHeaderService.findAll();
+        List<ApiHeaderEntity> entities = apiHeaderService.findAll(GraviteeContext.getCurrentEnvironment());
         ApiModelEntity apiEntity = this.findByIdForTemplates(apiId);
         Map<String, Object> model = new HashMap<>();
         model.put("api", apiEntity);
@@ -2575,7 +2608,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         builder.label(query.getLabel()).name(query.getName()).version(query.getVersion());
 
         if (!isBlank(query.getCategory())) {
-            builder.category(categoryService.findById(query.getCategory()).getId());
+            builder.category(categoryService.findById(query.getCategory(), GraviteeContext.getCurrentEnvironment()).getId());
         }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups().toArray(new String[0]));
@@ -2779,7 +2812,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .forEach(groupEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(groupEntity.getId(), new PrimaryOwnerEntity(groupEntity)));
         }
 
-        final List<CategoryEntity> categories = categoryService.findAll();
+        final List<CategoryEntity> categories = categoryService.findAll(GraviteeContext.getCurrentEnvironment());
         return streamApis
             .map(
                 publicApi -> this.convert(publicApi, primaryOwnerIdToPrimaryOwnerEntity.get(apiToMember.get(publicApi.getId())), categories)
@@ -2798,7 +2831,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final Set<String> apiCategories = api.getCategories();
         if (apiCategories != null) {
             if (categories == null) {
-                categories = categoryService.findAll();
+                categories = categoryService.findAll(GraviteeContext.getCurrentEnvironment());
             }
             final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
             for (final String apiView : apiCategories) {
@@ -2835,7 +2868,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         final Set<String> apiCategories = updateApiEntity.getCategories();
         if (apiCategories != null) {
-            final List<CategoryEntity> categories = categoryService.findAll();
+            final List<CategoryEntity> categories = categoryService.findAll(GraviteeContext.getCurrentEnvironment());
             final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
             for (final String apiCategory : apiCategories) {
                 final Optional<CategoryEntity> optionalCategory = categories

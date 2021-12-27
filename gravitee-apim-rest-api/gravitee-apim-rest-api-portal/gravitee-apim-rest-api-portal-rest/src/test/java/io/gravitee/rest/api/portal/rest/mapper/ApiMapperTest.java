@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -96,7 +97,9 @@ public class ApiMapperTest {
         apiEntity.setDescription(API_DESCRIPTION);
         apiEntity.setName(API_NAME);
         apiEntity.setLabels(new ArrayList<>(Arrays.asList(API_LABEL)));
-        doThrow(CategoryNotFoundException.class).when(categoryService).findNotHiddenById(API_CATEGORY_HIDDEN);
+        doThrow(CategoryNotFoundException.class)
+            .when(categoryService)
+            .findNotHiddenById(API_CATEGORY_HIDDEN, GraviteeContext.getCurrentEnvironment());
 
         apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
 

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricDescription;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,7 +53,7 @@ public class ApiQualityMetricDescriptionTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn(null);
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertFalse(valid);
     }
@@ -64,7 +65,7 @@ public class ApiQualityMetricDescriptionTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn("1234567890");
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertFalse(valid);
     }
@@ -88,7 +89,7 @@ public class ApiQualityMetricDescriptionTest {
                 "1234567890"
             );
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertTrue(valid);
     }
@@ -100,7 +101,7 @@ public class ApiQualityMetricDescriptionTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn("123");
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertTrue(valid);
     }
@@ -112,7 +113,7 @@ public class ApiQualityMetricDescriptionTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn("12");
 
-        boolean valid = srv.isValid(api);
+        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
 
         assertFalse(valid);
     }

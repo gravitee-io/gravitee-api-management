@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.Collections;
 import java.util.List;
@@ -90,13 +91,16 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Override
     public ApiMetadataEntity create(final NewApiMetadataEntity metadataEntity) {
-        return convert(create(metadataEntity, API, metadataEntity.getApiId(), true), metadataEntity.getApiId());
+        return convert(
+            create(metadataEntity, API, metadataEntity.getApiId(), true, GraviteeContext.getCurrentEnvironment()),
+            metadataEntity.getApiId()
+        );
     }
 
     @Override
     public ApiMetadataEntity update(final UpdateApiMetadataEntity metadataEntity) {
         ApiMetadataEntity apiMetadataEntity = convert(
-            update(metadataEntity, API, metadataEntity.getApiId(), true),
+            update(metadataEntity, API, metadataEntity.getApiId(), true, GraviteeContext.getCurrentEnvironment()),
             metadataEntity.getApiId()
         );
         ApiEntity apiEntity = apiService.fetchMetadataForApi(apiService.findById(apiMetadataEntity.getApiId()));
@@ -109,7 +113,8 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
         MetadataFormat format,
         String value,
         MetadataReferenceType referenceType,
-        String referenceId
+        String referenceId,
+        final String environmentId
     ) {
         final ApiEntity apiEntity = apiService.findById(referenceId);
         metadataService.checkMetadataFormat(format, value, referenceType, apiEntity);

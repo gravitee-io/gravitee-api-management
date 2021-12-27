@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.Collections;
@@ -64,21 +65,24 @@ public class PermissionsResource extends AbstractResource {
                 .findFirst()
                 .orElseThrow(() -> new ApiNotFoundException(apiId));
             Map<String, char[]> permissions;
-            permissions = membershipService.getUserMemberPermissions(apiEntity, userId);
+            permissions = membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), apiEntity, userId);
 
             return Response.ok(permissions).build();
         } else if (applicationId != null) {
             ApplicationListItem applicationListItem = applicationService
-                .findByUser(getAuthenticatedUser())
+                .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), getAuthenticatedUser())
                 .stream()
                 .filter(a -> a.getId().equals(applicationId))
                 .findFirst()
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
-            ApplicationEntity application = applicationService.findById(applicationListItem.getId());
+            ApplicationEntity application = applicationService.findById(
+                GraviteeContext.getCurrentEnvironment(),
+                applicationListItem.getId()
+            );
 
             Map<String, char[]> permissions;
-            permissions = membershipService.getUserMemberPermissions(application, userId);
+            permissions = membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), application, userId);
 
             return Response.ok(permissions).build();
         }

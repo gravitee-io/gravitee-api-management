@@ -35,7 +35,7 @@ public class ApiQualityMetricHealthcheck implements ApiQualityMetric {
     }
 
     @Override
-    public boolean isValid(ApiEntity api) {
+    public boolean isValid(ApiEntity api, final String environmentId) {
         return this.apiService.hasHealthCheckEnabled(api, true);
     }
 }

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EntrypointService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -93,7 +94,8 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         try {
             final Entrypoint entrypoint = convert(entrypointEntity, referenceId, referenceType);
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
-            auditService.createEnvironmentAuditLog(
+            auditService.createOrganizationAuditLog(
+                referenceId,
                 Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
                 ENTRYPOINT_CREATED,
                 new Date(),
@@ -125,7 +127,8 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 entrypoint.setReferenceId(existingEntrypoint.getReferenceId());
                 entrypoint.setReferenceType(existingEntrypoint.getReferenceType());
                 final EntrypointEntity savedEntryPoint = convert(entrypointRepository.update(entrypoint));
-                auditService.createEnvironmentAuditLog(
+                auditService.createOrganizationAuditLog(
+                    referenceId,
                     Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
                     ENTRYPOINT_UPDATED,
                     new Date(),
@@ -152,7 +155,8 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
             );
             if (entrypointOptional.isPresent()) {
                 entrypointRepository.delete(entrypointId);
-                auditService.createEnvironmentAuditLog(
+                auditService.createOrganizationAuditLog(
+                    referenceId,
                     Collections.singletonMap(ENTRYPOINT, entrypointId),
                     ENTRYPOINT_DELETED,
                     new Date(),

@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.promotion.PromotionServiceImpl;
 import java.util.Arrays;
@@ -213,7 +214,13 @@ public class PromotionServiceTest {
 
         when(promotionRepository.update(any())).thenReturn(getAPromotion());
 
-        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+        promotionService.processPromotion(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            PROMOTION_ID,
+            true,
+            USER_ID
+        );
 
         verify(apiDuplicatorService, times(1)).createWithImportedDefinition(any(), eq(USER_ID), any(), any());
         verify(promotionRepository, times(1)).update(any());
@@ -240,7 +247,13 @@ public class PromotionServiceTest {
 
         when(promotionRepository.update(any())).thenReturn(getAPromotion());
 
-        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+        promotionService.processPromotion(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            PROMOTION_ID,
+            true,
+            USER_ID
+        );
 
         verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), eq(USER_ID), any(), any());
         verify(promotionRepository, times(1)).update(any());
@@ -259,7 +272,13 @@ public class PromotionServiceTest {
 
         when(promotionRepository.update(any())).thenReturn(getAPromotion());
 
-        promotionService.processPromotion(PROMOTION_ID, false, USER_ID);
+        promotionService.processPromotion(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            PROMOTION_ID,
+            false,
+            USER_ID
+        );
 
         verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), eq(USER_ID), any(), any());
         verify(apiDuplicatorService, never()).updateWithImportedDefinition(any(), any(), eq(USER_ID), any(), any());
@@ -270,7 +289,13 @@ public class PromotionServiceTest {
     public void shouldNotProcessPromotionIfPromotionNotFound() throws Exception {
         when(promotionRepository.findById(any())).thenReturn(Optional.empty());
 
-        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+        promotionService.processPromotion(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            PROMOTION_ID,
+            true,
+            USER_ID
+        );
     }
 
     @Test(expected = ForbiddenAccessException.class)
@@ -283,7 +308,13 @@ public class PromotionServiceTest {
 
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
 
-        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+        promotionService.processPromotion(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            PROMOTION_ID,
+            true,
+            USER_ID
+        );
     }
 
     @Test(expected = BridgeOperationException.class)
@@ -305,7 +336,13 @@ public class PromotionServiceTest {
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.ERROR);
         when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
 
-        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+        promotionService.processPromotion(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            PROMOTION_ID,
+            true,
+            USER_ID
+        );
 
         verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), eq(USER_ID), any(), any());
         verify(promotionRepository, times(0)).update(any());
@@ -328,7 +365,12 @@ public class PromotionServiceTest {
 
         when(promotionRepository.update(any())).thenReturn(mock(Promotion.class));
 
-        final PromotionEntity promotionEntity = promotionService.promote("api#1", getAPromotionRequestEntity(), "user#1");
+        final PromotionEntity promotionEntity = promotionService.promote(
+            GraviteeContext.getCurrentEnvironment(),
+            "api#1",
+            getAPromotionRequestEntity(),
+            "user#1"
+        );
 
         assertThat(promotionEntity).isNotNull();
         verify(auditService).createApiAuditLog(eq("api#1"), any(), eq(PROMOTION_CREATED), any(), isNull(), any());
@@ -357,7 +399,7 @@ public class PromotionServiceTest {
 
         PromotionRequestEntity promotionRequestEntity = getAPromotionRequestEntity();
         promotionRequestEntity.setTargetEnvCockpitId(targetEnvCockpitId);
-        promotionService.promote("api#1", promotionRequestEntity, "user#1");
+        promotionService.promote(GraviteeContext.getCurrentEnvironment(), "api#1", promotionRequestEntity, "user#1");
     }
 
     private UserEntity getAUserEntity() {

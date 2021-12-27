@@ -139,6 +139,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
             RoleEntity entity = convert(roleRepository.create(role));
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
                 ROLE_CREATED,
                 role.getCreatedAt(),
@@ -173,6 +174,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             updatedRole.setReferenceType(role.getReferenceType());
             RoleEntity entity = convert(roleRepository.update(updatedRole));
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
                 ROLE_UPDATED,
                 updatedRole.getUpdatedAt(),
@@ -211,6 +213,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             roleRepository.delete(roleId);
 
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(ROLE, scope + ":" + role.getName()),
                 ROLE_DELETED,
                 role.getUpdatedAt(),
@@ -332,6 +335,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 role.setUpdatedAt(new Date());
                 roleRepository.update(role);
                 auditService.createOrganizationAuditLog(
+                    GraviteeContext.getCurrentOrganization(),
                     Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
                     ROLE_UPDATED,
                     role.getUpdatedAt(),
@@ -566,6 +570,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             systemRole.setUpdatedAt(new Date());
             roleRepository.update(systemRole);
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
                 ROLE_UPDATED,
                 systemRole.getCreatedAt(),
@@ -575,6 +580,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         } else if (!existingRole.isPresent()) {
             roleRepository.create(systemRole);
             auditService.createOrganizationAuditLog(
+                GraviteeContext.getCurrentOrganization(),
                 Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
                 ROLE_CREATED,
                 systemRole.getCreatedAt(),

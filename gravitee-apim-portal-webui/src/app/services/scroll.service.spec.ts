@@ -30,21 +30,48 @@ describe('ScrollServiceService', () => {
   });
 
   it('should be call scrollToAnchor with id', (done) => {
-    document.getElementById = jest.fn(() => null);
+    document.getElementById = jest.fn(() => document.createElement('a'));
+    window.getComputedStyle = jest.fn(() => ({ height: '42' } as any));
+    window.scrollBy = jest.fn(() => null);
+
     const anchorId = 'anchorId';
+
     service.scrollToAnchor(anchorId).finally(() => {
       expect(document.getElementById).toBeCalledTimes(1);
       expect(document.getElementById).toBeCalledWith(anchorId);
+      expect(window.scrollBy).toBeCalledTimes(2);
       done();
     });
   });
 
   it('should be call scrollToAnchor with xpath', (done) => {
-    document.querySelector = jest.fn(() => null);
+    document.querySelector = jest.fn(() => document.createElement('a'));
+    window.getComputedStyle = jest.fn(() => ({ height: '42' } as any));
+    window.scrollBy = jest.fn(() => null);
+
     const anchorId = '#anchorId';
+
     service.scrollToAnchor(anchorId).finally(() => {
-      expect(document.querySelector).toBeCalledTimes(1);
       expect(document.querySelector).toBeCalledWith(anchorId);
+      expect(window.scrollBy).toBeCalledTimes(2);
+      done();
+    });
+  });
+
+  it('should be call scrollToAnchor with name attribute', (done) => {
+    window.getComputedStyle = jest.fn(() => ({ height: '42' } as any));
+    window.scrollBy = jest.fn(() => null);
+    document.querySelector = jest
+      .fn()
+      .mockImplementationOnce(() => null)
+      .mockImplementationOnce(() => document.createElement('a'));
+
+    const anchorId = '#anchorId';
+
+    service.scrollToAnchor(anchorId).finally(() => {
+      expect(document.querySelector).toBeCalledWith(anchorId);
+      expect(document.querySelector).toBeCalledWith(`a[name=${anchorId.substr(1)}]`);
+      expect(window.scrollBy).toBeCalledTimes(2);
       done();
     });
   });

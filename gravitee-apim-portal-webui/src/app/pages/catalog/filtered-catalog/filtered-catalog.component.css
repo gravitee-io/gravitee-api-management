@@ -101,36 +101,77 @@ gv-row {
   padding: 10px 5px;
 }
 
+.catalog__section__content__all__promoted {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 2em;
+  grid-template-areas:
+    'promoted promoted promoted promoted'
+    'cards    cards    cards    cards';
+}
+
+.catalog__section__content__all__no-promoted {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  gap: 2em;
+  grid-template-areas: 'cards';
+}
+
+.catalog__section__random-aside__no-promoted {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 0 2em;
+  grid-template-areas: 'cards cards cards cards';
+}
+
+.catalog__section__random-aside__promoted {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 0 2em;
+  grid-template-areas:
+    'promoted promoted promoted aside'
+    'cards   cards    cards    cards';
+}
+
+.catalog__section__promoted {
+  grid-area: promoted;
+}
+
+.catalog__section__random {
+  grid-area: aside;
+}
+
+.catalog__section__main {
+  grid-area: cards;
+}
+
 @media only screen and (max-device-width: 1280px) {
-  .catalog__section__top {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 0;
+  .catalog__section__content__all__promoted,
+  .catalog__section__content__all__no-promoted {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    grid-template-areas: 'cards';
   }
 
-  .catalog__section__content {
-    margin-top: 1rem;
+  .catalog__section__random-aside__no-promoted,
+  .catalog__section__random-aside__promoted {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas: 'cards';
   }
 
-  gv-promote-api,
+  .catalog__section__promoted,
   app-gv-page {
     display: none;
   }
 
-  .catalog__cards {
-    display: flex;
-  }
-
   .catalog__cards > * {
-    flex: 0 1 auto;
-  }
-
-  .catalog__article__random {
-    padding-top: 2rem;
-    align-items: flex-start;
-  }
-
-  .categories__section > gv {
     flex: 0 1 auto;
   }
 }
