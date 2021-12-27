@@ -32,7 +32,6 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
@@ -68,14 +67,10 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     private EnvironmentService environmentService;
 
     @Override
-    public List<CategoryEntity> findAll() {
+    public List<CategoryEntity> findAll(final String environmentId) {
         try {
             LOGGER.debug("Find all categories");
-            return categoryRepository
-                .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toList());
+            return categoryRepository.findAllByEnvironment(environmentId).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all categories", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all categories", ex);
@@ -94,12 +89,12 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public CategoryEntity findById(final String id) {
+    public CategoryEntity findById(final String id, final String environmentId) {
         try {
             LOGGER.debug("Find category by id : {}", id);
             Optional<Category> category = categoryRepository.findById(id);
             if (!category.isPresent()) {
-                category = categoryRepository.findByKey(id, GraviteeContext.getCurrentEnvironment());
+                category = categoryRepository.findByKey(id, environmentId);
             }
             if (category.isPresent()) {
                 return convert(category.get());
@@ -113,8 +108,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public CategoryEntity findNotHiddenById(String id) {
-        CategoryEntity category = this.findById(id);
+    public CategoryEntity findNotHiddenById(String id, final String environmentId) {
+        CategoryEntity category = this.findById(id, environmentId);
         if (!category.isHidden()) {
             return category;
         }
@@ -122,9 +117,9 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public CategoryEntity create(NewCategoryEntity newCategory) {
+    public CategoryEntity create(final String environmentId, NewCategoryEntity newCategory) {
         // First we prevent the duplicate category name
-        final List<CategoryEntity> categories = findAll();
+        final List<CategoryEntity> categories = findAll(environmentId);
         final Optional<CategoryEntity> optionalCategory = categories
             .stream()
             .filter(v -> v.getName().equals((newCategory.getName())))
@@ -136,17 +131,17 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
         try {
             // check if environment exists
-            String environment = GraviteeContext.getCurrentEnvironment();
-            this.environmentService.findById(environment);
+            this.environmentService.findById(environmentId);
 
             Category category = convert(newCategory);
             final Date createdAt = new Date();
             category.setCreatedAt(createdAt);
             category.setUpdatedAt(createdAt);
-            category.setEnvironmentId(environment);
+            category.setEnvironmentId(environmentId);
             category.setOrder(categories.size());
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
             auditService.createEnvironmentAuditLog(
+                environmentId,
                 Collections.singletonMap(CATEGORY, category.getId()),
                 CATEGORY_CREATED,
                 createdAt,
@@ -188,6 +183,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             category.setUpdatedAt(updatedAt);
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
             auditService.createEnvironmentAuditLog(
+                categoryToUpdate.getEnvironmentId(),
                 Collections.singletonMap(CATEGORY, category.getId()),
                 CATEGORY_UPDATED,
                 updatedAt,
@@ -227,6 +223,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                         category.setUpdatedAt(updatedAt);
                         savedCategories.add(convert(categoryRepository.update(category)));
                         auditService.createEnvironmentAuditLog(
+                            category.getEnvironmentId(),
                             Collections.singletonMap(CATEGORY, category.getId()),
                             CATEGORY_UPDATED,
                             updatedAt,
@@ -251,13 +248,15 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         try {
             Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
             if (categoryOptional.isPresent()) {
-                categoryRepository.delete(categoryId);
+                Category categoryToDelete = categoryOptional.get();
+                categoryRepository.delete(categoryToDelete.getId());
                 auditService.createEnvironmentAuditLog(
+                    categoryToDelete.getEnvironmentId(),
                     Collections.singletonMap(CATEGORY, categoryId),
                     CATEGORY_DELETED,
                     new Date(),
                     null,
-                    categoryOptional.get()
+                    categoryToDelete
                 );
 
                 // delete all reference on APIs
@@ -270,8 +269,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public InlinePictureEntity getPicture(String categoryId) {
-        CategoryEntity categoryEntity = findById(categoryId);
+    public InlinePictureEntity getPicture(final String environmentId, String categoryId) {
+        CategoryEntity categoryEntity = findById(categoryId, environmentId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         if (categoryEntity.getPicture() != null) {
             String[] parts = categoryEntity.getPicture().split(";", 2);
@@ -283,8 +282,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public InlinePictureEntity getBackground(String categoryId) {
-        CategoryEntity categoryEntity = findById(categoryId);
+    public InlinePictureEntity getBackground(final String environmentId, String categoryId) {
+        CategoryEntity categoryEntity = findById(categoryId, environmentId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         if (categoryEntity.getBackground() != null) {
             String[] parts = categoryEntity.getBackground().split(";", 2);

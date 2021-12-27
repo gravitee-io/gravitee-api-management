@@ -60,14 +60,14 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
 
         PortalSettingsEntity portalConfigEntity = new PortalSettingsEntity();
         ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
-        doReturn(portalConfigEntity).when(configService).getPortalSettings();
-        doReturn(consoleSettingsEntity).when(configService).getConsoleSettings();
+        doReturn(portalConfigEntity).when(configService).getPortalSettings(GraviteeContext.getCurrentEnvironment());
+        doReturn(consoleSettingsEntity).when(configService).getConsoleSettings(GraviteeContext.getCurrentOrganization());
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(configMapper).convert(portalConfigEntity, consoleSettingsEntity);
-        Mockito.verify(configService).getPortalSettings();
-        Mockito.verify(configService).getConsoleSettings();
+        Mockito.verify(configService).getPortalSettings(GraviteeContext.getCurrentEnvironment());
+        Mockito.verify(configService).getConsoleSettings(GraviteeContext.getCurrentOrganization());
     }
 
     @Test
@@ -134,7 +134,7 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
                 }
             );
 
-        when(accessControlService.canAccessPageFromPortal(any())).thenReturn(true);
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(true);
 
         final Response response = target("/links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static java.util.Collections.singleton;
 import static java.util.Map.entry;
 import static java.util.Optional.ofNullable;
 
@@ -30,6 +31,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.DebugApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.Comparator;
 import java.util.List;
@@ -81,7 +83,12 @@ public class DebugApiServiceImpl implements DebugApiService {
             validatePlan(debugApi);
             validateDefinitionVersion(apiId, debugApi);
 
-            return eventService.create(EventType.DEBUG_API, objectMapper.writeValueAsString(debugApi), properties);
+            return eventService.create(
+                singleton(GraviteeContext.getCurrentEnvironment()),
+                EventType.DEBUG_API,
+                objectMapper.writeValueAsString(debugApi),
+                properties
+            );
         } catch (JsonProcessingException ex) {
             LOGGER.error("An error occurs while trying to debug API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to debug API: " + apiId, ex);

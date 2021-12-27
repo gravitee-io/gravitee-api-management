@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,6 +29,7 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
@@ -102,8 +104,21 @@ public class ApplicationService_RestoreTest {
 
         ApplicationEntity result = applicationService.restore(APP);
 
-        verify(membershipService, times(1)).deleteReference(MembershipReferenceType.APPLICATION, APP);
-        verify(membershipService, times(1)).addRoleToMemberOnReference(any(), any(), any());
+        verify(membershipService, times(1))
+            .deleteReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.APPLICATION,
+                APP
+            );
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                any(),
+                any()
+            );
         verify(genericNotificationConfigService, times(1)).deleteReference(NotificationReferenceType.APPLICATION, APP);
         verify(portalNotificationConfigService, times(1)).deleteReference(NotificationReferenceType.APPLICATION, APP);
         verify(auditService, times(1)).createApplicationAuditLog(any(), any(), any(), any(), any(), any());

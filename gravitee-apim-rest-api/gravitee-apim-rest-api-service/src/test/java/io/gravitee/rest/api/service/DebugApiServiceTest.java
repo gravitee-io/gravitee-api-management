@@ -86,7 +86,7 @@ public class DebugApiServiceTest {
         debugApiService.debug(API_ID, USER_ID, debugApiEntity);
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(eventService).create(eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+        verify(eventService).create(any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
 
         assertThat(propertiesCaptor.getValue())
@@ -112,7 +112,7 @@ public class DebugApiServiceTest {
         debugApiService.debug(API_ID, USER_ID, debugApiEntity);
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(eventService).create(eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+        verify(eventService).create(any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
 
         assertThat(propertiesCaptor.getValue()).contains(entry(Event.EventProperties.GATEWAY_ID.getValue(), "instance#young"));
@@ -179,7 +179,7 @@ public class DebugApiServiceTest {
             assertNotNull(e);
         }
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(eventService, times(0)).create(eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+        verify(eventService, times(0)).create(any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
     }
 

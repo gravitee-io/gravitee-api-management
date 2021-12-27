@@ -231,6 +231,7 @@ public class ThemeServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_CREATED),
                 any(Date.class),
@@ -303,6 +304,7 @@ public class ThemeServiceTest {
 
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_UPDATED),
                 any(Date.class),
@@ -369,6 +371,7 @@ public class ThemeServiceTest {
 
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_RESET),
                 any(Date.class),
@@ -387,6 +390,7 @@ public class ThemeServiceTest {
         verify(themeRepository, times(1)).delete(THEME_ID);
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_DELETED),
                 any(Date.class),
@@ -526,6 +530,7 @@ public class ThemeServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_CREATED),
                 any(Date.class),
@@ -583,6 +588,7 @@ public class ThemeServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_UPDATED),
                 any(Date.class),

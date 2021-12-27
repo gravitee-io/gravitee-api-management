@@ -176,7 +176,7 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn("/context");
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
 
-        when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 
@@ -320,6 +320,8 @@ public class ApiService_CreateTest {
 
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())

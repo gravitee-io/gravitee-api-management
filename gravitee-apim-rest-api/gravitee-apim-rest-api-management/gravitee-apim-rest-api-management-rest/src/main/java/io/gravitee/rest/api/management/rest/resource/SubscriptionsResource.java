@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -76,7 +77,10 @@ public class SubscriptionsResource {
         subscription.setReason(subscriptionEntity.getReason());
         subscription.setStatus(subscriptionEntity.getStatus());
 
-        ApplicationEntity application = applicationService.findById(subscriptionEntity.getApplication());
+        ApplicationEntity application = applicationService.findById(
+            GraviteeContext.getCurrentEnvironment(),
+            subscriptionEntity.getApplication()
+        );
         subscription.setApplication(
             new Subscription.Application(
                 application.getId(),

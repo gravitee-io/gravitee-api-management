@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.TAG;
 import static io.gravitee.repository.management.model.Tag.AuditEvent.*;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -35,6 +34,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateTagNameException;
 import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -127,7 +127,14 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 try {
                     Tag tag = convert(tagEntity, referenceId, referenceType);
                     savedTags.add(convert(tagRepository.create(tag)));
-                    auditService.createOrganizationAuditLog(Collections.singletonMap(TAG, tag.getId()), TAG_CREATED, new Date(), null, tag);
+                    auditService.createOrganizationAuditLog(
+                        GraviteeContext.getCurrentOrganization(),
+                        Collections.singletonMap(TAG, tag.getId()),
+                        TAG_CREATED,
+                        new Date(),
+                        null,
+                        tag
+                    );
                 } catch (TechnicalException ex) {
                     LOGGER.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
                     throw new TechnicalManagementException("An error occurs while trying to create tag " + tagEntity.getName(), ex);
@@ -155,6 +162,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                         tag.setReferenceType(existingTag.getReferenceType());
                         savedTags.add(convert(tagRepository.update(tag)));
                         auditService.createOrganizationAuditLog(
+                            GraviteeContext.getCurrentOrganization(),
                             Collections.singletonMap(TAG, tag.getId()),
                             TAG_UPDATED,
                             new Date(),
@@ -180,6 +188,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 // delete all reference on APIs
                 apiService.deleteTagFromAPIs(tagId);
                 auditService.createOrganizationAuditLog(
+                    GraviteeContext.getCurrentOrganization(),
                     Collections.singletonMap(TAG, tagId),
                     TAG_DELETED,
                     new Date(),

@@ -178,7 +178,18 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         memberEntity.setId(admin.getId());
         memberEntity.setRoles(Collections.singletonList(poRoleEntity));
 
-        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any())).thenReturn(memberEntity);
+        when(
+            membershipService.addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        )
+            .thenReturn(memberEntity);
         when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
 
         apiDuplicatorService.updateWithImportedDefinition(
@@ -192,9 +203,25 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         verify(pageService, times(1))
             .createOrUpdatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
         verify(membershipService, never())
-            .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_PRIMARY_OWNER");
+            .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                user.getId(),
+                "API_PRIMARY_OWNER"
+            );
         verify(membershipService, times(1))
-            .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
+            .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                user.getId(),
+                "API_OWNER"
+            );
         verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
         verify(apiService, never()).create(any(), any());
     }
@@ -273,9 +300,25 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         verify(pageService, never()).duplicatePages(anyList(), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
         verify(membershipService, never())
-            .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_PRIMARY_OWNER");
+            .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                user.getId(),
+                "API_PRIMARY_OWNER"
+            );
         verify(membershipService, times(1))
-            .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
+            .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                user.getId(),
+                "API_OWNER"
+            );
         verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
         verify(apiService, never()).create(any(), any());
     }
@@ -308,12 +351,16 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
         verify(membershipService, never())
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(admin.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
         verify(membershipService, never())
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
@@ -349,12 +396,16 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
         verify(membershipService, never())
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(admin.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
         verify(membershipService, never())
             .addRoleToMemberOnReference(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
@@ -392,7 +443,14 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         verify(pageService, times(1))
             .createOrUpdatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
-        verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
+        verify(membershipService, never())
+            .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                any(),
+                any()
+            );
         verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
         verify(apiService, never()).create(any(), any());
     }
@@ -419,7 +477,14 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         );
 
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
-        verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
+        verify(membershipService, never())
+            .addRoleToMemberOnReference(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                any(),
+                any()
+            );
         verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
         verify(apiService, never()).create(any(), any());
     }

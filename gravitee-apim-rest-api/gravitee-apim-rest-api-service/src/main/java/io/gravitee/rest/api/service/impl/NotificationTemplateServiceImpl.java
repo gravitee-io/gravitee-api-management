@@ -510,6 +510,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     private void createAuditLog(Audit.AuditEvent event, Date createdAt, NotificationTemplate oldValue, NotificationTemplate newValue) {
         String notificationTemplateName = oldValue != null ? oldValue.getName() : newValue.getName();
         auditService.createOrganizationAuditLog(
+            GraviteeContext.getCurrentOrganization(),
             Collections.singletonMap(NOTIFICATION_TEMPLATE, notificationTemplateName),
             event,
             createdAt,

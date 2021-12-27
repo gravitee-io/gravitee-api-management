@@ -38,11 +38,17 @@ public interface PromotionService {
      */
     List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId);
 
-    PromotionEntity promote(String api, PromotionRequestEntity promotionRequest, String userId);
+    PromotionEntity promote(final String sourceEnvironmentId, String api, PromotionRequestEntity promotionRequest, String userId);
 
     PromotionEntity createOrUpdate(PromotionEntity promotionEntity);
 
     Page<PromotionEntity> search(PromotionQuery query, Sortable sortable, Pageable pageable);
 
-    PromotionEntity processPromotion(String promotion, boolean accepted, String user);
+    PromotionEntity processPromotion(
+        final String organizationId,
+        final String environmentId,
+        String promotion,
+        boolean accepted,
+        String user
+    );
 }

@@ -29,6 +29,7 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.rest.api.model.quality.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.QualityRuleNotFoundException;
 import io.gravitee.rest.api.service.impl.QualityRuleServiceImpl;
 import java.util.Date;
@@ -153,6 +154,7 @@ public class QualityRuleServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_CREATED),
                 any(Date.class),
@@ -207,6 +209,7 @@ public class QualityRuleServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
                 any(Date.class),
@@ -235,6 +238,7 @@ public class QualityRuleServiceTest {
         verify(qualityRuleRepository, times(1)).delete(QUALITY_RULE_ID);
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
                 any(Date.class),

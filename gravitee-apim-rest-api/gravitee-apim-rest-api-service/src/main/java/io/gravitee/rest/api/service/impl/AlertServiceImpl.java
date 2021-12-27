@@ -805,7 +805,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApplicationEntity applicationEntity = applicationService.findById(application);
+                    ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
                     metadata = mapper.convertValue(applicationEntity, Map.class);
                     metadata.remove("picture");
                 }

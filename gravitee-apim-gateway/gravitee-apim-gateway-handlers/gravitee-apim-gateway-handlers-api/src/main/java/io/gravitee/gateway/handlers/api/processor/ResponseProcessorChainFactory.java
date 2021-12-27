@@ -35,9 +35,11 @@ import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.policy.PolicyChainOrder;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.node.api.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -52,8 +54,12 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
     @Autowired
     PolicyChainProviderLoader policyChainProviderLoader;
 
+    @Autowired
+    private Node node;
+
     @Override
     public void afterPropertiesSet() {
+        add(() -> new ShutdownProcessor(node));
         addAll(policyChainProviderLoader.get(PolicyChainOrder.BEFORE_API, StreamType.ON_RESPONSE));
 
         final ConditionEvaluator evaluator = new CompositeConditionEvaluator(

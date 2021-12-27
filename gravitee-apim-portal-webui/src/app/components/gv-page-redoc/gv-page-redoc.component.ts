@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as jsyaml from 'js-yaml';
 import { Component, HostListener, Input, OnDestroy, ViewChild, OnInit } from '@angular/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from '../../services/notification.service';
@@ -21,6 +20,7 @@ import { getCssVar } from '@gravitee/ui-components/src/lib/style';
 import { ScrollService } from '../../services/scroll.service';
 import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.component';
 import { PageService } from 'src/app/services/page.service';
+import { readYaml } from '../../utils/yaml-parser';
 
 declare let Redoc: any;
 
@@ -118,7 +118,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       try {
         contentAsJson = JSON.parse(page.content);
       } catch (e) {
-        contentAsJson = jsyaml.safeLoad(page.content);
+        contentAsJson = readYaml(page.content);
       }
 
       Redoc.init(contentAsJson, options, this.redocContainer.nativeElement, (errors) => this._redocCallback(errors));

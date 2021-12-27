@@ -26,11 +26,9 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.EnvironmentServiceImpl;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,7 +67,11 @@ public class EnvironmentService_FindByUserAndIdOrHridTest {
     public void shouldFindByUserFilteredByEnvId() throws TechnicalException {
         when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
 
-        List<EnvironmentEntity> environments = environmentService.findByUserAndIdOrHrid(null, "envId");
+        List<EnvironmentEntity> environments = environmentService.findByUserAndIdOrHrid(
+            GraviteeContext.getCurrentOrganization(),
+            null,
+            "envId"
+        );
 
         assertThat(environments).hasSize(1);
     }
@@ -78,7 +80,11 @@ public class EnvironmentService_FindByUserAndIdOrHridTest {
     public void shouldFindByUserFilteredByEnvHrid() throws TechnicalException {
         when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
 
-        List<EnvironmentEntity> environments = environmentService.findByUserAndIdOrHrid(null, "2env");
+        List<EnvironmentEntity> environments = environmentService.findByUserAndIdOrHrid(
+            GraviteeContext.getCurrentOrganization(),
+            null,
+            "2env"
+        );
 
         assertThat(environments).hasSize(1);
     }
@@ -87,7 +93,11 @@ public class EnvironmentService_FindByUserAndIdOrHridTest {
     public void shouldFindByUserFilteredByEnvHridAndId_noResult() throws TechnicalException {
         when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
 
-        List<EnvironmentEntity> environments = environmentService.findByUserAndIdOrHrid(null, "fake-env");
+        List<EnvironmentEntity> environments = environmentService.findByUserAndIdOrHrid(
+            GraviteeContext.getCurrentOrganization(),
+            null,
+            "fake-env"
+        );
 
         assertThat(environments).isEmpty();
     }

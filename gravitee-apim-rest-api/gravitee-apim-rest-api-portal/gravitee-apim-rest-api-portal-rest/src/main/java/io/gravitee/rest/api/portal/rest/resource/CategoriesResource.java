@@ -23,6 +23,7 @@ import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class CategoriesResource extends AbstractResource {
         Map<String, Long> countByCategory = apiService.countPublishedByUserGroupedByCategories(getAuthenticatedUserOrNull());
 
         List<Category> categoriesList = categoryService
-            .findAll()
+            .findAll(GraviteeContext.getCurrentEnvironment())
             .stream()
             .filter(c -> !c.isHidden())
             .sorted(Comparator.comparingInt(CategoryEntity::getOrder))

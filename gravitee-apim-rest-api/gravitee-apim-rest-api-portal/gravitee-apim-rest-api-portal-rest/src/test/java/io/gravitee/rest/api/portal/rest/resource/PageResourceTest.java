@@ -17,8 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -28,6 +27,7 @@ import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +84,7 @@ public class PageResourceTest extends AbstractResourceTest {
         doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
         doReturn(true).when(accessControlService).canAccessApiFromPortal(anyString());
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(any());
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
     }
 
     @Test
@@ -128,7 +128,7 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetPageBecauseOfGroupService() {
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
 
         Response response = target(PUBLISHED_PAGE).request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
@@ -173,7 +173,7 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetPageContentBecauseOfGroupService() {
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
 
         Response response = target(PUBLISHED_PAGE).path("content").request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());

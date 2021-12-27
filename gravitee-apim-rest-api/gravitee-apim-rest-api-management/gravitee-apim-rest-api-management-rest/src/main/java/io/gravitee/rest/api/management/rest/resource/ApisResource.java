@@ -139,7 +139,7 @@ public class ApisResource extends AbstractResource {
         apiQuery.setTag(apisParam.getTag());
         apiQuery.setState(apisParam.getState());
         if (apisParam.getCategory() != null) {
-            apiQuery.setCategory(categoryService.findById(apisParam.getCategory()).getId());
+            apiQuery.setCategory(categoryService.findById(apisParam.getCategory(), GraviteeContext.getCurrentEnvironment()).getId());
         }
 
         Sortable sortable = null;

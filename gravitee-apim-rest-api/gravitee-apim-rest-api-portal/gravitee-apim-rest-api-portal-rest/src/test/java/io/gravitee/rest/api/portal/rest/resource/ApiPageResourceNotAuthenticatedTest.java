@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
@@ -121,7 +122,9 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     @Test
     public void shouldHaveMetadataCleared() {
         doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(API), any(PageEntity.class));
+        doReturn(true)
+            .when(accessControlService)
+            .canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), eq(API), any(PageEntity.class));
 
         Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());

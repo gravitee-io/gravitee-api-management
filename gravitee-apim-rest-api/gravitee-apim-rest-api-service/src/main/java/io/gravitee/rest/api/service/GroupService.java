@@ -27,21 +27,21 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface GroupService {
-    GroupEntity create(NewGroupEntity group);
-    void delete(String groupId);
-    void deleteUserFromGroup(String groupId, String username);
-    List<GroupEntity> findAll();
+    GroupEntity create(final String environmentId, NewGroupEntity group);
+    void delete(final String environmentId, String groupId);
+    void deleteUserFromGroup(final String environmentId, String groupId, String username);
+    List<GroupEntity> findAll(final String environmentId);
     List<GroupSimpleEntity> findAllByOrganization(String organizationId);
-    GroupEntity findById(String groupId);
+    GroupEntity findById(final String environmentId, String groupId);
     Set<GroupEntity> findByIds(Set<String> groupIds);
     void associate(String groupId, String associationType);
-    Set<GroupEntity> findByEvent(GroupEvent event);
-    List<GroupEntity> findByName(String name);
+    Set<GroupEntity> findByEvent(final String environmentId, GroupEvent event);
+    List<GroupEntity> findByName(final String environmentId, String name);
     Set<GroupEntity> findByUser(String username);
-    List<ApiEntity> getApis(String groupId);
+    List<ApiEntity> getApis(final String environmentId, String groupId);
     List<ApplicationEntity> getApplications(String groupId);
     int getNumberOfMembers(String groupId);
     boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username);
-    GroupEntity update(String groupId, UpdateGroupEntity group);
+    GroupEntity update(final String environmentId, String groupId, UpdateGroupEntity group);
     void updateApiPrimaryOwner(String groupId, String newApiPrimaryOwner);
 }

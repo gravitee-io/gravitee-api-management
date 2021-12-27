@@ -109,7 +109,8 @@ public class ApiService_FindByIdTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);
-        when(membershipService.getPrimaryOwner(MembershipReferenceType.API, API_ID)).thenReturn(po);
+        when(membershipService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), MembershipReferenceType.API, API_ID))
+            .thenReturn(po);
         when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
 
         final ApiEntity apiEntity = apiService.findById(API_ID);

@@ -66,12 +66,12 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
 
     @Override
     public UserMetadataEntity create(NewUserMetadataEntity metadata) {
-        return convert(create(metadata, USER, metadata.getUserId(), false), metadata.getUserId());
+        return convert(create(metadata, USER, metadata.getUserId(), false, GraviteeContext.getCurrentEnvironment()), metadata.getUserId());
     }
 
     @Override
     public UserMetadataEntity update(UpdateUserMetadataEntity metadata) {
-        return convert(update(metadata, USER, metadata.getUserId(), false), metadata.getUserId());
+        return convert(update(metadata, USER, metadata.getUserId(), false, GraviteeContext.getCurrentEnvironment()), metadata.getUserId());
     }
 
     @Override
@@ -132,7 +132,8 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
         MetadataFormat format,
         String value,
         MetadataReferenceType referenceType,
-        String referenceId
+        String referenceId,
+        final String environmentId
     ) {
         // do nothing for User, currently on String is used without templating
     }

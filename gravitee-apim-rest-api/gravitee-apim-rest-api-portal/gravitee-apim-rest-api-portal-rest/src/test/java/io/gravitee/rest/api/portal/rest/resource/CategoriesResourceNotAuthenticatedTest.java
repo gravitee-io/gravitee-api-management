@@ -24,6 +24,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
@@ -106,7 +107,7 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
         category3.setOrder(1);
 
         List<CategoryEntity> mockCategories = Arrays.asList(category1, category2, category3);
-        doReturn(mockCategories).when(categoryService).findAll();
+        doReturn(mockCategories).when(categoryService).findAll(GraviteeContext.getCurrentEnvironment());
 
         doReturn(Map.of(category1.getId(), 1L, category2.getId(), 1L, category3.getId(), 1L))
             .when(apiService)

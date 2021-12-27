@@ -48,12 +48,9 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     private static final String WSS_SCHEME = "wss";
     private static final String GRPCS_SCHEME = "grpcs";
 
-    private final ProxyOptions systemProxyOptions;
-
     public HttpEndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment)
         throws Exception {
         super(vertx, rule, templateEngine, environment);
-        this.systemProxyOptions = rule.getSystemProxyOptions();
     }
 
     @Override

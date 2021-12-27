@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import java.util.Date;
 import javax.inject.Inject;
@@ -72,7 +73,10 @@ public class ApplicationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
-        Application application = applicationMapper.convert(applicationService.findById(applicationId), uriInfo);
+        Application application = applicationMapper.convert(
+            applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId),
+            uriInfo
+        );
 
         return Response.ok(addApplicationLinks(application)).build();
     }
@@ -82,7 +86,7 @@ public class ApplicationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationType(@PathParam("applicationId") String applicationId) {
-        ApplicationEntity applicationEntity = applicationService.findById(applicationId);
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
         ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
         return Response.ok(applicationType).build();
     }
@@ -99,7 +103,7 @@ public class ApplicationResource extends AbstractResource {
             throw new BadRequestException("'applicationId' is not the same that the application in payload");
         }
 
-        ApplicationEntity appEntity = applicationService.findById(applicationId);
+        ApplicationEntity appEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setDescription(application.getDescription());
@@ -127,7 +131,15 @@ public class ApplicationResource extends AbstractResource {
             updateApplicationEntity.setSettings(settings);
         }
 
-        Application updatedApp = applicationMapper.convert(applicationService.update(applicationId, updateApplicationEntity), uriInfo);
+        Application updatedApp = applicationMapper.convert(
+            applicationService.update(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                applicationId,
+                updateApplicationEntity
+            ),
+            uriInfo
+        );
         return Response
             .ok(addApplicationLinks(updatedApp))
             .tag(Long.toString(updatedApp.getUpdatedAt().toInstant().toEpochMilli()))
@@ -140,8 +152,8 @@ public class ApplicationResource extends AbstractResource {
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getPictureByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
-        applicationService.findById(applicationId);
-        InlinePictureEntity image = applicationService.getPicture(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        InlinePictureEntity image = applicationService.getPicture(GraviteeContext.getCurrentEnvironment(), applicationId);
         return createPictureResponse(request, image);
     }
 
@@ -150,8 +162,8 @@ public class ApplicationResource extends AbstractResource {
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getBackgroundByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
-        applicationService.findById(applicationId);
-        InlinePictureEntity image = applicationService.getBackground(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        InlinePictureEntity image = applicationService.getBackground(GraviteeContext.getCurrentEnvironment(), applicationId);
         return createPictureResponse(request, image);
     }
 
@@ -161,7 +173,14 @@ public class ApplicationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response renewApplicationSecret(@PathParam("applicationId") String applicationId) {
-        Application renwedApplication = applicationMapper.convert(applicationService.renewClientSecret(applicationId), uriInfo);
+        Application renwedApplication = applicationMapper.convert(
+            applicationService.renewClientSecret(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                applicationId
+            ),
+            uriInfo
+        );
 
         return Response.ok(addApplicationLinks(renwedApplication)).build();
     }

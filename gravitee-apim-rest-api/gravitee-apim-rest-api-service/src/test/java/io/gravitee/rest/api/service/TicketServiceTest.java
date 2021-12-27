@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -178,7 +179,7 @@ public class TicketServiceTest {
         when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
         when(user.getLastname()).thenReturn(USER_LASTNAME);
         when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
-        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
 
         when(ticketRepository.create(any())).thenThrow(new TechnicalException());
 
@@ -203,7 +204,7 @@ public class TicketServiceTest {
         when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
         when(user.getLastname()).thenReturn(USER_LASTNAME);
         when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
-        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
 
         Ticket ticketToCreate = new Ticket();
         ticketToCreate.setId("generatedId");
@@ -280,7 +281,7 @@ public class TicketServiceTest {
         when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class)))
             .thenReturn(new Page<>(ticketList, 0, 20, 20));
         when(apiService.findById(API_ID)).thenReturn(apiEntity);
-        when(applicationService.findById(APPLICATION_ID)).thenReturn(appEntity);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(appEntity);
 
         TicketQuery query = new TicketQuery();
         query.setFromUser("fromUser");
@@ -341,7 +342,7 @@ public class TicketServiceTest {
 
         when(ticketRepository.findById("ticket1")).thenReturn(Optional.of(ticket));
         when(apiService.findById(API_ID)).thenReturn(apiEntity);
-        when(applicationService.findById(APPLICATION_ID)).thenReturn(appEntity);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(appEntity);
 
         TicketEntity ticketEntity = ticketService.findById("ticket1");
 

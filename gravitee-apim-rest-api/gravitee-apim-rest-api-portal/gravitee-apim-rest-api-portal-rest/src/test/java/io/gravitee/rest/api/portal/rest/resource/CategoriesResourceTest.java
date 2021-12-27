@@ -27,6 +27,7 @@ import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -74,7 +75,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
         existingCategories = Arrays.asList(category1, category2, category3);
 
-        doReturn(existingCategories).when(categoryService).findAll();
+        doReturn(existingCategories).when(categoryService).findAll(GraviteeContext.getCurrentEnvironment());
 
         Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
     }
@@ -106,7 +107,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
-        doReturn(new ArrayList<>()).when(categoryService).findAll();
+        doReturn(new ArrayList<>()).when(categoryService).findAll(GraviteeContext.getCurrentEnvironment());
 
         //Test with default limit
         final Response response = target().request().get();

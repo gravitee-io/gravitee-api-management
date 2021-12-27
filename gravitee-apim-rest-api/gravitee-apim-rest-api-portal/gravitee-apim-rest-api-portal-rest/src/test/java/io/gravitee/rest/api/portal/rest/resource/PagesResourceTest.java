@@ -66,10 +66,10 @@ public class PagesResourceTest extends AbstractResourceTest {
             .when(pageService)
             .search(any(), isNull(), eq(GraviteeContext.getCurrentEnvironment()));
 
-        when(accessControlService.canAccessPageFromPortal(any(PageEntity.class)))
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any(PageEntity.class)))
             .thenAnswer(
                 invocationOnMock -> {
-                    PageEntity page = invocationOnMock.getArgument(0);
+                    PageEntity page = invocationOnMock.getArgument(1);
                     return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
                 }
             );

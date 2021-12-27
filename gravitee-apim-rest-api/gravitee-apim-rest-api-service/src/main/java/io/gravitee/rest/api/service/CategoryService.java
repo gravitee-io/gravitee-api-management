@@ -30,16 +30,16 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface CategoryService {
-    List<CategoryEntity> findAll();
-    CategoryEntity findById(String id);
-    CategoryEntity findNotHiddenById(String id);
-    CategoryEntity create(NewCategoryEntity category);
+    List<CategoryEntity> findAll(final String environmentId);
+    CategoryEntity findById(String id, final String environment);
+    CategoryEntity findNotHiddenById(String id, final String environmentId);
+    CategoryEntity create(final String environmentId, NewCategoryEntity category);
     CategoryEntity update(String categoryId, UpdateCategoryEntity category);
     List<CategoryEntity> update(List<UpdateCategoryEntity> categories);
     void delete(String categoryId);
     long getTotalApisByCategory(Set<ApiEntity> apis, CategoryEntity category);
     long getTotalApisByCategoryId(Set<Api> apis, String categoryId);
-    InlinePictureEntity getPicture(String categoryId);
-    InlinePictureEntity getBackground(String categoryId);
+    InlinePictureEntity getPicture(final String environmentId, String categoryId);
+    InlinePictureEntity getBackground(final String environmentId, String categoryId);
     List<CategoryEntity> findByPage(String pageId);
 }

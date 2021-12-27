@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -108,7 +109,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
             apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
 
-            UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
+            UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode, environmentId);
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, jsonNode);
             createPageAndMedia(createdApiEntity, jsonNode, environmentId);
             updateApiReferences(createdApiEntity, jsonNode, organizationId, environmentId, false);
@@ -170,6 +171,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         String roleId = membership.getRoleId();
                         if (!primaryOwnerRoleId.equals(roleId)) {
                             membershipService.addRoleToMemberOnReference(
+                                organizationId,
+                                environmentId,
                                 io.gravitee.rest.api.model.MembershipReferenceType.API,
                                 duplicatedApi.getId(),
                                 membership.getMemberType(),
@@ -237,7 +240,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
             }
 
-            UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
+            UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode, environmentId);
             ApiEntity updatedApiEntity = apiService.update(apiId, importedApi, false);
             updateApiReferences(updatedApiEntity, jsonNode, organizationId, environmentId, true);
             return updatedApiEntity;
@@ -247,7 +250,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private UpdateApiEntity convertToEntity(String apiDefinition, JsonNode jsonNode) throws JsonProcessingException {
+    private UpdateApiEntity convertToEntity(String apiDefinition, JsonNode jsonNode, final String environmentId)
+        throws JsonProcessingException {
         final UpdateApiEntity importedApi = objectMapper
             // because definition could contains other values than the api itself (pages, members)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -266,12 +270,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             Set<String> groupNames = new HashSet<>(importedApi.getGroups());
             importedApi.getGroups().clear();
             for (String name : groupNames) {
-                List<GroupEntity> groupEntities = groupService.findByName(name);
+                List<GroupEntity> groupEntities = groupService.findByName(environmentId, name);
                 GroupEntity group;
                 if (groupEntities.isEmpty()) {
                     NewGroupEntity newGroupEntity = new NewGroupEntity();
                     newGroupEntity.setName(name);
-                    group = groupService.create(newGroupEntity);
+                    group = groupService.create(environmentId, newGroupEntity);
                 } else {
                     group = groupEntities.get(0);
                 }
@@ -441,6 +445,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                                 role -> {
                                     try {
                                         membershipService.addRoleToMemberOnReference(
+                                            organizationId,
+                                            environmentId,
                                             MembershipReferenceType.API,
                                             createdOrUpdatedApiEntity.getId(),
                                             MembershipMemberType.USER,
@@ -487,6 +493,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(Collectors.toList());
                         }
                         membershipService.transferApiOwnership(
+                            organizationId,
+                            environmentId,
                             createdOrUpdatedApiEntity.getId(),
                             new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
                             roleEntity

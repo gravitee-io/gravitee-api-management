@@ -79,7 +79,7 @@ public class CategoriesResource extends AbstractCategoryResource {
         );
 
         return categoryService
-            .findAll()
+            .findAll(GraviteeContext.getCurrentEnvironment())
             .stream()
             .filter(c -> All || !c.isHidden())
             .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
@@ -100,7 +100,7 @@ public class CategoriesResource extends AbstractCategoryResource {
     @ApiOperation(value = "Create a category", notes = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE) })
     public CategoryEntity createCategory(@Valid @NotNull final NewCategoryEntity category) {
-        return categoryService.create(category);
+        return categoryService.create(GraviteeContext.getCurrentEnvironment(), category);
     }
 
     @PUT

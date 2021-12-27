@@ -32,6 +32,7 @@ import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.LogsService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class ApplicationLogsResource extends AbstractResource {
         @BeanParam LogsParam logsParam
     ) {
         //Does application exists ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
 
@@ -113,7 +114,7 @@ public class ApplicationLogsResource extends AbstractResource {
         @QueryParam("timestamp") Long timestamp
     ) {
         //Does application exists ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
 
         ApplicationRequest applicationLogs = logsService.findApplicationLog(logId, timestamp);
 
@@ -129,7 +130,7 @@ public class ApplicationLogsResource extends AbstractResource {
         @BeanParam LogsParam logsParam
     ) {
         //Does application exists ?
-        applicationService.findById(applicationId);
+        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
         return Response
             .ok(logsService.exportAsCsv(searchLogResponse))
