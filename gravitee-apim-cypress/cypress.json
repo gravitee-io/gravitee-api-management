@@ -15,6 +15,7 @@
     "low_permission_user_password": "password",
     "admin_user_login": "admin",
     "admin_user_password": "admin",
+    "managementOrganizationApi": "/management/organizations/DEFAULT",
     "managementApi": "/management/organizations/DEFAULT/environments/DEFAULT",
     "managementUI": "http://localhost:8084",
     "gatewayServer": "http://localhost:8082",

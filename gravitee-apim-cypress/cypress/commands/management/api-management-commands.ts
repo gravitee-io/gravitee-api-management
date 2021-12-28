@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Api, ApiErrorCodes, ApiLifecycleState, PortalApi } from 'model/apis';
-import { BasicAuthentication } from 'model/users';
+import { Api, ApiErrorCodes, ApiLifecycleState, ApiMember, PortalApi } from '@model/apis';
+import { ApiImport } from '@model/api-imports';
+import { User, BasicAuthentication } from '@model/users';
+import { ErrorableManagement } from '@model/technical';
 
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({
@@ -79,5 +81,77 @@ export function stopApi(auth: BasicAuthentication, apiId: string, failOnStatusCo
     url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}?action=STOP`,
     auth,
     failOnStatusCode,
+  });
+}
+
+export function importCreateApi(auth: BasicAuthentication, body: ApiImport) {
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/import`,
+    body,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
+export function importUpdateApi(auth: BasicAuthentication, apiId: string, body: ApiImport) {
+  return cy.request({
+    method: 'PUT',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/import`,
+    body,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
+export function exportApi(auth: BasicAuthentication, apiId: string) {
+  return cy.request({
+    method: 'GET',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/export`,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
+export function getApiById(auth: BasicAuthentication, apiId: string) {
+  return cy.request({
+    method: 'GET',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}`,
+    auth,
+    failOnStatusCode: false,
+    qs: {
+      root: true,
+    },
+  });
+}
+
+export function getApiMetadata(auth: BasicAuthentication, apiId: string) {
+  return cy.request({
+    method: 'GET',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/metadata`,
+    auth,
+    failOnStatusCode: false,
+    qs: {
+      root: true,
+    },
+  });
+}
+
+export function addMemberToApi(auth: BasicAuthentication, apiId: string, body: ApiMember) {
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/members`,
+    body,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
+export function getApiMembers(auth: BasicAuthentication, apiId: string) {
+  return cy.request({
+    method: 'GET',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/members`,
+    auth,
+    failOnStatusCode: false,
   });
 }
