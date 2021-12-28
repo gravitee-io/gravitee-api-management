@@ -5,6 +5,7 @@ gravitee-**/target/
 *.iml
 .DS_Store
 .*.settings.xml
+gravitee.*.log.*/*.log
 
 # eclipse
 .settings/
