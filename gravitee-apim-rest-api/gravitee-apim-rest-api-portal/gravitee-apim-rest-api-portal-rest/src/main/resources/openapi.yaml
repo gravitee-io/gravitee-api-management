@@ -3790,6 +3790,9 @@ components:
           type: boolean
         type:
           $ref: '#/components/schemas/AlertType'
+        description:
+          description: Alert description
+          type: string
         status_code:
           description: Http status code to trigger the alert
           type: string
@@ -4480,6 +4483,10 @@ components:
       properties:
         type:
           $ref: '#/components/schemas/AlertType'
+        description:
+          description: Alert description
+          type: string
+          maxLength: 256
         status_code:
           description: Http status code to trigger the alert
           type: string

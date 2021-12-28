@@ -57,11 +57,13 @@ public class AlertMapperTest {
         alertInput.setDuration(10);
         alertInput.setTimeUnit(AlertTimeUnit.MINUTES);
         alertInput.setType(AlertType.STATUS);
+        alertInput.setDescription("Description");
 
         final NewAlertTriggerEntity actual = alertMapper.convert(alertInput);
 
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
         assertThat(actual.getType()).isEqualTo(AlertMapper.STATUS_ALERT);
+        assertThat(actual.getDescription()).isEqualTo("Description");
 
         final RateCondition rateCondition = (RateCondition) actual.getConditions().get(0);
         assertThat(rateCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
@@ -83,11 +85,13 @@ public class AlertMapperTest {
         alertInput.setDuration(10);
         alertInput.setTimeUnit(AlertTimeUnit.MINUTES);
         alertInput.setType(AlertType.STATUS);
+        alertInput.setDescription("Description");
 
         final NewAlertTriggerEntity actual = alertMapper.convert(alertInput);
 
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
         assertThat(actual.getType()).isEqualTo(AlertMapper.STATUS_ALERT);
+        assertThat(actual.getDescription()).isEqualTo("Description");
 
         final RateCondition rateCondition = (RateCondition) actual.getConditions().get(0);
         assertThat(rateCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
@@ -108,11 +112,13 @@ public class AlertMapperTest {
         alertInput.setDuration(10);
         alertInput.setTimeUnit(AlertTimeUnit.MINUTES);
         alertInput.setType(AlertType.RESPONSE_TIME);
+        alertInput.setDescription("Description");
 
         final NewAlertTriggerEntity actual = alertMapper.convert(alertInput);
 
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
         assertThat(actual.getType()).isEqualTo(AlertMapper.RESPONSE_TIME_ALERT);
+        assertThat(actual.getDescription()).isEqualTo("Description");
 
         final AggregationCondition aggregationCondition = (AggregationCondition) actual.getConditions().get(0);
         assertThat(aggregationCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
@@ -129,10 +135,12 @@ public class AlertMapperTest {
         alertInput.setDuration(10);
         alertInput.setTimeUnit(AlertTimeUnit.MINUTES);
         alertInput.setType(AlertType.STATUS);
+        alertInput.setDescription("Description");
 
         final UpdateAlertTriggerEntity actual = alertMapper.convertToUpdate(alertInput);
 
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
+        assertThat(actual.getDescription()).isEqualTo("Description");
 
         final RateCondition rateCondition = (RateCondition) actual.getConditions().get(0);
         assertThat(rateCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
@@ -154,10 +162,12 @@ public class AlertMapperTest {
         alertInput.setDuration(10);
         alertInput.setTimeUnit(AlertTimeUnit.MINUTES);
         alertInput.setType(AlertType.STATUS);
+        alertInput.setDescription("Description");
 
         final UpdateAlertTriggerEntity actual = alertMapper.convertToUpdate(alertInput);
 
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
+        assertThat(actual.getDescription()).isEqualTo("Description");
 
         final RateCondition rateCondition = (RateCondition) actual.getConditions().get(0);
         assertThat(rateCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
@@ -178,10 +188,12 @@ public class AlertMapperTest {
         alertInput.setDuration(10);
         alertInput.setTimeUnit(AlertTimeUnit.MINUTES);
         alertInput.setType(AlertType.RESPONSE_TIME);
+        alertInput.setDescription("Description");
 
         final UpdateAlertTriggerEntity actual = alertMapper.convertToUpdate(alertInput);
 
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
+        assertThat(actual.getDescription()).isEqualTo("Description");
 
         final AggregationCondition aggregationCondition = (AggregationCondition) actual.getConditions().get(0);
         assertThat(aggregationCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
@@ -193,6 +205,7 @@ public class AlertMapperTest {
     public void convertAlertTriggerEntityToAlertStatus200() {
         AlertTriggerEntity alertTriggerEntity = mock(AlertTriggerEntity.class);
         when(alertTriggerEntity.getType()).thenReturn(AlertMapper.STATUS_ALERT);
+        when(alertTriggerEntity.getDescription()).thenReturn("Description");
 
         final RateCondition rateCondition = mock(RateCondition.class);
         when(alertTriggerEntity.getConditions()).thenReturn(Collections.singletonList(rateCondition));
@@ -212,12 +225,14 @@ public class AlertMapperTest {
         assertThat(actual.getStatusPercent()).isEqualTo(20);
         assertThat(actual.getDuration()).isEqualTo(10);
         assertThat(actual.getTimeUnit()).isEqualTo(AlertTimeUnit.MINUTES);
+        assertThat(actual.getDescription()).isEqualTo("Description");
     }
 
     @Test
     public void convertAlertTriggerEntityToAlertStatus2xx() {
         AlertTriggerEntity alertTriggerEntity = mock(AlertTriggerEntity.class);
         when(alertTriggerEntity.getType()).thenReturn(AlertMapper.STATUS_ALERT);
+        when(alertTriggerEntity.getDescription()).thenReturn("Description");
 
         final RateCondition rateCondition = mock(RateCondition.class);
         when(alertTriggerEntity.getConditions()).thenReturn(Collections.singletonList(rateCondition));
@@ -237,12 +252,14 @@ public class AlertMapperTest {
         assertThat(actual.getStatusPercent()).isEqualTo(20);
         assertThat(actual.getDuration()).isEqualTo(10);
         assertThat(actual.getTimeUnit()).isEqualTo(AlertTimeUnit.MINUTES);
+        assertThat(actual.getDescription()).isEqualTo("Description");
     }
 
     @Test
     public void convertAlertTriggerEntityToAlertResponseTime() {
         AlertTriggerEntity alertTriggerEntity = mock(AlertTriggerEntity.class);
         when(alertTriggerEntity.getType()).thenReturn(AlertMapper.RESPONSE_TIME_ALERT);
+        when(alertTriggerEntity.getDescription()).thenReturn("Description");
 
         final AggregationCondition aggregationCondition = mock(AggregationCondition.class);
         when(alertTriggerEntity.getConditions()).thenReturn(Collections.singletonList(aggregationCondition));
@@ -256,5 +273,6 @@ public class AlertMapperTest {
         assertThat(actual.getResponseTime()).isEqualTo(200);
         assertThat(actual.getDuration()).isEqualTo(10);
         assertThat(actual.getTimeUnit()).isEqualTo(AlertTimeUnit.MINUTES);
+        assertThat(actual.getDescription()).isEqualTo("Description");
     }
 }
