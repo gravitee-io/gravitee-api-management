@@ -47,6 +47,7 @@ public class AlertMapper {
         final NewAlertTriggerEntity newAlert = new NewAlertTriggerEntity();
         newAlert.setEnabled(alertInput.getEnabled());
         newAlert.setConditions(convertConditions(alertInput));
+        newAlert.setDescription(alertInput.getDescription());
 
         switch (Objects.requireNonNull(alertInput.getType())) {
             case STATUS:
@@ -64,6 +65,7 @@ public class AlertMapper {
         final UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
         updating.setEnabled(alertInput.getEnabled());
         updating.setConditions(convertConditions(alertInput));
+        updating.setDescription(alertInput.getDescription());
 
         return updating;
     }
@@ -72,6 +74,7 @@ public class AlertMapper {
         final Alert alert = new Alert();
         alert.setId(alertTriggerEntity.getId());
         alert.setEnabled(alertTriggerEntity.isEnabled());
+        alert.setDescription(alertTriggerEntity.getDescription());
         if (RESPONSE_TIME_ALERT.equals(alertTriggerEntity.getType())) {
             alert.setType(AlertType.RESPONSE_TIME);
             final AggregationCondition condition = (AggregationCondition) alertTriggerEntity.getConditions().get(0);
