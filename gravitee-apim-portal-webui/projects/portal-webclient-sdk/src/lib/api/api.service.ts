@@ -274,7 +274,7 @@ export class ApiService {
 
     /**
      * Create a rating for an API
-     * Create a rating for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING[CREATE] permission to create a rating. 
+     * Create a rating for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING[CREATE] permission to create a rating.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -343,7 +343,7 @@ export class ApiService {
 
     /**
      * Create an answer to rating
-     * Create an answer to rating of API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING_ANSWER[CREATE] permission to create an answer. 
+     * Create an answer to rating of API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING_ANSWER[CREATE] permission to create an answer.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -416,7 +416,7 @@ export class ApiService {
 
     /**
      * Delete a rating for an API
-     * Delete a rating for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING[DELETE] permission to delete a rating. 
+     * Delete a rating for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING[DELETE] permission to delete a rating.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -478,7 +478,7 @@ export class ApiService {
 
     /**
      * Delete an answer rating for an API
-     * Delete an answer rating for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING_ANSWER[DELETE] permission to delete a rating. 
+     * Delete an answer rating for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING_ANSWER[DELETE] permission to delete a rating.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -544,7 +544,7 @@ export class ApiService {
 
     /**
      * Get the API definition
-     * Get the detail of an API.  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * Get the detail of an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -601,7 +601,7 @@ export class ApiService {
 
     /**
      * Get the API links from Aside SYSTEM_FOLDER.
-     * Get all the links (internal and external) to be displayed in the detail of the API. 
+     * Get all the links (internal and external) to be displayed in the detail of the API.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -648,7 +648,7 @@ export class ApiService {
 
     /**
      * Get the api media.
-     * Get api media. 
+     * Get api media.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -695,7 +695,7 @@ export class ApiService {
 
     /**
      * Get API metrics
-     * Get some metrics about an API :   * number of subscribers   * number of hits during the last 7 days   * health ratio over the last week  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * Get some metrics about an API :   * number of subscribers   * number of hits during the last 7 days   * health ratio over the last week  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -742,7 +742,7 @@ export class ApiService {
 
     /**
      * List plans for an API
-     * List plans for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * List plans for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -802,7 +802,7 @@ export class ApiService {
 
     /**
      * List ratings for an API
-     * List ratings for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * List ratings for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -872,7 +872,7 @@ export class ApiService {
 
     /**
      * List APIs
-     * List public APIs for anonymous requests. List all the APIs the current user is allowed to category for authenticated requests.  The list can be filtered according to query parameters.  By default the list is sorted by alphabetic order. If a **cat** query param is sent, a specific sorting can be applied. Please refer to **cat** description for detail. 
+     * List public APIs for anonymous requests. List all the APIs the current user is allowed to category for authenticated requests.  The list can be filtered according to query parameters.  By default the list is sorted by alphabetic order. If a **cat** query param is sent, a specific sorting can be applied. Please refer to **cat** description for detail.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -968,7 +968,7 @@ export class ApiService {
 
     /**
      * Get the API\&#39;s background
-     * Get the API\&#39;s background.  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * Get the API\&#39;s background.  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1011,7 +1011,7 @@ export class ApiService {
 
     /**
      * Get an API page
-     * Get an API page.  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * Get an API page.  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1072,7 +1072,7 @@ export class ApiService {
 
     /**
      * Get the content of an API page.
-     * Get the content of a specific API documentation page.  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * Get the content of a specific API documentation page.  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1124,7 +1124,7 @@ export class ApiService {
 
     /**
      * List API pages
-     * List all documentation pages of an API.  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * List all documentation pages of an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1194,7 +1194,7 @@ export class ApiService {
 
     /**
      * Get the API\&#39;s picture
-     * Get the API\&#39;s picture.  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * Get the API\&#39;s picture.  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1237,7 +1237,7 @@ export class ApiService {
 
     /**
      * List applications that subscribred to an API
-     * If the current user is the owner of the API, all connected applications will be returned. Filtered by status. Ordered by number of hits. Else only applications that current is allowed to access will.  This API has to be accessible by the current user, otherwise a 404 will be returned. 
+     * If the current user is the owner of the API, all connected applications will be returned. Filtered by status. Ordered by number of hits. Else only applications that current is allowed to access will.  This API has to be accessible by the current user, otherwise a 404 will be returned.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1304,7 +1304,7 @@ export class ApiService {
 
     /**
      * List Categories
-     * For anonymous requests, list all categories of public APIs. For authenticated requests, list all categories of all the APIs the current user can access.  The list is sorted by alphabetic order. 
+     * For anonymous requests, list all categories of public APIs. For authenticated requests, list all categories of all the APIs the current user can access.  The list is sorted by alphabetic order.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1355,7 +1355,7 @@ export class ApiService {
 
     /**
      * Search APIs with a query
-     * Same as &#x60;/apis&#x60; but with a search query as a parameter. Search for API using the search engine. Supports pagination. 
+     * Same as &#x60;/apis&#x60; but with a search query as a parameter. Search for API using the search engine. Supports pagination.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1420,7 +1420,7 @@ export class ApiService {
 
     /**
      * Update a rating for an API
-     * Update a rating for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING[CREATE] permission to update a rating. 
+     * Update a rating for an API.  This API has to be accessible by the current user, otherwise a 404 will be returned.  The current must have API_RATING[CREATE] permission to update a rating.
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

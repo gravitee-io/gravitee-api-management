@@ -12,7 +12,7 @@ import { AlertType } from './alertType';
 import { AlertTimeUnit } from './alertTimeUnit';
 
 
-export interface Alert { 
+export interface Alert {
     /**
      * Unique identifier of an alert.
      */
