@@ -44,6 +44,14 @@
   width: 90px;
 }
 
+.gv-alert__description-text {
+  white-space: pre-line;
+}
+
+.gv-alert__description-input {
+  margin: 0;
+}
+
 .gv-alert__phrase {
   display: contents;
 }

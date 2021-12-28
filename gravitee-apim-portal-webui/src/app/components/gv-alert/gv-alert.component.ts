@@ -33,7 +33,7 @@ import { HttpHelpers, HttpStatus } from '../../utils/http-helpers';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from '../../services/notification.service';
 
-enum AlertMode {
+export enum AlertMode {
   CREATION = 'CREATION',
   EDITION = 'EDITION',
   READING = 'READING',
@@ -183,6 +183,7 @@ export class GvAlertComponent implements OnInit {
           type: this.alertForm.controls.type.value,
           duration: this.alertForm.controls.duration.value,
           time_unit: this.alertForm.controls.timeUnit.value,
+          description: this.alertForm.controls.description.value,
         },
       })
       .toPromise()
@@ -216,6 +217,7 @@ export class GvAlertComponent implements OnInit {
       type: new FormControl(AlertType.STATUS, [Validators.required]),
       duration: new FormControl('1'),
       timeUnit: new FormControl(AlertTimeUnit.MINUTES, [Validators.required]),
+      description: new FormControl(''),
     });
   }
 
@@ -261,6 +263,7 @@ export class GvAlertComponent implements OnInit {
     this.alertForm = new FormGroup({
       duration: new FormControl(this.alert.duration),
       timeUnit: new FormControl(this.alert.time_unit.toUpperCase(), [Validators.required]),
+      description: new FormControl(this.alert.description),
       ...conditionalForm,
     });
   }
@@ -301,6 +304,7 @@ export class GvAlertComponent implements OnInit {
           type: this.alert.type,
           duration: this.alertForm.controls.duration.value,
           time_unit: this.alertForm.controls.timeUnit.value,
+          description: this.alertForm.controls.description.value,
         },
       })
       .toPromise()

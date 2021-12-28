@@ -104,6 +104,20 @@
           ngDefaultControl
         ></gv-select>
         <strong *ngIf="isReadingMode"> {{ timeUnitTranslated() }} </strong>
+        <div>
+          <span class="gv-alert__description-text" *ngIf="isReadingMode">{{ alert['description'] }}</span>
+          <gv-text
+            *ngIf="isCreationMode || isEditionMode"
+            ngDefaultControl
+            class="gv-alert__description-input"
+            formControlName="description"
+            name="description"
+            rows="3"
+            maxlength="256"
+            [label]="'application.alerts.add.description.label' | translate"
+            [placeholder]="'application.alerts.add.description.placeholder' | translate"
+          ></gv-text>
+        </div>
       </div>
       <div *ngIf="isReadingMode">
         <gv-button

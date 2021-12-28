@@ -113,6 +113,10 @@
         "reset": "Reset",
         "success": "Alert created",
         "title": "Add an alert",
+        "description": {
+          "placeholder": "Explain your alert...",
+          "label": "Description"
+        },
         "type": {
           "placeholder": "Select a type",
           "status": {
