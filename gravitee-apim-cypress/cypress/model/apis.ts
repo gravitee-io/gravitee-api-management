@@ -67,6 +67,30 @@ export interface PortalApi {
   categories: string[];
 }
 
+export enum ApiPlanType {
+  API = 'API',
+  CATALOG = 'CATALOG',
+}
+
+export enum ApiPlanSecurityType {
+  KEY_LESS = 'KEY_LESS',
+  API_KEY = 'API_KEY',
+  OAUTH2 = 'OAUTH2',
+  JWT = 'JWT',
+}
+
+export enum ApiPlanValidationType {
+  AUTO = 'AUTO',
+  MANUAL = 'MANUAL',
+}
+
+export enum ApiPlanStatus {
+  STAGING = 'STAGING',
+  PUBLISHED = 'PUBLISHED',
+  CLOSED = 'CLOSED',
+  DEPRECATED = 'DEPRECATED',
+}
+
 export enum ApiErrorCodes {
   API_NOT_FOUND = 'errors.api.notFound',
 }
@@ -89,6 +113,38 @@ export enum ApiWorkflowState {
 export enum ApiState {
   STOPPED = 'STOPPED',
   STARTED = 'STARTED',
+}
+
+export enum ApiFlowMode {
+  DEFAULT = 'DEFAULT',
+  BEST_MATCH = 'BEST_MATCH',
+}
+
+export enum ApiFlowOperator {
+  STARTS_WITH = 'STARTS_WITH',
+  EQUALS = 'EQUALS',
+}
+
+export enum ApiPageType {
+  ASCIIDOC = 'ASCIIDOC',
+  ASYNCAPI = 'ASYNCAPI',
+  MARKDOWN = 'MARKDOWN',
+  MARKDOWN_TEMPLATE = 'MARKDOWN_TEMPLATE',
+  SWAGGER = 'SWAGGER',
+  FOLDER = 'FOLDER',
+  LINK = 'LINK',
+  ROOT = 'ROOT',
+  SYSTEM_FOLDER = 'SYSTEM_FOLDER',
+  TRANSLATION = 'TRANSLATION',
+}
+
+export enum ApiMetadataFormat {
+  STRING = 'STRING',
+  NUMERIC = 'NUMERIC',
+  BOOLEAN = 'BOOLEAN',
+  DATE = 'DATE',
+  MAIL = 'MAIN',
+  URL = 'URL',
 }
 
 export interface ApiMember {
@@ -159,3 +215,8 @@ export enum PlanStatus {
 }
 
 export interface Subscription {}
+
+export enum ApiPrimaryOwnerType {
+  USER = 'USER',
+  GROUP = 'GROUP',
+}

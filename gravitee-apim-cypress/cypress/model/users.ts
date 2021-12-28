@@ -24,6 +24,15 @@ export interface User {
   id: string;
 }
 
+export interface ApiUser {
+  firstname: string;
+  lastname: string;
+  email: string;
+  source: string;
+  sourceId: string;
+  service: boolean;
+}
+
 export interface Task {
   type: TaskType;
   data: TaskQuality | object;

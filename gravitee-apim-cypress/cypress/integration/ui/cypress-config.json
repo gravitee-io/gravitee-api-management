@@ -1,24 +1,8 @@
 {
-  "projectId": "gravitee-apim-cypress-e2e",
-  "baseUrl": "http://localhost:8083",
+  "projectId": "gravitee-apim-cypress-ui",
+  "integrationFolder": "cypress/integration/ui",
   "video": true,
   "screenshotOnRunFailure": true,
-  "integrationFolder": "cypress/integration/ui",
-  "testFiles": "**/*.ts",
   "viewportWidth": 1920,
-  "viewportHeight": 1080,
-  "env": {
-    "failOnStatusCode": false,
-    "api_publisher_user_login": "api1",
-    "api_publisher_user_password": "api1",
-    "application_user_login": "application1",
-    "application_user_password": "application1",
-    "low_permission_user_login": "user",
-    "low_permission_user_password": "password",
-    "admin_user_login": "admin",
-    "admin_user_password": "admin",
-    "managementApi": "/management/organizations/DEFAULT/environments/DEFAULT",
-    "managementUI": "http://localhost:8084",
-    "portalApi": "/portal/environments/DEFAULT"
-  }
+  "viewportHeight": 1080
 }
