@@ -16,10 +16,11 @@
 package io.gravitee.gateway.services.sync.spring;
 
 import io.gravitee.gateway.services.sync.SyncManager;
+import io.gravitee.gateway.services.sync.cache.CacheManager;
 import io.gravitee.gateway.services.sync.cache.configuration.LocalCacheConfiguration;
 import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
 import io.gravitee.gateway.services.sync.synchronizer.*;
-import io.gravitee.node.api.cache.CacheManager;
+import io.gravitee.repository.management.model.Plan;
 import io.reactivex.annotations.NonNull;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -66,6 +67,11 @@ public class SyncConfiguration {
         threadPoolExecutor.allowCoreThreadTimeOut(true);
 
         return threadPoolExecutor;
+    }
+
+    @Bean
+    public CacheManager cacheManager() {
+        return new CacheManager();
     }
 
     @Bean

@@ -29,7 +29,6 @@ import io.gravitee.gateway.services.sync.cache.repository.SubscriptionRepository
 import io.gravitee.gateway.services.sync.cache.task.FullSubscriptionRefresher;
 import io.gravitee.gateway.services.sync.cache.task.IncrementalSubscriptionRefresher;
 import io.gravitee.gateway.services.sync.cache.task.Result;
-import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.vertx.ext.web.Router;
@@ -118,7 +117,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
         LOGGER.debug("Register subscription repository implementation {}", SubscriptionRepositoryWrapper.class.getName());
         beanFactory.registerSingleton(
             SubscriptionRepository.class.getName(),
-            new SubscriptionRepositoryWrapper(subscriptionRepository, cacheManager.getOrCreateCache(CACHE_NAME))
+            new SubscriptionRepositoryWrapper(subscriptionRepository, cacheManager.getCache(CACHE_NAME))
         );
 
         LOGGER.info("Associate a new HTTP handler on {}", PATH);
@@ -169,7 +168,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                                         chunks
                                     );
                                     refresher.setSubscriptionRepository(subscriptionRepository);
-                                    refresher.setCache(cacheManager.getOrCreateCache(CACHE_NAME));
+                                    refresher.setCache(cacheManager.getCache(CACHE_NAME));
 
                                     return refresher;
                                 }
@@ -288,7 +287,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
             if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
                 final FullSubscriptionRefresher refresher = new FullSubscriptionRefresher(planIds);
                 refresher.setSubscriptionRepository(subscriptionRepository);
-                refresher.setCache(cacheManager.getOrCreateCache(CACHE_NAME));
+                refresher.setCache(cacheManager.getCache(CACHE_NAME));
 
                 CompletableFuture
                     .supplyAsync(refresher::call, executorService)

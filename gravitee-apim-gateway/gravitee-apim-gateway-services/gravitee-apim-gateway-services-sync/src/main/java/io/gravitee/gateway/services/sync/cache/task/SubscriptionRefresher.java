@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.sync.cache.task;
 
 import static io.gravitee.repository.management.model.Subscription.Status.*;
 
-import io.gravitee.node.api.cache.Cache;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
@@ -36,7 +35,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
 
     private SubscriptionRepository subscriptionRepository;
 
-    private Cache<String, Object> cache;
+    private Map<String, Object> cache;
 
     protected Result<Boolean> doRefresh(SubscriptionCriteria criteria) {
         logger.debug("Refresh api-keys");
@@ -56,11 +55,11 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
         Object element = cache.get(subscription.getId());
 
         if ((CLOSED.equals(subscription.getStatus()) || PAUSED.equals(subscription.getStatus())) && element != null) {
-            cache.evict(subscription.getId());
+            cache.remove(subscription.getId());
             String oldKey = (String) element;
             Subscription eltSubscription = (Subscription) cache.get(oldKey);
             if (eltSubscription != null && eltSubscription.getId().equals(subscription.getId())) {
-                cache.evict(oldKey);
+                cache.remove(oldKey);
             }
         } else if (ACCEPTED.equals(subscription.getStatus())) {
             logger.debug(
@@ -83,7 +82,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
             if (element != null) {
                 final String oldKey = (String) element;
                 if (!oldKey.equals(key)) {
-                    cache.evict(oldKey);
+                    cache.remove(oldKey);
                 }
             }
         }
@@ -93,7 +92,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
         this.subscriptionRepository = subscriptionRepository;
     }
 
-    public void setCache(Cache<String, Object> cache) {
+    public void setCache(Map<String, Object> cache) {
         this.cache = cache;
     }
 }

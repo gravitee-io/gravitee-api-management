@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.heartbeat;
 
-import io.gravitee.node.api.message.Topic;
+import com.hazelcast.topic.ITopic;
 import io.gravitee.repository.management.model.Event;
 import java.util.Date;
 import org.slf4j.Logger;
@@ -29,10 +29,10 @@ public class HeartbeatThread implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatThread.class);
 
-    private final Topic<Event> topic;
+    private final ITopic<Event> topic;
     private final Event event;
 
-    HeartbeatThread(Topic<Event> topic, Event event) {
+    HeartbeatThread(ITopic<Event> topic, Event event) {
         this.topic = topic;
         this.event = event;
     }

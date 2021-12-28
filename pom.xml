@@ -233,12 +233,6 @@
 
             <dependency>
                 <groupId>io.gravitee.node</groupId>
-                <artifactId>gravitee-node-cache</artifactId>
-                <version>${gravitee-node.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.node</groupId>
                 <artifactId>gravitee-node-vertx</artifactId>
                 <version>${gravitee-node.version}</version>
             </dependency>
