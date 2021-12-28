@@ -628,15 +628,19 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     protected String preprocessApiDefinitionUpdatingIds(JsonNode apiJsonNode, String environmentId) {
         final JsonNode plansDefinition = apiJsonNode.path("plans");
         if (plansDefinition != null && plansDefinition.isArray()) {
-            plansDefinition.forEach(planJsonNode -> regenerateApiDefinitionPlanId(apiJsonNode, planJsonNode, environmentId));
+            plansDefinition.forEach(planJsonNode -> regenerateNestedId(apiJsonNode, planJsonNode, environmentId));
+        }
+        final JsonNode pagesDefinition = apiJsonNode.path("pages");
+        if (pagesDefinition != null && pagesDefinition.isArray()) {
+            pagesDefinition.forEach(pageJsonNode -> regenerateNestedId(apiJsonNode, pageJsonNode, environmentId));
         }
         return apiJsonNode.toString();
     }
 
-    private void regenerateApiDefinitionPlanId(JsonNode apiJsonNode, JsonNode planJsonNode, String environmentId) {
+    private void regenerateNestedId(JsonNode apiJsonNode, JsonNode nestedJsonNode, String environmentId) {
         String apiId = apiJsonNode.has("id") ? apiJsonNode.get("id").asText() : null;
-        String planId = planJsonNode.has("id") ? planJsonNode.get("id").asText() : null;
-        ((ObjectNode) planJsonNode).put("id", UuidString.generateForEnvironment(environmentId, apiId, planId));
+        String nestedId = nestedJsonNode.has("id") ? nestedJsonNode.get("id").asText() : null;
+        ((ObjectNode) nestedJsonNode).put("id", UuidString.generateForEnvironment(environmentId, apiId, nestedId));
     }
 
     private Stream<String> findRemovedPlansIds(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {

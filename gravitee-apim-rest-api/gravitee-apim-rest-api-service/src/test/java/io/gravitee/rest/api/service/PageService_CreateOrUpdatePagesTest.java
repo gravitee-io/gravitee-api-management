@@ -60,8 +60,10 @@ public class PageService_CreateOrUpdatePagesTest {
 
     @Test
     public void shouldCreateOrUpdatePages() throws TechnicalException {
+        String updatedPageId = UuidString.generateForEnvironment(ENVIRONMENT_ID, API_ID, UuidString.generateRandom());
+
         PageEntity page1 = new PageEntity();
-        page1.setId(UuidString.generateRandom());
+        page1.setId(updatedPageId);
         page1.setName("Page 1");
         page1.setType("SWAGGER");
         page1.setReferenceType("API");
@@ -78,16 +80,15 @@ public class PageService_CreateOrUpdatePagesTest {
         page3.setId(UuidString.generateRandom());
         page3.setName("Sub Page 3");
         page3.setType("ASCIIDOC");
-        page3.setParentId(page1.getId());
+        page3.setParentId(updatedPageId);
         page3.setReferenceType("API");
         page3.setReferenceId(API_ID);
 
         when(pageRepository.create(any(Page.class))).thenAnswer(returnsFirstArg());
         when(pageRepository.update(any(Page.class))).thenAnswer(returnsFirstArg());
 
-        String page1NewId = UuidString.generateForEnvironment(ENVIRONMENT_ID, API_ID, page1.getId());
         Page page = new Page();
-        page.setId(page1NewId);
+        page.setId(updatedPageId);
         page.setName(page1.getName());
         page.setType(page1.getType());
         page.setReferenceType(PageReferenceType.valueOf(page1.getReferenceType()));
@@ -95,8 +96,8 @@ public class PageService_CreateOrUpdatePagesTest {
         page.setVisibility("PUBLIC");
 
         // Simulate the fact that page 1 is already created
-        when(pageRepository.findById(page1NewId)).thenReturn(Optional.of(page));
-        when(pageRepository.findById(argThat(id -> !id.equals(page1NewId)))).thenThrow(new PageNotFoundException(""));
+        when(pageRepository.findById(updatedPageId)).thenReturn(Optional.of(page));
+        when(pageRepository.findById(argThat(id -> !id.equals(updatedPageId)))).thenThrow(new PageNotFoundException(""));
 
         when(planService.findByApi(anyString())).thenReturn(Collections.emptySet());
 
@@ -110,14 +111,14 @@ public class PageService_CreateOrUpdatePagesTest {
         assertThat(createdPages).extracting(Page::getName).containsExactly("Sub Page 3", "Page 2");
 
         // New parent id of page 3 must be new id of page 1
-        assertThat(createdPages.get(0)).extracting(Page::getParentId).isEqualTo(page1NewId);
+        assertThat(createdPages.get(0)).extracting(Page::getParentId).isEqualTo(page1.getId());
 
-        assertThat(createdPages).extracting(Page::getId).doesNotContain(page2.getId(), page3.getId());
+        assertThat(createdPages).extracting(Page::getId).contains(page2.getId(), page3.getId());
 
         ArgumentCaptor<Page> updatedPageCaptor = ArgumentCaptor.forClass(Page.class);
         verify(pageRepository, times(1)).update(updatedPageCaptor.capture());
         List<Page> updatedPages = updatedPageCaptor.getAllValues();
         assertThat(updatedPages.size()).isEqualTo(1);
-        assertThat(updatedPages).extracting(Page::getName, Page::getId).containsExactly(tuple("Page 1", page1NewId));
+        assertThat(updatedPages).extracting(Page::getName, Page::getId).containsExactly(tuple("Page 1", updatedPageId));
     }
 }
