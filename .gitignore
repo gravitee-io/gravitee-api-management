@@ -12,12 +12,6 @@ gravitee-**/target/
 .classpath
 /bin/
 
-# TODO
-# gravitee-apim-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/license/*
-# gravitee-apim-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/logs/*
-# gravitee-apim-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/data/*
-# gravitee-apim-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/plugins/*
-
 # Related to UI Console and Portal
 **/.tmp/
 **/coverage/
