@@ -23,6 +23,10 @@ export interface Alert {
     enabled?: boolean;
     type?: AlertType;
     /**
+     * Alert description
+     */
+    description?: string;
+    /**
      * Http status code to trigger the alert
      */
     status_code?: string;
