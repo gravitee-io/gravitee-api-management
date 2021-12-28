@@ -13,76 +13,87 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+
+import { merge } from 'lodash';
+import { IOnInit } from 'angular';
 
 import DashboardService from '../../../services/dashboard.service';
+
+class WidgetDataStatsConfigurationController implements IOnInit {
+  public chart: any;
+
+  fields = this.DashboardService.getAverageableFields();
+  stats = [
+    {
+      key: 'min',
+      label: 'min',
+      unit: 'ms',
+      color: '#66bb6a',
+    },
+    {
+      key: 'max',
+      label: 'max',
+      unit: 'ms',
+      color: '#ef5350',
+    },
+    {
+      key: 'avg',
+      label: 'avg',
+      unit: 'ms',
+      color: '#42a5f5',
+    },
+    {
+      key: 'rps',
+      label: 'requests per second',
+      color: '#ff8f2d',
+      fallback: [
+        {
+          key: 'rpm',
+          label: 'requests per minute',
+        },
+        {
+          key: 'rph',
+          label: 'requests per hour',
+        },
+      ],
+    },
+    {
+      key: 'count',
+      label: 'total',
+      color: 'black',
+    },
+  ];
+  statKeys = this.stats.map((stat) => stat.key);
+  selectedStats: string[] = [];
+
+  constructor(private readonly DashboardService: DashboardService) {
+    'ngInject';
+  }
+
+  $onInit(): void {
+    if (!this.chart.data) {
+      merge(this.chart, {
+        request: {
+          type: 'stats',
+          field: this.fields[0].value,
+        },
+        data: this.stats,
+      });
+    }
+    this.selectedStats = this.chart.data.map((stat) => stat.key);
+  }
+
+  onStatsChanged() {
+    this.chart.data = this.stats.filter((stat) => this.selectedStats.includes(stat.key));
+  }
+}
+
 const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats-configuration.html'),
   bindings: {
     chart: '<',
   },
-  controller: function (DashboardService: DashboardService) {
-    'ngInject';
-    this.fields = DashboardService.getAverageableFields();
-    this.stats = [
-      {
-        key: 'min',
-        label: 'min',
-        unit: 'ms',
-        color: '#66bb6a',
-      },
-      {
-        key: 'max',
-        label: 'max',
-        unit: 'ms',
-        color: '#ef5350',
-      },
-      {
-        key: 'avg',
-        label: 'avg',
-        unit: 'ms',
-        color: '#42a5f5',
-      },
-      {
-        key: 'rps',
-        label: 'requests per second',
-        color: '#ff8f2d',
-        fallback: [
-          {
-            key: 'rpm',
-            label: 'requests per minute',
-          },
-          {
-            key: 'rph',
-            label: 'requests per hour',
-          },
-        ],
-      },
-      {
-        key: 'count',
-        label: 'total',
-        color: 'black',
-      },
-    ];
-    this.statKeys = _.map(this.stats, 'key');
-
-    this.$onInit = () => {
-      if (!this.chart.data) {
-        _.merge(this.chart, {
-          request: {
-            type: 'stats',
-            field: this.fields[0].value,
-          },
-          data: this.stats,
-        });
-      }
-      this.selectedStats = _.map(this.chart.data, 'key');
-    };
-
-    this.onStatsChanged = () => {
-      this.chart.data = _.filter(this.stats, (stat) => _.includes(this.selectedStats, stat.key));
-    };
-  },
+  controller: WidgetDataStatsConfigurationController,
 };
 
 export default WidgetDataStatsConfigurationComponent;
