@@ -70,7 +70,7 @@ import org.springframework.context.annotation.Import;
         PolicyConfiguration.class,
         PlatformConfiguration.class,
         ConnectorConfiguration.class,
-        ClusterConfiguration.class,
+        ClusterConfiguration.class
     }
 )
 public class StandaloneConfiguration {
