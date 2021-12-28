@@ -54,6 +54,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import(
     {
+        ClusterConfiguration.class,
         VertxConfiguration.class,
         ReactorConfiguration.class,
         NodeCertificatesConfiguration.class,
@@ -70,7 +71,6 @@ import org.springframework.context.annotation.Import;
         PolicyConfiguration.class,
         PlatformConfiguration.class,
         ConnectorConfiguration.class,
-        ClusterConfiguration.class
     }
 )
 public class StandaloneConfiguration {

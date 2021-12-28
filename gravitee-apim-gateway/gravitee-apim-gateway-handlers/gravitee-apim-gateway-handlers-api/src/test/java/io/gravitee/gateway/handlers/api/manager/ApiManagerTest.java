@@ -29,8 +29,6 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.cache.standalone.StandaloneCache;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -67,7 +65,7 @@ public class ApiManagerTest {
         apiManager = spy(new ApiManagerImpl());
         MockitoAnnotations.initMocks(this);
 
-        ((ApiManagerImpl) apiManager).setApis(new StandaloneCache<>("api_manager_test", new CacheConfiguration()));
+        ((ApiManagerImpl) apiManager).setApis(new HashMap<>());
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
     }

@@ -17,8 +17,6 @@ package io.gravitee.gateway.services.sync.cache;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.cache.standalone.StandaloneCache;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.HashMap;
 import org.junit.Before;
@@ -30,7 +28,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiKeysCacheTest {
 
-    private final ApiKeysCache apiKeysCache = new ApiKeysCache(new StandaloneCache<>("ApiKeysCacheTest", new CacheConfiguration()));
+    private final ApiKeysCache apiKeysCache = new ApiKeysCache(new HashMap<>());
 
     @Mock
     private ApiKey cachedApiKey1;
@@ -82,6 +80,6 @@ public class ApiKeysCacheTest {
         apiKeysCache.remove(apiKey);
 
         assertEquals(2, apiKeysCache.cache.size());
-        assertNull(apiKeysCache.cache.get("api-id.key-id"));
+        assertFalse(apiKeysCache.cache.containsKey("api-id.key-id"));
     }
 }

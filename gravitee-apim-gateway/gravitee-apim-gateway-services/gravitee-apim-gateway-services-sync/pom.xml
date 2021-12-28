@@ -98,6 +98,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Hazelcast -->
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Vert.x -->
         <dependency>
             <groupId>io.vertx</groupId>
