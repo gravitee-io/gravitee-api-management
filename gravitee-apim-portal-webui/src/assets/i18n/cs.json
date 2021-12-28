@@ -113,6 +113,10 @@
         "reset": "Resetovat",
         "success": "Výstraha vytvořena",
         "title": "Přidejte upozornění",
+        "description": {
+          "placeholder": "Vysvětlete své upozornění...",
+          "label": "Popis"
+        },
         "type": {
           "placeholder": "Vyberte typ",
           "status": {
