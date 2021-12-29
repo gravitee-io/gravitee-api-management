@@ -18,6 +18,7 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -63,5 +64,10 @@ public class PlanRepositoryProxy extends AbstractProxy<PlanRepository> implement
     @Override
     public Set<Plan> findAll() throws TechnicalException {
         return target.findAll();
+    }
+
+    @Override
+    public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
+        return target.findByIdIn(ids);
     }
 }

@@ -21,10 +21,12 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.PlanMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -97,5 +99,15 @@ public class MongoPlanRepository implements PlanRepository {
     @Override
     public Set<Plan> findAll() throws TechnicalException {
         return internalPlanRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
+        try {
+            Iterable<PlanMongo> plans = internalPlanRepository.findAllById(ids);
+            return StreamSupport.stream(plans.spliterator(), false).map(this::map).collect(Collectors.toSet());
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find plans by id list", ex);
+        }
     }
 }
