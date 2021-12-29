@@ -5,6 +5,9 @@
       <p>
         Average response time over ${alert.conditions[0].threshold}ms during ${alert.conditions[0].duration} ${alert.conditions[0].timeUnit}.
       </p>
+      <#if alert.description??>
+        <p>${alert.description?html?replace("\r\n|\r|\n", "<br />", "r")}</p>
+      </#if>
     </div>
   </body>
 </html>
