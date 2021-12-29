@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -45,4 +46,14 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @throws TechnicalException
      */
     Set<Plan> findByApi(String apiId) throws TechnicalException;
+
+    /**
+     * Returns the list of plans matching the list of plan IDs.
+     *
+     * @param ids A set of plan ids.
+     *
+     * @return The set of plans matching the given IDs.
+     * @throws TechnicalException
+     */
+    Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException;
 }

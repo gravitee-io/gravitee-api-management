@@ -28,10 +28,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -150,5 +147,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(planRepository.findById("unknown")).thenReturn(empty());
 
         when(planRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+
+        when(planRepository.findByIdIn(List.of("my-plan", "unknown-id"))).thenReturn(Set.of(plan2));
     }
 }

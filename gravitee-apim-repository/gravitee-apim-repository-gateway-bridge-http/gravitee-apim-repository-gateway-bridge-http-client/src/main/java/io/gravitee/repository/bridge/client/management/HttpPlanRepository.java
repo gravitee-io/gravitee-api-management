@@ -19,6 +19,7 @@ import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -63,6 +64,11 @@ public class HttpPlanRepository extends AbstractRepository implements PlanReposi
 
     @Override
     public Set<Plan> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

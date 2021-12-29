@@ -68,6 +68,31 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByIdIn() throws TechnicalException {
+        Set<Plan> plans = planRepository.findByIdIn(List.of("my-plan", "unknown-id"));
+        assertNotNull(plans);
+        assertEquals(1, plans.size());
+
+        Plan plan = new ArrayList<>(plans).get(0);
+
+        assertEquals("my-plan", plan.getId());
+        assertEquals("GCU-my-plan", plan.getGeneralConditions());
+        assertEquals("Free plan", plan.getName());
+        assertEquals("Description of the free plan", plan.getDescription());
+        assertEquals("api1", plan.getApi());
+        assertEquals(Plan.PlanSecurityType.API_KEY, plan.getSecurity());
+        assertEquals(Plan.PlanValidationType.AUTO, plan.getValidation());
+        assertEquals(Plan.PlanType.API, plan.getType());
+        assertEquals(Plan.Status.PUBLISHED, plan.getStatus());
+        assertEquals(2, plan.getOrder());
+        assertTrue(compareDate(new Date(1506964899000L), plan.getCreatedAt()));
+        assertTrue(compareDate(new Date(1507032062000L), plan.getUpdatedAt()));
+        assertTrue(compareDate(new Date(1506878460000L), plan.getPublishedAt()));
+        assertTrue(compareDate(new Date(1507611600000L), plan.getClosedAt()));
+        assertTrue(compareDate(new Date(1507611670000L), plan.getNeedRedeployAt()));
+    }
+
+    @Test
     public void shouldFindOAuth2PlanById() throws TechnicalException {
         final Optional<Plan> planOAuth2 = planRepository.findById("plan-oauth2");
 

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -36,7 +37,6 @@ import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -238,6 +238,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             // regenerate nested IDs in input json node, only if importing on a different API
             if (!jsonNode.has("id") || !apiId.equals(jsonNode.get("id").asText())) {
                 apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
+            }
+
+            if (jsonNode.has("plans") && jsonNode.get("plans").isArray()) {
+                ArrayNode plansDefinition = (ArrayNode) jsonNode.get("plans");
+                checkPlansDefinitionOwnership(plansDefinition, apiId);
             }
 
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode, environmentId);
@@ -651,5 +656,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
         }
         return plansToImport;
+    }
+
+    private void checkPlansDefinitionOwnership(ArrayNode plansDefinition, String apiId) {
+        List<String> planIds = plansDefinition.findValuesAsText("id");
+        if (planService.anyPlanMismatchWithApi(planIds, apiId)) {
+            throw new TechnicalManagementException("Some inconsistencies were found in the API plans definition");
+        }
     }
 }

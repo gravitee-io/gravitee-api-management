@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
@@ -527,6 +528,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         // plan3 has to be deleted cause no more in imported file
         verify(planService, times(1)).delete("plan-id3");
 
+        verify(planService, times(1)).anyPlanMismatchWithApi(eq(List.of("plan-id1", "plan-id2", "plan-id4")), eq(apiEntity.getId()));
+
         verifyNoMoreInteractions(planService);
 
         verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
@@ -568,5 +571,21 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 ),
                 eq("DEFAULT")
             );
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldRaiseAnErrorWhenUpdatingAPlanBelongingToAnotherAPI() throws IOException {
+        URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
+        String toBeImport = Resources.toString(resource, Charsets.UTF_8);
+
+        when(planService.anyPlanMismatchWithApi(anyList(), anyString())).thenReturn(true);
+
+        apiDuplicatorService.updateWithImportedDefinition(
+            API_ID,
+            toBeImport,
+            "import",
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
     }
 }

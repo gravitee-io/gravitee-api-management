@@ -810,4 +810,13 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             throw new UnauthorizedPlanSecurityTypeException(securityType);
         }
     }
+
+    @Override
+    public boolean anyPlanMismatchWithApi(List<String> planIds, String apiId) {
+        try {
+            return planRepository.findByIdIn(planIds).stream().map(Plan::getApi).filter(Objects::nonNull).anyMatch(id -> !id.equals(apiId));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error has occurred checking plans ownership", e);
+        }
+    }
 }

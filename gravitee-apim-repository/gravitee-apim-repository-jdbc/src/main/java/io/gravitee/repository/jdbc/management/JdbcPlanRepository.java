@@ -277,4 +277,20 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             throw new TechnicalException("Failed to find plans by api", ex);
         }
     }
+
+    @Override
+    public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
+        try {
+            LOGGER.debug("JdbcPlanRepository.findByIdIn({})", ids);
+            List<Plan> plans = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where id in (" + getOrm().buildInClause(ids) + ")",
+                ps -> getOrm().setArguments(ps, ids, 1),
+                getOrm().getRowMapper()
+            );
+            return new HashSet<>(plans);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find plans by id list", ex);
+            throw new TechnicalException("Failed to find plans by id list", ex);
+        }
+    }
 }

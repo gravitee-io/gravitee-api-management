@@ -53,4 +53,6 @@ public interface PlanService {
     PlansConfigurationEntity getConfiguration();
 
     PlanEntity createOrUpdatePlan(PlanEntity planEntity, final String environmentId);
+
+    boolean anyPlanMismatchWithApi(List<String> planIds, String apiId);
 }
