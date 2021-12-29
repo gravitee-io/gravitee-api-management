@@ -9,6 +9,9 @@
           ${alert.conditions[0].comparison.thresholdLow[0]}XX over ${alert.conditions[0].threshold}% during ${alert.conditions[0].duration} ${alert.conditions[0].timeUnit}.
         </#if>
       </p>
+      <#if alert.description??>
+        <p>${alert.description?html?replace("\r\n|\r|\n", "<br />", "r")}</p>
+      </#if>
     </div>
   </body>
 </html>
