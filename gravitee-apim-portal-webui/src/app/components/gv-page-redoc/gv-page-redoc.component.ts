@@ -75,14 +75,14 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
     if (page) {
       // @ts-ignore
       // https://github.com/Redocly/redoc/blob/master/src/theme.ts
-      const color = getCssVar(document.body, '--gv-theme-color-dark');
-      const successColor = getCssVar(document.body, '--gv-theme-color');
-      const dangerColor = getCssVar(document.body, '--gv-theme-color-danger');
-      const textColor = getCssVar(document.body, '--gv-theme-font-color-dark');
-      const textColorLight = getCssVar(document.body, '--gv-theme-font-color-light');
-      const fontFamily = getCssVar(document.body, '--gv-theme-font-family');
-      const fontSize = getCssVar(document.body, '--gv-theme-font-size-m');
-      const sidebarColor = getCssVar(document.body, '--gv-theme-neutral-color-lightest');
+      const color = getCssVar(document.body, '--gv-theme-color-dark', undefined);
+      const successColor = getCssVar(document.body, '--gv-theme-color', undefined);
+      const dangerColor = getCssVar(document.body, '--gv-theme-color-danger', undefined);
+      const textColor = getCssVar(document.body, '--gv-theme-font-color-dark', undefined);
+      const textColorLight = getCssVar(document.body, '--gv-theme-font-color-light', undefined);
+      const fontFamily = getCssVar(document.body, '--gv-theme-font-family', undefined);
+      const fontSize = getCssVar(document.body, '--gv-theme-font-size-m', undefined);
+      const sidebarColor = getCssVar(document.body, '--gv-theme-neutral-color-lightest', undefined);
 
       const options = {
         expandResponses: '',
