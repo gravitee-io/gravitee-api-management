@@ -28,7 +28,7 @@
 
     <groupId>io.gravitee.apim</groupId>
     <artifactId>gravitee-api-management</artifactId>
-    <version>3.13.3-SNAPSHOT</version>
+    <version>3.13.3</version>
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM</name>
@@ -62,7 +62,7 @@
         <gravitee-cockpit-api.version>1.9.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.23.1</gravitee-common.version>
         <gravitee-connector-api.version>1.0.0</gravitee-connector-api.version>
-        <gravitee-definition.version>1.30.2-SNAPSHOT</gravitee-definition.version>
+        <gravitee-definition.version>1.30.2</gravitee-definition.version>
         <gravitee-expression-language.version>1.7.2</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.29.1</gravitee-gateway-api.version>
