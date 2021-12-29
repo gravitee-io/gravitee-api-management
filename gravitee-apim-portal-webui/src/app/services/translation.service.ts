@@ -34,7 +34,7 @@ export class TranslationService {
       const browserLang = this.translateService.getBrowserLang();
       this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe((translations) => {
         setLanguage(this.translateService.currentLang);
-        addTranslations(this.translateService.currentLang, translations);
+        addTranslations(this.translateService.currentLang, translations, this.translateService.currentLang);
         this.translateService.get(i18n('site.title')).subscribe((title) => this.titleService.setTitle(title));
         resolve(true);
       });
