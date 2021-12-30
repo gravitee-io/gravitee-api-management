@@ -16,22 +16,22 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.alert.api.condition.AggregationCondition;
 import io.gravitee.alert.api.condition.RateCondition;
 import io.gravitee.alert.api.condition.ThresholdRangeCondition;
+import io.gravitee.notifier.api.Notification;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
-import io.gravitee.rest.api.portal.rest.model.Alert;
-import io.gravitee.rest.api.portal.rest.model.AlertInput;
-import io.gravitee.rest.api.portal.rest.model.AlertTimeUnit;
-import io.gravitee.rest.api.portal.rest.model.AlertType;
+import io.gravitee.rest.api.portal.rest.model.*;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,7 +45,7 @@ public class AlertMapperTest {
 
     @Before
     public void setUp() {
-        alertMapper = new AlertMapper();
+        alertMapper = new AlertMapper(new ObjectMapper());
     }
 
     @Test
@@ -274,5 +274,139 @@ public class AlertMapperTest {
         assertThat(actual.getDuration()).isEqualTo(10);
         assertThat(actual.getTimeUnit()).isEqualTo(AlertTimeUnit.MINUTES);
         assertThat(actual.getDescription()).isEqualTo("Description");
+    }
+
+    @Test
+    public void convert_to_NewAlertTriggerEntity_should_set_no_notification_when_alertInput_webhook_isnt_defined() {
+        AlertInput alertInput = new AlertInput();
+        alertInput.setStatusCode("200");
+        alertInput.setStatusPercent(20);
+        alertInput.setDuration(10);
+
+        NewAlertTriggerEntity newAlert = alertMapper.convert(alertInput);
+
+        assertTrue(newAlert.getNotifications().isEmpty());
+    }
+
+    @Test
+    public void convert_to_NewAlertTriggerEntity_should_set_a_notification_when_alertInput_webhook_is_defined() {
+        AlertInput alertInput = new AlertInput();
+        AlertWebhook alertWebhook = new AlertWebhook();
+        alertWebhook.setHttpMethod(HttpMethod.HEAD);
+        alertWebhook.setUrl("http://my.ru/test/url");
+        alertInput.setWebhook(alertWebhook);
+        alertInput.setStatusCode("200");
+        alertInput.setStatusPercent(20);
+        alertInput.setDuration(10);
+
+        NewAlertTriggerEntity newAlert = alertMapper.convert(alertInput);
+
+        assertEquals(1, newAlert.getNotifications().size());
+        assertEquals("webhook-notifier", newAlert.getNotifications().get(0).getType());
+        assertEquals(
+            "{\"method\":\"HEAD\",\"url\":\"http://my.ru/test/url\",\"headers\":[],\"body\":null}",
+            newAlert.getNotifications().get(0).getConfiguration()
+        );
+    }
+
+    @Test
+    public void convert_to_NewAlertTriggerEntity_should_set_a_webhook_json_body_when_using_post() {
+        AlertInput alertInput = new AlertInput();
+        AlertWebhook alertWebhook = new AlertWebhook();
+        alertWebhook.setHttpMethod(HttpMethod.POST);
+        alertWebhook.setUrl("http://my.ru/test/url");
+        alertInput.setWebhook(alertWebhook);
+        alertInput.setStatusCode("200");
+        alertInput.setStatusPercent(20);
+        alertInput.setDuration(10);
+
+        NewAlertTriggerEntity newAlert = alertMapper.convert(alertInput);
+
+        assertEquals(1, newAlert.getNotifications().size());
+        assertEquals(
+            "{\"method\":\"POST\",\"url\":\"http://my.ru/test/url\",\"headers\":[{\"name\":\"Content-Type\",\"value\":\"application/json\"}],\"body\":\"{\\\"type\\\":\\\"STATUS\\\",\\\"status_code\\\":\\\"200\\\",\\\"status_percent\\\":20,\\\"enabled\\\":true,\\\"response_time\\\":null,\\\"duration\\\":10,\\\"time_unit\\\":\\\"MINUTES\\\",\\\"webhook\\\":{\\\"httpMethod\\\":\\\"POST\\\",\\\"url\\\":\\\"http://my.ru/test/url\\\"}}\"}",
+            newAlert.getNotifications().get(0).getConfiguration()
+        );
+    }
+
+    @Test
+    public void convert_to_NewAlertTriggerEntity_should_not_set_a_webhook_json_body_when_using_get() {
+        AlertInput alertInput = new AlertInput();
+        AlertWebhook alertWebhook = new AlertWebhook();
+        alertWebhook.setHttpMethod(HttpMethod.GET);
+        alertWebhook.setUrl("http://my.ru/test/url");
+        alertInput.setWebhook(alertWebhook);
+        alertInput.setStatusCode("200");
+        alertInput.setStatusPercent(20);
+        alertInput.setDuration(10);
+
+        NewAlertTriggerEntity newAlert = alertMapper.convert(alertInput);
+
+        assertEquals(1, newAlert.getNotifications().size());
+        assertEquals(
+            "{\"method\":\"GET\",\"url\":\"http://my.ru/test/url\",\"headers\":[],\"body\":null}",
+            newAlert.getNotifications().get(0).getConfiguration()
+        );
+    }
+
+    @Test
+    public void convert_to_UpdateAlertTriggerEntity_should_set_no_notification_when_alertInput_webhook_isnt_defined() {
+        AlertInput alertInput = new AlertInput();
+        alertInput.setStatusCode("200");
+        alertInput.setStatusPercent(20);
+        alertInput.setDuration(10);
+
+        UpdateAlertTriggerEntity updateAlert = alertMapper.convertToUpdate(alertInput);
+
+        assertTrue(updateAlert.getNotifications().isEmpty());
+    }
+
+    @Test
+    public void convert_to_UpdateAlertTriggerEntity_should_set_a_notification_when_alertInput_webhook_is_defined() {
+        AlertInput alertInput = new AlertInput();
+        AlertWebhook alertWebhook = new AlertWebhook();
+        alertWebhook.setHttpMethod(HttpMethod.OPTIONS);
+        alertWebhook.setUrl("http://my.ru/test/url");
+        alertInput.setWebhook(alertWebhook);
+        alertInput.setStatusCode("200");
+        alertInput.setStatusPercent(20);
+        alertInput.setDuration(10);
+
+        UpdateAlertTriggerEntity updateAlert = alertMapper.convertToUpdate(alertInput);
+
+        assertEquals(1, updateAlert.getNotifications().size());
+        assertEquals("webhook-notifier", updateAlert.getNotifications().get(0).getType());
+        assertEquals(
+            "{\"method\":\"OPTIONS\",\"url\":\"http://my.ru/test/url\",\"headers\":[],\"body\":null}",
+            updateAlert.getNotifications().get(0).getConfiguration()
+        );
+    }
+
+    @Test
+    public void convert_AlertTriggerEntity_to_Alert_should_set_null_alertWebook_if_no_webhook_notification() {
+        AlertTriggerEntity alertTriggerEntity = mock(AlertTriggerEntity.class);
+        Notification notification = new Notification();
+        notification.setType("unknown-notifier");
+        notification.setConfiguration("{\"method\" : \"PUT\", \"url\" : \"https://test/url\" }");
+        when(alertTriggerEntity.getNotifications()).thenReturn(List.of(notification));
+
+        Alert alert = alertMapper.convert(alertTriggerEntity);
+
+        assertNull(alert.getWebhook());
+    }
+
+    @Test
+    public void convert_AlertTriggerEntity_to_Alert_should_set_alertWebook_if_webhook_notification() {
+        AlertTriggerEntity alertTriggerEntity = mock(AlertTriggerEntity.class);
+        Notification notification = new Notification();
+        notification.setType("webhook-notifier");
+        notification.setConfiguration("{\"method\" : \"PUT\", \"url\" : \"https://test/url\" }");
+        when(alertTriggerEntity.getNotifications()).thenReturn(List.of(notification));
+
+        Alert alert = alertMapper.convert(alertTriggerEntity);
+
+        assertNotNull(alert.getWebhook());
+        assertEquals(HttpMethod.PUT, alert.getWebhook().getHttpMethod());
+        assertEquals("https://test/url", alert.getWebhook().getUrl());
     }
 }

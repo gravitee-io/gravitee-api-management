@@ -108,4 +108,9 @@ public class EnvironmentsResource extends AbstractResource {
     public UsersResource getUsersResource() {
         return resourceContext.getResource(UsersResource.class);
     }
+
+    @Path("notifiers")
+    public NotifiersResource getNotifiersResource() {
+        return resourceContext.getResource(NotifiersResource.class);
+    }
 }

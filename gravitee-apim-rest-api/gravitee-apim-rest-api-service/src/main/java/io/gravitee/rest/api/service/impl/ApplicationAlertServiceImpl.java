@@ -166,7 +166,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         alert.setSource("REQUEST");
         alert.setSeverity(Trigger.Severity.INFO);
         alert.setDampening(Dampening.strictCount(1));
-        alert.setNotifications(alertTrigger.getNotifications());
+        alert.setNotifications(alert.getNotifications());
         alert.setFilters(alertTrigger.getFilters());
         return alertService.update(alert);
     }

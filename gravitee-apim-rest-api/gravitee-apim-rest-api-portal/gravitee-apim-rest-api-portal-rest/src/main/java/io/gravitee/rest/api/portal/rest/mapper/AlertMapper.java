@@ -15,22 +15,29 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.alert.api.condition.AggregationCondition;
 import io.gravitee.alert.api.condition.Condition;
 import io.gravitee.alert.api.condition.RateCondition;
 import io.gravitee.alert.api.condition.ThresholdRangeCondition;
+import io.gravitee.common.http.HttpHeader;
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.MediaType;
+import io.gravitee.notifier.api.Notification;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
-import io.gravitee.rest.api.portal.rest.model.Alert;
-import io.gravitee.rest.api.portal.rest.model.AlertInput;
-import io.gravitee.rest.api.portal.rest.model.AlertTimeUnit;
-import io.gravitee.rest.api.portal.rest.model.AlertType;
+import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.service.impl.alert.WebhookNotifierConfiguration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,8 +47,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class AlertMapper {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AlertMapper.class);
+
     public static final String STATUS_ALERT = "METRICS_RATE";
     public static final String RESPONSE_TIME_ALERT = "METRICS_AGGREGATION";
+    public static final String DEFAULT_WEBHOOK_NOTIFIER = "webhook-notifier";
+
+    private final ObjectMapper objectMapper;
+
+    public AlertMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public NewAlertTriggerEntity convert(AlertInput alertInput) {
         final NewAlertTriggerEntity newAlert = new NewAlertTriggerEntity();
@@ -57,7 +73,7 @@ public class AlertMapper {
                 newAlert.setType(RESPONSE_TIME_ALERT);
                 break;
         }
-
+        newAlert.setNotifications(createAlertWebhookNotifications(alertInput));
         return newAlert;
     }
 
@@ -66,7 +82,7 @@ public class AlertMapper {
         updating.setEnabled(alertInput.getEnabled());
         updating.setConditions(convertConditions(alertInput));
         updating.setDescription(alertInput.getDescription());
-
+        updating.setNotifications(createAlertWebhookNotifications(alertInput));
         return updating;
     }
 
@@ -90,7 +106,7 @@ public class AlertMapper {
             alert.setStatusCode(convertStatusCode(comparison.getThresholdLow(), comparison.getThresholdHigh()));
             alert.setStatusPercent((int) condition.getThreshold());
         }
-
+        alert.setWebhook(convertNotificationsToAlertWebhook(alertTriggerEntity.getNotifications()));
         return alert;
     }
 
@@ -164,5 +180,59 @@ public class AlertMapper {
         } else {
             return low.charAt(0) + "xx";
         }
+    }
+
+    private List<Notification> createAlertWebhookNotifications(AlertInput alertInput) {
+        if (alertInput.getWebhook() != null) {
+            try {
+                WebhookNotifierConfiguration webhookConfig = new WebhookNotifierConfiguration(
+                    alertInput.getWebhook().getHttpMethod().getValue(),
+                    alertInput.getWebhook().getUrl()
+                );
+                if (
+                    alertInput.getWebhook().getHttpMethod() == HttpMethod.PUT ||
+                    alertInput.getWebhook().getHttpMethod() == HttpMethod.POST ||
+                    alertInput.getWebhook().getHttpMethod() == HttpMethod.PATCH
+                ) {
+                    webhookConfig.getHeaders().add(new HttpHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+                    webhookConfig.setBody(objectMapper.writeValueAsString(alertInput));
+                }
+                Notification webhookNotification = new Notification();
+                webhookNotification.setType(DEFAULT_WEBHOOK_NOTIFIER);
+                webhookNotification.setConfiguration(objectMapper.writeValueAsString(webhookConfig));
+                return List.of(webhookNotification);
+            } catch (JsonProcessingException e) {
+                LOGGER.error("Failed to convert AlertWebhook to List<Notification>", e);
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    private AlertWebhook convertNotificationsToAlertWebhook(List<Notification> notifications) {
+        if (notifications != null) {
+            return notifications
+                .stream()
+                .filter(n -> DEFAULT_WEBHOOK_NOTIFIER.equals(n.getType()))
+                .findFirst()
+                .map(
+                    webhookNotification -> {
+                        try {
+                            WebhookNotifierConfiguration webhookConfig = objectMapper.readValue(
+                                webhookNotification.getConfiguration(),
+                                WebhookNotifierConfiguration.class
+                            );
+                            AlertWebhook alertWebhook = new AlertWebhook();
+                            alertWebhook.setUrl(webhookConfig.getUrl());
+                            alertWebhook.setHttpMethod(HttpMethod.valueOf(webhookConfig.getMethod()));
+                            return alertWebhook;
+                        } catch (JsonProcessingException e) {
+                            LOGGER.error("Failed to convert List<Notification> to AlertWebhook", e);
+                        }
+                        return null;
+                    }
+                )
+                .orElse(null);
+        }
+        return null;
     }
 }

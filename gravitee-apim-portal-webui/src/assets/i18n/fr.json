@@ -135,7 +135,7 @@
       "disabled": "Veuillez contacter votre administrateur avant de pouvoir définir des règles d'alerte.",
       "information": "Chaque membre de l'application qui a une addresse email configurée recevra une notification",
       "list": {
-        "empty": "Aucun résultat à afficher",
+        "empty": "Aucune alerte configurée",
         "title": "Liste des alertes"
       },
       "maximum": "Vous avez atteint le maximum de 10 alertes",
@@ -162,6 +162,24 @@
       },
       "update": {
         "success": "Alerte mise à jour"
+      },
+      "webhook": {
+        "switch": {
+          "label": "Notification via webhook",
+          "title": "Activer les notifications webhook pour déclencher un appel HTTP à chaque fois que cette alerte est levée"
+        },
+        "method": {
+          "label": "Méthode HTTP",
+          "description": "Méthode HTTP utilisée",
+          "title": "Sélectionnez la méthode HTTP utilisée pour appeler l'URL à chaque fois que cette alerte est levée"
+        },
+        "url": {
+          "label": "URL",
+          "description": "URL appelée par le webhook",
+          "placeholder": "https://mon.domaine/mon/example/url",
+          "title": "Saisissez l'URL à appeler à chaque fois que cette alerte est levée"
+        },
+        "notifierWarning": "Pour utiliser les notifications via webhook, demandez à votre administrateur d'installer le webhook notifier plugin"
       }
     },
     "analytics": {

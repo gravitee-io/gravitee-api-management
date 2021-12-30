@@ -77,6 +77,7 @@ public class ApplicationAlertResource extends AbstractResource {
         @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput
     ) {
         LOGGER.info("Updating alert {}", alertId);
+        alertInput.setApplicationId(applicationId);
 
         checkPlugins();
         final UpdateAlertTriggerEntity updateAlertTriggerEntity = alertMapper.convertToUpdate(alertInput);

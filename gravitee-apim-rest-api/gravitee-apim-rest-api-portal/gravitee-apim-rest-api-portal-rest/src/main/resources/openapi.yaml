@@ -2608,6 +2608,26 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /notifiers:
+    get:
+      tags:
+        - Notifiers
+      summary: Get notifiers list
+      operationId: getNotifiers
+      description: |
+        Get notifiers
+      security: []
+      responses:
+        200:
+          description: Notifier information
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notifier'
+        500:
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   requestBodies:
@@ -3811,6 +3831,15 @@ components:
           type: integer
         time_unit:
           $ref: '#/components/schemas/AlertTimeUnit'
+        webhook:
+          $ref: '#/components/schemas/AlertWebhook'
+    AlertWebhook:
+      properties:
+        httpMethod:
+          $ref: '#/components/schemas/HttpMethod'
+        url:
+          description: URL called by webhook
+          type: string
     Member:
       properties:
         id:
@@ -4431,6 +4460,18 @@ components:
         folder:
           type: boolean
           description: true if resourceType is 'page' and resourceRef is the id of a folder.
+    Notifier:
+      properties:
+        id:
+          type: string
+          description: Notifier id
+        name:
+          type: string
+          description: Notifier name
+        description:
+          type: string
+          description: Notifier description
+
     #################
     # Input Objects #
     #################
@@ -4481,6 +4522,9 @@ components:
           description: Role's name
     AlertInput:
       properties:
+        application_id:
+          description: Alert application ID
+          type: string
         type:
           $ref: '#/components/schemas/AlertType'
         description:
@@ -4509,6 +4553,8 @@ components:
           type: integer
         time_unit:
           $ref: '#/components/schemas/AlertTimeUnit'
+        webhook:
+          $ref: '#/components/schemas/AlertWebhook'
     ReferenceMetadataInput:
       properties:
         name:
