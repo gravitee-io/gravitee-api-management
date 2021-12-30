@@ -559,6 +559,7 @@ NoDataToDisplay(Highcharts);
 Map(Highcharts);
 
 import '@highcharts/map-collection/custom/world';
+import DialogTransferOwnershipController from './configuration/groups/group/transferOwnershipDialog.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -737,6 +738,7 @@ graviteeManagementModule.controller('DeleteTenantDialogController', DeleteTenant
 graviteeManagementModule.component('groups', GroupsComponent);
 graviteeManagementModule.component('group', GroupComponent);
 graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
+graviteeManagementModule.controller('DialogTransferOwnershipController', DialogTransferOwnershipController);
 graviteeManagementModule.controller('RegistrationController', RegistrationController);
 graviteeManagementModule.controller('ConfirmController', ConfirmController);
 graviteeManagementModule.controller('ResetPasswordController', ResetPasswordController);
