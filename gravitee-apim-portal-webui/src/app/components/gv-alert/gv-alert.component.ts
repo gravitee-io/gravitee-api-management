@@ -29,12 +29,15 @@ import {
   HttpMethod,
   NotifiersService,
   PermissionsService,
+  Subscription,
+  SubscriptionService,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpHelpers, HttpStatus } from '../../utils/http-helpers';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from '../../services/notification.service';
+import StatusEnum = Subscription.StatusEnum;
 
 export enum AlertMode {
   CREATION = 'CREATION',
@@ -66,6 +69,7 @@ export class GvAlertComponent implements OnInit {
   type: string;
   statusLabel: string;
   responseTimeLabel: string;
+  apisOptions: { label: string; value: string }[];
   isWebhookNotifierEnabled = false;
 
   get isStatusAlert(): boolean {
@@ -106,6 +110,7 @@ export class GvAlertComponent implements OnInit {
     private translateService: TranslateService,
     private notificationService: NotificationService,
     private permissionsService: PermissionsService,
+    private subscriptionService: SubscriptionService,
     private notifiersService: NotifiersService,
   ) {}
 
@@ -172,6 +177,21 @@ export class GvAlertComponent implements OnInit {
             },
           ];
         });
+
+      this.subscriptionService
+        .getSubscriptions({
+          applicationId: this.application.id,
+          statuses: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING],
+          size: -1,
+        })
+        .toPromise()
+        .then((apis) => {
+          this.apisOptions = [{ label: 'All APIs', value: '' }];
+          apis.data.forEach((sub) => {
+            const apiMetadata = apis.metadata[sub.api];
+            this.apisOptions.push({ label: apiMetadata.name + ' (' + apiMetadata.version + ')', value: sub.api });
+          });
+        });
     }
   }
 
@@ -206,6 +226,7 @@ export class GvAlertComponent implements OnInit {
           ...statusOrReponseTimeBody,
           ...webhookData,
           enabled: true,
+          api: this.alertForm.controls.api.value,
           type: this.alertForm.controls.type.value,
           duration: this.alertForm.controls.duration.value,
           time_unit: this.alertForm.controls.timeUnit.value,
@@ -240,6 +261,7 @@ export class GvAlertComponent implements OnInit {
 
   resetAddAlert() {
     this.alertForm = new FormGroup({
+      api: new FormControl(''),
       type: new FormControl(AlertType.STATUS, [Validators.required]),
       duration: new FormControl('1'),
       timeUnit: new FormControl(AlertTimeUnit.MINUTES, [Validators.required]),
@@ -290,6 +312,7 @@ export class GvAlertComponent implements OnInit {
           responseTime: new FormControl('' + this.alert.response_time, [Validators.min(1), Validators.max(100000)]),
         };
     this.alertForm = new FormGroup({
+      api: new FormControl(this.alert.api),
       duration: new FormControl(this.alert.duration),
       timeUnit: new FormControl(this.alert.time_unit.toUpperCase(), [Validators.required]),
       description: new FormControl(this.alert.description),
@@ -343,6 +366,7 @@ export class GvAlertComponent implements OnInit {
           ...statusOrReponseTimeBody,
           ...webhookData,
           enabled: true,
+          api: this.alertForm.controls.api.value,
           type: this.alert.type,
           duration: this.alertForm.controls.duration.value,
           time_unit: this.alertForm.controls.timeUnit.value,

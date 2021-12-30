@@ -140,7 +140,8 @@
       },
       "maximum": "Dosáhli jste maximálně 10 upozornění",
       "phrase": {
-        "first": "Upozornit, když",
+        "on": "Upozornění, na",
+        "when": "Když",
         "last": "během posledního",
         "response_time": {
           "second": "je konec",

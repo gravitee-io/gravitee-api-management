@@ -20,6 +20,10 @@
   width: auto;
 }
 
+.gv-alert .gv-alert__row-api {
+  width: 240px;
+}
+
 .gv-alert .gv-alert__row-type {
   width: 240px;
 }
@@ -34,6 +38,10 @@
 
 .gv-alert .gv-alert__row-response-time {
   width: 80px;
+}
+
+.gv-alert .gv-alert__row-status-percent{
+  width: 55px;
 }
 
 .gv-alert .gv-alert__row-duration {
