@@ -16,6 +16,7 @@
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-autocomplete';
+import '@gravitee/ui-components/wc/gv-switch';
 import { ActivatedRoute } from '@angular/router';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import {
@@ -25,6 +26,8 @@ import {
   AlertType,
   Application,
   ApplicationService,
+  HttpMethod,
+  NotifiersService,
   PermissionsService,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { TranslateService } from '@ngx-translate/core';
@@ -57,11 +60,13 @@ export class GvAlertComponent implements OnInit {
   alertForm: FormGroup;
   types: Array<any>;
   timeUnits: Array<any>;
+  webhookHttpMethods: Array<HttpMethod>;
   httpStatus: Array<HttpStatus>;
   durations: Array<number>;
   type: string;
   statusLabel: string;
   responseTimeLabel: string;
+  isWebhookNotifierEnabled = false;
 
   get isStatusAlert(): boolean {
     return 'status' === (this.isCreationMode ? this.alertForm?.value?.type?.toLowerCase() : this.alert?.type?.toLowerCase());
@@ -101,6 +106,7 @@ export class GvAlertComponent implements OnInit {
     private translateService: TranslateService,
     private notificationService: NotificationService,
     private permissionsService: PermissionsService,
+    private notifiersService: NotifiersService,
   ) {}
 
   ngOnInit(): void {
@@ -113,6 +119,9 @@ export class GvAlertComponent implements OnInit {
           this.permissions = permissions.ALERT;
         });
     }
+    this.notifiersService.getNotifiers().subscribe((notifiers) => {
+      this.isWebhookNotifierEnabled = notifiers.some((notifier) => notifier.id === 'webhook-notifier');
+    });
     this.resetAddAlert();
     this.resetAddAlertStatus();
     if (this.application) {
@@ -123,6 +132,7 @@ export class GvAlertComponent implements OnInit {
         { value: '4xx', label: '4xx - CLIENT ERROR' },
         { value: '5xx', label: '5xx - SERVER ERROR' },
       ].concat(HttpHelpers.httpStatus);
+      this.webhookHttpMethods = [HttpMethod.PUT, HttpMethod.POST, HttpMethod.GET, HttpMethod.DELETE, HttpMethod.PATCH];
       this.durations = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
       this.translateService
         .get([
@@ -165,6 +175,12 @@ export class GvAlertComponent implements OnInit {
     }
   }
 
+  toggleWebhook({ detail }: { detail: boolean }) {
+    this.alertForm.controls.hasWebhook.setValue(detail);
+    this.alertForm.controls.webhookUrl.setValidators(detail ? [Validators.required] : []);
+    this.alertForm.controls.webhookUrl.updateValueAndValidity();
+  }
+
   addAlert() {
     const statusOrReponseTimeBody = this.isStatusAlert
       ? {
@@ -174,11 +190,21 @@ export class GvAlertComponent implements OnInit {
       : {
           response_time: this.alertForm.controls.responseTime.value,
         };
+    const webhookData =
+      this.alertForm.controls.hasWebhook.value && this.isWebhookNotifierEnabled
+        ? {
+            webhook: {
+              httpMethod: this.alertForm.controls.webhookMethod.value,
+              url: this.alertForm.controls.webhookUrl.value,
+            },
+          }
+        : {};
     this.applicationService
       .createApplicationAlert({
         applicationId: this.application.id,
         alertInput: {
           ...statusOrReponseTimeBody,
+          ...webhookData,
           enabled: true,
           type: this.alertForm.controls.type.value,
           duration: this.alertForm.controls.duration.value,
@@ -218,6 +244,9 @@ export class GvAlertComponent implements OnInit {
       duration: new FormControl('1'),
       timeUnit: new FormControl(AlertTimeUnit.MINUTES, [Validators.required]),
       description: new FormControl(''),
+      hasWebhook: new FormControl(false),
+      webhookMethod: new FormControl(HttpMethod.POST),
+      webhookUrl: new FormControl(''),
     });
   }
 
@@ -264,6 +293,9 @@ export class GvAlertComponent implements OnInit {
       duration: new FormControl(this.alert.duration),
       timeUnit: new FormControl(this.alert.time_unit.toUpperCase(), [Validators.required]),
       description: new FormControl(this.alert.description),
+      hasWebhook: new FormControl(!!this.alert.webhook),
+      webhookMethod: new FormControl(this.alert.webhook ? this.alert.webhook.httpMethod : HttpMethod.POST),
+      webhookUrl: new FormControl(this.alert.webhook?.url, this.alert.webhook ? [Validators.required] : []),
       ...conditionalForm,
     });
   }
@@ -294,12 +326,22 @@ export class GvAlertComponent implements OnInit {
       : {
           response_time: this.alertForm.controls.responseTime.value,
         };
+    const webhookData =
+      this.alertForm.controls.hasWebhook.value && this.isWebhookNotifierEnabled
+        ? {
+            webhook: {
+              httpMethod: this.alertForm.controls.webhookMethod.value,
+              url: this.alertForm.controls.webhookUrl.value,
+            },
+          }
+        : {};
     this.applicationService
       .updateAlert({
         applicationId: this.application.id,
         alertId: this.alert.id,
         alertInput: {
           ...statusOrReponseTimeBody,
+          ...webhookData,
           enabled: true,
           type: this.alert.type,
           duration: this.alertForm.controls.duration.value,

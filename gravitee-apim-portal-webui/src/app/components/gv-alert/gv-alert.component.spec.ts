@@ -49,6 +49,7 @@ describe('GvAlertComponent', () => {
   it('should create alert', () => {
     spectator.detectChanges();
     expectGetApplicationPermission();
+    expectGetNotifiers();
 
     component.mode = AlertMode.CREATION;
     component.status = {
@@ -87,6 +88,51 @@ describe('GvAlertComponent', () => {
     });
   });
 
+  it('should create alert with webhook', () => {
+    spectator.detectChanges();
+    expectGetApplicationPermission();
+    expectGetNotifiers();
+
+    component.mode = AlertMode.CREATION;
+    component.status = {
+      available_plugins: 1,
+      enabled: true,
+    };
+    component.alert = {
+      id: 'c8b67a64-ba8a-453e-b67a-64ba8a553e83',
+      enabled: true,
+      type: 'RESPONSE_TIME',
+      description: '',
+      response_time: 1,
+      duration: 1,
+      time_unit: 'MINUTES',
+    };
+
+    component.alertForm.controls.hasWebhook.setValue(true);
+    component.alertForm.controls.webhookMethod.setValue('GET');
+    component.alertForm.controls.webhookUrl.setValue('http://fox.trot.com');
+
+    component.addAlert();
+
+    const req = httpTestingController.expectOne({
+      method: 'POST',
+      url: 'http://localhost:8083/portal/environments/DEFAULT/applications/appId/alerts',
+    });
+    expect(req.request.body).toEqual({
+      description: '',
+      duration: '1',
+      enabled: true,
+      status_code: '4xx',
+      status_percent: '1',
+      time_unit: 'MINUTES',
+      type: 'STATUS',
+      webhook: {
+        httpMethod: 'GET',
+        url: 'http://fox.trot.com',
+      },
+    });
+  });
+
   function expectGetApplicationPermission() {
     httpTestingController
       .expectOne({ method: 'GET', url: 'http://localhost:8083/portal/environments/DEFAULT/permissions?applicationId=appId' })
@@ -94,5 +140,21 @@ describe('GvAlertComponent', () => {
         SUBSCRIPTION: ['R', 'C', 'D', 'U'],
         ALERT: ['R', 'C', 'D', 'U'],
       });
+  }
+
+  function expectGetNotifiers() {
+    httpTestingController.expectOne({ method: 'GET', url: 'http://localhost:8083/portal/environments/DEFAULT/notifiers' }).flush([
+      {
+        id: 'webhook-notifier',
+        name: 'Webhook',
+        description: 'The Gravitee.IO Parent POM provides common settings for all Gravitee components.',
+        version: '1.1.0',
+      },
+      {
+        id: 'default-email',
+        name: 'System email',
+        description: 'System email notifier',
+      },
+    ]);
   }
 });
