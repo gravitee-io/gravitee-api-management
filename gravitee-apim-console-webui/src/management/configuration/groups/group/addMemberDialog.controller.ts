@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { RoleName } from './membershipState';
 
 export class Role {
   default: boolean;
@@ -71,8 +72,12 @@ function DialogAddGroupMemberController(
     $mdDialog.hide(members);
   };
 
-  this.invalid = () => {
+  this.invalid = (): boolean => {
     return (!this.defaultApiRole && !this.defaultApplicationRole) || this.usersSelected.length === 0;
+  };
+
+  this.hasPrimaryOwner = (): boolean => {
+    return this.defaultApiRole === RoleName.PRIMARY_OWNER && this.usersSelected.length > 0;
   };
 }
 
