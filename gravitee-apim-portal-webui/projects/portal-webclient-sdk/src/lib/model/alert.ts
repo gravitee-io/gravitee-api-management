@@ -24,6 +24,10 @@ export interface Alert {
     enabled?: boolean;
     type?: AlertType;
     /**
+     * Filter on API id (empty for all apis)
+     */
+    api?: string;
+    /**
      * Alert description
      */
     description?: string;
