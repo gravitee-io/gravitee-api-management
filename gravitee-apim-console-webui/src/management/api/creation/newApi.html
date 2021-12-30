@@ -49,14 +49,17 @@
         <div class="actions">
           <gv-button primary class="import-action" icon="code:left-circle" outlined ng-click="$ctrl.isImport = false">Cancel </gv-button>
           <gv-button primary icon="general:upload" outlined ng-click="$ctrl.isImport = true">Import</gv-button>
-          <gv-button primary icon-right="code:right-circle" ui-sref="management.apis.create({definitionVersion: $ctrl.definitionVersion})"
+          <gv-button primary icon-right="code:right-circle" ui-sref="management.apis.create({ definitionVersion: $ctrl.definitionVersion })"
             >Create
           </gv-button>
         </div>
       </div>
 
-      <div class="deprecated-action" ng-if="$ctrl.allowsPathBasedCreation">
-        <span>Or use <a ui-sref="management.apis.create({ definitionVersion: '1.0.0' })">Path Based Creation</a></span>
+      <div class="deprecated-action" ng-if="$ctrl.allowsPathBasedCreation && !$ctrl.isImport">
+        <span
+          >Or you can still use paths based | <a href="" ng-click="$ctrl.pathBasedImport()">Import</a> -
+          <a ui-sref="management.apis.create({ definitionVersion: '1.0.0' })">Create</a></span
+        >
       </div>
     </div>
   </div>

@@ -57,7 +57,13 @@ class NewApiController {
   }
 
   cancelImport() {
+    this.definitionVersion = '2.0.0';
     this.isImport = false;
+  }
+
+  pathBasedImport() {
+    this.definitionVersion = '1.0.0';
+    this.isImport = true;
   }
 
   getImportTitle() {
