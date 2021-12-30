@@ -150,6 +150,9 @@
         "status": {
           "second": "is over",
           "third": "%"
+        },
+        "api": {
+          "all": "All APIs"
         }
       },
       "timeUnits": {
@@ -170,13 +173,9 @@
           "title": "Enable webhook notifications to invoke an HTTP call each time this alert his thrown"
         },
         "method": {
-          "label": "HTTP method",
-          "description": "HTTP method used",
           "title": "Select ths HTTP method that will be used to invoke URL each time this alert his thrown"
         },
         "url": {
-          "label": "URL",
-          "description": "URL invoked by webhook",
           "placeholder": "https://my.domain/my/example/url",
           "title": "Enter the URL to call each time this alert his thrown"
         },

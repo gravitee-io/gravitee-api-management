@@ -102,8 +102,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         alert.setSource("REQUEST");
         alert.setSeverity(Trigger.Severity.INFO);
         alert.setDampening(Dampening.strictCount(1));
-        Filter filter = StringCondition.equals("application", applicationId).build();
-        alert.setFilters(singletonList(filter));
+        alert.setFilters(combineFilters(applicationId, alert.getFilters()));
 
         final List<String> recipients = getNotificationRecipients(application.getId(), application.getGroups());
         if (!CollectionUtils.isEmpty(recipients)) {

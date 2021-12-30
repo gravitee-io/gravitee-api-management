@@ -150,6 +150,9 @@
         "status": {
           "second": "je konec",
           "third": "%"
+        },
+        "api": {
+          "all": "Všechny API"
         }
       },
       "timeUnits": {
@@ -170,13 +173,9 @@
           "title": "Povolit oznámení webhooku, aby vyvolalo volání HTTP pokaždé, když je toto upozornění vyvoláno"
         },
         "method": {
-          "label": "HTTP metoda",
-          "description": "použitá metoda HTTP",
           "title": "Vyberte tuto metodu HTTP, která bude použita k vyvolání adresy URL pokaždé, když je tato výstraha vyvolána"
         },
         "url": {
-          "label": "URL",
-          "description": "Adresa URL vyvolaná webhookem",
           "placeholder": "https://my.domain/my/example/url",
           "title": "Zadejte adresu URL, kterou chcete volat pokaždé, když je toto upozornění hozeno"
         },
