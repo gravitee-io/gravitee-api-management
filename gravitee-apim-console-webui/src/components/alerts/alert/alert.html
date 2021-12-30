@@ -102,9 +102,13 @@
                       <input
                         ng-model="$ctrl.alert.description"
                         name="name"
+                        md-maxlength="256"
                         aria-label="Alert description"
                         ng-disabled="$ctrl.isReadonly()"
                       />
+                      <div ng-messages="$ctrl.formAlert.name.$error">
+                        <div ng-message="md-maxlength">Description has to be less than 256 characters long.</div>
+                      </div>
                     </md-input-container>
                   </div>
                 </div>

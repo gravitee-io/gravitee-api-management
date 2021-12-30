@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.AlertEventRuleEntity;
 import java.util.List;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -33,6 +34,7 @@ public class UpdateAlertTriggerEntity extends Trigger {
     @NotNull
     private String name;
 
+    @Size(max = 256)
     private String description;
 
     @NotNull
