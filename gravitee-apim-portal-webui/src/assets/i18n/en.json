@@ -140,7 +140,8 @@
       },
       "maximum": "You have reached the maximum of 10 alerts",
       "phrase": {
-        "first": "Alert when",
+        "on": "Alert on",
+        "when": "When",
         "last": "during the last",
         "response_time": {
           "second": "is over",

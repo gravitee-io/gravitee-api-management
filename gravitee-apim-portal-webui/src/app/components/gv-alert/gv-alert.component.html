@@ -24,7 +24,18 @@
   <div [ngClass]="isCreationMode ? 'page__box-content' : isEditionMode ? 'page__box-content-edit' : ''">
     <div class="gv-alert__row">
       <div class="alert" [ngClass]="{ 'gv-alert__disabled': isReadingMode && !isAlertEnabled }">
-        {{ 'application.alerts.phrase.first' | translate }}
+
+        {{ 'application.alerts.phrase.on' | translate }}
+        <gv-select
+          class="gv-alert__row-api"
+          *ngIf="isCreationMode || isEditionMode"
+          [options]="apisOptions"
+          formControlName="api"
+          name="api"
+          ngDefaultControl
+        ></gv-select>
+        <br>
+        {{ 'application.alerts.phrase.when' | translate }}
         <gv-select
           class="gv-alert__row-type"
           *ngIf="isCreationMode"

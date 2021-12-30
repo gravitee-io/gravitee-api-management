@@ -50,6 +50,7 @@ describe('GvAlertComponent', () => {
     spectator.detectChanges();
     expectGetApplicationPermission();
     expectGetNotifiers();
+    expectGetSubscriptions();
 
     component.mode = AlertMode.CREATION;
     component.status = {
@@ -78,6 +79,7 @@ describe('GvAlertComponent', () => {
       url: 'http://localhost:8083/portal/environments/DEFAULT/applications/appId/alerts',
     });
     expect(req.request.body).toEqual({
+      api: '',
       description: 'My description',
       duration: 1,
       enabled: true,
@@ -92,6 +94,7 @@ describe('GvAlertComponent', () => {
     spectator.detectChanges();
     expectGetApplicationPermission();
     expectGetNotifiers();
+    expectGetSubscriptions();
 
     component.mode = AlertMode.CREATION;
     component.status = {
@@ -119,6 +122,7 @@ describe('GvAlertComponent', () => {
       url: 'http://localhost:8083/portal/environments/DEFAULT/applications/appId/alerts',
     });
     expect(req.request.body).toEqual({
+      api: '',
       description: '',
       duration: '1',
       enabled: true,
@@ -156,5 +160,44 @@ describe('GvAlertComponent', () => {
         description: 'System email notifier',
       },
     ]);
+  }
+
+  function expectGetSubscriptions() {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: 'http://localhost:8083/portal/environments/DEFAULT/subscriptions?applicationId=appId&statuses=ACCEPTED&statuses=PAUSED&statuses=PENDING&size=-1',
+      })
+      .flush({
+        data: [
+          {
+            id: '5d12a45c-e494-4263-92a4-5ce49402632a',
+            api: 'bd12c4cb-0c64-480a-92c4-cb0c64180aa1',
+            application: 'eac6177f-2fca-4add-8617-7f2fca3add0a',
+            plan: '5e239ba2-871e-4283-a39b-a2871ec28313',
+            created_at: '2021-12-30T16:48:42.09Z',
+            processed_at: '2021-12-30T16:48:42.111Z',
+            start_at: '2021-12-30T16:48:42.105Z',
+            subscribed_by: '407b2d9c-91d8-4d7a-bb2d-9c91d84d7a93',
+            status: 'ACCEPTED',
+          },
+        ],
+        metadata: {
+          '5e239ba2-871e-4283-a39b-a2871ec28313': {
+            name: '1 Dolar',
+          },
+          'bd12c4cb-0c64-480a-92c4-cb0c64180aa1': {
+            pictureUrl: 'http://localhost:4100/portal/environments/DEFAULT/apis/bd12c4cb-0c64-480a-92c4-cb0c64180aa1/picture?1640882827537',
+            name: 'Fox',
+            entrypoints: [
+              {
+                target: 'https://api.company.com/fox',
+              },
+            ],
+            state: 'CREATED',
+            version: '1',
+          },
+        },
+      });
   }
 });
