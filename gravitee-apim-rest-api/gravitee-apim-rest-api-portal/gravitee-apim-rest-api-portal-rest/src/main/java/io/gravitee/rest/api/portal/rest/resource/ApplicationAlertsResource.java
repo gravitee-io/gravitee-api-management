@@ -86,6 +86,7 @@ public class ApplicationAlertsResource extends AbstractResource {
         @PathParam("applicationId") String applicationId,
         @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput
     ) {
+        alertInput.setApplication(applicationId);
         checkPlugins();
 
         if (applicationAlertService.findByApplication(applicationId).size() == 10) {

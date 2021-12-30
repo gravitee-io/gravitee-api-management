@@ -151,6 +151,62 @@ public class ApplicationAlertServiceTest {
             .findByHookAndScope(AlertHook.CONSUMER_RESPONSE_TIME.name(), HookScope.TEMPLATES_FOR_ALERT.name());
     }
 
+    @Test
+    public void shouldCreateAlertWithApiFilter() {
+        NewAlertTriggerEntity newAlert = new NewAlertTriggerEntity();
+        newAlert.setId(ALERT_ID);
+        newAlert.setType("METRICS_RATE");
+
+        final StringCondition stringFilter = mock(StringCondition.class);
+        newAlert.setFilters(singletonList(stringFilter));
+        when(stringFilter.getProperty()).thenReturn("api");
+        when(stringFilter.getPattern()).thenReturn(API_ID);
+
+        ApplicationEntity application = getApplication();
+        prepareForCreation(newAlert);
+
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        cut.create(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, newAlert);
+
+        ArgumentCaptor<NewAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(NewAlertTriggerEntity.class);
+
+        verify(alertService, times(1)).create(alertCaptor.capture());
+        assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getProperty()).isEqualTo("application");
+        assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getPattern()).isEqualTo(APPLICATION_ID);
+
+        assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(1)).getProperty()).isEqualTo("api");
+        assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(1)).getPattern()).isEqualTo(API_ID);
+    }
+
+    @Test
+    public void shouldCreateAlertWithNotificationsAndAddDefaultEmailNotification() {
+        NewAlertTriggerEntity newAlert = new NewAlertTriggerEntity();
+        newAlert.setId(ALERT_ID);
+        newAlert.setType("METRICS_RATE");
+
+        Notification notification1 = new Notification();
+        notification1.setType("notification1-type");
+        Notification notification2 = new Notification();
+        notification2.setType("notification2-type");
+        newAlert.setNotifications(List.of(notification1, notification2));
+
+        ApplicationEntity application = getApplication();
+        prepareForCreation(newAlert);
+
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        cut.create(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, newAlert);
+
+        ArgumentCaptor<NewAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(NewAlertTriggerEntity.class);
+
+        verify(alertService, times(1)).create(alertCaptor.capture());
+
+        assertThat(alertCaptor.getValue().getNotifications().size()).isEqualTo(3);
+
+        assertThat(alertCaptor.getValue().getNotifications().get(0).getType()).isEqualTo("notification1-type");
+        assertThat(alertCaptor.getValue().getNotifications().get(1).getType()).isEqualTo("notification2-type");
+        assertThat(alertCaptor.getValue().getNotifications().get(2).getType()).isEqualTo("default-email");
+    }
+
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateMappingError() throws Exception {
         NewAlertTriggerEntity newAlert = new NewAlertTriggerEntity();
@@ -177,6 +233,60 @@ public class ApplicationAlertServiceTest {
         cut.update(APPLICATION_ID, updating);
 
         verify(alertService, times(1)).update(updating);
+    }
+
+    @Test
+    public void shouldUpdateAlertWithApiFilter() throws Exception {
+        final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
+        alertTrigger.setFilters(singletonList(StringCondition.equals("application", APPLICATION_ID).build()));
+        when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
+
+        UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
+        updating.setId(ALERT_ID);
+        updating.setFilters(singletonList(StringCondition.equals("api", API_ID).build()));
+
+        cut.update(APPLICATION_ID, updating);
+
+        ArgumentCaptor<UpdateAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
+
+        verify(alertService, times(1)).update(alertCaptor.capture());
+        assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getProperty()).isEqualTo("application");
+        assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getPattern()).isEqualTo(APPLICATION_ID);
+
+        assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(1)).getProperty()).isEqualTo("api");
+        assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(1)).getPattern()).isEqualTo(API_ID);
+    }
+
+    @Test
+    public void shouldUpdateAlertAndReplaceOldWebhooksNotifications() {
+        final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
+        Notification existingNotification1 = new Notification();
+        existingNotification1.setType("existing-notification-type");
+        Notification existingNotification2 = new Notification();
+        existingNotification2.setType("webhook-notifier");
+        when(alertTrigger.getNotifications()).thenReturn(new ArrayList<>(List.of(existingNotification1, existingNotification2)));
+
+        when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
+
+        UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
+        updating.setId(ALERT_ID);
+        Notification notification1 = new Notification();
+        notification1.setType("notification1-type");
+        Notification notification2 = new Notification();
+        notification2.setType("notification2-type");
+        updating.setNotifications(List.of(notification1, notification2));
+
+        cut.update(APPLICATION_ID, updating);
+
+        ArgumentCaptor<UpdateAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
+
+        verify(alertService, times(1)).update(alertCaptor.capture());
+
+        assertThat(alertCaptor.getValue().getNotifications().size()).isEqualTo(3);
+
+        assertThat(alertCaptor.getValue().getNotifications().get(0).getType()).isEqualTo("notification1-type");
+        assertThat(alertCaptor.getValue().getNotifications().get(1).getType()).isEqualTo("notification2-type");
+        assertThat(alertCaptor.getValue().getNotifications().get(2).getType()).isEqualTo("existing-notification-type");
     }
 
     @Test

@@ -9,6 +9,7 @@
  * Do not edit the class manually.
  */
 import { AlertType } from './alertType';
+import { AlertWebhook } from './alertWebhook';
 import { AlertTimeUnit } from './alertTimeUnit';
 
 
@@ -43,5 +44,6 @@ export interface Alert {
      */
     duration?: number;
     time_unit?: AlertTimeUnit;
+    webhook?: AlertWebhook;
 }
 

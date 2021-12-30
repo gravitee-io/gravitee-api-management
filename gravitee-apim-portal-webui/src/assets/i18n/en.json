@@ -135,7 +135,7 @@
       "disabled": "Please contact your admin before being able to define alert rules.",
       "information": "Each member of the application who has configured his email address will receive a notification",
       "list": {
-        "empty": "No result to display",
+        "empty": "No configured alert",
         "title": "Alerts list"
       },
       "maximum": "You have reached the maximum of 10 alerts",
@@ -162,6 +162,24 @@
       },
       "update": {
         "success": "Alert updated"
+      },
+      "webhook": {
+        "switch": {
+          "label": "Webhook notification",
+          "title": "Enable webhook notifications to invoke an HTTP call each time this alert his thrown"
+        },
+        "method": {
+          "label": "HTTP method",
+          "description": "HTTP method used",
+          "title": "Select ths HTTP method that will be used to invoke URL each time this alert his thrown"
+        },
+        "url": {
+          "label": "URL",
+          "description": "URL invoked by webhook",
+          "placeholder": "https://my.domain/my/example/url",
+          "title": "Enter the URL to call each time this alert his thrown"
+        },
+        "notifierWarning": "To use webhook notifications, ask your admin to install the webhook notifier plugin"
       }
     },
     "analytics": {

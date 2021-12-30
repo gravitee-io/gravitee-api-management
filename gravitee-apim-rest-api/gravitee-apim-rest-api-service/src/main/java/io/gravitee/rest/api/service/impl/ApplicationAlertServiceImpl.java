@@ -33,33 +33,17 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.alert.AlertReferenceType;
-import io.gravitee.rest.api.model.alert.AlertStatusEntity;
-import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
-import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
-import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
-import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
-import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
-import io.gravitee.rest.api.service.AlertService;
-import io.gravitee.rest.api.service.ApplicationAlertService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.AlertHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -75,6 +59,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationAlertServiceImpl.class);
     public static final String DEFAULT_EMAIL_NOTIFIER = "default-email";
+    public static final String DEFAULT_WEBHOOK_NOTIFIER = "webhook-notifier";
     public static final String STATUS_ALERT = "METRICS_RATE";
     public static final String RESPONSE_TIME_ALERT = "METRICS_AGGREGATION";
 
@@ -121,9 +106,8 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         alert.setFilters(singletonList(filter));
 
         final List<String> recipients = getNotificationRecipients(application.getId(), application.getGroups());
-
         if (!CollectionUtils.isEmpty(recipients)) {
-            alert.setNotifications(createNotification(alert.getType(), recipients));
+            alert.setNotifications(combineNotifications(alert.getNotifications(), createNotification(alert.getType(), recipients)));
         }
 
         return alertService.create(alert);
@@ -166,8 +150,11 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         alert.setSource("REQUEST");
         alert.setSeverity(Trigger.Severity.INFO);
         alert.setDampening(Dampening.strictCount(1));
-        alert.setNotifications(alertTrigger.getNotifications());
-        alert.setFilters(alertTrigger.getFilters());
+        alert.setFilters(combineFilters(applicationId, alert.getFilters()));
+
+        alertTrigger.getNotifications().removeIf(n -> DEFAULT_WEBHOOK_NOTIFIER.equals(n.getType()));
+        alert.setNotifications(combineNotifications(alert.getNotifications(), alertTrigger.getNotifications()));
+
         return alertService.update(alert);
     }
 
@@ -489,5 +476,19 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         updating.setSource(trigger.getSource());
 
         return updating;
+    }
+
+    private List<Filter> combineFilters(String applicationId, List<Filter> filtersToAdd) {
+        List<Filter> filters = new ArrayList<>();
+        filters.add(StringCondition.equals("application", applicationId).build());
+        if (filtersToAdd != null) {
+            filters.addAll(filtersToAdd);
+        }
+
+        return filters;
+    }
+
+    private List<Notification> combineNotifications(List<Notification>... notificationsToAdd) {
+        return Arrays.stream(notificationsToAdd).filter(Objects::nonNull).flatMap(Collection::stream).collect(Collectors.toList());
     }
 }

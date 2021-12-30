@@ -130,18 +130,18 @@
         }
       },
       "delete": {
-        "success": "Upozornění smazáno\n"
+        "success": "Upozornění smazáno"
       },
       "disabled": "Než budete moci definovat pravidla výstrah, kontaktujte svého správce.",
       "information": "Každý člen aplikace, který nakonfiguroval svou e-mailovou adresu, obdrží oznámení",
       "list": {
-        "empty": "Žádný výsledek k zobrazení\n",
+        "empty": "Žádné nakonfigurované upozornění",
         "title": "Seznam výstrah"
       },
       "maximum": "Dosáhli jste maximálně 10 upozornění",
       "phrase": {
         "first": "Upozornit, když",
-        "last": "během posledního\n",
+        "last": "během posledního",
         "response_time": {
           "second": "je konec",
           "third": "ms"
@@ -162,6 +162,24 @@
       },
       "update": {
         "success": "Upozornění aktualizováno"
+      },
+      "webhook": {
+        "switch": {
+          "label": "Oznámení webhooku",
+          "title": "Povolit oznámení webhooku, aby vyvolalo volání HTTP pokaždé, když je toto upozornění vyvoláno"
+        },
+        "method": {
+          "label": "HTTP metoda",
+          "description": "použitá metoda HTTP",
+          "title": "Vyberte tuto metodu HTTP, která bude použita k vyvolání adresy URL pokaždé, když je tato výstraha vyvolána"
+        },
+        "url": {
+          "label": "URL",
+          "description": "Adresa URL vyvolaná webhookem",
+          "placeholder": "https://my.domain/my/example/url",
+          "title": "Zadejte adresu URL, kterou chcete volat pokaždé, když je toto upozornění hozeno"
+        },
+        "notifierWarning": "Chcete-li používat oznámení webhooku, požádejte svého administrátora, aby nainstaloval plugin pro oznámení webhooku"
       }
     },
     "analytics": {

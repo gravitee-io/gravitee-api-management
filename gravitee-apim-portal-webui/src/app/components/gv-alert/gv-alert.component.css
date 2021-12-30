@@ -66,3 +66,28 @@
   color: grey;
   text-decoration: line-through;
 }
+
+.gv-alert .gv-alert__webhook-switch {
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.gv-alert .gv-alert__webhook-switch-create {
+  margin-top: 30px;
+}
+
+.gv-alert .gv-alert__webhook-url {
+  width: 500px;
+}
+
+.gv-alert .gv-alert__webhook-method {
+  width: 150px;
+}
+
+.gv-alert .page__box-content-edit div {
+  background: var(--gv-theme-neutral-color-light);
+}
+
+.gv-alert .gv-alert__fields-edit {
+  display: inline-block;
+}

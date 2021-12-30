@@ -21,7 +21,7 @@
     <gv-button link (:gv-button:click)="reset()">{{ 'application.alerts.add.reset' | translate }}</gv-button>
   </div>
 
-  <div [ngClass]="isCreationMode ? 'page__box-content' : ''">
+  <div [ngClass]="isCreationMode ? 'page__box-content' : isEditionMode ? 'page__box-content-edit' : ''">
     <div class="gv-alert__row">
       <div class="alert" [ngClass]="{ 'gv-alert__disabled': isReadingMode && !isAlertEnabled }">
         {{ 'application.alerts.phrase.first' | translate }}
@@ -117,6 +117,58 @@
             [label]="'application.alerts.add.description.label' | translate"
             [placeholder]="'application.alerts.add.description.placeholder' | translate"
           ></gv-text>
+        </div>
+        <div>
+          <span *ngIf="isReadingMode && isWebhookNotifierEnabled && alert.webhook"
+            >Notification via webhook : {{ alert.webhook.httpMethod }} {{ alert.webhook.url }}</span
+          >
+          <div
+            *ngIf="isEditionMode || isCreationMode"
+            class="gv-alert__webhook-switch"
+            [ngClass]="{ 'gv-alert__webhook-switch-create': isCreationMode }"
+          >
+            <gv-switch
+              label="{{ 'application.alerts.webhook.switch.label' | translate }}"
+              title="{{ 'application.alerts.webhook.switch.title' | translate }}"
+              formControlName="hasWebhook"
+              name="hasWebhook"
+              (:gv-switch:input)="toggleWebhook($event)"
+              ngDefaultControl
+            >
+            </gv-switch>
+          </div>
+          <div
+            *ngIf="(isCreationMode || isEditionMode) && isWebhookNotifierEnabled && alertForm.controls.hasWebhook.value"
+            [ngClass]="{ 'gv-alert__fields-edit': isEditionMode }"
+          >
+            <gv-select
+              class="gv-alert__webhook-method"
+              label="{{ isCreationMode ? ('application.alerts.webhook.method.label' | translate) : '' }}"
+              description="{{ isCreationMode ? ('application.alerts.webhook.method.description' | translate) : '' }}"
+              title="{{ 'application.alerts.webhook.method.title' | translate }}"
+              formControlName="webhookMethod"
+              name="webhookMethod"
+              [options]="webhookHttpMethods"
+              ngDefaultControl
+            ></gv-select>
+            <gv-input
+              class="gv-alert__webhook-url"
+              label="{{ isCreationMode ? ('application.alerts.webhook.url.label' | translate) : '' }}"
+              description="{{ isCreationMode ? ('application.alerts.webhook.url.description' | translate) : '' }}"
+              title="{{ 'application.alerts.webhook.url.title' | translate }}"
+              placeholder="{{ 'application.alerts.webhook.url.placeholder' | translate }}"
+              formControlName="webhookUrl"
+              name="webhookUrl"
+              type="url"
+              ngDefaultControl
+            >
+            </gv-input>
+          </div>
+          <div *ngIf="alertForm.controls.hasWebhook.value && !isWebhookNotifierEnabled">
+            <gv-message type="warning">
+              {{ 'application.alerts.webhook.notifierWarning' | translate }}
+            </gv-message>
+          </div>
         </div>
       </div>
       <div *ngIf="isReadingMode">
