@@ -70,6 +70,7 @@ export class GvAlertComponent implements OnInit {
   statusLabel: string;
   responseTimeLabel: string;
   apisOptions: { label: string; value: string }[];
+  apiAllLabel: string;
   isWebhookNotifierEnabled = false;
 
   get isStatusAlert(): boolean {
@@ -98,6 +99,10 @@ export class GvAlertComponent implements OnInit {
 
   get typeLabel(): string {
     return this.isStatusAlert ? this.statusLabel : this.responseTimeLabel;
+  }
+
+  get apiLabel() {
+    return this.apisOptions?.find((option) => option.value === this.alert?.api)?.label ?? this.apiAllLabel;
   }
 
   get isAlertingEnabled() {
@@ -146,6 +151,7 @@ export class GvAlertComponent implements OnInit {
           i18n('application.alerts.timeUnits.seconds'),
           i18n('application.alerts.timeUnits.minutes'),
           i18n('application.alerts.timeUnits.hours'),
+          i18n('application.alerts.phrase.api.all'),
         ])
         .toPromise()
         .then((translations) => {
@@ -176,6 +182,7 @@ export class GvAlertComponent implements OnInit {
               value: AlertTimeUnit.HOURS,
             },
           ];
+          this.apiAllLabel = Object.values(translations)[5] as string;
         });
 
       this.subscriptionService
@@ -186,11 +193,13 @@ export class GvAlertComponent implements OnInit {
         })
         .toPromise()
         .then((apis) => {
-          this.apisOptions = [{ label: 'All APIs', value: '' }];
-          apis.data.forEach((sub) => {
-            const apiMetadata = apis.metadata[sub.api];
-            this.apisOptions.push({ label: apiMetadata.name + ' (' + apiMetadata.version + ')', value: sub.api });
-          });
+          this.apisOptions = [
+            { label: this.apiAllLabel, value: '' },
+            ...apis.data.map((sub) => {
+              const apiMetadata = apis.metadata[sub.api];
+              return { label: apiMetadata.name + ' (' + apiMetadata.version + ')', value: sub.api };
+            }),
+          ];
         });
     }
   }
@@ -312,6 +321,7 @@ export class GvAlertComponent implements OnInit {
           responseTime: new FormControl('' + this.alert.response_time, [Validators.min(1), Validators.max(100000)]),
         };
     this.alertForm = new FormGroup({
+      type: new FormControl({ value: this.alert.type, disabled: true }),
       api: new FormControl(this.alert.api),
       duration: new FormControl(this.alert.duration),
       timeUnit: new FormControl(this.alert.time_unit.toUpperCase(), [Validators.required]),

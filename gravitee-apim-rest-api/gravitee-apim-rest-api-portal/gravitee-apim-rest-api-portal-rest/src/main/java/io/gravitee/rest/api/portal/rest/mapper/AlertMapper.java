@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static java.util.Collections.singletonList;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.alert.api.condition.AggregationCondition;
-import io.gravitee.alert.api.condition.Condition;
-import io.gravitee.alert.api.condition.RateCondition;
-import io.gravitee.alert.api.condition.ThresholdRangeCondition;
+import io.gravitee.alert.api.condition.*;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.MediaType;
@@ -34,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -51,6 +51,7 @@ public class AlertMapper {
 
     public static final String STATUS_ALERT = "METRICS_RATE";
     public static final String RESPONSE_TIME_ALERT = "METRICS_AGGREGATION";
+    public static final String API_FILTER_ALERT = "api";
     public static final String DEFAULT_WEBHOOK_NOTIFIER = "webhook-notifier";
 
     private final ObjectMapper objectMapper;
@@ -64,6 +65,8 @@ public class AlertMapper {
         newAlert.setEnabled(alertInput.getEnabled());
         newAlert.setConditions(convertConditions(alertInput));
         newAlert.setDescription(alertInput.getDescription());
+        newAlert.setFilters(createAlertFilters(alertInput));
+        newAlert.setNotifications(createAlertWebhookNotifications(alertInput));
 
         switch (Objects.requireNonNull(alertInput.getType())) {
             case STATUS:
@@ -73,7 +76,6 @@ public class AlertMapper {
                 newAlert.setType(RESPONSE_TIME_ALERT);
                 break;
         }
-        newAlert.setNotifications(createAlertWebhookNotifications(alertInput));
         return newAlert;
     }
 
@@ -82,6 +84,7 @@ public class AlertMapper {
         updating.setEnabled(alertInput.getEnabled());
         updating.setConditions(convertConditions(alertInput));
         updating.setDescription(alertInput.getDescription());
+        updating.setFilters(createAlertFilters(alertInput));
         updating.setNotifications(createAlertWebhookNotifications(alertInput));
         return updating;
     }
@@ -107,6 +110,7 @@ public class AlertMapper {
             alert.setStatusPercent((int) condition.getThreshold());
         }
         alert.setWebhook(convertNotificationsToAlertWebhook(alertTriggerEntity.getNotifications()));
+        alert.setApi(getApiFromFilters(alertTriggerEntity.getFilters()));
         return alert;
     }
 
@@ -232,6 +236,24 @@ public class AlertMapper {
                     }
                 )
                 .orElse(null);
+        }
+        return null;
+    }
+
+    private String getApiFromFilters(List<Filter> filters) {
+        return filters
+            .stream()
+            .filter(StringCondition.class::isInstance)
+            .map(StringCondition.class::cast)
+            .filter(filter -> API_FILTER_ALERT.equals(filter.getProperty()))
+            .findFirst()
+            .map(StringCondition::getPattern)
+            .orElse(null);
+    }
+
+    private List<Filter> createAlertFilters(AlertInput alertInput) {
+        if (alertInput.getApi() != null && !alertInput.getApi().isEmpty()) {
+            return singletonList(StringCondition.equals(API_FILTER_ALERT, alertInput.getApi()).build());
         }
         return null;
     }

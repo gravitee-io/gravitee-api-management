@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.alert.api.condition.AggregationCondition;
 import io.gravitee.alert.api.condition.RateCondition;
+import io.gravitee.alert.api.condition.StringCondition;
 import io.gravitee.alert.api.condition.ThresholdRangeCondition;
 import io.gravitee.notifier.api.Notification;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
@@ -127,6 +128,24 @@ public class AlertMapperTest {
     }
 
     @Test
+    public void convertAlertInputToNewAlertTriggerEntityWithApiFilter() {
+        final AlertInput alertInput = new AlertInput();
+        alertInput.setEnabled(true);
+        alertInput.setResponseTime(35);
+        alertInput.setDuration(10);
+        alertInput.setTimeUnit(AlertTimeUnit.MINUTES);
+        alertInput.setType(AlertType.RESPONSE_TIME);
+        alertInput.setApi("apiId");
+
+        final NewAlertTriggerEntity actual = alertMapper.convert(alertInput);
+
+        assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
+        final StringCondition stringFilter = (StringCondition) actual.getFilters().get(0);
+        assertThat(stringFilter.getProperty()).isEqualTo(AlertMapper.API_FILTER_ALERT);
+        assertThat(stringFilter.getPattern()).isEqualTo("apiId");
+    }
+
+    @Test
     public void convertAlertInputToUpdateAlertTriggerEntityStatus200() {
         final AlertInput alertInput = new AlertInput();
         alertInput.setEnabled(true);
@@ -202,6 +221,24 @@ public class AlertMapperTest {
     }
 
     @Test
+    public void convertAlertInputToUpdateAlertTriggerWithApiFilter() {
+        final AlertInput alertInput = new AlertInput();
+        alertInput.setEnabled(true);
+        alertInput.setResponseTime(35);
+        alertInput.setDuration(10);
+        alertInput.setTimeUnit(AlertTimeUnit.MINUTES);
+        alertInput.setType(AlertType.RESPONSE_TIME);
+        alertInput.setApi("apiId");
+
+        final UpdateAlertTriggerEntity actual = alertMapper.convertToUpdate(alertInput);
+
+        assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
+        final StringCondition stringFilter = (StringCondition) actual.getFilters().get(0);
+        assertThat(stringFilter.getProperty()).isEqualTo(AlertMapper.API_FILTER_ALERT);
+        assertThat(stringFilter.getPattern()).isEqualTo("apiId");
+    }
+
+    @Test
     public void convertAlertTriggerEntityToAlertStatus200() {
         AlertTriggerEntity alertTriggerEntity = mock(AlertTriggerEntity.class);
         when(alertTriggerEntity.getType()).thenReturn(AlertMapper.STATUS_ALERT);
@@ -274,6 +311,27 @@ public class AlertMapperTest {
         assertThat(actual.getDuration()).isEqualTo(10);
         assertThat(actual.getTimeUnit()).isEqualTo(AlertTimeUnit.MINUTES);
         assertThat(actual.getDescription()).isEqualTo("Description");
+    }
+
+    @Test
+    public void convertAlertTriggerEntityToAlertWithApiFilter() {
+        AlertTriggerEntity alertTriggerEntity = mock(AlertTriggerEntity.class);
+        when(alertTriggerEntity.getType()).thenReturn(AlertMapper.RESPONSE_TIME_ALERT);
+
+        final StringCondition stringFilter = mock(StringCondition.class);
+        when(alertTriggerEntity.getFilters()).thenReturn(Collections.singletonList(stringFilter));
+        when(stringFilter.getProperty()).thenReturn(AlertMapper.API_FILTER_ALERT);
+        when(stringFilter.getPattern()).thenReturn("apiId");
+
+        final AggregationCondition aggregationCondition = mock(AggregationCondition.class);
+        when(alertTriggerEntity.getConditions()).thenReturn(Collections.singletonList(aggregationCondition));
+        when(aggregationCondition.getTimeUnit()).thenReturn(TimeUnit.MINUTES);
+        when(aggregationCondition.getDuration()).thenReturn(10L);
+        when(aggregationCondition.getThreshold()).thenReturn(200D);
+
+        final Alert actual = alertMapper.convert(alertTriggerEntity);
+
+        assertThat(actual.getApi()).isEqualTo("apiId");
     }
 
     @Test

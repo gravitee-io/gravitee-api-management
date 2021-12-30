@@ -150,6 +150,9 @@
         "status": {
           "second": "est supérieur à",
           "third": "%"
+        },
+        "api": {
+          "all": "Toutes les APIs"
         }
       },
       "timeUnits": {
@@ -170,13 +173,9 @@
           "title": "Activer les notifications webhook pour déclencher un appel HTTP à chaque fois que cette alerte est levée"
         },
         "method": {
-          "label": "Méthode HTTP",
-          "description": "Méthode HTTP utilisée",
           "title": "Sélectionnez la méthode HTTP utilisée pour appeler l'URL à chaque fois que cette alerte est levée"
         },
         "url": {
-          "label": "URL",
-          "description": "URL appelée par le webhook",
           "placeholder": "https://mon.domaine/mon/example/url",
           "title": "Saisissez l'URL à appeler à chaque fois que cette alerte est levée"
         },

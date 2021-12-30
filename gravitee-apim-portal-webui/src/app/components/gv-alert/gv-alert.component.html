@@ -23,104 +23,111 @@
 
   <div [ngClass]="isCreationMode ? 'page__box-content' : isEditionMode ? 'page__box-content-edit' : ''">
     <div class="gv-alert__row">
-      <div class="alert" [ngClass]="{ 'gv-alert__disabled': isReadingMode && !isAlertEnabled }">
-
-        {{ 'application.alerts.phrase.on' | translate }}
-        <gv-select
-          class="gv-alert__row-api"
-          *ngIf="isCreationMode || isEditionMode"
-          [options]="apisOptions"
-          formControlName="api"
-          name="api"
-          ngDefaultControl
-        ></gv-select>
-        <br>
-        {{ 'application.alerts.phrase.when' | translate }}
-        <gv-select
-          class="gv-alert__row-type"
-          *ngIf="isCreationMode"
-          (:gv-select:select)="onTypeChange($event.detail)"
-          placeholder="{{ 'application.alerts.add.type.placeholder' | translate }}"
-          [options]="types"
-          formControlName="type"
-          name="type"
-          required="true"
-          ngDefaultControl
-        ></gv-select>
-
-        <strong *ngIf="!isCreationMode"> {{ typeLabel }} </strong>
-
-        <ng-container class="gv-alert__phrase" *ngIf="isStatusAlert">
+      <div class="gv-alert__row__content" [ngClass]="{ 'gv-alert__disabled': isReadingMode && !isAlertEnabled }">
+        <div class="gv-alert__row__content__on">
+          {{ 'application.alerts.phrase.on' | translate }}
           <gv-select
-            class="gv-alert__row-status"
+            class="gv-alert__row__content__on__api-select"
             *ngIf="isCreationMode || isEditionMode"
-            placeholder="{{ 'application.alerts.add.type.status.http_status.placeholder' | translate }}"
-            [options]="httpStatus"
-            formControlName="status"
-            name="status"
+            [options]="apisOptions"
+            formControlName="api"
+            name="api"
             ngDefaultControl
           ></gv-select>
-          <strong *ngIf="isReadingMode"> {{ getHttpStatusLabel(alert['status_code']) }} </strong>
-          {{ 'application.alerts.phrase.status.second' | translate }}
-          <gv-input
-            class="gv-alert__row-status-percent"
+          <strong *ngIf="isReadingMode"> {{ apiLabel }} </strong>
+        </div>
+        <div class="gv-alert__row__content__when">
+          {{ 'application.alerts.phrase.when' | translate }}
+          <gv-select
             *ngIf="isCreationMode || isEditionMode"
-            type="number"
-            min="1"
-            max="100"
-            formControlName="threshold"
+            class="gv-alert__row__content__when__type-select"
+            (:gv-select:select)="onTypeChange($event.detail)"
+            placeholder="{{ 'application.alerts.add.type.placeholder' | translate }}"
+            [options]="types"
+            [disabled]="isEditionMode"
+            formControlName="type"
+            name="type"
             required="true"
-            name="threshold"
-            placeholder="{{ 'application.alerts.add.type.status.percent.placeholder' | translate }}"
             ngDefaultControl
-          ></gv-input>
-          <strong *ngIf="isReadingMode"> {{ alert['status_percent'] }} </strong>
-          {{ 'application.alerts.phrase.status.third' | translate }}
-        </ng-container>
+          ></gv-select>
 
-        <ng-container class="gv-alert__phrase" *ngIf="isResponseTimeAlert">
-          {{ 'application.alerts.phrase.response_time.second' | translate }}
-          <gv-input
-            class="gv-alert__row-response-time"
+          <strong *ngIf="isReadingMode"> {{ typeLabel }} </strong>
+
+          <ng-container *ngIf="isStatusAlert">
+            <gv-select
+              class="gv-alert__row__content__when__status-select"
+              *ngIf="isCreationMode || isEditionMode"
+              placeholder="{{ 'application.alerts.add.type.status.http_status.placeholder' | translate }}"
+              [options]="httpStatus"
+              formControlName="status"
+              name="status"
+              ngDefaultControl
+            ></gv-select>
+
+            <strong *ngIf="isReadingMode"> {{ getHttpStatusLabel(alert['status_code']) }} </strong>
+            {{ 'application.alerts.phrase.status.second' | translate }}
+            <gv-input
+              class="gv-alert__row__content__when__status-percent-input"
+              *ngIf="isCreationMode || isEditionMode"
+              type="number"
+              min="1"
+              max="100"
+              formControlName="threshold"
+              required="true"
+              name="threshold"
+              placeholder="{{ 'application.alerts.add.type.status.percent.placeholder' | translate }}"
+              ngDefaultControl
+            ></gv-input>
+            <strong *ngIf="isReadingMode"> {{ alert['status_percent'] }} </strong>
+            {{ 'application.alerts.phrase.status.third' | translate }}
+          </ng-container>
+
+          <ng-container class="gv-alert__phrase" *ngIf="isResponseTimeAlert">
+            {{ 'application.alerts.phrase.response_time.second' | translate }}
+            <gv-input
+              class="gv-alert__row__content__when__response-time-input"
+              *ngIf="isCreationMode || isEditionMode"
+              type="number"
+              min="1"
+              max="100_000"
+              formControlName="responseTime"
+              name="responseTime"
+              required="true"
+              placeholder="{{ 'application.alerts.add.type.status.percent.placeholder' | translate }}"
+              ngDefaultControl
+            ></gv-input>
+            <strong *ngIf="isReadingMode"> {{ alert['response_time'] }} </strong>
+            {{ 'application.alerts.phrase.response_time.third' | translate }}
+          </ng-container>
+
+          {{ 'application.alerts.phrase.last' | translate }}
+          <gv-select
+            class="gv-alert__row__content__when__duration-select"
             *ngIf="isCreationMode || isEditionMode"
-            type="number"
-            min="1"
-            max="100_000"
-            formControlName="responseTime"
-            name="responseTime"
-            required="true"
-            placeholder="{{ 'application.alerts.add.type.status.percent.placeholder' | translate }}"
+            [options]="durations"
+            formControlName="duration"
+            name="duration"
             ngDefaultControl
-          ></gv-input>
-          <strong *ngIf="isReadingMode"> {{ alert['response_time'] }} </strong>
-          {{ 'application.alerts.phrase.response_time.third' | translate }}
-        </ng-container>
-
-        {{ 'application.alerts.phrase.last' | translate }}
-        <gv-select
-          class="gv-alert__row-duration"
-          *ngIf="isCreationMode || isEditionMode"
-          [options]="durations"
-          formControlName="duration"
-          name="duration"
-          ngDefaultControl
-        ></gv-select>
-        <strong *ngIf="isReadingMode"> {{ alert.duration }} </strong>
-        <gv-select
-          class="gv-alert__row-time-unit"
-          *ngIf="isCreationMode || isEditionMode"
-          [options]="timeUnits"
-          formControlName="timeUnit"
-          name="timeUnit"
-          ngDefaultControl
-        ></gv-select>
-        <strong *ngIf="isReadingMode"> {{ timeUnitTranslated() }} </strong>
-        <div>
-          <span class="gv-alert__description-text" *ngIf="isReadingMode">{{ alert['description'] }}</span>
+          ></gv-select>
+          <strong *ngIf="isReadingMode"> {{ alert.duration }} </strong>
+          <gv-select
+            class="gv-alert__row__content__when__time-unit-select"
+            *ngIf="isCreationMode || isEditionMode"
+            [options]="timeUnits"
+            formControlName="timeUnit"
+            name="timeUnit"
+            ngDefaultControl
+          ></gv-select>
+          <strong *ngIf="isReadingMode"> {{ timeUnitTranslated() }} </strong>
+        </div>
+        <div class="gv-alert__row__content__description">
+          <span class="gv-alert__row__content__description__text" *ngIf="isReadingMode && alert['description']">{{
+            alert['description']
+          }}</span>
           <gv-text
             *ngIf="isCreationMode || isEditionMode"
             ngDefaultControl
-            class="gv-alert__description-input"
+            class="gv-alert__row__content__description__input"
             formControlName="description"
             name="description"
             rows="3"
@@ -129,33 +136,24 @@
             [placeholder]="'application.alerts.add.description.placeholder' | translate"
           ></gv-text>
         </div>
-        <div>
+        <div class="gv-alert__row__content__webhook">
           <span *ngIf="isReadingMode && isWebhookNotifierEnabled && alert.webhook"
-            >Notification via webhook : {{ alert.webhook.httpMethod }} {{ alert.webhook.url }}</span
+            >{{ 'application.alerts.webhook.switch.label' | translate }} : {{ alert.webhook.httpMethod }} {{ alert.webhook.url }}</span
           >
-          <div
+          <gv-switch
             *ngIf="isEditionMode || isCreationMode"
-            class="gv-alert__webhook-switch"
-            [ngClass]="{ 'gv-alert__webhook-switch-create': isCreationMode }"
+            class="gv-alert__row__content__switch"
+            label="{{ 'application.alerts.webhook.switch.label' | translate }}"
+            title="{{ 'application.alerts.webhook.switch.title' | translate }}"
+            formControlName="hasWebhook"
+            name="hasWebhook"
+            (:gv-switch:input)="toggleWebhook($event)"
+            ngDefaultControl
           >
-            <gv-switch
-              label="{{ 'application.alerts.webhook.switch.label' | translate }}"
-              title="{{ 'application.alerts.webhook.switch.title' | translate }}"
-              formControlName="hasWebhook"
-              name="hasWebhook"
-              (:gv-switch:input)="toggleWebhook($event)"
-              ngDefaultControl
-            >
-            </gv-switch>
-          </div>
-          <div
-            *ngIf="(isCreationMode || isEditionMode) && isWebhookNotifierEnabled && alertForm.controls.hasWebhook.value"
-            [ngClass]="{ 'gv-alert__fields-edit': isEditionMode }"
-          >
+          </gv-switch>
+          <ng-container *ngIf="(isCreationMode || isEditionMode) && isWebhookNotifierEnabled && alertForm.controls.hasWebhook.value">
             <gv-select
-              class="gv-alert__webhook-method"
-              label="{{ isCreationMode ? ('application.alerts.webhook.method.label' | translate) : '' }}"
-              description="{{ isCreationMode ? ('application.alerts.webhook.method.description' | translate) : '' }}"
+              class="gv-alert__row__content__webhook__method"
               title="{{ 'application.alerts.webhook.method.title' | translate }}"
               formControlName="webhookMethod"
               name="webhookMethod"
@@ -163,9 +161,7 @@
               ngDefaultControl
             ></gv-select>
             <gv-input
-              class="gv-alert__webhook-url"
-              label="{{ isCreationMode ? ('application.alerts.webhook.url.label' | translate) : '' }}"
-              description="{{ isCreationMode ? ('application.alerts.webhook.url.description' | translate) : '' }}"
+              class="gv-alert__row__content__webhook__url"
               title="{{ 'application.alerts.webhook.url.title' | translate }}"
               placeholder="{{ 'application.alerts.webhook.url.placeholder' | translate }}"
               formControlName="webhookUrl"
@@ -174,7 +170,7 @@
               ngDefaultControl
             >
             </gv-input>
-          </div>
+          </ng-container>
           <div *ngIf="alertForm.controls.hasWebhook.value && !isWebhookNotifierEnabled">
             <gv-message type="warning">
               {{ 'application.alerts.webhook.notifierWarning' | translate }}

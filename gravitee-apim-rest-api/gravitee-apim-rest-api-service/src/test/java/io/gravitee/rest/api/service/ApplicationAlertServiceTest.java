@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.alert.api.condition.Condition;
 import io.gravitee.alert.api.condition.RateCondition;
+import io.gravitee.alert.api.condition.StringCondition;
 import io.gravitee.alert.api.condition.ThresholdRangeCondition;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -101,6 +103,7 @@ public class ApplicationAlertServiceTest {
     private static final String ALERT_ID = "alert-id";
     private static final String APPLICATION_ID = "app-id";
     private static final String APPLICATION_NAME = "app-name";
+    private static final String API_ID = "api-id";
 
     @Before
     public void setUp() throws Exception {
@@ -236,7 +239,7 @@ public class ApplicationAlertServiceTest {
     }
 
     @Test
-    public void shouldUpdateAlertWithApiFilter() throws Exception {
+    public void shouldUpdateAlertWithApiFilter() {
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         alertTrigger.setFilters(singletonList(StringCondition.equals("application", APPLICATION_ID).build()));
         when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
