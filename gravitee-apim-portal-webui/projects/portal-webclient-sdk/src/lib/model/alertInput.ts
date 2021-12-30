@@ -20,6 +20,10 @@ export interface AlertInput {
     application?: string;
     type?: AlertType;
     /**
+     * Filter on API id (empty for all apis)
+     */
+    api?: string;
+    /**
      * Alert description
      */
     description?: string;

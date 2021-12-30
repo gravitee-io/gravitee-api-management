@@ -3810,6 +3810,9 @@ components:
           type: boolean
         type:
           $ref: '#/components/schemas/AlertType'
+        api:
+          description: Filter on API id (empty for all apis)
+          type: string
         description:
           description: Alert description
           type: string
@@ -4527,6 +4530,9 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/AlertType'
+        api:
+          description: Filter on API id (empty for all apis)
+          type: string
         description:
           description: Alert description
           type: string
