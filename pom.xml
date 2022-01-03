@@ -113,7 +113,7 @@
         <protobuf-java.version>3.12.2</protobuf-java.version>
         <snakeyaml.version>1.26</snakeyaml.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
-        <spring.security.version>5.3.1.RELEASE</spring.security.version>
+        <spring.security.version>5.5.4</spring.security.version>
         <swagger-model.version>2.0.9</swagger-model.version>
         <swagger.version>1.6.2</swagger.version>
         <swagger-parser.version>2.0.24</swagger-parser.version>
