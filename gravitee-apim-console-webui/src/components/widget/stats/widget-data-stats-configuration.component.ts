@@ -17,54 +17,27 @@
 import { merge } from 'lodash';
 import { IOnInit } from 'angular';
 
-import DashboardService from '../../../services/dashboard.service';
+import DashboardService, { AverageableField } from '../../../services/dashboard.service';
+
+interface Stat {
+  key: string;
+  label: string;
+  unit?: string;
+  color: string;
+  fallback?: any;
+}
 
 class WidgetDataStatsConfigurationController implements IOnInit {
-  public chart: any;
+  public chart: {
+    request: { type: string; field: any };
+    data: Stat[];
+  };
 
   fields = this.DashboardService.getAverageableFields();
-  stats = [
-    {
-      key: 'min',
-      label: 'min',
-      unit: 'ms',
-      color: '#66bb6a',
-    },
-    {
-      key: 'max',
-      label: 'max',
-      unit: 'ms',
-      color: '#ef5350',
-    },
-    {
-      key: 'avg',
-      label: 'avg',
-      unit: 'ms',
-      color: '#42a5f5',
-    },
-    {
-      key: 'rps',
-      label: 'requests per second',
-      color: '#ff8f2d',
-      fallback: [
-        {
-          key: 'rpm',
-          label: 'requests per minute',
-        },
-        {
-          key: 'rph',
-          label: 'requests per hour',
-        },
-      ],
-    },
-    {
-      key: 'count',
-      label: 'total',
-      color: 'black',
-    },
-  ];
-  statKeys = this.stats.map((stat) => stat.key);
-  selectedStats: string[] = [];
+
+  selectedField: AverageableField;
+  selectedStatsKeys: string[] = [];
+  availableStats: Stat[];
 
   constructor(private readonly DashboardService: DashboardService) {
     'ngInject';
@@ -72,19 +45,98 @@ class WidgetDataStatsConfigurationController implements IOnInit {
 
   $onInit(): void {
     if (!this.chart.data) {
+      const defaultField = this.fields[0];
       merge(this.chart, {
         request: {
           type: 'stats',
-          field: this.fields[0].value,
+          field: defaultField.value,
         },
-        data: this.stats,
+        data: WidgetDataStatsConfigurationController.getStatsAccordingToFieldType(defaultField.type),
       });
     }
-    this.selectedStats = this.chart.data.map((stat) => stat.key);
+
+    this.selectedField = this.fields.find((field) => field.value === this.chart.request.field);
+    this.availableStats = WidgetDataStatsConfigurationController.getStatsAccordingToFieldType(this.selectedField.type);
+    this.selectedStatsKeys = this.chart.data.map((stat) => stat.key);
+  }
+
+  onFieldChanged() {
+    this.chart.request.field = this.selectedField.value;
+    this.availableStats = WidgetDataStatsConfigurationController.getStatsAccordingToFieldType(this.selectedField.type);
+    this.selectedStatsKeys = this.availableStats.map((stat) => stat.key);
+    this.onStatsChanged();
   }
 
   onStatsChanged() {
-    this.chart.data = this.stats.filter((stat) => this.selectedStats.includes(stat.key));
+    this.chart.data = this.availableStats.filter((stat) => (this.selectedStatsKeys ?? []).includes(stat.key));
+  }
+
+  private static getStatsAccordingToFieldType(fieldType: AverageableField['type']) {
+    if (fieldType === 'duration') {
+      return [
+        {
+          key: 'min',
+          label: 'min',
+          unit: 'ms',
+          color: '#66bb6a',
+        },
+        {
+          key: 'max',
+          label: 'max',
+          unit: 'ms',
+          color: '#ef5350',
+        },
+        {
+          key: 'avg',
+          label: 'avg',
+          unit: 'ms',
+          color: '#42a5f5',
+        },
+        {
+          key: 'rps',
+          label: 'requests per second',
+          color: '#ff8f2d',
+          fallback: [
+            {
+              key: 'rpm',
+              label: 'requests per minute',
+            },
+            {
+              key: 'rph',
+              label: 'requests per hour',
+            },
+          ],
+        },
+        {
+          key: 'count',
+          label: 'total',
+          color: 'black',
+        },
+      ];
+    } else if (fieldType === 'length') {
+      return [
+        {
+          key: 'min',
+          label: 'min',
+          unit: 'byte',
+          color: '#66bb6a',
+        },
+        {
+          key: 'max',
+          label: 'max',
+          unit: 'byte',
+          color: '#ef5350',
+        },
+        {
+          key: 'avg',
+          label: 'avg',
+          unit: 'byte',
+          color: '#42a5f5',
+        },
+      ];
+    } else {
+      return [];
+    }
   }
 }
 

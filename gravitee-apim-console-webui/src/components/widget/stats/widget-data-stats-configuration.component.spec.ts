@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { IComponentControllerService } from 'angular';
+
 import { setupAngularJsTesting } from '../../../../jest.setup';
 
 setupAngularJsTesting();
@@ -32,58 +33,102 @@ describe('WidgetDataStatsConfigurationComponent', () => {
   }));
 
   it('init chart data', () => {
+    const defaultSelectedStats = [
+      {
+        color: '#66bb6a',
+        key: 'min',
+        label: 'min',
+        unit: 'ms',
+      },
+      {
+        color: '#ef5350',
+        key: 'max',
+        label: 'max',
+        unit: 'ms',
+      },
+      {
+        color: '#42a5f5',
+        key: 'avg',
+        label: 'avg',
+        unit: 'ms',
+      },
+      {
+        color: '#ff8f2d',
+        fallback: [
+          {
+            key: 'rpm',
+            label: 'requests per minute',
+          },
+          {
+            key: 'rph',
+            label: 'requests per hour',
+          },
+        ],
+        key: 'rps',
+        label: 'requests per second',
+      },
+      {
+        color: 'black',
+        key: 'count',
+        label: 'total',
+      },
+    ];
+
     expect(widgetDataStatsConfigurationComponent.chart).toEqual({
       request: {
         type: 'stats',
         field: 'response-time',
       },
-      data: [
-        {
-          color: '#66bb6a',
-          key: 'min',
-          label: 'min',
-          unit: 'ms',
-        },
-        {
-          color: '#ef5350',
-          key: 'max',
-          label: 'max',
-          unit: 'ms',
-        },
-        {
-          color: '#42a5f5',
-          key: 'avg',
-          label: 'avg',
-          unit: 'ms',
-        },
-        {
-          color: '#ff8f2d',
-          fallback: [
-            {
-              key: 'rpm',
-              label: 'requests per minute',
-            },
-            {
-              key: 'rph',
-              label: 'requests per hour',
-            },
-          ],
-          key: 'rps',
-          label: 'requests per second',
-        },
-        {
-          color: 'black',
-          key: 'count',
-          label: 'total',
-        },
-      ],
+      data: defaultSelectedStats,
     });
-    expect(widgetDataStatsConfigurationComponent.selectedStats).toEqual(['min', 'max', 'avg', 'rps', 'count']);
+    expect(widgetDataStatsConfigurationComponent.selectedStatsKeys).toEqual(['min', 'max', 'avg', 'rps', 'count']);
   });
 
   it('set `chart` properly when selecting API latency', () => {
-    widgetDataStatsConfigurationComponent.chart.request.field = 'api-response-time';
-    widgetDataStatsConfigurationComponent.selectedStats = ['min', 'avg', 'rps', 'count'];
+    widgetDataStatsConfigurationComponent.selectedField = {
+      label: 'API latency (ms)',
+      value: 'api-response-time',
+      type: 'duration',
+    };
+    widgetDataStatsConfigurationComponent.onFieldChanged();
+
+    const selectedStats = [
+      {
+        color: '#66bb6a',
+        key: 'min',
+        label: 'min',
+        unit: 'ms',
+      },
+      {
+        color: '#42a5f5',
+        key: 'avg',
+        label: 'avg',
+        unit: 'ms',
+      },
+      {
+        color: '#ff8f2d',
+        fallback: [
+          {
+            key: 'rpm',
+            label: 'requests per minute',
+          },
+          {
+            key: 'rph',
+            label: 'requests per hour',
+          },
+        ],
+        key: 'rps',
+        label: 'requests per second',
+      },
+      {
+        color: 'black',
+        key: 'count',
+        label: 'total',
+      },
+    ];
+
+    widgetDataStatsConfigurationComponent.selectedStatsKeys = ['min', 'avg', 'rps', 'count'];
+
     widgetDataStatsConfigurationComponent.onStatsChanged();
 
     expect(widgetDataStatsConfigurationComponent.chart).toEqual({
@@ -91,40 +136,48 @@ describe('WidgetDataStatsConfigurationComponent', () => {
         type: 'stats',
         field: 'api-response-time',
       },
-      data: [
-        {
-          color: '#66bb6a',
-          key: 'min',
-          label: 'min',
-          unit: 'ms',
-        },
-        {
-          color: '#42a5f5',
-          key: 'avg',
-          label: 'avg',
-          unit: 'ms',
-        },
-        {
-          color: '#ff8f2d',
-          fallback: [
-            {
-              key: 'rpm',
-              label: 'requests per minute',
-            },
-            {
-              key: 'rph',
-              label: 'requests per hour',
-            },
-          ],
-          key: 'rps',
-          label: 'requests per second',
-        },
-        {
-          color: 'black',
-          key: 'count',
-          label: 'total',
-        },
-      ],
+      data: selectedStats,
+    });
+  });
+
+  it('set `chart` properly when selecting Request content length', () => {
+    widgetDataStatsConfigurationComponent.selectedField = {
+      label: 'Request content length (byte)',
+      value: 'request-content-length',
+      type: 'length',
+    };
+    widgetDataStatsConfigurationComponent.onFieldChanged();
+
+    const selectedStats = [
+      {
+        color: '#66bb6a',
+        key: 'min',
+        label: 'min',
+        unit: 'byte',
+      },
+      {
+        color: '#ef5350',
+        key: 'max',
+        label: 'max',
+        unit: 'byte',
+      },
+      {
+        color: '#42a5f5',
+        key: 'avg',
+        label: 'avg',
+        unit: 'byte',
+      },
+    ];
+
+    widgetDataStatsConfigurationComponent.selectedStatsKeys = ['min', 'max', 'avg'];
+    widgetDataStatsConfigurationComponent.onStatsChanged();
+
+    expect(widgetDataStatsConfigurationComponent.chart).toEqual({
+      request: {
+        type: 'stats',
+        field: 'request-content-length',
+      },
+      data: selectedStats,
     });
   });
 });

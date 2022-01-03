@@ -19,6 +19,12 @@ import AnalyticsService from './analytics.service';
 
 import { Dashboard } from '../entities/dashboard';
 
+export interface AverageableField {
+  label: string;
+  value: string;
+  type: 'duration' | 'length' | 'count';
+}
+
 class DashboardService {
   private AnalyticsService: AnalyticsService;
 
@@ -69,27 +75,32 @@ class DashboardService {
     };
   }
 
-  getAverageableFields() {
+  getAverageableFields(): AverageableField[] {
     return [
       {
         label: 'Global latency (ms)',
         value: 'response-time',
+        type: 'duration',
       },
       {
         label: 'API latency (ms)',
         value: 'api-response-time',
+        type: 'duration',
       },
       {
         label: 'Proxy latency (ms)',
         value: 'proxy-latency',
+        type: 'duration',
       },
       {
         label: 'Request content length (byte)',
         value: 'request-content-length',
+        type: 'length',
       },
       {
         label: 'Response content length (byte)',
         value: 'response-content-length',
+        type: 'length',
       },
     ];
   }
