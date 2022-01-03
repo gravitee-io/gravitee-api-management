@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createHttpFactory, SpectatorService } from '@ngneat/spectator';
+import { createHttpFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ConfigurationService } from './configuration.service';
 
 describe('ConfigurationService', () => {

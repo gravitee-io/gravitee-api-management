@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { mockProvider } from '@ngneat/spectator';
+import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { TokenService } from '../../services/token.service';

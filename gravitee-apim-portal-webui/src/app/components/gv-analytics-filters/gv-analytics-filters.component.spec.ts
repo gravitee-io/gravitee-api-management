@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createComponentFactory, Spectator } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 import { GvAnalyticsFiltersComponent } from './gv-analytics-filters.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
