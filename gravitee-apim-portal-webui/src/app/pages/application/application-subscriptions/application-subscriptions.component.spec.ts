@@ -15,7 +15,7 @@
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { createComponentFactory, Spectator } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { LocalizedDatePipe } from '../../../pipes/localized-date.pipe';
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
 

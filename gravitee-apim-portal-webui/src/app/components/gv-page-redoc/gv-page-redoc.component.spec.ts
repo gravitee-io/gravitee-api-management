@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { createComponentFactory, Spectator } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { GvPageRedocComponent } from './gv-page-redoc.component';
 
 describe('GvPageRedocComponent', () => {

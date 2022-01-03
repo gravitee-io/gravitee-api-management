@@ -24,7 +24,7 @@ import { ConfigurationService } from '../../services/configuration.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { ScrollService } from '../../services/scroll.service';
-import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { PortalService, Ticket, TicketsResponse } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 

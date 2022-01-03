@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { mockProvider } from '@ngneat/spectator';
+import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TokenService } from '../../../services/token.service';
 import { PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';

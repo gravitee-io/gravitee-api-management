@@ -15,7 +15,7 @@
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureGuardService } from '../../services/feature-guard.service';
 import { NotificationService } from '../../services/notification.service';

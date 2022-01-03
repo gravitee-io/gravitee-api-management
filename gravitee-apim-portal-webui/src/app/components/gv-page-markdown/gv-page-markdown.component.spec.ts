@@ -19,7 +19,7 @@ import { GvMarkdownTocComponent } from '../gv-markdown-toc/gv-markdown-toc.compo
 import { GvPageMarkdownComponent } from './gv-page-markdown.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { mockProvider } from '@ngneat/spectator';
+import { mockProvider } from '@ngneat/spectator/jest';
 import { ConfigurationService } from '../../services/configuration.service';
 
 const BASE_URL = 'my-base-url';

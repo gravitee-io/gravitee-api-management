@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { createPipeFactory, SpectatorPipe } from '@ngneat/spectator';
+import { createPipeFactory, SpectatorPipe } from '@ngneat/spectator/jest';
 import { SafePipe } from './safe.pipe';
 
 describe('SafePipe', () => {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {

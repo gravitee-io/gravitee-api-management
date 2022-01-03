@@ -15,7 +15,7 @@
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { CurrentUserService } from '../../services/current-user.service';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 
