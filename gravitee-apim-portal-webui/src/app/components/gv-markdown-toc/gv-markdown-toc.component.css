@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 .page__box {
+  height: 100%;
   max-width: 250px;
 }
 

@@ -80,7 +80,6 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   @ViewChild('treeMenu', { static: false }) treeMenu;
   private loadingTimer: any;
-  private lastTop: number;
 
   @Input() fragment: string;
 
@@ -93,24 +92,17 @@ export class GvDocumentationComponent implements AfterViewInit {
     }
   }
 
-  static updateMenuPosition(menuElement, lastTop) {
+  static updateMenuPosition(menuElement) {
     if (menuElement) {
       const scrollTop = document.scrollingElement.scrollTop;
       if (document.querySelector(this.PAGE_COMPONENT)) {
-        const { height } = menuElement.getBoundingClientRect();
         const contentHeight = document.querySelector(this.PAGE_COMPONENT).getBoundingClientRect().height;
-        if (contentHeight - scrollTop <= height) {
-          menuElement.style.top = `${lastTop}px`;
-          menuElement.style.bottom = `${contentHeight - scrollTop}px`;
-          menuElement.style.position = `absolute`;
-          return null;
-        } else {
-          this.reset(menuElement);
-          return scrollTop + ScrollService.getHeaderHeight();
-        }
+
+        menuElement.style['max-height'] = `${contentHeight - scrollTop}px`;
+
+        this.reset(menuElement);
       } else {
         this.reset(menuElement);
-        return scrollTop + ScrollService.getHeaderHeight();
       }
     }
   }
@@ -200,7 +192,7 @@ export class GvDocumentationComponent implements AfterViewInit {
   onScroll() {
     if (this.treeMenu) {
       window.requestAnimationFrame(() => {
-        this.lastTop = GvDocumentationComponent.updateMenuPosition(this.treeMenu.nativeElement, this.lastTop);
+        GvDocumentationComponent.updateMenuPosition(this.treeMenu.nativeElement);
       });
     }
   }
@@ -208,7 +200,6 @@ export class GvDocumentationComponent implements AfterViewInit {
   @HostListener(':gv-tree:select', ['$event.detail.value'])
   onPageChange(page) {
     this.router.navigate([], { queryParams: { page: page.id } }).then(() => {
-      this.lastTop = null;
       GvDocumentationComponent.reset(this.treeMenu.nativeElement);
     });
     this.currentPage = page;

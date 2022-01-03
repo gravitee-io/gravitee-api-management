@@ -37,7 +37,6 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   textRenderer = new marked.TextRenderer();
   /* ****************** */
   private scrollInProgress: boolean;
-  private lastTop: number;
 
   constructor(
     private route: ActivatedRoute,
@@ -74,7 +73,7 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   @HostListener('window:scroll')
   onScroll() {
     window.requestAnimationFrame(() => {
-      this.lastTop = GvDocumentationComponent.updateMenuPosition(this.element.nativeElement, this.lastTop);
+      GvDocumentationComponent.updateMenuPosition(this.element.nativeElement);
     });
   }
 
