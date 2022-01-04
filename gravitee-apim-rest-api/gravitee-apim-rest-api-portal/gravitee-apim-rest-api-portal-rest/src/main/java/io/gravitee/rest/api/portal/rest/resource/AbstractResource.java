@@ -295,12 +295,16 @@ public abstract class AbstractResource<T, K> {
 
         return new DataResponse()
             .data(transformPageContent(pageContent))
-            .metadata(this.computeMetadata(metadata, dataMetadata, paginationMetadata))
+            .metadata(this.fillMetadata(this.computeMetadata(metadata, dataMetadata, paginationMetadata), pageContent))
             .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
     }
 
     protected List<T> transformPageContent(List<K> pageContent) {
         return (List<T>) pageContent;
+    }
+
+    protected Map fillMetadata(Map metadata, List<K> pageContent) {
+        return metadata;
     }
 
     protected Map<String, Map<String, Object>> computeMetadata(

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { defaultIfEmpty, filter, switchMap } from 'rxjs/operators';
 import { CurrentUserService } from '../../services/current-user.service';
 import {
   Application,
   ApplicationService,
-  PermissionsService,
   Subscription,
   SubscriptionService,
   User,
@@ -45,7 +43,7 @@ import StatusEnum = Subscription.StatusEnum;
 })
 export class DashboardComponent implements OnInit {
   public currentUser: User;
-  applications: { item: Promise<Application>; metrics: Promise<{ subscribers: { clickable: boolean; value: number; title: string } }> }[];
+  applications: { item: Application; metrics: Promise<{ subscribers: { clickable: boolean; value: number; title: string } }> }[];
   metrics: Array<any>;
   subscriptions: Array<any> = [];
   optionsSubscriptions: object;
@@ -63,7 +61,6 @@ export class DashboardComponent implements OnInit {
     private config: ConfigurationService,
     private translateService: TranslateService,
     private analyticsService: AnalyticsService,
-    private permissionsService: PermissionsService,
   ) {}
 
   ngOnInit() {
@@ -75,10 +72,31 @@ export class DashboardComponent implements OnInit {
         .getApplications({ size: 3, order: '-nbSubscriptions' })
         .toPromise()
         .then((response) => {
-          this.applications = response.data.map((application, index) => {
-            const metrics = this._getMetrics(application);
-            const item = metrics.then(() => application);
-            return { item, metrics };
+          const subscriptionsByAppId: { [p: string]: object } = response.metadata?.subscriptions;
+          this.applications = response.data.map((application) => {
+            const applicationSubscriptions = (subscriptionsByAppId?.[application.id] as Array<Subscription>) || [];
+            if (applicationSubscriptions.length > 0) {
+              // Load subscriptions details
+              this.subscriptionService
+                .getSubscriptions({
+                  size: -1,
+                  applicationId: application.id,
+                  statuses: [StatusEnum.ACCEPTED],
+                })
+                .toPromise()
+                .then((subscriptionsResponse) => {
+                  subscriptionsResponse.data.forEach((sub) => {
+                    this.subscriptions = this.subscriptions.concat({
+                      application,
+                      api: { ...{ id: sub.api }, ...subscriptionsResponse.metadata[sub.api] },
+                      plan: subscriptionsResponse.metadata[sub.plan],
+                    });
+                  });
+                });
+            }
+
+            const metrics = this._getMetrics(application, applicationSubscriptions);
+            return { item: application, metrics };
           });
           this.empty = this.applications.length === 0;
           this.cardListGridTemplate = `grid-template-columns: repeat(${this.applications ? this.applications.length : 0}, 1fr)`;
@@ -122,35 +140,16 @@ export class DashboardComponent implements OnInit {
     );
   }
 
-  private _getMetrics(application: Application) {
-    return this.permissionsService
-      .getCurrentUserPermissions({ applicationId: application.id })
-      .pipe(
-        filter((permissions) => permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('R')),
-        switchMap(() =>
-          this.subscriptionService.getSubscriptions({ size: -1, applicationId: application.id, statuses: [StatusEnum.ACCEPTED] }),
-        ),
-        defaultIfEmpty({ data: [], metadata: {} }),
-      )
-      .toPromise()
-      .then(async (r) => {
-        r.data.forEach((sub) => {
-          this.subscriptions = this.subscriptions.concat({
-            application,
-            api: { ...{ id: sub.api }, ...r.metadata[sub.api] },
-            plan: r.metadata[sub.plan],
-          });
-        });
-        const count = r.data.length;
-        const title = await this.translateService
-          .get('applications.subscribers.title', {
-            count,
-            appName: application.name,
-          })
-          .toPromise();
+  private async _getMetrics(application: Application, subscriptions: Array<Subscription>) {
+    const count = subscriptions.length;
+    const title = await this.translateService
+      .get('applications.subscribers.title', {
+        count,
+        appName: application.name,
+      })
+      .toPromise();
 
-        return { subscribers: { value: count, clickable: true, title } };
-      });
+    return { subscribers: { value: count, clickable: true, title } };
   }
 
   @HostListener(':gv-card-full:click', ['$event.detail'])

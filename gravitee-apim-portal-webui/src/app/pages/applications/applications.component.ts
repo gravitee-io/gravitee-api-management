@@ -76,7 +76,7 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
         this.nbApplications = this.paginationData.total;
         this.applications = response.data.map((application) => ({
           item: application,
-          metrics: this._getMetrics(application),
+          metrics: this._getMetrics(application, response.metadata),
         }));
         this.empty = this.applications.length === 0;
       });
@@ -87,33 +87,25 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  private _getMetrics(application: Application) {
-    return this.permissionsService
-      .getCurrentUserPermissions({ applicationId: application.id })
-      .toPromise()
-      .then((permissions) => {
-        if (permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('R')) {
-          return this.subscriptionService
-            .getSubscriptions({ size: -1, applicationId: application.id, statuses: [StatusEnum.ACCEPTED] })
-            .toPromise()
-            .then(async (r) => {
-              const count = r.data.length;
-              const title = await this.translateService
-                .get('applications.subscribers.title', {
-                  count,
-                  appName: application.name,
-                })
-                .toPromise();
-              return {
-                subscribers: {
-                  value: r.data.length,
-                  clickable: true,
-                  title,
-                },
-              };
-            });
-        }
-      });
+  private async _getMetrics(application: Application, metadata: { [p: string]: { [p: string]: object } }) {
+    let count = 0;
+    if (metadata.subscriptions && metadata.subscriptions[application.id]) {
+      const subscriptions = metadata.subscriptions[application.id] as Array<object>;
+      count = subscriptions.length;
+    }
+    const title = await this.translateService
+      .get('applications.subscribers.title', {
+        count,
+        appName: application.name,
+      })
+      .toPromise();
+    return {
+      subscribers: {
+        value: count,
+        clickable: true,
+        title,
+      },
+    };
   }
 
   @HostListener(':gv-card-full:click', ['$event.detail'])

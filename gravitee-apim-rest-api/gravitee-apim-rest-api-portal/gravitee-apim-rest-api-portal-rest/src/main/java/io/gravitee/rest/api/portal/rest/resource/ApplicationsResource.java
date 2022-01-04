@@ -15,22 +15,29 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static java.util.stream.Collectors.groupingBy;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationInput;
+import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
@@ -53,6 +60,8 @@ import javax.ws.rs.core.Response;
  */
 public class ApplicationsResource extends AbstractResource<Application, ApplicationListItem> {
 
+    protected static final String METADATA_SUBSCRIPTIONS_KEY = "subscriptions";
+
     @Context
     private ResourceContext resourceContext;
 
@@ -64,6 +73,12 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
 
     @Inject
     private ApplicationMapper applicationMapper;
+
+    @Inject
+    private SubscriptionService subscriptionService;
+
+    @Inject
+    private SubscriptionMapper subscriptionMapper;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -149,18 +164,44 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
             List<String> idsOrderedBySubscriptions = new ArrayList<>(
                 filteringService.getApplicationsOrderByNumberOfSubscriptions(applicationIds)
             );
-            orderingComparator = Comparator.comparingInt(idsOrderedBySubscriptions::indexOf);
+            orderingComparator = Comparator.comparingInt(value -> idsOrderedBySubscriptions.indexOf(value.getId()));
         } else {
             orderingComparator = Comparator.comparing(ApplicationListItem::getName, String.CASE_INSENSITIVE_ORDER);
         }
-        boolean isAsc = !order.startsWith("-");
-        if (!isAsc) {
-            orderingComparator.reversed();
-        }
 
         List<ApplicationListItem> applicationsList = appSupplier.get().sorted(orderingComparator).collect(Collectors.toList());
-
+        boolean isAsc = !order.startsWith("-");
+        if (!isAsc) {
+            Collections.reverse(applicationsList);
+        }
         return createListResponse(applicationsList, paginationParam);
+    }
+
+    @Override
+    protected Map fillMetadata(Map metadata, List<ApplicationListItem> pageContent) {
+        final String userId = getAuthenticatedUser();
+        List<String> applicationIds = pageContent
+            .stream()
+            .filter(
+                app ->
+                    permissionService.hasPermission(userId, RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.READ)
+            )
+            .map(ApplicationListItem::getId)
+            .collect(Collectors.toList());
+
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApplications(applicationIds);
+        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
+
+        final Map<String, List<Subscription>> subscriptions = subscriptionService
+            .search(query)
+            .stream()
+            .map(subscriptionMapper::convert)
+            .collect(groupingBy(Subscription::getApplication));
+        if (!subscriptions.isEmpty()) {
+            metadata.put(METADATA_SUBSCRIPTIONS_KEY, subscriptions);
+        }
+        return metadata;
     }
 
     @Override
