@@ -57,7 +57,7 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         if (lastRefreshAt == -1) {
             count = initialSynchronizeDictionaries(nextLastRefreshAt);
         } else {
-            count = this.searchLatestEvents(bulkItems, lastRefreshAt, nextLastRefreshAt, DICTIONARY_ID, EventType.PUBLISH_DICTIONARY, EventType.START_DICTIONARY, EventType.UNPUBLISH_DICTIONARY, EventType.STOP_DICTIONARY)
+            count = this.searchLatestEvents(bulkItems, lastRefreshAt, nextLastRefreshAt, DICTIONARY_ID, EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
                     .compose(this::processDictionaryEvents)
                     .count()
                     .blockingGet();
@@ -71,7 +71,9 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
     }
 
     private long initialSynchronizeDictionaries(long nextLastRefreshAt) {
-        return this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, DICTIONARY_ID, EventType.PUBLISH_DICTIONARY, EventType.START_DICTIONARY)
+        // We look only for the latest PUBLISH or UNPUBLISH events for dictionaries...
+        return this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, DICTIONARY_ID, EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
+                .filter(e -> e.getType().equals(EventType.PUBLISH_DICTIONARY))  // ... but if the latest event of a dictionary is UNPUBLISH, it must not be loaded
                 .compose(this::processDictionaryDeployEvents)
                 .count()
                 .blockingGet();
@@ -81,9 +83,9 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
     private Flowable<String> processDictionaryEvents(Flowable<Event> upstream) {
         return upstream.groupBy(Event::getType)
                 .flatMap(eventsByType -> {
-                    if (eventsByType.getKey() == EventType.PUBLISH_DICTIONARY || eventsByType.getKey() == EventType.START_DICTIONARY) {
+                    if (eventsByType.getKey() == EventType.PUBLISH_DICTIONARY) {
                         return eventsByType.compose(this::processDictionaryDeployEvents);
-                    } else if (eventsByType.getKey() == EventType.UNPUBLISH_DICTIONARY || eventsByType.getKey() == EventType.STOP_DICTIONARY) {
+                    } else if (eventsByType.getKey() == EventType.UNPUBLISH_DICTIONARY) {
                         return eventsByType.compose(this::processDictionaryUndeployEvents);
                     } else {
                         return Flowable.empty();

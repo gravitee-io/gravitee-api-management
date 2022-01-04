@@ -95,8 +95,9 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      * Run the initial synchronization which focus on api PUBLISH and START events only.
      */
     private long initialSynchronizeApis(long nextLastRefreshAt) {
-
-        final Long count = this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, API_ID, EventType.PUBLISH_API, EventType.START_API)
+        // We look for all the latest events for APIs...
+        final Long count = this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, API_ID, EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)
+                .filter(e -> e.getType().equals(EventType.PUBLISH_API) || e.getType().equals(EventType.START_API))  // ... but if the latest event of an API is UNPUBLISH or STOP, it must not be registered
                 .compose(this::processApiRegisterEvents)
                 .count()
                 .blockingGet();
