@@ -55,6 +55,7 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         final Event event9 = mock(Event.class);
         final Event event10 = mock(Event.class);
         final Event event11 = mock(Event.class);
+        final Event event12 = mock(Event.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent = mock(io.gravitee.common.data.domain.Page.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent2 = mock(io.gravitee.common.data.domain.Page.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent3 = mock(io.gravitee.common.data.domain.Page.class);
@@ -124,7 +125,7 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         when(event8.getUpdatedAt()).thenReturn(parse("18/02/2016"));
 
         when(event9.getId()).thenReturn("event09");
-        when(event9.getEnvironmentId()).thenReturn("DEFAULT");
+        when(event9.getEnvironmentId()).thenReturn("OTHER");
         when(event9.getType()).thenReturn(EventType.PUBLISH_DICTIONARY);
         when(event9.getCreatedAt()).thenReturn(parse("19/02/2016"));
         when(event9.getUpdatedAt()).thenReturn(parse("19/02/2016"));
@@ -140,6 +141,12 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         when(event11.getType()).thenReturn(EventType.START_API);
         when(event11.getCreatedAt()).thenReturn(parse("16/02/2016"));
         when(event11.getUpdatedAt()).thenReturn(parse("16/02/2016"));
+
+        when(event12.getId()).thenReturn("event12");
+        when(event12.getEnvironmentId()).thenReturn("DEFAULT");
+        when(event12.getType()).thenReturn(EventType.STOP_DICTIONARY);
+        when(event12.getCreatedAt()).thenReturn(parse("20/02/2016"));
+        when(event12.getUpdatedAt()).thenReturn(parse("20/02/2016"));
 
         when(eventRepository.findById("event01")).thenReturn(of(event1));
 
@@ -287,41 +294,76 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
 
         when(eventRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, null, null))
+        when(
+            eventRepository.searchLatest(
+                new EventCriteria.Builder().environmentId("DEFAULT").build(),
+                Event.EventProperties.API_ID,
+                null,
+                null
+            )
+        )
             .thenReturn(Arrays.asList(event11, event10, event6, event4, event2));
 
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 3L, 1L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 3L, 1L)
+        )
             .thenReturn(singletonList(event4));
 
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 0L, 1L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 0L, 1L)
+        )
             .thenReturn(singletonList(event11));
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 1L, 1L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 1L, 1L)
+        )
             .thenReturn(singletonList(event10));
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 2L, 1L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 2L, 1L)
+        )
             .thenReturn(singletonList(event6));
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 3L, 1L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 3L, 1L)
+        )
             .thenReturn(singletonList(event4));
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 4L, 1L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 4L, 1L)
+        )
             .thenReturn(singletonList(event2));
 
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 0L, 2L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 0L, 2L)
+        )
             .thenReturn(Arrays.asList(event11, event10));
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 1L, 2L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 1L, 2L)
+        )
             .thenReturn(Arrays.asList(event6, event4));
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 2L, 2L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 2L, 2L)
+        )
             .thenReturn(singletonList(event2));
 
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 0L, 3L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 0L, 3L)
+        )
             .thenReturn(Arrays.asList(event11, event10, event6));
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 1L, 3L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 1L, 3L)
+        )
             .thenReturn(Arrays.asList(event4, event2));
 
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 0L, 4L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 0L, 4L)
+        )
             .thenReturn(Arrays.asList(event11, event10, event6, event4));
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 1L, 4L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 1L, 4L)
+        )
             .thenReturn(singletonList(event2));
 
-        when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 0L, 5L))
+        when(
+            eventRepository.searchLatest(new EventCriteria.Builder().environmentId("DEFAULT").build(), Event.EventProperties.API_ID, 0L, 5L)
+        )
             .thenReturn(Arrays.asList(event11, event10, event6, event4, event2));
 
         when(
@@ -339,7 +381,17 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         )
             .thenReturn(singletonList(event4));
 
+        when(
+            eventRepository.searchLatest(
+                new EventCriteria.Builder().from(1455800000000L).to(1455941000000L).types(EventType.PUBLISH_DICTIONARY).build(),
+                Event.EventProperties.DICTIONARY_ID,
+                0L,
+                10L
+            )
+        )
+            .thenReturn(singletonList(event9));
+
         when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.DICTIONARY_ID, null, null))
-            .thenReturn(Arrays.asList(event9, event8));
+            .thenReturn(Arrays.asList(event12, event8));
     }
 }
