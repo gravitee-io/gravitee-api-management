@@ -26,6 +26,7 @@ declare global {
       forbidden(): Chainable<Subject>;
       notFound(): Chainable<Subject>;
       serviceUnavailable(): Chainable<Subject>;
+      retryRequest(url: string, options: {}): Chainable<Subject>;
     }
   }
 }
@@ -118,3 +119,44 @@ Cypress.Commands.add(
     return subject;
   },
 );
+
+Cypress.Commands.add('retryRequest', (url, options) => {
+  Cypress._.defaults(options, {
+    method: 'GET',
+    body: null,
+    headers: {
+      'content-type': 'application/json',
+    },
+    retries: 0,
+    function: false,
+    timeout: 0,
+  });
+  let retriesCounter = 0;
+  function makeRequest() {
+    retriesCounter += 1;
+    cy.request({
+      method: options.method || 'GET',
+      url: url,
+      headers: options.headers,
+      body: options.body,
+      failOnStatusCode: false,
+    }).then((response) => {
+      try {
+        if (options.function) {
+          options.function(response);
+        }
+        return cy.wrap(response);
+      } catch (err) {
+        if (!options.function) {
+          throw err;
+        }
+        if (retriesCounter >= options.retries) {
+          throw new Error(`Failed to request ${url} after ${options.retries} retries`);
+        }
+        cy.wait(options.timeout);
+        return makeRequest();
+      }
+    });
+  }
+  makeRequest();
+});

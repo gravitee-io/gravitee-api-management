@@ -15,7 +15,8 @@
  */
 import * as faker from 'faker';
 import { ApiImport, ApiImportMember, ApiImportPage, ApiImportPlan, ApiImportProxyGroupLoadBalancerType } from '@model/api-imports';
-import { ApiFlowMode, ApiPageType, ApiVisibility } from '@model/apis';
+import { ApiPageType, ApiVisibility } from '@model/apis';
+import { FlowMode } from '@model/api-flows';
 import { ApiFakers } from './apis';
 import { ApiUser } from '@model/users';
 import { Role } from '@model/roles';
@@ -33,7 +34,7 @@ export class ApiImportFakers {
       description,
       visibility: ApiVisibility.PRIVATE,
       gravitee: '2.0.0',
-      flow_mode: ApiFlowMode.DEFAULT,
+      flow_mode: FlowMode.DEFAULT,
       resources: [],
       properties: [],
       groups: [],

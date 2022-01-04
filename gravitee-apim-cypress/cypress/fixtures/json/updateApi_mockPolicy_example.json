@@ -1,0 +1,22 @@
+{
+  "paths": {
+    "/": [
+      {
+        "methods": ["GET"],
+        "description": "Description of the Mock Gravitee Policy",
+        "enabled": true,
+        "mock": {
+          "headers": [
+            {
+              "name": "test-value",
+              "value": "value123"
+            }
+          ],
+          "status": "200",
+          "content": "{\n\"message\" : \"This is a mocked response\"\n}"
+        }
+      }
+    ]
+  },
+  "path_mappings": ["/"]
+}
