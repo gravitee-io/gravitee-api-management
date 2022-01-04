@@ -127,5 +127,17 @@
     },
     "createdAt": 1464739200000,
     "updatedAt": 1464739200000
+  },
+  {
+    "id": "event12",
+    "environmentId": "OTHER",
+    "type": "STOP_DICTIONARY",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "dictionary_id": "dictionary-2"
+    },
+    "createdAt": 1455940000000,
+    "updatedAt": 1455940000000
   }
 ]
