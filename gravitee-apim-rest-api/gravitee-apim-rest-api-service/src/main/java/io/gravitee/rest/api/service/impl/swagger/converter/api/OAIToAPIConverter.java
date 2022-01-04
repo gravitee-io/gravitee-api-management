@@ -280,17 +280,24 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
     protected SwaggerApiEntity fill(final SwaggerApiEntity apiEntity, OpenAPI oai) {
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
 
-        if (swaggerDescriptor.isWithPolicyPaths()) {
-            // Paths
-            apiEntity.setPaths(
-                oai
-                    .getPaths()
-                    .entrySet()
-                    .stream()
-                    .map(
-                        entry -> {
+        Map<String, Path> paths = new HashMap<>();
+        Set<String> pathMappings = new HashSet();
+
+        if (swaggerDescriptor.isWithPolicyPaths() || swaggerDescriptor.isWithPathMapping()) {
+            oai
+                .getPaths()
+                .entrySet()
+                .forEach(
+                    entry -> {
+                        String pathString = entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
+
+                        if (swaggerDescriptor.isWithPathMapping()) {
+                            pathMappings.add(pathString);
+                        }
+
+                        if (swaggerDescriptor.isWithPolicyPaths()) {
                             final io.gravitee.definition.model.Path path = new Path();
-                            path.setPath(entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1"));
+                            path.setPath(pathString);
 
                             Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
                             List<Rule> rules = new ArrayList<>();
@@ -326,35 +333,29 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
                                             }
                                         )
                             );
-
                             path.setRules(rules);
-
-                            return path;
+                            paths.put(pathString, path);
                         }
-                    )
-                    .collect(toMap(Path::getPath, path -> path))
-            );
-        }
-
-        // Path Mappings
-        if (apiEntity.getPaths() != null) {
-            apiEntity.setPathMappings(apiEntity.getPaths().keySet());
+                    }
+                );
         }
 
         final String defaultDeclaredPath = "/";
-        Map<String, Path> paths = new HashMap<>();
 
-        final Path defaultPath = new Path();
-        defaultPath.setPath(defaultDeclaredPath);
-        paths.put(defaultDeclaredPath, defaultPath);
-
-        if (!swaggerDescriptor.isWithPolicyPaths()) {
-            apiEntity.setPaths(paths);
+        // Path
+        if (paths.isEmpty()) {
+            final io.gravitee.definition.model.Path path = new Path();
+            path.setPath(defaultDeclaredPath);
+            paths.put(defaultDeclaredPath, path);
         }
 
-        if (!swaggerDescriptor.isWithPathMapping()) {
-            apiEntity.setPathMappings(singleton(defaultDeclaredPath));
+        // Path Mappings
+        if (pathMappings.isEmpty()) {
+            pathMappings.add(defaultDeclaredPath);
         }
+
+        apiEntity.setPaths(paths);
+        apiEntity.setPathMappings(pathMappings);
 
         return apiEntity;
     }
