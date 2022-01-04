@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.rest.api.portal.rest.resource.ApplicationsResource.METADATA_SUBSCRIPTIONS_KEY;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -22,8 +23,13 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -146,13 +152,40 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApplicationsOrderByNbSubscriptionsDesc() {
-        Collection<ApplicationListItem> mockFilteredApp = Collections.emptyList();
+        ApplicationListItem applicationListItemA = new ApplicationListItem();
+        applicationListItemA.setId("A");
+        ApplicationListItem applicationListItemB = new ApplicationListItem();
+        applicationListItemB.setId("B");
+        Collection<ApplicationListItem> mockFilteredApp = Arrays.asList(applicationListItemA, applicationListItemB);
         doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anySet());
 
         final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection());
+
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(2, applicationsResponse.getData().size());
+        assertEquals("B", applicationsResponse.getData().get(0).getId());
+        assertEquals("A", applicationsResponse.getData().get(1).getId());
+    }
+
+    @Test
+    public void shouldGetApplicationsOrderByNbSubscriptionsAsc() {
+        ApplicationListItem applicationListItemB = new ApplicationListItem();
+        applicationListItemB.setId("B");
+        Collection<ApplicationListItem> mockFilteredApp = Arrays.asList(applicationListItemB);
+        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anySet());
+
+        final Response response = target().queryParam("order", "nbSubscriptions").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        Mockito.verify(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection());
+
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(2, applicationsResponse.getData().size());
+        assertEquals("A", applicationsResponse.getData().get(0).getId());
+        assertEquals("B", applicationsResponse.getData().get(1).getId());
     }
 
     @Test
@@ -165,6 +198,41 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         Links links = applicationsResponse.getLinks();
         assertNotNull(links);
+    }
+
+    @Test
+    public void shouldGetApplicationsWithSubscriptions() {
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), any(), eq(RolePermissionAction.READ));
+        List<SubscriptionEntity> subscriptions = new ArrayList<>();
+        SubscriptionEntity sub1 = createSubscriptionEntity("sub-1", "A");
+        SubscriptionEntity sub2 = createSubscriptionEntity("sub-2", "A");
+        SubscriptionEntity sub3 = createSubscriptionEntity("sub-3", "B");
+
+        subscriptions.addAll(Arrays.asList(sub1, sub2, sub3));
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApplications(Arrays.asList("A", "B"));
+        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
+        doReturn(subscriptions).when(subscriptionService).search(any());
+
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub1);
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub2);
+        doReturn(new Subscription().application("B")).when(subscriptionMapper).convert(sub3);
+
+        final Response response = target().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(2, applicationsResponse.getData().size());
+
+        Links links = applicationsResponse.getLinks();
+        assertNotNull(links);
+
+        Map<String, Object> metadataSubscriptions = applicationsResponse.getMetadata().get(METADATA_SUBSCRIPTIONS_KEY);
+
+        assertEquals(2, metadataSubscriptions.size());
+        assertEquals(2, ((List) metadataSubscriptions.get("A")).size());
+        assertEquals(1, ((List) metadataSubscriptions.get("B")).size());
     }
 
     @Test
@@ -376,5 +444,12 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     public void shouldHaveBadRequestWhileCreatingApplication() {
         final Response response = target().request().post(Entity.json(null));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    private SubscriptionEntity createSubscriptionEntity(String id, String application) {
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(id);
+        subscriptionEntity.setApplication(application);
+        return subscriptionEntity;
     }
 }

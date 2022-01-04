@@ -71,7 +71,6 @@ describe('ApplicationsComponent', () => {
       description: 'application1 description',
     };
     expectApplicationsGetRequest([fakeApplication1]);
-    expectCurrentUserPermissionsGetRequest('application1');
 
     expect(component.nbApplications).toEqual(1);
     expect(component.applications).toEqual([{ item: fakeApplication1, metrics: expect.any(Promise) }]);
@@ -84,7 +83,6 @@ describe('ApplicationsComponent', () => {
       description: 'application1 description',
     };
     expectApplicationsGetRequest([fakeApplication1]);
-    expectCurrentUserPermissionsGetRequest('application1');
 
     expect(component.paginationData).toEqual({ current_page: 1, first: 1, last: 42, size: 12, total: 1, total_pages: 1 });
     expect(component.paginationSize).toEqual(12);
@@ -98,7 +96,6 @@ describe('ApplicationsComponent', () => {
     );
 
     expectApplicationsGetRequest([fakeApplication1], { page: 2, size: 24 });
-    expectCurrentUserPermissionsGetRequest('application1');
 
     expect(component.paginationData).toEqual({ current_page: 2, first: 1, last: 42, size: 24, total: 1, total_pages: 1 });
     expect(component.paginationSize).toEqual(24);
@@ -126,15 +123,6 @@ describe('ApplicationsComponent', () => {
         },
       },
     });
-    fixture.detectChanges();
-  }
-
-  function expectCurrentUserPermissionsGetRequest(applicationId: string) {
-    const req = httpTestingController.expectOne({
-      url: `http://localhost:8083/portal/environments/DEFAULT/permissions?applicationId=${applicationId}`,
-      method: 'GET',
-    });
-    req.flush({});
     fixture.detectChanges();
   }
 });
