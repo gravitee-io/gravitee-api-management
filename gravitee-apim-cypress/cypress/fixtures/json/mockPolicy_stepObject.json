@@ -1,0 +1,24 @@
+{
+  "name": "",
+  "path-operator": {
+    "path": "/",
+    "operator": "STARTS_WITH"
+  },
+  "condition": "",
+  "consumers": [],
+  "methods": [],
+  "pre": [
+    {
+      "name": "Mock",
+      "policy": "mock",
+      "description": "mock description",
+      "enabled": true,
+      "configuration": {
+        "status": "200",
+        "content": "{\n\"message\": \"this is a mock response\"\n}"
+      }
+    }
+  ],
+  "post": [],
+  "enabled": true
+}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Api, ApiLifecycleState, ApiMember } from '@model/apis';
+import { Api, ApiErrorCodes, ApiLifecycleState, ApiMember, PortalApi, UpdateApiEntity } from '@model/apis';
 import { ApiImport } from '@model/api-imports';
 import { BasicAuthentication } from '@model/users';
 
@@ -146,5 +146,15 @@ export function getApiMembers(auth: BasicAuthentication, apiId: string) {
     url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/members`,
     auth,
     failOnStatusCode: false,
+  });
+}
+
+export function updateApi(auth: BasicAuthentication, apiId: string, apiUpdate: UpdateApiEntity, failOnStatusCode = false) {
+  return cy.request({
+    method: 'PUT',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}`,
+    auth,
+    body: apiUpdate,
+    failOnStatusCode,
   });
 }
