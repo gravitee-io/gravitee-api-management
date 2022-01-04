@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.condition;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,9 +32,9 @@ public class CompositeConditionEvaluator<T> implements ConditionEvaluator<T> {
     }
 
     @Override
-    public boolean evaluate(T evaluable, ExecutionContext context) {
+    public boolean evaluate(ExecutionContext context, T evaluable) {
         for (ConditionEvaluator<T> evaluator : evaluators) {
-            if (!evaluator.evaluate(evaluable, context)) {
+            if (!evaluator.evaluate(context, evaluable)) {
                 return false;
             }
         }

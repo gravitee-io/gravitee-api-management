@@ -26,7 +26,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 public class ExpressionLanguageStringConditionEvaluator implements ConditionEvaluator<String> {
 
     @Override
-    public boolean evaluate(String condition, ExecutionContext context) {
+    public boolean evaluate(ExecutionContext context, String condition) {
         if (condition != null && !condition.isEmpty()) {
             return context.getTemplateEngine().getValue(condition, Boolean.class);
         }

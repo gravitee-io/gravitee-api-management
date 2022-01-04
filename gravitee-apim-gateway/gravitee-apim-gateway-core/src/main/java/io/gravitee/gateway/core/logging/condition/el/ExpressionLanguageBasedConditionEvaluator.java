@@ -15,16 +15,12 @@
  */
 package io.gravitee.gateway.core.logging.condition.el;
 
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
-import io.gravitee.gateway.core.condition.EvaluableExecutionContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ParseException;
-import org.springframework.expression.common.LiteralExpression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,30 +28,23 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  */
 public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvaluator<Request> {
 
-    private static final String EXPRESSION_REGEX = "\\{([^#|T|(])";
-    private static final String EXPRESSION_REGEX_SUBSTITUTE = "{'{'}$1";
+    public static final Logger LOGGER = LoggerFactory.getLogger(ExpressionLanguageBasedConditionEvaluator.class);
 
-    private Expression expression;
-    private static final Expression FALSE_EXPRESSION = new LiteralExpression("false");
+    private final String condition;
 
     public ExpressionLanguageBasedConditionEvaluator(final String condition) {
-        if (condition != null) {
-            try {
-                this.expression =
-                    new SpelExpressionParser().parseExpression(condition.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
-            } catch (ParseException e) {
-                this.expression = FALSE_EXPRESSION;
-            }
-        }
+        this.condition = condition;
     }
 
     @Override
-    public boolean evaluate(Request request, ExecutionContext executionContext) {
-        if (expression != null) {
-            StandardEvaluationContext context = new StandardEvaluationContext();
-            context.setVariable("request", new EvaluableRequest(request));
-            context.setVariable("context", new EvaluableExecutionContext(executionContext));
-            return this.expression.getValue(context, Boolean.class);
+    public boolean evaluate(ExecutionContext executionContext, Request request) {
+        if (condition != null) {
+            try {
+                return executionContext.getTemplateEngine().getValue(condition, Boolean.class);
+            } catch (ExpressionEvaluationException e) {
+                LOGGER.warn("Error parsing condition {}", condition, e);
+                return false;
+            }
         }
 
         return true;

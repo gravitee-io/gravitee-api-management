@@ -59,7 +59,7 @@ public class HttpMethodConditionEvaluatorTest {
 
     @Test
     public void shouldEvaluate_noMethod() {
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -67,7 +67,7 @@ public class HttpMethodConditionEvaluatorTest {
         when(flow.getMethods()).thenReturn(new HashSet<>(Collections.singletonList(HttpMethod.POST)));
         when(request.method()).thenReturn(HttpMethod.GET);
 
-        assertFalse(evaluator.evaluate(flow, context));
+        assertFalse(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -75,6 +75,6 @@ public class HttpMethodConditionEvaluatorTest {
         when(flow.getMethods()).thenReturn(new HashSet<>(Arrays.asList(HttpMethod.POST, HttpMethod.GET)));
         when(request.method()).thenReturn(HttpMethod.GET);
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 }

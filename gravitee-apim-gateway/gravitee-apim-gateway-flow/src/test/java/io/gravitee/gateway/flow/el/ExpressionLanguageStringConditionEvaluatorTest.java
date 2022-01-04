@@ -20,7 +20,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
@@ -53,25 +52,25 @@ public class ExpressionLanguageStringConditionEvaluatorTest {
 
     @Test
     public void shouldEvaluate_noCondition() {
-        assertTrue(evaluator.evaluate(null, context));
+        assertTrue(evaluator.evaluate(context, null));
     }
 
     @Test
     public void shouldEvaluate_emptyCondition() {
-        assertTrue(evaluator.evaluate("", context));
+        assertTrue(evaluator.evaluate(context, ""));
     }
 
     @Test
     public void shouldEvaluate_validCondition() {
         when(templateEngine.getValue(eq("my-condition"), eq(Boolean.class))).thenReturn(true);
 
-        assertTrue(evaluator.evaluate("my-condition", context));
+        assertTrue(evaluator.evaluate(context, "my-condition"));
     }
 
     @Test
     public void shouldEvaluate_invalidCondition() {
         when(templateEngine.getValue(eq("invalid-condition"), eq(Boolean.class))).thenReturn(false);
 
-        assertFalse(evaluator.evaluate("invalid-condition", context));
+        assertFalse(evaluator.evaluate(context, "invalid-condition"));
     }
 }

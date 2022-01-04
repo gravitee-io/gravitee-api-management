@@ -60,7 +60,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path2");
 
-        assertFalse(evaluator.evaluate(flow, context));
+        assertFalse(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path");
 
-        assertFalse(evaluator.evaluate(flow, context));
+        assertFalse(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -78,7 +78,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path");
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path");
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -96,7 +96,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path/");
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -105,7 +105,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/path2");
 
-        assertFalse(evaluator.evaluate(flow, context));
+        assertFalse(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -114,7 +114,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/path");
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -123,7 +123,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/path");
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -132,7 +132,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/path/subpath/");
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -141,7 +141,7 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/");
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 
     @Test
@@ -150,6 +150,6 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/:param");
 
-        assertTrue(evaluator.evaluate(flow, context));
+        assertTrue(evaluator.evaluate(context, flow));
     }
 }
