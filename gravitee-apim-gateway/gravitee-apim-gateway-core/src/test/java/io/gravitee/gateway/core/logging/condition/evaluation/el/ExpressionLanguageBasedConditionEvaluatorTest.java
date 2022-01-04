@@ -18,23 +18,37 @@ package io.gravitee.gateway.core.logging.condition.evaluation.el;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.el.TemplateEngine;
+import io.gravitee.el.spel.SpelTemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.logging.condition.el.ExpressionLanguageBasedConditionEvaluator;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExpressionLanguageBasedConditionEvaluatorTest {
 
+    @Mock
+    private ExecutionContext context;
+
+    private final TemplateEngine templateEngine = new SpelTemplateEngine();
+
+    @Before
+    public void setUp() {
+        when(context.getTemplateEngine()).thenReturn(templateEngine);
+    }
+
     @Test
     public void shouldEvalTrueWithEmpty() {
         ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator(null);
         Request request = mock(Request.class);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        boolean evaluate = evaluator.evaluate(request, executionContext);
+        boolean evaluate = evaluator.evaluate(context, request);
 
         assertTrue(evaluate);
     }
@@ -43,8 +57,7 @@ public class ExpressionLanguageBasedConditionEvaluatorTest {
     public void shouldEvalTrueWithTrue() {
         ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator("true");
         Request request = mock(Request.class);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        boolean evaluate = evaluator.evaluate(request, executionContext);
+        boolean evaluate = evaluator.evaluate(context, request);
 
         assertTrue(evaluate);
     }
@@ -53,8 +66,7 @@ public class ExpressionLanguageBasedConditionEvaluatorTest {
     public void shouldEvalFalseWithFalse() {
         ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator("false");
         Request request = mock(Request.class);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        boolean evaluate = evaluator.evaluate(request, executionContext);
+        boolean evaluate = evaluator.evaluate(context, request);
 
         assertFalse(evaluate);
     }
@@ -63,8 +75,7 @@ public class ExpressionLanguageBasedConditionEvaluatorTest {
     public void shouldEvalFalseWithParseException() {
         ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator("foo bar");
         Request request = mock(Request.class);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        boolean evaluate = evaluator.evaluate(request, executionContext);
+        boolean evaluate = evaluator.evaluate(context, request);
 
         assertFalse(evaluate);
     }

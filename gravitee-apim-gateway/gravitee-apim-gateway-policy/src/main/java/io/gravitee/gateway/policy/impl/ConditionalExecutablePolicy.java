@@ -44,7 +44,7 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
     @Override
     public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
         try {
-            if (conditionEvaluator.evaluate(condition, context)) {
+            if (conditionEvaluator.evaluate(context, condition)) {
                 super.execute(chain, context);
             } else {
                 chain.doNext(context.request(), context.response());

@@ -73,6 +73,6 @@ public class LoggableRequestProcessor extends AbstractProcessor<ExecutionContext
     }
 
     protected boolean evaluate(ExecutionContext context) throws Exception {
-        return evaluator.evaluate(context.request(), context);
+        return evaluator.evaluate(context, context.request());
     }
 }

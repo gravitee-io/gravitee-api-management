@@ -40,7 +40,7 @@ public class PathBasedConditionEvaluator implements ConditionEvaluator<Flow> {
     private final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
     @Override
-    public boolean evaluate(Flow flow, ExecutionContext context) {
+    public boolean evaluate(ExecutionContext context, Flow flow) {
         Pattern pattern = cache.computeIfAbsent(flow.getPath(), this::transform);
 
         return (flow.getOperator() == Operator.EQUALS)

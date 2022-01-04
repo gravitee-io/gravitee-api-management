@@ -29,7 +29,7 @@ import io.gravitee.gateway.core.condition.ConditionEvaluator;
 public class HttpMethodConditionEvaluator implements ConditionEvaluator<Flow> {
 
     @Override
-    public boolean evaluate(Flow flow, ExecutionContext context) {
+    public boolean evaluate(ExecutionContext context, Flow flow) {
         return flow.getMethods() == null || flow.getMethods().isEmpty() || flow.getMethods().contains(context.request().method());
     }
 }

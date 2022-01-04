@@ -22,5 +22,5 @@ import io.gravitee.gateway.api.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface ConditionEvaluator<T> {
-    boolean evaluate(T conditionHolder, ExecutionContext executionContext);
+    boolean evaluate(ExecutionContext executionContext, T conditionHolder);
 }

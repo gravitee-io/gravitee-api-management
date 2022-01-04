@@ -28,7 +28,7 @@ import io.gravitee.gateway.core.condition.ConditionEvaluator;
 public class ExpressionLanguageFlowConditionEvaluator implements ConditionEvaluator<Flow> {
 
     @Override
-    public boolean evaluate(Flow flow, ExecutionContext context) {
+    public boolean evaluate(ExecutionContext context, Flow flow) {
         if (flow.getCondition() != null && !flow.getCondition().isEmpty()) {
             return context.getTemplateEngine().getValue(flow.getCondition(), Boolean.class);
         }

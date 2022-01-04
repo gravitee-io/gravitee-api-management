@@ -39,7 +39,7 @@ public abstract class ConditionalFlowResolver extends AbstractFlowResolver {
         return resolve0(context)
             .stream()
             .filter(Flow::isEnabled)
-            .filter(flow -> evaluator.evaluate(flow, context))
+            .filter(flow -> evaluator.evaluate(context, flow))
             .collect(Collectors.toList());
     }
 
