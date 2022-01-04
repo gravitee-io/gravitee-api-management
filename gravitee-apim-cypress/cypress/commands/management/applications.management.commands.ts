@@ -17,7 +17,7 @@ import { ErrorableManagement, RequestInfo } from '@model/technical';
 import Chainable = Cypress.Chainable;
 import Response = Cypress.Response;
 import { HttpConnector } from '@model/technical.http';
-import { ApplicationEntity } from '@model/applications';
+import { Application, ApplicationEntity } from '@model/applications';
 
 export class ApplicationsManagementCommands extends HttpConnector {
   constructor(requestInfo: RequestInfo) {
@@ -26,5 +26,9 @@ export class ApplicationsManagementCommands extends HttpConnector {
 
   getAll<T extends ErrorableManagement<ApplicationEntity[]> = ApplicationEntity[]>(): Chainable<Response<T>> {
     return this.httpClient.get('/applications');
+  }
+
+  create<T extends ErrorableManagement<ApplicationEntity[]> = ApplicationEntity[]>(application: Application): Chainable<Response<T>> {
+    return this.httpClient.post('/applications', application);
   }
 }
