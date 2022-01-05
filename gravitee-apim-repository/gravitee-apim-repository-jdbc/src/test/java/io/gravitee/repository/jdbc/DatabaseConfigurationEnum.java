@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.jdbc.testcontainers;
+package io.gravitee.repository.jdbc;
 
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+public enum DatabaseConfigurationEnum {
+    MARIADB("mariadb", "10.3.6"),
+    MYSQL("mysql", "5.7.22"),
+    SQLSERVER("mcr.microsoft.com/mssql/server", "2017-CU12"),
+    POSTGRESQL("postgres", "9.6.12");
 
-/**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class PostgreSQLCondition implements Condition {
+    private String dockerImageName;
+    private String defaultTag;
 
-    @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        return "postgresql-tc".equals(System.getProperty("jdbcType"));
+    public String getDockerImageName() {
+        return dockerImageName;
+    }
+
+    public String getDefaultTag() {
+        return defaultTag;
+    }
+
+    DatabaseConfigurationEnum(String dockerImageName, String defaultTag) {
+        this.dockerImageName = dockerImageName;
+        this.defaultTag = defaultTag;
     }
 }

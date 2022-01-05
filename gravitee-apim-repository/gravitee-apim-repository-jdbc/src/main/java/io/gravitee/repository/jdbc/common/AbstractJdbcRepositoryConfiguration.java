@@ -69,8 +69,8 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     private static char escapeReservedWordsPrefixChar = '`';
     private static char escapeReservedWordsSufixChar = '`';
 
-    private static final String POSTGRESQL_DRIVER_TYPE = "postgresql";
-    private static final String SQLSERVER_DRIVER_TYPE = "sqlserver";
+    public static final String POSTGRESQL_DRIVER_TYPE = "postgresql";
+    public static final String SQLSERVER_DRIVER_TYPE = "sqlserver";
 
     private static final String DEFAULT_OFFSET_QUERY = "OFFSET %d ";
     private static final String MSSQL_OFFSET_QUERY = "OFFSET %d ROWS ";
@@ -171,22 +171,21 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         if (jdbcUrl != null) {
             String[] tokenizedJdbcUrl = jdbcUrl.split(":");
             String databaseType = tokenizedJdbcUrl[1];
-            //for TestContainers
-            if ("tc".equals(databaseType)) {
-                databaseType = tokenizedJdbcUrl[2];
-            }
+            setEscapeReservedWordFromDatabaseType(databaseType);
+        }
+    }
 
-            switch (databaseType) {
-                case POSTGRESQL_DRIVER_TYPE:
-                    escapeReservedWordsPrefixChar = '\"';
-                    escapeReservedWordsSufixChar = '\"';
-                    break;
-                case SQLSERVER_DRIVER_TYPE:
-                    escapeReservedWordsPrefixChar = '[';
-                    escapeReservedWordsSufixChar = ']';
-                    pagingQuery = MSSQL_PAGING_QUERY;
-                    break;
-            }
+    public static void setEscapeReservedWordFromDatabaseType(String databaseType) {
+        switch (databaseType) {
+            case POSTGRESQL_DRIVER_TYPE:
+                escapeReservedWordsPrefixChar = '\"';
+                escapeReservedWordsSufixChar = '\"';
+                break;
+            case SQLSERVER_DRIVER_TYPE:
+                escapeReservedWordsPrefixChar = '[';
+                escapeReservedWordsSufixChar = ']';
+                pagingQuery = MSSQL_PAGING_QUERY;
+                break;
         }
     }
 
