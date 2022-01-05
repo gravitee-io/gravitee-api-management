@@ -107,12 +107,16 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+
+            String apiId = UuidString.generateRandom();
+            ((ObjectNode) jsonNode).put("id", apiId);
+
             apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
 
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode, environmentId);
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, jsonNode);
-            createPageAndMedia(createdApiEntity, jsonNode, environmentId);
             updateApiReferences(createdApiEntity, jsonNode, organizationId, environmentId, false);
+            createPageAndMedia(createdApiEntity, jsonNode, environmentId);
             return createdApiEntity;
         } catch (IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -237,6 +241,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             // regenerate nested IDs in input json node, only if importing on a different API
             if (!jsonNode.has("id") || !apiId.equals(jsonNode.get("id").asText())) {
+                ((ObjectNode) jsonNode).put("id", apiId);
                 apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
             }
 
@@ -310,15 +315,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
         }
 
-        final JsonNode pages = jsonNode.path("pages");
-        if (pages != null && pages.isArray()) {
-            List<PageEntity> pagesList = objectMapper.readValue(
-                pages.toString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
-            );
-            pageService.duplicatePages(pagesList, environmentId, createdApiEntity.getId());
-        }
-
         List<PageEntity> search = pageService.search(
             new PageQuery.Builder()
                 .api(createdApiEntity.getId())
@@ -327,6 +323,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 .build(),
             environmentId
         );
+
         if (search.isEmpty()) {
             pageService.createAsideFolder(createdApiEntity.getId(), environmentId);
         }
@@ -509,16 +506,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
         }
 
-        if (isUpdate) {
-            //Pages
-            final JsonNode pagesDefinition = jsonNode.path("pages");
-            if (pagesDefinition != null && pagesDefinition.isArray()) {
-                List<PageEntity> pagesList = objectMapper.readValue(
-                    pagesDefinition.toString(),
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
-                );
-                pageService.createOrUpdatePages(pagesList, environmentId, createdOrUpdatedApiEntity.getId());
-            }
+        //Pages
+        final JsonNode pagesDefinition = jsonNode.path("pages");
+        if (pagesDefinition != null && pagesDefinition.isArray()) {
+            List<PageEntity> pagesList = objectMapper.readValue(
+                pagesDefinition.toString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
+            );
+            pageService.createOrUpdatePages(pagesList, environmentId, createdOrUpdatedApiEntity.getId());
         }
 
         //Plans
@@ -628,19 +623,39 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     protected String preprocessApiDefinitionUpdatingIds(JsonNode apiJsonNode, String environmentId) {
         final JsonNode plansDefinition = apiJsonNode.path("plans");
         if (plansDefinition != null && plansDefinition.isArray()) {
-            plansDefinition.forEach(planJsonNode -> regenerateNestedId(apiJsonNode, planJsonNode, environmentId));
+            plansDefinition.forEach(planJsonNode -> regeneratePlanId(apiJsonNode, planJsonNode, environmentId));
         }
+
         final JsonNode pagesDefinition = apiJsonNode.path("pages");
         if (pagesDefinition != null && pagesDefinition.isArray()) {
-            pagesDefinition.forEach(pageJsonNode -> regenerateNestedId(apiJsonNode, pageJsonNode, environmentId));
+            regeneratePageIds(apiJsonNode, (ArrayNode) pagesDefinition, environmentId);
         }
+
         return apiJsonNode.toString();
     }
 
-    private void regenerateNestedId(JsonNode apiJsonNode, JsonNode nestedJsonNode, String environmentId) {
+    private void regeneratePlanId(JsonNode apiJsonNode, JsonNode planJsonNode, String environmentId) {
         String apiId = apiJsonNode.has("id") ? apiJsonNode.get("id").asText() : null;
-        String nestedId = nestedJsonNode.has("id") ? nestedJsonNode.get("id").asText() : null;
-        ((ObjectNode) nestedJsonNode).put("id", UuidString.generateForEnvironment(environmentId, apiId, nestedId));
+        String planId = planJsonNode.has("id") ? planJsonNode.get("id").asText() : null;
+        ((ObjectNode) planJsonNode).put("id", UuidString.generateForEnvironment(environmentId, apiId, planId));
+    }
+
+    private void regeneratePageIds(JsonNode apiJsonNode, ArrayNode pagesNode, String environmentId) {
+        String apiId = apiJsonNode.hasNonNull("id") ? apiJsonNode.get("id").asText() : null;
+        pagesNode.forEach(
+            pageNode -> {
+                String pageId = pageNode.hasNonNull("id") ? pageNode.get("id").asText() : null;
+                String newPageId = UuidString.generateForEnvironment(environmentId, apiId, pageId);
+                ((ObjectNode) pageNode).put("id", newPageId);
+                pagesNode.forEach(
+                    childNode -> {
+                        if (childNode.hasNonNull("parentId") && childNode.get("parentId").asText().equals(pageId)) {
+                            ((ObjectNode) childNode).put("parentId", newPageId);
+                        }
+                    }
+                );
+            }
+        );
     }
 
     private Stream<String> findRemovedPlansIds(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
