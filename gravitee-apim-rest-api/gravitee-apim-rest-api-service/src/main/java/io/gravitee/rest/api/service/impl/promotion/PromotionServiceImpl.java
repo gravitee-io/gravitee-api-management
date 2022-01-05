@@ -271,7 +271,12 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                     }
 
                     promoted =
-                        apiDuplicatorService.createWithImportedDefinition(existing.getApiDefinition(), user, organizationId, environmentId);
+                        apiDuplicatorService.createWithImportedDefinition(
+                            existing.getApiDefinition(),
+                            user,
+                            organizationId,
+                            environment.getId()
+                        );
                 } else {
                     if (!permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), UPDATE)) {
                         throw new ForbiddenAccessException();
@@ -285,7 +290,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                             existing.getApiDefinition(),
                             user,
                             organizationId,
-                            environmentId
+                            environment.getId()
                         );
                 }
                 existing.setTargetApiId(promoted.getId());
