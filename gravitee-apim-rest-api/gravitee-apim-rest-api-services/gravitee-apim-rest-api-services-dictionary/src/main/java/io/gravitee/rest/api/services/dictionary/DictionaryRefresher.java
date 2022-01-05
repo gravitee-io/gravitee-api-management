@@ -18,6 +18,7 @@ package io.gravitee.rest.api.services.dictionary;
 import io.gravitee.definition.model.Property;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
+import io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryNotFoundException;
 import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.Provider;
 import io.vertx.core.Handler;
@@ -83,6 +84,8 @@ public class DictionaryRefresher implements Handler<Long> {
                 dictionary.setProperties(properties);
                 dictionary = dictionaryService.update(dictionary.getId(), convert(dictionary));
                 dictionaryService.deploy(dictionary.getId());
+            } catch (DictionaryNotFoundException e) {
+                logger.info("Trying to update a deleted dictionary - nothing to do...");
             } catch (Exception ex) {
                 logger.error("Unexpected error while updating and deploying the dictionary", ex);
             }
