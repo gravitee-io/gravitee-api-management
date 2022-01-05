@@ -229,6 +229,26 @@ describe('OrgSettingsTagsComponent', () => {
     // no flush stop test here
   });
 
+  it('should delete a tag without entrypoint mapping', async () => {
+    fixture.detectChanges();
+    expectTagsListRequest([fakeTag({ id: 'tag-1' })]);
+    expectGroupListByOrganizationRequest([]);
+    expectPortalSettingsGetRequest(fakePortalSettings());
+    expectEntrypointsListRequest([]);
+    fixture.detectChanges();
+
+    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tag"]' }));
+    await deleteButton.click();
+
+    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+    await confirmDialogButton.click();
+
+    httpTestingController.expectOne({
+      method: 'DELETE',
+      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1`,
+    });
+  });
+
   it('should delete a mapping', async () => {
     fixture.detectChanges();
     expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
