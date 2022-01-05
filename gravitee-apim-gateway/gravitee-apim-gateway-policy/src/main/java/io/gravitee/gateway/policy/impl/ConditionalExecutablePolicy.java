@@ -43,15 +43,19 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
 
     @Override
     public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
+        boolean isConditionTruthy;
         try {
-            if (conditionEvaluator.evaluate(context, condition)) {
-                super.execute(chain, context);
-            } else {
-                chain.doNext(context.request(), context.response());
-            }
-        } catch (ExpressionEvaluationException e) {
+            isConditionTruthy = conditionEvaluator.evaluate(context, condition);
+        } catch (RuntimeException e) {
+            // Catching all RuntimeException to catch those thrown by spring-expression without adding dependency to it
             LOGGER.error("Condition evaluation fails for policy {}", this.id(), e);
             throw new PolicyException("Request failed unintentionally", e);
+        }
+
+        if (isConditionTruthy) {
+            super.execute(chain, context);
+        } else {
+            chain.doNext(context.request(), context.response());
         }
     }
 }
