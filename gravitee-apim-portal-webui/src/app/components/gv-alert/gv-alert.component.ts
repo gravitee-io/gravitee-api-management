@@ -18,7 +18,7 @@ import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import '@gravitee/ui-components/wc/gv-switch';
 import { ActivatedRoute } from '@angular/router';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import {
   Alert,
   AlertStatusResponse,
@@ -38,6 +38,8 @@ import { HttpHelpers, HttpStatus } from '../../utils/http-helpers';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from '../../services/notification.service';
 import StatusEnum = Subscription.StatusEnum;
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export enum AlertMode {
   CREATION = 'CREATION',
@@ -50,7 +52,7 @@ export enum AlertMode {
   templateUrl: './gv-alert.component.html',
   styleUrls: ['./gv-alert.component.css'],
 })
-export class GvAlertComponent implements OnInit {
+export class GvAlertComponent implements OnInit, OnDestroy {
   @Input() mode: AlertMode;
   @Input() alert: Alert;
   @Input() maxReached: boolean;
@@ -72,6 +74,7 @@ export class GvAlertComponent implements OnInit {
   apisOptions: { label: string; value: string }[];
   apiAllLabel: string;
   isWebhookNotifierEnabled = false;
+  private unsubscribe$ = new Subject<void>();
 
   get isStatusAlert(): boolean {
     return 'status' === (this.isCreationMode ? this.alertForm?.value?.type?.toLowerCase() : this.alert?.type?.toLowerCase());
@@ -124,14 +127,17 @@ export class GvAlertComponent implements OnInit {
     if (this.application) {
       this.permissionsService
         .getCurrentUserPermissions({ applicationId: this.application.id })
-        .toPromise()
-        .then((permissions) => {
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe((permissions) => {
           this.permissions = permissions.ALERT;
         });
     }
-    this.notifiersService.getNotifiers().subscribe((notifiers) => {
-      this.isWebhookNotifierEnabled = notifiers.some((notifier) => notifier.id === 'webhook-notifier');
-    });
+    this.notifiersService
+      .getNotifiers()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((notifiers) => {
+        this.isWebhookNotifierEnabled = notifiers.some((notifier) => notifier.id === 'webhook-notifier');
+      });
     this.resetAddAlert();
     this.resetAddAlertStatus();
     if (this.application) {
@@ -153,8 +159,7 @@ export class GvAlertComponent implements OnInit {
           i18n('application.alerts.timeUnits.hours'),
           i18n('application.alerts.phrase.api.all'),
         ])
-        .toPromise()
-        .then((translations) => {
+        .subscribe((translations) => {
           this.statusLabel = '' + Object.values(translations)[0];
           this.responseTimeLabel = '' + Object.values(translations)[1];
           this.types = [
@@ -191,8 +196,8 @@ export class GvAlertComponent implements OnInit {
           statuses: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING],
           size: -1,
         })
-        .toPromise()
-        .then((apis) => {
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe((apis) => {
           this.apisOptions = [
             { label: this.apiAllLabel, value: '' },
             ...apis.data.map((sub) => {
@@ -242,8 +247,8 @@ export class GvAlertComponent implements OnInit {
           description: this.alertForm.controls.description.value,
         },
       })
-      .toPromise()
-      .then((created) => {
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((created) => {
         this.notificationService.success(i18n('application.alerts.add.success'));
         this.resetAddAlert();
         this.resetAddAlertStatus();
@@ -339,8 +344,8 @@ export class GvAlertComponent implements OnInit {
         applicationId: this.application.id,
         alertId: this.alert.id,
       })
-      .toPromise()
-      .then(() => {
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe(() => {
         this.notificationService.success(i18n('application.alerts.delete.success'));
         this.alertDeleted.emit(this.alert);
       });
@@ -383,8 +388,8 @@ export class GvAlertComponent implements OnInit {
           description: this.alertForm.controls.description.value,
         },
       })
-      .toPromise()
-      .then((updated) => {
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((updated) => {
         this.alert = updated;
         this.notificationService.success(i18n('application.alerts.update.success'));
         this.mode = AlertMode.READING;
@@ -393,5 +398,10 @@ export class GvAlertComponent implements OnInit {
 
   timeUnitTranslated() {
     return this.timeUnits?.find((tu) => tu?.value?.toLowerCase() === this.alert.time_unit?.toLowerCase())?.label;
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
   }
 }
