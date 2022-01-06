@@ -2192,12 +2192,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity importPathMappingsFromPage(final ApiEntity apiEntity, final String page) {
+    public ApiEntity importPathMappingsFromPage(final ApiEntity apiEntity, final String page, DefinitionVersion definitionVersion) {
         final PageEntity pageEntity = pageService.findById(page);
         if (SWAGGER.name().equals(pageEntity.getType())) {
             final ImportSwaggerDescriptorEntity importSwaggerDescriptorEntity = new ImportSwaggerDescriptorEntity();
             importSwaggerDescriptorEntity.setPayload(pageEntity.getContent());
-            final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(importSwaggerDescriptorEntity);
+            importSwaggerDescriptorEntity.setWithPathMapping(true);
+            final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(importSwaggerDescriptorEntity, definitionVersion);
             apiEntity.getPathMappings().addAll(swaggerApiEntity.getPathMappings());
         }
 

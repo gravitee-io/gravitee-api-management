@@ -556,9 +556,12 @@ public class ApiResource extends AbstractResource {
         }
     )
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response importApiPathMappingsFromPage(@QueryParam("page") @NotNull String page) {
+    public Response importApiPathMappingsFromPage(
+        @QueryParam("page") @NotNull String page,
+        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+    ) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
-        ApiEntity updatedApi = apiService.importPathMappingsFromPage(apiEntity, page);
+        ApiEntity updatedApi = apiService.importPathMappingsFromPage(apiEntity, page, DefinitionVersion.valueOfLabel(definitionVersion));
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
