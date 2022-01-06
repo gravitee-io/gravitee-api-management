@@ -19,11 +19,11 @@ import { ApiPlanStatus } from '@model/apis';
 export function getPlans(auth: BasicAuthentication, apiId: string, status: ApiPlanStatus) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans?status=${status}`,
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans`,
     auth,
     failOnStatusCode: false,
     qs: {
-      root: true,
+      status: status,
     },
   });
 }
