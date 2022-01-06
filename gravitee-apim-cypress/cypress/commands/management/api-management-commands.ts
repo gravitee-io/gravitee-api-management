@@ -119,9 +119,6 @@ export function getApiById(auth: BasicAuthentication, apiId: string) {
     url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}`,
     auth,
     failOnStatusCode: false,
-    qs: {
-      root: true,
-    },
   });
 }
 
@@ -131,9 +128,6 @@ export function getApiMetadata(auth: BasicAuthentication, apiId: string) {
     url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/metadata`,
     auth,
     failOnStatusCode: false,
-    qs: {
-      root: true,
-    },
   });
 }
 
