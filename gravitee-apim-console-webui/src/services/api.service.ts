@@ -281,8 +281,14 @@ class ApiService {
     return this.$http.post(this.apisURL + 'verify', criteria, config);
   }
 
-  importPathMappings(apiId, page): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + apiId + '/import-path-mappings?page=' + page);
+  importPathMappings(apiId: any, page: any, definitionVersion?: string): IHttpPromise<any> {
+    let params = `?page=${page}`;
+
+    if (definitionVersion) {
+      params += `&definitionVersion=${definitionVersion}`;
+    }
+
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/import-path-mappings${params}`, {});
   }
 
   duplicate(apiId, config): ng.IPromise<any> {
