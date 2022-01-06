@@ -2631,7 +2631,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             PageEntity createdOrUpdatedPage = null;
             if (pageEntityToImport.getId() != null) {
                 try {
-                    createdOrUpdatedPage = findById(pageEntityToImport.getId());
+                    createdOrUpdatedPage = findByIdOrGeneratedId(pageEntityToImport.getId(), environmentId, apiId);
                 } catch (PageNotFoundException e) {
                     // Page not found 🤷 Just create a new one
                 }
@@ -2665,6 +2665,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (child.children != null && !child.children.isEmpty()) {
                 this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children, environmentId);
             }
+        }
+    }
+
+    private PageEntity findByIdOrGeneratedId(String id, String environmentId, String apiId) {
+        try {
+            return findById(id);
+        } catch (PageNotFoundException e) {
+            return findById(UuidString.generateForEnvironment(environmentId, apiId, id));
         }
     }
 

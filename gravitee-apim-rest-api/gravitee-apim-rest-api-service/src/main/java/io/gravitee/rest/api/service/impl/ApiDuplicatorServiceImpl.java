@@ -108,8 +108,10 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         try {
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
 
-            String apiId = UuidString.generateRandom();
-            ((ObjectNode) jsonNode).put("id", apiId);
+            if (!jsonNode.hasNonNull("id")) {
+                // generate id beforehand to ensure that preprocessApiDefinitionUpdatingIds always returns a predictable ID
+                ((ObjectNode) jsonNode).put("id", UuidString.generateRandom());
+            }
 
             apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
 

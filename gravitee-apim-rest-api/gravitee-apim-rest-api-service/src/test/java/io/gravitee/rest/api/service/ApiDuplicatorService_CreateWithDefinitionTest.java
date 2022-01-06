@@ -183,7 +183,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
         verify(pageService, times(1))
-            .duplicatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
+            .createOrUpdatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(
                 GraviteeContext.getCurrentOrganization(),
@@ -308,7 +308,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
         verify(pageService, times(1))
-            .duplicatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
+            .createOrUpdatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
     }
 
     @Test
