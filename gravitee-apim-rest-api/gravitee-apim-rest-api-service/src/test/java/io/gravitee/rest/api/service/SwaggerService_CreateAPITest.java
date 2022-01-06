@@ -60,8 +60,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerService_CreateAPITest {
 
-    protected DefinitionVersion definitionVersion = DefinitionVersion.V2;
-
     @Mock
     private PolicyOperationVisitorManager policyOperationVisitorManager;
 
@@ -73,6 +71,10 @@ public class SwaggerService_CreateAPITest {
 
     @InjectMocks
     protected SwaggerServiceImpl swaggerService;
+
+    protected DefinitionVersion getDefinitionVersion() {
+        return DefinitionVersion.V1;
+    }
 
     @Before
     public void setup() {
@@ -552,7 +554,7 @@ public class SwaggerService_CreateAPITest {
         assertTrue(swaggerApiEntity.getPathMappings().containsAll(asList("/pets", "/pets/:petId")));
         validatePathMappings(swaggerApiEntity, asList("/pets", "/pets/:petId"));
 
-        validatePolicies(swaggerApiEntity, 1, 0, this.definitionVersion.equals(DefinitionVersion.V1) ? asList("/") : asList());
+        validatePolicies(swaggerApiEntity, 1, 0, this.getDefinitionVersion().equals(DefinitionVersion.V1) ? asList("/") : asList());
     }
 
     protected void validatePathMappings(SwaggerApiEntity api, List<String> expectedPaths) {
