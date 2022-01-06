@@ -31,8 +31,8 @@ import org.springframework.stereotype.Component;
 public class HttpOrganizationRepository extends AbstractRepository implements OrganizationRepository {
 
     @Override
-    public Optional<Organization> findById(String s) throws TechnicalException {
-        throw new IllegalStateException();
+    public Optional<Organization> findById(String organizationId) throws TechnicalException {
+        return blockingGet(get("/organizations/" + organizationId, BodyCodecs.optional(Organization.class)).send()).payload();
     }
 
     @Override

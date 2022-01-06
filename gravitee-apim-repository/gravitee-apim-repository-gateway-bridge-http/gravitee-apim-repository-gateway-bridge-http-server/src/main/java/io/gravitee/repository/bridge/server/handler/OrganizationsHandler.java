@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.RoutingContext;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -62,6 +63,24 @@ public class OrganizationsHandler extends AbstractHandler {
                         promise.complete(organizationRepository.findAll());
                     } catch (Exception ex) {
                         LOGGER.error("Unable to search for organizations", ex);
+                        promise.fail(ex);
+                    }
+                },
+                event -> handleResponse(ctx, event)
+            );
+    }
+
+    public void findById(RoutingContext ctx) {
+        final String idParam = ctx.request().getParam("organizationId");
+
+        ctx
+            .vertx()
+            .executeBlocking(
+                (Handler<Promise<Optional<Organization>>>) promise -> {
+                    try {
+                        promise.complete(organizationRepository.findById(idParam));
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to find organization by id {}", idParam, ex);
                         promise.fail(ex);
                     }
                 },

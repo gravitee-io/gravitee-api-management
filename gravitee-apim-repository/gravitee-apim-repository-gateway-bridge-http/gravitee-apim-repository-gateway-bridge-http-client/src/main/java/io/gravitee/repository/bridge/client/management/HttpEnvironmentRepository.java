@@ -31,8 +31,8 @@ import org.springframework.stereotype.Component;
 public class HttpEnvironmentRepository extends AbstractRepository implements EnvironmentRepository {
 
     @Override
-    public Optional<Environment> findById(String s) throws TechnicalException {
-        throw new IllegalStateException();
+    public Optional<Environment> findById(String environmentId) throws TechnicalException {
+        return blockingGet(get("/environments/" + environmentId, BodyCodecs.optional(Environment.class)).send()).payload();
     }
 
     @Override
@@ -62,7 +62,17 @@ public class HttpEnvironmentRepository extends AbstractRepository implements Env
 
     @Override
     public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
-        throw new IllegalStateException();
+        try {
+            return blockingGet(
+                get("/environments/_byOrganizationId", BodyCodecs.set(Environment.class))
+                    .addQueryParam("organizationId", organizationId)
+                    .send()
+            )
+                .payload();
+        } catch (TechnicalException te) {
+            // Ensure that an exception is thrown and managed by the caller
+            throw new IllegalStateException(te);
+        }
     }
 
     @Override
