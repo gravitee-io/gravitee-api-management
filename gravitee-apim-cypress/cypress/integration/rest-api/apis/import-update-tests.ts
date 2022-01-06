@@ -241,8 +241,7 @@ context('API - Imports - Update', () => {
       });
     });
 
-    // waiting for #6694 to be fixed
-    describe.skip('Update API with existing page ID, using previous export', () => {
+    describe('Update API with existing page ID, using previous export', () => {
       const apiId = '7061532e-c0e5-4894-818d-f747ad1601dc';
       const pageId = '4be08c28-5638-4fec-a90a-51c0cd403b12';
       const generatedPageId = '4b07e8b5-d30d-3568-ad3b-7ba0820d2f22';
