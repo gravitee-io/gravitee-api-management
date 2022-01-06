@@ -60,7 +60,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerService_CreateAPITest {
 
-
     @Mock
     private PolicyOperationVisitorManager policyOperationVisitorManager;
 

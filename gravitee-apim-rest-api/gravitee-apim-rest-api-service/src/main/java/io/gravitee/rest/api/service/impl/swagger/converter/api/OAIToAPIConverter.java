@@ -61,6 +61,8 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
     private static final String PICTURE_REGEX = "^data:image/[\\w]+;base64,.*$";
 
+    protected static final Pattern PATH_PARAMS_PATTERN = Pattern.compile("\\{(.[^/\\}]*)\\}");
+
     private Collection<? extends OAIOperationVisitor> visitors;
     protected final ImportSwaggerDescriptorEntity swaggerDescriptor;
     private final PolicyOperationVisitorManager policyOperationVisitorManager;
@@ -289,8 +291,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
                 .entrySet()
                 .forEach(
                     entry -> {
-                        String pathString = entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
-
+                        String pathString = PATH_PARAMS_PATTERN.matcher(entry.getKey()).replaceAll(":$1");
                         if (swaggerDescriptor.isWithPathMapping()) {
                             pathMappings.add(pathString);
                         }

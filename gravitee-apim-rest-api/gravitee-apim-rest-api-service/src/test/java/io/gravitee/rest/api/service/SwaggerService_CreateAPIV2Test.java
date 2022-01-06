@@ -41,7 +41,7 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
     @Override
     protected DefinitionVersion getDefinitionVersion() {
         return DefinitionVersion.V2;
-    } ;
+    }
 
     protected SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
         return swaggerService.createAPI(swaggerDescriptor, this.getDefinitionVersion());
