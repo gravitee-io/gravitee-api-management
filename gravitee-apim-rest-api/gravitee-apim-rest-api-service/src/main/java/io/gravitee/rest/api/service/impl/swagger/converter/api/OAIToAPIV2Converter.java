@@ -65,7 +65,7 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
                 .getPaths()
                 .forEach(
                     (key, pathItem) -> {
-                        String path = key.replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
+                        String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
                         if (swaggerDescriptor.isWithPathMapping()) {
                             pathMappings.add(path);
                         }
