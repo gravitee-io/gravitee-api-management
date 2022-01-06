@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
@@ -120,7 +121,7 @@ public interface ApiService {
 
     boolean exists(String apiId);
 
-    ApiEntity importPathMappingsFromPage(ApiEntity apiEntity, String page);
+    ApiEntity importPathMappingsFromPage(ApiEntity apiEntity, String page, DefinitionVersion definitionVersion);
 
     Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
 
