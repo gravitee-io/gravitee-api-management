@@ -18,15 +18,15 @@
 <div layout="column">
   <md-input-container>
     <label>Field</label>
-    <md-select ng-model="$ctrl.chart.request.field">
-      <md-option ng-repeat="field in $ctrl.fields" ng-value="field.value">{{field.label}}</md-option>
+    <md-select ng-model="$ctrl.selectedField" ng-change="$ctrl.onFieldChanged()">
+      <md-option ng-repeat="field in $ctrl.fields" ng-value="field">{{field.label}}</md-option>
     </md-select>
   </md-input-container>
 
   <md-input-container>
     <label>Stats</label>
-    <md-select ng-model="$ctrl.selectedStats" multiple="true" ng-change="$ctrl.onStatsChanged()" required>
-      <md-option ng-repeat="stat in $ctrl.statKeys" ng-value="stat">{{stat}}</md-option>
+    <md-select ng-model="$ctrl.selectedStatsKeys" multiple="true" ng-change="$ctrl.onStatsChanged()" required>
+      <md-option ng-repeat="stat in $ctrl.availableStats" ng-value="stat.key">{{stat.label}}</md-option>
     </md-select>
   </md-input-container>
 </div>

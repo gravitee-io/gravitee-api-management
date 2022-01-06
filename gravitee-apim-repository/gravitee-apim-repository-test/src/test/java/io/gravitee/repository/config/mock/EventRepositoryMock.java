@@ -59,6 +59,7 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         final Event event10 = mock(Event.class);
         final Event event11 = mock(Event.class);
         final Event event12 = mock(Event.class);
+        final Event event13 = mock(Event.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent = mock(io.gravitee.common.data.domain.Page.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent2 = mock(io.gravitee.common.data.domain.Page.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent3 = mock(io.gravitee.common.data.domain.Page.class);
@@ -151,6 +152,12 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         when(event12.getType()).thenReturn(EventType.START_API);
         when(event12.getCreatedAt()).thenReturn(parse("16/02/2016"));
         when(event12.getUpdatedAt()).thenReturn(parse("16/02/2016"));
+
+        when(event13.getId()).thenReturn("event13");
+        when(event13.getEnvironments()).thenReturn(singleton("DEFAULT"));
+        when(event13.getType()).thenReturn(EventType.STOP_DICTIONARY);
+        when(event13.getCreatedAt()).thenReturn(parse("20/02/2016"));
+        when(event13.getUpdatedAt()).thenReturn(parse("20/02/2016"));
 
         when(eventRepository.findById("event01")).thenReturn(of(event1));
 
@@ -353,7 +360,17 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         )
             .thenReturn(singletonList(event4));
 
+        when(
+            eventRepository.searchLatest(
+                new EventCriteria.Builder().from(1475200000000L).to(1475381000000L).types(EventType.PUBLISH_DICTIONARY).build(),
+                Event.EventProperties.DICTIONARY_ID,
+                0L,
+                10L
+            )
+        )
+            .thenReturn(singletonList(event10));
+
         when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.DICTIONARY_ID, null, null))
-            .thenReturn(Arrays.asList(event10, event8));
+            .thenReturn(Arrays.asList(event13, event8));
     }
 }
