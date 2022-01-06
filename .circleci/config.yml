@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
     slack: circleci/slack@4.4.4
-    gravitee: gravitee-io/gravitee@1.0.44
     secrethub: secrethub/cli@1.1.0
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
@@ -82,20 +81,6 @@ commands:
                       secrethub read graviteeio/cicd/graviteebot/gpg/armor_format_private_key -o private.key
                       # Need --batch to be able to import private key
                       gpg --import --batch private.key
-    prepare-tar-for-s3-glacier:
-        steps:
-            - run:
-                  name: Prepare tar to export to S3 Glacier
-                  command: |
-                      # completely remove [node_modules/] huge folder before pushing to s3 : it won't be useful to perform nexus staging
-                      rm -fr gravitee-apim-console-webui/node_modules/
-                      rm -fr gravitee-apim-portal-webui/node_modules/
-
-                      tar -cjf /tmp/${CIRCLE_PROJECT_REPONAME}.tar.bz2 .
-            - persist_to_workspace:
-                  root: /tmp
-                  paths:
-                      - ./*.tar.bz2
 
 parameters:
     gio_action:
@@ -760,50 +745,6 @@ jobs:
             - notify-on-failure
 
     ## Release Jobs
-    nexus-staging-prepare-component:
-        docker:
-            - image: cimg/base:stable
-        resource_class: small
-        description: >
-            This command :
-            * 1. Runs during any (Maven) Gravitee APIM Orchestrated release process, if and only if `dry-run` mode is "off" : if `dry_run` Orb Command value is `false`, it is a "real" release.
-            * 2. It compresses the whole maven project into a bzip2 format archive, and saves it to the s3 Bucket, named `prepared-nexus-staging-${GRAVITEE_PRODUCT_NAME}-${GRAVITEE_PRODUCT_VERSION}`, where :
-              * `${GRAVITEE_PRODUCT_NAME}` : APIM, AM, (AE and Cockpit is exluded because they are not open source)
-              * `${GRAVITEE_PRODUCT_VERSION}` : the version number used in the product release process (the "top" `version` JSON property in the `release.json`)
-        environment:
-            S3_BUCKET_NAME: << pipeline.parameters.s3_bucket_name >>
-        steps:
-            - attach_workspace:
-                  at: .
-            - when:
-                  condition: << pipeline.parameters.dry_run>>
-                  steps:
-                      - run:
-                            command: |
-                                echo "DRY-RUN: the maven project should not be saved to the S3 bucket for later nexus staging"
-            - when:
-                  condition:
-                      not: << pipeline.parameters.dry_run>>
-                  steps:
-                      - run:
-                            name: "Nexus Staging Prepare Component (Glacier)"
-                            command: |
-                                if [ "x${S3_BUCKET_NAME}" == "x" ]; then
-                                  echo "THE [S3_BUCKET_NAME] env var is unset, but it is required"
-                                  exit 2
-                                fi;
-
-                                echo "S3_BUCKET_NAME=${S3_BUCKET_NAME}"
-
-                                GRAVITEE_REPO_NAME=${CIRCLE_PROJECT_REPONAME}
-                      - aws-cli/setup
-                      - run:
-                            command: |
-                                aws s3 cp ${CIRCLE_PROJECT_REPONAME}.tar.bz2 s3://${S3_BUCKET_NAME}/${CIRCLE_PROJECT_REPONAME}/project/ \
-                                --endpoint-url https://cellar-c2.services.clever-cloud.com \
-                                --acl public-read
-                            name: S3 Copy ${CIRCLE_PROJECT_REPONAME}.tar.bz2 -> s3://${S3_BUCKET_NAME}/${CIRCLE_PROJECT_REPONAME}/project/
-
     release:
         docker:
             - image: cimg/openjdk:11.0.13
@@ -834,11 +775,6 @@ jobs:
 
                       mvn clean deploy --activate-profiles gio-artifactory-release,gio-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
             - save-maven-cache
-            - when:
-                  condition:
-                      not: << pipeline.parameters.dry_run >>
-                  steps:
-                      - prepare-tar-for-s3-glacier
             - add_ssh_keys:
                   fingerprints:
                       - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
@@ -900,6 +836,37 @@ jobs:
                       else
                         echo "# --->>> THIS IS A DRY RUN"
                       fi;
+    nexus-staging:
+        docker:
+            - image: cimg/openjdk:11.0
+        resource_class: medium
+
+        steps:
+            - run:
+                  name: get tag to release from bucket name
+                  command: |
+                      export APIM_TAG=$(echo << pipeline.parameters.s3_bucket_name >> | sed 's/prepared-nexus-staging-gravitee-apim-//' | sed 's/_/./g')
+                      echo "export APIM_TAG=$APIM_TAG" >> $BASH_ENV
+            - run:
+                  name: checkout APIM with the tag
+                  command: |
+                      mkdir project
+                      cd project
+                      git clone --depth 1 --branch $APIM_TAG $CIRCLE_REPOSITORY_URL .
+            - run:
+                  name: create .apim-version file for cache
+                  command: |
+                    # the previous cache key was computed with the SNAPSHOT version of the release. 
+                    echo "${APIM_TAG}-SNAPSHOT" > .apim-version.txt
+            - restore-maven-cache
+            - attach_workspace:
+                  at: .
+            - prepare-gpg
+            - run:
+                  name: Release on Nexus
+                  command: |
+                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
+
 workflows:
     pull_requests:
         when:
@@ -1131,6 +1098,7 @@ workflows:
                   requires:
                       - cypress-install
 
+    # call by the orchestrator
     release:
         when:
             equal: [release, << pipeline.parameters.gio_action >>]
@@ -1152,50 +1120,15 @@ workflows:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/graviteebot/git/user/email
                             var-name: GIT_USER_EMAIL
-            - nexus-staging-prepare-component:
-                  requires:
-                      - release <<# pipeline.parameters.dry_run >>- Dry run<</ pipeline.parameters.dry_run >>
-                  context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/zip-bundle-server/clever-cloud-s3/s3cmd/aws_access_key
-                            var-name: AWS_ACCESS_KEY_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/zip-bundle-server/clever-cloud-s3/s3cmd/aws_secret_key
-                            var-name: AWS_SECRET_ACCESS_KEY
-    # ---
-    # CICD Workflow For APIM Orchestrated Nexus Staging, Container-based : Circle CI Docker Executor
+
+    # call by the orchestrator
     nexus_staging:
         when:
             equal: [nexus_staging, << pipeline.parameters.gio_action >>]
         jobs:
-            - gravitee/d_nexus_staging_secrets:
+            - load-maven-configuration:
                   context: cicd-orchestrator
-                  name: nexus_staging_secrets_resolution
-            - gravitee/d_nexus_staging:
-                  name: nexus_staging
+            - nexus-staging:
+                  context: cicd-orchestrator
                   requires:
-                      - nexus_staging_secrets_resolution
-                  dry_run: << pipeline.parameters.dry_run >>
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  # => If you are running a standalone release, your S3 Bucket name
-                  #    is 'prepared-standalone-nexus-staging-${GRAVITEE_REPO_NAME}-${RELEASE_VERSION_NUMBER}'
-                  # => If you are running an Orchestrated release, The Orchestrator knows how to compute the S3 Bucket name
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-
-    # ---
-    # CICD Workflow For APIM Orchestrated Nexus Staging, VM-based
-    vm_nexus_staging:
-        when:
-            equal: [vm_nexus_staging, << pipeline.parameters.gio_action >>]
-        jobs:
-            - gravitee/nexus_staging:
-                  context: cicd-orchestrator
-                  secrethub_org: << pipeline.parameters.secrethub_org >>
-                  secrethub_repo: << pipeline.parameters.secrethub_repo >>
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+                      - load-maven-configuration
