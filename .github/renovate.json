@@ -1,8 +1,7 @@
 {
-    "extends": ["config:js-app", "schedule:daily"],
+    "extends": ["config:js-app", "schedule:earlyMondays"],
     "prConcurrentLimit": 5,
     "rebaseWhen": "conflicted",
-    "dependencyDashboard": true,
     "commitMessageTopic": "{{depName}}",
     "packageRules": [
         {
@@ -55,6 +54,10 @@
             "excludePackagePatterns": ["typescript", "@angular*"],
             "groupName": "devDependencies (non-major)",
             "groupSlug": "devdependencies-non-major"
+        },
+        {
+            "matchPackageNames": ["@gravitee/ui-components"],
+            "schedule": ["at any time"]
         }
     ]
 }
