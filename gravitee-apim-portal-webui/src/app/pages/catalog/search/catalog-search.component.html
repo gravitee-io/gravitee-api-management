@@ -32,16 +32,8 @@
                 [attr.placeholder]="'catalog.searchAdvanced' | translate"
               ></gv-input>
             </div>
-            <gv-select
-              *ngIf="totalElements"
-              [options]="pageSizes"
-              [value]="this.searchForm.value.size"
-              formControlName="size"
-              name="size"
-              ngDefaultControl="size"
-              (input)="onSubmitSearch()"
-            >
-            </gv-select>
+
+            <gv-pagination [data]="paginationData" has-select widget medium="true"></gv-pagination>
           </form>
           <div class="catalog-search__info" [innerHTML]="'search.results.label' | translate: { count: totalElements }"></div>
         </div>
@@ -50,7 +42,7 @@
           <gv-row *ngFor="let api of apiResults" [item]="api" (click)="goToApi(api)"></gv-row>
         </div>
 
-        <div *ngIf="paginationData" class="catalog-search__pagination">
+        <div class="catalog-search__pagination">
           <gv-pagination [data]="paginationData"></gv-pagination>
         </div>
       </div>
