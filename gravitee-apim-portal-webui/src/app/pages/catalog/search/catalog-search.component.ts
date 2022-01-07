@@ -101,14 +101,12 @@ export class CatalogSearchComponent implements OnInit {
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
   _onPaginate({ page }) {
-    if (this.paginationData.current_page !== page) {
-      const queryParams = new SearchRequestParams(
-        this.activatedRoute.snapshot.queryParamMap.get(SearchQueryParam.QUERY),
-        this.searchForm.value.size,
-        page,
-      );
-      this.router.navigate([], { queryParams });
-    }
+    const queryParams = new SearchRequestParams(
+      this.activatedRoute.snapshot.queryParamMap.get(SearchQueryParam.QUERY),
+      this.searchForm.value.size,
+      page,
+    );
+    this.router.navigate([], { queryParams });
   }
 
   onSubmitSearch() {
