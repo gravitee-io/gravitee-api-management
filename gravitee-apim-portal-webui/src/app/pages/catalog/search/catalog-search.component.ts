@@ -18,6 +18,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-row';
 import '@gravitee/ui-components/wc/gv-pagination';
+import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Api, ApiService, ApisResponse } from '../../../../../projects/portal-webclient-sdk/src/lib';
@@ -33,8 +34,9 @@ import { createPromiseList } from '../../../utils/utils';
 })
 export class CatalogSearchComponent implements OnInit {
   searchForm: FormGroup;
-  pageSizes: Array<any>;
-  paginationData: any;
+  pageSize: number;
+  pageSizes: Array<number>;
+  paginationData: Pagination;
   apiResults: Promise<any>[];
   totalElements: number;
   currentPage;
@@ -47,8 +49,8 @@ export class CatalogSearchComponent implements OnInit {
     private config: ConfigurationService,
   ) {
     this.totalElements = 0;
-    this.searchForm = this.formBuilder.group({ query: '', size: '' });
-    this.searchForm.value.size = this.pageSizes = config.get('pagination.size.values');
+    this.searchForm = this.formBuilder.group({ query: '' });
+    this.pageSizes = config.get('pagination.size.values', [5, 10, 25, 50, 100]);
   }
 
   ngOnInit() {
@@ -58,16 +60,11 @@ export class CatalogSearchComponent implements OnInit {
         this.searchForm.value.query = query;
       }
 
-      const size = params.has(SearchQueryParam.SIZE)
+      this.pageSize = params.has(SearchQueryParam.SIZE)
         ? parseInt(params.get(SearchQueryParam.SIZE), 10)
-        : this.config.get('pagination.size.default');
+        : this.config.get('pagination.size.default', 10);
 
-      const closestPageSize = this.pageSizes.reduce((prev, curr) => {
-        return Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev;
-      });
-      this.searchForm.value.size = closestPageSize;
-
-      this.searchForm.reset({ query: this.searchForm.value.query, size: this.searchForm.value.size });
+      this.searchForm.reset({ query: this.searchForm.value.query });
       this.currentPage = params.get(SearchQueryParam.PAGE) || 1;
       if (this.searchForm.value.query.trim() !== '') {
         this._loadData();
@@ -76,7 +73,7 @@ export class CatalogSearchComponent implements OnInit {
   }
 
   _loadData() {
-    const size = this.searchForm.value.size;
+    const size = this.pageSize;
     const params = new SearchRequestParams(this.searchForm.value.query || '*', size, this.currentPage);
     const { list, deferredList } = createPromiseList(size);
     this.apiResults = list;
@@ -84,8 +81,19 @@ export class CatalogSearchComponent implements OnInit {
       .searchApis(params)
       .toPromise()
       .then((apisResponse: ApisResponse) => {
-        this.paginationData = apisResponse.metadata.pagination;
-        this.totalElements = this.paginationData ? this.paginationData.total : 0;
+        const pagination = apisResponse.metadata.pagination as unknown as Pagination;
+        if (pagination) {
+          this.paginationData = {
+            size: this.pageSize,
+            sizes: this.pageSizes,
+            ...this.paginationData,
+            ...pagination,
+          };
+          this.totalElements = this.paginationData.total;
+        } else {
+          this.paginationData = null;
+          this.totalElements = 0;
+        }
 
         apisResponse.data.forEach((api) => {
           deferredList.shift().resolve(api);
@@ -106,12 +114,8 @@ export class CatalogSearchComponent implements OnInit {
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
-  _onPaginate({ page }) {
-    const queryParams = new SearchRequestParams(
-      this.activatedRoute.snapshot.queryParamMap.get(SearchQueryParam.QUERY),
-      this.searchForm.value.size,
-      page,
-    );
+  _onPaginate({ page, size }) {
+    const queryParams = new SearchRequestParams(this.activatedRoute.snapshot.queryParamMap.get(SearchQueryParam.QUERY), size, page);
     this.router.navigate([], { queryParams });
   }
 
