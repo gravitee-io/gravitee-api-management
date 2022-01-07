@@ -852,8 +852,10 @@
     }
   },
   "gv-pagination": {
+    "goTo": "Přejít na stránku",
     "next": "Další",
-    "previous": "Předchozí"
+    "previous": "Předchozí",
+    "results": "{count, plural, =0{žádné výsledky} one{{count} výsledky} other{{count} výsledky}}"
   },
   "gv-plans": {
     "characteristics": {
