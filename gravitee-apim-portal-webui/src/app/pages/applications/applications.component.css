@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.page__content__header {
+  display: flex;
+  justify-content: space-between;
+}
+
 .page__content__pagination {
   display: flex;
   justify-content: flex-end;

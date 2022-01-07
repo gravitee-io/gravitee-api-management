@@ -19,14 +19,12 @@ import {
   ApplicationService,
   GetApplicationsRequestParams,
   PermissionsService,
-  Subscription,
   SubscriptionService,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import StatusEnum = Subscription.StatusEnum;
-import { Pagination } from 'src/app/model/pagination';
+import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
@@ -42,7 +40,7 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
   empty: boolean;
   paginationData: Pagination;
   paginationPageSizes = [6, 12, 24, 48, 96];
-  paginationSize = 12;
+  initialPaginationSize = 12;
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
@@ -59,21 +57,32 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.empty = false;
+
     this.activatedRoute.queryParamMap
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap((params) =>
           this.applicationService.getApplications({
-            size: Number(params.get('size') ?? 12),
+            size: Number(params.get('size') ?? this.initialPaginationSize),
             page: Number(params.get('page') ?? 1),
           }),
         ),
       )
       .subscribe((response) => {
-        this.paginationData = response.metadata.pagination as unknown as Pagination;
-        this.paginationSize = this.paginationData.size;
+        const pagination = response.metadata.pagination as unknown as Pagination;
+        if (pagination) {
+          this.paginationData = {
+            size: this.initialPaginationSize,
+            sizes: this.paginationPageSizes,
+            ...this.paginationData,
+            ...pagination,
+          };
+          this.nbApplications = this.paginationData.total;
+        } else {
+          this.paginationData = null;
+          this.nbApplications = 0;
+        }
 
-        this.nbApplications = this.paginationData.total;
         this.applications = response.data.map((application) => ({
           item: application,
           metrics: this._getMetrics(application, response.metadata),
@@ -123,23 +132,11 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
-  onPaginate({ page }) {
-    if (this.paginationData.current_page !== page) {
-      const queryParams: GetApplicationsRequestParams = {
-        page,
-        size: this.paginationSize,
-      };
-      this.router.navigate([], { queryParams });
-    }
-  }
-
-  onSelectSize(size) {
-    if (this.paginationSize !== size) {
-      const queryParams: GetApplicationsRequestParams = {
-        page: 1,
-        size,
-      };
-      this.router.navigate([], { queryParams });
-    }
+  onPaginate({ page, size }) {
+    const queryParams: GetApplicationsRequestParams = {
+      page,
+      size,
+    };
+    this.router.navigate([], { queryParams });
   }
 }

@@ -84,8 +84,8 @@ describe('ApplicationsComponent', () => {
     };
     expectApplicationsGetRequest([fakeApplication1]);
 
-    expect(component.paginationData).toEqual({ current_page: 1, first: 1, last: 42, size: 12, total: 1, total_pages: 1 });
-    expect(component.paginationSize).toEqual(12);
+    const sizes = [6, 12, 24, 48, 96];
+    expect(component.paginationData).toEqual({ current_page: 1, first: 1, last: 42, size: 12, total: 1, total_pages: 1, sizes });
     expect(component.paginationPageSizes).toEqual([6, 12, 24, 48, 96]);
 
     mockActivatedRouteQueryParamMap$.next(
@@ -97,8 +97,7 @@ describe('ApplicationsComponent', () => {
 
     expectApplicationsGetRequest([fakeApplication1], { page: 2, size: 24 });
 
-    expect(component.paginationData).toEqual({ current_page: 2, first: 1, last: 42, size: 24, total: 1, total_pages: 1 });
-    expect(component.paginationSize).toEqual(24);
+    expect(component.paginationData).toEqual({ current_page: 2, first: 1, last: 42, size: 24, total: 1, total_pages: 1, sizes });
   });
 
   function expectApplicationsGetRequest(
