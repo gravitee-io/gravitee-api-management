@@ -16,9 +16,12 @@
 
 -->
 <div class="page__content">
-  <h1 class="title" *ngIf="!empty">
-    {{ 'applications.title' | translate }} <span>({{ nbApplications }})</span>
-  </h1>
+  <div class="page__content__header">
+    <h1 class="title" *ngIf="!empty">
+      {{ 'applications.title' | translate }} <span>({{ nbApplications }})</span>
+    </h1>
+    <gv-pagination [data]="paginationData" widget has-select></gv-pagination>
+  </div>
 
   <section *ngIf="empty">
     <gv-message class="message-empty">
@@ -31,14 +34,7 @@
     <gv-card-list [items]="applications"></gv-card-list>
   </section>
 
-  <div *ngIf="paginationData" class="page__content__pagination">
-    <gv-select
-      class="page__content__pagination__size__block"
-      [options]="paginationPageSizes"
-      [value]="paginationSize"
-      small
-      (:gv-select:select)="onSelectSize($event.detail)"
-    ></gv-select>
+  <div class="page__content__pagination">
     <gv-pagination [data]="paginationData"></gv-pagination>
   </div>
 </div>
