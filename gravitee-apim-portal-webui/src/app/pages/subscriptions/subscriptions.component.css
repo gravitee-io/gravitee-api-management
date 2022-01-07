@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 section {
+  background-color: white;
   display: flex;
 }
 
@@ -27,4 +28,10 @@ section {
 
 .curl-example {
   flex: 1 1 auto;
+}
+
+.page__content__pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin: 1rem 0.5rem;
 }

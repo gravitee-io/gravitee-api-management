@@ -19,20 +19,26 @@
   <h1 class="title">{{ 'subscriptions.title' | translate }}</h1>
   <section>
     <div class="table-container">
-      <gv-table
-        title="{{ 'subscriptions.applications.title' | translate }}"
-        [format]="format"
-        [emptymessage]="emptyKeyApplications | translate"
-        (:gv-table:select)="onApplicationClick($event)"
-        (:gv-table:mouseenter)="onApplicationMouseEnter($event)"
-        (:gv-table:mouseleave)="onFocusOut()"
-        order="name"
-        [items]="applications"
-        [options]="options"
-        nosort
-        [rowsheight]="rowsHeight"
-        [skeleton]="skeleton"
-      ></gv-table>
+      <div>
+        <gv-table
+          title="{{ 'subscriptions.applications.title' | translate }}"
+          [total]="nbApplications"
+          [format]="format"
+          [emptymessage]="emptyKeyApplications | translate"
+          (:gv-table:select)="onApplicationClick($event)"
+          (:gv-table:mouseenter)="onApplicationMouseEnter($event)"
+          (:gv-table:mouseleave)="onFocusOut()"
+          order="name"
+          [items]="applications"
+          [options]="options"
+          nosort
+          [rowsheight]="rowsHeight"
+          [skeleton]="skeleton"
+        ></gv-table>
+      </div>
+      <div class="page__content__pagination" [id]="fragments.pagination">
+        <gv-pagination [data]="paginationData" widget has-select></gv-pagination>
+      </div>
     </div>
     <div class="table-between"></div>
     <div class="table-container">
