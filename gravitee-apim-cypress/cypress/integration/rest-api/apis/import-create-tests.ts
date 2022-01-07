@@ -25,6 +25,7 @@ import { getPage, getPages } from '../../../commands/management/api-pages-manage
 import { ApiImportFakers } from '../../../fixtures/fakers/api-imports';
 import {
   ApiMetadataFormat,
+  ApiPageType,
   ApiPlanSecurityType,
   ApiPlanStatus,
   ApiPlanType,
@@ -229,6 +230,15 @@ context('API - Imports', () => {
 
       it('should delete the API', () => {
         deleteApi(ADMIN_USER, '08a92f8c-e133-42ec-a92f-8ce13382ec73').noContent();
+      });
+    });
+
+    describe('Create API with more than one system folder', () => {
+      const pages = Array.from({ length: 2 }).map(() => ApiImportFakers.page({ type: ApiPageType.SYSTEM_FOLDER }));
+      const fakeApi = ApiImportFakers.api({ pages });
+
+      it('should reject the import', () => {
+        importCreateApi(ADMIN_USER, fakeApi).badRequest();
       });
     });
   });

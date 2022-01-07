@@ -38,6 +38,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.PageImportException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -114,6 +115,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
 
             apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
+
+            if (jsonNode.has("pages") && jsonNode.get("pages").isArray()) {
+                ArrayNode pagesDefinition = (ArrayNode) jsonNode.get("pages");
+                checkPagesConsistency(pagesDefinition);
+            }
 
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode, environmentId);
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, jsonNode);
@@ -245,6 +251,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             if (!jsonNode.has("id") || !apiId.equals(jsonNode.get("id").asText())) {
                 ((ObjectNode) jsonNode).put("id", apiId);
                 apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
+            }
+
+            if (jsonNode.has("pages") && jsonNode.get("pages").isArray()) {
+                ArrayNode pagesDefinition = (ArrayNode) jsonNode.get("pages");
+                checkPagesConsistency(pagesDefinition);
             }
 
             if (jsonNode.has("plans") && jsonNode.get("plans").isArray()) {
@@ -683,6 +694,18 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         List<String> planIds = plansDefinition.findValuesAsText("id");
         if (planService.anyPlanMismatchWithApi(planIds, apiId)) {
             throw new TechnicalManagementException("Some inconsistencies were found in the API plans definition");
+        }
+    }
+
+    private void checkPagesConsistency(ArrayNode pagesDefinition) {
+        long systemFoldersCount = pagesDefinition
+            .findValuesAsText("type")
+            .stream()
+            .filter(type -> PageType.SYSTEM_FOLDER.name().equals(type))
+            .count();
+
+        if (systemFoldersCount > 1) {
+            throw new PageImportException("Only one system folder is allowed in the API pages definition");
         }
     }
 }
