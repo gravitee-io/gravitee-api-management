@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import {
   Api,
   ApiService,
   Application,
   ApplicationService,
+  GetApplicationsRequestParams,
+  GetSubscriptionsRequestParams,
   Subscription,
   SubscriptionService,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import { ConfigurationService } from 'src/app/services/configuration.service';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import { switchMap, takeUntil } from 'rxjs/operators';
+import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
+import { Subject } from 'rxjs';
 import StatusEnum = Subscription.StatusEnum;
 
 @Component({
@@ -36,11 +41,11 @@ import StatusEnum = Subscription.StatusEnum;
   templateUrl: './subscriptions.component.html',
   styleUrls: ['./subscriptions.component.css'],
 })
-export class SubscriptionsComponent implements OnInit {
+export class SubscriptionsComponent implements OnInit, OnDestroy {
   applications: Array<Application>;
   subscriptions: Array<Subscription>;
-  subscriptionsMetadata: any;
-  apis: Array<Api>;
+  subscriptionsMetadata: Map<string, any> = new Map<string, any>();
+  apis: Map<string, Api> = new Map<string, Api>();
   format: (key) => Promise<any>;
   options: object;
   optionsSubscriptions: object;
@@ -54,6 +59,17 @@ export class SubscriptionsComponent implements OnInit {
   skeleton = true;
   public curlExample: string;
 
+  paginationData: Pagination;
+  paginationPageSizes: Array<number>;
+  paginationSize: number;
+  nbApplications: number;
+  empty: boolean;
+  fragments: any = {
+    pagination: 'pagination',
+  };
+
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
   constructor(
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
@@ -63,9 +79,12 @@ export class SubscriptionsComponent implements OnInit {
     private configurationService: ConfigurationService,
     private ngZone: NgZone,
     private ref: ChangeDetectorRef,
+    private activatedRoute: ActivatedRoute,
+    private config: ConfigurationService,
   ) {}
 
   ngOnInit() {
+    this.applications = [];
     this.subsByApplication = {};
     this.subs = [];
     this.emptyKeyApplications = i18n('subscriptions.applications.init');
@@ -102,11 +121,16 @@ export class SubscriptionsComponent implements OnInit {
         },
       ],
     };
+
+    this.paginationPageSizes = this.config.get('pagination.size.values', [5, 10, 25, 50, 100]);
+    this.paginationSize = this.config.get('pagination.size.default', 10);
     this.optionsSubscriptions = {
       selectable: true,
       data: [
         {
-          field: (item) => this.subscriptionsMetadata[item.subscription.api].pictureUrl,
+          field: (item) => {
+            return this.subscriptionsMetadata[item.subscription.api].pictureUrl;
+          },
           type: 'image',
           alt: (item) =>
             this.subscriptionsMetadata[item.subscription.api] && getPictureDisplayName(this.subscriptionsMetadata[item.subscription.api]),
@@ -134,32 +158,46 @@ export class SubscriptionsComponent implements OnInit {
     };
     this.format = (key) => this.translateService.get(key).toPromise();
 
-    this.applicationService
-      .getApplications({ size: -1 })
-      .toPromise()
-      .then((response) => {
+    this.activatedRoute.queryParamMap
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((params) =>
+          this.applicationService.getApplications({
+            size: Number(params.get('size') ?? this.paginationSize),
+            page: Number(params.get('page') ?? 1),
+          }),
+        ),
+      )
+      .subscribe((response) => {
         this.applications = response.data;
-        this.subscriptionService
-          .getSubscriptions({ size: -1, statuses: [StatusEnum.ACCEPTED] })
-          .toPromise()
-          .then((responseSubscriptions) => {
-            this.subscriptions = responseSubscriptions.data;
-            this.subscriptionsMetadata = responseSubscriptions.metadata;
-            this.apiService
-              .getApis({ size: -1 })
-              .toPromise()
-              .then((responseApis) => {
-                this.apis = responseApis.data;
-                this.skeleton = false;
-              });
-          });
+        this.skeleton = false;
+
+        const pagination = response.metadata.pagination as unknown as Pagination;
+        if (pagination) {
+          this.paginationData = {
+            size: this.paginationSize,
+            sizes: this.paginationPageSizes,
+            ...this.paginationData,
+            ...pagination,
+          };
+          this.nbApplications = this.paginationData.total;
+        } else {
+          this.paginationData = null;
+          this.nbApplications = 0;
+        }
+
+        this.empty = this.applications.length === 0;
       });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
   }
 
   async displayCurlExample(sub: any) {
     delete this.curlExample;
     this.ref.detectChanges();
-
     let keys;
     if (!sub.subscription.keys || !sub.subscription.keys[0]) {
       const subscriptionDetail = await this.subscriptionService
@@ -169,7 +207,7 @@ export class SubscriptionsComponent implements OnInit {
         })
         .toPromise();
       keys = subscriptionDetail.keys;
-      this.subscriptions.find((subscription) => sub.subscription.id === subscription.id).keys = subscriptionDetail.keys;
+      sub.subscription.keys = subscriptionDetail.keys;
     } else {
       keys = sub.subscription.keys;
     }
@@ -177,7 +215,9 @@ export class SubscriptionsComponent implements OnInit {
     const entrypoints = this.subscriptionsMetadata[sub.subscription.api].entrypoints;
     const entrypoint = entrypoints && entrypoints[0] && entrypoints[0].target;
     if (entrypoint && keys[0]) {
-      this.curlExample = `curl ${entrypoint} -H "${this.apikeyHeader}:${keys[0].key}"`;
+      // keep the line break
+      this.curlExample = `curl --header "${this.apikeyHeader}:${keys[0].key}" \\
+    ${entrypoint}`;
     }
   }
 
@@ -216,24 +256,35 @@ export class SubscriptionsComponent implements OnInit {
     return this.curlExample ? '25vh' : '45vh';
   }
 
+  async loadApi(apiId: string) {
+    if (!this.apis.has(apiId)) {
+      const api = await this.apiService.getApiByApiId({ apiId }).toPromise();
+      this.apis.set(apiId, api);
+    }
+    return this.apis.get(apiId);
+  }
+
   async selectSubscriptions(application) {
-    this.selectedApplicationId = application ? application.id : null;
+    this.selectedApplicationId = application?.id;
     this.curlExample = null;
     this.selectedSubscriptions = [];
-    if (this.apis && this.selectedApplicationId) {
+    if (this.selectedApplicationId) {
       if (this.subsByApplication[this.selectedApplicationId] == null) {
-        const applicationSubscriptions = this.selectedApplicationId
-          ? this.subscriptions.filter((subscription) => this.selectedApplicationId === subscription.application)
-          : this.subscriptions;
-        this.subsByApplication[this.selectedApplicationId] = applicationSubscriptions.map((applicationSubscription) => {
-          return {
-            subscription: applicationSubscription,
-            api: this.apis.find((api) => applicationSubscription.api === api.id),
-            plan: this.subscriptionsMetadata[applicationSubscription.plan],
-          };
-        });
+        const params: GetSubscriptionsRequestParams = { applicationId: this.selectedApplicationId, statuses: [StatusEnum.ACCEPTED] };
+        const { data, metadata } = await this.subscriptionService.getSubscriptions(params).toPromise();
+        this.subscriptionsMetadata = { ...this.subscriptionsMetadata, ...metadata };
+        const subscription = await Promise.all(
+          data.map(async (applicationSubscription) => {
+            const api = await this.loadApi(applicationSubscription.api);
+            return {
+              subscription: applicationSubscription,
+              api,
+              plan: this.subscriptionsMetadata[applicationSubscription.plan],
+            };
+          }),
+        );
+        this.subsByApplication[this.selectedApplicationId] = subscription;
       }
-
       this.subs = this.subsByApplication[this.selectedApplicationId];
     } else {
       this.subs = [];
@@ -241,5 +292,14 @@ export class SubscriptionsComponent implements OnInit {
     if (!this.subs || !this.subs.length) {
       this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.empty');
     }
+  }
+
+  @HostListener(':gv-pagination:paginate', ['$event.detail'])
+  onPaginate({ page, size }) {
+    const queryParams: GetApplicationsRequestParams = {
+      page,
+      size,
+    };
+    this.router.navigate([], { queryParams, fragment: this.fragments.pagination });
   }
 }
