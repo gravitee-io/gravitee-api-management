@@ -256,16 +256,14 @@ export class FilteredCatalogComponent implements OnInit {
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
   _onPaginate({ page }) {
-    if (this.paginationData.current_page !== page) {
-      const queryParams = {};
-      queryParams[SearchQueryParam.PAGE] = page;
-      this.router.navigate([], {
-        relativeTo: this.activatedRoute,
-        queryParams,
-        queryParamsHandling: 'merge',
-        fragment: this.fragments.pagination,
-      });
-    }
+    const queryParams = {};
+    queryParams[SearchQueryParam.PAGE] = page;
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams,
+      queryParamsHandling: 'merge',
+      fragment: this.fragments.pagination,
+    });
   }
 
   @HostListener(':gv-option:select', ['$event.detail'])

@@ -183,18 +183,6 @@ describe('GvTicketsHistoryComponent', () => {
     });
   }));
 
-  it('should not navigate with new query params when paginating on same page', fakeAsync(() => {
-    component.paginationData = {
-      current_page: 1,
-    };
-    component.size = 5;
-    const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
-
-    component._onPaginate({ page: 1 });
-
-    expect(spy).not.toHaveBeenCalled();
-  }));
-
   it('should navigate with new query params when sorting', fakeAsync(() => {
     const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
 
