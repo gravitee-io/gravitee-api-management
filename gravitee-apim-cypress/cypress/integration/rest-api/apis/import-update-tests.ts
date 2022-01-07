@@ -27,6 +27,7 @@ import { getPage, getPages } from '../../../commands/management/api-pages-manage
 import { ApiImportFakers } from '../../../fixtures/fakers/api-imports';
 import {
   ApiMetadataFormat,
+  ApiPageType,
   ApiPlanSecurityType,
   ApiPlanStatus,
   ApiPlanType,
@@ -453,6 +454,43 @@ context('API - Imports - Update', () => {
 
       it('should not have deleted pages', () => {
         getPages(ADMIN_USER, apiId).ok().its('body').should('have.length', 3);
+      });
+
+      it('should delete the API', () => {
+        deleteApi(ADMIN_USER, apiId).noContent();
+      });
+    });
+
+    describe('Update API, duplicating system folder', () => {
+      const apiId = 'dfb569b9-a8e1-4ad4-9b84-0dd638ac2f30';
+      const fakeApi = ApiImportFakers.api({ id: apiId });
+      fakeApi.pages.push(ApiImportFakers.page());
+
+      let apiUpdate;
+
+      it('should create an API with one pages of documentation', () => {
+        importCreateApi(ADMIN_USER, fakeApi).ok();
+      });
+
+      it('should export the API', () => {
+        exportApi(ADMIN_USER, apiId)
+          .ok()
+          .its('body')
+          .then((apiExport) => {
+            apiUpdate = apiExport;
+          });
+      });
+
+      it('should have created a system folder page', () => {
+        cy.wrap(apiUpdate)
+          .its('pages')
+          .should('have.length', 2)
+          .should('satisfy',  pages => pages.some(({ type }) => type === ApiPageType.SYSTEM_FOLDER));
+      });
+
+      it('should reject the import if trying to add a new system folder', () => {
+        apiUpdate.pages = Array.of(ApiImportFakers.page({ type: ApiPageType.SYSTEM_FOLDER }));
+        importUpdateApi(ADMIN_USER, apiId, apiUpdate).badRequest();
       });
 
       it('should delete the API', () => {

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
@@ -32,6 +33,7 @@ import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
@@ -97,7 +99,7 @@ public class PageService_CreateOrUpdatePagesTest {
 
         // Simulate the fact that page 1 is already created
         when(pageRepository.findById(updatedPageId)).thenReturn(Optional.of(page));
-        when(pageRepository.findById(argThat(id -> !id.equals(updatedPageId)))).thenThrow(new PageNotFoundException(""));
+        when(pageRepository.search(argThat(criteria -> API_ID.equals(criteria.getReferenceId())))).thenReturn(List.of(page));
 
         when(planService.findByApi(anyString())).thenReturn(Collections.emptySet());
 

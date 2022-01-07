@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE
 import static io.gravitee.repository.management.model.Page.AuditEvent.*;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
+import static io.gravitee.rest.api.model.PageType.SYSTEM_FOLDER;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
@@ -776,6 +777,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 checkFolderConsistency(newPageEntity);
             }
 
+            if (SYSTEM_FOLDER.equals(newPageType)) {
+                assertNoSystemFolderExists(environmentId, apiId);
+            }
+
             if (PageType.LINK.equals(newPageType)) {
                 String resourceType = newPageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE);
                 String content = newPageEntity.getContent();
@@ -892,6 +897,19 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         if (newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
             throw new PageFolderActionException("be created in a folder of a system folder");
         }
+    }
+
+    private void assertNoSystemFolderExists(String environmentId, String apiId) {
+        PageQuery pageQuery = new PageQuery.Builder().api(apiId).name(SystemFolderType.ASIDE.folderName()).type(SYSTEM_FOLDER).build();
+
+        search(pageQuery, environmentId)
+            .stream()
+            .findFirst()
+            .ifPresent(
+                page -> {
+                    throw new PageSystemFolderActionException("Create");
+                }
+            );
     }
 
     private void checkTranslationConsistency(String parentId, Map<String, String> configuration, boolean forCreation)
@@ -2669,11 +2687,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private PageEntity findByIdOrGeneratedId(String id, String environmentId, String apiId) {
-        try {
-            return findById(id);
-        } catch (PageNotFoundException e) {
-            return findById(UuidString.generateForEnvironment(environmentId, apiId, id));
-        }
+        PageQuery query = new PageQuery.Builder().api(apiId).build();
+
+        return search(query, environmentId)
+            .stream()
+            .filter(page -> id.equals(page.getId()) || UuidString.generateForEnvironment(environmentId, apiId, id).equals(page.getId()))
+            .findFirst()
+            .orElseThrow(() -> new PageNotFoundException(id));
     }
 
     private void duplicateChildrenPages(
