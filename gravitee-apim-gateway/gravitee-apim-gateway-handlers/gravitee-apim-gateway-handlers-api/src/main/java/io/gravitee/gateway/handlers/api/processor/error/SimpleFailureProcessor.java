@@ -26,6 +26,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.List;
 
 /**
@@ -63,6 +64,7 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
         context.request().metrics().setErrorKey(failure.key());
 
         response.status(failure.statusCode());
+        response.reason(HttpResponseStatus.valueOf(response.status()).reasonPhrase());
         response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
         if (failure.message() != null) {
