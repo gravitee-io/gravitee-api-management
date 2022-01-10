@@ -42,7 +42,7 @@ function DialogAddGroupMemberController(
   this.defaultApiRole = defaultApiRole;
   this.defaultApplicationRole = defaultApplicationRole;
   this.usersSelected = [];
-  this.defaultApiRole = defaultApiRole ? defaultApiRole : _.find(apiRoles, { default: true }).name;
+  this.defaultApiRole = defaultApiRole ? defaultApiRole : _.find(apiRoles, { default: true })?.name;
   this.defaultApplicationRole = defaultApplicationRole ? defaultApplicationRole : _.find(applicationRoles, { default: true }).name;
 
   this.canChangeDefaultApiRole = canChangeDefaultApiRole;

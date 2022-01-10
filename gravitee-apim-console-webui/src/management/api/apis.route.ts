@@ -68,6 +68,13 @@ function apisRouterConfig($stateProvider: StateProvider) {
             return response.data;
           });
         },
+        resolvedApiGroups: ($stateParams: StateParams, ApiService: ApiService, UserService: UserService) => {
+          if (UserService.isUserHasPermissions(['api-member-r'])) {
+            return ApiService.getGroupsWithMembers($stateParams.apiId).then((response) => {
+              return response.data;
+            });
+          }
+        },
         resolvedTags: (TagService: TagService) => {
           return TagService.list().then((response) => {
             return response.data;

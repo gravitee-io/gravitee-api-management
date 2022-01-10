@@ -42,6 +42,7 @@ class ApiTransferOwnershipController {
     private resolvedApi,
     private resolvedMembers,
     private resolvedGroups,
+    private resolvedApiGroups,
     private $state,
     private $mdDialog: ng.material.IDialogService,
     private NotificationService,
@@ -64,22 +65,8 @@ class ApiTransferOwnershipController {
     _.forEach(resolvedGroups, (grp) => {
       this.displayGroups[grp.id] = false;
     });
-    this.groupMembers = {};
-    this.groupIdsWithMembers = [];
-    if (this.api.groups) {
-      _.forEach(this.api.groups, (grp) => {
-        GroupService.getMembers(grp).then((members) => {
-          const filteredMembers = _.filter(members.data, (m: any) => {
-            return m.roles.API;
-          });
-
-          if (filteredMembers.length > 0) {
-            this.groupMembers[grp] = filteredMembers;
-            this.groupIdsWithMembers.push(grp);
-          }
-        });
-      });
-    }
+    this.groupMembers = resolvedApiGroups;
+    this.groupIdsWithMembers = Object.keys(this.groupMembers);
 
     RoleService.list('API').then((roles) => {
       this.roles = roles;
@@ -107,14 +94,6 @@ class ApiTransferOwnershipController {
     });
   }
 
-  isPrimaryOwner() {
-    return (
-      (this.api.owner.type === 'USER' && this.UserService.currentUser.id === this.api.owner.id) ||
-      (this.api.owner.type === 'GROUP' &&
-        this.resolvedGroups.some((group) => group.id === this.api.owner.id && group.apiPrimaryOwner === this.UserService.currentUser.id))
-    );
-  }
-
   showTransferOwnershipConfirm(ev) {
     this.$mdDialog
       .show({
@@ -131,7 +110,7 @@ class ApiTransferOwnershipController {
       .then(
         (transferAPI) => {
           if (transferAPI) {
-            this.transferOwnership(this.newPORole.name);
+            this.transferOwnership(this.newPORole?.name);
           }
         },
         () => {
@@ -140,8 +119,15 @@ class ApiTransferOwnershipController {
       );
   }
 
-  isAllowedToTransferOwnership() {
-    return this.UserService.currentUser.isAdmin() || this.isPrimaryOwner();
+  isAllowedToTransferOwnership(): boolean {
+    return this.UserService.currentUser.isAdmin() || this.UserService.isApiPrimaryOwner(this.api, this.groupMembers);
+  }
+
+  canUseGroupAsPrimaryOwner(): boolean {
+    return (
+      this.ApiPrimaryOwnerModeService.isGroupOnly() ||
+      (this.ApiPrimaryOwnerModeService.isHybrid() && this.poGroups && this.poGroups.length > 0)
+    );
   }
 
   private transferOwnership(newRole: string) {

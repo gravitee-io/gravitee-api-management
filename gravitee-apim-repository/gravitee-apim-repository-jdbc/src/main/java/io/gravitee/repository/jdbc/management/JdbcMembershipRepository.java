@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 /**
  *
@@ -217,6 +218,52 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                 query.append(" m.role_id = ? ");
             }
             return query(memberId, memberType, null, referenceType, roleId, query.toString());
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find membership by references and membership type", ex);
+            throw new TechnicalException("Failed to find membership by references and membership type", ex);
+        }
+    }
+
+    @Override
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) throws TechnicalException {
+        LOGGER.debug(
+            "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn({}, {}, {}, [{}])",
+            memberId,
+            memberType,
+            referenceType,
+            roleIds
+        );
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return Set.of();
+        }
+        try {
+            final StringBuilder queryBuilder = new StringBuilder("select m.* from " + this.tableName + " m")
+                .append(WHERE_CLAUSE)
+                .append(" m.member_id = ? ")
+                .append(AND_CLAUSE)
+                .append(" m.member_type = ? ")
+                .append(AND_CLAUSE)
+                .append(" m.reference_type = ? ");
+
+            getOrm().buildInCondition(false, queryBuilder, "m.role_id", roleIds);
+
+            List<Membership> memberships = jdbcTemplate.query(
+                queryBuilder.toString(),
+                (PreparedStatement ps) -> {
+                    ps.setString(1, memberId);
+                    ps.setString(2, memberType.name());
+                    ps.setString(3, referenceType.name());
+                    getOrm().setArguments(ps, roleIds, 4);
+                },
+                getOrm().getRowMapper()
+            );
+
+            return new HashSet<>(memberships);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find membership by references and membership type", ex);
             throw new TechnicalException("Failed to find membership by references and membership type", ex);

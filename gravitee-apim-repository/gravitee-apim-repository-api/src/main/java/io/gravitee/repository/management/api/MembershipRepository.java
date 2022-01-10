@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -146,6 +147,22 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
         MembershipMemberType memberType,
         MembershipReferenceType referenceType,
         String roleId
+    ) throws TechnicalException;
+
+    /**
+     * find all memberships for a member, a referenceType and a list of roles
+     * @param memberId the member
+     * @param memberType the member type. Can be USER or GROUP.
+     * @param referenceType the referenceType
+     * @param roleIds the role id list
+     * @return the list of memberships, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
     ) throws TechnicalException;
 
     /**
