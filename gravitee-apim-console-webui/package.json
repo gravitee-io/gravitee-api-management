@@ -15,7 +15,7 @@
     "@angular/upgrade": "12.2.3",
     "@asyncapi/web-component": "1.0.0-next.15",
     "@fontsource/libre-franklin": "4.4.5",
-    "@gravitee/ui-components": "3.27.3",
+    "@gravitee/ui-components": "3.28.0",
     "@gravitee/ui-particles-angular": "1.4.0",
     "@highcharts/map-collection": "1.1.3",
     "@toast-ui/editor": "2.5.2",
