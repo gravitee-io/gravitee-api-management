@@ -24,6 +24,8 @@ import Base64Service from './base64.service';
 import EnvironmentService from './environment.service';
 import { IHttpResponse, IScope } from 'angular';
 import _ = require('lodash');
+import { ApiPrimaryOwnerType } from './apiPrimaryOwnerMode.service';
+import { RoleName, RoleScope } from '../management/configuration/groups/group/membershipState';
 
 class UserService {
   /**
@@ -356,6 +358,22 @@ class UserService {
     });
 
     return permissions;
+  }
+
+  public isApiPrimaryOwner(api, groups = {}): boolean {
+    return this.isDirectApiPrimaryOwner(api) || this.isApiPrimaryOwnerFromGroup(api, groups);
+  }
+
+  private isDirectApiPrimaryOwner(api): boolean {
+    return api.owner.type === ApiPrimaryOwnerType.USER && this.currentUser?.id === api.owner.id;
+  }
+
+  private isApiPrimaryOwnerFromGroup(api, groups): boolean {
+    return (
+      api.owner.type === ApiPrimaryOwnerType.GROUP &&
+      groups[api.owner.id] &&
+      groups[api.owner.id].some((member) => member.roles[RoleScope.API] === RoleName.PRIMARY_OWNER && member.id === this.currentUser?.id)
+    );
   }
 }
 

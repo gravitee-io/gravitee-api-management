@@ -106,10 +106,13 @@
           layout-align="center center"
           layout-padding="5px"
           flex
-          ng-if="apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isGroupOnly() && !(apiTransferOwnershipCtrl.poGroups && apiTransferOwnershipCtrl.poGroups.length > 0)"
+          ng-if="!apiTransferOwnershipCtrl.canUseGroupAsPrimaryOwner()"
         >
           <md-input-container flex>
-            <div>You must belong to at least one group with an API primary owner member (which is not the current primary owner).</div>
+            <div>
+              To set a group as a primary owner, you must belong to at least one group with an API primary owner member (which is not the
+              current primary owner).
+            </div>
           </md-input-container>
         </div>
 
@@ -123,7 +126,7 @@
       </div>
       <div class="md-actions gravitee-api-save-button" layout="row" flex>
         <md-button
-          ng-disabled="!(apiTransferOwnershipCtrl.usersSelected && apiTransferOwnershipCtrl.usersSelected[0]) && !apiTransferOwnershipCtrl.newPrimaryOwnerGroup"
+          ng-disabled="!apiTransferOwnershipCtrl.newPORole && apiTransferOwnershipCtrl.api.owner.type.toUpperCase() === 'USER'"
           class="md-primary md-raised"
           ng-click="apiTransferOwnershipCtrl.showTransferOwnershipConfirm($event)"
           >Transfer</md-button

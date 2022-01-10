@@ -345,6 +345,13 @@ class ApiService {
   }
 
   /*
+   * Groups
+   */
+  getGroupsWithMembers(api: string): ng.IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${api}/groups`);
+  }
+
+  /*
    * API events
    */
   getApiEvents(api, eventTypes): ng.IPromise<any> {

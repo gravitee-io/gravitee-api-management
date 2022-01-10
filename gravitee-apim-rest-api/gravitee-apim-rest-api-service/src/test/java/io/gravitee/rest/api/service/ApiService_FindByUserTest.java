@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
@@ -109,6 +110,7 @@ public class ApiService_FindByUserTest {
     @Test
     public void shouldFindByUser() throws TechnicalException {
         final String userRoleId = "API_USER";
+        final String poRoleId = "API_PRIMARY_OWNER";
 
         Map<String, char[]> userPermissions = ImmutableMap.of("MEMBER", "CRUD".toCharArray());
         RoleEntity userRole = new RoleEntity();
@@ -133,8 +135,13 @@ public class ApiService_FindByUserTest {
             .thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
-        poRole.setId("API_PRIMARY_OWNER");
+        poRole.setId(poRoleId);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
+
+        when(roleService.findByScope(RoleScope.API)).thenReturn(List.of(poRole, userRole));
 
         MemberEntity poMember = new MemberEntity();
         poMember.setId("admin");
@@ -160,6 +167,7 @@ public class ApiService_FindByUserTest {
     @Test
     public void shouldFindByUserPaginated() throws TechnicalException {
         final String userRoleId = "API_USER";
+        final String poRoleId = "API_PRIMARY_OWNER";
 
         Map<String, char[]> userPermissions = ImmutableMap.of("MEMBER", "CRUD".toCharArray());
         RoleEntity userRole = new RoleEntity();
@@ -198,8 +206,13 @@ public class ApiService_FindByUserTest {
             .thenReturn(Arrays.asList(api1, api2));
 
         RoleEntity poRole = new RoleEntity();
-        poRole.setId("API_PRIMARY_OWNER");
+        poRole.setId(poRoleId);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
+
+        when(roleService.findByScope(RoleScope.API)).thenReturn(List.of(userRole, poRole));
 
         MemberEntity poMember = new MemberEntity();
         poMember.setId("admin");
@@ -231,6 +244,15 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
+        final String poRoleId = "API_PRIMARY_OWNER";
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(poRoleId);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
+        when(roleService.findByScope(RoleScope.API)).thenReturn(List.of(poRole));
+
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
             .thenReturn(Collections.emptySet());
 
