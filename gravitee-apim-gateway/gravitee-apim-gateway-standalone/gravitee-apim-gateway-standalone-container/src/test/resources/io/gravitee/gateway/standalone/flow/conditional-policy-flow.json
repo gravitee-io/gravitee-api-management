@@ -38,7 +38,22 @@
           "configuration": {}
         }
       ],
-      "post": [],
+      "post": [
+        {
+          "policy": "stream-policy",
+          "name": "My stream policy",
+          "description": "Step description",
+          "condition": "{#request.headers['conditionHeader'][0].equals(\"falsy-condition-to-verify-we-use-next-policy\")}",
+          "configuration": {}
+        },
+        {
+          "policy": "stream-policy2",
+          "name": "My stream policy",
+          "description": "Step description",
+          "condition": "{#request.headers['conditionHeader'][0].equals(\"condition-ok\")}",
+          "configuration": {}
+        }
+      ],
       "enabled": true
     }
   ]

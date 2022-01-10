@@ -67,7 +67,7 @@ public class ConditionalExecutablePolicyTest extends TestCase {
     }
 
     @Test
-    public void shouldRunConditionalPolicyConditionOk() throws PolicyException {
+    public void shouldExecuteConditionalPolicyConditionOk() throws PolicyException {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(true);
 
@@ -77,7 +77,7 @@ public class ConditionalExecutablePolicyTest extends TestCase {
     }
 
     @Test
-    public void shouldNotRunConditionalPolicyConditionEvaluatedToFalse() throws PolicyException {
+    public void shouldNotExecuteConditionalPolicyConditionEvaluatedToFalse() throws PolicyException {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(false);
 
@@ -87,12 +87,31 @@ public class ConditionalExecutablePolicyTest extends TestCase {
     }
 
     @Test(expected = PolicyException.class)
-    public void shouldNotRunConditionalPolicyExpressionEvaluationException() throws PolicyException {
+    public void shouldNotExecuteConditionalPolicyExpressionEvaluationException() throws PolicyException {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
 
         final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy("dummy", fakePolicy(), method, method, "condition");
         policy.execute(policyChain, executionContext);
+    }
+
+    @Test
+    public void shouldStreamConditionalPolicyConditionOk() throws PolicyException {
+        when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue("condition", Boolean.class)).thenReturn(true);
+
+        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy("dummy", fakePolicy(), method, method, "condition");
+        policy.stream(policyChain, executionContext);
+        verify(policyChain, never()).doNext(any(), any());
+    }
+
+    @Test(expected = PolicyException.class)
+    public void shouldNotStreamConditionalPolicyExpressionEvaluationException() throws PolicyException {
+        when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
+
+        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy("dummy", fakePolicy(), method, method, "condition");
+        policy.stream(policyChain, executionContext);
     }
 
     private Object fakePolicy() {

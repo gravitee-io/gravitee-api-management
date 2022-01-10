@@ -15,8 +15,11 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.policy.PolicyException;
@@ -43,6 +46,27 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
 
     @Override
     public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
+        boolean isConditionTruthy = evaluateCondition(context);
+
+        if (isConditionTruthy) {
+            super.execute(chain, context);
+        } else {
+            chain.doNext(context.request(), context.response());
+        }
+    }
+
+    @Override
+    public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
+        boolean isConditionTruthy = evaluateCondition(context);
+
+        ReadWriteStream<Buffer> stream = null;
+        if (isConditionTruthy) {
+            stream = super.stream(chain, context);
+        }
+        return stream;
+    }
+
+    private boolean evaluateCondition(ExecutionContext context) throws PolicyException {
         boolean isConditionTruthy;
         try {
             isConditionTruthy = conditionEvaluator.evaluate(context, condition);
@@ -51,11 +75,6 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
             LOGGER.error("Condition evaluation fails for policy {}", this.id(), e);
             throw new PolicyException("Request failed unintentionally", e);
         }
-
-        if (isConditionTruthy) {
-            super.execute(chain, context);
-        } else {
-            chain.doNext(context.request(), context.response());
-        }
+        return isConditionTruthy;
     }
 }
