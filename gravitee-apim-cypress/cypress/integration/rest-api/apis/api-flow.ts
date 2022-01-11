@@ -109,7 +109,7 @@ context('Create an API flow', () => {
       },
       function () {
         cy.request({
-          url: `${Cypress.env('gatewayServer')}${api.context_path}?teststring=${api.id}`,
+          url: `${Cypress.env('gatewayServer')}${api.contextPath}?teststring=${api.id}`,
           retryOnStatusCodeFailure: true,
         }).should((response) => {
           expect(response.body.query_params.teststring).to.be.equal(api.id);
