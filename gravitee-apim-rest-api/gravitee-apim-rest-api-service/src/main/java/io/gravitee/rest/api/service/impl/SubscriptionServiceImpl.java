@@ -24,6 +24,7 @@ import static java.util.stream.Collectors.toList;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -87,9 +88,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private ApiService apiService;
-
-    @Autowired
-    private EmailService emailService;
 
     @Autowired
     private AuditService auditService;
@@ -1140,9 +1138,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     @Override
-    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionQuery query) {
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionQuery query, Order order) {
         try {
-            return subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(toSubscriptionCriteriaBuilder(query).build());
+            return subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(toSubscriptionCriteriaBuilder(query).build(), order);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to findReferenceIdsOrderByNumberOfSubscriptions for subscriptions: {}", query, ex);
             throw new TechnicalManagementException(

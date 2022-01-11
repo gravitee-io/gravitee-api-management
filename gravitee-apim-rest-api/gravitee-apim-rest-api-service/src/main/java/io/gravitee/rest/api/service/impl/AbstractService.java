@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,5 +62,19 @@ public abstract class AbstractService extends TransactionalService {
             .getAuthorities()
             .stream()
             .anyMatch(auth -> role.equals(auth.getAuthority()));
+    }
+
+    protected static io.gravitee.repository.management.api.search.Pageable convert(Pageable pageable) {
+        if (pageable != null) {
+            return new PageableBuilder().pageNumber(pageable.getPageNumber()).pageSize(pageable.getPageSize()).build();
+        }
+        return null;
+    }
+
+    protected static io.gravitee.repository.management.api.search.Sortable convert(Sortable sortable) {
+        if (sortable != null) {
+            return new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build();
+        }
+        return null;
     }
 }

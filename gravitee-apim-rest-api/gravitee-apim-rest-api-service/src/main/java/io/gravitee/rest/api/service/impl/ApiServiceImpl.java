@@ -49,8 +49,6 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -2240,20 +2238,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private Page<ApiEntity> convert(Page<Api> page) throws TechnicalException {
         return new Page<>(this.convert(page.getContent()), page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements());
-    }
-
-    private io.gravitee.repository.management.api.search.Pageable convert(Pageable pageable) {
-        if (pageable != null) {
-            return new PageableBuilder().pageNumber(pageable.getPageNumber()).pageSize(pageable.getPageSize()).build();
-        }
-        return null;
-    }
-
-    private io.gravitee.repository.management.api.search.Sortable convert(Sortable sortable) {
-        if (sortable != null) {
-            return new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build();
-        }
-        return null;
     }
 
     @Override

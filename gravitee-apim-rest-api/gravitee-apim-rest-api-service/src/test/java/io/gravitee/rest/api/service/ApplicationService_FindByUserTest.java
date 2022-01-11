@@ -20,15 +20,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,7 +57,6 @@ public class ApplicationService_FindByUserTest {
     private static final String GROUP_APPLICATION_ID = "id-group-app";
 
     private static final String USERNAME = "Gravitee.io APIM";
-    private static final String GROUP_ID = "group-id";
 
     @InjectMocks
     private ApplicationServiceImpl applicationService = new ApplicationServiceImpl();
@@ -95,7 +102,8 @@ public class ApplicationService_FindByUserTest {
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
             .thenReturn(Collections.singleton(appMembership));
-        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).thenReturn(Collections.singleton(application));
+        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID), null))
+            .thenReturn(Collections.singleton(application));
         when(application.getEnvironmentId()).thenReturn("envId");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
@@ -124,7 +132,8 @@ public class ApplicationService_FindByUserTest {
         when(application.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
             .thenReturn(Collections.singleton(appMembership));
-        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).thenReturn(Collections.singleton(application));
+        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID), null))
+            .thenReturn(Collections.singleton(application));
 
         Set<ApplicationListItem> apps = applicationService.findByUser(
             GraviteeContext.getCurrentOrganization(),
@@ -163,7 +172,7 @@ public class ApplicationService_FindByUserTest {
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(role);
         when(roleService.findById(any())).thenReturn(role);
 
-        when(applicationRepository.findByIds(any())).thenReturn(new HashSet(Arrays.asList(application, groupApplication)));
+        when(applicationRepository.findByIds(any(), any())).thenReturn(new HashSet(Arrays.asList(application, groupApplication)));
 
         MembershipEntity poApp = new MembershipEntity();
         poApp.setId("poApp-id");
@@ -193,5 +202,44 @@ public class ApplicationService_FindByUserTest {
         Assert.assertNotNull(apps);
         Assert.assertFalse("should find apps", apps.isEmpty());
         Assert.assertEquals(2, apps.size());
+    }
+
+    @Test
+    public void shouldFindByUserWithSortable() throws Exception {
+        GraviteeContext.setCurrentEnvironment("envId");
+        when(appMembership.getReferenceId()).thenReturn(APPLICATION_ID);
+        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+            .thenReturn(Collections.singleton(appMembership));
+        when(
+            applicationRepository.findByIds(
+                Collections.singletonList(APPLICATION_ID),
+                new SortableBuilder().field("name").setAsc(true).build()
+            )
+        )
+            .thenReturn(Collections.singleton(application));
+        when(application.getEnvironmentId()).thenReturn("envId");
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USERNAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+
+        Set<ApplicationListItem> apps = applicationService.findByUser(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            USERNAME,
+            new SortableImpl("name", true)
+        );
+
+        Assert.assertNotNull(apps);
+        Assert.assertFalse("should find app", apps.isEmpty());
+        Assert.assertEquals(APPLICATION_ID, apps.iterator().next().getId());
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.filtering;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -54,12 +55,18 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     @Autowired
     ApiService apiService;
 
+    @Autowired
+    PermissionService permissionService;
+
     @Override
     public Collection<String> getApisOrderByNumberOfSubscriptions(Collection<String> apis, boolean excluded) {
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
         subscriptionQuery.setApis(apis);
-        Set<String> apisOrderByNumberOfSubscriptions = subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery);
+        Set<String> apisOrderByNumberOfSubscriptions = subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(
+            subscriptionQuery,
+            Order.DESC
+        );
 
         if (excluded) {
             // remove apis with subscriptions to apis already sorted by name
@@ -73,11 +80,11 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     }
 
     @Override
-    public Collection<String> getApplicationsOrderByNumberOfSubscriptions(Collection<String> ids) {
+    public Collection<String> getApplicationsOrderByNumberOfSubscriptions(Collection<String> ids, Order order) {
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
         subscriptionQuery.setApplications(ids);
-        Set<String> ranking = subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery);
+        Set<String> ranking = subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, order);
         // add apis already sorted by name to apis sorted by subscriptions
         ranking.addAll(ids);
         return ranking;

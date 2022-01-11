@@ -27,10 +27,14 @@ import static org.mockito.internal.util.collections.Sets.newSet;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -142,6 +146,14 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(applicationRepository.findByNameAndStatuses("aRcHEd", ApplicationStatus.ARCHIVED)).thenReturn(emptySet());
 
         when(applicationRepository.findByIds(asList("searched-app1", "searched-app2"))).thenReturn(newSet(searchedApp1, searchedApp2));
+        when(
+            applicationRepository.findByIds(
+                asList("searched-app1", "searched-app2"),
+                new SortableBuilder().field("name").setAsc(false).build()
+            )
+        )
+            .thenReturn(newSet(searchedApp2, searchedApp1));
+
         when(applicationRepository.findByGroups(singletonList("application-group")))
             .thenReturn(newSet(groupedApplication1, groupedApplication2));
         when(applicationRepository.findByGroups(singletonList("application-group"), ApplicationStatus.ARCHIVED))

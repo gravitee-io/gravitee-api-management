@@ -219,7 +219,7 @@ export interface GetApplicationsRequestParams {
     size?: number;
     /** If true, only return applications with APPLICATION_SUBSCRIPTION[CREATE] permission. */
     forSubscription?: boolean;
-    /** A  list of \&quot;field\&quot; elements or *nbSubscriptions*. By default, sort is ASC. If *field* starts with \&#39;-\&#39;, the order sort is DESC.\\ Currently, only **name** and **nbSubscriptions** are supported.  */
+    /** By default, sort is ASC. If *field* starts with \&#39;-\&#39;, the order sort is DESC.\\ Currently, only **name** and **nbSubscriptions** are supported.  */
     order?: string;
 }
 

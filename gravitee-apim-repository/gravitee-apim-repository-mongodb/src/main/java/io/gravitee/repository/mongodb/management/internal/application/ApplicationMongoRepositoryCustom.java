@@ -18,7 +18,10 @@ package io.gravitee.repository.mongodb.management.internal.application;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -26,4 +29,6 @@ import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo
  */
 public interface ApplicationMongoRepositoryCustom {
     Page<ApplicationMongo> search(ApplicationCriteria applicationCriteria, final Pageable pageable);
+
+    Set<ApplicationMongo> findByIds(List<String> ids, Sortable sortable);
 }

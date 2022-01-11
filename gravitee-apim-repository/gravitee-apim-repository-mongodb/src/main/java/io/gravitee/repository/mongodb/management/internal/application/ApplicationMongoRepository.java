@@ -30,8 +30,9 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom {
-    @Query("{ _id: {$in: ?0} }")
-    Set<ApplicationMongo> findByIds(List<String> ids);
+    default Set<ApplicationMongo> findByIds(List<String> ids) {
+        return this.findByIds(ids, null);
+    }
 
     @Query("{ groups: {$in: ?0} }")
     Set<ApplicationMongo> findByGroups(List<String> ids);

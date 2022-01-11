@@ -18,6 +18,7 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
@@ -44,8 +45,8 @@ public class SubscriptionRepositoryProxy extends AbstractProxy<SubscriptionRepos
     }
 
     @Override
-    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria) throws TechnicalException {
-        return target.findReferenceIdsOrderByNumberOfSubscriptions(criteria);
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) throws TechnicalException {
+        return target.findReferenceIdsOrderByNumberOfSubscriptions(criteria, order);
     }
 
     public Optional<Subscription> findById(String s) throws TechnicalException {

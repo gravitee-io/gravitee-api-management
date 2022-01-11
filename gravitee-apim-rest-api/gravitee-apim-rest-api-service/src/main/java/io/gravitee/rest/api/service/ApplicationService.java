@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.common.Sortable;
 import java.util.List;
 import java.util.Set;
 
@@ -33,7 +34,11 @@ public interface ApplicationService {
 
     Set<ApplicationListItem> findByIds(final String organizationId, final String environmentId, List<String> applicationIds);
 
-    Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username);
+    default Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username) {
+        return findByUser(organizationId, environmentId, username, null);
+    }
+
+    Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username, Sortable sortable);
 
     Set<ApplicationListItem> findByUserAndNameAndStatus(
         String username,

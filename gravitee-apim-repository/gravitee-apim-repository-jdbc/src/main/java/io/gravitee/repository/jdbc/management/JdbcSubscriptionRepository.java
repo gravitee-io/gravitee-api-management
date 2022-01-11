@@ -25,6 +25,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
@@ -91,7 +92,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     @Override
-    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria) {
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) {
         final StringBuilder builder = new StringBuilder("select ");
 
         String group = "api";
@@ -118,8 +119,11 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         if (!isEmpty(criteria.getStatuses())) {
             builder.append(" and status ").append(" in (").append(getOrm().buildInClause(criteria.getStatuses())).append(")");
         }
-
-        builder.append(" group by ").append(group).append(" order by numberOfSubscriptions desc, lastUpdatedAt desc");
+        String orderAsString = order == null ? "asc" : order.name();
+        builder
+            .append(" group by ")
+            .append(group)
+            .append(" order by numberOfSubscriptions " + orderAsString + ", lastUpdatedAt " + orderAsString);
         return jdbcTemplate.query(
             builder.toString(),
             fillPreparedStatement(data, criteria),

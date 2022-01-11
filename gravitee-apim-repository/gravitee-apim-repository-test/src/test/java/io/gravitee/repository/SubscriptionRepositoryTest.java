@@ -22,6 +22,7 @@ import static org.junit.Assert.*;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Subscription;
@@ -260,10 +261,11 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldComputeRankingByApi() throws TechnicalException {
+    public void shouldFindReferenceIdsOrderByNumberOfSubscriptionsDesc() throws TechnicalException {
         Set<String> ranking =
             this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-                    new SubscriptionCriteria.Builder().status(Subscription.Status.PENDING).build()
+                    new SubscriptionCriteria.Builder().status(Subscription.Status.PENDING).build(),
+                    Order.DESC
                 );
 
         assertEquals("Ranking size", 1, ranking.size());
@@ -274,7 +276,8 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     public void shouldComputeRankingByApplications() throws TechnicalException {
         Set<String> ranking =
             this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-                    new SubscriptionCriteria.Builder().applications(Arrays.asList("app1", "app2")).build()
+                    new SubscriptionCriteria.Builder().applications(Arrays.asList("app1", "app2")).build(),
+                    Order.DESC
                 );
 
         assertEquals("Ranking size", 2, ranking.size());

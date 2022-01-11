@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
@@ -36,6 +35,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
@@ -56,6 +56,7 @@ import io.gravitee.rest.api.service.notification.HookScope;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.xml.bind.DatatypeConverter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -78,9 +79,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private MembershipRepository membershipRepository;
 
     @Autowired
     private MembershipService membershipService;
@@ -168,7 +166,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 .stream()
                 .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
                 .filter(app -> app.getEnvironmentId().equals(environmentId))
-                .collect(toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
             if (applications.isEmpty()) {
                 return emptySet();
@@ -182,18 +180,24 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username) {
+    public Set<ApplicationListItem> findByUser(
+        final String organizationId,
+        final String environmentId,
+        String username,
+        Sortable sortable
+    ) {
         try {
             LOGGER.debug("Find applications for user {}", username);
 
             Set<String> userApplicationsIds = findUserApplicationsIds(username, organizationId);
 
-            final Set<Application> applications = applicationRepository
-                .findByIds(new ArrayList<>(userApplicationsIds))
+            Set<Application> byIds = applicationRepository.findByIds(new ArrayList<>(userApplicationsIds), convert(sortable));
+
+            final Set<Application> applications = byIds
                 .stream()
                 .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
                 .filter(app -> app.getEnvironmentId().equals(environmentId))
-                .collect(toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
             if (applications.isEmpty()) {
                 return emptySet();
@@ -901,7 +905,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return applications
             .stream()
             .map(publicApplication -> convert(publicApplication, userIdToUserEntity.get(applicationToUser.get(publicApplication.getId()))))
-            .collect(toSet());
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Set<ApplicationListItem> convertToSimpleList(Set<Application> applications) {
@@ -956,7 +960,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     return item;
                 }
             )
-            .collect(toSet());
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private ApplicationEntity convert(Application application, UserEntity primaryOwner) {

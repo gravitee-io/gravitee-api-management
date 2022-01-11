@@ -21,12 +21,15 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -70,7 +73,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2));
         doReturn(mockApplications)
             .when(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any(), any());
 
         doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
         doReturn(new Application().id("B").name("B")).when(applicationMapper).convert(eq(applicationListItem2), any());
@@ -86,9 +89,10 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
+        Sortable sort = new SortableImpl("name", true);
         Mockito
             .verify(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any(), eq(sort));
 
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
         Mockito.verify(applicationMapper, Mockito.times(2)).computeApplicationLinks(ac.capture(), eq(null));
@@ -128,9 +132,10 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         Set<ApplicationListItem> mockApplications = new HashSet<>(
             Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4)
         );
+        Sortable sort = new SortableImpl("name", true);
         doReturn(mockApplications)
             .when(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any(), eq(sort));
 
         doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
         doReturn(new Application().id("B").name("b")).when(applicationMapper).convert(eq(applicationListItem2), any());
@@ -147,7 +152,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals("C", applicationsResponse.getData().get(2).getId());
         assertEquals("D", applicationsResponse.getData().get(3).getId());
 
-        Mockito.verify(filteringService, times(0)).getApplicationsOrderByNumberOfSubscriptions(anySet());
+        Mockito.verify(filteringService, times(0)).getApplicationsOrderByNumberOfSubscriptions(anySet(), eq(Order.DESC));
     }
 
     @Test
@@ -156,13 +161,13 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         applicationListItemA.setId("A");
         ApplicationListItem applicationListItemB = new ApplicationListItem();
         applicationListItemB.setId("B");
-        Collection<ApplicationListItem> mockFilteredApp = Arrays.asList(applicationListItemA, applicationListItemB);
-        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anySet());
+        Collection<String> mockFilteredApp = Arrays.asList(applicationListItemB.getId(), applicationListItemA.getId());
+        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyList(), eq(Order.DESC));
 
         final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection());
+        Mockito.verify(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.DESC));
 
         ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertEquals(2, applicationsResponse.getData().size());
@@ -174,13 +179,13 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     public void shouldGetApplicationsOrderByNbSubscriptionsAsc() {
         ApplicationListItem applicationListItemB = new ApplicationListItem();
         applicationListItemB.setId("B");
-        Collection<ApplicationListItem> mockFilteredApp = Arrays.asList(applicationListItemB);
-        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anySet());
+        Collection<String> mockFilteredApp = Arrays.asList(applicationListItemB.getId());
+        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyList(), eq(Order.ASC));
 
         final Response response = target().queryParam("order", "nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection());
+        Mockito.verify(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.ASC));
 
         ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertEquals(2, applicationsResponse.getData().size());
@@ -253,9 +258,10 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoApplicationAndNoLink() {
+        Sortable sort = new SortableImpl("name", true);
         doReturn(new HashSet<>())
             .when(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any(), eq(sort));
 
         //Test with default limit
         final Response response = target().request().get();

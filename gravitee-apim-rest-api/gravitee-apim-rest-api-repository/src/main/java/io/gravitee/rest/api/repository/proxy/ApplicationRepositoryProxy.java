@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import java.util.List;
@@ -63,6 +64,11 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     @Override
     public Set<Application> findByIds(List<String> ids) throws TechnicalException {
         return target.findByIds(ids);
+    }
+
+    @Override
+    public Set<Application> findByIds(List<String> ids, Sortable sortable) throws TechnicalException {
+        return target.findByIds(ids, sortable);
     }
 
     @Override
