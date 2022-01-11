@@ -146,35 +146,35 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
+                <artifactId>maven-jar-plugin</artifactId>
                 <executions>
                     <execution>
-						<id>default-jar</id>
-						<phase>none</phase>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<!-- avoid the execution defined in APIM parent pom.xml to be executed -->
-						<id>make-plugin-assembly</id>
-						<phase>none</phase>
-					</execution>
-					<execution>
-						<id>make-distribution</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<attach>false</attach>
-							<finalName>gravitee-apim-gateway-distribution-${project.version}</finalName>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
-							</descriptors>
+                        <id>default-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!-- avoid the execution defined in APIM parent pom.xml to be executed -->
+                        <id>make-plugin-assembly</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>make-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <attach>false</attach>
+                            <finalName>gravitee-apim-gateway-distribution-${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
+                            </descriptors>
                         </configuration>
                     </execution>
                 </executions>
