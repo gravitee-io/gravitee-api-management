@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER, API_PUBLISHER_USER, LOW_PERMISSION_USER } from 'fixtures/fakers/users/users';
+import { ADMIN_USER, LOW_PERMISSION_USER } from 'fixtures/fakers/users/users';
 import { ApiFakers } from 'fixtures/fakers/apis';
 import { PlanFakers } from 'fixtures/fakers/plans';
-import { createApi, deleteApi, deployApi, publishApi, startApi, stopApi } from 'commands/management/api-management-commands';
+import { createApi, deleteApi, publishApi, startApi, stopApi } from 'commands/management/api-management-commands';
 import { createPlan, publishPlan, deletePlan } from 'commands/management/api-plan-management-commands';
 import { Api } from 'model/apis';
-import { NewPlanEntity, SecurityType } from 'model/plan';
+import { NewPlanEntity, PlanSecurityType } from 'model/plan';
 
 context('Create an API flow', () => {
   let api: Api;
@@ -47,7 +47,7 @@ context('Create an API flow', () => {
 
   describe('Create a plan', () => {
     it('should create a keyless plan as admin user', function () {
-      const fakePlan = PlanFakers.plan({ security: SecurityType.KEY_LESS });
+      const fakePlan = PlanFakers.plan({ security: PlanSecurityType.KEY_LESS });
       createPlan(ADMIN_USER, api.id, fakePlan).should(function (response) {
         expect(response.status).to.equal(201);
         expect(response.body).to.have.all.keys(

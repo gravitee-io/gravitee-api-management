@@ -28,28 +28,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum ValidationMode {
-  AUTO = 'AUTO',
-  MANUAL = 'MANUAL',
-}
-
-export enum SecurityType {
-  KEY_LESS = 'KEY_LESS',
-  API_KEY = 'API_KEY',
-  OAUTH2 = 'OAUTH2',
-  JWT = 'JWT',
-}
 
 export enum PlanType {
   API = 'API',
   CATALOG = 'CATALOG',
-}
-
-export enum StatusState {
-  STAGING = 'STAGING',
-  PUBLISHED = 'PUBLISHED',
-  CLOSED = 'CLOSED',
-  DEPRECATED = 'DEPRECATED',
 }
 
 export enum MethodType {
@@ -107,11 +89,11 @@ export interface NewPlanEntity {
   id: string;
   name: string;
   description: string;
-  validation: ValidationMode;
-  security: SecurityType;
+  validation: PlanValidation;
+  security: PlanSecurityType;
   securityDefinition: string;
   type: PlanType;
-  status: StatusState;
+  status: PlanStatus;
   api: string;
   characteristics: string[];
   tags: string[];
@@ -123,4 +105,34 @@ export interface NewPlanEntity {
   comment_message: string;
   selection_rule: string;
   general_conditions: string;
+}
+
+export interface Plan {
+  id?: string;
+  name: string;
+  description: string;
+  securityDefinition: PlanSecurityType;
+  validation?: PlanValidation;
+  created_at?: number;
+  updated_at?: number;
+  status?: PlanStatus;
+}
+
+export enum PlanValidation {
+  AUTO = 'AUTO',
+  MANUAL = 'MANUAL',
+}
+
+export enum PlanSecurityType {
+  KEY_LESS = 'KEY_LESS',
+  API_KEY = 'API_KEY',
+  OAUTH2 = 'OAUTH2',
+  JWT = 'JWT',
+}
+
+export enum PlanStatus {
+  STAGING = 'STAGING',
+  PUBLISHED = 'PUBLISHED',
+  CLOSED = 'CLOSED',
+  DEPRECATED = 'DEPRECATED',
 }

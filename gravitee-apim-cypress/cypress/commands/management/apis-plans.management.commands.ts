@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { ErrorableManagement, RequestInfo } from '../../model/technical';
-import { Plan } from '../../model/apis';
 import Chainable = Cypress.Chainable;
 import Response = Cypress.Response;
 import { HttpConnector } from '../../model/technical.http';
+import { Plan } from '@model/plan';
 
 export class ApisPlansManagementCommands extends HttpConnector {
   constructor(requestInfo: RequestInfo) {

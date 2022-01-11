@@ -15,19 +15,11 @@
  */
 import * as faker from 'faker';
 import { ApiImport, ApiImportMember, ApiImportPage, ApiImportPlan, ApiImportProxyGroupLoadBalancerType } from '@model/api-imports';
-import {
-  ApiFlowMode,
-  ApiMember,
-  ApiPageType,
-  ApiPlanSecurityType,
-  ApiPlanStatus,
-  ApiPlanType,
-  ApiPlanValidationType,
-  ApiVisibility,
-} from '@model/apis';
+import { ApiFlowMode, ApiPageType, ApiVisibility } from '@model/apis';
 import { ApiFakers } from './apis';
 import { ApiUser } from '@model/users';
 import { Role } from '@model/roles';
+import { PlanSecurityType, PlanStatus, PlanType, PlanValidation } from '@model/plan';
 
 export class ApiImportFakers {
   static api(attributes?: Partial<ApiImport>): ApiImport {
@@ -119,10 +111,10 @@ export class ApiImportFakers {
     return {
       name,
       description,
-      validation: ApiPlanValidationType.AUTO,
-      security: ApiPlanSecurityType.KEY_LESS,
-      type: ApiPlanType.API,
-      status: ApiPlanStatus.STAGING,
+      validation: PlanValidation.AUTO,
+      security: PlanSecurityType.KEY_LESS,
+      type: PlanType.API,
+      status: PlanStatus.STAGING,
       order: 1,
       characteristics: [],
       paths: {},

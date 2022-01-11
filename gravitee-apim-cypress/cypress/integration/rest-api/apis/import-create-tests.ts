@@ -23,20 +23,13 @@ import {
 } from '../../../commands/management/api-management-commands';
 import { getPage, getPages } from '../../../commands/management/api-pages-management-commands';
 import { ApiImportFakers } from '../../../fixtures/fakers/api-imports';
-import {
-  ApiMetadataFormat,
-  ApiPageType,
-  ApiPlanSecurityType,
-  ApiPlanStatus,
-  ApiPlanType,
-  ApiPlanValidationType,
-  ApiPrimaryOwnerType,
-} from '@model/apis';
+import { ApiMetadataFormat, ApiPageType, ApiPrimaryOwnerType } from '@model/apis';
 import { getPlan } from '../../../commands/management/api-plans-management-commands';
 import { GroupFakers } from '../../../fixtures/fakers/groups';
 import { createGroup, deleteGroup, getGroup } from '../../../commands/management/environment-management-commands';
 import { createUser, deleteUser, getCurrentUser } from '../../../commands/management/user-management-commands';
 import { createRole, deleteRole } from 'commands/management/organization-configuration-management-commands';
+import { PlanValidation, PlanStatus, PlanType, PlanSecurityType } from '@model/plan';
 
 context('API - Imports', () => {
   describe('Create API from import', () => {
@@ -275,10 +268,10 @@ context('API - Imports', () => {
             expect(response.body.id).to.eq(planId1);
             expect(response.body.name).to.eq('test plan');
             expect(response.body.description).to.eq('this is a test plan');
-            expect(response.body.validation).to.eq(ApiPlanValidationType.AUTO);
-            expect(response.body.security).to.eq(ApiPlanSecurityType.KEY_LESS);
-            expect(response.body.type).to.eq(ApiPlanType.API);
-            expect(response.body.status).to.eq(ApiPlanStatus.STAGING);
+            expect(response.body.validation).to.eq(PlanValidation.AUTO);
+            expect(response.body.security).to.eq(PlanSecurityType.KEY_LESS);
+            expect(response.body.type).to.eq(PlanType.API);
+            expect(response.body.status).to.eq(PlanStatus.STAGING);
             expect(response.body.order).to.eq(0);
           });
       });
@@ -290,10 +283,10 @@ context('API - Imports', () => {
             expect(response.body.id).to.eq(planId2);
             expect(response.body.name).to.eq('test plan');
             expect(response.body.description).to.eq('this is a test plan');
-            expect(response.body.validation).to.eq(ApiPlanValidationType.AUTO);
-            expect(response.body.security).to.eq(ApiPlanSecurityType.KEY_LESS);
-            expect(response.body.type).to.eq(ApiPlanType.API);
-            expect(response.body.status).to.eq(ApiPlanStatus.STAGING);
+            expect(response.body.validation).to.eq(PlanValidation.AUTO);
+            expect(response.body.security).to.eq(PlanSecurityType.KEY_LESS);
+            expect(response.body.type).to.eq(PlanType.API);
+            expect(response.body.status).to.eq(PlanStatus.STAGING);
             expect(response.body.order).to.eq(0);
           });
       });
