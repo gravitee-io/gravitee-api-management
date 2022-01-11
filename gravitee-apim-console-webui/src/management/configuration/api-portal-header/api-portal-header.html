@@ -79,15 +79,15 @@
         </table>
       </md-table-container>
 
-      <h3>API List Page</h3>
+      <h3>API Page list options</h3>
       <md-input-container class="gv-input-container-dense">
         <md-checkbox
           ng-model="$ctrl.settings.portal.apis.promotedApiMode.enabled"
-          aria-label="Show Promoted API"
+          aria-label="Display promotion banner"
           ng-disabled="$ctrl.isReadonlySetting('portal.apis.promotedApiMode.enabled')"
           ng-change="$ctrl.savePromotedApiMode()"
         >
-          Show promoted API banner
+          Display promotion banner
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apis.promotedApiMode.enabled')"
             >{{$ctrl.providedConfigurationMessage}}</md-tooltip
           >
