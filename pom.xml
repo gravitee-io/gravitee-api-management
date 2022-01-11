@@ -116,7 +116,7 @@
         <netty-tcnative-boringssl-static.version>2.0.46.Final</netty-tcnative-boringssl-static.version>
         <nimbus-jose-jwt.version>8.23</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
-        <protobuf-java.version>3.19.1</protobuf-java.version>
+        <protobuf-java.version>3.19.3</protobuf-java.version>
         <powermock.version>2.0.9</powermock.version>
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
         <snakeyaml.version>1.30</snakeyaml.version>
