@@ -25,7 +25,7 @@ ENV GRAVITEEIO_HOME /opt/graviteeio-management-api
 
 WORKDIR ${GRAVITEEIO_HOME}
 
-ADD ./gravitee-apim-rest-api-distribution-${GRAVITEEIO_VERSION} ${GRAVITEEIO_HOME}/
+ADD ./gravitee-apim-rest-api-distribution ${GRAVITEEIO_HOME}/
 
 RUN jlink --verbose \
         --compress 2 \
