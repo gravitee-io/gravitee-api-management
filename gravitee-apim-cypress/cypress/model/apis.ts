@@ -67,30 +67,6 @@ export interface PortalApi {
   categories: string[];
 }
 
-export enum ApiPlanType {
-  API = 'API',
-  CATALOG = 'CATALOG',
-}
-
-export enum ApiPlanSecurityType {
-  KEY_LESS = 'KEY_LESS',
-  API_KEY = 'API_KEY',
-  OAUTH2 = 'OAUTH2',
-  JWT = 'JWT',
-}
-
-export enum ApiPlanValidationType {
-  AUTO = 'AUTO',
-  MANUAL = 'MANUAL',
-}
-
-export enum ApiPlanStatus {
-  STAGING = 'STAGING',
-  PUBLISHED = 'PUBLISHED',
-  CLOSED = 'CLOSED',
-  DEPRECATED = 'DEPRECATED',
-}
-
 export enum ApiErrorCodes {
   API_NOT_FOUND = 'errors.api.notFound',
 }
@@ -182,36 +158,6 @@ export interface ApiRatingResponse {
 
 export interface ApiDeployment {
   deploymentLabel: string;
-}
-
-export interface Plan {
-  id?: string;
-  name: string;
-  description: string;
-  securityDefinition: PlanSecurityType;
-  validation?: PlanValidation;
-  created_at?: number;
-  updated_at?: number;
-  status?: PlanStatus;
-}
-
-export enum PlanValidation {
-  AUTO = 'AUTO',
-  MANUAL = 'MANUAL',
-}
-
-export enum PlanSecurityType {
-  KEY_LES = 'KEY_LESS',
-  API_KEY = 'API_KEY',
-  OAUTH2 = 'OAUTH2',
-  JWT = 'JWT',
-}
-
-export enum PlanStatus {
-  STAGING = 'STAGING',
-  PUBLISHED = 'PUBLISHED',
-  CLOSED = 'CLOSED',
-  DEPRECATED = 'DEPRECATED',
 }
 
 export interface Subscription {}

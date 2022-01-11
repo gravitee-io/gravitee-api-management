@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { BasicAuthentication } from '@model/users';
-import { ApiPlanStatus } from '@model/apis';
+import { PlanStatus } from '@model/plan';
 
-export function getPlans(auth: BasicAuthentication, apiId: string, status: ApiPlanStatus) {
+export function getPlans(auth: BasicAuthentication, apiId: string, status: PlanStatus) {
   return cy.request({
     method: 'GET',
     url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans`,

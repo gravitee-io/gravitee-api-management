@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  ApiFlowMode,
-  ApiVisibility,
-  ApiPageType,
-  ApiPlanValidationType,
-  ApiPlanSecurityType,
-  ApiPlanType,
-  ApiPlanStatus,
-  ApiFlowOperator,
-  ApiMetadataFormat,
-  ApiPrimaryOwnerType,
-} from '@model/apis';
+import { ApiFlowMode, ApiVisibility, ApiPageType, ApiFlowOperator, ApiMetadataFormat, ApiPrimaryOwnerType } from '@model/apis';
+import { PlanSecurityType, PlanStatus, PlanType, PlanValidation } from '@model/plan';
 
 export interface ApiImportMember {
   source: string;
@@ -51,10 +41,10 @@ export interface ApiImportPlan {
   id?: string;
   name: string;
   description: string;
-  validation: ApiPlanValidationType;
-  security: ApiPlanSecurityType;
-  type: ApiPlanType;
-  status: ApiPlanStatus;
+  validation: PlanValidation;
+  security: PlanSecurityType;
+  type: PlanType;
+  status: PlanStatus;
   order: number;
   characteristics: any[];
   created_at?: number;

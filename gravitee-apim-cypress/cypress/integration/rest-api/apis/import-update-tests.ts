@@ -25,21 +25,13 @@ import {
 } from '../../../commands/management/api-management-commands';
 import { getPage, getPages } from '../../../commands/management/api-pages-management-commands';
 import { ApiImportFakers } from '../../../fixtures/fakers/api-imports';
-import {
-  ApiMetadataFormat,
-  ApiPageType,
-  ApiPlanSecurityType,
-  ApiPlanStatus,
-  ApiPlanType,
-  ApiPlanValidationType,
-  ApiPrimaryOwnerType,
-  ApiVisibility,
-} from '@model/apis';
+import { ApiMetadataFormat, ApiPageType, ApiPrimaryOwnerType, ApiVisibility } from '@model/apis';
 import { getPlans } from '../../../commands/management/api-plans-management-commands';
 import { GroupFakers } from '../../../fixtures/fakers/groups';
 import { createGroup, deleteGroup, getGroup } from '../../../commands/management/environment-management-commands';
 import { createUser, deleteUser } from '../../../commands/management/user-management-commands';
 import { createRole, deleteRole } from '../../../commands/management/organization-configuration-management-commands';
+import { PlanStatus, PlanValidation, PlanSecurityType, PlanType } from '@model/plan';
 
 context('API - Imports - Update', () => {
   describe('Update API from import', () => {
@@ -706,21 +698,21 @@ context('API - Imports - Update', () => {
       });
 
       it('should get 2 plans created on API', () => {
-        getPlans(ADMIN_USER, apiId, ApiPlanStatus.STAGING)
+        getPlans(ADMIN_USER, apiId, PlanStatus.STAGING)
           .ok()
           .should((response) => {
             expect(response.body).to.have.length(2);
             expect(response.body[0].description).to.eq('this is a test plan');
-            expect(response.body[0].validation).to.eq(ApiPlanValidationType.AUTO);
-            expect(response.body[0].security).to.eq(ApiPlanSecurityType.KEY_LESS);
-            expect(response.body[0].type).to.eq(ApiPlanType.API);
-            expect(response.body[0].status).to.eq(ApiPlanStatus.STAGING);
+            expect(response.body[0].validation).to.eq(PlanValidation.AUTO);
+            expect(response.body[0].security).to.eq(PlanSecurityType.KEY_LESS);
+            expect(response.body[0].type).to.eq(PlanType.API);
+            expect(response.body[0].status).to.eq(PlanStatus.STAGING);
             expect(response.body[0].order).to.eq(0);
             expect(response.body[1].description).to.eq('this is a test plan');
-            expect(response.body[1].validation).to.eq(ApiPlanValidationType.AUTO);
-            expect(response.body[1].security).to.eq(ApiPlanSecurityType.KEY_LESS);
-            expect(response.body[1].type).to.eq(ApiPlanType.API);
-            expect(response.body[1].status).to.eq(ApiPlanStatus.STAGING);
+            expect(response.body[1].validation).to.eq(PlanValidation.AUTO);
+            expect(response.body[1].security).to.eq(PlanSecurityType.KEY_LESS);
+            expect(response.body[1].type).to.eq(PlanType.API);
+            expect(response.body[1].status).to.eq(PlanStatus.STAGING);
             expect(response.body[1].order).to.eq(0);
           });
       });
@@ -736,13 +728,13 @@ context('API - Imports - Update', () => {
         id: '08a92f8c-e133-42ec-a92f-8ce139999999',
         name: 'test plan 1',
         description: 'this is a test plan',
-        status: ApiPlanStatus.CLOSED,
+        status: PlanStatus.CLOSED,
       });
       const fakePlan2 = ApiImportFakers.plan({
         id: '08a92f8c-e133-42ec-a92f-8ce138888888',
         name: 'test plan 2',
         description: 'this is a test plan',
-        status: ApiPlanStatus.CLOSED,
+        status: PlanStatus.CLOSED,
       });
       const fakeApi = ApiImportFakers.api({ id: apiId });
 
@@ -758,7 +750,7 @@ context('API - Imports - Update', () => {
       });
 
       it('should get 2 plans created on API, with specified status', () => {
-        getPlans(ADMIN_USER, apiId, ApiPlanStatus.CLOSED)
+        getPlans(ADMIN_USER, apiId, PlanStatus.CLOSED)
           .ok()
           .should((response) => {
             expect(response.body).to.have.length(2);
@@ -788,7 +780,7 @@ context('API - Imports - Update', () => {
       });
 
       it('should get the API plan, which has been updated', () => {
-        getPlans(ADMIN_USER, apiId, ApiPlanStatus.STAGING)
+        getPlans(ADMIN_USER, apiId, PlanStatus.STAGING)
           .ok()
           .should((response) => {
             expect(response.body).to.have.length(1);
@@ -821,7 +813,7 @@ context('API - Imports - Update', () => {
       });
 
       it('should get the API plan, containing only the plan that was in the update', () => {
-        getPlans(ADMIN_USER, apiId, ApiPlanStatus.STAGING)
+        getPlans(ADMIN_USER, apiId, PlanStatus.STAGING)
           .ok()
           .should((response) => {
             expect(response.body).to.have.length(1);
