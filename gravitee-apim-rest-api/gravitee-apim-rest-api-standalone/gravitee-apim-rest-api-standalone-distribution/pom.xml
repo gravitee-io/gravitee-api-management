@@ -187,7 +187,7 @@
                         </goals>
                         <configuration>
                             <attach>false</attach>
-                            <finalName>gravitee-apim-rest-api-distribution-${project.version}</finalName>
+                            <finalName>distribution</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
