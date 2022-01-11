@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { API_PUBLISHER_USER } from '../../fakers/users/users';
 import { gio } from '../../commands/gravitee.commands';
+import { API_PUBLISHER_USER } from '../../fixtures/fakers/users/users';
 
 describe('Deploy all apis', () => {
   it('Should deploy all apis', () => {

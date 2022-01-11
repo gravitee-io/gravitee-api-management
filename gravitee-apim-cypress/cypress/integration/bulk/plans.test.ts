@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { API_PUBLISHER_USER } from '../../fakers/users/users';
 import { gio } from '../../commands/gravitee.commands';
-import { ApiFakers } from '../../fakers/apis';
+import { API_PUBLISHER_USER } from '../../fixtures/fakers/users/users';
+import { ApiFakers } from '../../fixtures/fakers/apis';
 
 describe('Bulk plans', () => {
   it('Should create and publish plans', () => {
