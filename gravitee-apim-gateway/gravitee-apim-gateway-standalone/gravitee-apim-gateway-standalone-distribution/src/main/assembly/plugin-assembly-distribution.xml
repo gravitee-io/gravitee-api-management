@@ -17,131 +17,131 @@
 
 -->
 <assembly
-    xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd"
+        xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd"
 >
-	<id>bin</id>
+    <id>bin</id>
 
-	<formats>
-		<format>dir</format>
-	</formats>
+    <formats>
+        <format>dir</format>
+    </formats>
 
-	<includeBaseDirectory>false</includeBaseDirectory>
+    <includeBaseDirectory>false</includeBaseDirectory>
 
-	<fileSets>
-		<fileSet>
-			<directory>src/main/resources/apis</directory>
-			<outputDirectory>bin</outputDirectory>
-			<excludes>
-				<exclude>*</exclude>
-			</excludes>
-			<fileMode>644</fileMode>
-		</fileSet>
+    <fileSets>
+        <fileSet>
+            <directory>src/main/resources/apis</directory>
+            <outputDirectory>bin</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+            <fileMode>644</fileMode>
+        </fileSet>
 
-		<fileSet>
-			<directory>src/main/resources/bin</directory>
-			<outputDirectory>bin</outputDirectory>
-			<includes>
-				<include>**/*</include>
-			</includes>
-			<fileMode>755</fileMode>
-		</fileSet>
+        <fileSet>
+            <directory>src/main/resources/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <fileMode>755</fileMode>
+        </fileSet>
 
-		<fileSet>
-			<directory>src/main/resources/config</directory>
-			<outputDirectory>config</outputDirectory>
-			<includes>
-				<include>**/*</include>
-			</includes>
-			<fileMode>644</fileMode>
-			<filtered>true</filtered>
-		</fileSet>
+        <fileSet>
+            <directory>src/main/resources/config</directory>
+            <outputDirectory>config</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <fileMode>644</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
 
-		<fileSet>
-			<directory>src/main/resources/lib</directory>
-			<outputDirectory>lib</outputDirectory>
-			<includes>
-				<include>*.*</include>
-			</includes>
-			<fileMode>644</fileMode>
-		</fileSet>
+        <fileSet>
+            <directory>src/main/resources/lib</directory>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>*.*</include>
+            </includes>
+            <fileMode>644</fileMode>
+        </fileSet>
 
-		<fileSet>
-			<directory>src/main/resources/logs</directory>
-			<outputDirectory>logs</outputDirectory>
-			<excludes>
-				<exclude>*</exclude>
-			</excludes>
-			<fileMode>644</fileMode>
-		</fileSet>
+        <fileSet>
+            <directory>src/main/resources/logs</directory>
+            <outputDirectory>logs</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+            <fileMode>644</fileMode>
+        </fileSet>
 
-		<fileSet>
-			<directory>src/main/resources/metrics</directory>
-			<outputDirectory>metrics</outputDirectory>
-			<excludes>
-				<exclude>*</exclude>
-			</excludes>
-			<fileMode>644</fileMode>
-		</fileSet>
+        <fileSet>
+            <directory>src/main/resources/metrics</directory>
+            <outputDirectory>metrics</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+            <fileMode>644</fileMode>
+        </fileSet>
 
-		<fileSet>
-			<directory>src/main/resources/plugins</directory>
-			<outputDirectory>plugins</outputDirectory>
-			<includes>
-				<include>**.*</include>
-			</includes>
-			<fileMode>755</fileMode>
-		</fileSet>
-		<!-- Just to create an empty directory -->
-		<fileSet>
-			<directory>src/main/assembly</directory>
-			<outputDirectory>plugins/ext/repository-jdbc</outputDirectory>
-			<excludes>
-				<exclude>*</exclude>
-			</excludes>
-		</fileSet>
-	</fileSets>
+        <fileSet>
+            <directory>src/main/resources/plugins</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>**.*</include>
+            </includes>
+            <fileMode>755</fileMode>
+        </fileSet>
+        <!-- Just to create an empty directory -->
+        <fileSet>
+            <directory>src/main/assembly</directory>
+            <outputDirectory>plugins/ext/repository-jdbc</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+        </fileSet>
+    </fileSets>
 
-	<dependencySets>
-		<dependencySet>
-			<outputDirectory>lib</outputDirectory>
-			<unpack>false</unpack>
-			<includes>
-				<include>io.gravitee.*:*:jar</include>
-				<include>com.graviteesource.*:*:jar</include>
-			</includes>
-			<scope>compile</scope>
-			<useProjectArtifact>false</useProjectArtifact>
-			<fileMode>644</fileMode>
-		</dependencySet>
-		<dependencySet>
-			<outputDirectory>lib/ext</outputDirectory>
-			<unpack>false</unpack>
-			<excludes>
-				<exclude>io.gravitee.*:*:*</exclude>
-				<exclude>com.graviteesource.*:*:*</exclude>
-			</excludes>
-			<scope>compile</scope>
-			<useProjectArtifact>false</useProjectArtifact>
-			<fileMode>644</fileMode>
-		</dependencySet>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <unpack>false</unpack>
+            <includes>
+                <include>io.gravitee.*:*:jar</include>
+                <include>com.graviteesource.*:*:jar</include>
+            </includes>
+            <scope>compile</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+            <fileMode>644</fileMode>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>lib/ext</outputDirectory>
+            <unpack>false</unpack>
+            <excludes>
+                <exclude>io.gravitee.*:*:*</exclude>
+                <exclude>com.graviteesource.*:*:*</exclude>
+            </excludes>
+            <scope>compile</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+            <fileMode>644</fileMode>
+        </dependencySet>
 
-		<dependencySet>
-			<outputDirectory>plugins</outputDirectory>
-			<unpack>false</unpack>
-			<excludes>
-				<exclude>*:*:jar</exclude>
-				<exclude>io.gravitee.fetcher:*:zip</exclude>
-				<exclude>io.gravitee.cockpit:gravitee-cockpit-connectors-ws:zip</exclude>
-				<exclude>io.gravitee.repository:gravitee-repository-elasticsearch:zip</exclude>
-				<!-- for EE version -->
-				<exclude>io.gravitee.notifier:*:zip</exclude>
-				<exclude>com.graviteesource.notifier:*:zip</exclude>
-			</excludes>
-			<useProjectArtifact>false</useProjectArtifact>
-			<fileMode>755</fileMode>
-		</dependencySet>
-	</dependencySets>
+        <dependencySet>
+            <outputDirectory>plugins</outputDirectory>
+            <unpack>false</unpack>
+            <excludes>
+                <exclude>*:*:jar</exclude>
+                <exclude>io.gravitee.fetcher:*:zip</exclude>
+                <exclude>io.gravitee.cockpit:gravitee-cockpit-connectors-ws:zip</exclude>
+                <exclude>io.gravitee.repository:gravitee-repository-elasticsearch:zip</exclude>
+                <!-- for EE version -->
+                <exclude>io.gravitee.notifier:*:zip</exclude>
+                <exclude>com.graviteesource.notifier:*:zip</exclude>
+            </excludes>
+            <useProjectArtifact>false</useProjectArtifact>
+            <fileMode>755</fileMode>
+        </dependencySet>
+    </dependencySets>
 
 </assembly>

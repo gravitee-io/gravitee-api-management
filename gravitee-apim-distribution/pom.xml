@@ -72,9 +72,9 @@
         <gravitee-policy-oauth2.version>1.19.0-SNAPSHOT</gravitee-policy-oauth2.version>
         <gravitee-policy-openid-connect-userinfo.version>1.5.0-SNAPSHOT</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>1.3.0</gravitee-policy-override-http-method.version>
-        <!--	Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit	-->
-        <!--	<gravitee-policy-quota.version>1.13.0</gravitee-policy-quota.version>	-->
-        <!--	<gravitee-policy-spikearrest.version>1.13.0</gravitee-policy-spikearrest.version>	-->
+        <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
+        <!--    <gravitee-policy-quota.version>1.13.0</gravitee-policy-quota.version>    -->
+        <!--    <gravitee-policy-spikearrest.version>1.13.0</gravitee-policy-spikearrest.version>    -->
         <gravitee-policy-ratelimit.version>1.15.0-SNAPSHOT</gravitee-policy-ratelimit.version>
         <gravitee-policy-regex-threat-protection.version>1.3.0-SNAPSHOT</gravitee-policy-regex-threat-protection.version>
         <gravitee-policy-request-content-limit.version>1.8.0-SNAPSHOT</gravitee-policy-request-content-limit.version>
@@ -106,10 +106,10 @@
         <gravitee-repository-elasticsearch.version>3.10.0-SNAPSHOT</gravitee-repository-elasticsearch.version>
         <!-- Gateway Only -->
         <gravitee-reporter-elasticsearch.version>3.10.0-SNAPSHOT</gravitee-reporter-elasticsearch.version>
+        <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
+        <!--    <gravitee-gateway-services-ratelimit.version>1.13.0</gravitee-gateway-services-ratelimit.version>    -->
         <gravitee-reporter-file.version>2.5.0-SNAPSHOT</gravitee-reporter-file.version>
         <gravitee-reporter-tcp.version>1.4.0-SNAPSHOT</gravitee-reporter-tcp.version>
-        <!--	Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit	-->
-        <!--	<gravitee-gateway-services-ratelimit.version>1.13.0</gravitee-gateway-services-ratelimit.version>	-->
         <gravitee-tracer-jaeger.version>1.0.1</gravitee-tracer-jaeger.version>
     </properties>
 
