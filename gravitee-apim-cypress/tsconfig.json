@@ -5,8 +5,9 @@
     "types": ["cypress", "node"],
     "baseUrl": "./cypress",
     "paths": {
-      "@fakers/*": ["fakers/*"],
-      "@model/*": ["model/*"]
+      "@fakers/*": ["fixtures/fakers/*"],
+      "@model/*": ["model/*"],
+      "@commands/*": ["commands/*"]
     }
   },
   "include": ["**/*.ts"]

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RequestInfo, RequestInfoHolder } from '../model/technical';
+import { RequestInfo, RequestInfoHolder } from '@model/technical';
 import { ApiManagementCommands } from './management/apis.management.commands';
 import { PortalSettingsManagementCommands } from './management/portal-settings.management.commands';
 import { EnvironmentConfigurationManagementCommands } from './management/environment-configuration.management.commands';

@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Api, ApiErrorCodes, ApiLifecycleState, ApiMember, PortalApi } from '@model/apis';
+import { Api, ApiLifecycleState, ApiMember } from '@model/apis';
 import { ApiImport } from '@model/api-imports';
-import { User, BasicAuthentication } from '@model/users';
-import { ErrorableManagement } from '@model/technical';
+import { BasicAuthentication } from '@model/users';
 
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({

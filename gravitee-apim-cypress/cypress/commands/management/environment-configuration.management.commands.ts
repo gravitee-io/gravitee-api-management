@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ErrorableManagement, RequestInfo } from '../../model/technical';
+import { ErrorableManagement, RequestInfo } from '@model/technical';
 import Chainable = Cypress.Chainable;
 import Response = Cypress.Response;
-import { HttpConnector } from '../../model/technical.http';
-import { QualityRule } from '../../model/quality-rules';
-import { Group } from '../../model/groups';
-import { ParamMap } from '../common/http.commands';
-import { Member } from '../../model/members';
+import { HttpConnector } from '@model/technical.http';
+import { QualityRule } from '@model/quality-rules';
+import { Group } from '@model/groups';
+import { ParamMap } from '@commands/common/http.commands';
+import { Member } from '@model/members';
 
 export class EnvironmentConfigurationManagementCommands extends HttpConnector {
   constructor(requestInfo: RequestInfo) {

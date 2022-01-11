@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CollectionResponse, ErrorableManagement, RequestInfo } from '../../model/technical';
-import { HttpConnector } from '../../model/technical.http';
-import { User, Task } from '../../model/users';
+import { CollectionResponse, ErrorableManagement, RequestInfo } from '@model/technical';
+import { HttpConnector } from '@model/technical.http';
+import { User, Task } from '@model/users';
 import Chainable = Cypress.Chainable;
 import Response = Cypress.Response;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PortalError, ManagementError } from '../model/technical';
+import { PortalError, ManagementError } from '@model/technical';
 
 export class ErrorAssertions {
   private response: Cypress.Response<PortalError>;

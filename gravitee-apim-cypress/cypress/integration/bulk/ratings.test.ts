@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { gio } from '../../commands/gravitee.commands';
-import { PortalSettings } from '../../model/portal-settings';
-import { ManagementError } from '../../model/technical';
-import { ADMIN_USER, API_PUBLISHER_USER } from '../../fixtures/fakers/users/users';
-import { ApiFakers } from '../../fixtures/fakers/apis';
+import { gio } from '@commands/gravitee.commands';
+import { PortalSettings } from '@model/portal-settings';
+import { ManagementError } from '@model/technical';
+import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
+import { ApiFakers } from '@fakers/apis';
 
 describe('Bulk Rate', () => {
   it('Should enable API rating', () => {

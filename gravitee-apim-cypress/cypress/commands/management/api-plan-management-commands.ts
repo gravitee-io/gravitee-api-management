@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NewPlanEntity } from 'model/plan';
-import { BasicAuthentication } from 'model/users';
+import { NewPlanEntity } from '@model/plan';
+import { BasicAuthentication } from '@model/users';
+
 export function createPlan(auth: BasicAuthentication, apiId: string, body: Partial<NewPlanEntity>, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',

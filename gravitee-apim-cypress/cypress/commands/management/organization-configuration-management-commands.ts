@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BasicAuthentication, ApiUser } from '@model/users';
+import { BasicAuthentication } from '@model/users';
 import { Role } from '@model/roles';
 
 export function createRole(auth: BasicAuthentication, body: Role) {

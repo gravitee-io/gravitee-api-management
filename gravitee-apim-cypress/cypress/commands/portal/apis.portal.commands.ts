@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CollectionResponse, ErrorablePortal, RequestInfo } from '../../model/technical';
-import { PortalApi } from '../../model/apis';
+import { CollectionResponse, ErrorablePortal, RequestInfo } from '@model/technical';
+import { PortalApi } from '@model/apis';
 import Chainable = Cypress.Chainable;
 import Response = Cypress.Response;
-import { HttpConnector } from '../../model/technical.http';
+import { HttpConnector } from '@model/technical.http';
 
 export class ApiPortalCommands extends HttpConnector {
   constructor(requestInfo: RequestInfo) {

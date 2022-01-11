@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Api, ApiLifecycleState, ApiQualityMetrics, ApiState, ApiVisibility, ApiWorkflowState, PortalApi } from '../model/apis';
+import { Api, ApiLifecycleState, ApiQualityMetrics, ApiState, ApiVisibility, ApiWorkflowState, PortalApi } from '@model/apis';
 
 export class ApiAssertions {
   private apiResponse: Cypress.Response<Api>;
