@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Api, ApiLifecycleState, ApiState, ApiVisibility, PortalApi } from '../model/apis';
-import { PortalSettings } from '../model/portal-settings';
-import { PortalApiAssertions } from './api.assertion';
+import { PortalSettings } from '@model/portal-settings';
 
 export class PortalSettingsAssertions {
   private settingsResponse: Cypress.Response<PortalSettings>;

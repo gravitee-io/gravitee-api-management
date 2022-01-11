@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BasicAuthentication } from 'model/users';
+import { BasicAuthentication } from '@model/users';
 
 export const API_PUBLISHER_USER: BasicAuthentication = {
   username: Cypress.env('api_publisher_user_login'),

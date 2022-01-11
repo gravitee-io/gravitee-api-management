@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ErrorableManagement, RequestInfo } from '../../model/technical';
+import { ErrorableManagement, RequestInfo } from '@model/technical';
 import Chainable = Cypress.Chainable;
 import Response = Cypress.Response;
-import { HttpConnector } from '../../model/technical.http';
-import { PortalSettings } from '../../model/portal-settings';
+import { HttpConnector } from '@model/technical.http';
+import { PortalSettings } from '@model/portal-settings';
 
 export class PortalSettingsManagementCommands extends HttpConnector {
   constructor(requestInfo: RequestInfo) {

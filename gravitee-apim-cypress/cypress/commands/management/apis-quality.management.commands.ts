@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ErrorableManagement, RequestInfo } from '../../model/technical';
-import { ApiQualityMetrics, ApiQualityRule } from '../../model/apis';
+import { ErrorableManagement, RequestInfo } from '@model/technical';
+import { ApiQualityMetrics, ApiQualityRule } from '@model/apis';
 import Chainable = Cypress.Chainable;
 import Response = Cypress.Response;
-import { HttpConnector } from '../../model/technical.http';
-import { ParamMap } from '../common/http.commands';
+import { HttpConnector } from '@model/technical.http';
+import { ParamMap } from '@commands/common/http.commands';
 
 export class ApisQualityManagementCommands extends HttpConnector {
   constructor(requestInfo: RequestInfo) {

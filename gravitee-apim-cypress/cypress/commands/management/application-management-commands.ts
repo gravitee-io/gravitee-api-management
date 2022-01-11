@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Application } from 'model/applications';
-import { User, BasicAuthentication } from 'model/users';
+import { Application } from '@model/applications';
+import { BasicAuthentication } from '@model/users';
 
 export function createApplication(auth: BasicAuthentication, body: Application) {
   return cy.request({

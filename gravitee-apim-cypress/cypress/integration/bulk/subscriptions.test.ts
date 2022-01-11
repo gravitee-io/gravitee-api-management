@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { gio } from '../../commands/gravitee.commands';
+import { gio } from '@commands/gravitee.commands';
 import { fail } from 'assert';
-import { BasicAuthentication } from '../../model/users';
+import { BasicAuthentication } from '@model/users';
 import { Plan, PlanSecurityType } from '@model/plan';
-import { ADMIN_USER, API_PUBLISHER_USER } from 'fixtures/fakers/users/users';
+import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 
 describe('Create subscriptions', () => {
   it('Should create subscriptions', () => {

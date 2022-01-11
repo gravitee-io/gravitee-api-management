@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as faker from 'faker';
-import { NewPlanEntity } from 'model/plan';
+import { NewPlanEntity } from '@model/plan';
 
 export class PlanFakers {
   static plan(attributes?: Partial<NewPlanEntity>): NewPlanEntity {

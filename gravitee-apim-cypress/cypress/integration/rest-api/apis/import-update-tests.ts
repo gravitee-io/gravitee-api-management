@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER } from '../../../fixtures/fakers/users/users';
+
+import { PlanStatus, PlanValidation, PlanSecurityType, PlanType } from '@model/plan';
+import { ApiImportFakers } from '@fakers/api-imports';
 import {
   deleteApi,
   exportApi,
@@ -22,16 +24,15 @@ import {
   getApiMetadata,
   importCreateApi,
   importUpdateApi,
-} from '../../../commands/management/api-management-commands';
-import { getPage, getPages } from '../../../commands/management/api-pages-management-commands';
-import { ApiImportFakers } from '../../../fixtures/fakers/api-imports';
+} from '@commands/management/api-management-commands';
+import { ADMIN_USER } from '@fakers/users/users';
 import { ApiMetadataFormat, ApiPageType, ApiPrimaryOwnerType, ApiVisibility } from '@model/apis';
-import { getPlans } from '../../../commands/management/api-plans-management-commands';
-import { GroupFakers } from '../../../fixtures/fakers/groups';
-import { createGroup, deleteGroup, getGroup } from '../../../commands/management/environment-management-commands';
-import { createUser, deleteUser } from '../../../commands/management/user-management-commands';
-import { createRole, deleteRole } from '../../../commands/management/organization-configuration-management-commands';
-import { PlanStatus, PlanValidation, PlanSecurityType, PlanType } from '@model/plan';
+import { getPage, getPages } from '@commands/management/api-pages-management-commands';
+import { createUser, deleteUser } from '@commands/management/user-management-commands';
+import { createRole, deleteRole } from '@commands/management/organization-configuration-management-commands';
+import { getPlans } from '@commands/management/api-plans-management-commands';
+import { GroupFakers } from '@fakers/groups';
+import { createGroup, deleteGroup, getGroup } from '@commands/management/environment-management-commands';
 
 context('API - Imports - Update', () => {
   describe('Update API from import', () => {
@@ -477,7 +478,7 @@ context('API - Imports - Update', () => {
         cy.wrap(apiUpdate)
           .its('pages')
           .should('have.length', 2)
-          .should('satisfy',  pages => pages.some(({ type }) => type === ApiPageType.SYSTEM_FOLDER));
+          .should('satisfy', (pages) => pages.some(({ type }) => type === ApiPageType.SYSTEM_FOLDER));
       });
 
       it('should reject the import if trying to add a new system folder', () => {

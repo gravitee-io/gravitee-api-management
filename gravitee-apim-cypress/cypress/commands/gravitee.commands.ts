@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BasicAuthentication } from '../model/users';
-import { RequestInfo } from '../model/technical';
+import { BasicAuthentication } from '@model/users';
+import { RequestInfo } from '@model/technical';
 import { ManagementCommands } from './management.commands';
 import { PortalCommands } from './portal.commands';
 

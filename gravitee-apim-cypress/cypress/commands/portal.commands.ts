@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RequestInfo, RequestInfoHolder } from '../model/technical';
+import { RequestInfo, RequestInfoHolder } from '@model/technical';
 import { ApiPortalCommands } from './portal/apis.portal.commands';
 
 export class PortalCommands extends RequestInfoHolder {

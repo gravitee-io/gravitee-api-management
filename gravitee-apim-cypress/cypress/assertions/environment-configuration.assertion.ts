@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { QualityRule } from '../model/quality-rules';
-import { Group } from '../model/groups';
+import { QualityRule } from '@model/quality-rules';
+import { Group } from '@model/groups';
 
 export class EnvironmentQualityRuleAssertions {
   private response: Cypress.Response<QualityRule>;

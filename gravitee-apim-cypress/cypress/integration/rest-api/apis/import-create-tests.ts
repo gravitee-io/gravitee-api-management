@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER, LOW_PERMISSION_USER } from '../../../fixtures/fakers/users/users';
-import {
-  deleteApi,
-  getApiById,
-  getApiMembers,
-  getApiMetadata,
-  importCreateApi,
-} from '../../../commands/management/api-management-commands';
-import { getPage, getPages } from '../../../commands/management/api-pages-management-commands';
-import { ApiImportFakers } from '../../../fixtures/fakers/api-imports';
+
+import { PlanSecurityType, PlanStatus, PlanType, PlanValidation } from '@model/plan';
+import { ApiImportFakers } from '@fakers/api-imports';
+import { ADMIN_USER, LOW_PERMISSION_USER } from '@fakers/users/users';
+import { getApiById, importCreateApi, deleteApi, getApiMetadata, getApiMembers } from '@commands/management/api-management-commands';
+import { getPages, getPage } from '@commands/management/api-pages-management-commands';
+import { getPlan } from '@commands/management/api-plans-management-commands';
 import { ApiMetadataFormat, ApiPageType, ApiPrimaryOwnerType } from '@model/apis';
-import { getPlan } from '../../../commands/management/api-plans-management-commands';
-import { GroupFakers } from '../../../fixtures/fakers/groups';
-import { createGroup, deleteGroup, getGroup } from '../../../commands/management/environment-management-commands';
-import { createUser, deleteUser, getCurrentUser } from '../../../commands/management/user-management-commands';
-import { createRole, deleteRole } from 'commands/management/organization-configuration-management-commands';
-import { PlanValidation, PlanStatus, PlanType, PlanSecurityType } from '@model/plan';
+import { GroupFakers } from '@fakers/groups';
+import { createGroup, deleteGroup, getGroup } from '@commands/management/environment-management-commands';
+import { createUser, deleteUser, getCurrentUser } from '@commands/management/user-management-commands';
+import { createRole, deleteRole } from '@commands/management/organization-configuration-management-commands';
+import { ApiImport } from '@model/api-imports';
 
 context('API - Imports', () => {
   describe('Create API from import', () => {
@@ -337,7 +333,8 @@ context('API - Imports', () => {
     describe('Create API with metadata having key that does not yet exist', () => {
       const apiId = 'bc1287cb-b732-4ba1-b609-1e34d375b585';
 
-      const fakeApi = ApiImportFakers.api({
+      let fakeApi: ApiImport;
+      fakeApi = ApiImportFakers.api({
         id: apiId,
         metadata: [
           {
