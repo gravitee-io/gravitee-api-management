@@ -23,6 +23,7 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Subscription;
@@ -107,7 +108,8 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
 
         when(
             subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-                eq(new SubscriptionCriteria.Builder().status(Subscription.Status.PENDING).build())
+                eq(new SubscriptionCriteria.Builder().status(Subscription.Status.PENDING).build()),
+                eq(Order.DESC)
             )
         )
             .thenReturn(Set.of("api1"));
@@ -116,7 +118,8 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
         ranking.add("app2");
         when(
             subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-                eq(new SubscriptionCriteria.Builder().applications(Arrays.asList("app1", "app2")).build())
+                eq(new SubscriptionCriteria.Builder().applications(Arrays.asList("app1", "app2")).build()),
+                eq(Order.DESC)
             )
         )
             .thenReturn(ranking);

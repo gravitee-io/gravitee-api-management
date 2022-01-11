@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
@@ -103,6 +104,11 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     @Override
+    public Set<Application> findByIds(List<String> ids, Sortable sortable) {
+        return mapApplications(internalApplicationRepo.findByIds(ids, sortable));
+    }
+
+    @Override
     public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus... statuses) {
         if (statuses != null && statuses.length > 0) {
             return mapApplications(internalApplicationRepo.findByGroups(groupIds, Arrays.asList(statuses)));
@@ -138,7 +144,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     private Set<Application> mapApplications(Collection<ApplicationMongo> applications) {
-        return applications.stream().map(this::mapApplication).collect(Collectors.toSet());
+        return applications.stream().map(this::mapApplication).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Application mapApplication(ApplicationMongo applicationMongo) {

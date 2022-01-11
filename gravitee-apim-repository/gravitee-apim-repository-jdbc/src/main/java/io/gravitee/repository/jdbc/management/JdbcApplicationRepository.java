@@ -27,6 +27,7 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -221,13 +222,20 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
     @Override
     public Set<Application> findByIds(List<String> ids) throws TechnicalException {
-        LOGGER.debug("JdbcApplicationRepository.findByIds({})", ids);
+        return this.findByIds(ids, null);
+    }
+
+    @Override
+    public Set<Application> findByIds(List<String> ids, Sortable sortable) throws TechnicalException {
+        LOGGER.debug("JdbcApplicationRepository.findByIds({}, {})", ids, sortable);
         try {
             if (isEmpty(ids)) {
                 return emptySet();
             }
+
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query(
+
+            String query =
                 "select " +
                 PROJECTION_WITHOUT_PICTURES +
                 ", am.k as am_k, am.v as am_v from " +
@@ -236,14 +244,17 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
                 APPLICATION_METADATA +
                 " am on a.id = am.application_id where a.id in ( " +
                 getOrm().buildInClause(ids) +
-                " )",
-                (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1),
-                rowMapper
-            );
+                " )";
+
+            if (sortable != null && hasText(sortable.field())) {
+                query += " order by a." + sortable.field() + " " + sortable.order().name();
+            }
+
+            jdbcTemplate.query(query, (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1), rowMapper);
             for (Application application : rowMapper.getRows()) {
                 addGroups(application);
             }
-            return new HashSet<>(rowMapper.getRows());
+            return new LinkedHashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
             LOGGER.error("Failed to find applications by ids:", ex);
             throw new TechnicalException("Failed to find  applications by ids", ex);

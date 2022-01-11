@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
@@ -34,5 +35,5 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Str
 
     List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException;
 
-    Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria) throws TechnicalException;
+    Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) throws TechnicalException;
 }

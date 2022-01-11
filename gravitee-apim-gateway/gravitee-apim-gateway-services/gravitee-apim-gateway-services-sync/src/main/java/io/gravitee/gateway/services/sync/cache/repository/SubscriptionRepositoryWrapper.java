@@ -19,10 +19,14 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -77,7 +81,7 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
     }
 
     @Override
-    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria) throws TechnicalException {
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) throws TechnicalException {
         throw new IllegalStateException();
     }
 

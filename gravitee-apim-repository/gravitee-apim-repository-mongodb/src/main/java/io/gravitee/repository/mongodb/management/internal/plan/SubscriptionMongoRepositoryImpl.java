@@ -19,11 +19,13 @@ import static com.mongodb.client.model.Accumulators.sum;
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Sorts.ascending;
 import static com.mongodb.client.model.Sorts.descending;
 import static java.util.stream.Collectors.toList;
 
 import com.mongodb.client.AggregateIterable;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
@@ -143,7 +145,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
     }
 
     @Override
-    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria) {
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) {
         List<Bson> aggregations = new ArrayList<>();
         String group = "$api";
         if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
@@ -160,7 +162,12 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         }
 
         aggregations.add(group(group, sum(NUMBER_OF_SUBSCRIPTIONS, 1)));
-        aggregations.add(sort(descending(NUMBER_OF_SUBSCRIPTIONS, LAST_UPDATED_AT)));
+
+        if (Order.DESC.equals(order)) {
+            aggregations.add(sort(descending(NUMBER_OF_SUBSCRIPTIONS, LAST_UPDATED_AT)));
+        } else {
+            aggregations.add(sort(ascending(NUMBER_OF_SUBSCRIPTIONS, LAST_UPDATED_AT)));
+        }
 
         AggregateIterable<Document> subscriptions = mongoTemplate
             .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))

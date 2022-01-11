@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.filtering;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import java.util.Collection;
@@ -24,7 +25,7 @@ import java.util.Set;
 public interface FilteringService {
     Collection<String> getApisOrderByNumberOfSubscriptions(final Collection<String> ids, final boolean excluded);
 
-    Collection<String> getApplicationsOrderByNumberOfSubscriptions(final Collection<String> ids);
+    Collection<String> getApplicationsOrderByNumberOfSubscriptions(final Collection<String> ids, Order order);
 
     Collection<String> filterApis(final Set<String> apis, final FilterType filterType, final FilterType excludedFilterType);
 

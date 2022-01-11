@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -218,7 +219,7 @@ public class FilteringServiceTest {
         subscriptionQuery.setApis(apis);
         doReturn(new LinkedHashSet<>(Arrays.asList("1", "4")))
             .when(subscriptionService)
-            .findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery);
+            .findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, Order.DESC);
 
         Collection<String> filteredItems = filteringService.filterApis(apis, FilteringService.FilterType.TRENDINGS, null);
 
@@ -235,7 +236,7 @@ public class FilteringServiceTest {
         subscriptionQuery.setApis(apis);
         doReturn(new LinkedHashSet<>(Arrays.asList("1", "4")))
             .when(subscriptionService)
-            .findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery);
+            .findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, Order.DESC);
 
         Collection<String> filteredItems = filteringService.filterApis(apis, null, FilteringService.FilterType.TRENDINGS);
 

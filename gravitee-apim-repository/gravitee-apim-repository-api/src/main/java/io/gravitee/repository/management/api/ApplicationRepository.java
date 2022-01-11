@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import java.util.List;
@@ -48,9 +49,17 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
     /**
      * find a list of Applications via their ids.
      * @param ids a list of applications id
-     * @return List Applications.
+     * @return List Applications
      */
     Set<Application> findByIds(List<String> ids) throws TechnicalException;
+
+    /**
+     * find a list of Applications via their ids.
+     * @param ids a list of applications id
+     * @param sortable a sortable
+     * @return List Applications sort with sortable parameter.
+     */
+    Set<Application> findByIds(List<String> ids, Sortable sortable) throws TechnicalException;
 
     /**
      * find applications by their groups

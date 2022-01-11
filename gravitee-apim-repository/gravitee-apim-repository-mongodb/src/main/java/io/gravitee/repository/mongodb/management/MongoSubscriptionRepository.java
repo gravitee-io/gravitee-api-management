@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
@@ -65,8 +66,8 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     }
 
     @Override
-    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria) {
-        return internalSubscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(criteria);
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) {
+        return internalSubscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(criteria, order);
     }
 
     @Override

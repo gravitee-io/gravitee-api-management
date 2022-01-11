@@ -20,13 +20,20 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
+import io.gravitee.repository.mongodb.utils.FieldUtils;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 /**
@@ -71,5 +78,16 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
         List<ApplicationMongo> apps = mongoTemplate.find(query, ApplicationMongo.class);
 
         return new Page<>(apps, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+    }
+
+    @Override
+    public Set<ApplicationMongo> findByIds(List<String> ids, Sortable sortable) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("id").in(ids));
+        if (sortable != null && StringUtils.isNotEmpty(sortable.field())) {
+            query.with(Sort.by(Order.DESC.equals(sortable.order()) ? Sort.Direction.DESC : ASC, FieldUtils.toCamelCase(sortable.field())));
+        }
+        List<ApplicationMongo> applications = mongoTemplate.find(query, ApplicationMongo.class);
+        return new LinkedHashSet<>(applications);
     }
 }

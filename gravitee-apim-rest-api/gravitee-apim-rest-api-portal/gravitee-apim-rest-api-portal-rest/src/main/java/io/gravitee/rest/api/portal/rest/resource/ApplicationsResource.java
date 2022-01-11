@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.rest.api.portal.rest.resource.ApplicationsOrderParam.ApplicationsOrder.NB_SUBSCRIPTIONS;
+import static io.gravitee.rest.api.portal.rest.resource.ApplicationsOrderParam.ApplicationsOrder.NB_SUBSCRIPTIONS_DESC;
 import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -142,11 +145,16 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
     public Response getApplications(
         @BeanParam PaginationParam paginationParam,
         @QueryParam("forSubscription") final boolean forSubscription,
-        @QueryParam("order") @DefaultValue("name") final String order
+        @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam
     ) {
         Supplier<Stream<ApplicationListItem>> appSupplier = () -> {
             Stream<ApplicationListItem> appStream = applicationService
-                .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), getAuthenticatedUser())
+                .findByUser(
+                    GraviteeContext.getCurrentOrganization(),
+                    GraviteeContext.getCurrentEnvironment(),
+                    getAuthenticatedUser(),
+                    applicationsOrderParam.toSortable()
+                )
                 .stream();
             if (forSubscription) {
                 appStream =
@@ -156,24 +164,24 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
             }
             return appStream;
         };
-
-        Comparator<ApplicationListItem> orderingComparator;
-        if (order.contains("nbSubscriptions")) {
+        List<ApplicationListItem> applicationsList;
+        if (NB_SUBSCRIPTIONS_DESC.equals(applicationsOrderParam.getValue()) || NB_SUBSCRIPTIONS.equals(applicationsOrderParam.getValue())) {
             List<String> applicationIds = appSupplier.get().map(ApplicationListItem::getId).collect(Collectors.toList());
 
             List<String> idsOrderedBySubscriptions = new ArrayList<>(
-                filteringService.getApplicationsOrderByNumberOfSubscriptions(applicationIds)
+                filteringService.getApplicationsOrderByNumberOfSubscriptions(
+                    applicationIds,
+                    applicationsOrderParam.getValue().isAsc ? Order.ASC : Order.DESC
+                )
             );
-            orderingComparator = Comparator.comparingInt(value -> idsOrderedBySubscriptions.indexOf(value.getId()));
+            Comparator<ApplicationListItem> orderingComparator = Comparator.comparingInt(
+                value -> idsOrderedBySubscriptions.indexOf(value.getId())
+            );
+            applicationsList = appSupplier.get().sorted(orderingComparator).collect(Collectors.toList());
         } else {
-            orderingComparator = Comparator.comparing(ApplicationListItem::getName, String.CASE_INSENSITIVE_ORDER);
+            applicationsList = appSupplier.get().collect(Collectors.toList());
         }
 
-        List<ApplicationListItem> applicationsList = appSupplier.get().sorted(orderingComparator).collect(Collectors.toList());
-        boolean isAsc = !order.startsWith("-");
-        if (!isAsc) {
-            Collections.reverse(applicationsList);
-        }
         return createListResponse(applicationsList, paginationParam);
     }
 

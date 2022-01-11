@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
@@ -75,5 +76,5 @@ public interface SubscriptionService {
 
     String exportAsCsv(Collection<SubscriptionEntity> subscriptions, Map<String, Map<String, Object>> metadata);
 
-    Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionQuery subscriptionQuery);
+    Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionQuery subscriptionQuery, Order order);
 }

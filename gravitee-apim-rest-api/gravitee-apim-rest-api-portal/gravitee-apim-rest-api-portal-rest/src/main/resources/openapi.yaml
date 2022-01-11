@@ -2925,7 +2925,6 @@ components:
       in: query
       required: false
       description: |
-        A  list of "field" elements or *nbSubscriptions*.
         By default, sort is ASC. If *field* starts with '-', the order sort is DESC.\
         Currently, only **name** and **nbSubscriptions** are supported.
       example: "order=-nbSubscriptions"

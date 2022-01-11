@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -177,6 +178,18 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Set<Application> apps = applicationRepository.findByIds(Arrays.asList("searched-app1", "searched-app2"));
         assertNotNull(apps);
         assertEquals(2, apps.size());
+        assertEquals(Arrays.asList("searched-app1", "searched-app2"), apps.stream().map(Application::getId).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void findByIdsTestOrderByNameDesc() throws Exception {
+        Set<Application> apps = applicationRepository.findByIds(
+            Arrays.asList("searched-app1", "searched-app2"),
+            new SortableBuilder().field("name").setAsc(false).build()
+        );
+        assertNotNull(apps);
+        assertEquals(2, apps.size());
+        assertEquals(Arrays.asList("searched-app2", "searched-app1"), apps.stream().map(Application::getId).collect(Collectors.toList()));
     }
 
     @Test

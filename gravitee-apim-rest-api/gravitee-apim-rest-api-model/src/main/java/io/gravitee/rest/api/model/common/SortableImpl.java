@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.model.common;
 
+import java.util.Objects;
+
 public class SortableImpl implements Sortable {
 
     private final String field;
@@ -33,5 +35,18 @@ public class SortableImpl implements Sortable {
     @Override
     public boolean isAscOrder() {
         return ascOrder;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SortableImpl sortable = (SortableImpl) o;
+        return ascOrder == sortable.ascOrder && Objects.equals(field, sortable.field);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(field, ascOrder);
     }
 }
