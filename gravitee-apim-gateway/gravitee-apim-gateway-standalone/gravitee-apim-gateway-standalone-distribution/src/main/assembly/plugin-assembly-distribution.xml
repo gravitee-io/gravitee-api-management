@@ -68,6 +68,15 @@
         </fileSet>
 
         <fileSet>
+            <directory>src/main/resources/license</directory>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>*.*</include>
+            </includes>
+            <fileMode>644</fileMode>
+        </fileSet>
+
+        <fileSet>
             <directory>src/main/resources/logs</directory>
             <outputDirectory>logs</outputDirectory>
             <excludes>
