@@ -114,4 +114,33 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>auto-clean-generated-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>${project.build.directory}/generated-sources/test-annotations</directory>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </fileset>
+                            </filesets>
+                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
