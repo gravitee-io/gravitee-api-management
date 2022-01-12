@@ -250,30 +250,18 @@ jobs:
                   command: |
 
                       export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
-                      export REST_API_PUBLIC_IMAGE_TAG=graviteeio/apim-management-api:${TAG}
 
                       export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${TAG}
-                      export GATEWAY_PUBLIC_IMAGE_TAG=graviteeio/apim-gateway:${TAG}
 
                       docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                       -t ${REST_API_PRIVATE_IMAGE_TAG} \
-                      -t ${REST_API_PUBLIC_IMAGE_TAG} \
                       .
 
                       docker build -f gravitee-apim-gateway/docker/Dockerfile-dev \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                       -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
-                      -t ${GATEWAY_PUBLIC_IMAGE_TAG} \
                       .
-
-                      if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
-                      then
-                        echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
-                        docker push ${REST_API_PUBLIC_IMAGE_TAG}
-                        docker push ${GATEWAY_PUBLIC_IMAGE_TAG}
-                        docker logout
-                      fi
 
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${REST_API_PRIVATE_IMAGE_TAG}
@@ -425,16 +413,8 @@ jobs:
                       cp -fr docker/config .
                       cp -fr docker/run.sh .
 
-                      export PUBLIC_IMAGE_TAG=graviteeio/apim-management-ui:${TAG}
                       export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-ui:${TAG}
-                      docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} -t ${PUBLIC_IMAGE_TAG} .
-
-                      if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
-                      then
-                        echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
-                        docker push ${PUBLIC_IMAGE_TAG}
-                        docker logout
-                      fi
+                      docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} .
 
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${PRIVATE_IMAGE_TAG}
@@ -551,16 +531,8 @@ jobs:
                       cp -fr docker/config .
                       cp -fr docker/run.sh .
 
-                      export PUBLIC_IMAGE_TAG=graviteeio/apim-portal-ui:${TAG}
                       export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-portal-ui:${TAG}
-                      docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} -t ${PUBLIC_IMAGE_TAG} .
-
-                      if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
-                      then
-                        echo $DOCKERHUB_BOT_USER_TOKEN | docker login --username $DOCKERHUB_BOT_USER_NAME --password-stdin
-                        docker push ${PUBLIC_IMAGE_TAG}
-                        docker logout
-                      fi
+                      docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG}  .
 
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${PRIVATE_IMAGE_TAG}
@@ -704,12 +676,6 @@ workflows:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
                             var-name: AZURE_DOCKER_REGISTRY_PASSWORD
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
-                            var-name: DOCKERHUB_BOT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
-                            var-name: DOCKERHUB_BOT_USER_TOKEN
                   filters:
                       branches:
                           only:
@@ -755,12 +721,6 @@ workflows:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
                             var-name: AZURE_DOCKER_REGISTRY_PASSWORD
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
-                            var-name: DOCKERHUB_BOT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
-                            var-name: DOCKERHUB_BOT_USER_TOKEN
                   requires:
                       - console-webui-build
                       - compute-apim-tag
@@ -798,12 +758,6 @@ workflows:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
                             var-name: AZURE_DOCKER_REGISTRY_PASSWORD
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
-                            var-name: DOCKERHUB_BOT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
-                            var-name: DOCKERHUB_BOT_USER_TOKEN
                   requires:
                       - portal-webui-build
                       - compute-apim-tag
