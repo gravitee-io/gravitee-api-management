@@ -51,7 +51,7 @@ class NewApiController {
   }
 
   $onInit() {
-    this.ConsoleSettingsService.get().then(({ data }) => {
+    this.ConsoleSettingsService.getConsole().then(({ data }) => {
       this.consoleSettings = data;
     });
   }

@@ -27,6 +27,10 @@ class ConsoleSettingsService {
     return this.$http.get(`${this.Constants.org.baseURL}/settings/`);
   }
 
+  getConsole() {
+    return this.$http.get(`${this.Constants.org.baseURL}/console`);
+  }
+
   isReadonly(settings: any, property: string): boolean {
     if (settings && settings.metadata && settings.metadata.readonly) {
       return settings.metadata.readonly.some((key) => key === property);
