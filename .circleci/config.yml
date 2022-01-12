@@ -949,7 +949,9 @@ jobs:
                       not: << pipeline.parameters.dry_run >>
                   steps:
                       - prepare-tar-for-s3-glacier
-
+            - add_ssh_keys:
+                  fingerprints:
+                      - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
             - run:
                   name: Git config
                   command: |
