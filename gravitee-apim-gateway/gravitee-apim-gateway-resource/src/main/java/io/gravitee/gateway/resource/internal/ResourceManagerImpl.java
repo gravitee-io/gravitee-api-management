@@ -42,7 +42,6 @@ import org.springframework.util.ClassUtils;
  */
 public class ResourceManagerImpl extends LegacyResourceManagerImpl {
 
-    private final Logger logger = LoggerFactory.getLogger(ResourceManagerImpl.class);
     private final boolean legacyMode;
     private final DefaultClassLoader classLoader;
 

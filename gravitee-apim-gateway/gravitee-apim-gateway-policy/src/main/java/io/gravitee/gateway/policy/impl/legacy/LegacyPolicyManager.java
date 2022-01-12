@@ -49,7 +49,7 @@ import org.springframework.util.ClassUtils;
  */
 public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
 
-    private final Logger logger = LoggerFactory.getLogger(DefaultPolicyManager.class);
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     protected final PolicyFactory policyFactory;
 
