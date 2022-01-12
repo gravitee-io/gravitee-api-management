@@ -132,6 +132,7 @@
         <!-- Plugins version -->
         <gatling-maven-plugin.version>4.0.1</gatling-maven-plugin.version>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
+        <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <prettier-maven-plugin.version>0.16</prettier-maven-plugin.version>
     </properties>
 
@@ -767,6 +768,11 @@
                     <configuration>
                         <simulationClass>io.gravitee.rest.api.gatling.Apis3xSimulation</simulationClass>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${maven-clean-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
