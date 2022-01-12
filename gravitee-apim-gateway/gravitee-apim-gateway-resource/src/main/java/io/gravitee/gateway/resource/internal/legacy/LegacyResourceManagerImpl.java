@@ -41,7 +41,7 @@ import org.springframework.util.ClassUtils;
  */
 public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<ResourceManager> implements ResourceLifecycleManager {
 
-    private final Logger logger = LoggerFactory.getLogger(LegacyResourceManagerImpl.class);
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     protected final Map<String, io.gravitee.resource.api.Resource> resources = new HashMap<>();
     private final Map<String, PluginClassLoader> classloaders = new HashMap<>();
