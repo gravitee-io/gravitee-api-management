@@ -117,7 +117,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     @Override
     public Collection<String> filterApis(String userId, FilterType filterType, FilterType excludedFilterType, ApiQuery apiQuery) {
-        Set<String> apis = this.apiService.findPublishedIdsByUser(userId);
+        Set<String> apis = this.apiService.findPublishedIdsByUser(userId, apiQuery);
         return this.filterApis(apis, filterType, excludedFilterType);
     }
 
