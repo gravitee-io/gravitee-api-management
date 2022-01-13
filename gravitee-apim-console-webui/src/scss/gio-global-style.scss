@@ -9,14 +9,14 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .gio-snack-bar-success {
   white-space: pre-wrap;
-  background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium');
-  // color: mat.get-color-from-palette($gio-success-palette, 'medium-contrast');
+  background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+  // color: mat.get-color-from-palette($gio-success-palette, 'default-contrast');
 }
 
 .gio-snack-bar-error {
   white-space: pre-wrap;
-  background-color: mat.get-color-from-palette(gio.$mat-error-palette, medium);
-  // color: mat.get-color-from-palette($gio-error-palette, medium-contrast);
+  background-color: mat.get-color-from-palette(gio.$mat-error-palette, default);
+  // color: mat.get-color-from-palette($gio-error-palette, default-contrast);
 }
 
 /**

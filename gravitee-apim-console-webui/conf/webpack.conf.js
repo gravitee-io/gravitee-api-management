@@ -114,6 +114,10 @@ module.exports = {
           to: 'icons',
         },
         {
+          from: './node_modules/@gravitee/ui-particles-angular/assets',
+          to: 'assets',
+        },
+        {
           from: './src/assets',
           to: 'assets',
         },

@@ -15,7 +15,7 @@ $primary: map.get(gio.$mat-theme, primary);
 
   &.clicked {
     opacity: 1;
-    color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium');
+    color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
   }
 }
 
