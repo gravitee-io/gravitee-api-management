@@ -956,6 +956,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         List<ApiCriteria> apiCriteriaList = computeApiCriteriaForUser(userId, apiQuery, portal);
 
+        if (apiCriteriaList.isEmpty()) {
+            return Set.of();
+        }
         // Just one call to apiRepository to preserve sort
         ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
         List<String> apiIds = apiRepository.searchIds(convert(sortable), apiCriteria);
