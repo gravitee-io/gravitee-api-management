@@ -19,7 +19,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.util.DataEncryptor;
-import io.gravitee.definition.model.Property;
 import io.gravitee.rest.api.model.PropertyEntity;
 import java.security.GeneralSecurityException;
 import java.util.List;

@@ -246,4 +246,16 @@ public class ApiService_FindByUserTest {
         verify(applicationService, times(0))
             .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), null);
     }
+
+    @Test
+    public void shouldNotFindApisIfUserIsNotMembership() throws TechnicalException {
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids("api-1").build());
+        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
+
+        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null, false);
+
+        assertNotNull(apiEntities);
+        assertEquals(0, apiEntities.size());
+    }
 }
