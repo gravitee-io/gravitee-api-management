@@ -48,7 +48,6 @@
                 *ngIf="role.canBeDeleted"
                 (click)="onDeleteRoleClicked(item.scopeId, role)"
                 mat-icon-button
-                color="primary"
                 aria-label="Button to delete a role"
                 matTooltip="Delete role"
               >
@@ -61,7 +60,6 @@
                 *ngIf="role.hasUserRoleManagement"
                 (click)="onMembersClicked(item.scopeId, role)"
                 mat-icon-button
-                color="primary"
                 aria-label="Button to see members with this role"
                 matTooltip="See members"
               >
