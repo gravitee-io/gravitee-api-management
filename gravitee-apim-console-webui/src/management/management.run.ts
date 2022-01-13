@@ -235,6 +235,7 @@ function runBlock(
       bootstrap: !useAngularMaterial,
       mat: useAngularMaterial,
       'mat-typography': useAngularMaterial,
+      'mat-app-background': useAngularMaterial,
     };
 
     Object.entries(htmlClass).forEach(([key, toAdd]) => {
