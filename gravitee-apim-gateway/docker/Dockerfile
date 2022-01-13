@@ -14,22 +14,21 @@
 # limitations under the License.
 #
 
-FROM eclipse-temurin:11-jre-focal
+FROM graviteeio/java:17
 LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
 ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions
 ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
 
-RUN apt-get update \
-    && apt-get --yes upgrade \
-    && apt-get --yes install wget unzip htop \
-	&& wget ${GRAVITEEIO_DOWNLOAD_URL}/graviteeio-full-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp \
+RUN apk update \
+	&& apk add --update --no-cache zip unzip netcat-openbsd \
+    && wget ${GRAVITEEIO_DOWNLOAD_URL}/graviteeio-full-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp \
     && unzip /tmp/graviteeio-full-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
+    && apk del zip unzip netcat-openbsd \
     && mv /tmp/graviteeio-full-${GRAVITEEIO_VERSION}/graviteeio-apim-gateway* ${GRAVITEEIO_HOME} \
     && rm -rf /tmp/* \
-    && rm -rf /var/lib/apt/lists/* \
-	&& chgrp -R 0 ${GRAVITEEIO_HOME} \
+    && chgrp -R 0 ${GRAVITEEIO_HOME} \
     && chmod -R g=u ${GRAVITEEIO_HOME}
 
 WORKDIR ${GRAVITEEIO_HOME}
