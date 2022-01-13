@@ -31,6 +31,7 @@ import { Api, ResponseTemplate } from 'model/apis';
 import { NewPlanEntity, PlanSecurityType } from 'model/plan';
 import { ApiImportFakers } from 'fixtures/fakers/api-imports';
 import { ApiImport } from '@model/api-imports';
+import { requestGateway } from 'support/common/http.commands';
 
 context('Create a mock policy on a API v1 (path based)', () => {
   let createdApi: Api;
@@ -70,16 +71,13 @@ context('Create a mock policy on a API v1 (path based)', () => {
     });
   });
 
-  it('should successfully call the mocked API endpoint (v1 API)', function () {
-    cy.retryRequest(`${Cypress.env('gatewayServer')}${createdApi.context_path}`, {
-      retries: 15,
-      function: function (response) {
-        if (response.status !== 200) {
-          throw new Error(`still wrong status`);
-        }
+  it('should successfully call the mocked API endpoint', function () {
+    requestGateway(
+      {
+        method: 'GET',
+        url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
       },
-      timeout: 1000,
-    }).should((response: Cypress.Response<any>) => {
+    ).should((response: Cypress.Response<any>) => {
       expect(response.headers['test-value']).to.equal('value123');
       expect(response.body.message).to.equal('This is a mocked response');
     });
@@ -117,19 +115,14 @@ context('Create a mock policy (API v2)', () => {
   });
 
   it('should successfully call the mocked API endpoint', () => {
-    cy.retryRequest(`${Cypress.env('gatewayServer')}${createdApi.context_path}`, {
-      retries: 15,
-      function: function (response) {
-        if (response.status !== 200) {
-          throw new Error(`still wrong status`);
-        }
+    requestGateway(
+      {
+        method: 'GET',
+        url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
       },
-      timeout: 1000,
-    })
-      .ok()
-      .should((response: Cypress.Response<any>) => {
-        expect(response.body.message).to.equal('this is a mock response');
-      });
+    ).should((response: Cypress.Response<any>) => {
+      expect(response.body.message).to.equal('this is a mock response');
+    });
   });
 
   after(() => {
