@@ -53,13 +53,7 @@
       <td mat-cell *matCellDef="let element">
         <div class="centered-cell">
           <ng-container *gioPermission="{ anyOf: ['organization-tenant-u'] }">
-            <button
-              (click)="onEditTenantClicked(element)"
-              mat-icon-button
-              color="primary"
-              aria-label="Button to edit a tenant"
-              matTooltip="Edit tenant"
-            >
+            <button (click)="onEditTenantClicked(element)" mat-icon-button aria-label="Button to edit a tenant" matTooltip="Edit tenant">
               <mat-icon>edit</mat-icon>
             </button>
           </ng-container>
@@ -67,7 +61,6 @@
             <button
               (click)="onDeleteTenantClicked(element)"
               mat-icon-button
-              color="primary"
               aria-label="Button to delete a tenant"
               matTooltip="Delete tenant"
             >
