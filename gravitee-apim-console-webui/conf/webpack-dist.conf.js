@@ -122,6 +122,10 @@ module.exports = {
           from: './node_modules/@gravitee/ui-components/assets/icons',
           to: 'icons',
         },
+        {
+          from: './node_modules/@gravitee/ui-particles-angular/assets',
+          to: 'assets',
+        },
         { from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html' },
         {
           from: './src/assets',

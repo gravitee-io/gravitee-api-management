@@ -56,8 +56,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &:hover,
     &.active {
-      border-left: solid 2px mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
-      color: mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
+      border-left: solid 2px mat.get-color-from-palette($accent, if($is-dark-theme, lighter, default));
+      color: mat.get-color-from-palette($accent, if($is-dark-theme, lighter, default));
     }
 
     &--level-h2 {
@@ -88,7 +88,7 @@ $typography: map.get(gio.$mat-theme, typography);
       @include mat.typography-level($typography, body-2);
       line-height: 16px;
 
-      color: mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
+      color: mat.get-color-from-palette($accent, if($is-dark-theme, lighter, darker));
     }
   }
 }

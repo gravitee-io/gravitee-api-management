@@ -73,8 +73,8 @@ $typography: map.get(gio.$mat-theme, typography);
       align-items: center;
 
       &__accept-btn {
-        background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium');
-        color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium-contrast');
+        background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+        color: mat.get-color-from-palette(gio.$mat-success-palette, 'default-contrast');
       }
     }
   }
@@ -114,7 +114,7 @@ $typography: map.get(gio.$mat-theme, typography);
     &__table {
       .mat-cell.mat-column-name {
         .error {
-          color: mat.get-color-from-palette(gio.$mat-error-palette, medium);
+          color: mat.get-color-from-palette(gio.$mat-error-palette, default);
         }
       }
 
@@ -133,7 +133,7 @@ $typography: map.get(gio.$mat-theme, typography);
       }
 
       .mat-row.error {
-        box-shadow: 8px 0px 0px 0px mat.get-color-from-palette(gio.$mat-error-palette, medium, 0.42) inset;
+        box-shadow: 8px 0px 0px 0px mat.get-color-from-palette(gio.$mat-error-palette, default, 0.42) inset;
       }
     }
   }
