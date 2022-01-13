@@ -237,8 +237,8 @@ jobs:
                   name: "Build project"
                   command: |
                       mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
-                      cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./gravitee-apim-rest-api-distribution
-                      cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gravitee-apim-gateway-distribution
+                      mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
+                      mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
             - notify-on-failure
             - save-maven-cache
@@ -246,8 +246,8 @@ jobs:
                   root: ./
                   paths:
                       - ./gravitee-*/*/target/*
-                      - ./gravitee-apim-rest-api-distribution
-                      - ./gravitee-apim-gateway-distribution
+                      - ./rest-api-docker-context
+                      - ./gateway-docker-context
 
     test:
         machine:
@@ -331,13 +331,13 @@ jobs:
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                       -t ${REST_API_PRIVATE_IMAGE_TAG} \
                       -t ${REST_API_PUBLIC_IMAGE_TAG} \
-                      .
+                      rest-api-docker-context
 
                       docker build -f gravitee-apim-gateway/docker/Dockerfile-dev \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                       -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
                       -t ${GATEWAY_PUBLIC_IMAGE_TAG} \
-                      .
+                      gateway-docker-context
 
                       if [[ $CIRCLE_BRANCH =~ ^([0-9]+\.[0-9]+\.x|master)$ ]]
                       then
