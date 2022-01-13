@@ -26,7 +26,6 @@ declare global {
       forbidden(): Chainable<Subject>;
       notFound(): Chainable<Subject>;
       serviceUnavailable(): Chainable<Subject>;
-      retryRequest(url: string, options: {}): Chainable<Subject>;
     }
   }
 }
@@ -120,43 +119,40 @@ Cypress.Commands.add(
   },
 );
 
-Cypress.Commands.add('retryRequest', (url, options) => {
-  Cypress._.defaults(options, {
-    method: 'GET',
-    body: null,
-    headers: {
-      'content-type': 'application/json',
+interface GatewayRequestOptions {
+  timeBetweenRetries: number;
+  failAfterMs: number;
+  validWhen?: Function;
+}
+
+export function requestGateway(
+  request: Partial<Cypress.RequestOptions>,
+  options?: Partial<GatewayRequestOptions>,
+): Cypress.Chainable<Cypress.Response<any>> {
+  options = <GatewayRequestOptions>{
+    timeBetweenRetries: 200,
+    failAfterMs: 7000,
+    validWhen: (response) => {
+      return response.status === 200;
     },
-    retries: 0,
-    function: false,
-    timeout: 0,
-  });
-  let retriesCounter = 0;
-  function makeRequest() {
-    retriesCounter += 1;
-    cy.request({
-      method: options.method || 'GET',
-      url: url,
-      headers: options.headers,
-      body: options.body,
-      failOnStatusCode: false,
-    }).then((response) => {
-      try {
-        if (options.function) {
-          options.function(response);
-        }
+    ...options,
+  };
+  request = <Cypress.RequestOptions>{
+    failOnStatusCode: false,
+    ...request,
+  };
+
+  if (options.failAfterMs > 0) {
+    return cy.request(request).then((response) => {
+      if (options.validWhen(response)) {
         return cy.wrap(response);
-      } catch (err) {
-        if (!options.function) {
-          throw err;
-        }
-        if (retriesCounter >= options.retries) {
-          throw new Error(`Failed to request ${url} after ${options.retries} retries`);
-        }
-        cy.wait(options.timeout);
-        return makeRequest();
       }
+      cy.wait(options.timeBetweenRetries);
+      options.failAfterMs -= options.timeBetweenRetries;
+
+      return requestGateway(request, options);
     });
   }
-  makeRequest();
-});
+
+  throw new Error(`Failed to request ${request.url} after specified delay`);
+}
