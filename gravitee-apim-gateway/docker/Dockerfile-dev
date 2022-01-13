@@ -14,42 +14,16 @@
 # limitations under the License.
 #
 
+FROM graviteeio/java:17
+LABEL maintainer="contact@graviteesource.com"
+
+ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
 ARG GRAVITEEIO_VERSION=0
 
-FROM openjdk:17-slim AS jre-build
-LABEL maintainer="contact@graviteesource.com"
+ADD ./distribution ${GRAVITEEIO_HOME}/
 
-ARG GRAVITEEIO_VERSION
-
-ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
-
-WORKDIR ${GRAVITEEIO_HOME}
-
-ADD ./gravitee-apim-gateway-distribution ${GRAVITEEIO_HOME}/
-
-RUN jlink --verbose \
-        --compress 2 \
-        --strip-java-debug-attributes \
-        --no-header-files \
-        --no-man-pages \
-        --output jre \
-        --add-modules java.base,jdk.zipfs,java.naming,jdk.naming.dns,java.desktop,java.management,java.sql,jdk.unsupported,jdk.net,java.scripting,jdk.dynalink,jdk.management.agent,jdk.crypto.ec
-
-FROM ubuntu:focal
-LABEL maintainer="contact@graviteesource.com"
-
-ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
-ENV JAVA_HOME=${GRAVITEEIO_HOME}/jre
-
-# copy the custom JRE produced from jlink
-COPY --from=jre-build ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
-
-RUN apt-get update \
-    && apt-get --yes upgrade \
-    && apt-get --yes install netcat-openbsd wget curl htop \
-    && rm -rf /var/lib/apt/lists/* \
-	&& chgrp -R 0 ${GRAVITEEIO_HOME} \
-    && chmod -R g=u ${GRAVITEEIO_HOME}
+RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
+    chmod -R g=u ${GRAVITEEIO_HOME}
 
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
