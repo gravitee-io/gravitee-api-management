@@ -91,9 +91,9 @@ commands:
                       rm -fr gravitee-apim-console-webui/node_modules/
                       rm -fr gravitee-apim-portal-webui/node_modules/
 
-                      tar -cjf ${CIRCLE_PROJECT_REPONAME}.tar.bz2 .
+                      tar -cjf /tmp/${CIRCLE_PROJECT_REPONAME}.tar.bz2 .
             - persist_to_workspace:
-                  root: .
+                  root: /tmp
                   paths:
                       - ./*.tar.bz2
 
@@ -791,7 +791,7 @@ jobs:
                       - aws-cli/setup
                       - run:
                             command: |
-                                aws s3 cp .${CIRCLE_PROJECT_REPONAME}.tar.bz2 s3://${S3_BUCKET_NAME}/${CIRCLE_PROJECT_REPONAME}/project/ \
+                                aws s3 cp ${CIRCLE_PROJECT_REPONAME}.tar.bz2 s3://${S3_BUCKET_NAME}/${CIRCLE_PROJECT_REPONAME}/project/ \
                                 --endpoint-url https://cellar-c2.services.clever-cloud.com \
                                 --acl public-read
                             name: S3 Copy ${CIRCLE_PROJECT_REPONAME}.tar.bz2 -> s3://${S3_BUCKET_NAME}/${CIRCLE_PROJECT_REPONAME}/project/
@@ -864,7 +864,9 @@ jobs:
                       not: << pipeline.parameters.dry_run >>
                   steps:
                       - prepare-tar-for-s3-glacier
-
+            - add_ssh_keys:
+                  fingerprints:
+                      - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
             - run:
                   name: Git config
                   command: |

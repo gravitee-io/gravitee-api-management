@@ -262,7 +262,8 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
         // Remove tag in each entrypoints and update them all
         switchMap(() => {
           if (entrypointsToUpdate.length === 0) {
-            return of();
+            // Need to emit `undefined` to have a consistent return type and be sure next switchMap will be executed
+            return of<void[]>(undefined);
           }
           const entrypointsUpdated = entrypointsToUpdateWithManyTags.map((entrypoint) => ({
             ...entrypoint,

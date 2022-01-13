@@ -87,7 +87,7 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
     this.notificationTemplatesForm = new FormGroup({});
 
     this.notificationTemplates.forEach((notificationTemplate) => {
-      const useCustomTemplateFormControl = new FormControl(notificationTemplate.enabled);
+      const useCustomTemplateFormControl = new FormControl(!!notificationTemplate.enabled);
       const titleFormControl = new FormControl({ value: notificationTemplate.title, disabled: !notificationTemplate.enabled }, [
         Validators.required,
       ]);

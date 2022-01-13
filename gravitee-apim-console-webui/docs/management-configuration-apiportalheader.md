@@ -18,6 +18,6 @@ My hard coded name | `My hard coded value`
 
 You are able to combine API attributes, metadata and strings.
 
-Additionally, the `API List Page` section allows you to decide
+Additionally, the `API Page list options` section allows you to decide
 whether the top ranked API for the given environment should be emphasised
 at the top of the list.
