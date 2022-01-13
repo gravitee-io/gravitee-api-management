@@ -39,7 +39,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSortModule } from '@angular/material/sort';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -76,7 +76,6 @@ import { GioFormTagsInputModule } from '../../shared/components/gio-form-tags-in
 import { GioFormColorInputModule } from '../../shared/components/gio-form-color-input/gio-form-color-input.module';
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioFormFocusInvalidModule } from '../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
-import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.module';
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioPolicyStudioWrapperModule } from '../../shared/components/gio-policy-studio-wrapper/gio-policy-studio-wrapper.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
