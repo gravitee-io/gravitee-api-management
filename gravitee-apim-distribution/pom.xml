@@ -103,9 +103,9 @@
         <gravitee-fetcher-github.version>1.6.0</gravitee-fetcher-github.version>
         <gravitee-fetcher-gitlab.version>1.11.0</gravitee-fetcher-gitlab.version>
         <gravitee-fetcher-http.version>1.12.0</gravitee-fetcher-http.version>
-        <gravitee-repository-elasticsearch.version>3.10.0-SNAPSHOT</gravitee-repository-elasticsearch.version>
+        <gravitee-repository-elasticsearch.version>3.11.0-SNAPSHOT</gravitee-repository-elasticsearch.version>
         <!-- Gateway Only -->
-        <gravitee-reporter-elasticsearch.version>3.10.0-SNAPSHOT</gravitee-reporter-elasticsearch.version>
+        <gravitee-reporter-elasticsearch.version>3.11.0-SNAPSHOT</gravitee-reporter-elasticsearch.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>1.13.0</gravitee-gateway-services-ratelimit.version>    -->
         <gravitee-reporter-file.version>2.5.0-SNAPSHOT</gravitee-reporter-file.version>
