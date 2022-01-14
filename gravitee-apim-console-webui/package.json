@@ -1,6 +1,6 @@
 {
   "name": "gravitee-apim-console-webui",
-  "version": "3.10.9",
+  "version": "3.10.10",
   "description": "Gravitee.io APIM - UI Console",
   "dependencies": {
     "@fontsource/libre-franklin": "^4.4.5",
