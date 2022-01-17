@@ -197,6 +197,12 @@ public class EventsHandler extends AbstractHandler {
             propertiesObj.getMap().forEach(builder::property);
         }
 
+
+        Boolean strictMode = payload.getBoolean("strictMode");
+        if (strictMode != null) {
+            builder.strictMode(strictMode);
+        }
+
         return builder.build();
     }
 }

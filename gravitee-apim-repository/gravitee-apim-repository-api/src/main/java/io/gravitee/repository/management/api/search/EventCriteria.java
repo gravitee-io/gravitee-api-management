@@ -32,12 +32,15 @@ public class EventCriteria {
 
     private String environmentId;
 
+    private boolean strictMode;
+
     EventCriteria(EventCriteria.Builder builder) {
         this.from = builder.from;
         this.to = builder.to;
         this.types = new HashSet<>(builder.types);
         this.properties = new HashMap<>(builder.properties);
         this.environmentId = builder.environmentId;
+        this.strictMode = builder.strictMode;
     }
 
     public Collection<EventType> getTypes() {
@@ -80,6 +83,14 @@ public class EventCriteria {
         this.environmentId = environmentId;
     }
 
+    public boolean isStrictMode() {
+        return strictMode;
+    }
+
+    public void setStrictMode(boolean strictMode) {
+        this.strictMode = strictMode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -91,17 +102,13 @@ public class EventCriteria {
         if (to != that.to) return false;
         if (types != null ? !types.equals(that.types) : that.types != null) return false;
         if (environmentId != null ? !environmentId.equals(that.environmentId) : that.environmentId != null) return false;
+        if (strictMode != that.strictMode) return false;
         return properties != null ? properties.equals(that.properties) : that.properties == null;
     }
 
     @Override
     public int hashCode() {
-        int result = types != null ? types.hashCode() : 0;
-        result = 31 * result + (properties != null ? properties.hashCode() : 0);
-        result = 31 * result + (environmentId != null ? environmentId.hashCode() : 0);
-        result = 31 * result + (int) (from ^ (from >>> 32));
-        result = 31 * result + (int) (to ^ (to >>> 32));
-        return result;
+        return Objects.hash(types, properties, environmentId, from, to, strictMode);
     }
 
     public static class Builder {
@@ -115,6 +122,8 @@ public class EventCriteria {
         private long to;
 
         private String environmentId;
+
+        private boolean strictMode;
 
         public Builder from(long from) {
             this.from = from;
@@ -142,6 +151,12 @@ public class EventCriteria {
 
         public Builder environmentId(String environmentId) {
             this.environmentId = environmentId;
+
+            return this;
+        }
+
+        public Builder strictMode(boolean strictMode) {
+            this.strictMode = strictMode;
 
             return this;
         }

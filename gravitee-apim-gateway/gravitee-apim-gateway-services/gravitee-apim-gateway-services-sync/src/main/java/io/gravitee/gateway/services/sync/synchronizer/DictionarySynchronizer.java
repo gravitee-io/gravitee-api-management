@@ -57,7 +57,7 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         if (lastRefreshAt == -1) {
             count = initialSynchronizeDictionaries(nextLastRefreshAt);
         } else {
-            count = this.searchLatestEvents(bulkItems, lastRefreshAt, nextLastRefreshAt, DICTIONARY_ID, EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
+            count = this.searchLatestEvents(bulkItems, lastRefreshAt, nextLastRefreshAt, false, DICTIONARY_ID, EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
                     .compose(this::processDictionaryEvents)
                     .count()
                     .blockingGet();
@@ -72,7 +72,7 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
 
     private long initialSynchronizeDictionaries(long nextLastRefreshAt) {
         // We look only for the latest PUBLISH or UNPUBLISH events for dictionaries...
-        return this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, DICTIONARY_ID, EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
+        return this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, false, DICTIONARY_ID, EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
                 .filter(e -> e.getType().equals(EventType.PUBLISH_DICTIONARY))  // ... but if the latest event of a dictionary is UNPUBLISH, it must not be loaded
                 .compose(this::processDictionaryDeployEvents)
                 .count()

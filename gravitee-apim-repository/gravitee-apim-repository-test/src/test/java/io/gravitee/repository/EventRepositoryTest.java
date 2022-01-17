@@ -375,6 +375,40 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void searchLatestApiEventsWithStrictModeEnabled() throws Exception {
+        List<Event> events = eventRepository.searchLatest(
+            new EventCriteria.Builder()
+                .property(Event.EventProperties.API_ID.getValue(), "api-1")
+                .types(EventType.START_API, EventType.PUBLISH_API)
+                .strictMode(true)
+                .build(),
+            Event.EventProperties.API_ID,
+            0L,
+            10L
+        );
+
+        assertEquals(0, events.size());
+    }
+
+    @Test
+    public void searchLatestApiEventsWithStrictModeDisabled() throws Exception {
+        List<Event> events = eventRepository.searchLatest(
+            new EventCriteria.Builder()
+                .property(Event.EventProperties.API_ID.getValue(), "api-1")
+                .types(EventType.START_API, EventType.PUBLISH_API)
+                .strictMode(false)
+                .build(),
+            Event.EventProperties.API_ID,
+            0L,
+            10L
+        );
+
+        assertEquals(1L, events.size());
+        final Iterator<Event> iterator = events.iterator();
+        assertEquals("event01", iterator.next().getId());
+    }
+
+    @Test
     public void searchLatestDictionaryEventsByMixProperties() throws Exception {
         List<Event> events = eventRepository.searchLatest(
             new EventCriteria.Builder().from(1455800000000L).to(1455941000000L).types(EventType.PUBLISH_DICTIONARY).build(),
