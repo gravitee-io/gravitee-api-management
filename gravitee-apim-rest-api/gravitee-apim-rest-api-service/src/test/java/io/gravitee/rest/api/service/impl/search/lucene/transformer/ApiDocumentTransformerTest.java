@@ -97,7 +97,7 @@ public class ApiDocumentTransformerTest {
         assertThat(toTransform.getPrimaryOwner().getEmail()).isEqualTo(transformed.get("ownerMail"));
         IndexableField[] paths = transformed.getFields("paths");
         IndexableField[] hosts = transformed.getFields("hosts");
-        assertThat(toTransform.getProxy().getVirtualHosts()).hasSize(paths.length - 1);
+        assertThat(toTransform.getProxy().getVirtualHosts()).hasSize(paths.length);
         assertThat(toTransform.getProxy().getVirtualHosts()).hasSameSizeAs(hosts);
         assertThat(toTransform.getLabels()).hasSameSizeAs(transformed.getFields("labels"));
         assertThat(toTransform.getCategories()).hasSameSizeAs(transformed.getFields("categories"));

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
+import java.util.regex.Pattern;
 import org.apache.lucene.document.*;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.util.BytesRef;
@@ -30,11 +31,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
 
+    private static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
+
     public static final String FIELD_ID = "id";
     public static final String FIELD_TYPE = "type";
     public static final String FIELD_TYPE_VALUE = "api";
     public static final String FIELD_NAME = "name";
     public static final String FIELD_NAME_LOWERCASE = "name_lowercase";
+    public static final String FIELD_NAME_SORTED = "name_sorted";
     public static final String FIELD_NAME_SPLIT = "name_split";
     public static final String FIELD_DESCRIPTION = "description";
     public static final String FIELD_DESCRIPTION_LOWERCASE = "description_lowercase";
@@ -51,6 +55,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
     public static final String FIELD_UPDATED_AT = "updatedAt";
     public static final String FIELD_PATHS = "paths";
     public static final String FIELD_HOSTS = "hosts";
+    public static final String FIELD_PATHS_SORTED = "paths_sorted";
     public static final String FIELD_PATHS_SPLIT = "paths_split";
     public static final String FIELD_HOSTS_SPLIT = "hosts_split";
     public static final String FIELD_TAGS = "tags";
@@ -72,7 +77,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
 
         if (api.getName() != null) {
             doc.add(new StringField(FIELD_NAME, api.getName(), Field.Store.NO));
-            doc.add(new SortedDocValuesField(FIELD_NAME, new BytesRef(QueryParser.escape(api.getName()))));
+            doc.add(new SortedDocValuesField(FIELD_NAME_SORTED, toSortedValue(api.getName())));
             doc.add(new StringField(FIELD_NAME_LOWERCASE, api.getName().toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_NAME_SPLIT, api.getName(), Field.Store.NO));
         }
@@ -103,7 +108,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
                             doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
                         }
                         if (pathIndex[0]++ == 0) {
-                            doc.add(new SortedDocValuesField(FIELD_PATHS, new BytesRef(QueryParser.escape(virtualHost.getPath()))));
+                            doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, new BytesRef(QueryParser.escape(virtualHost.getPath()))));
                         }
                     }
                 );
@@ -155,6 +160,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
         }
 
         return doc;
+    }
+
+    private BytesRef toSortedValue(String value) {
+        return new BytesRef(SPECIAL_CHARS.matcher(value).replaceAll("").toLowerCase());
     }
 
     @Override

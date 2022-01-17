@@ -72,6 +72,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     private static final String[] API_FIELD_SEARCH = new String[] {
         ApiDocumentTransformer.FIELD_ID,
         FIELD_NAME,
+        FIELD_NAME_SORTED,
         FIELD_NAME_LOWERCASE,
         FIELD_NAME_SPLIT,
         FIELD_DESCRIPTION,
