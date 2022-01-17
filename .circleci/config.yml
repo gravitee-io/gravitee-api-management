@@ -1,0 +1,32 @@
+version: 2.1
+
+# this allows you to use CircleCI's dynamic configuration feature
+setup: true
+
+# the continuation orb is required in order to use dynamic configuration
+orbs:
+    continuation: circleci/continuation@0.1.2
+    gh: circleci/github-cli@1.0.5
+
+# our defined job, and its steps
+jobs:
+    setup:
+        docker:
+            - image: cimg/node:lts
+        resource_class: small
+        steps:
+            - checkout
+            - run:
+                  name: Install ZX config
+                  command: |
+                      # Call ZX script to generate a JSON file containing the pipeline parameters: /tmp/parameters.json 
+                      npx zx@4 ./.circleci/scripts/build-execution-plan.mjs --quiet
+            - continuation/continue:
+                  configuration_path: .circleci/continue_config.yml
+                  parameters: /tmp/parameters.json
+
+# our single workflow, that triggers the setup job defined above
+workflows:
+    setup:
+        jobs:
+            - setup

@@ -126,6 +126,22 @@ parameters:
         type: string
         default: ""
         description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
+    mvn_projects_to_build:
+        type: string
+        default: "!gravitee-apim-console-webui, !gravitee-apim-portal-webui"
+        description: "Which maven module to build. '-pl' syntax."
+    build_maven:
+        type: boolean
+        default: true
+        description: "Should build maven projects ?"
+    build_portal:
+        type: boolean
+        default: true
+        description: "Should build portal ?"
+    build_console:
+        type: boolean
+        default: true
+        description: "Should build console ?"
 
 jobs:
     load-snapshot-configuration:
@@ -219,7 +235,7 @@ jobs:
             - run:
                   name: "validate project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml validate --no-transfer-progress -T 2C
+                      mvn -pl '<< pipeline.parameters.mvn_projects_to_build >>' -amd -s .gravitee-snapshot.settings.xml validate --no-transfer-progress -T 2C
 
             - notify-on-failure
             - save-maven-cache
@@ -236,7 +252,7 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mvn -pl '<< pipeline.parameters.mvn_projects_to_build >>' -amd -s .gravitee-snapshot.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
@@ -262,7 +278,7 @@ jobs:
                   name: Run tests
                   command: |
                       # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml package --no-transfer-progress -Dskip.validation=true -T 2C
+                      mvn -pl '<< pipeline.parameters.mvn_projects_to_build >>' -amd -s .gravitee-snapshot.settings.xml package --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -287,7 +303,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
+                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '<< pipeline.parameters.mvn_projects_to_build >>' -amd -s .gravitee-snapshot.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
             - save-maven-cache
             - notify-on-failure
 
@@ -303,7 +319,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Nexus Snapshots"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml
+                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '<< pipeline.parameters.mvn_projects_to_build >>' -amd -s .gravitee-snapshot.settings.xml
             - save-maven-cache
             - notify-on-failure
 
