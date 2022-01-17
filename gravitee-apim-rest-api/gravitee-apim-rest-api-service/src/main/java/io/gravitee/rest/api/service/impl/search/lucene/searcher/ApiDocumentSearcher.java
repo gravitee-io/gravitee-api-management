@@ -24,7 +24,6 @@ import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
-import io.gravitee.rest.api.service.impl.search.lucene.transformer.PageDocumentTransformer;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
@@ -44,7 +43,6 @@ import org.springframework.stereotype.Component;
 public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     public static final String FIELD_API_TYPE_VALUE = "api";
-    public static final String FIELD_PAGE_TYPE_VALUE = "page";
 
     private static final Map<String, Float> API_FIELD_BOOST = new HashMap<>() {
         {
@@ -57,15 +55,6 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             put(FIELD_DESCRIPTION, 5.0f);
             put(FIELD_METADATA, 4.0f);
             put(FIELD_TAGS, 1.0f);
-        }
-    };
-
-    private static final Map<String, Float> PAGE_FIELD_BOOST = new HashMap<>() {
-        {
-            put(PageDocumentTransformer.FIELD_NAME, 1.0f);
-            put(PageDocumentTransformer.FIELD_NAME_LOWERCASE, 1.0f);
-            put(PageDocumentTransformer.FIELD_NAME_SPLIT, 1.0f);
-            put(PageDocumentTransformer.FIELD_CONTENT, 1.0f);
         }
     };
 
@@ -92,14 +81,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_METADATA,
         FIELD_METADATA_SPLIT,
     };
-    private static final String[] PAGE_FIELD_SEARCH = new String[] {
-        PageDocumentTransformer.FIELD_NAME,
-        PageDocumentTransformer.FIELD_NAME_LOWERCASE,
-        PageDocumentTransformer.FIELD_NAME_SPLIT,
-        PageDocumentTransformer.FIELD_CONTENT,
-        PageDocumentTransformer.FIELD_REFERENCE_ID,
-        PageDocumentTransformer.FIELD_REFERENCE_TYPE,
-    };
+
     private static final String[] AUTHORIZED_EXPLICIT_FILTER = new String[] {
         FIELD_NAME,
         FIELD_OWNER,
