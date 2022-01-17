@@ -1052,11 +1052,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Set<CategoryEntity> listCategories(Collection<String> apis, String environment) {
         try {
-            return apiRepository
-                .listCategories(new ApiCriteria.Builder().ids(apis.toArray(new String[apis.size()])).build())
-                .stream()
-                .map(categoryId -> categoryService.findById(categoryId, environment))
-                .collect(Collectors.toSet());
+            ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[apis.size()])).build();
+            Set<String> categoryIds = apiRepository.listCategories(criteria);
+            return categoryService.findByIdIn(environment, categoryIds);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to list categories for APIs {}", apis, ex);
             throw new TechnicalManagementException("An error occurs while trying to list categories for APIs {}" + apis, ex);

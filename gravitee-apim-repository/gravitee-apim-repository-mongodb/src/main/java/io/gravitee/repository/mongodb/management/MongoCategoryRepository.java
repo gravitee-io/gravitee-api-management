@@ -56,6 +56,17 @@ public class MongoCategoryRepository implements CategoryRepository {
     }
 
     @Override
+    public Set<Category> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids) throws TechnicalException {
+        LOGGER.debug("Find by environment ID [{}] and ID in [{}]", environmentId, ids);
+        try {
+            Set<CategoryMongo> categories = internalCategoryRepo.findByEnvironmentIdAndIdIn(environmentId, ids);
+            return categories.stream().map(categoryMongo -> mapper.map(categoryMongo, Category.class)).collect(Collectors.toSet());
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred when getting categories by ids", e);
+        }
+    }
+
+    @Override
     public Optional<Category> findByKey(String key, String environment) throws TechnicalException {
         LOGGER.debug("Find category by key [{}, {}]", key, environment);
 
@@ -103,8 +114,8 @@ public class MongoCategoryRepository implements CategoryRepository {
             CategoryMongo categoryMongoUpdated = internalCategoryRepo.save(mapper.map(category, CategoryMongo.class));
             return mapper.map(categoryMongoUpdated, Category.class);
         } catch (Exception e) {
-            LOGGER.error("An error occured when updating category", e);
-            throw new TechnicalException("An error occured when updating category");
+            LOGGER.error("An error occurred when updating category", e);
+            throw new TechnicalException("An error occurred when updating category");
         }
     }
 
@@ -113,8 +124,8 @@ public class MongoCategoryRepository implements CategoryRepository {
         try {
             internalCategoryRepo.deleteById(categoryId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting category [{}]", categoryId, e);
-            throw new TechnicalException("An error occured when deleting category");
+            LOGGER.error("An error occurred when deleting category [{}]", categoryId, e);
+            throw new TechnicalException("An error occurred when deleting category");
         }
     }
 

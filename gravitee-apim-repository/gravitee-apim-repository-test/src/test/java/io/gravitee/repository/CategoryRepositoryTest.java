@@ -69,6 +69,13 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByEnvironmentIdAndIdIn() throws Exception {
+        Set<Category> categories = categoryRepository.findByEnvironmentIdAndIdIn("DEFAULT", Set.of("123", "products", "i-do-not-exist"));
+        assertNotNull(categories);
+        assertEquals(2, categories.size());
+    }
+
+    @Test
     public void shouldCreate() throws Exception {
         final Category category = new Category();
         category.setId("fd19297e-01a3-4828-9929-7e01a3782809");

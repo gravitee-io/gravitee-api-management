@@ -35,6 +35,11 @@ public class HttpCategoryRepository extends AbstractRepository implements Catego
     }
 
     @Override
+    public Set<Category> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids) {
+        throw new IllegalStateException();
+    }
+
+    @Override
     public Category create(Category item) throws TechnicalException {
         throw new IllegalStateException();
     }

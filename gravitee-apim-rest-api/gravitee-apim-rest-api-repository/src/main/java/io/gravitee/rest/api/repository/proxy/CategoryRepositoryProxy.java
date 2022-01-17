@@ -35,6 +35,11 @@ public class CategoryRepositoryProxy extends AbstractProxy<CategoryRepository> i
     }
 
     @Override
+    public Set<Category> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids) throws TechnicalException {
+        return target.findByEnvironmentIdAndIdIn(environmentId, ids);
+    }
+
+    @Override
     public Optional<Category> findByKey(String s, String environment) throws TechnicalException {
         return target.findByKey(s, environment);
     }

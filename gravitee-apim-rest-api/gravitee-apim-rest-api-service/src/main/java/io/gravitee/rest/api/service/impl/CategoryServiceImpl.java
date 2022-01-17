@@ -78,6 +78,20 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
+    public Set<CategoryEntity> findByIdIn(String environmentId, Set<String> ids) {
+        try {
+            return categoryRepository
+                .findByEnvironmentIdAndIdIn(environmentId, ids)
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            LOGGER.error("An error occurs while trying to find categories by ids", e);
+            throw new TechnicalManagementException("An error occurs while trying to find categories by ids", e);
+        }
+    }
+
+    @Override
     public List<CategoryEntity> findByPage(String page) {
         try {
             LOGGER.debug("Find all categories by page");

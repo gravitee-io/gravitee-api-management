@@ -29,6 +29,8 @@ import java.util.Set;
 public interface CategoryRepository extends FindAllRepository<Category> {
     Optional<Category> findById(String id) throws TechnicalException;
 
+    Set<Category> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids) throws TechnicalException;
+
     Category create(Category item) throws TechnicalException;
 
     Category update(Category item) throws TechnicalException;

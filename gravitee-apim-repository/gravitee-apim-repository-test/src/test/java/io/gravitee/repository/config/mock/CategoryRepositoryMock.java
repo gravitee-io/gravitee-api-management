@@ -54,7 +54,7 @@ public class CategoryRepositoryMock extends AbstractRepositoryMock<CategoryRepos
         when(newCategory.getPage()).thenReturn("documentationPageId");
 
         final Category categoryProducts = new Category();
-        categoryProducts.setId("category");
+        categoryProducts.setId("products");
         categoryProducts.setEnvironmentId("DEFAULT");
         categoryProducts.setName("Products");
         categoryProducts.setPage("documentationPageId");
@@ -106,7 +106,8 @@ public class CategoryRepositoryMock extends AbstractRepositoryMock<CategoryRepos
         when(categoryRepository.findByKey("my-category", "DEFAULT")).thenReturn(of(myCategory));
         when(categoryRepository.findByPage("documentationPageId"))
             .thenReturn(Sets.newSet(newCategory, categoryProducts, categoryProductsUpdated));
-
+        when(categoryRepository.findByEnvironmentIdAndIdIn("DEFAULT", Set.of("123", "products", "i-do-not-exist")))
+            .thenReturn(Set.of(categoryProducts, myCategory));
         when(categoryRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }
