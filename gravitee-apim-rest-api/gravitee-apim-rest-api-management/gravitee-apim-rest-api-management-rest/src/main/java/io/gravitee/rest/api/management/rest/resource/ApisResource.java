@@ -28,7 +28,6 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.resource.param.ApisParam;
-import io.gravitee.rest.api.management.rest.resource.param.OrderParam;
 import io.gravitee.rest.api.management.rest.resource.param.VerifyApiParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -58,7 +57,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -340,17 +338,11 @@ public class ApisResource extends AbstractResource {
     )
     public PagedResult<ApiListItem> searchApis(
         @ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query,
-        @ApiParam(name = "order") @QueryParam("order") String order,
+        @ApiParam(name = "order") @QueryParam("order") @DefaultValue("name") final ApisOrderParam apisOrderParam,
         @Valid @BeanParam Pageable pageable
     ) {
         final ApiQuery apiQuery = new ApiQuery();
         Map<String, Object> filters = new HashMap<>();
-
-        Sortable sortable = null;
-        if (!StringUtils.isEmpty(order)) {
-            final OrderParam orderParam = new OrderParam(order);
-            sortable = new SortableImpl(orderParam.getValue().getField(), orderParam.getValue().isOrder());
-        }
 
         io.gravitee.rest.api.model.common.Pageable commonPageable = null;
 
@@ -364,7 +356,7 @@ public class ApisResource extends AbstractResource {
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled();
 
-        final Page<ApiEntity> apis = apiService.search(query, filters, sortable, commonPageable);
+        final Page<ApiEntity> apis = apiService.search(query, filters, apisOrderParam.toSortable(), commonPageable);
 
         return new PagedResult<>(
             apis.getContent().stream().map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled)).collect(toList()),
