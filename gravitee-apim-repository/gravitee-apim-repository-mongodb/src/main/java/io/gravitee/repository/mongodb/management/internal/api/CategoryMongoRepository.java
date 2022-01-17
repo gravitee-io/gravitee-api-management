@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import io.gravitee.repository.management.model.Category;
 import io.gravitee.repository.mongodb.management.internal.model.CategoryMongo;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -30,6 +32,9 @@ import org.springframework.stereotype.Repository;
 public interface CategoryMongoRepository extends MongoRepository<CategoryMongo, String> {
     @Query("{ 'environmentId': ?0 }")
     List<CategoryMongo> findByEnvironmentId(String environmentId);
+
+    @Query("{ 'environmentId': ?0, '_id' : {'$in' : ?1 } }")
+    Set<CategoryMongo> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids);
 
     @Query("{ 'environmentId': ?1, 'key': ?0 }")
     Optional<CategoryMongo> findByKeyAndEnvironment(String key, String environment);

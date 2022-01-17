@@ -31,6 +31,7 @@ import java.util.Set;
  */
 public interface CategoryService {
     List<CategoryEntity> findAll(final String environmentId);
+    Set<CategoryEntity> findByIdIn(final String environmentId, final Set<String> ids);
     CategoryEntity findById(String id, final String environment);
     CategoryEntity findNotHiddenById(String id, final String environmentId);
     CategoryEntity create(final String environmentId, NewCategoryEntity category);

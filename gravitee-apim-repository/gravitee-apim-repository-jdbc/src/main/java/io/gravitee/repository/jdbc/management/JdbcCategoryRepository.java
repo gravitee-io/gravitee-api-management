@@ -16,11 +16,14 @@
 package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
+import io.gravitee.repository.management.model.Group;
+import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.*;
 import org.slf4j.Logger;
@@ -86,6 +89,33 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
         } catch (final Exception ex) {
             LOGGER.error("Failed to find categories items by id : {} ", id, ex);
             throw new TechnicalException("Failed to find categories items by id : " + id, ex);
+        }
+    }
+
+    @Override
+    public Set<Category> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids) throws TechnicalException {
+        LOGGER.debug("JdbcCategoryRepository.findByEnvironmentIdAndIdIn({}, {})", environmentId, ids);
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptySet();
+        }
+        final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
+        query.append(WHERE_CLAUSE);
+        query.append("environment_id = ? ");
+        getOrm().buildInCondition(false, query, "id", ids);
+
+        try {
+            List<Category> rows = jdbcTemplate.query(
+                query.toString(),
+                (PreparedStatement ps) -> {
+                    ps.setString(1, environmentId);
+                    getOrm().setArguments(ps, ids, 2);
+                },
+                getOrm().getRowMapper()
+            );
+            return new HashSet<>(rows);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find group by ids", ex);
+            throw new TechnicalException("Failed to find group by ids", ex);
         }
     }
 
