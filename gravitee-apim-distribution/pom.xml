@@ -60,7 +60,7 @@
         <gravitee-policy-http-signature.version>1.5.0-SNAPSHOT</gravitee-policy-http-signature.version>
         <gravitee-policy-ipfiltering.version>1.9.0-SNAPSHOT</gravitee-policy-ipfiltering.version>
         <gravitee-policy-json-threat-protection.version>1.3.0-SNAPSHOT</gravitee-policy-json-threat-protection.version>
-        <gravitee-policy-json-to-json.version>1.6.0</gravitee-policy-json-to-json.version>
+        <gravitee-policy-json-to-json.version>1.7.0-SNAPSHOT</gravitee-policy-json-to-json.version>
         <gravitee-policy-json-validation.version>1.6.0</gravitee-policy-json-validation.version>
         <gravitee-policy-json-xml.version>1.1.0-SNAPSHOT</gravitee-policy-json-xml.version>
         <gravitee-policy-jws.version>1.3.0</gravitee-policy-jws.version>
