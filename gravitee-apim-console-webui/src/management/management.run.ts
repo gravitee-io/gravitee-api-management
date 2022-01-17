@@ -16,6 +16,7 @@
 // eslint-disable-next-line
 /* global setInterval:false, clearInterval:false, screen:false */
 import angular = require('angular');
+import { StateDeclaration, TransitionService } from '@uirouter/angularjs';
 
 import EnvironmentService from '../services/environment.service';
 import PortalConfigService from '../services/portalConfig.service';
@@ -27,7 +28,7 @@ function runBlock(
   $window,
   $http,
   $mdSidenav,
-  $transitions,
+  $transitions: TransitionService,
   $state,
   $timeout,
   UserService: UserService,
@@ -42,21 +43,6 @@ function runBlock(
   'ngInject';
 
   $transitions.onStart(
-    {
-      to: (state) => state.name === 'management.apis.create',
-    },
-    async (trans) => {
-      const { definitionVersion } = trans.params();
-      if (definitionVersion === '2.0.0') {
-        return;
-      }
-
-      const settings = await ConsoleSettingsService.getConsole();
-      const hasPathBasedApiCreation = settings?.data?.management?.pathBasedApiCreation?.enabled;
-      if (!hasPathBasedApiCreation) {
-        return trans.router.stateService.target('management.apis.new');
-      }
-    },
     {
       to: (state) =>
         state.name !== 'login' &&
@@ -84,6 +70,24 @@ function runBlock(
     },
   );
 
+  $transitions.onStart(
+    {
+      to: (state) => state.name === 'management.apis.create',
+    },
+    async (trans) => {
+      const { definitionVersion } = trans.params();
+      if (definitionVersion === '2.0.0') {
+        return;
+      }
+
+      const settings = await ConsoleSettingsService.getConsole();
+      const hasPathBasedApiCreation = settings?.data?.management?.pathBasedApiCreation?.enabled;
+      if (!hasPathBasedApiCreation) {
+        return trans.router.stateService.target('management.apis.new');
+      }
+    },
+  );
+
   $transitions.onBefore(
     {
       to: (state, transition) => {
@@ -93,7 +97,7 @@ function runBlock(
         );
       },
     },
-    (trans) => {
+    async (trans) => {
       const params = Object.assign({}, trans.params());
       const stateService = trans.router.stateService;
       const toState = trans.to();
@@ -121,7 +125,7 @@ function runBlock(
     (trans) => {
       const params = Object.assign({}, trans.params());
       const stateService = trans.router.stateService;
-      const toState = trans.to();
+      const toState = trans.to() as StateDeclaration & { apiDefinition: any };
 
       if (UserService.currentUser && UserService.currentUser.id && !Constants.org.currentEnv) {
         return EnvironmentService.list()
