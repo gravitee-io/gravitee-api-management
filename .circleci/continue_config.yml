@@ -698,6 +698,16 @@ jobs:
         docker:
             - image: mcr.microsoft.com/azure-cli:latest
         resource_class: small
+        parameters:
+            deploy-portal:
+                type: boolean
+                default: false
+            deploy-console:
+                type: boolean
+                default: false
+            deploy-apim-and-gw:
+                type: boolean
+                default: false
         steps:
             - attach_workspace:
                   at: .
@@ -714,56 +724,122 @@ jobs:
                       chmod +x ./kubectl
                       mv ./kubectl /usr/local/bin/kubectl
                       kubectl version --client=true
-            - run:
-                  name: Helm upgrade and 🚀 to Element Zero cluster
-                  command: |
-                      if [ "master" == "${CIRCLE_BRANCH}" ]
-                      then
-                          az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-                          az aks get-credentials --resource-group element-zero --name element-zero
+            - when:
+                  condition: << parameters.deploy-portal >>
+                  steps:
+                      - run:
+                            name: Helm upgrade and 🚀 Portal to Element Zero cluster
+                            command: |
+                                if [ "master" == "${CIRCLE_BRANCH}" ]
+                                then
+                                    az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+                                    az aks get-credentials --resource-group element-zero --name element-zero
 
-                          helm upgrade --repo https://helm.gravitee.io \
-                                      --install apim \
-                                      -n apim \
-                                      --reuse-values \
-                                      apim3 \
-                                       --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                                       --set "api.image.tag=${TAG}" \
-                                       --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
-                                       --set "portal.image.tag=${TAG}" \
-                                       --set "ui.image.repository=graviteeio.azurecr.io/apim-management-ui" \
-                                       --set "ui.image.tag=${TAG}" \
-                                       --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                                       --set "gateway.image.tag=${TAG}" \
-                                       --set "redis.repositoryVersion=3.12.1"
-                      fi
-            - run:
-                  name: Helm upgrade and 🚀 to APIM cluster
-                  command: |
-                      export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
+                                    helm upgrade --repo https://helm.gravitee.io \
+                                                --install apim \
+                                                -n apim \
+                                                --reuse-values \
+                                                apim3 \
+                                                --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
+                                                --set "portal.image.tag=${TAG}" \
+                                fi
+                      - run:
+                            name: Helm upgrade and 🚀 to Portal APIM cluster
+                            command: |
+                                export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
 
-                      az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-                      az aks get-credentials --resource-group apim-hprod --name apim-hprod
+                                az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+                                az aks get-credentials --resource-group apim-hprod --name apim-hprod
 
-                      helm upgrade --repo https://helm.gravitee.io \
-                                   --install apim \
-                                   -n ${K8S_NAMESPACE} \
-                                   --reuse-values \
-                                   apim3 \
-                                   --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                                   --set "api.image.tag=${TAG}" \
-                                   --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
-                                   --set "portal.image.tag=${TAG}" \
-                                   --set "ui.image.repository=graviteeio.azurecr.io/apim-management-ui" \
-                                   --set "ui.image.tag=${TAG}" \
-                                   --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                                   --set "gateway.image.tag=${TAG}" \
-                                   --set "redis.repositoryVersion=3.12.1"
+                                helm upgrade --repo https://helm.gravitee.io \
+                                             --install apim \
+                                             -n ${K8S_NAMESPACE} \
+                                             --reuse-values \
+                                             apim3 \
+                                             --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
+                                             --set "portal.image.tag=${TAG}" \
 
-                      kubectl rollout restart deployment/apim-apim3-api -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/apim-apim3-portal -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/apim-apim3-ui -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/apim-apim3-gateway -n ${K8S_NAMESPACE}
+                                kubectl rollout restart deployment/apim-apim3-portal -n ${K8S_NAMESPACE}
+            - when:
+                  condition: << parameters.deploy-console >>
+                  steps:
+                      - run:
+                            name: Helm upgrade and 🚀 Console to Element Zero cluster
+                            command: |
+                                if [ "master" == "${CIRCLE_BRANCH}" ]
+                                then
+                                    az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+                                    az aks get-credentials --resource-group element-zero --name element-zero
+
+                                    helm upgrade --repo https://helm.gravitee.io \
+                                                --install apim \
+                                                -n apim \
+                                                --reuse-values \
+                                                apim3 \
+                                                --set "ui.image.repository=graviteeio.azurecr.io/apim-management-ui" \
+                                                --set "ui.image.tag=${TAG}" \
+                                fi
+                      - run:
+                            name: Helm upgrade and 🚀 Console to APIM cluster
+                            command: |
+                                export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
+
+                                az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+                                az aks get-credentials --resource-group apim-hprod --name apim-hprod
+
+                                helm upgrade --repo https://helm.gravitee.io \
+                                             --install apim \
+                                             -n ${K8S_NAMESPACE} \
+                                             --reuse-values \
+                                             apim3 \
+                                             --set "ui.image.repository=graviteeio.azurecr.io/apim-management-ui" \
+                                             --set "ui.image.tag=${TAG}" \
+
+
+                                kubectl rollout restart deployment/apim-apim3-ui -n ${K8S_NAMESPACE}
+            - when:
+                  condition: << parameters.deploy-apim-and-gw >>
+                  steps:
+                      - run:
+                            name: Helm upgrade and 🚀 API & Gateway to Element Zero cluster
+                            command: |
+                                if [ "master" == "${CIRCLE_BRANCH}" ]
+                                then
+                                    az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+                                    az aks get-credentials --resource-group element-zero --name element-zero
+
+                                    helm upgrade --repo https://helm.gravitee.io \
+                                                 --install apim \
+                                                 -n apim \
+                                                 --reuse-values \
+                                                 apim3 \
+                                                 --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                                                 --set "api.image.tag=${TAG}" \
+                                                 --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
+                                                 --set "gateway.image.tag=${TAG}" \
+                                                 --set "redis.repositoryVersion=3.12.1"
+                                fi
+                      - run:
+                            name: Helm upgrade and 🚀 API & Gateway to APIM cluster
+                            command: |
+                                export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
+
+                                az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+                                az aks get-credentials --resource-group apim-hprod --name apim-hprod
+
+                                helm upgrade --repo https://helm.gravitee.io \
+                                             --install apim \
+                                             -n ${K8S_NAMESPACE} \
+                                             --reuse-values \
+                                             apim3 \
+                                             --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                                             --set "api.image.tag=${TAG}" \
+                                             --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
+                                             --set "gateway.image.tag=${TAG}" \
+                                             --set "redis.repositoryVersion=3.12.1"
+
+                                kubectl rollout restart deployment/apim-apim3-api -n ${K8S_NAMESPACE}
+                                kubectl rollout restart deployment/apim-apim3-gateway -n ${K8S_NAMESPACE}
 
             - notify-on-failure
 
@@ -942,10 +1018,11 @@ jobs:
                         echo "# --->>> THIS IS A DRY RUN"
                       fi;
 workflows:
-    pull_requests:
+    build_back:
         when:
             and:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
+                - equal: [true, << pipeline.parameters.build_maven >>]
         jobs:
             - load-snapshot-configuration:
                   context: cicd-orchestrator
@@ -980,7 +1057,6 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - fix-nexus-pb
                   requires:
                       - test
             - publish-on-nexus:
@@ -989,7 +1065,6 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - fix-nexus-pb
                   requires:
                       - test
             - publish-images-azure-registry:
@@ -1014,6 +1089,42 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+            - deploy-on-azure-cluster:
+                  context: cicd-orchestrator
+                  pre-steps:
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/application-id
+                            var-name: AZURE_APPLICATION_ID
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/tenant
+                            var-name: AZURE_TENANT
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/application-secret
+                            var-name: AZURE_APPLICATION_SECRET
+                  requires:
+                      - publish-images-azure-registry
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
+                  deploy-apim-and-gw: true
+            # To be modified when testing strategy will be defined
+            - cypress-install:
+                  requires:
+                      - build
+            - cypress-lint-test:
+                  requires:
+                      - cypress-install
+
+    build_console:
+        when:
+            and:
+                - equal: [pull_requests, << pipeline.parameters.gio_action >>]
+                - equal: [true, << pipeline.parameters.build_console >>]
+        jobs:
+            - load-snapshot-configuration:
+                  context: cicd-orchestrator
             - webui-install:
                   name: Install APIM Console
                   apim-ui-project: gravitee-apim-console-webui
@@ -1024,6 +1135,12 @@ workflows:
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
+            - sonarcloud-analysis:
+                  name: Sonar - APIM Console
+                  context: cicd-orchestrator
+                  requires:
+                      - Lint & test APIM Console
+                  working_directory: gravitee-apim-console-webui
             - console-webui-build-storybook:
                   requires:
                       - Install APIM Console
@@ -1062,6 +1179,14 @@ workflows:
                             var-name: GITHUB_TOKEN
                   requires:
                       - console-webui-deploy-on-azure-storage
+            - compute-apim-tag:
+                  requires:
+                      - load-snapshot-configuration
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
             - webui-publish-images-azure-registry:
                   name: Build and publish APIM Console docker image
                   apim-ui-project: gravitee-apim-console-webui
@@ -1088,6 +1213,35 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+            - deploy-on-azure-cluster:
+                  context: cicd-orchestrator
+                  pre-steps:
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/application-id
+                            var-name: AZURE_APPLICATION_ID
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/tenant
+                            var-name: AZURE_TENANT
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/application-secret
+                            var-name: AZURE_APPLICATION_SECRET
+                  requires:
+                      - Build and publish APIM Console docker image
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
+                  deploy-console: true
+
+    build_portal:
+        when:
+            and:
+                - equal: [pull_requests, << pipeline.parameters.gio_action >>]
+                - equal: [true, << pipeline.parameters.build_portal >>]
+        jobs:
+            - load-snapshot-configuration:
+                  context: cicd-orchestrator
             - webui-install:
                   name: Install APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
@@ -1100,21 +1254,24 @@ workflows:
                   requires:
                       - Install APIM Portal
             - sonarcloud-analysis:
-                  name: Sonar - << matrix.working_directory >>
-                  matrix:
-                      parameters:
-                          working_directory:
-                              - gravitee-apim-console-webui
-                              - gravitee-apim-portal-webui
+                  name: Sonar - APIM Portal
                   context: cicd-orchestrator
                   requires:
-                      - Lint & test APIM Console
                       - Lint & test APIM Portal
+                  working_directory: gravitee-apim-portal-webui
             - webui-build:
                   name: Build APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
                       - Install APIM Portal
+            - compute-apim-tag:
+                  requires:
+                      - load-snapshot-configuration
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
             - webui-publish-images-azure-registry:
                   name: Build and publish APIM Portal docker image
                   apim-ui-project: gravitee-apim-portal-webui
@@ -1154,21 +1311,13 @@ workflows:
                             secret-path: graviteeio/cicd/azure/application-secret
                             var-name: AZURE_APPLICATION_SECRET
                   requires:
-                      - publish-images-azure-registry
-                      - Build and publish APIM Console docker image
                       - Build and publish APIM Portal docker image
                   filters:
                       branches:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-              # To be modified when testing strategy will be defined
-            - cypress-install:
-                  requires:
-                      - build
-            - cypress-lint-test:
-                  requires:
-                      - cypress-install
+                  deploy-portal: true
 
     release:
         when:
