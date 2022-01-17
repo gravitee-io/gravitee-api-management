@@ -79,7 +79,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4", "api-0"), new ArrayList(matches.getDocuments()));
+        assertEquals(Arrays.asList("api-1", "api-3", "api-4", "api-0", "api-2"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4", "api-0"), new ArrayList(matches.getDocuments()));
+        assertEquals(Arrays.asList("api-1", "api-3", "api-4", "api-0", "api-2"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -137,7 +137,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-2", "api-4", "api-1", "api-3"), new ArrayList(matches.getDocuments()));
+        assertEquals(Arrays.asList("api-0", "api-4", "api-1", "api-3", "api-2"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -302,7 +302,7 @@ public class SearchEngineServiceTest {
         SearchResult matches = searchEngineService.search(
             QueryBuilder
                 .create(ApiEntity.class)
-                .setQuery("name:\"My Awesome api / 2\" AND ownerName: \"Owner 2\"")
+                .setQuery("name:\"http://localhost/api-2\" AND ownerName: \"Owner 2\"")
                 .setFilters(filters)
                 .build()
         );
@@ -427,7 +427,19 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(3, matches.getHits());
-        assertEquals(Arrays.asList("api-4", "api-2", "api-0"), new ArrayList(matches.getDocuments()));
+        assertEquals(Arrays.asList("api-2", "api-0", "api-4"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindBestResultsWithCategorySortByNameDesc() {
+        Map<String, Object> filters = new HashMap<>();
+        Sortable sortByName = new SortableImpl("name", false);
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("machine learning").setFilters(filters).setSort(sortByName).build()
+        );
+        assertNotNull(matches);
+        assertEquals(3, matches.getHits());
+        assertEquals(Arrays.asList("api-4", "api-0", "api-2"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -439,7 +451,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-3"), new ArrayList(matches.getDocuments()));
+        assertEquals(Arrays.asList("api-3", "api-1"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -451,7 +463,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-3", "api-1"), new ArrayList(matches.getDocuments()));
+        assertEquals(Arrays.asList("api-1", "api-3"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -463,7 +475,7 @@ public class SearchEngineServiceTest {
         );
         assertNotNull(matches);
         assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-3"), new ArrayList(matches.getDocuments()));
+        assertEquals(Arrays.asList("api-3", "api-1"), new ArrayList(matches.getDocuments()));
     }
 
     @Before
@@ -472,7 +484,7 @@ public class SearchEngineServiceTest {
         if (!isIndexed) {
             List<String> labels = new ArrayList();
             for (int i = 0; i < 5; i++) {
-                String apiName = "My Awesome api / " + i;
+                String apiName = i == 2 ? "http://localhost/api-" + i : "My Awesome api / " + i;
                 ApiEntity apiEntity = new ApiEntity();
                 apiEntity.setId("api-" + i);
                 labels.add("In Review " + i);

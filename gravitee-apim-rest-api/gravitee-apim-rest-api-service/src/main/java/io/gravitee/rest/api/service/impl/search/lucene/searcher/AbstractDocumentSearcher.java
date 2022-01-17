@@ -102,7 +102,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
     protected Sort convert(Sortable sort) {
         if (sort != null) {
-            return new Sort(new SortField(sort.getField(), SortField.Type.STRING, sort.isAscOrder()));
+            return new Sort(new SortField(sort.getField() + "_sorted", SortField.Type.STRING, !sort.isAscOrder()));
         }
         return null;
     }
