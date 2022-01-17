@@ -170,7 +170,16 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         );
 
         builder.append(" inner join (select e.id from events e ");
-        builder.append(" where e.id in(").append(joinLatest(group, criteria, args)).append(")");
+        if (criteria.isStrictMode()) {
+            appendCriteria(builder, criteria, args, "e");
+            builder
+                .append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE)
+                .append("e.id in(")
+                .append(joinLatest(group, criteria, args))
+                .append(")");
+        } else {
+            builder.append(" where e.id in(").append(joinLatest(group, criteria, args)).append(")");
+        }
         builder.append("    order by e.updated_at desc, e.id desc ");
 
         if (page != null && size != null) {
@@ -316,8 +325,9 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             .append("from events e1 ")
             .append("inner join event_properties ep1 on e1.id = ep1.event_id and ep1.property_key = ? and ep1.property_value is not null ");
 
-        appendCriteria(innerSelectLatestQuery, criteria, args, "e1");
-
+        if (!criteria.isStrictMode()) {
+            appendCriteria(innerSelectLatestQuery, criteria, args, "e1");
+        }
         return innerSelectLatestQuery.append(" group by ep1.property_value, ep1.event_id ");
     }
 

@@ -64,7 +64,7 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
      */
     public abstract void synchronize(long lastRefreshAt, long nextLastRefreshAt);
 
-    protected Flowable<Event> searchLatestEvents(int bulkSize, Long from, Long to, Event.EventProperties group, EventType... eventTypes) {
+    protected Flowable<Event> searchLatestEvents(int bulkSize, Long from, Long to, boolean strictMode, Event.EventProperties group, EventType... eventTypes) {
 
         return Flowable.create(emitter -> {
             try {
@@ -72,7 +72,9 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
                 EventCriteria criteria = new EventCriteria.Builder()
                         .types(eventTypes)
                         .from(from == null ? 0 : from - TIMEFRAME_BEFORE_DELAY)
-                        .to(to == null ? 0 : to + TIMEFRAME_AFTER_DELAY).build();
+                        .to(to == null ? 0 : to + TIMEFRAME_AFTER_DELAY)
+                        .strictMode(strictMode)
+                        .build();
 
                 List<Event> events;
 

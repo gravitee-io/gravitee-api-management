@@ -33,6 +33,13 @@ public interface EventRepository extends CrudRepository<Event, String> {
      * Search for latest {@link Event} matching the corresponding criteria for each event related to the specified group criteria (ex: 'api_id, 'dictionary_id').
      *
      * @param criteria the criteria to apply.
+     *                 When strictMode in criteria is enabled, the last event of the entity must be one of the types specified to be returned.
+     *                 Otherwise, when strictMode is disabled, events will be first filtered by type before finding the latest.
+     *                 Default strictMode is false.
+     *                 Example:
+     *                 Let assume we have an API with these events in this order: START, PUBLISH and UNPUBLISH.
+     *                 If strictMode == true and we search with types START & PUBLISH, then no event will be returned. Indeed, the current latest is UNPUBLISH and not in the search list.
+     *                 If strictMode == false and we search with types START & PUBLISH, then the PUBLISH event will be returned.
      * @param group the property to group on in order to retrieve the latest event. Can be {@link io.gravitee.repository.management.model.Event.EventProperties#API_ID} to retrieve latest event for each api
      *              or {@link io.gravitee.repository.management.model.Event.EventProperties#DICTIONARY_ID} to retrieve latest event for each dictionary.
      * @param page optional page number starting from 0, <code>null</code> means no paging.
