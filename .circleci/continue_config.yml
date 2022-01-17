@@ -249,6 +249,18 @@ parameters:
         default: ""
         type: string
         description: "Version of APIM to be used in docker images"
+    build_maven:
+        type: boolean
+        default: true
+        description: "Should build maven projects ?"
+    build_portal:
+        type: boolean
+        default: true
+        description: "Should build portal ?"
+    build_console:
+        type: boolean
+        default: true
+        description: "Should build console ?"
 
 jobs:
     setup:
