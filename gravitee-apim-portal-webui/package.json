@@ -50,7 +50,7 @@
     "highlight.js": "10.6.0",
     "jdenticon": "3.1.1",
     "js-yaml": "3.13.1",
-    "marked": "1.2.9",
+    "marked": "4.0.10",
     "messageformat": "2.3.0",
     "ngx-cookie-service": "3.0.4",
     "ngx-translate-messageformat-compiler": "4.6.0",
