@@ -20,6 +20,7 @@ import { ApiService } from '../../services/api.service';
 import UserService from '../../services/user.service';
 
 interface IApisScope extends ng.IScope {
+  sort: () => void;
   apisLoading: boolean;
   formApi: any;
   searchResult: boolean;
@@ -27,12 +28,10 @@ interface IApisScope extends ng.IScope {
 
 export class ApisController {
   private query = '';
-  private order: string = undefined;
-  private currentOrder: string = undefined;
+  private order = 'name';
   private apis: any;
   private graviteeUIVersion: string;
   private isAPIsHome: boolean;
-  private createMode: boolean;
   private syncStatus: any[];
   private qualityScores: any[];
   private NotificationService: any;
@@ -65,7 +64,6 @@ export class ApisController {
     this.graviteeUIVersion = Build.version;
     this.query = $state.params.q;
     this.currentApisResponse = resolvedApis.data;
-    this.order = this.currentOrder;
     this.apis = this.currentApisResponse.data;
 
     if (!this.currentApisResponse.data.length) {
@@ -88,6 +86,11 @@ export class ApisController {
         }
       }, 300);
     });
+
+    $scope.sort = () => {
+      this.gotToPage(1);
+    };
+
     this.canceler = $q.defer();
 
     this.loadMore();
@@ -100,7 +103,7 @@ export class ApisController {
     const promOpts = { timeout: this.canceler.promise };
     this.$state.transitionTo(this.$state.current, { q: this.query }, { notify: false });
 
-    this.ApiService.searchApis(query, 1, this.currentOrder, promOpts)
+    this.ApiService.searchApis(query, 1, this.order, promOpts)
       .then((response) => {
         this.currentApisResponse = response.data;
         this.apis = this.currentApisResponse.data;
@@ -112,16 +115,6 @@ export class ApisController {
           err.interceptorFuture.cancel();
         }
       });
-  }
-
-  sort(order: string, field: string) {
-    if (order === this.currentOrder || (order != null && !order.includes(field))) {
-      return;
-    }
-    if (order) {
-      this.currentOrder = order;
-    }
-    this.gotToPage(1);
   }
 
   scroll() {
@@ -142,7 +135,7 @@ export class ApisController {
       return;
     }
 
-    this.ApiService.searchApis(this.query || '', requestedPage, this.currentOrder).then((response) => {
+    this.ApiService.searchApis(this.query || '', requestedPage, this.order).then((response) => {
       this.currentApisResponse = response.data;
       if (requestedPage > 1) {
         this.apis = this.apis.concat(this.currentApisResponse.data);

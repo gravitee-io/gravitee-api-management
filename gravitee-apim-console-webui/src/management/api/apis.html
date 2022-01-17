@@ -44,12 +44,12 @@
         >
           <md-table-container style="width: 100%; min-height: 200px; text-align: center">
             <table md-table ng-model="$ctrl.selectedApis">
-              <thead md-head md-order="$ctrl.order">
+              <thead md-head md-order="$ctrl.order" md-on-reorder="sort">
                 <tr md-row>
                   <th md-column width="1%"></th>
-                  <th md-column width="15%" md-order-by="name" ng-click="$ctrl.sort($ctrl.order, 'name')"><span>Name</span></th>
+                  <th md-column width="15%" md-order-by="name"><span>Name</span></th>
                   <th md-column width="1%"></th>
-                  <th md-column md-order-by="paths" ng-click="$ctrl.sort($ctrl.order, 'paths')">Context paths</th>
+                  <th md-column md-order-by="paths">Context paths</th>
                   <th md-column width="1%">Tags</th>
                   <th md-column width="1%" ng-if="$ctrl.isQualityDisplayed">Quality</th>
                   <th md-column width="1%">Owner</th>
