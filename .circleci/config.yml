@@ -666,11 +666,6 @@ jobs:
                   at: .
             - get-apim-tag
             - run:
-                  name: Install Helm
-                  command: |
-                      curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-                      helm version
-            - run:
                   name: Install Kubectl
                   command: |
                       curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
@@ -678,27 +673,12 @@ jobs:
                       mv ./kubectl /usr/local/bin/kubectl
                       kubectl version --client=true
             - run:
-                  name: Helm upgrade and 🚀 to APIM cluster
+                  name: 🚀 to APIM cluster
                   command: |
                       export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
 
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       az aks get-credentials --resource-group apim-hprod --name apim-hprod
-
-                      helm upgrade --repo https://helm.gravitee.io \
-                                   --install apim \
-                                   -n ${K8S_NAMESPACE} \
-                                   --reuse-values \
-                                   apim3 \
-                                   --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                                   --set "api.image.tag=${TAG}" \
-                                   --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
-                                   --set "portal.image.tag=${TAG}" \
-                                   --set "ui.image.repository=graviteeio.azurecr.io/apim-management-ui" \
-                                   --set "ui.image.tag=${TAG}" \
-                                   --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                                   --set "gateway.image.tag=${TAG}" \
-                                   --set "redis.repositoryVersion=3.12.1"
 
                       kubectl rollout restart deployment/apim-apim3-api -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/apim-apim3-portal -n ${K8S_NAMESPACE}
