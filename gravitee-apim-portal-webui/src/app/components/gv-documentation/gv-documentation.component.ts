@@ -97,13 +97,11 @@ export class GvDocumentationComponent implements AfterViewInit {
       const scrollTop = document.scrollingElement.scrollTop;
       if (document.querySelector(this.PAGE_COMPONENT)) {
         const contentHeight = document.querySelector(this.PAGE_COMPONENT).getBoundingClientRect().height;
-
-        menuElement.style['max-height'] = `${contentHeight - scrollTop}px`;
-
-        this.reset(menuElement);
-      } else {
-        this.reset(menuElement);
+        // Both contentHeight and scrollTop can be 0 if page content isn't loaded yet, in that case just set max height to 100%
+        const menuMaxHeight = contentHeight - scrollTop;
+        menuElement.style['max-height'] = menuMaxHeight === 0 ? `100%` : `${menuMaxHeight}px`;
       }
+      this.reset(menuElement);
     }
   }
 
