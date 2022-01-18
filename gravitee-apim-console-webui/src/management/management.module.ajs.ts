@@ -460,7 +460,7 @@ import NewFieldDialogController from './configuration/custom-user-fields/dialog/
 import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
 import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from '../services/flow.service';
-import ApiDesignController from './api/design/design/design.controller';
+import { ManagementApiDesignComponent } from './api/design/design/management-api-design.component';
 import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
 import TicketsListController from './support/tickets-list.controller';
 import TicketDetailComponent from './support/ticket-detail.component';
@@ -718,7 +718,8 @@ graviteeManagementModule.controller('ApiEndpointController', ApiEndpointControll
 graviteeManagementModule.controller('ApiEndpointGroupController', ApiEndpointGroupController);
 graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
-graviteeManagementModule.controller('ApiDesignController', ApiDesignController);
+// graviteeManagementModule.controller('ApiDesignController', ApiDesignController);
+graviteeManagementModule.directive('ngManagementApiDesignComponent', downgradeComponent({ component: ManagementApiDesignComponent }));
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
 graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
