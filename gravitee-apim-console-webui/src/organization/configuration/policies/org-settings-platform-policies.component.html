@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<gio-policy-studio-wrapper
+<gio-policy-studio
   *ngIf="!isLoading"
   flowsTitle="Platform flows"
   [canAdd]="true"
@@ -25,4 +25,4 @@
   [policies]="policies"
   [definition]="definition"
   (save)="onSave($event)"
-></gio-policy-studio-wrapper>
+></gio-policy-studio>
