@@ -281,7 +281,7 @@ class ApiService {
     return this.$http.post(this.apisURL + 'verify', criteria, config);
   }
 
-  importPathMappings(apiId: any, page: any, definitionVersion?: string): IHttpPromise<any> {
+  importPathMappings(apiId: any, page: any, definitionVersion?: string): ng.IHttpPromise<any> {
     let params = `?page=${page}`;
 
     if (definitionVersion) {
