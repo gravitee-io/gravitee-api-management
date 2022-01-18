@@ -15,11 +15,11 @@
  */
 package io.gravitee.reporter.file.formatter.csv;
 
+import io.gravitee.node.api.monitor.Monitor;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
-import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.file.formatter.Formatter;
 import io.vertx.core.buffer.Buffer;
 

@@ -17,11 +17,11 @@ package io.gravitee.reporter.file.formatter.elasticsearch;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.monitor.Monitor;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
-import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.file.formatter.AbstractFormatter;
 import io.gravitee.reporter.file.formatter.elasticsearch.freemarker.FreeMarkerComponent;
 import io.vertx.core.buffer.Buffer;
