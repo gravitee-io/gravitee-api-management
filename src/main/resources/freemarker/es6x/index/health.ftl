@@ -27,32 +27,36 @@
             </#if>
             <#if step.getRequest().getHeaders()??>
             ,"headers":{
-                <#list step.getRequest().getHeaders() as headerKey, headerValue>
-                "${headerKey}": [
-                    <#list headerValue as value>
-                    "${value?j_string}"
+            <#list step.getRequest().getHeaders().names() as header>
+                "${header}": [
+                <#list step.getRequest().getHeaders().getAll(header) as value>
+                    <#if value??>
+                        "${value?j_string}"
                         <#sep>,</#sep>
-                    </#list>
-                ]
-                    <#sep>,</#sep>
+                    </#if>
                 </#list>
+                ]
+                <#sep>,</#sep>
+            </#list>
             }
             </#if>
         },
-        "response": {
+       "response": {
             "status":${step.getResponse().getStatus()}
             <#if step.getResponse().getBody()??>
             ,"body":"${step.getResponse().getBody()?j_string}"
             </#if>
             <#if step.getResponse().getHeaders()??>
             ,"headers":{
-                <#list step.getResponse().getHeaders() as headerKey, headerValue>
-                "${headerKey}": [
-                    <#list headerValue as value>
-                    "${value?j_string}"
-                        <#sep>,</#sep>
+                <#list step.getResponse().getHeaders().names() as header>
+                    "${header}": [
+                    <#list step.getResponse().getHeaders().getAll(header) as value>
+                        <#if value??>
+                            "${value?j_string}"
+                            <#sep>,</#sep>
+                        </#if>
                     </#list>
-                ]
+                    ]
                     <#sep>,</#sep>
                 </#list>
             }
