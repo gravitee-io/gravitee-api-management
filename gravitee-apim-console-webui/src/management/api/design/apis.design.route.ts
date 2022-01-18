@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiService } from '../../../services/api.service';
-import PolicyService from '../../../services/policy.service';
 import ResourceService from '../../../services/resource.service';
 import TenantService from '../../../services/tenant.service';
 
@@ -83,14 +81,7 @@ function apisDesignRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.design.flows', {
       url: '/design?flows',
-      template: require('./design/design.html'),
-      controller: 'ApiDesignController',
-      controllerAs: 'apiDesignCtrl',
-      resolve: {
-        resolvedPolicies: (PolicyService: PolicyService) => PolicyService.list(true, true),
-        resolvedResources: (ResourceService: ResourceService) => ResourceService.list(true, true),
-        resolvedFlowSchemaForm: (ApiService: ApiService) => ApiService.getFlowSchemaForm(),
-      },
+      component: 'ngManagementApiDesignComponent',
       data: {
         perms: {
           only: ['api-definition-r'],

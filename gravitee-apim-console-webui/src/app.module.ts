@@ -21,6 +21,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UpgradeModule } from '@angular/upgrade/static';
 
 import { uiRouterStateProvider, uiRouterStateParamsProvider, currentUserProvider } from './ajs-upgraded-providers';
+import { ManagementModule } from './management/management.module';
 import { OrganizationSettingsModule } from './organization/configuration/organization-settings.module';
 import { httpInterceptorProviders } from './shared/interceptors/http-interceptors';
 
@@ -37,6 +38,7 @@ import { httpInterceptorProviders } from './shared/interceptors/http-interceptor
     }),
     UpgradeModule,
     OrganizationSettingsModule,
+    ManagementModule,
   ],
   providers: [httpInterceptorProviders, uiRouterStateProvider, uiRouterStateParamsProvider, currentUserProvider],
 })
