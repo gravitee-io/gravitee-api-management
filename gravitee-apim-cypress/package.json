@@ -29,7 +29,8 @@
         "har-validator": "5.1.5",
         "license-check-and-add": "4.0.3",
         "prettier": "2.5.1",
-        "typescript": "4.5.2"
+        "typescript": "4.5.2",
+        "jsonwebtoken": "^8.5.1"
     },
     "dependencies": {
         "faker": "5.5.3"

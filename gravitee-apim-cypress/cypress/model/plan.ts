@@ -42,7 +42,8 @@ export interface Step {
   name: string;
   policy: string;
   description: string;
-  configuration: string;
+  condition?: string;
+  configuration: {};
   enabled: boolean;
 }
 

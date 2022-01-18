@@ -72,12 +72,10 @@ context('Create a mock policy on a API v1 (path based)', () => {
   });
 
   it('should successfully call the mocked API endpoint', function () {
-    requestGateway(
-      {
-        method: 'GET',
-        url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
-      },
-    ).should((response: Cypress.Response<any>) => {
+    requestGateway({
+      method: 'GET',
+      url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
+    }).should((response: Cypress.Response<any>) => {
       expect(response.headers['test-value']).to.equal('value123');
       expect(response.body.message).to.equal('This is a mocked response');
     });
@@ -115,12 +113,10 @@ context('Create a mock policy (API v2)', () => {
   });
 
   it('should successfully call the mocked API endpoint', () => {
-    requestGateway(
-      {
-        method: 'GET',
-        url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
-      },
-    ).should((response: Cypress.Response<any>) => {
+    requestGateway({
+      method: 'GET',
+      url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
+    }).should((response: Cypress.Response<any>) => {
       expect(response.body.message).to.equal('this is a mock response');
     });
   });

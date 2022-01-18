@@ -11,7 +11,7 @@
     {
       "name": "Mock",
       "policy": "mock",
-      "description": "mock description",
+      "description": "This mock policy was created by a Cypress test",
       "enabled": true,
       "configuration": {
         "status": "200",

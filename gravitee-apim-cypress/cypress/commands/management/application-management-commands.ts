@@ -34,3 +34,24 @@ export function deleteApplication(auth: BasicAuthentication, applicationId: stri
     failOnStatusCode: false,
   });
 }
+
+export function subscribeApplication(auth: BasicAuthentication, applicationId: string, planId: string) {
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/applications/${applicationId}/subscriptions`,
+    auth,
+    qs: {
+      plan: `${planId}`,
+    },
+    failOnStatusCode: false,
+  });
+}
+
+export function closeApplicationSubscription(auth: BasicAuthentication, applicationId: string, subscriptionId: string) {
+  return cy.request({
+    method: 'DELETE',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/applications/${applicationId}/subscriptions/${subscriptionId}`,
+    auth,
+    failOnStatusCode: false,
+  });
+}

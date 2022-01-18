@@ -20,6 +20,7 @@ import { createApi, deleteApi, publishApi, startApi, stopApi } from 'commands/ma
 import { createPlan, publishPlan, deletePlan } from 'commands/management/api-plan-management-commands';
 import { Api } from 'model/apis';
 import { NewPlanEntity, PlanSecurityType } from 'model/plan';
+import { requestGateway } from 'support/common/http.commands';
 
 context('Create an API flow', () => {
   let api: Api;
@@ -102,21 +103,15 @@ context('Create an API flow', () => {
   });
 
   describe('Test newly created API', function () {
-    it(
-      'should get a positive response when calling the new API endpoint',
-      {
-        retries: 20,
-      },
-      function () {
-        cy.request({
-          url: `${Cypress.env('gatewayServer')}${api.contextPath}?teststring=${api.id}`,
-          retryOnStatusCodeFailure: true,
-        }).should((response) => {
-          expect(response.body.query_params.teststring).to.be.equal(api.id);
-          expect(response.status).to.be.equal(200);
-        });
-      },
-    );
+    it('should get a positive response when calling the new API endpoint', function () {
+      requestGateway({
+        method: 'GET',
+        url: `${Cypress.env('gatewayServer')}${api.context_path}?teststring=${api.id}`,
+      })
+        .ok()
+        .its('body.query_params.teststring')
+        .should('equal', api.id);
+    });
   });
 
   describe('Stop an API', function () {

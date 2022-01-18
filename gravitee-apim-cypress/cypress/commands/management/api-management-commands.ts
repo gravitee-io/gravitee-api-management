@@ -16,6 +16,7 @@
 import { Api, ApiErrorCodes, ApiLifecycleState, ApiMember, PortalApi, UpdateApiEntity } from '@model/apis';
 import { ApiImport } from '@model/api-imports';
 import { BasicAuthentication } from '@model/users';
+import { ProcessSubscriptionEntity } from '@model/api-subscriptions';
 
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({
@@ -156,5 +157,29 @@ export function updateApi(auth: BasicAuthentication, apiId: string, apiUpdate: U
     auth,
     body: apiUpdate,
     failOnStatusCode,
+  });
+}
+
+export function updateApiSubscription(
+  auth: BasicAuthentication,
+  apiId: string,
+  subscriptionId: string,
+  subscription: ProcessSubscriptionEntity,
+) {
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/subscriptions/${subscriptionId}/_process`,
+    auth,
+    body: subscription,
+    failOnStatusCode: false,
+  });
+}
+
+export function getApiKeys(auth: BasicAuthentication, apiId: string, subscriptionId: string) {
+  return cy.request({
+    method: 'GET',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/subscriptions/${subscriptionId}/apikeys`,
+    auth,
+    failOnStatusCode: false,
   });
 }

@@ -16,11 +16,11 @@
 import * as faker from 'faker';
 import { ApiImport, ApiImportMember, ApiImportPage, ApiImportPlan, ApiImportProxyGroupLoadBalancerType } from '@model/api-imports';
 import { ApiPageType, ApiVisibility } from '@model/apis';
-import { FlowMode } from '@model/api-flows';
+import { Flow, FlowMode, OperatorType } from '@model/api-flows';
 import { ApiFakers } from './apis';
 import { ApiUser } from '@model/users';
 import { Role } from '@model/roles';
-import { PlanSecurityType, PlanStatus, PlanType, PlanValidation } from '@model/plan';
+import { PlanSecurityType, PlanStatus, PlanType, PlanValidation, Step } from '@model/plan';
 
 export class ApiImportFakers {
   static api(attributes?: Partial<ApiImport>): ApiImport {
@@ -58,7 +58,7 @@ export class ApiImportFakers {
               {
                 inherit: true,
                 name: 'default',
-                target: 'http://localhost:8080/hello-world',
+                target: 'https://api.gravitee.io/whattimeisit',
                 weight: 1,
                 backup: false,
                 type: 'http',
@@ -158,6 +158,23 @@ export class ApiImportFakers {
       permissions: {},
       scope: 'API',
       system: false,
+      ...attributes,
+    };
+  }
+
+  static flow(attributes?: Partial<Flow>): Flow {
+    return {
+      name: '',
+      'path-operator': {
+        path: '/',
+        operator: OperatorType.STARTS_WITH,
+      },
+      condition: '',
+      consumers: [],
+      methods: [],
+      pre: [],
+      post: [],
+      enabled: true,
       ...attributes,
     };
   }

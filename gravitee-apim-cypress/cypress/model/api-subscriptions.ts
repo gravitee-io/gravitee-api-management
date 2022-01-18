@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
-import { Application } from '@model/applications';
 
-export class ApplicationFakers {
-  static application(attributes?: Partial<Application>): Application {
-    return <Application>{
-      name: faker.commerce.productName(),
-      description: 'This application was created by a Cypress test',
-      ...attributes,
-    };
-  }
+export interface ProcessSubscriptionEntity {
+  id: string;
+  accepted: boolean;
+  reason: string;
+  customApiKey: string;
+  starting_at: number;
+  ending_at: number;
 }

@@ -35,6 +35,15 @@ export function deletePlan(auth: BasicAuthentication, apiId: string, planId: str
   });
 }
 
+export function closePlan(auth: BasicAuthentication, apiId: string, planId: string) {
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans/${planId}/_close`,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
 export function publishPlan(auth: BasicAuthentication, apiId: string, planId: string, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',
