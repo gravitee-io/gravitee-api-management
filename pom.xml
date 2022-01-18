@@ -709,7 +709,7 @@
                 <configuration>
                     <nodeVersion>12.13.0</nodeVersion>
                     <prettierJavaVersion>1.0.1</prettierJavaVersion>
-                    <skip>${skipTests}</skip>
+                    <skip>${skip.validation}</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -750,6 +750,7 @@
                         <ts>SLASHSTAR_STYLE</ts>
                         <js>SLASHSTAR_STYLE</js>
                     </mapping>
+                    <skip>${skip.validation}</skip>
                 </configuration>
                 <executions>
                     <execution>
