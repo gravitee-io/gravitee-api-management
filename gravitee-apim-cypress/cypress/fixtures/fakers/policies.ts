@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
-import { Application } from '@model/applications';
+import { Step } from '@model/plan';
 
-export class ApplicationFakers {
-  static application(attributes?: Partial<Application>): Application {
-    return <Application>{
-      name: faker.commerce.productName(),
-      description: 'This application was created by a Cypress test',
+export class PolicyFakers {
+  static jwtPolicy(secret: string, attributes?: Partial<Step>): Step {
+    return {
+      name: 'JSON Web Tokens',
+      policy: 'jwt',
+      description: 'This policy was created by a Cypress test',
+      condition: '',
+      enabled: true,
+      configuration: {
+        propagateAuthHeader: true,
+        signature: 'HMAC_HS256',
+        resolverParameter: secret,
+        publicKeyResolver: 'GIVEN_KEY',
+        useSystemProxy: false,
+        extractClaims: false,
+        userClaim: 'sub',
+      },
       ...attributes,
     };
   }

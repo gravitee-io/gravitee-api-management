@@ -25,12 +25,12 @@ export interface Application {
 }
 
 export interface ApplicationSettings {
-  app: SimpleApplicationSettings;
-  oauth: OAuthClientSettings;
+  app?: SimpleApplicationSettings;
+  oauth?: OAuthClientSettings;
 }
 
 export interface SimpleApplicationSettings {
-  type: string;
+  type?: string;
   client_id: string;
 }
 
