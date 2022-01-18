@@ -15,6 +15,7 @@
  */
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
+import { PolicyServiceAbstract } from '@gravitee/ui-policy-studio-angular';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -30,7 +31,7 @@ interface ListParams {
 @Injectable({
   providedIn: 'root',
 })
-export class PolicyService {
+export class PolicyService implements PolicyServiceAbstract {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   list(params: ListParams): Observable<PolicyListItem[]> {

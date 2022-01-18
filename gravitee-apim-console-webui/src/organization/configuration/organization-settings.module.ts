@@ -40,6 +40,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSortModule } from '@angular/material/sort';
 import { GioBannerModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -77,9 +78,12 @@ import { GioFormColorInputModule } from '../../shared/components/gio-form-color-
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioFormFocusInvalidModule } from '../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
-import { GioPolicyStudioWrapperModule } from '../../shared/components/gio-policy-studio-wrapper/gio-policy-studio-wrapper.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
+import { FlowService } from '../../services-ngx/flow.service';
+import { PolicyService } from '../../services-ngx/policy.service';
+import { ResourceService } from '../../services-ngx/resource.service';
+import { SpelService } from '../../services-ngx/spel.service';
 
 @NgModule({
   imports: [
@@ -124,9 +128,9 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     GioFormFocusInvalidModule,
     GioBannerModule,
     GioClipboardModule,
-    GioPolicyStudioWrapperModule,
     GioTableWrapperModule,
     GioUsersSelectorModule,
+    GioPolicyStudioModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,
@@ -176,6 +180,24 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     OrgSettingAddMappingDialogComponent,
     OrgSettingsRoleComponent,
     OrgSettingsUserDetailAddGroupDialogComponent,
+  ],
+  providers: [
+    {
+      provide: 'FlowService',
+      useExisting: FlowService,
+    },
+    {
+      provide: 'PolicyService',
+      useExisting: PolicyService,
+    },
+    {
+      provide: 'ResourceService',
+      useExisting: ResourceService,
+    },
+    {
+      provide: 'SpelService',
+      useExisting: SpelService,
+    },
   ],
 })
 export class OrganizationSettingsModule {}

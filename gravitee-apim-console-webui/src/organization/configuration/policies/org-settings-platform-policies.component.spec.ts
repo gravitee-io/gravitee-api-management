@@ -178,7 +178,7 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
       });
       req.flush(organization);
 
-      // This one is send by the GioPolicyStudioWrapperComponent
+      // This one is send by the gio-policy-studio component
       httpTestingController
         .expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/configuration-schema`)
         .flush(fakeFlowConfigurationSchema());

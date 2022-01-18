@@ -15,6 +15,7 @@
  */
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
+import { ResourceServiceAbstract } from '@gravitee/ui-policy-studio-angular';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
@@ -30,7 +31,7 @@ interface ListParams {
 @Injectable({
   providedIn: 'root',
 })
-export class ResourceService {
+export class ResourceService implements ResourceServiceAbstract {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   list(params: ListParams): Observable<ResourceListItem[]> {
