@@ -15,9 +15,17 @@
  */
 package io.gravitee.reporter.file.formatter.msgpack;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.api.common.Request;
+import io.gravitee.reporter.api.common.Response;
+import io.gravitee.reporter.api.configuration.Rules;
+import io.gravitee.reporter.api.health.EndpointStatus;
+import io.gravitee.reporter.api.health.Step;
+import io.gravitee.reporter.api.jackson.FieldFilterMixin;
+import io.gravitee.reporter.api.jackson.FieldFilterProvider;
 import io.gravitee.reporter.file.formatter.AbstractFormatter;
 import io.vertx.core.buffer.Buffer;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
@@ -29,6 +37,16 @@ import org.msgpack.jackson.dataformat.MessagePackFactory;
 public class MsgPackFormatter<T extends Reportable> extends AbstractFormatter<T> {
 
     private final ObjectMapper mapper = new ObjectMapper(new MessagePackFactory());
+
+    public MsgPackFormatter(final Rules rules) {
+        mapper.addMixIn(Reportable.class, FieldFilterMixin.class);
+        mapper.addMixIn(Request.class, FieldFilterMixin.class);
+        mapper.addMixIn(Response.class, FieldFilterMixin.class);
+        mapper.addMixIn(EndpointStatus.class, FieldFilterMixin.class);
+        mapper.addMixIn(Step.class, FieldFilterMixin.class);
+        mapper.setFilterProvider(new FieldFilterProvider(rules));
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
 
     @Override
     public Buffer format0(T data) {

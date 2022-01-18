@@ -15,14 +15,23 @@
  */
 package io.gravitee.reporter.file.config;
 
+import io.gravitee.common.util.EnvironmentUtils;
+import io.gravitee.reporter.api.configuration.Rules;
+import io.gravitee.reporter.file.MetricsType;
 import io.gravitee.reporter.file.formatter.Type;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class FileReporterConfiguration {
+
+    private static final String FILE_REPORTER_PREFIX = "reporters.file.";
 
     /**
      *  Reporter file name.
@@ -36,6 +45,9 @@ public class FileReporterConfiguration {
     @Value("${reporters.file.flushInterval:1000}")
     private long flushInterval;
 
+    @Autowired
+    private ConfigurableEnvironment environment;
+
     public String getFilename() {
         return filename;
     }
@@ -46,5 +58,50 @@ public class FileReporterConfiguration {
 
     public long getFlushInterval() {
         return flushInterval;
+    }
+
+    public Rules getRules(MetricsType type) {
+        Rules rules = new Rules();
+
+        rules.setRenameFields(getMapProperties(FILE_REPORTER_PREFIX + type.getType() + ".rename"));
+        rules.setExcludeFields(getArrayProperties(FILE_REPORTER_PREFIX + type.getType() + ".exclude"));
+        rules.setIncludeFields(getArrayProperties(FILE_REPORTER_PREFIX + type.getType() + ".include"));
+
+        return rules;
+    }
+
+    private Map<String, String> getMapProperties(String prefix) {
+        Map<String, Object> properties = EnvironmentUtils.getPropertiesStartingWith(environment, prefix);
+        if (!properties.isEmpty()) {
+            return properties
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        entry -> entry.getKey().substring(EnvironmentUtils.encodedKey(prefix).length() + 1),
+                        entry -> entry.getValue().toString()
+                    )
+                );
+        } else {
+            return Collections.emptyMap();
+        }
+    }
+
+    private Set<String> getArrayProperties(String prefix) {
+        final Set<String> properties = new HashSet<>();
+
+        boolean found = true;
+        int idx = 0;
+
+        while (found) {
+            String property = environment.getProperty(prefix + '[' + idx++ + ']');
+            found = (property != null && !property.isEmpty());
+
+            if (found) {
+                properties.add(property);
+            }
+        }
+
+        return properties;
     }
 }

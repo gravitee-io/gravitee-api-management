@@ -66,7 +66,7 @@ public class FileReporter extends AbstractService implements Reporter {
         if (enabled) {
             // Initialize writers
             for (MetricsType type : MetricsType.values()) {
-                Formatter formatter = FormatterFactory.getFormatter(configuration.getOutputType());
+                Formatter formatter = FormatterFactory.getFormatter(configuration.getOutputType(), configuration.getRules(type));
                 applicationContext.getAutowireCapableBeanFactory().autowireBean(formatter);
 
                 writers.put(

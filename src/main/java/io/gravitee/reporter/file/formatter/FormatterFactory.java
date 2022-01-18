@@ -15,6 +15,7 @@
  */
 package io.gravitee.reporter.file.formatter;
 
+import io.gravitee.reporter.api.configuration.Rules;
 import io.gravitee.reporter.file.formatter.csv.CsvFormatter;
 import io.gravitee.reporter.file.formatter.elasticsearch.ElasticsearchFormatter;
 import io.gravitee.reporter.file.formatter.json.JsonFormatter;
@@ -26,18 +27,18 @@ import io.gravitee.reporter.file.formatter.msgpack.MsgPackFormatter;
  */
 public final class FormatterFactory {
 
-    public static Formatter getFormatter(Type type) {
+    public static Formatter getFormatter(Type type, Rules rules) {
         switch (type) {
             case CSV:
                 return new CsvFormatter();
             case MESSAGE_PACK:
-                return new MsgPackFormatter();
+                return new MsgPackFormatter(rules);
             case JSON:
-                return new JsonFormatter();
+                return new JsonFormatter(rules);
             case ELASTICSEARCH:
                 return new ElasticsearchFormatter();
         }
 
-        return new JsonFormatter();
+        return new JsonFormatter(rules);
     }
 }
