@@ -35,8 +35,7 @@ Hereafter available configuration parameters:
 
 Parameter name | Description                                            | Default value
 ---------------|--------------------------------------------------------|--------------
-`fileName`     | File name to write access logs                         | *access-yy_mm_dd.log*
-`append`       | Append to the existing file is necessary               | *true*
+`fileName`     | File name to write access logs (use '%s-yyyy_mm_dd' pattern to create one file per event type on daily base)                       | *#{systemProperties['gravitee.home']}/metrics/%s-yyyy_mm_dd}*
+`output`       | Type of output file (json, message_pack, elasticsearch, csv) | *json*
+`flushInterval` | interval between file flush (in ms)  | *1000*
 `retainDays`   | The number of days to retain files before deleting one | *0 (to retain forever)*
-`dateFormat`   | The date format used to write access logs              | *yyyy_MM_dd*
-`backupFormat` | The format for the file extension of backup files      | *HHmmssSSS*
