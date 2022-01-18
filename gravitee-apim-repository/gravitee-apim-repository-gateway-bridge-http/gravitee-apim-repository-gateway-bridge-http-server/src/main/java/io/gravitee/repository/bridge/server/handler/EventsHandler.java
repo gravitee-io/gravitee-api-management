@@ -197,6 +197,10 @@ public class EventsHandler extends AbstractHandler {
             propertiesObj.getMap().forEach(builder::property);
         }
 
+        String environmentId = payload.getString("environmentId");
+        if (environmentId != null) {
+            builder.environmentId(environmentId);
+        }
 
         Boolean strictMode = payload.getBoolean("strictMode");
         if (strictMode != null) {
