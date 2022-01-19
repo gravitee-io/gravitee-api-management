@@ -256,14 +256,6 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
     return this.curlExample ? '25vh' : '45vh';
   }
 
-  async loadApi(apiId: string) {
-    if (!this.apis.has(apiId)) {
-      const api = await this.apiService.getApiByApiId({ apiId }).toPromise();
-      this.apis.set(apiId, api);
-    }
-    return this.apis.get(apiId);
-  }
-
   async selectSubscriptions(application) {
     this.selectedApplicationId = application?.id;
     this.curlExample = null;
@@ -275,10 +267,9 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
         this.subscriptionsMetadata = { ...this.subscriptionsMetadata, ...metadata };
         const subscription = await Promise.all(
           data.map(async (applicationSubscription) => {
-            const api = await this.loadApi(applicationSubscription.api);
             return {
               subscription: applicationSubscription,
-              api,
+              api: this.subscriptionsMetadata[applicationSubscription.api],
               plan: this.subscriptionsMetadata[applicationSubscription.plan],
             };
           }),

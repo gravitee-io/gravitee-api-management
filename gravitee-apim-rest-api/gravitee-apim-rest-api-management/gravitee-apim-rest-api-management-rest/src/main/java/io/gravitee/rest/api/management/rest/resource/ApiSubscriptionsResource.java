@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -131,7 +132,15 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         PagedResult<SubscriptionEntity> result = new PagedResult<>(subscriptions, pageable.getSize());
-        result.setMetadata(subscriptionService.getMetadata(subscriptions.getContent()).getMetadata());
+        SubscriptionMetadataQuery subscriptionMetadataQuery = new SubscriptionMetadataQuery(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            subscriptions.getContent()
+        )
+            .withApis(true)
+            .withApplications(true)
+            .withPlans(true);
+        result.setMetadata(subscriptionService.getMetadata(subscriptionMetadataQuery).toMap());
         return result;
     }
 

@@ -20,6 +20,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.APPL
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.*;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -27,10 +28,7 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.management.model.ApplicationType;
-import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -38,6 +36,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -47,6 +46,7 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1155,31 +1155,110 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     @Override
-    public Metadata getMetadata(List<SubscriptionEntity> subscriptions) {
+    public Metadata getMetadata(SubscriptionMetadataQuery query) {
         Metadata metadata = new Metadata();
+        Collection<SubscriptionEntity> subscriptions = query.getSubscriptions();
+        String environment = query.getEnvironment();
+
+        final Optional<Map<String, ApplicationListItem>> applicationsById = query
+            .ifApplications()
+            .map(
+                withApplications -> {
+                    Set<String> appIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(toSet());
+                    return applicationService
+                        .findByIds(query.getOrganization(), query.getEnvironment(), appIds)
+                        .stream()
+                        .collect(Collectors.toMap(ApplicationListItem::getId, Function.identity()));
+                }
+            );
+
+        final Optional<Map<String, ApiEntity>> apisById = query
+            .ifApis()
+            .map(
+                withApis -> {
+                    Set<String> apiIds = subscriptions.stream().map(SubscriptionEntity::getApi).collect(toSet());
+                    return apiService
+                        .findByEnvironmentAndIdIn(environment, apiIds)
+                        .stream()
+                        .collect(Collectors.toMap(ApiEntity::getId, Function.identity()));
+                }
+            );
+
+        final Optional<Map<String, PlanEntity>> plansById = query
+            .ifPlans()
+            .map(
+                withPlans -> {
+                    Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlan).collect(toSet());
+                    return planService.findByIdIn(planIds).stream().collect(Collectors.toMap(PlanEntity::getId, Function.identity()));
+                }
+            );
+
+        final Optional<Map<String, UserEntity>> subscribersById = query
+            .ifSubscribers()
+            .map(
+                withSubscribers -> {
+                    Set<String> subscriberIds = subscriptions.stream().map(SubscriptionEntity::getSubscribedBy).collect(toSet());
+                    return userService.findByIds(subscriberIds).stream().collect(Collectors.toMap(UserEntity::getId, Function.identity()));
+                }
+            );
 
         subscriptions.forEach(
             subscription -> {
-                if (!metadata.containsKey(subscription.getApplication())) {
-                    ApplicationEntity applicationEntity = applicationService.findById(
-                        GraviteeContext.getCurrentEnvironment(),
-                        subscription.getApplication()
-                    );
-                    metadata.put(subscription.getApplication(), "name", applicationEntity.getName());
-                }
-
-                if (!metadata.containsKey(subscription.getPlan())) {
-                    PlanEntity planEntity = planService.findById(subscription.getPlan());
-                    metadata.put(subscription.getPlan(), "name", planEntity.getName());
-                }
-
-                if (!metadata.containsKey(subscription.getApi())) {
-                    ApiEntity api = apiService.findById(subscription.getApi());
-                    metadata.put(subscription.getApi(), "name", api.getName());
-                }
+                applicationsById.ifPresent(byId -> fillApplicationMetadata(byId, metadata, subscription));
+                apisById.ifPresent(byId -> fillApiMetadata(byId, metadata, subscription, query));
+                plansById.ifPresent(byId -> fillPlanMetadata(byId, metadata, subscription));
+                subscribersById.ifPresent(byId -> fillSubscribersMetadata(byId, metadata, subscription));
             }
         );
 
+        return metadata;
+    }
+
+    private Metadata fillApplicationMetadata(
+        Map<String, ApplicationListItem> applications,
+        Metadata metadata,
+        SubscriptionEntity subscription
+    ) {
+        if (applications.containsKey(subscription.getApplication())) {
+            ApplicationListItem application = applications.get(subscription.getApplication());
+            metadata.put(application.getId(), "name", application.getName());
+        }
+        return metadata;
+    }
+
+    private Metadata fillPlanMetadata(Map<String, PlanEntity> plans, Metadata metadata, SubscriptionEntity subscription) {
+        if (plans.containsKey(subscription.getPlan())) {
+            PlanEntity plan = plans.get(subscription.getPlan());
+            metadata.put(plan.getId(), "name", plan.getName());
+        }
+        return metadata;
+    }
+
+    private Metadata fillApiMetadata(
+        Map<String, ApiEntity> apis,
+        Metadata metadata,
+        SubscriptionEntity subscription,
+        SubscriptionMetadataQuery query
+    ) {
+        if (apis.containsKey(subscription.getApi())) {
+            ApiEntity api = apis.get(subscription.getApi());
+            metadata.put(api.getId(), "name", api.getName());
+            if (query.hasDetails()) {
+                metadata.put(api.getId(), "state", api.getLifecycleState());
+                metadata.put(api.getId(), "version", api.getVersion());
+                apiService.calculateEntrypoints(query.getEnvironment(), api);
+                metadata.put(api.getId(), "entrypoints", api.getEntrypoints());
+            }
+            query.getApiDelegate().forEach(delegate -> delegate.apply(metadata, api));
+        }
+        return metadata;
+    }
+
+    private Metadata fillSubscribersMetadata(Map<String, UserEntity> users, Metadata metadata, SubscriptionEntity subscription) {
+        if (users.containsKey(subscription.getSubscribedBy())) {
+            UserEntity user = users.get(subscription.getSubscribedBy());
+            metadata.put(user.getId(), "name", user.getDisplayName());
+        }
         return metadata;
     }
 

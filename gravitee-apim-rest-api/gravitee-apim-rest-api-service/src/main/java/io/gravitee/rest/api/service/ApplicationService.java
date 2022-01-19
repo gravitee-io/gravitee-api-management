@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Sortable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ import java.util.Set;
 public interface ApplicationService {
     ApplicationEntity findById(final String environment, String applicationId);
 
-    Set<ApplicationListItem> findByIds(final String organizationId, final String environmentId, List<String> applicationIds);
+    Set<ApplicationListItem> findByIds(final String organizationId, final String environmentId, Collection<String> applicationIds);
 
     default Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username) {
         return findByUser(organizationId, environmentId, username, null);

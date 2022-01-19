@@ -23,6 +23,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 import io.gravitee.common.data.domain.Page;
@@ -32,6 +33,7 @@ import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.model.*;
@@ -95,9 +97,14 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     public void shouldGetSubscriptionsForApi() {
         final ApplicationListItem application = new ApplicationListItem();
         application.setId(APPLICATION);
+
         doReturn(newSet(application))
             .when(applicationService)
             .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+
+        Metadata metadata = new Metadata();
+        metadata.put("api-id", "name", "My api");
+        doReturn(metadata).when(subscriptionService).getMetadata(any());
 
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -200,6 +207,10 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         doReturn(true)
             .when(permissionService)
             .hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
+
+        Metadata metadata = new Metadata();
+        metadata.put("api-id", "name", "My api");
+        doReturn(metadata).when(subscriptionService).getMetadata(any());
 
         assertEquals(OK_200, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
         assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());

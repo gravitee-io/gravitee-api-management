@@ -22,15 +22,17 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.PageEntity.PageRevisionId;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
+import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
@@ -125,12 +127,11 @@ public class SubscriptionsResource extends AbstractResource {
         @QueryParam("statuses") List<SubscriptionStatus> statuses,
         @BeanParam PaginationParam paginationParam
     ) {
-        final boolean withoutPagination = paginationParam.getSize() != null && paginationParam.getSize().equals(-1);
         final SubscriptionQuery query = new SubscriptionQuery();
         query.setApi(apiId);
         query.setApplication(applicationId);
+        query.setStatuses(statuses);
 
-        final Map<String, Map<String, Object>> metadata = new HashMap<>();
         if (applicationId == null) {
             final Set<ApplicationListItem> applications = applicationService.findByUser(
                 GraviteeContext.getCurrentOrganization(),
@@ -138,74 +139,59 @@ public class SubscriptionsResource extends AbstractResource {
                 getAuthenticatedUser()
             );
             if (applications == null || applications.isEmpty()) {
-                return createListResponse(emptyList(), paginationParam, !withoutPagination);
+                return createListResponse(emptyList(), paginationParam, paginationParam.hasPagination());
             }
             query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toSet()));
-            applications.forEach(
-                application -> {
-                    final Map<String, Object> m = new HashMap<>();
-                    m.put("name", application.getName());
-                    metadata.put(application.getId(), m);
-                }
-            );
         } else if (!hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();
         }
 
-        if (statuses != null && !statuses.isEmpty()) {
-            query.setStatuses(statuses);
+        final Collection<SubscriptionEntity> subscriptions = fetchSubscriptions(paginationParam, query);
+
+        if (subscriptions.isEmpty()) {
+            return createListResponse(subscriptions, paginationParam, null, paginationParam.hasPagination());
         }
 
-        final Collection<SubscriptionEntity> subscriptions;
-        if (withoutPagination) {
-            subscriptions = subscriptionService.search(query);
+        final List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::convert).collect(Collectors.toList());
+
+        SubscriptionMetadataQuery metadataQuery = new SubscriptionMetadataQuery(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            subscriptions
+        )
+            .withApis(true)
+            .withApplications(applicationId == null)
+            .withPlans(true)
+            .withSubscribers(true)
+            .includeDetails()
+            .fillApiMetadata(
+                (metadata, api) -> {
+                    String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
+                    ApiLinks apiLinks = apiMapper.computeApiLinks(apisURL, api.getUpdatedAt());
+                    metadata.put(api.getId(), "pictureUrl", apiLinks.getPicture());
+                    return api;
+                }
+            );
+
+        Metadata metadata = subscriptionService.getMetadata(metadataQuery);
+
+        return createListResponse(subscriptionList, paginationParam, metadata.toMap(), paginationParam.hasPagination());
+    }
+
+    private Collection<SubscriptionEntity> fetchSubscriptions(PaginationParam paginationParam, SubscriptionQuery query) {
+        if (paginationParam.hasPagination()) {
+            return subscriptionService.search(query);
         } else {
             final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(
                 query,
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
             );
             if (pagedSubscriptions == null) {
-                subscriptions = emptyList();
+                return emptyList();
             } else {
-                subscriptions = pagedSubscriptions.getContent();
+                return pagedSubscriptions.getContent();
             }
         }
-
-        final List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::convert).collect(Collectors.toList());
-
-        subscriptionList.forEach(
-            subscription -> {
-                final ApiEntity api = apiService.findById(subscription.getApi());
-                if (api != null) {
-                    final Map<String, Object> m = new HashMap<>();
-                    m.put("name", api.getName());
-                    m.put(
-                        "pictureUrl",
-                        apiMapper
-                            .computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), api.getUpdatedAt())
-                            .getPicture()
-                    );
-                    m.put("state", api.getLifecycleState());
-                    m.put("version", api.getVersion());
-                    m.put("entrypoints", api.getEntrypoints());
-                    metadata.put(api.getId(), m);
-                }
-                final PlanEntity plan = planService.findById(subscription.getPlan());
-                if (plan != null) {
-                    final Map<String, Object> m = new HashMap<>();
-                    m.put("name", plan.getName());
-                    metadata.put(plan.getId(), m);
-                }
-                final UserEntity user = userService.findById(subscription.getSubscribedBy(), true);
-                if (user != null) {
-                    final Map<String, Object> m = new HashMap<>();
-                    m.put("name", user.getDisplayName());
-                    metadata.put(user.getId(), m);
-                }
-            }
-        );
-
-        return createListResponse(subscriptionList, paginationParam, metadata, !withoutPagination);
     }
 
     @Path("{subscriptionId}")

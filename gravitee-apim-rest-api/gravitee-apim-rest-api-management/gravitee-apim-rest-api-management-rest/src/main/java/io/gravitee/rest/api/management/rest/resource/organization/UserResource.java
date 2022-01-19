@@ -166,7 +166,7 @@ public class UserResource extends AbstractResource {
         Metadata metadata = membershipService.findUserMembershipMetadata(userMemberships, type);
         UserMembershipList userMembershipList = new UserMembershipList();
         userMembershipList.setMemberships(userMemberships);
-        userMembershipList.setMetadata(metadata.getMetadata());
+        userMembershipList.setMetadata(metadata.toMap());
         return userMembershipList;
     }
 

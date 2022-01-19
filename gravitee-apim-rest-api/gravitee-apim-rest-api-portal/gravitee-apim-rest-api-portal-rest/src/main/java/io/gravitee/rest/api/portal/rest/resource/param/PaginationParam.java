@@ -49,4 +49,8 @@ public class PaginationParam {
     public void setSize(Integer size) {
         this.size = size;
     }
+
+    public boolean hasPagination() {
+        return this.getSize() != null && this.getSize().equals(-1);
+    }
 }

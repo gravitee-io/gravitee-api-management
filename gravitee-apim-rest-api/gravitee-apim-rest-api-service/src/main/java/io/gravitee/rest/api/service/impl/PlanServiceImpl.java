@@ -110,6 +110,15 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
+    public Set<PlanEntity> findByIdIn(Set<String> ids) {
+        try {
+            return planRepository.findByIdIn(ids).stream().map(this::convert).collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error has occurred retrieving plans by ids", e);
+        }
+    }
+
+    @Override
     public Set<PlanEntity> findByApi(String api) {
         try {
             logger.debug("Find plan by api : {}", api);

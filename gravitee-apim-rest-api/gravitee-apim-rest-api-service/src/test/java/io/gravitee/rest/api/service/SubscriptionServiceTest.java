@@ -19,8 +19,7 @@ import static io.gravitee.rest.api.service.impl.AbstractService.ENVIRONMENT_ADMI
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -37,6 +36,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -44,6 +45,7 @@ import io.gravitee.rest.api.service.impl.SubscriptionServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import java.util.*;
+import java.util.function.BiFunction;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1155,6 +1157,112 @@ public class SubscriptionServiceTest {
         assertEquals(2, page.getTotalElements());
         assertEquals("sub1", page.getContent().get(0).getId());
         assertEquals("sub3", page.getContent().get(1).getId());
+    }
+
+    @Test
+    public void shouldGetMetadataWithNoSubscriptions() {
+        SubscriptionMetadataQuery query = new SubscriptionMetadataQuery("DEFAULT", "DEFAULT", List.of());
+        Metadata metadata = subscriptionService.getMetadata(query);
+        assertNotNull(metadata);
+        assertTrue(metadata.toMap().isEmpty());
+    }
+
+    @Test
+    public void shouldGetAllMetadataWithSubscriptions() throws TechnicalException {
+        when(apiEntity.getId()).thenReturn(API_ID);
+        when(apiService.findByEnvironmentAndIdIn("DEFAULT", Set.of(API_ID))).thenReturn(Set.of(apiEntity));
+        final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
+        subscriptionEntity.setApplication(APPLICATION_ID);
+        subscriptionEntity.setApi(API_ID);
+        subscriptionEntity.setSubscribedBy(SUBSCRIBER_ID);
+        subscriptionEntity.setPlan(PLAN_ID);
+        SubscriptionMetadataQuery query = new SubscriptionMetadataQuery("DEFAULT", "DEFAULT", Arrays.asList(subscriptionEntity))
+            .withApplications(true)
+            .withPlans(true)
+            .withApis(true)
+            .withSubscribers(true)
+            .includeDetails();
+
+        Metadata metadata = subscriptionService.getMetadata(query);
+        assertFalse(metadata.toMap().isEmpty());
+
+        assertNotNull(metadata);
+        Mockito
+            .verify(applicationService, times(1))
+            .findByIds(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(Set.of(APPLICATION_ID))
+            );
+        Mockito.verify(apiService, times(1)).findByEnvironmentAndIdIn(eq(GraviteeContext.getCurrentEnvironment()), eq(Set.of(API_ID)));
+        Mockito.verify(planService, times(1)).findByIdIn(eq(Set.of(PLAN_ID)));
+        Mockito.verify(userService, times(1)).findByIds(eq(Set.of(SUBSCRIBER_ID)));
+        Mockito.verify(apiService, times(1)).calculateEntrypoints("DEFAULT", apiEntity);
+    }
+
+    @Test
+    public void shouldGetEmptyMetadataWithSubscriptions() throws TechnicalException {
+        final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
+        subscriptionEntity.setApplication(APPLICATION_ID);
+        subscriptionEntity.setApi(API_ID);
+        subscriptionEntity.setSubscribedBy(SUBSCRIBER_ID);
+        subscriptionEntity.setPlan(PLAN_ID);
+        SubscriptionMetadataQuery query = new SubscriptionMetadataQuery("DEFAULT", "DEFAULT", Arrays.asList(subscriptionEntity))
+            .withApplications(false)
+            .withPlans(false)
+            .withApis(false)
+            .withSubscribers(false)
+            .excludeDetails();
+
+        Metadata metadata = subscriptionService.getMetadata(query);
+
+        assertNotNull(metadata);
+        Mockito
+            .verify(applicationService, times(0))
+            .findByIds(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(Set.of(APPLICATION_ID))
+            );
+        Mockito.verify(apiService, times(0)).findByEnvironmentAndIdIn(eq(GraviteeContext.getCurrentEnvironment()), eq(Set.of(API_ID)));
+        Mockito.verify(planService, times(0)).findByIdIn(eq(Set.of(PLAN_ID)));
+        Mockito.verify(userService, times(0)).findByIds(eq(Set.of(SUBSCRIBER_ID)));
+        Mockito.verify(apiService, times(0)).calculateEntrypoints("DEFAULT", apiEntity);
+    }
+
+    @Test
+    public void shouldFillApiMetadataAfterService() throws TechnicalException {
+        when(apiEntity.getId()).thenReturn(API_ID);
+        when(apiService.findByEnvironmentAndIdIn("DEFAULT", Set.of(API_ID))).thenReturn(Set.of(apiEntity));
+        final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
+        subscriptionEntity.setApplication(APPLICATION_ID);
+        subscriptionEntity.setApi(API_ID);
+        subscriptionEntity.setSubscribedBy(SUBSCRIBER_ID);
+        subscriptionEntity.setPlan(PLAN_ID);
+        BiFunction<Metadata, ApiEntity, ApiEntity> delegate = mock(BiFunction.class);
+        SubscriptionMetadataQuery query = new SubscriptionMetadataQuery("DEFAULT", "DEFAULT", Arrays.asList(subscriptionEntity))
+            .withApis(true)
+            .fillApiMetadata(delegate);
+
+        Metadata metadata = subscriptionService.getMetadata(query);
+        assertFalse(metadata.toMap().isEmpty());
+
+        assertNotNull(metadata);
+        Mockito
+            .verify(applicationService, times(0))
+            .findByIds(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(Set.of(APPLICATION_ID))
+            );
+        Mockito.verify(apiService, times(1)).findByEnvironmentAndIdIn(eq(GraviteeContext.getCurrentEnvironment()), eq(Set.of(API_ID)));
+        Mockito.verify(planService, times(0)).findByIdIn(eq(Set.of(PLAN_ID)));
+        Mockito.verify(userService, times(0)).findByIds(eq(Set.of(SUBSCRIBER_ID)));
+        Mockito.verify(apiService, times(0)).calculateEntrypoints("DEFAULT", apiEntity);
+        Mockito.verify(delegate, times(1)).apply(any(Metadata.class), eq(apiEntity));
     }
 
     private ApiKeyEntity buildTestApiKeyForSubscription(String subscription) {

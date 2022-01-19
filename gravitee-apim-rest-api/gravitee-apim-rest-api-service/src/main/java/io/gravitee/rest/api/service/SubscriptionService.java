@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import java.util.Collection;
 import java.util.List;
@@ -70,7 +71,7 @@ public interface SubscriptionService {
 
     Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable);
 
-    Metadata getMetadata(List<SubscriptionEntity> subscriptions);
+    Metadata getMetadata(SubscriptionMetadataQuery query);
 
     SubscriptionEntity transfer(TransferSubscriptionEntity transferSubscription, String userId);
 

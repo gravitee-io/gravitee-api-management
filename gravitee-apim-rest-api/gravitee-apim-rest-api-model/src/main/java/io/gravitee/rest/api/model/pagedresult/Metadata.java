@@ -26,7 +26,7 @@ public class Metadata {
 
     private Map<String, Map<String, Object>> metadata = new HashMap<>();
 
-    public Map<String, Map<String, Object>> getMetadata() {
+    public Map<String, Map<String, Object>> toMap() {
         return metadata;
     }
 

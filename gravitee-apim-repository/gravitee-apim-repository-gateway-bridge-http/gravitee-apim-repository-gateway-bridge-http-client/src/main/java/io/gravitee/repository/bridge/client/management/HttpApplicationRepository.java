@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -61,12 +62,12 @@ public class HttpApplicationRepository extends AbstractRepository implements App
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids) {
+    public Set<Application> findByIds(Collection<String> ids) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids, Sortable sortable) {
+    public Set<Application> findByIds(Collection<String> ids, Sortable sortable) {
         throw new IllegalStateException();
     }
 
