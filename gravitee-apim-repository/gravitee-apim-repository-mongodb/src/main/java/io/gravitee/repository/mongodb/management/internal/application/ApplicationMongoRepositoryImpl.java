@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -81,7 +82,7 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
     }
 
     @Override
-    public Set<ApplicationMongo> findByIds(List<String> ids, Sortable sortable) {
+    public Set<ApplicationMongo> findByIds(Collection<String> ids, Sortable sortable) {
         Query query = new Query();
         query.addCriteria(Criteria.where("id").in(ids));
         if (sortable != null && StringUtils.isNotEmpty(sortable.field())) {

@@ -767,7 +767,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiEntity apiEntity = convert(api, getPrimaryOwner(api), null);
 
         // Compute entrypoints
-        calculateEntrypoints(apiEntity, api.getEnvironmentId());
+        calculateEntrypoints(api.getEnvironmentId(), apiEntity);
 
         return apiEntity;
     }
@@ -795,11 +795,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return this.getPrimaryOwner(api.getId());
     }
 
-    private void calculateEntrypoints(ApiEntity api, String environmentId) {
+    public void calculateEntrypoints(String environment, ApiEntity api) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
         if (api.getProxy() != null) {
-            String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT, environmentId, ParameterReferenceType.ENVIRONMENT);
+            String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT, environment, ParameterReferenceType.ENVIRONMENT);
             final String scheme = getScheme(defaultEntrypoint);
             if (api.getTags() != null && !api.getTags().isEmpty()) {
                 List<EntrypointEntity> entrypoints = entrypointService.findByReference(
@@ -908,6 +908,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs for environment {}", environmentId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs for environment", ex);
+        }
+    }
+
+    @Override
+    public Set<ApiEntity> findByEnvironmentAndIdIn(String environmentId, Set<String> ids) {
+        LOGGER.debug("Find APIs by environment {} and ID in {}", environmentId, ids);
+        try {
+            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId(environmentId).build();
+            return new HashSet<>(convert(apiRepository.search(criteria)));
+        } catch (TechnicalException e) {
+            LOGGER.error("An error occurs while trying to find APIs by environment and ids", e);
+            throw new TechnicalManagementException("An error occurs while trying to find APIs by environment and ids", e);
         }
     }
 

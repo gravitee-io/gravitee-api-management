@@ -31,6 +31,8 @@ import java.util.Set;
 public interface PlanService {
     PlanEntity findById(String plan);
 
+    Set<PlanEntity> findByIdIn(Set<String> ids);
+
     Set<PlanEntity> findByApi(String api);
 
     List<PlanEntity> search(PlanQuery query);

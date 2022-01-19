@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -62,12 +63,12 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids) throws TechnicalException {
+    public Set<Application> findByIds(Collection<String> ids) throws TechnicalException {
         return target.findByIds(ids);
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids, Sortable sortable) throws TechnicalException {
+    public Set<Application> findByIds(Collection<String> ids, Sortable sortable) throws TechnicalException {
         return target.findByIds(ids, sortable);
     }
 

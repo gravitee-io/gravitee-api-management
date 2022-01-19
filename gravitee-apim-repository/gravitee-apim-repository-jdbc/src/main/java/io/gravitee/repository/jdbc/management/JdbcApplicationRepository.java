@@ -221,12 +221,12 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids) throws TechnicalException {
+    public Set<Application> findByIds(Collection<String> ids) throws TechnicalException {
         return this.findByIds(ids, null);
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids, Sortable sortable) throws TechnicalException {
+    public Set<Application> findByIds(Collection<String> ids, Sortable sortable) throws TechnicalException {
         LOGGER.debug("JdbcApplicationRepository.findByIds({}, {})", ids, sortable);
         try {
             if (isEmpty(ids)) {

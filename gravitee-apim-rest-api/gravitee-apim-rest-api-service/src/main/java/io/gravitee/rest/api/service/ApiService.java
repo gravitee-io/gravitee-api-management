@@ -43,6 +43,8 @@ public interface ApiService {
 
     Set<ApiEntity> findAllByEnvironment(String environment);
 
+    Set<ApiEntity> findByEnvironmentAndIdIn(String environment, Set<String> ids);
+
     default Set<ApiEntity> findAllLightByEnvironment(String environmentId) {
         return findAllLightByEnvironment(environmentId, true);
     }
@@ -191,4 +193,6 @@ public interface ApiService {
     void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans);
 
     Map<String, Long> countPublishedByUserGroupedByCategories(String userId);
+
+    void calculateEntrypoints(String environment, ApiEntity api);
 }

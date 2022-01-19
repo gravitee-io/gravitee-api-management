@@ -99,12 +99,12 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids) {
+    public Set<Application> findByIds(Collection<String> ids) {
         return mapApplications(internalApplicationRepo.findByIds(ids));
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids, Sortable sortable) {
+    public Set<Application> findByIds(Collection<String> ids, Sortable sortable) {
         return mapApplications(internalApplicationRepo.findByIds(ids, sortable));
     }
 

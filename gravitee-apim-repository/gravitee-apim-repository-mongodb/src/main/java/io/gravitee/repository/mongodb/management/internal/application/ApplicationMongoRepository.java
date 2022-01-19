@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.application;
 
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom {
-    default Set<ApplicationMongo> findByIds(List<String> ids) {
+    default Set<ApplicationMongo> findByIds(Collection<String> ids) {
         return this.findByIds(ids, null);
     }
 

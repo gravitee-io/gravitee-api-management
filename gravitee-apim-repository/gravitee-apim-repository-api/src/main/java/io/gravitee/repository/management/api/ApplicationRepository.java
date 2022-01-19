@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -51,7 +52,7 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @param ids a list of applications id
      * @return List Applications
      */
-    Set<Application> findByIds(List<String> ids) throws TechnicalException;
+    Set<Application> findByIds(Collection<String> ids) throws TechnicalException;
 
     /**
      * find a list of Applications via their ids.
@@ -59,7 +60,7 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @param sortable a sortable
      * @return List Applications sort with sortable parameter.
      */
-    Set<Application> findByIds(List<String> ids, Sortable sortable) throws TechnicalException;
+    Set<Application> findByIds(Collection<String> ids, Sortable sortable) throws TechnicalException;
 
     /**
      * find applications by their groups
