@@ -17,38 +17,38 @@ package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.policy.PolicyFactory;
+import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.tracing.TracingPolicyPluginFactory;
+import io.gravitee.node.api.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyFactoryCreator implements FactoryBean<PolicyFactory> {
+public class PolicyFactoryCreatorImpl implements PolicyFactoryCreator {
 
-    private final Logger logger = LoggerFactory.getLogger(PolicyFactoryCreator.class);
+    private final Logger logger = LoggerFactory.getLogger(PolicyFactoryCreatorImpl.class);
 
-    private final Environment environment;
+    private final Configuration configuration;
     private final PolicyPluginFactory policyPluginFactory;
     private final ConditionEvaluator<String> conditionEvaluator;
 
-    public PolicyFactoryCreator(
-        final Environment environment,
+    public PolicyFactoryCreatorImpl(
+        final Configuration configuration,
         final PolicyPluginFactory policyPluginFactory,
         ConditionEvaluator<String> conditionEvaluator
     ) {
-        this.environment = environment;
+        this.configuration = configuration;
         this.policyPluginFactory = policyPluginFactory;
         this.conditionEvaluator = conditionEvaluator;
     }
 
     @Override
-    public PolicyFactory getObject() {
-        boolean tracing = environment.getProperty("services.tracing.enabled", Boolean.class, false);
+    public PolicyFactory create() {
+        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
 
         if (tracing) {
             logger.debug("Tracing is enabled, looking to decorate all policies...");
@@ -58,15 +58,5 @@ public class PolicyFactoryCreator implements FactoryBean<PolicyFactory> {
             ? new TracingPolicyPluginFactory(policyPluginFactory, conditionEvaluator)
             : new PolicyFactoryImpl(policyPluginFactory, conditionEvaluator);
         return new CachedPolicyFactory(policyFactory);
-    }
-
-    @Override
-    public Class<?> getObjectType() {
-        return PolicyFactory.class;
-    }
-
-    @Override
-    public boolean isSingleton() {
-        return true;
     }
 }

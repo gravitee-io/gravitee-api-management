@@ -15,20 +15,34 @@
  */
 package io.gravitee.gateway.debug;
 
+import io.gravitee.gateway.core.classloader.DefaultClassLoader;
+import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.debug.policy.impl.PolicyDebugDecoratorFactoryCreator;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import io.gravitee.gateway.handlers.api.ApiContextHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.platform.PlatformPolicyManager;
+import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.policy.PolicyFactoryCreator;
+import io.gravitee.gateway.policy.PolicyPluginFactory;
+import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
+import io.gravitee.plugin.policy.PolicyPlugin;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.ResolvableType;
 
 @Configuration
 public class DebugConfiguration {
@@ -55,9 +69,19 @@ public class DebugConfiguration {
     }
 
     @Bean
+    @Qualifier("debugPolicyFactoryCreator")
+    public PolicyFactoryCreator debugPolicyFactoryCreator(final PolicyPluginFactory policyPluginFactory) {
+        return new PolicyDebugDecoratorFactoryCreator(
+            new PolicyFactoryCreatorImpl(configuration, policyPluginFactory, new ExpressionLanguageStringConditionEvaluator())
+        );
+    }
+
+    @Bean
     @Qualifier("debugReactorHandlerFactory")
-    public ReactorHandlerFactory<Api> reactorHandlerFactory() {
-        return new ApiContextHandlerFactory(applicationContext.getParent(), configuration, node);
+    public ReactorHandlerFactory<Api> reactorHandlerFactory(
+        @Qualifier("debugPolicyFactoryCreator") PolicyFactoryCreator policyFactoryCreator
+    ) {
+        return new ApiContextHandlerFactory(applicationContext.getParent(), configuration, node, policyFactoryCreator);
     }
 
     @Bean
@@ -80,5 +104,35 @@ public class DebugConfiguration {
         @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry
     ) {
         return new DefaultEntrypointResolver(reactorHandlerRegistry);
+    }
+
+    @Bean
+    @Qualifier("debugPlatformPolicyManager")
+    public PlatformPolicyManager platformPolicyManager(
+        @Qualifier("debugPolicyFactoryCreator") PolicyFactoryCreator factory,
+        PolicyConfigurationFactory policyConfigurationFactory,
+        PolicyClassLoaderFactory policyClassLoaderFactory,
+        ResourceLifecycleManager resourceLifecycleManager,
+        ComponentProvider componentProvider
+    ) {
+        final ApplicationContext contextParent = applicationContext.getParent();
+        String[] beanNamesForType = contextParent.getBeanNamesForType(
+            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
+        );
+
+        ConfigurablePluginManager<PolicyPlugin<?>> cpm = (ConfigurablePluginManager<PolicyPlugin<?>>) contextParent.getBean(
+            beanNamesForType[0]
+        );
+
+        return new PlatformPolicyManager(
+            configuration.getProperty("classloader.legacy.enabled", Boolean.class, false),
+            contextParent.getBean(DefaultClassLoader.class),
+            factory.create(),
+            policyConfigurationFactory,
+            cpm,
+            policyClassLoaderFactory,
+            resourceLifecycleManager,
+            componentProvider
+        );
     }
 }

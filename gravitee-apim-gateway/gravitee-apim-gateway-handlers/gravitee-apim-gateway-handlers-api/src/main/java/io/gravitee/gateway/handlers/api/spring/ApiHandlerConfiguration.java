@@ -27,8 +27,9 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
+import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
-import io.gravitee.gateway.policy.impl.PolicyFactoryCreator;
+import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -89,8 +90,8 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public PolicyFactoryCreator policyFactoryFactoryBean(final Environment environment, final PolicyPluginFactory policyPluginFactory) {
-        return new PolicyFactoryCreator(environment, policyPluginFactory, new ExpressionLanguageStringConditionEvaluator());
+    public PolicyFactoryCreator policyFactoryCreator(final PolicyPluginFactory policyPluginFactory) {
+        return new PolicyFactoryCreatorImpl(configuration, policyPluginFactory, new ExpressionLanguageStringConditionEvaluator());
     }
 
     @Bean
@@ -109,7 +110,7 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ReactorHandlerFactory<Api> reactorHandlerFactory() {
-        return new ApiContextHandlerFactory(applicationContext, configuration, node);
+    public ReactorHandlerFactory<Api> reactorHandlerFactory(PolicyFactoryCreator policyFactoryCreator) {
+        return new ApiContextHandlerFactory(applicationContext, configuration, node, policyFactoryCreator);
     }
 }
