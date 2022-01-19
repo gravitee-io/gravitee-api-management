@@ -24,6 +24,7 @@ import io.gravitee.gateway.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,9 @@ public class ResponseProcessorChainFactory {
     private String port;
 
     public Processor<ExecutionContext> create() {
-        List<Processor<ExecutionContext>> processors = Arrays.asList(new ResponseTimeProcessor(), new ReporterProcessor(reporterService));
+        List<Processor<ExecutionContext>> processors = new ArrayList<>(
+            Arrays.asList(new ResponseTimeProcessor(), new ReporterProcessor(reporterService))
+        );
 
         if (!eventProducer.isEmpty()) {
             processors.add(new AlertProcessor(eventProducer, node, port));
