@@ -23,11 +23,11 @@
     <parent>
         <groupId>io.gravitee.apim.repository</groupId>
         <artifactId>gravitee-apim-repository</artifactId>
-        <version>3.5.29-SNAPSHOT</version>
+        <version>3.5.29</version>
     </parent>
 
     <artifactId>gravitee-apim-repository-mongodb</artifactId>
-    <version>3.5.29-SNAPSHOT</version>
+    <version>3.5.29</version>
     <name>Gravitee.io APIM - Repository - MongoDB</name>
 
     <properties>
