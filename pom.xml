@@ -95,7 +95,7 @@
         <imageio.version>3.7.0</imageio.version>
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
         <java-jwt.version>3.10.2</java-jwt.version>
-        <javassist.version>3.27.0-GA</javassist.version>
+        <javassist.version>3.28.0-GA</javassist.version>
         <javax.activation-api.version>1.2.0</javax.activation-api.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
         <javax.inject.version>1</javax.inject.version>
@@ -784,6 +784,7 @@
                         <ts>SLASHSTAR_STYLE</ts>
                         <js>SLASHSTAR_STYLE</js>
                     </mapping>
+                    <skip>${skip.validation}</skip>
                 </configuration>
                 <executions>
                     <execution>

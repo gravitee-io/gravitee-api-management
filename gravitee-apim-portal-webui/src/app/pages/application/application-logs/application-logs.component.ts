@@ -221,17 +221,15 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
   _onPaginate({ page }) {
-    if (this.paginationData.current_page !== page) {
-      const queryParams: any = {};
-      queryParams[SearchQueryParam.PAGE] = page;
-      queryParams[SearchQueryParam.SIZE] = this.size;
-      queryParams.log = null;
-      this.router.navigate([], {
-        queryParams,
-        queryParamsHandling: 'merge',
-        fragment: this.analyticsService.fragment,
-      });
-    }
+    const queryParams: any = {};
+    queryParams[SearchQueryParam.PAGE] = page;
+    queryParams[SearchQueryParam.SIZE] = this.size;
+    queryParams.log = null;
+    this.router.navigate([], {
+      queryParams,
+      queryParamsHandling: 'merge',
+      fragment: this.analyticsService.fragment,
+    });
   }
 
   @HostListener(':gv-table:sort', ['$event.detail'])

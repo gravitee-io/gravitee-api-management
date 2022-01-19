@@ -17,6 +17,7 @@ package io.gravitee.repository.config.mock;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
+import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
@@ -372,5 +373,33 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
 
         when(eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.DICTIONARY_ID, null, null))
             .thenReturn(Arrays.asList(event13, event8));
+
+        when(
+            eventRepository.searchLatest(
+                new EventCriteria.Builder()
+                    .property(Event.EventProperties.API_ID.getValue(), "api-1")
+                    .types(EventType.START_API, EventType.PUBLISH_API)
+                    .strictMode(true)
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                10L
+            )
+        )
+            .thenReturn(EMPTY_LIST);
+
+        when(
+            eventRepository.searchLatest(
+                new EventCriteria.Builder()
+                    .property(Event.EventProperties.API_ID.getValue(), "api-1")
+                    .types(EventType.START_API, EventType.PUBLISH_API)
+                    .strictMode(false)
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                10L
+            )
+        )
+            .thenReturn(singletonList(event1));
     }
 }

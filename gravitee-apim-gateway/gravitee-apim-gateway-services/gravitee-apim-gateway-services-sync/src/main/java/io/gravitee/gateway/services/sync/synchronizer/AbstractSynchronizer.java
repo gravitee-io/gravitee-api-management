@@ -68,6 +68,7 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
         int bulkSize,
         Long from,
         Long to,
+        boolean strictMode,
         Event.EventProperties group,
         List<String> environments,
         EventType... eventTypes
@@ -80,6 +81,7 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
                         .types(eventTypes)
                         .from(from == null ? 0 : from - TIMEFRAME_BEFORE_DELAY)
                         .to(to == null ? 0 : to + TIMEFRAME_AFTER_DELAY)
+                        .strictMode(strictMode)
                         .environments(environments)
                         .build();
 

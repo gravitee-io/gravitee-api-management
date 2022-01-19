@@ -56,68 +56,74 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
 
     @Override
     protected SwaggerApiEntity fill(SwaggerApiEntity apiEntity, OpenAPI oai) {
-        // flows
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
 
-        if (swaggerDescriptor.isWithPolicyPaths()) {
-            List<Flow> allFlows = new ArrayList();
+        List<Flow> allFlows = new ArrayList();
+        Set<String> pathMappings = new HashSet();
+
+        if (swaggerDescriptor.isWithPolicyPaths() || swaggerDescriptor.isWithPathMapping()) {
             oai
                 .getPaths()
                 .forEach(
                     (key, pathItem) -> {
-                        String path = key.replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
+                        String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
+                        if (swaggerDescriptor.isWithPathMapping()) {
+                            pathMappings.add(path);
+                        }
 
-                        Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
-                        operations.forEach(
-                            (httpMethod, operation) -> {
-                                final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
+                        if (swaggerDescriptor.isWithPolicyPaths()) {
+                            Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
+                            operations.forEach(
+                                (httpMethod, operation) -> {
+                                    final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
 
-                                getVisitors()
-                                    .forEach(
-                                        (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
-                                            Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
-                                            if (policy.isPresent()) {
-                                                final Step step = new Step();
-                                                step.setName(policy.get().getName());
-                                                step.setEnabled(true);
-                                                step.setDescription(
-                                                    operation.getSummary() == null
-                                                        ? (
-                                                            operation.getOperationId() == null
-                                                                ? operation.getDescription()
-                                                                : operation.getOperationId()
-                                                        )
-                                                        : operation.getSummary()
-                                                );
+                                    getVisitors()
+                                        .forEach(
+                                            (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
+                                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                                                if (policy.isPresent()) {
+                                                    final Step step = new Step();
+                                                    step.setName(policy.get().getName());
+                                                    step.setEnabled(true);
+                                                    step.setDescription(
+                                                        operation.getSummary() == null
+                                                            ? (
+                                                                operation.getOperationId() == null
+                                                                    ? operation.getDescription()
+                                                                    : operation.getOperationId()
+                                                            )
+                                                            : operation.getSummary()
+                                                    );
 
-                                                step.setPolicy(policy.get().getName());
-                                                String configuration = clearNullValues(policy.get().getConfiguration());
-                                                step.setConfiguration(configuration);
+                                                    step.setPolicy(policy.get().getName());
+                                                    String configuration = clearNullValues(policy.get().getConfiguration());
+                                                    step.setConfiguration(configuration);
 
-                                                String scope = getScope(configuration);
-                                                if (scope != null && scope.toLowerCase().equals("response")) {
-                                                    flow.getPost().add(step);
-                                                } else {
-                                                    flow.getPre().add(step);
+                                                    String scope = getScope(configuration);
+                                                    if (scope != null && scope.toLowerCase().equals("response")) {
+                                                        flow.getPost().add(step);
+                                                    } else {
+                                                        flow.getPre().add(step);
+                                                    }
                                                 }
                                             }
-                                        }
-                                    );
-                                allFlows.add(flow);
-                            }
-                        );
+                                        );
+                                    allFlows.add(flow);
+                                }
+                            );
+                        }
                     }
                 );
-            apiEntity.setFlows(allFlows);
-            if (swaggerDescriptor.isWithPathMapping() && allFlows.size() > 0) {
-                apiEntity.setPathMappings(allFlows.stream().map(flow -> flow.getPath()).collect(Collectors.toSet()));
-            }
         }
 
-        final String defaultDeclaredPath = "/";
-        if (!swaggerDescriptor.isWithPathMapping()) {
-            apiEntity.setPathMappings(singleton(defaultDeclaredPath));
+        // Path Mappings
+        if (pathMappings.isEmpty()) {
+            final String defaultDeclaredPath = "/";
+            pathMappings.add(defaultDeclaredPath);
         }
+
+        apiEntity.setFlows(allFlows);
+        apiEntity.setPathMappings(pathMappings);
 
         return apiEntity;
     }

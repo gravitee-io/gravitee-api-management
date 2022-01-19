@@ -62,6 +62,8 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
     private static final String PICTURE_REGEX = "^data:image/[\\w]+;base64,.*$";
 
+    protected static final Pattern PATH_PARAMS_PATTERN = Pattern.compile("\\{(.[^/\\}]*)\\}");
+
     private Collection<? extends OAIOperationVisitor> visitors;
     protected final ImportSwaggerDescriptorEntity swaggerDescriptor;
     private final PolicyOperationVisitorManager policyOperationVisitorManager;
@@ -284,75 +286,76 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
     protected SwaggerApiEntity fill(final SwaggerApiEntity apiEntity, OpenAPI oai) {
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
 
-        if (swaggerDescriptor.isWithPolicyPaths()) {
-            // Paths
-            Map<String, List<Rule>> paths = new HashMap<>();
+        Map<String, List<Rule>> paths = new HashMap<>();
+        Set<String> pathMappings = new HashSet();
 
+        if (swaggerDescriptor.isWithPolicyPaths() || swaggerDescriptor.isWithPathMapping()) {
             oai
                 .getPaths()
                 .entrySet()
                 .forEach(
                     entry -> {
-                        String path = entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
+                        String pathString = PATH_PARAMS_PATTERN.matcher(entry.getKey()).replaceAll(":$1");
+                        if (swaggerDescriptor.isWithPathMapping()) {
+                            pathMappings.add(pathString);
+                        }
 
-                        Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
-                        List<Rule> rules = new ArrayList<>();
+                        if (swaggerDescriptor.isWithPolicyPaths()) {
+                            Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
+                            List<Rule> rules = new ArrayList<>();
 
-                        operations.forEach(
-                            (httpMethod, operation) ->
-                                getVisitors()
-                                    .forEach(
-                                        (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
-                                            // Consider only policy visitor for now
-                                            Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                            operations.forEach(
+                                (httpMethod, operation) ->
+                                    getVisitors()
+                                        .forEach(
+                                            (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
+                                                // Consider only policy visitor for now
+                                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
 
-                                            if (policy.isPresent()) {
-                                                final Rule rule = new Rule();
-                                                rule.setEnabled(true);
-                                                rule.setDescription(
-                                                    operation.getSummary() == null
-                                                        ? (
-                                                            operation.getOperationId() == null
-                                                                ? operation.getDescription()
-                                                                : operation.getOperationId()
-                                                        )
-                                                        : operation.getSummary()
-                                                );
-                                                rule.setMethods(singleton(HttpMethod.valueOf(httpMethod.name())));
+                                                if (policy.isPresent()) {
+                                                    final Rule rule = new Rule();
+                                                    rule.setEnabled(true);
+                                                    rule.setDescription(
+                                                        operation.getSummary() == null
+                                                            ? (
+                                                                operation.getOperationId() == null
+                                                                    ? operation.getDescription()
+                                                                    : operation.getOperationId()
+                                                            )
+                                                            : operation.getSummary()
+                                                    );
+                                                    rule.setMethods(singleton(HttpMethod.valueOf(httpMethod.name())));
 
-                                                io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
-                                                defPolicy.setName(policy.get().getName());
-                                                defPolicy.setConfiguration(clearNullValues(policy.get().getConfiguration()));
-                                                rule.setPolicy(defPolicy);
-                                                rules.add(rule);
+                                                    io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
+                                                    defPolicy.setName(policy.get().getName());
+                                                    defPolicy.setConfiguration(clearNullValues(policy.get().getConfiguration()));
+                                                    rule.setPolicy(defPolicy);
+                                                    rules.add(rule);
+                                                }
                                             }
-                                        }
-                                    )
-                        );
-                        paths.put(path, rules);
+                                        )
+                            );
+
+                            paths.put(pathString, rules);
+                        }
                     }
                 );
-
-            apiEntity.setPaths(paths);
-        }
-
-        // Path Mappings
-        if (apiEntity.getPaths() != null) {
-            apiEntity.setPathMappings(apiEntity.getPaths().keySet());
         }
 
         final String defaultDeclaredPath = "/";
-        Map<String, List<Rule>> paths = new HashMap<>();
 
-        paths.put(defaultDeclaredPath, new ArrayList<>());
-
-        if (!swaggerDescriptor.isWithPolicyPaths()) {
-            apiEntity.setPaths(paths);
+        // Path
+        if (paths.isEmpty()) {
+            paths.put(defaultDeclaredPath, new ArrayList<>());
         }
 
-        if (!swaggerDescriptor.isWithPathMapping()) {
-            apiEntity.setPathMappings(singleton(defaultDeclaredPath));
+        // Path Mappings
+        if (pathMappings.isEmpty()) {
+            pathMappings.add(defaultDeclaredPath);
         }
+
+        apiEntity.setPaths(paths);
+        apiEntity.setPathMappings(pathMappings);
 
         return apiEntity;
     }

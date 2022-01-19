@@ -43,11 +43,25 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         Aggregation aggregation;
         List<AggregationOperation> aggregationOperations = new ArrayList<>();
 
-        aggregationOperations.add(Aggregation.match(Criteria.where("properties." + group.getValue()).exists(true)));
-        List<Criteria> criteriaList = buildDBCriteria(criteria);
-        // Match criteria.
-        if (!criteriaList.isEmpty()) {
-            aggregationOperations.add(Aggregation.match(new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))));
+        if (criteria.isStrictMode()) {
+            // Filter on group property.
+            if (criteria.getFrom() != 0) {
+                // When a 'from' date is specified we can optimize the pipeline by filtering event on 'updatedAt' field and avoid executing the grouping step on all events.
+                aggregationOperations.add(
+                    Aggregation.match(
+                        Criteria.where("properties." + group.getValue()).exists(true).and("updatedAt").gte(new Date(criteria.getFrom()))
+                    )
+                );
+            } else {
+                aggregationOperations.add(Aggregation.match(Criteria.where("properties." + group.getValue()).exists(true)));
+            }
+        } else {
+            aggregationOperations.add(Aggregation.match(Criteria.where("properties." + group.getValue()).exists(true)));
+            List<Criteria> criteriaList = buildDBCriteria(criteria);
+            // Match criteria.
+            if (!criteriaList.isEmpty()) {
+                aggregationOperations.add(Aggregation.match(new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))));
+            }
         }
 
         // Sort.
@@ -58,6 +72,15 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
         // Extract result.
         aggregationOperations.add(Aggregation.replaceRoot("doc"));
+
+        if (criteria.isStrictMode()) {
+            List<Criteria> criteriaList = buildDBCriteria(criteria);
+
+            // Match criteria.
+            if (!criteriaList.isEmpty()) {
+                aggregationOperations.add(Aggregation.match(new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))));
+            }
+        }
 
         // Sort
         aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt", "_id"));

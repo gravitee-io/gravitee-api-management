@@ -830,8 +830,10 @@
     }
   },
   "gv-pagination": {
+    "goTo": "Aller à la page",
     "next": "Suivant",
-    "previous": "Précédent"
+    "previous": "Précédent",
+    "results": "{count, plural, =0{Aucun résultat} one{{count} résultat} other{{count} résultats}}"
   },
   "gv-plans": {
     "characteristics": {

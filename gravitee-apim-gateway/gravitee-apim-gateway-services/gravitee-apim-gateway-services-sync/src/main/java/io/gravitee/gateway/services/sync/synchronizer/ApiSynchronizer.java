@@ -78,6 +78,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                         bulkItems,
                         lastRefreshAt,
                         nextLastRefreshAt,
+                        true,
                         API_ID,
                         environments,
                         EventType.PUBLISH_API,
@@ -102,7 +103,16 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      */
     private long initialSynchronizeApis(long nextLastRefreshAt, List<String> environments) {
         final Long count =
-            this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
+            this.searchLatestEvents(
+                    bulkItems,
+                    null,
+                    nextLastRefreshAt,
+                    true,
+                    API_ID,
+                    environments,
+                    EventType.PUBLISH_API,
+                    EventType.START_API
+                )
                 .compose(this::processApiRegisterEvents)
                 .count()
                 .blockingGet();

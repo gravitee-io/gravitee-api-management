@@ -26,6 +26,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.VirtualHost;
@@ -71,6 +72,10 @@ public class SwaggerService_CreateAPITest {
     @InjectMocks
     protected SwaggerServiceImpl swaggerService;
 
+    protected DefinitionVersion getDefinitionVersion() {
+        return DefinitionVersion.V1;
+    }
+
     @Before
     public void setup() {
         PolicyOperationVisitor swaggerPolicyOperationVisitor = mock(PolicyOperationVisitor.class);
@@ -108,7 +113,7 @@ public class SwaggerService_CreateAPITest {
     // Swagger v1
     @Test
     public void shouldPrepareAPIFromSwaggerV1_URL_json() throws IOException {
-        validate(prepareUrl("io/gravitee/rest/api/management/service/swagger-v1.json"));
+        validate(prepareUrl("io/gravitee/rest/api/management/service/swagger-v1.json", true, true));
     }
 
     @Test
@@ -119,7 +124,7 @@ public class SwaggerService_CreateAPITest {
     // Swagger v2
     @Test
     public void shouldPrepareAPIFromSwaggerV2_URL_json() throws IOException {
-        validate(prepareUrl("io/gravitee/rest/api/management/service/swagger-v2.json"));
+        validate(prepareUrl("io/gravitee/rest/api/management/service/swagger-v2.json", true, true));
     }
 
     @Test
@@ -129,14 +134,18 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV2_URL_json_extensions() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl("io/gravitee/rest/api/management/service/swagger-withExtensions-v2.json");
+        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
+            "io/gravitee/rest/api/management/service/swagger-withExtensions-v2.json",
+            true,
+            true
+        );
         validate(swaggerApiEntity);
         validateExtensions(swaggerApiEntity);
     }
 
     @Test
     public void shouldPrepareAPIFromSwaggerV2_URL_yaml() throws IOException {
-        validate(prepareUrl("io/gravitee/rest/api/management/service/swagger-v2.yaml"));
+        validate(prepareUrl("io/gravitee/rest/api/management/service/swagger-v2.yaml", true, true));
     }
 
     @Test
@@ -146,7 +155,11 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV2_URL_yaml_extensions() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl("io/gravitee/rest/api/management/service/swagger-withExtensions-v2.yaml");
+        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
+            "io/gravitee/rest/api/management/service/swagger-withExtensions-v2.yaml",
+            true,
+            true
+        );
         validate(swaggerApiEntity);
         validateExtensions(swaggerApiEntity);
     }
@@ -154,7 +167,7 @@ public class SwaggerService_CreateAPITest {
     // OpenAPI
     @Test
     public void shouldPrepareAPIFromSwaggerV3_URL_json() throws IOException {
-        validate(prepareUrl("io/gravitee/rest/api/management/service/openapi.json"));
+        validate(prepareUrl("io/gravitee/rest/api/management/service/openapi.json", true, true));
     }
 
     @Test
@@ -164,14 +177,18 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3_URL_json_extensions() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
+            "io/gravitee/rest/api/management/service/openapi-withExtensions.json",
+            true,
+            true
+        );
         validate(swaggerApiEntity);
         validateExtensions(swaggerApiEntity);
     }
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3_URL_yaml() throws IOException {
-        validate(prepareUrl("io/gravitee/rest/api/management/service/openapi.yaml"));
+        validate(prepareUrl("io/gravitee/rest/api/management/service/openapi.yaml", true, true));
     }
 
     @Test
@@ -181,7 +198,11 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3_URL_yaml_extensions() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl("io/gravitee/rest/api/management/service/openapi-withExtensions.yaml");
+        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
+            "io/gravitee/rest/api/management/service/openapi-withExtensions.yaml",
+            true,
+            true
+        );
         validate(swaggerApiEntity);
         validateExtensions(swaggerApiEntity);
     }
@@ -294,12 +315,12 @@ public class SwaggerService_CreateAPITest {
         return this.createAPI(swaggerDescriptor);
     }
 
-    private SwaggerApiEntity prepareUrl(String file) {
+    private SwaggerApiEntity prepareUrl(String file, boolean withPolicyPaths, boolean withPathMapping) {
         URL url = Resources.getResource(file);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.URL);
-        swaggerDescriptor.setWithPolicyPaths(true);
-        swaggerDescriptor.setWithPathMapping(true);
+        swaggerDescriptor.setWithPolicyPaths(withPolicyPaths);
+        swaggerDescriptor.setWithPathMapping(withPathMapping);
         //        swaggerDescriptor.setWithPolicies(asList("mock"));
         try {
             swaggerDescriptor.setPayload(url.toURI().getPath());
@@ -524,5 +545,19 @@ public class SwaggerService_CreateAPITest {
     public void shouldPrepareAPIFromSwaggerV3WithComplexReferences() throws IOException {
         final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/json-api.yml", true, true);
         validatePolicies(api, 2, 5, asList("/drives"));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3WithURLAndPathMappingOnly() throws IOException {
+        final SwaggerApiEntity swaggerApiEntity = prepareUrl("io/gravitee/rest/api/management/service/openapi.yaml", false, true);
+
+        assertTrue(swaggerApiEntity.getPathMappings().containsAll(asList("/pets", "/pets/:petId")));
+        validatePathMappings(swaggerApiEntity, asList("/pets", "/pets/:petId"));
+
+        validatePolicies(swaggerApiEntity, 1, 0, getDefinitionVersion().equals(DefinitionVersion.V1) ? asList("/") : asList());
+    }
+
+    protected void validatePathMappings(SwaggerApiEntity api, List<String> expectedPaths) {
+        assertTrue(api.getPathMappings().containsAll(expectedPaths));
     }
 }

@@ -73,6 +73,7 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
                         bulkItems,
                         lastRefreshAt,
                         nextLastRefreshAt,
+                        true,
                         ORGANIZATION_ID,
                         environments,
                         EventType.PUBLISH_ORGANIZATION
@@ -90,7 +91,15 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
     }
 
     private long initialSynchronizeOrganizations(long nextLastRefreshAt, List<String> environments) {
-        return this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, ORGANIZATION_ID, environments, EventType.PUBLISH_ORGANIZATION)
+        return this.searchLatestEvents(
+                bulkItems,
+                null,
+                nextLastRefreshAt,
+                true,
+                ORGANIZATION_ID,
+                environments,
+                EventType.PUBLISH_ORGANIZATION
+            )
             .compose(this::processOrganizationEvents)
             .count()
             .blockingGet();

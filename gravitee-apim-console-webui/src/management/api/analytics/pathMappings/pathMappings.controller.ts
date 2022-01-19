@@ -101,7 +101,7 @@ class ApiPathMappingsController {
       .then(
         (selectedDoc) => {
           if (selectedDoc) {
-            this.ApiService.importPathMappings(this.api.id, selectedDoc).then((updatedApi) => {
+            this.ApiService.importPathMappings(this.api.id, selectedDoc, this.api.gravitee).then((updatedApi) => {
               this.onSave(updatedApi);
             });
           }
