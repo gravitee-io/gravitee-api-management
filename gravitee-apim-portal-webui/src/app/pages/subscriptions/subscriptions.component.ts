@@ -35,6 +35,7 @@ import { switchMap, takeUntil } from 'rxjs/operators';
 import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 import { Subject } from 'rxjs';
 import StatusEnum = Subscription.StatusEnum;
+import { formatCurlCommandLine } from '../../utils/utils';
 
 @Component({
   selector: 'app-subscriptions',
@@ -215,9 +216,7 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
     const entrypoints = this.subscriptionsMetadata[sub.subscription.api].entrypoints;
     const entrypoint = entrypoints && entrypoints[0] && entrypoints[0].target;
     if (entrypoint && keys[0]) {
-      // keep the line break
-      this.curlExample = `curl --header "${this.apikeyHeader}:${keys[0].key}" \\
-    ${entrypoint}`;
+      this.curlExample = formatCurlCommandLine(entrypoint, { name: this.apikeyHeader, value: keys[0].key });
     }
   }
 
