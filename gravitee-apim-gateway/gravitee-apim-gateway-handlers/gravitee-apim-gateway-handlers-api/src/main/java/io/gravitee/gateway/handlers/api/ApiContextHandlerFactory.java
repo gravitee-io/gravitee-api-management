@@ -65,8 +65,6 @@ import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
 
@@ -76,25 +74,21 @@ import org.springframework.core.ResolvableType;
  */
 public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 
+    public static final String CLASSLOADER_LEGACY_ENABLED_PROPERTY = "classloader.legacy.enabled";
+    public static final String REPORTERS_LOGGING_MAX_SIZE_PROPERTY = "reporters.logging.max_size";
+    public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
+    public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
     private final Logger logger = LoggerFactory.getLogger(ApiContextHandlerFactory.class);
 
-    @Autowired
     private ApplicationContext applicationContext;
+    private Configuration configuration;
+    private final Node node;
 
-    @Value("${reporters.logging.max_size:-1}")
-    private int maxSizeLogMessage;
-
-    @Value("${reporters.logging.excluded_response_types:#{null}}")
-    private String excludedResponseTypes;
-
-    @Value("${handlers.request.headers.x-forwarded-prefix:false}")
-    private boolean overrideXForwardedPrefix;
-
-    @Value("${classloader.legacy.enabled:false}")
-    private boolean classLoaderLegacyMode;
-
-    @Autowired
-    private Node node;
+    public ApiContextHandlerFactory(ApplicationContext applicationContext, Configuration configuration, Node node) {
+        this.applicationContext = applicationContext;
+        this.configuration = configuration;
+        this.node = node;
+    }
 
     @Override
     public ReactorHandler create(Api api) {
@@ -158,7 +152,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                     new EndpointFactoryImpl(),
                     applicationContext.getBean(GatewayConfiguration.class),
                     applicationContext.getBean(ConnectorRegistry.class),
-                    applicationContext.getBean(Configuration.class),
+                    configuration,
                     applicationContext.getBean(ObjectMapper.class)
                 );
 
@@ -214,7 +208,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         );
 
         return new ApiPolicyManager(
-            classLoaderLegacyMode,
+            configuration.getProperty(CLASSLOADER_LEGACY_ENABLED_PROPERTY, Boolean.class, false),
             applicationContext.getBean(DefaultClassLoader.class),
             api,
             factory,
@@ -245,7 +239,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         );
 
         return new ResourceManagerImpl(
-            classLoaderLegacyMode,
+            configuration.getProperty(CLASSLOADER_LEGACY_ENABLED_PROPERTY, Boolean.class, false),
             applicationContext.getBean(DefaultClassLoader.class),
             api,
             cpm,
@@ -329,9 +323,11 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         AuthenticationHandlerSelector authenticationHandlerSelector
     ) {
         RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options = new RequestProcessorChainFactory.RequestProcessorChainFactoryOptions();
-        options.setMaxSizeLogMessage(maxSizeLogMessage);
-        options.setOverrideXForwardedPrefix(overrideXForwardedPrefix);
-        options.setExcludedResponseTypes(excludedResponseTypes);
+        options.setMaxSizeLogMessage(configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, Integer.class, -1));
+        options.setOverrideXForwardedPrefix(
+            configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)
+        );
+        options.setExcludedResponseTypes(configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null));
 
         return new RequestProcessorChainFactory(
             api,
