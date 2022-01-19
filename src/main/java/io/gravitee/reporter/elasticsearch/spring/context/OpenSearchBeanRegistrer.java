@@ -17,27 +17,26 @@ package io.gravitee.reporter.elasticsearch.spring.context;
 
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.AbstractIndexer;
-import io.gravitee.reporter.elasticsearch.indexer.es6.ES6BulkIndexer;
+import io.gravitee.reporter.elasticsearch.indexer.es7.ES7BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.name.AbstractIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.AbstractIndexPreparer;
-import io.gravitee.reporter.elasticsearch.mapping.es6.ES6IndexPreparer;
+import io.gravitee.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Elastic6xBeanRegistrer extends AbstractElasticBeanRegistrer {
+public class OpenSearchBeanRegistrer extends AbstractElasticBeanRegistrer {
 
     @Override
     protected Class<? extends AbstractIndexer> getIndexerClass() {
-        return ES6BulkIndexer.class;
+        return ES7BulkIndexer.class;
     }
 
     @Override
     protected Class<? extends AbstractIndexPreparer> getIndexPreparerClass(ReporterConfiguration configuration) {
-        return ES6IndexPreparer.class;
+        return ES7IndexPreparer.class;
     }
 
     @Override
