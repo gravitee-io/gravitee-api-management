@@ -38,6 +38,7 @@ import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 import { FeatureEnum } from 'src/app/model/feature.enum';
 import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import StatusEnum = Subscription.StatusEnum;
+import { formatCurlCommandLine } from '../../../utils/utils';
 
 @Component({
   selector: 'app-api-subscribe',
@@ -113,7 +114,7 @@ export class ApiSubscribeComponent implements OnInit {
 
     this.apiId = this.route.snapshot.params.apiId;
     this.api = this.route.snapshot.data.api;
-    this.apiSample = `curl "${this.api.entrypoints[0]}"`;
+    this.apiSample = formatCurlCommandLine(this.api.entrypoints[0]);
     this.apiName = this.api.name;
 
     Promise.all([
@@ -353,12 +354,12 @@ export class ApiSubscribeComponent implements OnInit {
           const currentPlan = this.getCurrentPlan();
           if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.APIKEY) {
             const apikeyHeader = this.configurationService.get('portal.apikeyHeader');
-            this.apiSample += ` -H "${apikeyHeader}:${subscription.keys[0].key}"`;
+            this.apiSample = formatCurlCommandLine(this.api.entrypoints[0], { name: apikeyHeader, value: subscription.keys[0].key });
           } else if (
             currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 ||
             currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT
           ) {
-            this.apiSample += ` -H "Authorization: Bearer xxxx-xxxx-xxxx-xxxx"`;
+            this.apiSample = formatCurlCommandLine(this.api.entrypoints[0], { name: 'Authorization', value: 'Bearer xxxx-xxxx-xxxx-xxxx' });
           } else {
             this.apiSample = null;
           }

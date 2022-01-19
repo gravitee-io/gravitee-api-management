@@ -14,8 +14,27 @@
  * limitations under the License.
  */
 
+export interface Header {
+  name: string;
+  value: string;
+}
+
 export function createPromiseList(size) {
   const deferredList = [];
   const list = new Array(size).fill(null).map(() => new Promise((resolve, reject) => deferredList.push({ resolve, reject })));
   return { list, deferredList };
+}
+
+export function formatCurlCommandLine(url: string, ...headers: Header[]): string {
+  const headersFormatted = headers
+    // keep the line break
+    .reduce(
+      (acc, header) =>
+        acc +
+        `--header "${header.name}: ${header.value}" \\
+     `,
+      ' ',
+    );
+
+  return `curl${headersFormatted}${url}`;
 }
