@@ -26,7 +26,7 @@
     <parent>
         <groupId>io.gravitee.apim.rest.api.services</groupId>
         <artifactId>gravitee-apim-rest-api-services</artifactId>
-        <version>3.5.29</version>
+        <version>3.5.30-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-apim-rest-api-services-dynamic-properties</artifactId>
