@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 section {
-  background-color: white;
   display: flex;
 }
 
 .table-container {
+  background-color: white;
   width: 100%;
 }
 
