@@ -24,7 +24,7 @@ import io.gravitee.gateway.platform.PlatformPolicyManager;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.platform.manager.impl.OrganizationManagerImpl;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.PolicyFactory;
+import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -72,7 +72,7 @@ public class PlatformConfiguration {
 
     @Bean
     public PlatformPolicyManager platformPolicyManager(
-        PolicyFactory factory,
+        PolicyFactoryCreator factoryCreator,
         PolicyConfigurationFactory policyConfigurationFactory,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ResourceLifecycleManager resourceLifecycleManager,
@@ -89,7 +89,7 @@ public class PlatformConfiguration {
         return new PlatformPolicyManager(
             classLoaderLegacyMode,
             applicationContext.getBean(DefaultClassLoader.class),
-            factory,
+            factoryCreator.create(),
             policyConfigurationFactory,
             cpm,
             policyClassLoaderFactory,

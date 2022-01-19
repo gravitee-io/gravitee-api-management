@@ -42,9 +42,10 @@ import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
+import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
-import io.gravitee.gateway.policy.impl.PolicyFactoryCreator;
+import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -63,6 +64,7 @@ import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -83,11 +85,18 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     private ApplicationContext applicationContext;
     private Configuration configuration;
     private final Node node;
+    private final PolicyFactoryCreator policyFactoryCreator;
 
-    public ApiContextHandlerFactory(ApplicationContext applicationContext, Configuration configuration, Node node) {
+    public ApiContextHandlerFactory(
+        ApplicationContext applicationContext,
+        Configuration configuration,
+        Node node,
+        PolicyFactoryCreator policyFactoryCreator
+    ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
         this.node = node;
+        this.policyFactoryCreator = policyFactoryCreator;
     }
 
     @Override
@@ -116,7 +125,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                 );
 
                 // Force creation of a dedicated PolicyFactory for each api as it may involve cache we want to be released when api is undeployed.
-                final PolicyFactory policyFactory = applicationContext.getBean(PolicyFactoryCreator.class).getObject();
+                final PolicyFactory policyFactory = policyFactoryCreator.create();
 
                 final PolicyManager policyManager = policyManager(
                     api,
