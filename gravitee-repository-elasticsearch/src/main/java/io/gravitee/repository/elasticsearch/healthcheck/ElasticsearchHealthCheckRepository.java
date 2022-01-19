@@ -101,7 +101,7 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
         try {
             final Single<SearchResponse> result = this.client.search(
                     this.indexNameGenerator.getWildcardIndexName(Type.HEALTH_CHECK, clusters),
-                    (info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+                    !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
                     sQuery);
 
             SearchResponse searchResponse = result.blockingGet();

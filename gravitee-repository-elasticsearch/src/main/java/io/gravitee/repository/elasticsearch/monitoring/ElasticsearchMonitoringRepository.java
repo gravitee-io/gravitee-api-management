@@ -75,7 +75,7 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
         try {
             final Single<SearchResponse> result = this.client.search(
                     this.indexNameGenerator.getTodayIndexName(Type.MONITOR, clusters),
-                    (info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.MONITOR.getType(),
+                    !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.MONITOR.getType(),
                     sQuery);
 
             final SearchHits hits = result.blockingGet().getSearchHits();

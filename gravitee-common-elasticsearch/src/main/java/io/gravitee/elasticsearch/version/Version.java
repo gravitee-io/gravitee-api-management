@@ -27,10 +27,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Version {
 
+    private static final String OPENSEARCH_DISTRIBUTION = "opensearch";
+
     private String number;
 
     @JsonProperty("lucene_version")
     private String luceneVersion;
+
+    private String distribution;
 
     private int majorVersion = -1;
 
@@ -50,10 +54,33 @@ public class Version {
         this.luceneVersion = luceneVersion;
     }
 
+    public void setDistribution(String distribution) {
+        this.distribution = distribution;
+    }
+
     public int getMajorVersion() {
         if (majorVersion == -1) {
             majorVersion = Integer.valueOf(getNumber().substring(0, 1));
         }
         return majorVersion;
+    }
+
+    public boolean isOpenSearch() {
+        return OPENSEARCH_DISTRIBUTION.equals(distribution);
+    }
+
+    public boolean canUseTypeRequests() {
+        // from ES version 7, specifying types in requests is deprecated
+        return !isOpenSearch() && getMajorVersion() < 7;
+    }
+
+    public boolean canUseMultiTypeIndex() {
+        // from ES version 6, using multiple mapping types is no more supported
+        return !isOpenSearch() && getMajorVersion() < 6;
+    }
+
+    public boolean canUseIlmManagedIndex() {
+        // from ES version 6, we can use ILM managed indexes, which names are not suffixed by date
+        return isOpenSearch() || getMajorVersion() >= 6;
     }
 }
