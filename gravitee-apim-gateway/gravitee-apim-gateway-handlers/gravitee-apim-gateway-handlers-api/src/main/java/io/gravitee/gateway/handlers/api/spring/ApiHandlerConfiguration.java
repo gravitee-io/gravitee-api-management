@@ -20,6 +20,8 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.handlers.api.ApiContextHandlerFactory;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
@@ -28,7 +30,9 @@ import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
+import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
+import io.gravitee.node.api.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -47,6 +51,12 @@ public class ApiHandlerConfiguration {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private Node node;
+
+    @Autowired
+    private io.gravitee.node.api.configuration.Configuration configuration;
 
     @Bean
     public ApiManager apiManager() {
@@ -96,5 +106,10 @@ public class ApiHandlerConfiguration {
     @Bean
     public ApiTemplateVariableProviderFactory apiTemplateVariableProviderFactory() {
         return new ApiTemplateVariableProviderFactory();
+    }
+
+    @Bean
+    public ReactorHandlerFactory<Api> reactorHandlerFactory() {
+        return new ApiContextHandlerFactory(applicationContext, configuration, node);
     }
 }

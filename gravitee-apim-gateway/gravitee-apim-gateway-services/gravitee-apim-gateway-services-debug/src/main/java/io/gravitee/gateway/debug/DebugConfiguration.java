@@ -16,21 +16,56 @@
 package io.gravitee.gateway.debug;
 
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
+import io.gravitee.gateway.handlers.api.ApiContextHandlerFactory;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
+import io.gravitee.node.api.Node;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class DebugConfiguration {
 
+    private final ApplicationContext applicationContext;
+
+    private final Node node;
+
+    private final io.gravitee.node.api.configuration.Configuration configuration;
+
+    public DebugConfiguration(
+        ApplicationContext applicationContext,
+        Node node,
+        io.gravitee.node.api.configuration.Configuration configuration
+    ) {
+        this.applicationContext = applicationContext;
+        this.node = node;
+        this.configuration = configuration;
+    }
+
     @Bean
     public VertxDebugService vertxDebugService() {
         return new VertxDebugService();
+    }
+
+    @Bean
+    @Qualifier("debugReactorHandlerFactory")
+    public ReactorHandlerFactory<Api> reactorHandlerFactory() {
+        return new ApiContextHandlerFactory(applicationContext.getParent(), configuration, node);
+    }
+
+    @Bean
+    @Qualifier("debugReactorHandlerFactoryManager")
+    public ReactorHandlerFactoryManager reactorHandlerFactoryManager(
+        @Qualifier("debugReactorHandlerFactory") ReactorHandlerFactory reactorHandlerFactory
+    ) {
+        return new ReactorHandlerFactoryManager(reactorHandlerFactory);
     }
 
     @Bean
