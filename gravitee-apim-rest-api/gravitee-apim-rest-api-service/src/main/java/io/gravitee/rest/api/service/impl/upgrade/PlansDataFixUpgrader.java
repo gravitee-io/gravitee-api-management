@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import static io.gravitee.rest.api.service.impl.upgrade.PlansDataFixUpgrader.Status.*;
+import static io.gravitee.rest.api.service.impl.upgrade.UpgradeStatus.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -48,13 +48,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PlansDataFixUpgrader implements Upgrader, Ordered {
-
-    enum Status {
-        RUNNING,
-        DRY_SUCCESS,
-        SUCCESS,
-        FAILURE,
-    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PlansDataFixUpgrader.class);
     private static final String PLAN_DESCRIPTION =
@@ -266,12 +259,12 @@ public class PlansDataFixUpgrader implements Upgrader, Ordered {
         }
     }
 
-    private void setExecutionStatus(InstallationEntity installation, Status status) {
+    private void setExecutionStatus(InstallationEntity installation, UpgradeStatus status) {
         installation.getAdditionalInformation().put(InstallationService.PLANS_DATA_UPGRADER_STATUS, status.toString());
         installationService.setAdditionalInformation(installation.getAdditionalInformation());
     }
 
-    private boolean isStatus(InstallationEntity installation, Status status) {
+    private boolean isStatus(InstallationEntity installation, UpgradeStatus status) {
         return status.toString().equals(installation.getAdditionalInformation().get(InstallationService.PLANS_DATA_UPGRADER_STATUS));
     }
 
