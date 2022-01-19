@@ -42,7 +42,7 @@
     "jdenticon": "^2.2.0",
     "jquery": "^3.5.1",
     "js-yaml": "^3.13.1",
-    "marked": "^1.1.1",
+    "marked": "^4.0.10",
     "md-color-picker": "^0.2.6",
     "md-steppers": "^0.4.1",
     "messageformat": "^2.3.0",
