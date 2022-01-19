@@ -19,7 +19,9 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,6 +36,16 @@ public class DummyPolicy {
 
     @OnResponse
     public void onResponse(Request chain, Response response, PolicyChain handler) {
+        // Do nothing
+    }
+
+    @OnRequestContent
+    public void onRequestContent(PolicyChain chain, Request request, Response response) {
+        // Do nothing
+    }
+
+    @OnResponseContent
+    public void onResponseContent(Request chain, Response response, PolicyChain handler) {
         // Do nothing
     }
 }

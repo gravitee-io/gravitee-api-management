@@ -26,7 +26,9 @@ import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvalu
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -89,7 +91,9 @@ public class PolicyTest {
         Assert.assertTrue(policy.isRunnable());
         Assert.assertFalse(policy.isStreamable());
         verify(dummyPolicy, atLeastOnce()).onRequest(policyChain, request, response);
+        verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, never()).onResponse(request, response, policyChain);
+        verify(dummyPolicy, never()).onResponseContent(request, response, policyChain);
         verify(policy, atLeastOnce()).execute(policyChain, context);
     }
 
@@ -110,8 +114,56 @@ public class PolicyTest {
         Assert.assertTrue(policy.isRunnable());
         Assert.assertFalse(policy.isStreamable());
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
+        verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, atLeastOnce()).onResponse(request, response, policyChain);
+        verify(dummyPolicy, never()).onResponseContent(request, response, policyChain);
         verify(policy, atLeastOnce()).execute(policyChain, context);
+    }
+
+    @Test
+    public void onRequestContent() throws Exception {
+        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
+        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        Method onRequestContentMethod = resolvePolicyMethod(DummyPolicy.class, OnRequestContent.class);
+        when(policyMetadata.method(OnRequestContent.class)).thenReturn(onRequestContentMethod);
+
+        DummyPolicy dummyPolicy = mock(DummyPolicy.class);
+        when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
+
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
+
+        policy.stream(policyChain, context);
+
+        Assert.assertFalse(policy.isRunnable());
+        Assert.assertTrue(policy.isStreamable());
+        verify(dummyPolicy, never()).onRequest(policyChain, request, response);
+        verify(dummyPolicy, atLeastOnce()).onRequestContent(policyChain, request, response);
+        verify(dummyPolicy, never()).onResponse(request, response, policyChain);
+        verify(dummyPolicy, never()).onResponseContent(request, response, policyChain);
+        verify(policy, atLeastOnce()).stream(policyChain, context);
+    }
+
+    @Test
+    public void onResponseContent() throws Exception {
+        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
+        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        Method onResponseContentMethod = resolvePolicyMethod(DummyPolicy.class, OnResponseContent.class);
+        when(policyMetadata.method(OnResponseContent.class)).thenReturn(onResponseContentMethod);
+
+        DummyPolicy dummyPolicy = mock(DummyPolicy.class);
+        when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
+
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
+
+        policy.stream(policyChain, context);
+
+        Assert.assertFalse(policy.isRunnable());
+        Assert.assertTrue(policy.isStreamable());
+        verify(dummyPolicy, never()).onRequest(policyChain, request, response);
+        verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
+        verify(dummyPolicy, never()).onResponse(request, response, policyChain);
+        verify(dummyPolicy, atLeastOnce()).onResponseContent(request, response, policyChain);
+        verify(policy, atLeastOnce()).stream(policyChain, context);
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {
