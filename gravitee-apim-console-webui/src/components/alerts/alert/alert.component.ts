@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import { Alert, Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';

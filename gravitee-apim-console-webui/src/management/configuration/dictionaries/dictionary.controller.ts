@@ -15,8 +15,8 @@
  */
 
 import { StateService } from '@uirouter/core';
-import angular = require('angular');
-import _ = require('lodash');
+import angular from 'angular';
+import * as _ from 'lodash';
 
 import DictionaryService from '../../../services/dictionary.service';
 import NotificationService from '../../../services/notification.service';

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 class AddPoliciesPathController {
   private newPath: { path: string; copyFromRootPath: boolean };

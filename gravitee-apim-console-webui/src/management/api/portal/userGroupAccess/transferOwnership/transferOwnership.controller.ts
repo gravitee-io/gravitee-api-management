@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import angular = require('angular');
-import _ = require('lodash');
+import angular from 'angular';
+import * as _ from 'lodash';
 
 import { ApiService } from '../../../../../services/api.service';
 import ApiPrimaryOwnerModeService from '../../../../../services/apiPrimaryOwnerMode.service';

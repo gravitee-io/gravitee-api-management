@@ -15,7 +15,7 @@
  */
 import { UrlService } from '@uirouter/angularjs';
 import { IHttpResponse, ILocationService, IScope } from 'angular';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import { ApiService } from './api.service';
 import ApplicationService from './application.service';

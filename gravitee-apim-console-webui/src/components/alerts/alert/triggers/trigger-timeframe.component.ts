@@ -17,7 +17,7 @@ import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-date-picker';
 import '@gravitee/ui-components/wc/gv-row-expandable';
 import { deepEqual } from '@gravitee/ui-components/src/lib/utils';
-import moment = require('moment');
+import moment from 'moment';
 
 import { Period } from '../../../../entities/alert';
 

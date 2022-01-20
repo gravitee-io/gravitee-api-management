@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import angular = require('angular');
+import angular from 'angular';
 import * as Highcharts from 'highcharts';
 import * as Highmaps from 'highcharts/highmaps';
 import * as _ from 'lodash';

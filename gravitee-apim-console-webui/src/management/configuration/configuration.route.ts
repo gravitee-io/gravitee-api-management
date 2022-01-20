@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { StateParams } from '@uirouter/core';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import { ApiService } from '../../services/api.service';
 import ApiHeaderService from '../../services/apiHeader.service';

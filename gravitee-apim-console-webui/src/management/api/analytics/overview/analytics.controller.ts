@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 class ApiAnalyticsController {
   private api: any;

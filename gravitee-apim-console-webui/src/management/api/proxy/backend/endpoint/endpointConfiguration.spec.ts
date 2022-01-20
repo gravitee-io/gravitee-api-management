@@ -15,7 +15,7 @@
  */
 import { describe, expect, test } from '@jest/globals';
 import { IControllerService } from 'angular';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import { setupAngularJsTesting } from '../../../../../../jest.setup';
 

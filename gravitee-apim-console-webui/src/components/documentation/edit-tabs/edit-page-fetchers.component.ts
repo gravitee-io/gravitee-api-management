@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IController, IScope } from 'angular';
-import angular = require('angular');
+import angular, { IController, IScope } from 'angular';
 
 interface IPageScope extends IScope {
   fetcherJsonSchema: {

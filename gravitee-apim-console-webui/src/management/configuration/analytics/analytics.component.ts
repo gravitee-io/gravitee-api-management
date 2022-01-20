@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import { Dashboard } from '../../../entities/dashboard';
 import DashboardService from '../../../services/dashboard.service';
