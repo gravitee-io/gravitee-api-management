@@ -13,31 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface PathOperator {
-  path: string;
-  operator: 'STARTS_WITH' | 'EQUALS';
-}
+import { Api } from './Api';
 
-export interface Step {
-  name: string;
-  policy: string;
-  description?: string;
-  configuration?: unknown;
-  enabled?: boolean;
-}
-
-export interface Consumer {
-  consumerType: 'TAG';
-  consumerId: string;
-}
-
-export interface Flow {
-  name: string;
-  'path-operator': PathOperator;
-  pre: Step[];
-  post: Step[];
-  enabled: boolean;
-  methods: string[];
-  condition: string;
-  consumers: Consumer[];
+export interface UpdateApi
+  extends Omit<
+    Api,
+    'id' | 'state' | 'entrypoints' | 'context_path' | 'deployed_at' | 'created_at' | 'updated_at' | 'owner' | 'workflow_state'
+  > {
+  metadata?: unknown;
 }

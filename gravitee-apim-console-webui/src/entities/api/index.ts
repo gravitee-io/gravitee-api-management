@@ -13,31 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface PathOperator {
-  path: string;
-  operator: 'STARTS_WITH' | 'EQUALS';
-}
-
-export interface Step {
-  name: string;
-  policy: string;
-  description?: string;
-  configuration?: unknown;
-  enabled?: boolean;
-}
-
-export interface Consumer {
-  consumerType: 'TAG';
-  consumerId: string;
-}
-
-export interface Flow {
-  name: string;
-  'path-operator': PathOperator;
-  pre: Step[];
-  post: Step[];
-  enabled: boolean;
-  methods: string[];
-  condition: string;
-  consumers: Consumer[];
-}
+export * from './Api';
+export * from './UpdateApi';
