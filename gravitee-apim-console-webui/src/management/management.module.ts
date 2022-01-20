@@ -18,6 +18,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ManagementApiDesignComponent } from './api/design/design/management-api-design.component';
 
@@ -26,9 +27,18 @@ import { PolicyService } from '../services-ngx/policy.service';
 import { ResourceService } from '../services-ngx/resource.service';
 import { SpelService } from '../services-ngx/spel.service';
 import { GioConfirmDialogModule } from '../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
+import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  imports: [CommonModule, BrowserAnimationsModule, ReactiveFormsModule, GioConfirmDialogModule, GioPolicyStudioModule],
+  imports: [
+    CommonModule,
+    BrowserAnimationsModule,
+    ReactiveFormsModule,
+    MatSnackBarModule,
+    GioPermissionModule,
+    GioConfirmDialogModule,
+    GioPolicyStudioModule,
+  ],
   declarations: [ManagementApiDesignComponent],
   entryComponents: [ManagementApiDesignComponent],
   providers: [

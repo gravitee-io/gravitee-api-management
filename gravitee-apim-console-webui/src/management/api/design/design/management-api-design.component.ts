@@ -14,39 +14,153 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { MatDialog } from '@angular/material/dialog';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { combineLatest, EMPTY, interval, Subject, timer } from 'rxjs';
+import { catchError, filter, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { cloneDeep } from 'lodash';
 
 import { PolicyService } from '../../../../services-ngx/policy.service';
-import { FlowService } from '../../../../services-ngx/flow.service';
-import { OrganizationService } from '../../../../services-ngx/organization.service';
 import { Organization } from '../../../../entities/organization/organization';
-import { PlatformFlowSchema } from '../../../../entities/flow/platformFlowSchema';
 import { PolicyListItem } from '../../../../entities/policy';
-import { PathOperator, Step } from '../../../../entities/flow/flow';
-import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '../../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
+import { Flow } from '../../../../entities/flow/flow';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-
-interface FlowVM {
-  name: string;
-  'path-operator': PathOperator;
-  pre: Step[];
-  post: Step[];
-  enabled: boolean;
-  methods: string[];
-  condition: string;
-  consumers: string[];
-}
+import { ApiService } from '../../../../services-ngx/api.service';
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ResourceService } from '../../../../services-ngx/resource.service';
+import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
+import { DebugApiService } from '../../../../services-ngx/debug-api.service';
+import { EventService } from '../../../../services-ngx/event.service';
+import { Services } from '../../../../entities/services';
+import { ApiPlan, ApiProperty, ApiResource } from '../../../../entities/api';
+import { ApiFlowSchema } from '../../../../entities/flow/apiFlowSchema';
 
 interface DefinitionVM {
+  name: string;
+  version: string;
   'flow-mode': 'DEFAULT' | 'BEST_MATCH';
-  flows: FlowVM[];
+  flows: Flow[];
+  resources: ApiResource[];
+  plans: ApiPlan[];
+  properties: ApiProperty[];
 }
+
+const PROPERTY_PROVIDERS = [
+  {
+    id: 'HTTP',
+    name: 'Custom (HTTP)',
+    schema: {
+      type: 'object',
+      properties: {
+        method: {
+          title: 'HTTP Method',
+          description: 'HTTP method to invoke the endpoint.',
+          type: 'string',
+          default: 'GET',
+          enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE'],
+        },
+        url: {
+          title: 'Http service URL',
+          description: 'http://localhost',
+          type: 'string',
+          pattern: '^(http://|https://)',
+        },
+        useSystemProxy: {
+          title: 'Use system proxy',
+          description: 'Use the system proxy configured by your administrator.',
+          type: 'boolean',
+        },
+        headers: {
+          type: 'array',
+          title: 'Request Headers',
+          items: {
+            type: 'object',
+            title: 'Header',
+            properties: {
+              name: {
+                title: 'Name',
+                type: 'string',
+              },
+              value: {
+                title: 'Value',
+                type: 'string',
+              },
+            },
+          },
+        },
+        body: {
+          title: 'Request body',
+          type: 'string',
+          'x-schema-form': {
+            type: 'codemirror',
+            codemirrorOptions: {
+              lineWrapping: true,
+              lineNumbers: true,
+              allowDropFileTypes: true,
+              autoCloseTags: true,
+            },
+          },
+        },
+        specification: {
+          title: 'Transformation (JOLT Specification)',
+          type: 'string',
+          'x-schema-form': {
+            type: 'codemirror',
+            codemirrorOptions: {
+              lineWrapping: true,
+              lineNumbers: true,
+              allowDropFileTypes: true,
+              autoCloseTags: true,
+              mode: 'javascript',
+            },
+          },
+        },
+      },
+      required: ['url', 'specification'],
+    },
+    documentation:
+      '= Custom (HTTP)\n\n=== How to ?\n\n 1. Set `Polling frequency interval` and `Time unit`\n2. Set the `HTTP service URL`\n 3. If the HTTP service doesn\'t return the expected output, add a JOLT `transformation` \n\n[source, json]\n----\n[\n  {\n    "key": 1,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 2,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 3,\n    "value": "https://south-asia.company.com/"\n  }\n]\n----\n',
+  },
+];
+const PROPERTY_PROVIDER_TITLES = PROPERTY_PROVIDERS.reduce((map, provider) => {
+  map[provider.id] = provider.name;
+  return map;
+}, {} as Record<string, string>);
+const PROPERTY_PROVIDER_IDS = Object.keys(PROPERTY_PROVIDER_TITLES);
+const DYNAMIC_PROPERTY_SCHEMA = {
+  properties: {
+    enabled: {
+      type: 'boolean',
+      title: 'Enabled',
+      description: ' This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.',
+    },
+    trigger: {
+      type: 'object',
+      properties: {
+        rate: {
+          type: 'integer',
+          title: 'Polling frequency interval',
+        },
+        unit: {
+          type: 'string',
+          title: 'Time unit',
+          enum: ['SECONDS', 'MINUTES', 'HOURS'],
+        },
+      },
+      required: ['rate', 'unit'],
+    },
+    provider: {
+      type: 'string',
+      title: 'Provider type',
+      enum: PROPERTY_PROVIDER_IDS,
+      default: PROPERTY_PROVIDER_IDS[0],
+      'x-schema-form': {
+        titleMap: PROPERTY_PROVIDER_TITLES,
+      },
+    },
+  },
+  required: ['trigger', 'provider'],
+};
 
 @Component({
   selector: 'management-api-design',
@@ -58,39 +172,66 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
 
   organization: Organization;
   definition: DefinitionVM;
+  services: Services;
 
-  platformFlowSchema: PlatformFlowSchema;
+  apiFlowSchema: ApiFlowSchema;
   policies: PolicyListItem[];
+  resourceTypes: ResourceListItem[];
+  readonlyPlans = false;
+  configurationInformation =
+    'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
+  propertyProviders = PROPERTY_PROVIDERS;
+  dynamicPropertySchema = DYNAMIC_PROPERTY_SCHEMA;
+  debugResponse: {
+    isLoading: boolean;
+    response?: unknown;
+    request?: unknown;
+  };
 
+  private api: any;
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
-    private readonly flowService: FlowService,
+    private readonly resourceService: ResourceService,
     private readonly policyService: PolicyService,
-    private readonly organizationService: OrganizationService,
-    private readonly matDialog: MatDialog,
+    private readonly apiService: ApiService,
+    private readonly debugApiService: DebugApiService,
+    private readonly eventService: EventService,
     private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
   ) {}
 
   ngOnInit(): void {
     combineLatest([
-      this.flowService.getPlatformFlowSchemaForm(),
-      this.policyService.list({ expandSchema: true, expandIcon: true, withoutResource: true }),
-      this.organizationService.get(),
+      this.apiService.getFlowSchemaForm(),
+      this.policyService.list({ expandSchema: true, expandIcon: true }),
+      this.apiService.get(this.ajsStateParams.apiId),
+      this.resourceService.list({ expandSchema: true, expandIcon: true }),
     ])
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap(([flowSchema, policies, organization]) => {
-          this.platformFlowSchema = flowSchema;
+        tap(([flowSchema, policies, api, resources]) => {
+          this.apiFlowSchema = flowSchema;
           this.policies = policies;
-          this.organization = organization;
+          this.resourceTypes = resources;
+          this.api = api;
+
           this.definition = {
-            flows: (this.organization.flows ?? []).map((flow) => ({
-              ...flow,
-              consumers: flow.consumers.map((consumer) => consumer.consumerId),
-            })),
-            'flow-mode': this.organization.flowMode,
+            name: api.name,
+            version: api.version,
+            flows: api.flows ?? [],
+            resources: api.resources,
+            plans: (this.permissionService.hasAnyMatching(['api-plan-r', 'api-plan-u']) ? api.plans : []) ?? [],
+            properties: api.properties,
+            'flow-mode': api.flow_mode,
           };
+          this.services = api.services;
+
+          if (!this.permissionService.hasAnyMatching(['api-plan-u'])) {
+            this.readonlyPlans = true;
+          }
+
           this.isLoading = false;
         }),
       )
@@ -102,38 +243,77 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  onSave({ definition }: { definition: DefinitionVM }) {
-    const updatedOrganization: Organization = {
-      ...this.organization,
-      flowMode: definition['flow-mode'],
-      flows: definition.flows.map((flow) => ({
-        ...flow,
-        consumers: (flow.consumers ?? []).map((consumer) => ({ consumerType: 'TAG', consumerId: consumer })),
-      })),
+  onSave({ definition, services }: { definition: DefinitionVM; services: Services }) {
+    this.api.flows = definition.flows;
+    this.api.plans = definition.plans;
+    this.api.resources = definition.resources;
+    this.api.properties = definition.properties;
+    this.api.services = services;
+    this.api.flow_mode = definition['flow-mode'];
+    this.apiService
+      .update(this.api)
+      .pipe(
+        tap(() => {
+          this.snackBarService.success('Design of api successfully updated!');
+        }),
+      )
+      .subscribe(() => {
+        this.ngOnInit();
+      });
+  }
+
+  public onDebug({ definition, services, request }: { definition: DefinitionVM; services: Services; request: any }): void {
+    const debugApi = cloneDeep(this.api);
+    debugApi.flows = definition.flows;
+    debugApi.plans = definition.plans;
+    debugApi.resources = definition.resources;
+    debugApi.properties = definition.properties;
+    debugApi.services = services;
+    debugApi.flow_mode = definition['flow-mode'];
+
+    const headersAsMap = (request.headers ?? [])
+      .filter((header) => !!header.value)
+      .reduce((acc, current) => {
+        acc[current.name] = current.value;
+        return acc;
+      }, {});
+
+    const consolidatedRequest = {
+      body: request.body,
+      path: request.path,
+      method: request.method,
+      headers: headersAsMap,
     };
 
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '450px',
-        data: {
-          title: 'Deploy the policies?',
-          content: 'Platform policies will be automatically deployed on gateways.',
-        },
-        role: 'alertdialog',
-      })
-      .afterClosed()
+    this.debugResponse = {
+      isLoading: true,
+    };
+
+    const maxPollingTime$ = timer(10000);
+    this.debugApiService
+      .debug(debugApi, consolidatedRequest)
       .pipe(
+        // Poll each 1s to find success event. Stops after 10 seconds
+        switchMap((debugEvent) => interval(1000).pipe(switchMap(() => this.eventService.findById(this.api.id, debugEvent.id)))),
+        takeUntil(maxPollingTime$),
         takeUntil(this.unsubscribe$),
-        filter((confirm) => confirm === true),
-        switchMap(() => this.organizationService.update(updatedOrganization)),
-        tap(() => {
-          this.snackBarService.success('Platform policies successfully updated!');
-        }),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
+        filter((event) => event.properties.api_debug_status === 'SUCCESS'),
+        take(1),
+        catchError(() => {
+          this.snackBarService.error('Unable to try the request, please try again');
+          this.debugResponse = {
+            isLoading: false,
+            request: consolidatedRequest,
+          };
           return EMPTY;
         }),
       )
-      .subscribe();
+      .subscribe((event) => {
+        this.debugResponse = {
+          isLoading: false,
+          response: JSON.parse(event.payload).response,
+          request: consolidatedRequest,
+        };
+      });
   }
 }
