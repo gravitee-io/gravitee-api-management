@@ -2091,34 +2091,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void deleteCategoryFromAPIs(final String categoryId) {
-        findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
-            .forEach(
-                api -> {
-                    if (api.getCategories() != null && api.getCategories().contains(categoryId)) {
-                        removeCategory(api.getId(), categoryId);
-                    }
-                }
-            );
+        apiRepository.search(new ApiCriteria.Builder().category(categoryId).build()).forEach(api -> removeCategory(api, categoryId));
     }
 
-    private void removeCategory(String apiId, String categoryId) throws TechnicalManagementException {
+    private void removeCategory(Api api, String categoryId) {
         try {
-            Optional<Api> optApi = apiRepository.findById(apiId);
-            if (optApi.isPresent()) {
-                Api api = optApi.get();
-                Api previousApi = new Api(api);
-                api.getCategories().remove(categoryId);
-                api.setUpdatedAt(new Date());
-                apiRepository.update(api);
-                triggerUpdateNotification(api);
-                // Audit
-                auditService.createApiAuditLog(apiId, Collections.emptyMap(), API_UPDATED, api.getUpdatedAt(), previousApi, api);
-            } else {
-                throw new ApiNotFoundException(apiId);
-            }
-        } catch (Exception ex) {
-            LOGGER.error("An error occurs while removing category from API: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while removing category from API: " + apiId, ex);
+            Api apiSnapshot = new Api(api);
+            api.getCategories().remove(categoryId);
+            api.setUpdatedAt(new Date());
+            apiRepository.update(api);
+            triggerUpdateNotification(api);
+            auditService.createApiAuditLog(api.getId(), Collections.emptyMap(), API_UPDATED, api.getUpdatedAt(), apiSnapshot, api);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error has occurred while removing category " + categoryId + " from API " + api.getId(),
+                e
+            );
         }
     }
 
