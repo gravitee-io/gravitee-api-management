@@ -120,6 +120,7 @@
         <powermock.version>2.0.9</powermock.version>
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
         <snakeyaml.version>1.30</snakeyaml.version>
+        <swagger-jersey2-jaxrs.version>1.6.4</swagger-jersey2-jaxrs.version>
         <swagger-annotations.version>1.6.4</swagger-annotations.version>
         <swagger-core.version>2.1.11</swagger-core.version>
         <swagger-parser.version>2.0.29</swagger-parser.version>
@@ -485,8 +486,26 @@
 
             <dependency>
                 <groupId>io.swagger</groupId>
+                <artifactId>swagger-jersey2-jaxrs</artifactId>
+                <version>${swagger-jersey2-jaxrs.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.validation</groupId>
+                        <artifactId>validation-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger</groupId>
                 <artifactId>swagger-annotations</artifactId>
                 <version>${swagger-annotations.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.validation</groupId>
+                        <artifactId>validation-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -498,6 +517,10 @@
                         <groupId>com.github.fge</groupId>
                         <artifactId>json-patch</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.validation</groupId>
+                        <artifactId>validation-api</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
 
@@ -505,6 +528,12 @@
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-core</artifactId>
                 <version>${swagger-core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.validation</groupId>
+                        <artifactId>validation-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>

@@ -33,10 +33,6 @@
 	<packaging>jar</packaging>
 	<name>Gravitee.io APIM - Management API - Management - Rest API</name>
 
-	<properties>
-		<swagger-jersey2-jaxrs.version>1.6.4</swagger-jersey2-jaxrs.version>
-	</properties>
-
 	<dependencies>
 
 		<!-- Gravitee Management dependencies-->
@@ -108,7 +104,6 @@
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-jersey2-jaxrs</artifactId>
-			<version>${swagger-jersey2-jaxrs.version}</version>
 		</dependency>
 
 		<dependency>
@@ -166,4 +161,5 @@
 			<artifactId>json-path</artifactId>
 		</dependency>
 	</dependencies>
+
 </project>
