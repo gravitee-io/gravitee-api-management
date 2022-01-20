@@ -16,52 +16,43 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HarnessLoader } from '@angular/cdk/testing';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ManagementApiDesignComponent } from './management-api-design.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
-import { fakeOrganization } from '../../../../entities/organization/organization.fixture';
-import { fakePlatformFlowSchema } from '../../../../entities/flow/platformFlowSchema.fixture';
-import { fakeFlow } from '../../../../entities/flow/flow.fixture';
-import { fakeFlowConfigurationSchema } from '../../../../entities/flow/configurationSchema.fixture';
 import { ManagementModule } from '../../../management.module';
+import { fakeApiFlowSchema } from '../../../../entities/flow/apiFlowSchema.fixture';
+import { fakeApi } from '../../../../entities/api/Api.fixture';
+import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
+import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { User } from '../../../../entities/user';
+import { fakeUpdateApi } from '../../../../entities/api/UpdateApi.fixture';
 
 describe('ManagementApiDesignComponent', () => {
   let fixture: ComponentFixture<ManagementApiDesignComponent>;
   let component: ManagementApiDesignComponent;
   let httpTestingController: HttpTestingController;
-  let rootLoader: HarnessLoader;
 
-  const platformFlowSchema = fakePlatformFlowSchema();
+  const currentUser = new User();
+  currentUser.userApiPermissions = ['api-plan-r', 'api-plan-u'];
+
+  const apiFlowSchema = fakeApiFlowSchema();
   const policies = [fakePolicyListItem()];
-  const organization = fakeOrganization({
-    flows: [
-      fakeFlow({
-        condition: '',
-        enabled: true,
-        methods: [],
-        name: 'Flow',
-        'path-operator': { operator: 'STARTS_WITH', path: '' },
-        post: [],
-        pre: [],
-        consumers: [
-          { consumerId: 'Consumer 1', consumerType: 'TAG' },
-          { consumerId: 'Consumer 2', consumerType: 'TAG' },
-        ],
-      }),
-    ],
-    flowMode: 'BEST_MATCH',
-  });
+  const api = fakeApi();
+  const resources = [fakeResourceListItem()];
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ManagementModule],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { apiId: api.id } },
+        {
+          provide: CurrentUserService,
+          useValue: { currentUser },
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -72,116 +63,107 @@ describe('ManagementApiDesignComponent', () => {
 
     fixture = TestBed.createComponent(ManagementApiDesignComponent);
     component = fixture.componentInstance;
-    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/flow-schema`).flush(platformFlowSchema);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/schema`).flush(apiFlowSchema);
 
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon&withResource=false`)
-      .flush(policies);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon`).flush(policies);
 
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
+
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(resources);
   });
 
   describe('ngOnInit', () => {
     it('should setup properties', async () => {
+      expect(component.apiFlowSchema).toStrictEqual(apiFlowSchema);
       expect(component.policies).toStrictEqual(policies);
-      expect(component.platformFlowSchema).toStrictEqual(platformFlowSchema);
-      expect(component.organization).toStrictEqual(organization);
+      expect(component.resourceTypes).toStrictEqual(resources);
+      expect(component.services).toStrictEqual(api.services);
       expect(component.definition).toStrictEqual({
         flows: [
           {
             condition: '',
-            consumers: ['Consumer 1', 'Consumer 2'],
+            consumers: [],
             enabled: true,
             methods: [],
-            name: 'Flow',
-            'path-operator': { operator: 'STARTS_WITH', path: '' },
+            name: '',
+            'path-operator': { operator: 'STARTS_WITH', path: '/' },
             post: [],
-            pre: [],
+            pre: [
+              {
+                configuration: {
+                  content: 'Hello world',
+                  status: '200',
+                },
+                description: 'Saying hello to the world',
+                enabled: true,
+                name: 'Mock',
+                policy: 'mock',
+              },
+            ],
           },
         ],
-        'flow-mode': 'BEST_MATCH',
+        'flow-mode': 'DEFAULT',
+        name: '🪐 Planets',
+        plans: [],
+        properties: [],
+        resources: [
+          {
+            configuration: {
+              maxEntriesLocalHeap: 1000,
+              timeToIdleSeconds: 60,
+              timeToLiveSeconds: 60,
+            },
+            enabled: true,
+            name: 'my-cache',
+            type: 'cache',
+          },
+        ],
+        version: '1.0',
       });
     });
   });
 
   describe('onSave', () => {
-    it('should call the API with updated organization', async () => {
+    it('should call the API', async () => {
       component.onSave({
         definition: {
-          'flow-mode': 'DEFAULT',
-          flows: [
-            {
-              condition: '',
-              consumers: ['New Consumer', 'Consumer 2'],
-              enabled: true,
-              methods: [],
-              name: 'Flow',
-              'path-operator': { operator: 'STARTS_WITH', path: '' },
-              post: [],
-              pre: [],
-            },
-            {
-              condition: '',
-              consumers: ['Consumer 3', 'Consumer 4'],
-              enabled: true,
-              methods: [],
-              name: 'Flow 2 ',
-              'path-operator': { operator: 'STARTS_WITH', path: '' },
-              post: [],
-              pre: [],
-            },
-          ],
+          name: api.name,
+          version: api.version,
+          flows: [],
+          resources: [],
+          plans: [],
+          properties: [],
+          'flow-mode': 'BEST_MATCH',
         },
+        services: api.services,
       });
 
-      const dialog = await rootLoader.getHarness(MatDialogHarness);
-      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Yes/ }))).click();
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` });
 
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}` });
+      expect(req.request.body).toStrictEqual(
+        fakeUpdateApi({
+          background: undefined,
+          categories: undefined,
+          paths: undefined,
+          picture: undefined,
+          flows: [],
+          resources: [],
+          plans: [],
+          properties: [],
+          flow_mode: 'BEST_MATCH',
+        }),
+      );
+      req.flush(api);
 
-      expect(req.request.body).toStrictEqual({
-        ...organization,
-        flowMode: 'DEFAULT',
-        flows: [
-          {
-            condition: '',
-            consumers: [
-              { consumerId: 'New Consumer', consumerType: 'TAG' },
-              { consumerId: 'Consumer 2', consumerType: 'TAG' },
-            ],
-            enabled: true,
-            methods: [],
-            name: 'Flow',
-            'path-operator': { operator: 'STARTS_WITH', path: '' },
-            post: [],
-            pre: [],
-          },
-          {
-            condition: '',
-            consumers: [
-              { consumerId: 'Consumer 3', consumerType: 'TAG' },
-              { consumerId: 'Consumer 4', consumerType: 'TAG' },
-            ],
-            enabled: true,
-            methods: [],
-            name: 'Flow 2 ',
-            'path-operator': { operator: 'STARTS_WITH', path: '' },
-            post: [],
-            pre: [],
-          },
-        ],
-      });
-      req.flush(organization);
-
-      // This one is send by the gio-policy-studio component
-      httpTestingController
-        .expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/configuration-schema`)
-        .flush(fakeFlowConfigurationSchema());
+      // call new ngOnInit
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/schema`).flush(apiFlowSchema);
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon`).flush(policies);
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(resources);
     });
   });
 
