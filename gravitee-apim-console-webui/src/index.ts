@@ -15,9 +15,10 @@
  */
 import 'zone.js';
 import 'reflect-metadata';
+import '@angular/compiler';
 
-import angular = require('angular');
-import _ = require('lodash');
+import * as angular from 'angular';
+import * as _ from 'lodash';
 import './index.scss';
 import './management/management.module.ajs';
 import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';

@@ -62,6 +62,7 @@
     "md-steppers": "0.4.1",
     "messageformat": "2.3.0",
     "moment": "2.29.1",
+    "ng-annotate-patched": "^1.13.0",
     "ng-file-upload": "12.2.13",
     "ng-infinite-scroll": "1.3.0",
     "ng-showdown": "1.1.0",

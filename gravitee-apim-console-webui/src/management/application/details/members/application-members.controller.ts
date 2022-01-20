@@ -15,7 +15,7 @@
  */
 import { StateService } from '@uirouter/core';
 import * as angular from 'angular';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import ApplicationService from '../../../../services/application.service';
 import GroupService from '../../../../services/group.service';

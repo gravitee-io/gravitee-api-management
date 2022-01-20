@@ -3,6 +3,7 @@
   "compilerOptions": {
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "downlevelIteration": true,
     "incremental": true,
     "lib": ["dom", "es2018"],
     "noImplicitAny": false,
@@ -10,9 +11,14 @@
     "removeComments": false,
     "skipLibCheck": true,
     "sourceMap": true,
-    "target": "ES5",
+    "target": "ES2015",
     "types": ["jest", "angular-mocks", "node"],
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "moduleResolution": "Node",
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "checkJs": false,
+    "module": "es2020"
   },
   "include": ["src/**/*.ts", "node_modules/@gravitee/ui-components"]
 }

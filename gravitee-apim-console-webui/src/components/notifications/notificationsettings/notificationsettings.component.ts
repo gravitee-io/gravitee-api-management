@@ -15,7 +15,7 @@
  */
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import { Hook } from '../../../entities/hook';
 import { NotificationConfig } from '../../../entities/notificationConfig';

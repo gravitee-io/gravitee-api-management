@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';

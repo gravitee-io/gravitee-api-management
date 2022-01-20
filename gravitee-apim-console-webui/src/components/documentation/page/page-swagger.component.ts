@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import { IController } from 'angular';
-import angular = require('angular');
+import angular, { IController } from 'angular';
 import * as jsyaml from 'js-yaml';
 import * as _ from 'lodash';
 import { SwaggerUIBundle } from 'swagger-ui-dist';

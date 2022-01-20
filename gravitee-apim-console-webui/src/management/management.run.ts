@@ -15,7 +15,7 @@
  */
 // eslint-disable-next-line
 /* global setInterval:false, clearInterval:false, screen:false */
-import angular = require('angular');
+import angular from 'angular';
 import { StateDeclaration, TransitionService } from '@uirouter/angularjs';
 
 import EnvironmentService from '../services/environment.service';

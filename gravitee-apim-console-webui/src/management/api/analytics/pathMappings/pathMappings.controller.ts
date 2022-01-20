@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import DialogAddPathMappingController from './modal/add-pathMapping.dialog.controller';
 import DialogImportPathMappingController from './modal/import-pathMapping.dialog.controller';

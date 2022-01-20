@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import angular = require('angular');
+import angular from 'angular';
 
 import { Theme } from '../../../entities/theme';
 import NotificationService from '../../../services/notification.service';

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import SidenavService from '../../../components/sidenav/sidenav.service';
 import { ApiService } from '../../../services/api.service';

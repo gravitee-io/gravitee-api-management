@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable import/order */
+/* eslint-disable @typescript-eslint/no-var-requires, import/order */
 import * as jQuery from 'jquery';
 import 'angular-aria';
 import 'angular-animate';
@@ -478,9 +478,9 @@ import { PromotionService } from '../services/promotion.service';
 
 (<any>window).jQuery = jQuery;
 
-import angular = require('angular');
+import * as angular from 'angular';
 
-import ngInfiniteScroll = require('ng-infinite-scroll');
+const ngInfiniteScroll = require('ng-infinite-scroll');
 import ApiAlertsDashboardController from './api/analytics/alerts/api-alerts-dashboard.controller';
 import MovedComponent from './configuration/moved/moved.component';
 
@@ -490,7 +490,6 @@ import MovedComponent from './configuration/moved/moved.component';
 
 (<any>window).CodeMirror = CodeMirror;
 
-// eslint:disable:no-var-requires
 require('satellizer');
 require('angular-highlightjs');
 
@@ -547,19 +546,15 @@ require('diff/dist/diff.min.js');
 require('angular-loading-bar');
 
 // Highcharts
-import * as Highcharts from 'highcharts';
-(<any>window).Highcharts = Highcharts;
-import HighchartsMore from 'highcharts/highcharts-more';
-import SolidGauge from 'highcharts/modules/solid-gauge';
-import NoDataToDisplay from 'highcharts/modules/no-data-to-display';
-import Map from 'highcharts/modules/map';
+const Highcharts = require('highcharts/highstock');
+window.Highcharts = Highcharts;
+require('highcharts/modules/exporting')(Highcharts);
+require('highcharts/highcharts-more')(Highcharts);
+require('highcharts/modules/solid-gauge')(Highcharts);
+require('highcharts/modules/no-data-to-display')(Highcharts);
+require('highcharts/modules/map')(Highcharts);
 
-HighchartsMore(Highcharts);
-SolidGauge(Highcharts);
-NoDataToDisplay(Highcharts);
-Map(Highcharts);
-
-import '@highcharts/map-collection/custom/world';
+require('@highcharts/map-collection/custom/world');
 import { DebugApiService } from '../services/debugApi.service';
 import { downgradeComponent } from '@angular/upgrade/static';
 import { OrgSettingsGeneralComponent } from '../organization/configuration/console/org-settings-general.component';

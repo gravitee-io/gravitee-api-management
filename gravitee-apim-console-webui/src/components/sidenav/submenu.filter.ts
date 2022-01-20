@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import UserService from '../../services/user.service';
 export const submenuFilter = function ($state: StateService, UserService: UserService, Constants) {

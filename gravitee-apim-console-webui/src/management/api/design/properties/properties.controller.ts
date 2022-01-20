@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import angular = require('angular');
+import angular from 'angular';
 import * as _ from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
