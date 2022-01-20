@@ -15,7 +15,7 @@
  */
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 import GroupService from '../../../services/group.service';
 import NotificationService from '../../../services/notification.service';

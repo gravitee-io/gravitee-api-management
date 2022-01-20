@@ -15,8 +15,8 @@
  */
 
 import { StateService } from '@uirouter/core';
-import angular = require('angular');
-import _ = require('lodash');
+import angular from 'angular';
+import * as _ from 'lodash';
 
 import { ClientRegistrationProvider } from '../../../../entities/clientRegistrationProvider';
 import ClientRegistrationProviderService from '../../../../services/clientRegistrationProvider.service';

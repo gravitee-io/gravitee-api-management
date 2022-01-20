@@ -15,8 +15,7 @@
  */
 import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
-import { Moment } from 'moment';
-import moment = require('moment');
+import moment, { Moment } from 'moment';
 
 // eslint:disable-next-line:interface-name
 interface Timeframe {

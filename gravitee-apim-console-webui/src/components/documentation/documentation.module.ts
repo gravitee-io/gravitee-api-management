@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import angular = require('angular');
+import * as angular from 'angular';
 
 import { DocumentationManagementComponent } from './documentation-management.component';
 import { EditPageComponent } from './edit-page.component';

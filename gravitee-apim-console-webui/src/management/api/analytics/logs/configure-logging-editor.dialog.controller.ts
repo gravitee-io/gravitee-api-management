@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import _ = require('lodash');
-import moment = require('moment');
+import * as _ from 'lodash';
+import moment from 'moment';
 
 export class ConditionType {
   title: string;

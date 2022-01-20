@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import angular = require('angular');
-import _ = require('lodash');
+import angular from 'angular';
+import * as _ from 'lodash';
 
 import '@gravitee/ui-components/wc/gv-cron-editor';
 import '@gravitee/ui-components/wc/gv-expression-language';

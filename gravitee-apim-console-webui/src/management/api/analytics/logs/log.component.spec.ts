@@ -36,7 +36,6 @@ describe('LogComponent', () => {
       },
     };
     logComponent = $componentController('log', null, bindings);
-    logComponent.$onInit();
   }));
 
   describe('getMimeType', () => {

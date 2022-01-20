@@ -126,6 +126,7 @@
     "license-check-and-add": "4.0.3",
     "mini-css-extract-plugin": "1.6.2",
     "ng-annotate-loader": "0.7.0",
+    "ng-annotate-patched": "^1.13.0",
     "prettier": "2.5.1",
     "sass": "1.49.0",
     "sass-loader": "10.2.1",

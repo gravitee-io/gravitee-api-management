@@ -57,7 +57,17 @@ module.exports = {
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        use: ['ng-annotate-loader', 'ts-loader'],
+        use: [
+          {
+            loader: 'ng-annotate-loader',
+            options: {
+              ngAnnotate: 'ng-annotate-patched',
+              es6: true,
+              explicitOnly: false,
+            },
+          },
+          'ts-loader',
+        ],
       },
       {
         test: /\.html$/,

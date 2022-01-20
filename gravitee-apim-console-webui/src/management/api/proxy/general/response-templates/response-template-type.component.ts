@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 const ApiResponseTemplateTypeComponent: ng.IComponentOptions = {
   template: require('./response-template-type.html'),

@@ -25,10 +25,8 @@ describe('WidgetDataStatsConfigurationComponent', () => {
 
   beforeEach(inject((_QualityRuleService_, _$componentController_) => {
     $componentController = _$componentController_;
-    const bindings = {
-      chart: {},
-    };
-    widgetDataStatsConfigurationComponent = $componentController('gvWidgetDataStatsConfiguration', null, bindings);
+    widgetDataStatsConfigurationComponent = $componentController('gvWidgetDataStatsConfiguration', null, {});
+    widgetDataStatsConfigurationComponent.chart = {};
     widgetDataStatsConfigurationComponent.$onInit();
   }));
 
