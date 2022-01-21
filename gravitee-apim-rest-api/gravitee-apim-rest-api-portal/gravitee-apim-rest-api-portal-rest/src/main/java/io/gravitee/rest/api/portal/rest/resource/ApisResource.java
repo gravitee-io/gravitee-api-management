@@ -75,7 +75,8 @@ public class ApisResource extends AbstractResource<Api, String> {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
-        Collection<String> filteredApis = findApisForCurrentUser(apisParam);
+        Collection<String> filteredApis = findApisForCurrentUser(apisParam, createQueryFromParam(apisParam));
+
         if (!filteredApis.isEmpty() && apisParam.getPromoted() != null) {
             //By default, the promoted API is the first of the list;
             String promotedApiId = filteredApis.iterator().next();
@@ -99,9 +100,6 @@ public class ApisResource extends AbstractResource<Api, String> {
                 }
             } else if (apisParam.getPromoted() == Boolean.FALSE) {
                 // All filtered API except the promoted API have to be returned
-                if (apisParam.isCategoryMode() || apisParam.getCategory() != null) {
-                    filteredApis = this.findApisForCurrentUser(apisParam, createQueryFromParam(apisParam));
-                }
                 filteredApis.remove(finalPromotedApiId);
             }
         }
@@ -159,8 +157,12 @@ public class ApisResource extends AbstractResource<Api, String> {
             apiQuery.setName(apisParam.getName());
             apiQuery.setTag(apisParam.getTag());
             apiQuery.setVersion(apisParam.getVersion());
-            if (apisParam.getCategory() != null) {
+
+            boolean isCategoryMode = (apisParam.getCategory() != null && apisParam.getFilter() == null);
+            if (isCategoryMode) {
                 apiQuery.setCategory(apisParam.getCategory());
+            } else {
+                apisParam.setCategory(null);
             }
         }
         return apiQuery;
