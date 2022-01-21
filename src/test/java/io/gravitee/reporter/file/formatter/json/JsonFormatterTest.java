@@ -45,8 +45,8 @@ public class JsonFormatterTest {
 
     @Test
     public void shouldRenameField() throws JsonProcessingException {
-        Rules rules = Mockito.mock(Rules.class);
-        Mockito.when(rules.getRenameFields()).thenReturn(Maps.<String, String>builder().put("application", "app").build());
+        Rules rules = new Rules();
+        rules.setRenameFields(Maps.<String, String>builder().put("application", "app").build());
 
         JsonFormatter<Metrics> formatter = new JsonFormatter<>(rules);
 
@@ -64,8 +64,8 @@ public class JsonFormatterTest {
 
     @Test
     public void shouldFilterField() throws JsonProcessingException {
-        Rules rules = Mockito.mock(Rules.class);
-        Mockito.when(rules.getExcludeFields()).thenReturn(Collections.singleton("application"));
+        Rules rules = new Rules();
+        rules.setExcludeFields(Collections.singleton("application"));
 
         JsonFormatter<Metrics> formatter = new JsonFormatter<>(rules);
 
@@ -82,8 +82,8 @@ public class JsonFormatterTest {
 
     @Test
     public void shouldExcludeAllFields() throws JsonProcessingException {
-        Rules rules = Mockito.mock(Rules.class);
-        Mockito.when(rules.getExcludeFields()).thenReturn(Collections.singleton("*"));
+        Rules rules = new Rules();
+        rules.setExcludeFields(Collections.singleton("*"));
 
         JsonFormatter<Metrics> formatter = new JsonFormatter<>(rules);
 
@@ -100,9 +100,9 @@ public class JsonFormatterTest {
 
     @Test
     public void shouldExcludeAndIncludeSameField() throws JsonProcessingException {
-        Rules rules = Mockito.mock(Rules.class);
-        Mockito.when(rules.getExcludeFields()).thenReturn(Collections.singleton("api"));
-        Mockito.when(rules.getIncludeFields()).thenReturn(Collections.singleton("api"));
+        Rules rules = new Rules();
+        rules.setExcludeFields(Collections.singleton("api"));
+        rules.setIncludeFields(Collections.singleton("api"));
 
         JsonFormatter<Metrics> formatter = new JsonFormatter<>(rules);
 
@@ -119,9 +119,9 @@ public class JsonFormatterTest {
 
     @Test
     public void shouldExcludeAllFields_butIncludeOneField() throws JsonProcessingException {
-        Rules rules = Mockito.mock(Rules.class);
-        Mockito.when(rules.getExcludeFields()).thenReturn(Collections.singleton("*"));
-        Mockito.when(rules.getIncludeFields()).thenReturn(Collections.singleton("api"));
+        Rules rules = new Rules();
+        rules.setExcludeFields(Collections.singleton("*"));
+        rules.setIncludeFields(Collections.singleton("api"));
 
         JsonFormatter<Metrics> formatter = new JsonFormatter<>(rules);
 
@@ -139,8 +139,8 @@ public class JsonFormatterTest {
 
     @Test
     public void shouldExcludeNestedFields() throws JsonProcessingException {
-        Rules rules = Mockito.mock(Rules.class);
-        Mockito.when(rules.getExcludeFields()).thenReturn(Collections.singleton("clientRequest"));
+        Rules rules = new Rules();
+        rules.setExcludeFields(Collections.singleton("clientRequest"));
 
         JsonFormatter<Log> formatter = new JsonFormatter<>(rules);
 
@@ -166,8 +166,8 @@ public class JsonFormatterTest {
 
     @Test
     public void shouldExcludeNestedProperty() throws JsonProcessingException {
-        Rules rules = Mockito.mock(Rules.class);
-        Mockito.when(rules.getExcludeFields()).thenReturn(Collections.singleton("clientRequest.uri"));
+        Rules rules = new Rules();
+        rules.setExcludeFields(Collections.singleton("clientRequest.uri"));
 
         JsonFormatter<Log> formatter = new JsonFormatter<>(rules);
 
@@ -193,8 +193,8 @@ public class JsonFormatterTest {
 
     @Test
     public void shouldRenameNestedPrgetExcludeFieldsoperty() throws JsonProcessingException {
-        Rules rules = Mockito.mock(Rules.class);
-        Mockito.when(rules.getRenameFields()).thenReturn(Maps.<String, String>builder().put("clientRequest.uri", "path").build());
+        Rules rules = new Rules();
+        rules.setRenameFields(Maps.<String, String>builder().put("clientRequest.uri", "path").build());
 
         JsonFormatter<Log> formatter = new JsonFormatter<>(rules);
 

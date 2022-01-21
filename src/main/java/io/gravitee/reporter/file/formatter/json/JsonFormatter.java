@@ -38,12 +38,15 @@ public class JsonFormatter<T extends Reportable> extends AbstractFormatter<T> {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public JsonFormatter(final Rules rules) {
-        mapper.addMixIn(Reportable.class, FieldFilterMixin.class);
-        mapper.addMixIn(Request.class, FieldFilterMixin.class);
-        mapper.addMixIn(Response.class, FieldFilterMixin.class);
-        mapper.addMixIn(EndpointStatus.class, FieldFilterMixin.class);
-        mapper.addMixIn(Step.class, FieldFilterMixin.class);
-        mapper.setFilterProvider(new FieldFilterProvider(rules));
+        if (rules != null && rules.containsRules()) {
+            mapper.addMixIn(Reportable.class, FieldFilterMixin.class);
+            mapper.addMixIn(Request.class, FieldFilterMixin.class);
+            mapper.addMixIn(Response.class, FieldFilterMixin.class);
+            mapper.addMixIn(EndpointStatus.class, FieldFilterMixin.class);
+            mapper.addMixIn(Step.class, FieldFilterMixin.class);
+            mapper.setFilterProvider(new FieldFilterProvider(rules));
+        }
+
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
