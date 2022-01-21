@@ -63,7 +63,7 @@ export class FilteredCatalogComponent implements OnInit {
   paginationData: any;
   options: any[];
   currentDisplay: string;
-  empty = true;
+  empty: boolean;
   category: Category;
   fragments: any = {
     pagination: 'pagination',
