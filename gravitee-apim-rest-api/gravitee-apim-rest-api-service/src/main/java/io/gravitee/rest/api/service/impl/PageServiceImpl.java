@@ -2646,54 +2646,19 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
 
-            PageEntity createdOrUpdatedPage = null;
-            if (pageEntityToImport.getId() != null) {
-                try {
-                    createdOrUpdatedPage = findByIdOrGeneratedId(pageEntityToImport.getId(), environmentId, apiId);
-                } catch (PageNotFoundException e) {
-                    // Page not found 🤷 Just create a new one
-                }
-            } else {
-                PageQuery query = new PageQuery.Builder()
-                    .api(apiId)
-                    .name(pageEntityToImport.getName())
-                    .type(PageType.valueOf(pageEntityToImport.getType()))
-                    .build();
+            PageEntity createdOrUpdatedPage;
 
-                List<PageEntity> foundPages = search(query, environmentId);
-                if (foundPages.size() == 1) {
-                    createdOrUpdatedPage = foundPages.get(0);
-                } else if (foundPages.size() > 1) {
-                    logger.error(
-                        "Not able to identify the page to update: {}. Too much pages with the same name",
-                        pageEntityToImport.getName()
-                    );
-                    throw new TechnicalManagementException(
-                        "Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much pages with the same name"
-                    );
-                }
-            }
-
-            if (createdOrUpdatedPage == null) {
+            try {
+                findById(pageEntityToImport.getId());
+                createdOrUpdatedPage = update(pageEntityToImport.getId(), UpdatePageEntity.from(pageEntityToImport));
+            } catch (PageNotFoundException e) {
                 createdOrUpdatedPage = createPage(apiId, NewPageEntity.from(pageEntityToImport), environmentId, pageEntityToImport.getId());
-            } else {
-                createdOrUpdatedPage = update(createdOrUpdatedPage.getId(), UpdatePageEntity.from(pageEntityToImport));
             }
 
             if (child.children != null && !child.children.isEmpty()) {
                 this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children, environmentId);
             }
         }
-    }
-
-    private PageEntity findByIdOrGeneratedId(String id, String environmentId, String apiId) {
-        PageQuery query = new PageQuery.Builder().api(apiId).build();
-
-        return search(query, environmentId)
-            .stream()
-            .filter(page -> id.equals(page.getId()) || UuidString.generateForEnvironment(environmentId, apiId, id).equals(page.getId()))
-            .findFirst()
-            .orElseThrow(() -> new PageNotFoundException(id));
     }
 
     private void duplicateChildrenPages(

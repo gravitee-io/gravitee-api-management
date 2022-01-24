@@ -62,6 +62,11 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         if (apiEntity.getName() != null) {
             jsonGenerator.writeObjectField("name", apiEntity.getName());
         }
+
+        if (apiEntity.getEnvironmentId() != null) {
+            jsonGenerator.writeObjectField("environment_id", apiEntity.getEnvironmentId());
+        }
+
         if (apiEntity.getVersion() != null) {
             jsonGenerator.writeObjectField("version", apiEntity.getVersion());
         }
