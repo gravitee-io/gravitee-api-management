@@ -126,14 +126,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.apim.repository</groupId>
-            <artifactId>gravitee-apim-repository-redis</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-            <type>zip</type>
-        </dependency>
-
-        <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-debug</artifactId>
             <version>${project.version}</version>
