@@ -67,7 +67,7 @@
 
     <properties>
         <gravitee-bom.version>1.4</gravitee-bom.version>
-        <gravitee-common.version>1.23.0</gravitee-common.version>
+        <gravitee-common.version>1.23.1</gravitee-common.version>
     </properties>
 
     <build>

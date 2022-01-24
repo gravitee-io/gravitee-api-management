@@ -18,7 +18,9 @@ package io.gravitee.definition.jackson.services.healthcheck;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,6 +29,28 @@ import org.junit.Test;
  * @author GraviteeSource Team
  */
 public class HealthCheckServiceDeserializerTest extends AbstractTest {
+
+    @Test
+    public void healthcheck_withoutservice() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/services/healtcheck/api-withoutservice-healthcheck.json", Api.class);
+        HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
+        Assert.assertNull(healthCheckService);
+        /*
+        This test is to ensure that we remove the boolean "healthcheck" in the root of the definition as it was done before the SME
+         */
+        Assert.assertFalse(
+            api
+                .getProxy()
+                .getGroups()
+                .iterator()
+                .next()
+                .getEndpoints()
+                .iterator()
+                .next()
+                .getConfiguration()
+                .contains("\"healthcheck\":true")
+        );
+    }
 
     @Test
     public void healthcheck() throws Exception {
