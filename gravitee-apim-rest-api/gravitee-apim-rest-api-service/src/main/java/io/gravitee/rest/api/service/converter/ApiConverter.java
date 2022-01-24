@@ -60,6 +60,7 @@ public class ApiConverter {
         apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
         apiEntity.setCategories(api.getCategories());
+        apiEntity.setEnvironmentId(api.getEnvironmentId());
 
         if (api.getDefinition() != null) {
             try {

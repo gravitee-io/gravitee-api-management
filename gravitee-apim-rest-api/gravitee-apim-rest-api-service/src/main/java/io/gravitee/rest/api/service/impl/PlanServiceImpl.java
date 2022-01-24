@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PLAN;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.*;
 import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -241,37 +240,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Override
     public PlanEntity createOrUpdatePlan(PlanEntity planEntity, final String environmentId) {
         PlanEntity resultPlanEntity;
-        if (planEntity.getId() != null) {
-            try {
-                findById(planEntity.getId());
-                resultPlanEntity = update(UpdatePlanEntity.from(planEntity));
-            } catch (PlanNotFoundException npe) {
-                resultPlanEntity = create(NewPlanEntity.from(planEntity));
-            }
-        } else {
-            PlanQuery query = new PlanQuery.Builder()
-                .api(planEntity.getApi())
-                .name(planEntity.getName())
-                .security(planEntity.getSecurity())
-                .build();
-
-            List<PlanEntity> planEntities = search(query)
-                .stream()
-                .filter(dbPlan -> !PlanStatus.CLOSED.equals(dbPlan.getStatus()))
-                .collect(toList());
-
-            if (planEntities.isEmpty()) {
-                resultPlanEntity = create(NewPlanEntity.from(planEntity));
-            } else if (planEntities.size() == 1) {
-                UpdatePlanEntity updatePlanEntity = UpdatePlanEntity.from(planEntity);
-                updatePlanEntity.setId(planEntities.get(0).getId());
-                resultPlanEntity = update(updatePlanEntity);
-            } else {
-                logger.error("Not able to identify the plan to update: {}. Too much plan with the same name", planEntity.getName());
-                throw new TechnicalManagementException(
-                    "Not able to identify the plan to update: " + planEntity.getName() + ". Too much plan with the same name"
-                );
-            }
+        try {
+            findById(planEntity.getId());
+            resultPlanEntity = update(UpdatePlanEntity.from(planEntity));
+        } catch (PlanNotFoundException npe) {
+            resultPlanEntity = create(NewPlanEntity.from(planEntity));
         }
         return resultPlanEntity;
     }

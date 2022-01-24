@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiFlowMode, ApiVisibility, ApiPageType, ApiFlowOperator, ApiMetadataFormat, ApiPrimaryOwnerType } from '@model/apis';
+import { ApiVisibility, ApiPageType, ApiMetadataFormat, ApiPrimaryOwnerType } from '@model/apis';
 import { PlanSecurityType, PlanStatus, PlanType, PlanValidation } from '@model/plan';
+import { FlowMode, OperatorType } from '@model/api-flows';
 
 export interface ApiImportMember {
   source: string;
@@ -27,7 +28,7 @@ export interface ApiImportFlow {
   name: string;
   path_operator: {
     path: string;
-    operator: ApiFlowOperator;
+    operator: OperatorType;
   };
   condition: string;
   consumers: any[];
@@ -107,12 +108,13 @@ export interface ApiImportPrimaryOwner {
 
 export interface ApiImport {
   id?: string;
+  environment_id?: string;
   name: string;
   version: string;
   description: string;
   visibility: ApiVisibility;
   gravitee: string;
-  flow_mode: ApiFlowMode;
+  flow_mode: FlowMode;
   resources: any[];
   properties: any[];
   groups: string[];
@@ -139,7 +141,8 @@ export interface ApiImportPage {
   lastContributor?: string;
   contentType: string;
   homepage: boolean;
-  parentPath: string;
+  parentPath?: string;
+  parentId?: string;
   excludedAccessControls: boolean;
   accessControls: any[];
   api?: string;

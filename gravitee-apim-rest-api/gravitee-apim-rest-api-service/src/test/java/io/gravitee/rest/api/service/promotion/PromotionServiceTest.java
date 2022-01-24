@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
@@ -90,6 +91,9 @@ public class PromotionServiceTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     @Before
     public void setUp() {
         promotionService =
@@ -101,7 +105,8 @@ public class PromotionServiceTest {
                 environmentService,
                 userService,
                 permissionService,
-                auditService
+                auditService,
+                objectMapper
             );
     }
 

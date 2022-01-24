@@ -15,15 +15,22 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author GraviteeSource Team
@@ -34,19 +41,49 @@ public class ApiDuplicatorServiceImplTest {
     @InjectMocks
     protected ApiDuplicatorServiceImpl apiDuplicatorService;
 
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    @BeforeClass
+    public static void beforeClass() {
+        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
+        mapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+    }
+
     @Test
-    public void preprocessApiDefinitionUpdatingIds_should_regenerate_plans_id() throws JsonProcessingException {
-        JsonNode jsonNode = new ObjectMapper()
-        .readTree("{\"id\":\"my-api-id\",\"plans\":[{\"id\":\"my-plan-id1\"},{\"id\":\"my-plan-id2\"}]}");
+    public void handleApiDefinitionIds_should_regenerate_api_id_and_plans_id_on_another_environment() {
+        ObjectNode apiDefinition = mapper.createObjectNode()
+          .put("id", "8a9a6f49-59e2-4785-9d17-b2fffad3216b")
+          .put("environment_id", "dev");
 
-        String newApiDefinition = apiDuplicatorService.preprocessApiDefinitionUpdatingIds(jsonNode, "default");
-
-        // plans id have been regenerated in jsonNodes and stringified api definition
-        assertEquals("b53f77ba-380a-34e2-8c5d-5c60847f0de4", jsonNode.get("plans").get(0).get("id").asText());
-        assertEquals("1b552fa9-bb70-3bbc-b925-9e0b6dd4a35d", jsonNode.get("plans").get(1).get("id").asText());
-        assertEquals(
-            "{\"id\":\"my-api-id\",\"plans\":[{\"id\":\"b53f77ba-380a-34e2-8c5d-5c60847f0de4\"},{\"id\":\"1b552fa9-bb70-3bbc-b925-9e0b6dd4a35d\"}]}",
-            newApiDefinition
+        apiDefinition.set(
+          "plans", mapper.createArrayNode()
+            .add(mapper.createObjectNode().put("id", "my-plan-id-1"))
+            .add(mapper.createObjectNode().put("id", "my-plan-id-2"))
         );
+
+        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "uat");
+
+        assertEquals("7aba8a9f-d32a-366f-82f0-fe91c22e1489", newApiDefinition.get("id").asText());
+        assertEquals("9e0d46f7-4309-38c3-95f5-80f7b98bdcc0", newApiDefinition.get("plans").get(0).get("id").asText());
+        assertEquals("71b88f80-d244-3c9d-a041-895a46336a9a", newApiDefinition.get("plans").get(1).get("id").asText());
+    }
+
+    @Test
+    public void handleApiDefinitionIds_should_not_regenerate_api_id_and_plans_id_on_the_same_environment() {
+        ObjectNode apiDefinition = mapper.createObjectNode()
+          .put("id", "8a9a6f49-59e2-4785-9d17-b2fffad3216b")
+          .put("environment_id", "dev");
+
+        apiDefinition.set(
+          "plans", mapper.createArrayNode()
+            .add(mapper.createObjectNode().put("id", "my-plan-id-1"))
+            .add(mapper.createObjectNode().put("id", "my-plan-id-2"))
+        );
+
+        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "dev");
+
+        assertEquals("8a9a6f49-59e2-4785-9d17-b2fffad3216b", newApiDefinition.get("id").asText());
+        assertEquals("my-plan-id-1", newApiDefinition.get("plans").get(0).get("id").asText());
+        assertEquals("my-plan-id-2", newApiDefinition.get("plans").get(1).get("id").asText());
     }
 }

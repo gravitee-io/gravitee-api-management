@@ -201,6 +201,9 @@ public class ApiEntity implements Indexable {
     private String backgroundUrl;
 
     @JsonIgnore
+    private String environmentId;
+
+    @JsonIgnore
     private String referenceType;
 
     @JsonIgnore
@@ -585,5 +588,13 @@ public class ApiEntity implements Indexable {
             flowMode +
             '}'
         );
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 }

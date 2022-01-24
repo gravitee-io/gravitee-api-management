@@ -22,6 +22,9 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
@@ -50,6 +53,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.promotion.PromotionService;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -79,6 +83,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     private final PermissionService permissionService;
     private final AuditService auditService;
 
+    private final ObjectMapper objectMapper;
+
     public PromotionServiceImpl(
         ApiService apiService,
         ApiDuplicatorService apiDuplicatorService,
@@ -87,7 +93,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         EnvironmentService environmentService,
         UserService userService,
         PermissionService permissionService,
-        AuditService auditService
+        AuditService auditService,
+        ObjectMapper objectMapper
     ) {
         this.apiService = apiService;
         this.apiDuplicatorService = apiDuplicatorService;
@@ -97,6 +104,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         this.userService = userService;
         this.permissionService = permissionService;
         this.auditService = auditService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -119,13 +127,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public PromotionEntity promote(final String sourceEnvironmentId, String apiId, PromotionRequestEntity promotionRequest, String userId) {
         // TODO: do we have to use filteredFields like for duplicate (i think no need members and groups)
         // FIXME: can we get the version from target environment
-        String apiDefinition = apiDuplicatorService.exportAsJson(
-            apiId,
-            ApiSerializer.Version.DEFAULT.getVersion(),
-            "id",
-            "members",
-            "groups"
-        );
+        String apiDefinition = apiDuplicatorService.exportAsJson(apiId, ApiSerializer.Version.DEFAULT.getVersion(), "members", "groups");
 
         EnvironmentEntity currentEnvironmentEntity = environmentService.findById(sourceEnvironmentId);
         UserEntity author = userService.findById(userId);
@@ -254,6 +256,13 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             promotionQuery.setTargetApiExists(true);
             promotionQuery.setApiId(existing.getApiId());
 
+            /*
+             * needed for backward compatibility as the promotion may have stored the
+             * definition without retaining the originating API ID
+             */
+            JsonNode apiDefinition = objectMapper.readTree(existing.getApiDefinition());
+            ((ObjectNode) apiDefinition).put("id", existing.getApiId());
+
             List<PromotionEntity> previousPromotions = search(promotionQuery, new SortableImpl("created_at", false), null).getContent();
 
             // Should create a new API if there is no previous promotion for this API or if the API existed once (after a promotion) but has been deleted since
@@ -269,7 +278,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                     if (!permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), CREATE)) {
                         throw new ForbiddenAccessException();
                     }
-
                     promoted =
                         apiDuplicatorService.createWithImportedDefinition(
                             existing.getApiDefinition(),
@@ -284,10 +292,11 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
                     PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
                     final ApiEntity existingApi = apiService.findById(lastAcceptedPromotion.getTargetApiId());
+
                     promoted =
                         apiDuplicatorService.updateWithImportedDefinition(
                             existingApi.getId(),
-                            existing.getApiDefinition(),
+                            apiDefinition.toString(),
                             user,
                             organizationId,
                             environment.getId()
@@ -307,7 +316,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             final Promotion updated = promotionRepository.update(existing);
 
             return convert(updated);
-        } catch (TechnicalException ex) {
+        } catch (TechnicalException | IOException ex) {
             LOGGER.error("An error occurs while trying to process promotion", ex);
             throw new TechnicalManagementException("An error occurs while trying to process promotion", ex);
         }
