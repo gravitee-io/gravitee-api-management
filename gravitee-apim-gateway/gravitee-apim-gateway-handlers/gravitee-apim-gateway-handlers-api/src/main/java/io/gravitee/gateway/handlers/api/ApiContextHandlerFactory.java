@@ -90,7 +90,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     @Value("${handlers.request.headers.x-forwarded-prefix:false}")
     private boolean overrideXForwardedPrefix;
 
-    @Value("${classloader.legacy.enabled:true}")
+    @Value("${classloader.legacy.enabled:false}")
     private boolean classLoaderLegacyMode;
 
     @Autowired

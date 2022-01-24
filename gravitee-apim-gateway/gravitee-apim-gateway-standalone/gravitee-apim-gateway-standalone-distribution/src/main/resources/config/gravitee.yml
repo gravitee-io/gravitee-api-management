@@ -416,7 +416,7 @@ api:
 #  unit: MILLISECONDS
 
 # Since v3.15.0, a new internal classloader used to load api policies is in place.
-# Setting it to true or removing this setting will switch back to the legacy mode used prior the v3.15.0.
+# Setting it to true will switch back to the legacy mode used prior the v3.15.0.
 classloader:
   legacy:
     enabled: false
