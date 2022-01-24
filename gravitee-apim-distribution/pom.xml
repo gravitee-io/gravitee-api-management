@@ -530,13 +530,6 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.apim.repository</groupId>
-            <artifactId>gravitee-apim-repository-redis</artifactId>
-            <version>${project.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-elasticsearch</artifactId>
             <version>${gravitee-repository-elasticsearch.version}</version>
