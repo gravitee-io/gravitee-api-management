@@ -36,7 +36,8 @@
           "description": "Step description",
           "configuration": {
             "rate": "1 req/s"
-          }
+          },
+          "condition": ""
         },
         {
           "policy": "api-key",
@@ -52,7 +53,8 @@
           "description": "Step description",
           "configuration": {
             "add-headers": "...."
-          }
+          },
+          "condition": "a non empty condition"
         }
       ],
       "post": [

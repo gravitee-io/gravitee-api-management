@@ -39,7 +39,7 @@ public class StepSerializer extends StdScalarSerializer<Step> {
         jgen.writeStringField("description", step.getDescription());
         jgen.writeBooleanField("enabled", step.isEnabled());
         jgen.writeStringField("policy", step.getPolicy());
-        if (step.getCondition() != null) {
+        if (step.getCondition() != null && !step.getCondition().isBlank()) {
             jgen.writeStringField("condition", step.getCondition());
         }
         jgen.writeFieldName("configuration");

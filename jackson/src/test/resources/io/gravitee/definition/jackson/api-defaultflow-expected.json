@@ -46,7 +46,8 @@
       "description" : "Step description",
       "enabled" : true,
       "policy" : "transform-headers",
-      "configuration" : {"add-headers":"...."}
+      "configuration" : {"add-headers":"...."},
+      "condition": "a non empty condition"
     } ],
     "post" : [ {
       "name" : "url-rewriting",

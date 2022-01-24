@@ -43,7 +43,10 @@ public class StepDeserializer extends StdScalarDeserializer<Step> {
         step.setPolicy(node.get("policy").asText());
         final JsonNode condition = node.get("condition");
         if (condition != null && !condition.isNull()) {
-            step.setCondition(condition.asText());
+            final String conditionStr = condition.asText();
+            if (!conditionStr.isBlank()) {
+                step.setCondition(conditionStr);
+            }
         }
         step.setConfiguration(node.get("configuration").toString());
         step.setEnabled(node.path("enabled").asBoolean(true));

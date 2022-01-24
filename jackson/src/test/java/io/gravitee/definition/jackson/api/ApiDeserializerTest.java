@@ -16,6 +16,7 @@
 package io.gravitee.definition.jackson.api;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -590,6 +591,23 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals("rate-limit", rule.getPolicy());
         Assert.assertNotNull(rule.getConfiguration());
         assertTrue(rule.isEnabled());
+        assertNull(rule.getCondition());
+
+        Step ruleApiKey = flow.getPre().get(1);
+        Assert.assertNotNull(ruleApiKey);
+        assertEquals("Check API Key", ruleApiKey.getName());
+        assertEquals("api-key", ruleApiKey.getPolicy());
+        Assert.assertNotNull(ruleApiKey.getConfiguration());
+        assertTrue(ruleApiKey.isEnabled());
+        assertNull(ruleApiKey.getCondition());
+
+        Step ruleTransformHeaders = flow.getPre().get(2);
+        Assert.assertNotNull(ruleTransformHeaders);
+        assertEquals("Add HTTP headers", ruleTransformHeaders.getName());
+        assertEquals("transform-headers", ruleTransformHeaders.getPolicy());
+        Assert.assertNotNull(ruleTransformHeaders.getConfiguration());
+        assertTrue(ruleTransformHeaders.isEnabled());
+        assertEquals("a non empty condition", ruleTransformHeaders.getCondition());
 
         Collection<Plan> plans = api.getPlans();
         Assert.assertNotNull(plans);
