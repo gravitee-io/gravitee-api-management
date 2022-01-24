@@ -1,0 +1,39 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/team",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "New flow",
+      "path-operator": {
+        "operator": "STARTS_WITH",
+        "path": "/"
+      },
+      "methods": [],
+      "pre": [],
+      "post": [
+        {
+        "policy": "stream-policy2",
+        "name": "My stream policy",
+        "description": "Step description",
+        "condition": "{#requestaders['condition___this_is_invalid)}",
+        "configuration": {}
+      }
+      ],
+      "enabled": true
+    }
+  ]
+}

@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
@@ -57,13 +55,12 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
 
     @Override
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        boolean isConditionTruthy = evaluateCondition(context);
+        ReadWriteStream<Buffer> stream = super.stream(chain, context);
 
-        ReadWriteStream<Buffer> stream = null;
-        if (isConditionTruthy) {
-            stream = super.stream(chain, context);
+        if (stream == null) {
+            return null;
         }
-        return stream;
+        return new ConditionalReadWriteStream(stream, chain, context, this.id(), condition, conditionEvaluator);
     }
 
     private boolean evaluateCondition(ExecutionContext context) throws PolicyException {

@@ -59,11 +59,29 @@ public class PolicyFactoryImplTest extends TestCase {
     }
 
     @Test
-    public void shouldCreateConditionalExecutablePolicyIfNoCondition() {
+    public void shouldCreateConditionalExecutablePolicyIfCondition() {
         final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
         final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyMetadata(), policyConfiguration, "execution-condition");
 
         assertTrue(policy instanceof ConditionalExecutablePolicy);
+    }
+
+    @Test
+    public void shouldNotCreateConditionalExecutablePolicyIfNullCondition() {
+        final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
+        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyMetadata(), policyConfiguration, null);
+
+        assertTrue(policy instanceof ExecutablePolicy);
+        assertFalse(policy instanceof ConditionalExecutablePolicy);
+    }
+
+    @Test
+    public void shouldNotCreateConditionalExecutablePolicyIfEmptyCondition() {
+        final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
+        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyMetadata(), policyConfiguration, "");
+
+        assertTrue(policy instanceof ExecutablePolicy);
+        assertFalse(policy instanceof ConditionalExecutablePolicy);
     }
 
     private PolicyMetadata fakePolicyMetadata() {
