@@ -28,6 +28,7 @@ import io.gravitee.gateway.standalone.flow.policy.OnRequestPolicy;
 import io.gravitee.gateway.standalone.flow.policy.Stream2Policy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
+import io.gravitee.gateway.standalone.utils.StringUtils;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
@@ -40,30 +41,24 @@ import org.junit.Test;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor("/io/gravitee/gateway/standalone/flow/invalid-conditional-policy-flow.json")
-public class InvalidConditionalPolicyTest extends AbstractWiremockGatewayTest {
+@ApiDescriptor("/io/gravitee/gateway/standalone/flow/invalid-conditional-stream-policy-flow.json")
+public class InvalidConditionalStreamPolicyTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void shouldNotRunPoliciesIfConditionIsInvalid() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final HttpResponse response = execute(
-            Request.Get("http://localhost:8082/test/my_team").addHeader("conditionHeader", "condition-ok")
-        )
-            .returnResponse();
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatusLine().getStatusCode());
-        wireMockRule.verify(0, anyRequestedFor(anyUrl()));
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
+        wireMockRule.verify(1, anyRequestedFor(anyUrl()));
     }
 
     @Override
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin myPolicyHeader1 = PolicyBuilder.build("header-policy1", Header1Policy.class);
-        PolicyPlugin onRequestPolicy = PolicyBuilder.build("on-request-policy", OnRequestPolicy.class);
         PolicyPlugin streamPolicy2 = PolicyBuilder.build("stream-policy2", Stream2Policy.class);
-        policyPluginManager.register(myPolicyHeader1);
-        policyPluginManager.register(onRequestPolicy);
         policyPluginManager.register(streamPolicy2);
     }
 }
