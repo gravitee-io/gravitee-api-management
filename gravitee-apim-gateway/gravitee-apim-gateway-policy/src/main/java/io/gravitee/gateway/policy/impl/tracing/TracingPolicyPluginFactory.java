@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl.tracing;
 
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -28,8 +29,8 @@ import io.gravitee.policy.api.PolicyConfiguration;
  */
 public class TracingPolicyPluginFactory extends PolicyFactoryImpl {
 
-    public TracingPolicyPluginFactory(PolicyPluginFactory policyPluginFactory) {
-        super(policyPluginFactory);
+    public TracingPolicyPluginFactory(PolicyPluginFactory policyPluginFactory, ConditionEvaluator<String> conditionEvaluator) {
+        super(policyPluginFactory, conditionEvaluator);
     }
 
     @Override

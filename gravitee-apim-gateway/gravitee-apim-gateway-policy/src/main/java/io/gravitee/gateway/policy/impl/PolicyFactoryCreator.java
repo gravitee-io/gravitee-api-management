@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.tracing.TracingPolicyPluginFactory;
@@ -33,10 +34,16 @@ public class PolicyFactoryCreator implements FactoryBean<PolicyFactory> {
 
     private final Environment environment;
     private final PolicyPluginFactory policyPluginFactory;
+    private final ConditionEvaluator<String> conditionEvaluator;
 
-    public PolicyFactoryCreator(final Environment environment, final PolicyPluginFactory policyPluginFactory) {
+    public PolicyFactoryCreator(
+        final Environment environment,
+        final PolicyPluginFactory policyPluginFactory,
+        ConditionEvaluator<String> conditionEvaluator
+    ) {
         this.environment = environment;
         this.policyPluginFactory = policyPluginFactory;
+        this.conditionEvaluator = conditionEvaluator;
     }
 
     @Override
@@ -48,8 +55,8 @@ public class PolicyFactoryCreator implements FactoryBean<PolicyFactory> {
         }
 
         final PolicyFactory policyFactory = tracing
-            ? new TracingPolicyPluginFactory(policyPluginFactory)
-            : new PolicyFactoryImpl(policyPluginFactory);
+            ? new TracingPolicyPluginFactory(policyPluginFactory, conditionEvaluator)
+            : new PolicyFactoryImpl(policyPluginFactory, conditionEvaluator);
         return new CachedPolicyFactory(policyFactory);
     }
 

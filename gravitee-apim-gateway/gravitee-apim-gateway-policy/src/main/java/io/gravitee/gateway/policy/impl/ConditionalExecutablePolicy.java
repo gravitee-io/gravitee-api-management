@@ -23,6 +23,7 @@ import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvalu
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
 import java.lang.reflect.Method;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,13 +34,18 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(ConditionalExecutablePolicy.class);
 
-    private final ConditionEvaluator<String> conditionEvaluator;
-    private final String condition;
+    private final Function<ExecutionContext, Boolean> evaluationFunction;
 
-    public ConditionalExecutablePolicy(String id, Object policy, Method headMethod, Method streamMethod, String condition) {
+    public ConditionalExecutablePolicy(
+        String id,
+        Object policy,
+        Method headMethod,
+        Method streamMethod,
+        String condition,
+        ConditionEvaluator<String> conditionEvaluator
+    ) {
         super(id, policy, headMethod, streamMethod);
-        this.conditionEvaluator = new ExpressionLanguageStringConditionEvaluator();
-        this.condition = condition;
+        this.evaluationFunction = context -> conditionEvaluator.evaluate(context, condition);
     }
 
     @Override
@@ -60,13 +66,13 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
         if (stream == null) {
             return null;
         }
-        return new ConditionalReadWriteStream(stream, chain, context, this.id(), condition, conditionEvaluator);
+        return new ConditionalReadWriteStream(stream, chain, context, this.id(), evaluationFunction);
     }
 
     private boolean evaluateCondition(ExecutionContext context) throws PolicyException {
         boolean isConditionTruthy;
         try {
-            isConditionTruthy = conditionEvaluator.evaluate(context, condition);
+            isConditionTruthy = evaluationFunction.apply(context);
         } catch (RuntimeException e) {
             // Catching all RuntimeException to catch those thrown by spring-expression without adding dependency to it
             LOGGER.error("Condition evaluation fails for policy {}", this.id(), e);

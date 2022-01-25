@@ -30,6 +30,8 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.policy.DummyPolicy;
 import io.gravitee.gateway.policy.DummyStreamablePolicy;
 import io.gravitee.gateway.policy.PolicyException;
@@ -62,12 +64,14 @@ public class ConditionalExecutablePolicyTest extends TestCase {
     private TemplateEngine templateEngine;
 
     private Method method;
+    private ConditionEvaluator<String> conditionEvaluator;
 
     @Before
     public void setUp() throws NoSuchMethodException {
         when(executionContext.request()).thenReturn(mock(Request.class));
         when(executionContext.response()).thenReturn(mock(Response.class));
         method = DummyPolicy.class.getMethod("onRequest", PolicyChain.class, Request.class, Response.class);
+        conditionEvaluator = new ExpressionLanguageStringConditionEvaluator();
     }
 
     @Test
@@ -80,7 +84,8 @@ public class ConditionalExecutablePolicyTest extends TestCase {
             fakeExecutePolicy(),
             method,
             method,
-            "condition"
+            "condition",
+            conditionEvaluator
         );
         policy.execute(policyChain, executionContext);
         verify(policyChain, never()).doNext(any(), any());
@@ -96,7 +101,8 @@ public class ConditionalExecutablePolicyTest extends TestCase {
             fakeExecutePolicy(),
             method,
             method,
-            "condition"
+            "condition",
+            conditionEvaluator
         );
         policy.execute(policyChain, executionContext);
         verify(policyChain, times(1)).doNext(any(), any());
@@ -112,7 +118,8 @@ public class ConditionalExecutablePolicyTest extends TestCase {
             fakeExecutePolicy(),
             method,
             method,
-            "condition"
+            "condition",
+            conditionEvaluator
         );
         policy.execute(policyChain, executionContext);
     }
@@ -128,7 +135,8 @@ public class ConditionalExecutablePolicyTest extends TestCase {
             fakeStreamPolicy(),
             method,
             method,
-            "condition"
+            "condition",
+            conditionEvaluator
         );
         final ReadWriteStream<Buffer> conditionedStream = policy.stream(policyChain, executionContext);
 
@@ -153,7 +161,8 @@ public class ConditionalExecutablePolicyTest extends TestCase {
             fakeStreamPolicy(),
             method,
             method,
-            "condition"
+            "condition",
+            conditionEvaluator
         );
         final ReadWriteStream<Buffer> conditionedStream = policy.stream(policyChain, executionContext);
         conditionedStream.write(Buffer.buffer("Test")).end();
@@ -171,7 +180,8 @@ public class ConditionalExecutablePolicyTest extends TestCase {
             fakeStreamPolicy(),
             method,
             method,
-            "condition"
+            "condition",
+            conditionEvaluator
         );
         final ReadWriteStream<Buffer> conditionedStream = policy.stream(policyChain, executionContext);
         conditionedStream.write(Buffer.buffer("Test")).end();
