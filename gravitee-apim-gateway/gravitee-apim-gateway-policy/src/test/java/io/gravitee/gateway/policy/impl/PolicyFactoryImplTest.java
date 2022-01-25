@@ -17,6 +17,7 @@ package io.gravitee.gateway.policy.impl;
 
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.policy.DummyPolicy;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyFactory;
@@ -46,7 +47,7 @@ public class PolicyFactoryImplTest extends TestCase {
 
     @Before
     public void setUp() {
-        cut = new PolicyFactoryImpl(policyPluginFactory);
+        cut = new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator());
     }
 
     @Test

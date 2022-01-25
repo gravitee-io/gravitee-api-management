@@ -22,9 +22,9 @@ import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.api.stream.SimpleReadWriteStream;
 import io.gravitee.gateway.api.stream.WriteStream;
-import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,10 +35,9 @@ public class ConditionalReadWriteStream extends SimpleReadWriteStream<Buffer> {
 
     private final String policyId;
     private final ReadWriteStream<Buffer> delegate;
-    private final String condition;
     private final ExecutionContext context;
-    private final ConditionEvaluator<String> conditionEvaluator;
     private final PolicyChain chain;
+    private final Function<ExecutionContext, Boolean> evaluationFunction;
 
     private Boolean isConditionTruthy;
 
@@ -47,15 +46,13 @@ public class ConditionalReadWriteStream extends SimpleReadWriteStream<Buffer> {
         PolicyChain chain,
         ExecutionContext context,
         String policyId,
-        String condition,
-        ConditionEvaluator<String> conditionEvaluator
+        Function<ExecutionContext, Boolean> evaluationFunction
     ) {
         this.policyId = policyId;
         this.delegate = delegate;
-        this.condition = condition;
         this.context = context;
-        this.conditionEvaluator = conditionEvaluator;
         this.chain = chain;
+        this.evaluationFunction = evaluationFunction;
     }
 
     /**
@@ -81,23 +78,21 @@ public class ConditionalReadWriteStream extends SimpleReadWriteStream<Buffer> {
     }
 
     /**
-     * Pause both delegate and this instance in case of full queue
+     * Depending on condition evaluation, pause delegate or this instance in case of full queue
      * @return this instance of ReadStream<Buffer>
      */
     @Override
     public ReadStream<Buffer> pause() {
-        delegate.pause();
-        return super.pause();
+        return evaluateCondition() ? delegate.pause() : super.pause();
     }
 
     /**
-     * Resume both delegate and this instance in case of full queue
+     * Depending on condition evaluation, resume delegate or this instance in case of full queue
      * @return this instance of ReadStream<Buffer>
      */
     @Override
     public ReadStream<Buffer> resume() {
-        delegate.resume();
-        return super.resume();
+        return evaluateCondition() ? delegate.resume() : super.resume();
     }
 
     /**
@@ -164,10 +159,10 @@ public class ConditionalReadWriteStream extends SimpleReadWriteStream<Buffer> {
      * In case of Exception during evaluation, policy chain will fail and exception rethrown
      * @return the evaluation result of the condition.
      */
-    private Boolean evaluateCondition() {
+    private boolean evaluateCondition() {
         if (isConditionTruthy == null) {
             try {
-                isConditionTruthy = conditionEvaluator.evaluate(context, condition);
+                isConditionTruthy = evaluationFunction.apply(context);
             } catch (RuntimeException e) {
                 LOGGER.error("Condition evaluation fails for policy {}", policyId, e);
                 chain.streamFailWith(PolicyResult.failure(GATEWAY_POLICY_INTERNAL_ERROR_KEY, "Request failed unintentionally"));

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.policy.*;
 import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.annotations.OnRequest;
@@ -30,9 +31,11 @@ import java.lang.reflect.Method;
 public class PolicyFactoryImpl implements PolicyFactory {
 
     private final PolicyPluginFactory policyPluginFactory;
+    private final ConditionEvaluator<String> conditionEvaluator;
 
-    public PolicyFactoryImpl(final PolicyPluginFactory policyPluginFactory) {
+    public PolicyFactoryImpl(final PolicyPluginFactory policyPluginFactory, final ConditionEvaluator<String> conditionEvaluator) {
         this.policyPluginFactory = policyPluginFactory;
+        this.conditionEvaluator = conditionEvaluator;
     }
 
     @Override
@@ -54,7 +57,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
         }
 
         if (condition != null && !condition.isBlank()) {
-            return new ConditionalExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod, condition);
+            return new ConditionalExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod, condition, conditionEvaluator);
         }
         return new ExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod);
     }

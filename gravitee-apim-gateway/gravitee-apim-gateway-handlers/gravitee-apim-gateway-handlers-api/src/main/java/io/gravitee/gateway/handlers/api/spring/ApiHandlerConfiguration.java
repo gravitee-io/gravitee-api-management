@@ -19,6 +19,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
+import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
@@ -79,7 +80,7 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public PolicyFactoryCreator policyFactoryFactoryBean(final Environment environment, final PolicyPluginFactory policyPluginFactory) {
-        return new PolicyFactoryCreator(environment, policyPluginFactory);
+        return new PolicyFactoryCreator(environment, policyPluginFactory, new ExpressionLanguageStringConditionEvaluator());
     }
 
     @Bean
