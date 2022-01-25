@@ -293,6 +293,24 @@ public class AlertMapperTest {
     }
 
     @Test
+    public void convertAlertWebhookWithSpaceInURL() {
+        AlertInput alertInput = new AlertInput();
+        AlertWebhook alertWebhook = new AlertWebhook();
+        alertWebhook.setHttpMethod(HttpMethod.HEAD);
+        alertWebhook.setUrl("http://my.url/with/final/space ");
+        alertInput.setWebhook(alertWebhook);
+        alertInput.setStatusCode("200");
+        alertInput.setStatusPercent(20);
+        alertInput.setDuration(10);
+
+        final NewAlertTriggerEntity newAlert = alertMapper.convert(alertInput);
+        assertEquals(
+            "{\"method\":\"HEAD\",\"url\":\"http://my.url/with/final/space\",\"headers\":[],\"body\":null}",
+            newAlert.getNotifications().get(0).getConfiguration()
+        );
+    }
+
+    @Test
     public void convertAlertTriggerEntityToAlertResponseTime() {
         AlertTriggerEntity alertTriggerEntity = mock(AlertTriggerEntity.class);
         when(alertTriggerEntity.getType()).thenReturn(AlertMapper.RESPONSE_TIME_ALERT);
