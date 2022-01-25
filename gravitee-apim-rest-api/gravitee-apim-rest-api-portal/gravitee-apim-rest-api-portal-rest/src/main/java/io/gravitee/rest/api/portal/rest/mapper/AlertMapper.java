@@ -191,7 +191,7 @@ public class AlertMapper {
             try {
                 WebhookNotifierConfiguration webhookConfig = new WebhookNotifierConfiguration(
                     alertInput.getWebhook().getHttpMethod().getValue(),
-                    alertInput.getWebhook().getUrl()
+                    alertInput.getWebhook().getUrl().strip()
                 );
                 if (
                     alertInput.getWebhook().getHttpMethod() == HttpMethod.PUT ||
