@@ -29,6 +29,12 @@ import javax.validation.constraints.Size;
  */
 public class NewPageEntity extends FetchablePageEntity {
 
+    /**
+     * The page crossId uniquely identifies a page across environments.
+     * Pages promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     @NotNull
     @Size(min = 1)
     private String name;
@@ -169,6 +175,7 @@ public class NewPageEntity extends FetchablePageEntity {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
+        sb.append("crossId='").append(crossId).append('\'');
         sb.append("name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append(", order='").append(order).append('\'');
@@ -185,5 +192,13 @@ public class NewPageEntity extends FetchablePageEntity {
 
     public void setAttachedMedia(List<PageMediaEntity> attachedMedia) {
         this.attachedMedia = attachedMedia;
+    }
+
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
     }
 }

@@ -37,6 +37,9 @@ import javax.validation.constraints.NotNull;
  */
 public class UpdateApiEntity {
 
+    @ApiModelProperty(value = "API's crossId. Identifies API across environments.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    private String crossId;
+
     @NotNull
     @NotEmpty(message = "Api's name must not be empty")
     @ApiModelProperty(value = "Api's name. Duplicate names can exists.", example = "My Api")
@@ -365,5 +368,13 @@ public class UpdateApiEntity {
 
     public void setFlowMode(FlowMode flowMode) {
         this.flowMode = flowMode;
+    }
+
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
     }
 }

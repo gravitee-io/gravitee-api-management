@@ -29,6 +29,12 @@ public class NewPlanEntity {
 
     private String id;
 
+    /**
+     * The plan crossId uniquely identifies a plan across environments.
+     * Plans promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     @NotNull
     private String name;
 
@@ -228,6 +234,14 @@ public class NewPlanEntity {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
     }
 
     @Override

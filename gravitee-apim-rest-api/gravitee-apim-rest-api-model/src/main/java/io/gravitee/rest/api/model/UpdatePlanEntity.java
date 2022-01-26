@@ -32,6 +32,12 @@ public class UpdatePlanEntity {
 
     private String id;
 
+    /**
+     * The plan crossId uniquely identifies a plan across environments.
+     * Plans promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     @NotNull
     private String name;
 
@@ -189,6 +195,14 @@ public class UpdatePlanEntity {
 
     public void setFlows(List<Flow> flows) {
         this.flows = flows;
+    }
+
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
     }
 
     @Override

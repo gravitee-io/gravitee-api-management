@@ -298,6 +298,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // update data
             newPlan.setName(updatePlan.getName());
+            newPlan.setCrossId(updatePlan.getCrossId());
             newPlan.setDescription(updatePlan.getDescription());
             newPlan.setUpdatedAt(new Date());
             newPlan.setSecurityDefinition(updatePlan.getSecurityDefinition());

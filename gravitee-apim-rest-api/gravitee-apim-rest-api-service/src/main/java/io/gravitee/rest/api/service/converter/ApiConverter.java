@@ -54,6 +54,7 @@ public class ApiConverter {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
+        apiEntity.setCrossId(api.getCrossId());
         apiEntity.setName(api.getName());
         apiEntity.setDeployedAt(api.getDeployedAt());
         apiEntity.setCreatedAt(api.getCreatedAt());
@@ -134,6 +135,7 @@ public class ApiConverter {
 
     public UpdateApiEntity toUpdateApiEntity(ApiEntity apiEntity) {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setCrossId(apiEntity.getCrossId());
         updateApiEntity.setProxy(apiEntity.getProxy());
         updateApiEntity.setVersion(apiEntity.getVersion());
         updateApiEntity.setName(apiEntity.getName());

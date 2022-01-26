@@ -28,6 +28,12 @@ import javax.validation.constraints.Size;
  */
 public class UpdatePageEntity extends FetchablePageEntity {
 
+    /**
+     * The page crossId uniquely identifies a page across environments.
+     * Pages promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     @NotNull
     @Size(min = 1)
     private String name;
@@ -160,5 +166,13 @@ public class UpdatePageEntity extends FetchablePageEntity {
 
     public void setAccessControls(Set<AccessControlEntity> accessControls) {
         this.accessControls = accessControls;
+    }
+
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
     }
 }
