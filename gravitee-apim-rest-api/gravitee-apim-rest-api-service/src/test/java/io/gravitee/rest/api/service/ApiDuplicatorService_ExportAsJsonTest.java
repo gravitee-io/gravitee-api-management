@@ -165,6 +165,7 @@ public class ApiDuplicatorService_ExportAsJsonTest extends ApiDuplicatorService_
     public void shouldConvertAsJsonMultipleGroups_1_15() throws IOException {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
+        apiEntity.setCrossId("test-api-cross-id");
         apiEntity.setDescription("Gravitee.io");
         apiEntity.setGroups(Collections.singleton("my-group"));
         apiEntity.setFlowMode(FlowMode.DEFAULT);

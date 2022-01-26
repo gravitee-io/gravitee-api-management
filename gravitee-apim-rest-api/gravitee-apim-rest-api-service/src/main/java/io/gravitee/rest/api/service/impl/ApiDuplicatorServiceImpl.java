@@ -39,6 +39,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PageImportException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -79,6 +80,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final ApiService apiService;
     private final ApiConverter apiConverter;
     private final PlanConverter planConverter;
+    private final PageConverter pageConverter;
 
     public ApiDuplicatorServiceImpl(
         HttpClientService httpClientService,
@@ -94,7 +96,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         UserService userService,
         ApiService apiService,
         ApiConverter apiConverter,
-        PlanConverter planConverter
+        PlanConverter planConverter,
+        PageConverter pageConverter
     ) {
         this.httpClientService = httpClientService;
         this.importConfiguration = importConfiguration;
@@ -110,6 +113,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.apiService = apiService;
         this.apiConverter = apiConverter;
         this.planConverter = planConverter;
+        this.pageConverter = pageConverter;
     }
 
     @Override
@@ -227,6 +231,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     @Override
     public String exportAsJson(final String apiId, String exportVersion, String... filteredFields) {
         ApiEntity apiEntity = apiService.findById(apiId);
+        generateAndSaveCrossId(apiEntity);
         // set metadata for serialize process
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, exportVersion);
@@ -744,5 +749,29 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             apiJsonNode.get("pages").forEach(pagesNodes::add);
         }
         return pagesNodes;
+    }
+
+    private void generateAndSaveCrossId(ApiEntity api) {
+        if (StringUtils.isEmpty(api.getCrossId())) {
+            api.setCrossId(UuidString.generateRandom());
+            apiService.update(api.getId(), apiConverter.toUpdateApiEntity(api));
+        }
+        planService.findByApi(api.getId()).forEach(this::generateAndSaveCrossId);
+        pageService.search(new PageQuery.Builder().api(api.getId()).build(), false)
+                .forEach(this::generateAndSaveCrossId);
+    }
+
+    private void generateAndSaveCrossId(PlanEntity plan) {
+        if (StringUtils.isEmpty(plan.getCrossId())) {
+            plan.setCrossId(UuidString.generateRandom());
+            planService.update(planConverter.toUpdatePlanEntity(plan));
+        }
+    }
+
+    private void generateAndSaveCrossId(PageEntity page) {
+        if (StringUtils.isEmpty(page.getCrossId())) {
+            page.setCrossId(UuidString.generateRandom());
+            pageService.update(page.getId(), pageConverter.toUpdatePageEntity(page));
+        }
     }
 }

@@ -1,4 +1,5 @@
 {
+  "crossId": "test-api-cross-id",
   "description": "Gravitee.io",
   "gravitee": "1.0.0",
   "resources": [],
@@ -75,6 +76,7 @@
   "plans": [
     {
       "id": "plan-id",
+      "crossId": "test-plan-cross-id",
       "description": "free plan",
       "validation": "AUTO",
       "security": "API_KEY",

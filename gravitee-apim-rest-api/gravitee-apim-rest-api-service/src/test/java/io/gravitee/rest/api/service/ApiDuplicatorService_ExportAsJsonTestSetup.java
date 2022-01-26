@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
@@ -69,6 +70,9 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
 
     @Mock
     protected PlanConverter planConverter;
+
+    @Mock
+    protected PageConverter pageConverter;
 
     @Spy
     protected ObjectMapper objectMapper = new GraviteeMapper();
@@ -123,7 +127,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
                 userService,
                 apiService,
                 apiConverter,
-                planConverter
+                planConverter, pageConverter
             );
     }
 
@@ -179,6 +183,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
+        apiEntity.setCrossId("test-api-cross-id");
         apiEntity.setDescription("Gravitee.io");
         apiEntity.setFlowMode(FlowMode.DEFAULT);
         apiEntity.setFlows(null);
@@ -295,6 +300,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
 
         PlanEntity publishedPlan = new PlanEntity();
         publishedPlan.setId("plan-id");
+        publishedPlan.setCrossId("test-plan-cross-id");
         publishedPlan.setApi(API_ID);
         publishedPlan.setDescription("free plan");
         publishedPlan.setType(PlanType.API);
@@ -328,6 +334,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
         publishedPlan.setPaths(paths);
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closedPlan-id");
+        closedPlan.setCrossId("closed-test-plan-cross-id");
         closedPlan.setApi(API_ID);
         closedPlan.setDescription("free closedPlan");
         closedPlan.setType(PlanType.API);

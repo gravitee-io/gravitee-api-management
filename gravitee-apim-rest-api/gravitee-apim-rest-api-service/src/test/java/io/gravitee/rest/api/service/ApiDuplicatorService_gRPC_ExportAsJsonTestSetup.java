@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
@@ -71,7 +72,10 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
     private ApiConverter apiConverter;
 
     @Mock
-    protected PlanConverter planConverter;
+    private PlanConverter planConverter;
+
+    @Mock
+    private PageConverter pageConverter;
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
@@ -126,7 +130,8 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
                 userService,
                 apiService,
                 apiConverter,
-                planConverter
+                planConverter,
+                pageConverter
             );
     }
 
@@ -181,6 +186,7 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
+        apiEntity.setCrossId("test-api-cross-id");
         apiEntity.setDescription("Gravitee.io");
         apiEntity.setFlowMode(FlowMode.DEFAULT);
         apiEntity.setFlows(null);
@@ -312,6 +318,7 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
 
         PlanEntity publishedPlan = new PlanEntity();
         publishedPlan.setId("plan-id");
+        publishedPlan.setCrossId("test-plan-cross-id");
         publishedPlan.setApi(API_ID);
         publishedPlan.setDescription("free plan");
         publishedPlan.setType(PlanType.API);
