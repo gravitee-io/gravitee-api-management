@@ -3027,7 +3027,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
         List<String> subsetApiIds = apiIds.stream().skip(startIndex).limit(pageable.getPageSize()).collect(toList());
         Comparator<String> orderingComparator = Comparator.comparingInt(subsetApiIds::indexOf);
-        List<ApiEntity> subsetApis = convert(apiRepository.search(queryToCriteria(null).ids(subsetApiIds).build()));
+        List<ApiEntity> subsetApis = subsetApiIds.isEmpty()
+            ? emptyList()
+            : convert(apiRepository.search(queryToCriteria(null).ids(subsetApiIds).build()));
         subsetApis.sort((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()));
         return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apiIds.size());
     }
