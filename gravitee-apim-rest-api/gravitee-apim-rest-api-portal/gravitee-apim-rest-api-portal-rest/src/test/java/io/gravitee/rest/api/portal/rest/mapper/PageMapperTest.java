@@ -128,7 +128,7 @@ public class PageMapperTest {
         assertEquals(42, pageConfiguration.getMaxDisplayedTags());
         assertFalse(pageConfiguration.getShowCommonExtensions());
         assertTrue(pageConfiguration.getShowExtensions());
-        assertEquals(PAGE_CONFIGURATION_SHOW_URL, pageConfiguration.getShowUrl());
+        assertFalse(pageConfiguration.getShowUrl());
         assertTrue(pageConfiguration.getTryIt());
         assertFalse(pageConfiguration.getTryItAnonymous());
         assertEquals(PAGE_CONFIGURATION_TRY_IT_URL, pageConfiguration.getTryItUrl());
