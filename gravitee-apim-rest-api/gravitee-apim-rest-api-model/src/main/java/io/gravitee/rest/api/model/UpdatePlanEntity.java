@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
@@ -205,27 +204,5 @@ public class UpdatePlanEntity {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
-    }
-
-    public static UpdatePlanEntity from(PlanEntity planEntity) {
-        UpdatePlanEntity updatePlanEntity = new UpdatePlanEntity();
-        updatePlanEntity.setId(planEntity.getId());
-        updatePlanEntity.setName(planEntity.getName());
-        updatePlanEntity.setDescription(planEntity.getDescription());
-        updatePlanEntity.setValidation(planEntity.getValidation());
-        if (planEntity.getPaths() != null) {
-            updatePlanEntity.setPaths(planEntity.getPaths());
-        }
-        updatePlanEntity.setCharacteristics(planEntity.getCharacteristics());
-        updatePlanEntity.setOrder(planEntity.getOrder());
-        updatePlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
-        updatePlanEntity.setSecurityDefinition(planEntity.getSecurityDefinition());
-        updatePlanEntity.setCommentRequired(planEntity.isCommentRequired());
-        updatePlanEntity.setCommentMessage(planEntity.getCommentMessage());
-        updatePlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
-        updatePlanEntity.setTags(planEntity.getTags());
-        updatePlanEntity.setSelectionRule(planEntity.getSelectionRule());
-        updatePlanEntity.setFlows(planEntity.getFlows());
-        return updatePlanEntity;
     }
 }

@@ -30,6 +30,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -62,6 +64,12 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
     @Mock
     private ApiService apiService;
+
+    @Mock
+    protected ApiConverter apiConverter;
+
+    @Mock
+    protected PlanConverter planConverter;
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
@@ -114,7 +122,9 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 planService,
                 groupService,
                 userService,
-                apiService
+                apiService,
+                apiConverter,
+                planConverter
             );
     }
 

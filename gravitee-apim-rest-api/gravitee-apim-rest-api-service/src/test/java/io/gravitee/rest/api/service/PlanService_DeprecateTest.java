@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
@@ -68,6 +69,9 @@ public class PlanService_DeprecateTest {
 
     @Mock
     private ApiEntity api;
+
+    @Mock
+    private PlanConverter planConverter;
 
     @Test(expected = PlanAlreadyDeprecatedException.class)
     public void shouldNotDepreciateBecauseAlreadyDepreciated() throws TechnicalException {

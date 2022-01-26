@@ -38,6 +38,8 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PageImportException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -74,6 +76,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final GroupService groupService;
     private final UserService userService;
     private final ApiService apiService;
+    private final ApiConverter apiConverter;
+    private final PlanConverter planConverter;
 
     public ApiDuplicatorServiceImpl(
         HttpClientService httpClientService,
@@ -87,7 +91,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         PlanService planService,
         GroupService groupService,
         UserService userService,
-        ApiService apiService
+        ApiService apiService,
+        ApiConverter apiConverter,
+        PlanConverter planConverter
     ) {
         this.httpClientService = httpClientService;
         this.importConfiguration = importConfiguration;
@@ -101,6 +107,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.groupService = groupService;
         this.userService = userService;
         this.apiService = apiService;
+        this.apiConverter = apiConverter;
+        this.planConverter = planConverter;
     }
 
     @Override
@@ -141,7 +149,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         final String apiId = apiEntity.getId();
         LOGGER.debug("Duplicate API {}", apiId);
 
-        final UpdateApiEntity newApiEntity = ApiService.convert(apiEntity);
+        final UpdateApiEntity newApiEntity = apiConverter.toUpdateApiEntity(apiEntity);
         final Proxy proxy = apiEntity.getProxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(duplicateApiEntity.getContextPath())));
         newApiEntity.setProxy(proxy);
@@ -207,7 +215,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     plan -> {
                         plan.setId(plansIdsMap.get(plan.getId()));
                         plan.setApi(duplicatedApi.getId());
-                        planService.create(NewPlanEntity.from(plan));
+                        planService.create(planConverter.toNewPlanEntity(plan));
                     }
                 );
         }

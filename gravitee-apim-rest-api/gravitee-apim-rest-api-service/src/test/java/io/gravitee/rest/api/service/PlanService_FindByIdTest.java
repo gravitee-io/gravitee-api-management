@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -23,6 +24,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
@@ -59,17 +61,21 @@ public class PlanService_FindByIdTest {
     @Mock
     private ApiEntity api;
 
+    @Mock
+    private PlanConverter planConverter;
+
     @Test
     public void shouldFindById() throws TechnicalException {
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
         when(apiService.findById(API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        final PlanEntity planEntity = planService.findById(PLAN_ID);
+        PlanEntity planEntityFromConverter = mock(PlanEntity.class);
+        when(planConverter.toPlanEntity(plan, api)).thenReturn(planEntityFromConverter);
 
-        assertNotNull(planEntity);
+        final PlanEntity resultPlanEntity = planService.findById(PLAN_ID);
+
+        assertSame(resultPlanEntity, planEntityFromConverter);
     }
 
     @Test(expected = PlanNotFoundException.class)

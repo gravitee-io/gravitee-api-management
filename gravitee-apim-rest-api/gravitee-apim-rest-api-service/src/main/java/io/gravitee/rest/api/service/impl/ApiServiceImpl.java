@@ -1163,7 +1163,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity updateFromSwagger(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final ApiEntity apiEntityToUpdate = this.findById(apiId);
-        final UpdateApiEntity updateApiEntity = ApiService.convert(apiEntityToUpdate);
+        final UpdateApiEntity updateApiEntity = apiConverter.toUpdateApiEntity(apiEntityToUpdate);
 
         // Overwrite from swagger
         updateApiEntity.setVersion(swaggerApiEntity.getVersion());
@@ -2080,7 +2080,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         ApiEntity migratedApi = apiv1toAPIV2Converter.migrateToV2(apiEntity, policies, plans);
 
-        return this.update(apiId, ApiService.convert(migratedApi));
+        return this.update(apiId, apiConverter.toUpdateApiEntity(migratedApi));
     }
 
     @Override
@@ -2195,7 +2195,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiEntity.getPathMappings().addAll(swaggerApiEntity.getPathMappings());
         }
 
-        return update(apiEntity.getId(), ApiService.convert(apiEntity));
+        return update(apiEntity.getId(), apiConverter.toUpdateApiEntity(apiEntity));
     }
 
     @Override

@@ -127,34 +127,6 @@ public interface ApiService {
 
     Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
 
-    static UpdateApiEntity convert(ApiEntity apiEntity) {
-        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setProxy(apiEntity.getProxy());
-        updateApiEntity.setVersion(apiEntity.getVersion());
-        updateApiEntity.setName(apiEntity.getName());
-        updateApiEntity.setProperties(new PropertiesEntity(apiEntity.getProperties()));
-        updateApiEntity.setDescription(apiEntity.getDescription());
-        updateApiEntity.setGroups(apiEntity.getGroups());
-        updateApiEntity.setPaths(apiEntity.getPaths());
-        updateApiEntity.setPicture(apiEntity.getPicture());
-        updateApiEntity.setBackground(apiEntity.getBackground());
-        updateApiEntity.setResources(apiEntity.getResources());
-        updateApiEntity.setTags(apiEntity.getTags());
-        updateApiEntity.setServices(apiEntity.getServices());
-        updateApiEntity.setVisibility(apiEntity.getVisibility());
-        updateApiEntity.setLabels(apiEntity.getLabels());
-        updateApiEntity.setPathMappings(apiEntity.getPathMappings());
-        updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
-        updateApiEntity.setPlans(apiEntity.getPlans());
-        updateApiEntity.setFlows(apiEntity.getFlows());
-        updateApiEntity.setGraviteeDefinitionVersion(apiEntity.getGraviteeDefinitionVersion());
-        updateApiEntity.setFlowMode(apiEntity.getFlowMode());
-        updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
-        updateApiEntity.setCategories(apiEntity.getCategories());
-        updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
-        return updateApiEntity;
-    }
-
     Page<ApiEntity> search(ApiQuery query, Sortable sortable, Pageable pageable);
 
     Collection<ApiEntity> search(ApiQuery query);

@@ -244,39 +244,4 @@ public class NewPlanEntity {
     public int hashCode() {
         return id != null ? id.hashCode() : name.hashCode();
     }
-
-    public static NewPlanEntity from(PlanEntity planEntity) {
-        NewPlanEntity newPlanEntity = new NewPlanEntity();
-        newPlanEntity.setId(planEntity.getId());
-        newPlanEntity.setApi(planEntity.getApi());
-        newPlanEntity.setName(planEntity.getName());
-        newPlanEntity.setDescription(planEntity.getDescription());
-        if (planEntity.getValidation() != null) {
-            newPlanEntity.setValidation(planEntity.getValidation());
-        }
-        if (planEntity.getSecurity() != null) {
-            newPlanEntity.setSecurity(planEntity.getSecurity());
-        }
-        newPlanEntity.setSecurityDefinition(planEntity.getSecurityDefinition());
-        if (planEntity.getType() != null) {
-            newPlanEntity.setType(planEntity.getType());
-        }
-        if (planEntity.getStatus() != null) {
-            newPlanEntity.setStatus(planEntity.getStatus());
-        }
-        if (planEntity.getPaths() != null) {
-            newPlanEntity.setPaths(planEntity.getPaths());
-        }
-        if (planEntity.getFlows() != null) {
-            newPlanEntity.setFlows(planEntity.getFlows());
-        }
-        newPlanEntity.setCharacteristics(planEntity.getCharacteristics());
-        newPlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
-        newPlanEntity.setCommentRequired(planEntity.isCommentRequired());
-        newPlanEntity.setCommentMessage(planEntity.getCommentMessage());
-        newPlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
-        newPlanEntity.setTags(planEntity.getTags());
-        newPlanEntity.setSelectionRule(planEntity.getSelectionRule());
-        return newPlanEntity;
-    }
 }

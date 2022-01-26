@@ -20,10 +20,8 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.*;
 import static java.util.Collections.emptySet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -37,9 +35,10 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -80,6 +79,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private ApiService apiService;
+
+    @Autowired
+    private ApiConverter apiConverter;
+
+    @Autowired
+    private PlanConverter planConverter;
 
     private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(
         Arrays.asList(
@@ -208,7 +213,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan = planRepository.create(plan);
 
             if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
-                UpdateApiEntity updateApi = ApiService.convert(api);
+                UpdateApiEntity updateApi = apiConverter.toUpdateApiEntity(api);
                 updateApi.addPlan(fillApiDefinitionPlan(new io.gravitee.definition.model.Plan(), plan, newPlan.getFlows()));
                 apiService.update(api.getId(), updateApi);
             }
@@ -242,9 +247,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         PlanEntity resultPlanEntity;
         try {
             findById(planEntity.getId());
-            resultPlanEntity = update(UpdatePlanEntity.from(planEntity));
+            resultPlanEntity = update(planConverter.toUpdatePlanEntity(planEntity));
         } catch (PlanNotFoundException npe) {
-            resultPlanEntity = create(NewPlanEntity.from(planEntity));
+            resultPlanEntity = create(planConverter.toNewPlanEntity(planEntity));
         }
         return resultPlanEntity;
     }
@@ -488,7 +493,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                     .filter(plan -> plan.getId().equals(updatedPlan.getId()))
                     .findFirst();
 
-                final UpdateApiEntity updateApi = ApiService.convert(api);
+                final UpdateApiEntity updateApi = apiConverter.toUpdateApiEntity(api);
                 if (existingPlan.isPresent()) {
                     // plan already exist, provide flows only if this is an import to override
                     fillApiDefinitionPlan(existingPlan.get(), updatedPlan, flows);
@@ -706,68 +711,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     private PlanEntity convert(Plan plan) {
-        PlanEntity entity = new PlanEntity();
-
-        entity.setId(plan.getId());
-        entity.setName(plan.getName());
-        entity.setDescription(plan.getDescription());
-        entity.setApi(plan.getApi());
-        entity.setCreatedAt(plan.getCreatedAt());
-        entity.setUpdatedAt(plan.getUpdatedAt());
-        entity.setOrder(plan.getOrder());
-        entity.setExcludedGroups(plan.getExcludedGroups());
-
-        if (plan.getDefinition() != null && !plan.getDefinition().isEmpty()) {
-            try {
-                HashMap<String, List<Rule>> rules = objectMapper.readValue(
-                    plan.getDefinition(),
-                    new TypeReference<HashMap<String, List<Rule>>>() {}
-                );
-                entity.setPaths(rules);
-            } catch (IOException ioe) {
-                logger.error("Unexpected error while generating policy definition", ioe);
-            }
-        }
-        ApiEntity api = apiService.findById(plan.getApi());
-        if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
-            Optional<List<Flow>> planFlows = api
-                .getPlans()
-                .stream()
-                .filter(pl -> plan.getId() != null && plan.getId().equals(pl.getId()))
-                .map(plan1 -> plan1.getFlows())
-                .findFirst();
-            if (planFlows.isPresent()) {
-                entity.setFlows(planFlows.get());
-            }
-        }
-
-        entity.setType(PlanType.valueOf(plan.getType().name()));
-
-        // Backward compatibility
-        if (plan.getStatus() != null) {
-            entity.setStatus(PlanStatus.valueOf(plan.getStatus().name()));
-        } else {
-            entity.setStatus(PlanStatus.PUBLISHED);
-        }
-
-        if (plan.getSecurity() != null) {
-            entity.setSecurity(PlanSecurityType.valueOf(plan.getSecurity().name()));
-        } else {
-            entity.setSecurity(PlanSecurityType.API_KEY);
-        }
-
-        entity.setSecurityDefinition(plan.getSecurityDefinition());
-        entity.setClosedAt(plan.getClosedAt());
-        entity.setNeedRedeployAt(plan.getNeedRedeployAt() == null ? plan.getUpdatedAt() : plan.getNeedRedeployAt());
-        entity.setPublishedAt(plan.getPublishedAt());
-        entity.setValidation(PlanValidationType.valueOf(plan.getValidation().name()));
-        entity.setCharacteristics(plan.getCharacteristics());
-        entity.setCommentRequired(plan.isCommentRequired());
-        entity.setCommentMessage(plan.getCommentMessage());
-        entity.setTags(plan.getTags());
-        entity.setSelectionRule(plan.getSelectionRule());
-        entity.setGeneralConditions(plan.getGeneralConditions());
-        return entity;
+        return planConverter.toPlanEntity(plan, apiService.findById(plan.getApi()));
     }
 
     private void assertPlanSecurityIsAllowed(PlanSecurityType securityType) {

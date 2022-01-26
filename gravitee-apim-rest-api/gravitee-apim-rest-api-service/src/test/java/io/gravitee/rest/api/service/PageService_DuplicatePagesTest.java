@@ -26,12 +26,14 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PageService_DuplicatePagesTest {
@@ -54,6 +56,9 @@ public class PageService_DuplicatePagesTest {
     @Captor
     ArgumentCaptor<Page> pageCaptor;
 
+    @Mock
+    private PageConverter pageConverter;
+
     @Test
     public void shouldDuplicatePages() throws TechnicalException {
         PageEntity page1 = new PageEntity();
@@ -73,6 +78,8 @@ public class PageService_DuplicatePagesTest {
         page3.setParentId(page2.getId());
 
         when(pageRepository.create(any(Page.class))).thenAnswer(returnsFirstArg());
+
+        when(pageConverter.toNewPageEntity(any())).thenCallRealMethod();
 
         pageService.duplicatePages(List.of(page1, page2, page3), ENVIRONMENT_ID, API_ID);
 
