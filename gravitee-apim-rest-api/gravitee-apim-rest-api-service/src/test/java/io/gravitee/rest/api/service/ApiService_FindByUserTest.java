@@ -35,10 +35,14 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -251,5 +255,57 @@ public class ApiService_FindByUserTest {
         verify(membershipService, times(0))
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
         verify(applicationService, times(0)).findByUser(null);
+    }
+
+    @Test
+    public void shouldFindApisWithReadOnlyApiRoleInGroup() {
+        final String readOnlyRoleId = "read-only-role";
+        final String groupId = "read-only-group";
+        final String apiId = "read-only-group-api";
+
+        final Map<String, char[]> readOnlyPermissions = Stream
+            .of(ApiPermission.values())
+            .collect(Collectors.toMap(ApiPermission::name, value -> "R".toCharArray()));
+
+        final Api api = new Api();
+        api.setId(apiId);
+        api.setGroups(Set.of(groupId));
+
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").groups(groupId).build())).thenReturn(List.of(api));
+
+        RoleEntity readOnlyRole = new RoleEntity();
+        readOnlyRole.setId(readOnlyRoleId);
+        readOnlyRole.setScope(RoleScope.API);
+        readOnlyRole.setPermissions(readOnlyPermissions);
+
+        when(roleService.findById(readOnlyRoleId)).thenReturn(readOnlyRole);
+
+        MembershipEntity userGroupMembership = new MembershipEntity();
+        userGroupMembership.setId("group-member-ship");
+        userGroupMembership.setMemberId(USER_NAME);
+        userGroupMembership.setMemberType(MembershipMemberType.USER);
+        userGroupMembership.setReferenceType(MembershipReferenceType.GROUP);
+        userGroupMembership.setReferenceId(groupId);
+        userGroupMembership.setRoleId(readOnlyRoleId);
+
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.GROUP))
+            .thenReturn(Set.of(userGroupMembership));
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(new RoleEntity());
+
+        when(membershipService.getMembersByReferencesAndRole(eq(MembershipReferenceType.API), any(), any()))
+            .thenReturn(Set.of(new MemberEntity()));
+
+        final Page<ApiEntity> apiPage = apiService.findByUser(
+            USER_NAME,
+            null,
+            new SortableImpl("name", false),
+            new PageableImpl(1, 1),
+            false
+        );
+
+        assertNotNull(apiPage);
+        assertEquals(1, apiPage.getContent().size());
+        assertEquals(api.getId(), apiPage.getContent().get(0).getId());
     }
 }

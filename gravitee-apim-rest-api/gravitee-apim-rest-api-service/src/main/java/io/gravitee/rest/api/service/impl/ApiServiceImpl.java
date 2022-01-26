@@ -1033,17 +1033,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public boolean canManageApi(RoleEntity role) {
         return (
             role.getScope().equals(RoleScope.API) &&
-            role
-                .getPermissions()
-                .entrySet()
-                .stream()
-                .filter(entry -> isManagementPermission(entry.getKey()))
-                .anyMatch(
-                    entry -> {
-                        String stringPerm = new String(entry.getValue());
-                        return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
-                    }
-                )
+            role.getPermissions().entrySet().stream().anyMatch(entry -> isManagementPermission(entry.getKey()))
         );
     }
 
