@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -680,7 +681,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         getPlansNodes(apiJsonNode)
             .stream()
-            .filter(plan -> plan.hasNonNull("id"))
+            .filter(plan -> plan.hasNonNull("id") && StringUtils.isNotEmpty(plan.get("id").asText()))
             .forEach(
                 plan -> {
                     ((ObjectNode) plan).put("id", UuidString.generateForEnvironment(targetEnvId, apiId, plan.get("id").asText()));
@@ -691,7 +692,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         pagesNodes
             .stream()
-            .filter(page -> page.hasNonNull("id"))
+            .filter(page -> page.hasNonNull("id") && StringUtils.isNotEmpty(page.get("id").asText()))
             .forEach(
                 page -> {
                     String pageId = page.get("id").asText();
@@ -710,7 +711,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     public JsonNode handleApiDefinitionIds(JsonNode apiJsonNode, String environmentId) {
-        if (!apiJsonNode.hasNonNull("id")) {
+        if (!apiJsonNode.hasNonNull("id") || StringUtils.isEmpty(apiJsonNode.get("id").asText())) {
             ((ObjectNode) apiJsonNode).put("id", UuidString.generateRandom());
         }
 
@@ -724,7 +725,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private JsonNode generateEmptyIds(JsonNode apiJsonNode) {
         Stream
             .concat(getPlansNodes(apiJsonNode).stream(), getPagesNodes(apiJsonNode).stream())
-            .filter(node -> !node.hasNonNull("id"))
+            .filter(node -> !node.hasNonNull("id") || StringUtils.isEmpty(node.get("id").asText()))
             .forEach(node -> ((ObjectNode) node).put("id", UuidString.generateRandom()));
         return apiJsonNode;
     }

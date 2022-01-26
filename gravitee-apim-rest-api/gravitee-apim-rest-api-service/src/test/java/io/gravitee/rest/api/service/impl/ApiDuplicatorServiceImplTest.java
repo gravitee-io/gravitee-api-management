@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.junit.Assert.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -134,5 +135,59 @@ public class ApiDuplicatorServiceImplTest {
         assertEquals("cbcf3a8b-ebe3-3bff-aed6-4235201f4851", pages.get(1).get("parentId").asText());
         assertEquals("91c32be3-e15c-392c-94f2-a509ec3ba69a", pages.get(2).get("id").asText());
         assertEquals("1563e196-37f7-3500-adb4-65d2efe15feb", pages.get(2).get("parentId").asText());
+    }
+
+    @Test
+    public void handleApiDefinitionIds_should_generate_empty_ids_on_same_environment() {
+        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "api-id-1");
+
+        apiDefinition.set(
+            "plans",
+            mapper.createArrayNode().add(mapper.createObjectNode().put("id", "plan-id-1")).add(mapper.createObjectNode().put("id", ""))
+        );
+
+        apiDefinition.set(
+            "pages",
+            mapper
+                .createArrayNode()
+                .add(mapper.createObjectNode().put("id", "page-id-1"))
+                .add(mapper.createObjectNode().put("name", "no-id"))
+        );
+
+        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "default");
+
+        assertEquals("api-id-1", newApiDefinition.get("id").asText());
+        assertEquals("plan-id-1", newApiDefinition.get("plans").get(0).get("id").asText());
+        assertTrue(isNotEmpty(newApiDefinition.get("plans").get(1).get("id").asText()));
+        assertEquals("page-id-1", newApiDefinition.get("pages").get(0).get("id").asText());
+        assertTrue(isNotEmpty(newApiDefinition.get("pages").get(1).get("id").asText()));
+        assertEquals("no-id", newApiDefinition.get("pages").get(1).get("name").asText());
+    }
+
+    @Test
+    public void handleApiDefinitionIds_should_generate_empty_ids_on_another_environment() {
+        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "api-id-1").put("environment_id", "dev");
+
+        apiDefinition.set(
+            "plans",
+            mapper.createArrayNode().add(mapper.createObjectNode().put("id", "plan-id-1")).add(mapper.createObjectNode().put("id", ""))
+        );
+
+        apiDefinition.set(
+            "pages",
+            mapper
+                .createArrayNode()
+                .add(mapper.createObjectNode().put("id", "page-id-1"))
+                .add(mapper.createObjectNode().put("name", "no-id"))
+        );
+
+        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "default");
+
+        assertEquals("ed5fbfe2-9cab-3306-9e51-24721d5b6e82", newApiDefinition.get("id").asText());
+        assertEquals("de653244-912e-384e-a60d-9f8625f18c81", newApiDefinition.get("plans").get(0).get("id").asText());
+        assertTrue(isNotEmpty(newApiDefinition.get("plans").get(1).get("id").asText()));
+        assertEquals("943a8642-c5c1-336e-b6c9-44ea4ff7e1f9", newApiDefinition.get("pages").get(0).get("id").asText());
+        assertTrue(isNotEmpty(newApiDefinition.get("pages").get(1).get("id").asText()));
+        assertEquals("no-id", newApiDefinition.get("pages").get(1).get("name").asText());
     }
 }
