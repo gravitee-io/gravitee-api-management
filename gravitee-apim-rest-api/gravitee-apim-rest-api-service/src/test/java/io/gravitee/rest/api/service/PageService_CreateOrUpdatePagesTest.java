@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.rest.api.model.NewPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.PageConverter;
@@ -90,11 +91,12 @@ public class PageService_CreateOrUpdatePagesTest {
         page3.setReferenceType("API");
         page3.setReferenceId(API_ID);
 
-        when(pageRepository.create(any(Page.class))).thenAnswer(returnsFirstArg());
-        when(pageRepository.update(any(Page.class))).thenAnswer(returnsFirstArg());
-
         when(pageConverter.toUpdatePageEntity(any())).thenCallRealMethod();
         when(pageConverter.toNewPageEntity(any())).thenCallRealMethod();
+        when(pageConverter.toNewPageEntity(any(), eq(false))).thenCallRealMethod();
+
+        when(pageRepository.create(any(Page.class))).thenAnswer(returnsFirstArg());
+        when(pageRepository.update(any(Page.class))).thenAnswer(returnsFirstArg());
 
         Page page = new Page();
         page.setId(updatedPageId);

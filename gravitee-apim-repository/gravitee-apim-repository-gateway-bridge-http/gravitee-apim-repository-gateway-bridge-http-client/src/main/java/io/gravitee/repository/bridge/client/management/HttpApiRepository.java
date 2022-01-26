@@ -107,4 +107,9 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

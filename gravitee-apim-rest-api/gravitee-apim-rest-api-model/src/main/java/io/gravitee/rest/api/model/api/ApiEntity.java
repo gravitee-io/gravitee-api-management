@@ -17,17 +17,16 @@ package io.gravitee.rest.api.model.api;
 
 import com.fasterxml.jackson.annotation.*;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.swagger.annotations.ApiModelProperty;
-
-import javax.validation.constraints.NotNull;
 import java.util.*;
+import javax.validation.constraints.NotNull;
 
 /**
  * --------------------------------------------------------------------------------------------------------------

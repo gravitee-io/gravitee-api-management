@@ -79,7 +79,7 @@ public class PageService_DuplicatePagesTest {
 
         when(pageRepository.create(any(Page.class))).thenAnswer(returnsFirstArg());
 
-        when(pageConverter.toNewPageEntity(any())).thenCallRealMethod();
+        when(pageConverter.toNewPageEntity(any(), eq(true))).thenCallRealMethod();
 
         pageService.duplicatePages(List.of(page1, page2, page3), ENVIRONMENT_ID, API_ID);
 

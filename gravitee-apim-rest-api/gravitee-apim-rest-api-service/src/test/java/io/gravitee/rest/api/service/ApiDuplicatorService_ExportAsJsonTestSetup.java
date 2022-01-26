@@ -127,7 +127,8 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
                 userService,
                 apiService,
                 apiConverter,
-                planConverter, pageConverter
+                planConverter,
+                pageConverter
             );
     }
 
