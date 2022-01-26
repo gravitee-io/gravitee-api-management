@@ -55,9 +55,9 @@
 
     <properties>
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-gateway-standalone-container -->
-        <vertx.version>4.2.3</vertx.version>
+        <vertx.version>4.2.4</vertx.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>2.0</gravitee-bom.version>
+        <gravitee-bom.version>2.1</gravitee-bom.version>
         <gravitee-alert-api.version>1.8.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.9.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.25.0</gravitee-common.version>
