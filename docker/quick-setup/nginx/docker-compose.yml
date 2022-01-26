@@ -106,8 +106,8 @@ services:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
       - console_ui_url=http://localhost/console
-      - console_api_url=http://localhost/console/api
-      - portal_ui_url=http://localhost/portal
+      - console_api_url=http://localhost/management
+      - portal_ui_url=http://localhost/
     networks:
       - storage
       - frontend
@@ -119,7 +119,7 @@ services:
     depends_on:
       - management_api
     environment:
-      - MGMT_API_URL=/console/api/organizations/DEFAULT/environments/DEFAULT/
+      - MGMT_API_URL=/management/organizations/DEFAULT/environments/DEFAULT/
     volumes:
       - ./.logs/apim-management-ui:/var/log/nginx
     networks:
@@ -132,7 +132,7 @@ services:
     depends_on:
       - management_api
     environment:
-      - PORTAL_API_URL=/portal/api/environments/DEFAULT
+      - PORTAL_API_URL=/portal/environments/DEFAULT
     volumes:
       - ./.logs/apim-portal-ui:/var/log/nginx
     networks:

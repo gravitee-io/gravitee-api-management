@@ -4,14 +4,14 @@ Here is a docker-compose to run APIM with nginx.
 
 You can now access your component like this:
 
-| Component      	| URL                      	            |
-|----------------	|--------------------------	            |
-| Gateway        	| http://localhost/gateway/ 	        |
-| Management API 	| http://localhost/console/api/      |
-| Portal API 	    | http://localhost/portal/api/          |
-| Console UI 	    | http://localhost/console/             |
-| Portal UI 	    | http://localhost/portal/              |
-|                	|                          	            |
+| Component      	| URL                      	 |
+|----------------	|--------------------|
+| Gateway        	| http://localhost/gateway/ 	 |
+| Management API 	| http://localhost/management/ |
+| Portal API 	    | http://localhost/portal/ |
+| Console UI 	    | http://localhost/console/ |
+| Portal UI 	    | http://localhost/  |
+|                	| 	                  |
 
 ## How to run ?
 
