@@ -27,7 +27,7 @@ import {
 } from '@commands/management/api-management-commands';
 import { ADMIN_USER } from '@fakers/users/users';
 import { ApiMetadataFormat, ApiPageType, ApiPrimaryOwnerType, ApiVisibility } from '@model/apis';
-import { getPage, getPages } from '@commands/management/api-pages-management-commands';
+import { deletePage, getPage, getPages } from '@commands/management/api-pages-management-commands';
 import { createUser, deleteUser } from '@commands/management/user-management-commands';
 import { createRole, deleteRole } from '@commands/management/organization-configuration-management-commands';
 import { getPlans } from '@commands/management/api-plans-management-commands';
@@ -251,7 +251,7 @@ context('API - Imports - Update', () => {
         importCreateApi(ADMIN_USER, fakeApi).ok();
       });
 
-      it('should get API page from generated id', () => {
+      it('should get API page from import definition id', () => {
         getPage(ADMIN_USER, apiId, pageId).ok();
       });
 
@@ -320,7 +320,7 @@ context('API - Imports - Update', () => {
       });
     });
 
-    describe('Update API with page without ID, with name not corresponding to an existing page', () => {
+    describe('Update API with page without ID', () => {
       const apiId = 'f5cc6ea7-1ea1-46dd-a48f-34a0386467b4';
       const fakeApi = ApiImportFakers.api({ id: apiId });
       const pageName = 'documentation';
@@ -376,7 +376,7 @@ context('API - Imports - Update', () => {
           });
       });
 
-      it('should update the API, removing its pages', () => {
+      it('should update the API, omitting some pages', () => {
         apiUpdate.pages = [];
         importUpdateApi(ADMIN_USER, apiId, apiUpdate).ok();
       });
@@ -420,6 +420,125 @@ context('API - Imports - Update', () => {
       it('should reject the import if trying to add a new system folder', () => {
         apiUpdate.pages = Array.of(ApiImportFakers.page({ type: ApiPageType.SYSTEM_FOLDER }));
         importUpdateApi(ADMIN_USER, apiId, apiUpdate).badRequest();
+      });
+
+      it('should delete the API', () => {
+        deleteApi(ADMIN_USER, apiId).noContent();
+      });
+    });
+
+    describe('Update API page in a page tree on another environment', () => {
+      const apiId = '7f1af04f-339d-42e3-8d9e-ce478511ef13';
+      const rootFolderId = '29b97194-8786-48cb-8162-d3989ce5ad48';
+      const folderId = '7ef6a60d-3c29-459d-b05b-3d74ade03fa6';
+      const pageId = '915bc210-445b-4b7b-888b-c676e3fb8c7e';
+
+      const sourceEnvId = 'UAT';
+
+      const fakeRootFolder = ApiImportFakers.page({ id: rootFolderId, type: ApiPageType.FOLDER, content: null });
+      const fakeFolder = ApiImportFakers.page({ id: folderId, type: ApiPageType.FOLDER, parentId: rootFolderId, content: null });
+      const fakePage = ApiImportFakers.page({ id: pageId, parentId: folderId });
+      const fakeApi = ApiImportFakers.api({ id: apiId, pages: [fakeRootFolder, fakeFolder, fakePage], environment_id: sourceEnvId });
+
+      const generatedApiId = '3a6c5568-aa36-3955-ac6f-9834cf00ec8c';
+      const generatedFolderId = '3f8ddb41-0d27-37fc-bd30-a6801047f454';
+      const generatedPageId = 'cb18fc2b-750f-3d5c-b6cf-7bc5a977b912';
+
+      let apiUpdate;
+
+      it('should create an API with a page tree and return a generated ID', () => {
+        importCreateApi(ADMIN_USER, fakeApi).ok().its('body').should('have.property', 'id').should('eq', generatedApiId);
+      });
+
+      it('should export the API', () => {
+        exportApi(ADMIN_USER, generatedApiId)
+          .ok()
+          .its('body')
+          .then((apiExport) => {
+            apiUpdate = apiExport;
+          });
+      });
+
+      it('should update API page in page tree', () => {
+        const pageToUpdate = apiUpdate.pages.find((page) => page.id === generatedPageId);
+        pageToUpdate.name = 'updated-page';
+        pageToUpdate.content = '# Documentation (updated)';
+        importUpdateApi(ADMIN_USER, generatedApiId, apiUpdate).ok().its('body').should('have.property', 'id').should('eq', generatedApiId);
+      });
+
+      it('should get updated page in folder', () => {
+        getPages(ADMIN_USER, generatedApiId, { parent: generatedFolderId })
+          .ok()
+          .its('body')
+          .should('have.length', 1)
+          .its(0)
+          .should((page) => {
+            expect(page.name).to.eq('updated-page');
+            expect(page.content).to.eq('# Documentation (updated)');
+          });
+      });
+
+      it('should delete page in folder', () => {
+        deletePage(ADMIN_USER, generatedApiId, generatedPageId).noContent();
+      });
+
+      it('should delete folder in root folder', () => {
+        deletePage(ADMIN_USER, generatedApiId, generatedFolderId).noContent();
+      });
+
+      it('should delete the API', () => {
+        deleteApi(ADMIN_USER, generatedApiId).noContent();
+      });
+    });
+
+    describe('Update API page in a page tree on same environment', () => {
+      const apiId = '29291bd9-ad06-4b80-88ca-8b988be49535';
+      const rootFolderId = 'b47709fa-6a22-4c30-b653-dac0f328cda1';
+      const folderId = '4cde77ba-7062-49c3-88f8-827f4d1ee7f1';
+      const pageId = '3a684ba2-282b-4346-9866-9396dc638213';
+
+      const fakeRootFolder = ApiImportFakers.page({ id: rootFolderId, type: ApiPageType.FOLDER, content: null });
+      const fakeFolder = ApiImportFakers.page({ id: folderId, type: ApiPageType.FOLDER, parentId: rootFolderId, content: null });
+      const fakePage = ApiImportFakers.page({ id: pageId, parentId: folderId });
+      const fakeApi = ApiImportFakers.api({ id: apiId, pages: [fakeRootFolder, fakeFolder, fakePage] });
+
+      let apiUpdate;
+
+      it('should create an API with a page tree and return a generated ID', () => {
+        importCreateApi(ADMIN_USER, fakeApi).ok().its('body').should('have.property', 'id').should('eq', apiId);
+      });
+
+      it('should export the API', () => {
+        exportApi(ADMIN_USER, apiId)
+          .ok()
+          .its('body')
+          .then((apiExport) => {
+            apiUpdate = apiExport;
+          });
+      });
+
+      it('should update API page folder in page tree', () => {
+        const pageToUpdate = apiUpdate.pages.find((page) => page.id === folderId);
+        pageToUpdate.name = 'updated-folder';
+        importUpdateApi(ADMIN_USER, apiId, apiUpdate).ok().its('body').should('have.property', 'id').should('eq', apiId);
+      });
+
+      it('should get updated folder in root folder', () => {
+        getPages(ADMIN_USER, apiId, { parent: rootFolderId })
+          .ok()
+          .its('body')
+          .should('have.length', 1)
+          .its(0)
+          .should('have.property', 'name')
+          .should('eq', 'updated-folder');
+      });
+
+      it('should delete page in folder', () => {
+        deletePage(ADMIN_USER, apiId, pageId).noContent();
+      });
+
+      it('should delete folder in root folder', () => {
+        deletePage(ADMIN_USER, apiId, folderId).noContent();
       });
 
       it('should delete the API', () => {

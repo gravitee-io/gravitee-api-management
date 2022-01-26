@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -50,7 +49,7 @@ public class ApiDuplicatorServiceImplTest {
 
     @Test
     public void handleApiDefinitionIds_should_regenerate_api_id_and_plans_id_on_another_environment() {
-        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "8a9a6f49-59e2-4785-9d17-b2fffad3216b").put("environment_id", "dev");
+        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "my-api-1").put("environment_id", "dev");
 
         apiDefinition.set(
             "plans",
@@ -62,14 +61,14 @@ public class ApiDuplicatorServiceImplTest {
 
         JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "uat");
 
-        assertEquals("7aba8a9f-d32a-366f-82f0-fe91c22e1489", newApiDefinition.get("id").asText());
-        assertEquals("9e0d46f7-4309-38c3-95f5-80f7b98bdcc0", newApiDefinition.get("plans").get(0).get("id").asText());
-        assertEquals("71b88f80-d244-3c9d-a041-895a46336a9a", newApiDefinition.get("plans").get(1).get("id").asText());
+        assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.get("id").asText());
+        assertEquals("393ed51c-285d-3097-82eb-2bff2903dc62", newApiDefinition.get("plans").get(0).get("id").asText());
+        assertEquals("bff87514-39d4-331b-a531-73c021ecf627", newApiDefinition.get("plans").get(1).get("id").asText());
     }
 
     @Test
     public void handleApiDefinitionIds_should_not_regenerate_api_id_and_plans_id_on_the_same_environment() {
-        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "8a9a6f49-59e2-4785-9d17-b2fffad3216b").put("environment_id", "dev");
+        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "my-api-1").put("environment_id", "dev");
 
         apiDefinition.set(
             "plans",
@@ -81,7 +80,7 @@ public class ApiDuplicatorServiceImplTest {
 
         JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "dev");
 
-        assertEquals("8a9a6f49-59e2-4785-9d17-b2fffad3216b", newApiDefinition.get("id").asText());
+        assertEquals("my-api-1", newApiDefinition.get("id").asText());
         assertEquals("my-plan-id-1", newApiDefinition.get("plans").get(0).get("id").asText());
         assertEquals("my-plan-id-2", newApiDefinition.get("plans").get(1).get("id").asText());
     }
