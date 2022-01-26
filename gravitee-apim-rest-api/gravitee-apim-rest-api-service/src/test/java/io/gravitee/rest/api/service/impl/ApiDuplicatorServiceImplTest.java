@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -83,5 +84,55 @@ public class ApiDuplicatorServiceImplTest {
         assertEquals("my-api-1", newApiDefinition.get("id").asText());
         assertEquals("my-plan-id-1", newApiDefinition.get("plans").get(0).get("id").asText());
         assertEquals("my-plan-id-2", newApiDefinition.get("plans").get(1).get("id").asText());
+    }
+
+    @Test
+    public void handleApiDefinitionIds_should_not_regenerate_api_id_and_page_ids_on_same_environment_preserving_hierarchy() {
+        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "my-api-1");
+
+        apiDefinition.set(
+            "pages",
+            mapper
+                .createArrayNode()
+                .add(mapper.createObjectNode().put("id", "root-folder-id"))
+                .add(mapper.createObjectNode().put("id", "nested-folder-id").put("parentId", "root-folder-id"))
+                .add(mapper.createObjectNode().put("id", "page-id").put("parentId", "nested-folder-id"))
+        );
+
+        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "uat");
+
+        assertEquals("my-api-1", newApiDefinition.get("id").asText());
+        assertEquals(3, newApiDefinition.get("pages").size());
+        ArrayNode pages = (ArrayNode) newApiDefinition.get("pages");
+        assertEquals("root-folder-id", pages.get(0).get("id").asText());
+        assertEquals("nested-folder-id", pages.get(1).get("id").asText());
+        assertEquals("root-folder-id", pages.get(1).get("parentId").asText());
+        assertEquals("page-id", pages.get(2).get("id").asText());
+        assertEquals("nested-folder-id", pages.get(2).get("parentId").asText());
+    }
+
+    @Test
+    public void handleApiDefinitionIds_should_regenerate_api_id_and_page_ids_on_another_environment_preserving_hierarchy() {
+        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "my-api-1").put("environment_id", "dev");
+
+        apiDefinition.set(
+            "pages",
+            mapper
+                .createArrayNode()
+                .add(mapper.createObjectNode().put("id", "root-folder-id"))
+                .add(mapper.createObjectNode().put("id", "nested-folder-id").put("parentId", "root-folder-id"))
+                .add(mapper.createObjectNode().put("id", "page-id").put("parentId", "nested-folder-id"))
+        );
+
+        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "uat");
+
+        assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.get("id").asText());
+        assertEquals(3, newApiDefinition.get("pages").size());
+        ArrayNode pages = (ArrayNode) newApiDefinition.get("pages");
+        assertEquals("cbcf3a8b-ebe3-3bff-aed6-4235201f4851", pages.get(0).get("id").asText());
+        assertEquals("1563e196-37f7-3500-adb4-65d2efe15feb", pages.get(1).get("id").asText());
+        assertEquals("cbcf3a8b-ebe3-3bff-aed6-4235201f4851", pages.get(1).get("parentId").asText());
+        assertEquals("91c32be3-e15c-392c-94f2-a509ec3ba69a", pages.get(2).get("id").asText());
+        assertEquals("1563e196-37f7-3500-adb4-65d2efe15feb", pages.get(2).get("parentId").asText());
     }
 }
