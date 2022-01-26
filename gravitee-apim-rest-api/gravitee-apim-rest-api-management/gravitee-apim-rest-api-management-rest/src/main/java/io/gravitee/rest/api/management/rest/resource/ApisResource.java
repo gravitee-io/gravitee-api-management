@@ -320,7 +320,7 @@ public class ApisResource extends AbstractResource {
     )
     public Response searchApis(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
-            return Response.ok().entity(this.searchApis(query, null, null).getData()).build();
+            return Response.ok().entity(this.searchApis(query, new ApisOrderParam("name"), null).getData()).build();
         } catch (TechnicalManagementException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
         }
