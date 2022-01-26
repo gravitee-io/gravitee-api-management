@@ -7563,7 +7563,7 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/:apiId/subscriptions/:subscriptionId/keys",
+													"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/:apiId/subscriptions/:subscriptionId/apikeys",
 													"host": [
 														"{{GRAVITEEIO_MGMT_URL}}"
 													],
@@ -7572,7 +7572,7 @@
 														":apiId",
 														"subscriptions",
 														":subscriptionId",
-														"keys"
+														"apikeys"
 													],
 													"variable": [
 														{
@@ -8489,7 +8489,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/:apiId/subscriptions/:subscriptionId/keys",
+											"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/:apiId/subscriptions/:subscriptionId/apikeys",
 											"host": [
 												"{{GRAVITEEIO_MGMT_URL}}"
 											],
@@ -8498,7 +8498,7 @@
 												":apiId",
 												"subscriptions",
 												":subscriptionId",
-												"keys"
+												"apikeys"
 											],
 											"variable": [
 												{
