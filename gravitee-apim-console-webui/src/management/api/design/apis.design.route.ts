@@ -32,7 +32,7 @@ function apisDesignRouterConfig($stateProvider) {
       resolve: {
         resolvedTenants: (TenantService: TenantService) => TenantService.list(),
       },
-      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flows' },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.policyStudio' },
       data: {
         menu: {
           label: 'Design',
@@ -54,7 +54,7 @@ function apisDesignRouterConfig($stateProvider) {
       resolve: {
         resolvedResources: (ResourceService: ResourceService) => ResourceService.list(),
       },
-      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flows' },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.policyStudio' },
       data: {
         perms: {
           only: ['api-definition-r'],
@@ -69,31 +69,13 @@ function apisDesignRouterConfig($stateProvider) {
       template: require('./properties/properties.html'),
       controller: 'ApiPropertiesController',
       controllerAs: 'apiPropertiesCtrl',
-      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flows' },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.policyStudio' },
       data: {
         perms: {
           only: ['api-definition-r'],
         },
         docs: {
           page: 'management-api-properties',
-        },
-      },
-    })
-    .state('management.apis.detail.design.flows', {
-      url: '/design?flows',
-      component: 'ngManagementApiDesignComponent',
-      data: {
-        perms: {
-          only: ['api-definition-r'],
-        },
-        docs: {
-          page: 'management-api-policy-studio',
-        },
-      },
-      params: {
-        flows: {
-          type: 'string',
-          dynamic: true,
         },
       },
     });

@@ -68,6 +68,12 @@ module.exports = {
         ],
       },
       {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto',
+        resolve: { mainFields: ['es2015', 'browser', 'module', 'main'] },
+      },
+      {
         test: /\.html$/i,
         loader: 'html-loader',
       },
@@ -157,7 +163,7 @@ module.exports = {
     filename: '[name]-[hash].js',
   },
   resolve: {
-    extensions: ['.webpack.js', '.web.js', '.js', '.ts', '.json'],
+    extensions: ['.webpack.js', '.web.js', '.mjs', '.js', '.ts', '.json'],
     mainFields: ['es2015_ivy_ngcc', 'module_ivy_ngcc', 'main_ivy_ngcc', 'es2015', 'browser', 'module', 'main'],
   },
   entry: {

@@ -384,7 +384,7 @@ class ApiPoliciesController {
       .then((response) => {
         if (response) {
           this.ApiService.migrateApiToPolicyStudio(this.$scope.$parent.apiCtrl.api.id).then((response) => {
-            this.$state.go('management.apis.detail.design.flows', { apiId: response.data.id }, { reload: true });
+            this.$state.go('management.apis.detail.design.policyStudio', { apiId: response.data.id }, { reload: true });
           });
         }
       });

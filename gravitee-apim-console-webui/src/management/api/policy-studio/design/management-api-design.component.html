@@ -17,7 +17,10 @@
 -->
 <gio-policy-studio
   *ngIf="!isLoading"
+  class="management-api-design"
   flowsTitle="API Flows"
+  [tabId]="tabId"
+  [hideTab]="true"
   [canAdd]="true"
   [hasPolicyFilter]="true"
   [hasProperties]="true"

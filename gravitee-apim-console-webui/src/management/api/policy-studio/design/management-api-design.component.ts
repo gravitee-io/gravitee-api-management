@@ -34,6 +34,10 @@ import { EventService } from '../../../../services-ngx/event.service';
 import { Services } from '../../../../entities/services';
 import { ApiPlan, ApiProperty, ApiResource } from '../../../../entities/api';
 import { ApiFlowSchema } from '../../../../entities/flow/apiFlowSchema';
+import { FlowService } from '../../../../services-ngx/flow.service';
+import { SpelService } from '../../../../services-ngx/spel.service';
+import { StateParams } from '@uirouter/angularjs';
+import { Location } from '@angular/common';
 
 interface DefinitionVM {
   name: string;
@@ -166,6 +170,24 @@ const DYNAMIC_PROPERTY_SCHEMA = {
   selector: 'management-api-design',
   template: require('./management-api-design.component.html'),
   styles: [require('./management-api-design.component.scss')],
+  providers: [
+    {
+      provide: 'FlowService',
+      useExisting: FlowService,
+    },
+    {
+      provide: 'PolicyService',
+      useExisting: PolicyService,
+    },
+    {
+      provide: 'ResourceService',
+      useExisting: ResourceService,
+    },
+    {
+      provide: 'SpelService',
+      useExisting: SpelService,
+    },
+  ],
 })
 export class ManagementApiDesignComponent implements OnInit, OnDestroy {
   isLoading = true;
@@ -187,6 +209,7 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
     response?: unknown;
     request?: unknown;
   };
+  tabId: string;
 
   private api: any;
   private unsubscribe$ = new Subject<boolean>();
@@ -199,10 +222,19 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
     private readonly eventService: EventService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly location: Location,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
   ) {}
 
   ngOnInit(): void {
+    console.log(this.ajsStateParams);
+
+    this.location.onUrlChange((a) => {
+      console.log('aa', a);
+    });
+
+    this.tabId = this.ajsStateParams.psPage ?? 'design';
+
     combineLatest([
       this.apiService.getFlowSchemaForm(),
       this.policyService.list({ expandSchema: true, expandIcon: true }),

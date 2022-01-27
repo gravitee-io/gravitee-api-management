@@ -13,13 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { GioPolicyStudioRoutingModule } from './api/policy-studio/gio-policy-studio-routing.module';
 
-@NgModule({
-  imports: [CommonModule, GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.detail.design.policyStudio' })],
-  declarations: [],
-  entryComponents: [],
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+
+@Component({
+  selector: 'management-api-debug',
+  template: require('./management-api-debug.component.html'),
+  styles: [require('./management-api-debug.component.scss')],
 })
-export class ManagementModule {}
+export class ManagementApiDebugComponent implements OnInit, OnDestroy {
+  private unsubscribe$ = new Subject<boolean>();
+
+  constructor() {}
+
+  ngOnInit(): void {}
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+}

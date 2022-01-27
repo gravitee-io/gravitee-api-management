@@ -26,6 +26,8 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 import { AppModule } from './app.module';
 import { Constants } from './entities/Constants';
+import { UIRouter, UrlService } from '@uirouter/core';
+import { NgZone } from '@angular/core';
 
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
@@ -147,5 +149,21 @@ function initComponents() {
 }
 
 function bootstrapApplication(constants: Constants) {
-  platformBrowserDynamic([{ provide: 'Constants', useValue: constants }]).bootstrapModule(AppModule);
+  angular.module('gravitee-management').config(['$urlServiceProvider', ($urlService: UrlService) => $urlService.deferIntercept()]);
+
+  platformBrowserDynamic([{ provide: 'Constants', useValue: constants }])
+    .bootstrapModule(AppModule)
+    .then((platformRef) => {
+      // Intialize the Angular Module
+      // get() the UIRouter instance from DI to initialize the router
+      const urlService: UrlService = platformRef.injector.get(UIRouter).urlService;
+
+      // Instruct UIRouter to listen to URL changes
+      function startUIRouter() {
+        urlService.listen();
+        urlService.sync();
+      }
+
+      platformRef.injector.get<NgZone>(NgZone).run(startUIRouter);
+    });
 }

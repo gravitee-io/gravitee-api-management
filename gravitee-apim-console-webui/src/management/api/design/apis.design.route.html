@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div flex ng-if="apiCtrl.$state.current.name != 'management.apis.detail.design.flows'">
+<div flex ng-if="!apiCtrl.$state.current.name.startsWith('management.apis.detail.design.policyStudio')">
   <div layout="row" flex>
     <div class="gv-sub-menu menu">
       <div class="md-headline">
@@ -44,8 +44,6 @@
   </div>
 </div>
 
-<div flex ng-if="apiCtrl.$state.current.name === 'management.apis.detail.design.flows'">
-  <div layout="row" flex>
-    <div flex class="gv-sub-content-fullscreen" ui-view layout="column"></div>
-  </div>
+<div flex ng-if="apiCtrl.$state.current.name.startsWith('management.apis.detail.design.policyStudio')">
+  <div ui-view></div>
 </div>

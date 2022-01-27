@@ -336,7 +336,6 @@ import interceptorConfig from './management.interceptor';
 import delegatorConfig from './management.delegator';
 import runBlock from './management.run';
 
-import uiRouter from '@uirouter/angularjs';
 import { permission, uiPermission } from 'angular-permission';
 
 import DialogAddNotificationSettingsController from '../components/notifications/notificationsettings/addnotificationsettings.dialog.controller';
@@ -460,7 +459,6 @@ import NewFieldDialogController from './configuration/custom-user-fields/dialog/
 import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
 import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from '../services/flow.service';
-import { ManagementApiDesignComponent } from './api/design/design/management-api-design.component';
 import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
 import TicketsListController from './support/tickets-list.controller';
 import TicketDetailComponent from './support/ticket-detail.component';
@@ -571,6 +569,9 @@ import { OrgSettingsTagsComponent } from '../organization/configuration/tags/org
 import { OrgSettingsRoleMembersComponent } from '../organization/configuration/roles/org-settings-role-members.component';
 import { OrgSettingsRoleComponent } from '../organization/configuration/roles/role/org-settings-role.component';
 
+import { upgradeModule } from '@uirouter/angular-hybrid';
+import uiRouter from '@uirouter/angularjs';
+
 (<any>window).moment = moment;
 require('angular-moment-picker');
 
@@ -580,6 +581,7 @@ require('md-color-picker');
 angular.module('gravitee-management', [
   'angular-loading-bar',
   uiRouter,
+  upgradeModule.name,
   permission,
   uiPermission,
   'ngMaterial',
@@ -711,8 +713,6 @@ graviteeManagementModule.controller('ApiEndpointController', ApiEndpointControll
 graviteeManagementModule.controller('ApiEndpointGroupController', ApiEndpointGroupController);
 graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
-// graviteeManagementModule.controller('ApiDesignController', ApiDesignController);
-graviteeManagementModule.directive('ngManagementApiDesignComponent', downgradeComponent({ component: ManagementApiDesignComponent }));
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
 graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
