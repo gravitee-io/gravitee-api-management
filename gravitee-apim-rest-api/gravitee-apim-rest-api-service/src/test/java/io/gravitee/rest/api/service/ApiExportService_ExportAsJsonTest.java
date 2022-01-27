@@ -39,7 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiDuplicatorService_ExportAsJsonTest extends ApiDuplicatorService_ExportAsJsonTestSetup {
+public class ApiExportService_ExportAsJsonTest extends ApiExportService_ExportAsJsonTestSetup {
 
     @Test
     public void shouldConvertAsJsonForExport() throws IOException {
@@ -205,7 +205,7 @@ public class ApiDuplicatorService_ExportAsJsonTest extends ApiDuplicatorService_
         apiEntity.setProxy(proxy);
 
         when(apiService.findById(API_ID)).thenReturn(apiEntity);
-        String jsonForExport = apiDuplicatorService.exportAsJson(
+        String jsonForExport = apiExportService.exportAsJson(
             API_ID,
             ApiSerializer.Version.V_1_15.getVersion(),
             SystemRole.PRIMARY_OWNER.name()

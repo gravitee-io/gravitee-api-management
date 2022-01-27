@@ -76,6 +76,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
     private final ApiService apiService;
     private final ApiDuplicatorService apiDuplicatorService;
+    private final ApiExportService apiExportService;
     private final CockpitPromotionService cockpitPromotionService;
     private final PromotionRepository promotionRepository;
     private final EnvironmentService environmentService;
@@ -88,6 +89,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public PromotionServiceImpl(
         ApiService apiService,
         ApiDuplicatorService apiDuplicatorService,
+        ApiExportService apiExportService,
         CockpitPromotionService cockpitPromotionService,
         PromotionRepository promotionRepository,
         EnvironmentService environmentService,
@@ -98,6 +100,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     ) {
         this.apiService = apiService;
         this.apiDuplicatorService = apiDuplicatorService;
+        this.apiExportService = apiExportService;
         this.cockpitPromotionService = cockpitPromotionService;
         this.promotionRepository = promotionRepository;
         this.environmentService = environmentService;
@@ -127,7 +130,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public PromotionEntity promote(final String sourceEnvironmentId, String apiId, PromotionRequestEntity promotionRequest, String userId) {
         // TODO: do we have to use filteredFields like for duplicate (i think no need members and groups)
         // FIXME: can we get the version from target environment
-        String apiDefinition = apiDuplicatorService.exportAsJson(apiId, ApiSerializer.Version.DEFAULT.getVersion(), "members", "groups");
+        String apiDefinition = apiExportService.exportAsJson(apiId, ApiSerializer.Version.DEFAULT.getVersion(), "members", "groups");
 
         EnvironmentEntity currentEnvironmentEntity = environmentService.findById(sourceEnvironmentId);
         UserEntity author = userService.findById(userId);

@@ -231,24 +231,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public String exportAsJson(final String apiId, String exportVersion, String... filteredFields) {
-        ApiEntity apiEntity = apiService.findById(apiId);
-        generateAndSaveCrossId(apiEntity);
-        // set metadata for serialize process
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, exportVersion);
-        metadata.put(ApiSerializer.METADATA_FILTERED_FIELDS_LIST, Arrays.asList(filteredFields));
-        apiEntity.setMetadata(metadata);
-
-        try {
-            return objectMapper.writeValueAsString(apiEntity);
-        } catch (final Exception e) {
-            LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
-        }
-        return "";
-    }
-
-    @Override
     public ApiEntity updateWithImportedDefinition(
         String apiId,
         String apiDefinitionOrURL,
@@ -832,28 +814,5 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             apiJsonNode.get("pages").forEach(pagesNodes::add);
         }
         return pagesNodes;
-    }
-
-    private void generateAndSaveCrossId(ApiEntity api) {
-        if (StringUtils.isEmpty(api.getCrossId())) {
-            api.setCrossId(UuidString.generateRandom());
-            apiService.update(api.getId(), apiConverter.toUpdateApiEntity(api));
-        }
-        planService.findByApi(api.getId()).forEach(this::generateAndSaveCrossId);
-        pageService.search(new PageQuery.Builder().api(api.getId()).build(), false).forEach(this::generateAndSaveCrossId);
-    }
-
-    private void generateAndSaveCrossId(PlanEntity plan) {
-        if (StringUtils.isEmpty(plan.getCrossId())) {
-            plan.setCrossId(UuidString.generateRandom());
-            planService.update(planConverter.toUpdatePlanEntity(plan));
-        }
-    }
-
-    private void generateAndSaveCrossId(PageEntity page) {
-        if (StringUtils.isEmpty(page.getCrossId())) {
-            page.setCrossId(UuidString.generateRandom());
-            pageService.update(page.getId(), pageConverter.toUpdatePageEntity(page));
-        }
     }
 }

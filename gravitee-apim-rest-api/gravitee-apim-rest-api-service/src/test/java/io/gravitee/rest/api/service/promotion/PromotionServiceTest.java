@@ -80,6 +80,9 @@ public class PromotionServiceTest {
     private ApiDuplicatorService apiDuplicatorService;
 
     @Mock
+    private ApiExportService apiExportService;
+
+    @Mock
     private PromotionRepository promotionRepository;
 
     @Mock
@@ -100,6 +103,7 @@ public class PromotionServiceTest {
             new PromotionServiceImpl(
                 apiService,
                 apiDuplicatorService,
+                apiExportService,
                 cockpitPromotionService,
                 promotionRepository,
                 environmentService,
