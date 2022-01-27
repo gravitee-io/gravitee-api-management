@@ -472,8 +472,6 @@ import AlertsDashboardComponent from '../components/alerts/dashboard/alerts-dash
 import PlatformAlertsDashboardController from './dashboard/alerts-dashboard/platform-alerts-dashboard.controller';
 import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
 
-import PolicyStudioWrapperComponent from '../components/old-policy-studio-wrapper/old-policy-studio-wrapper.component';
-
 import { PromotionService } from '../services/promotion.service';
 
 (<any>window).jQuery = jQuery;
@@ -859,7 +857,6 @@ graviteeManagementModule.component('gvWidgetDataMapConfiguration', WidgetChartMa
 graviteeManagementModule.component('gvWidgetDataPieConfiguration', WidgetChartPieConfigurationComponent);
 graviteeManagementModule.component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent);
 graviteeManagementModule.component('gvError', ErrorComponent);
-graviteeManagementModule.component('gvPolicyStudioWrapper', PolicyStudioWrapperComponent);
 graviteeManagementModule.controller('ErrorController', ErrorController);
 
 graviteeManagementModule.component('categories', CategoriesComponent);
