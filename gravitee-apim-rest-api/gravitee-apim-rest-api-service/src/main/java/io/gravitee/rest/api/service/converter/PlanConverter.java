@@ -134,9 +134,13 @@ public class PlanConverter {
     }
 
     public NewPlanEntity toNewPlanEntity(PlanEntity planEntity) {
+        return toNewPlanEntity(planEntity, false);
+    }
+
+    public NewPlanEntity toNewPlanEntity(PlanEntity planEntity, boolean resetCrossId) {
         NewPlanEntity newPlanEntity = new NewPlanEntity();
         newPlanEntity.setId(planEntity.getId());
-        newPlanEntity.setCrossId(planEntity.getCrossId());
+        newPlanEntity.setCrossId(resetCrossId ? null : planEntity.getCrossId());
         newPlanEntity.setApi(planEntity.getApi());
         newPlanEntity.setName(planEntity.getName());
         newPlanEntity.setDescription(planEntity.getDescription());

@@ -134,8 +134,12 @@ public class ApiConverter {
     }
 
     public UpdateApiEntity toUpdateApiEntity(ApiEntity apiEntity) {
+        return toUpdateApiEntity(apiEntity, false);
+    }
+
+    public UpdateApiEntity toUpdateApiEntity(ApiEntity apiEntity, boolean resetCrossId) {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setCrossId(apiEntity.getCrossId());
+        updateApiEntity.setCrossId(resetCrossId ? null : apiEntity.getCrossId());
         updateApiEntity.setProxy(apiEntity.getProxy());
         updateApiEntity.setVersion(apiEntity.getVersion());
         updateApiEntity.setName(apiEntity.getName());

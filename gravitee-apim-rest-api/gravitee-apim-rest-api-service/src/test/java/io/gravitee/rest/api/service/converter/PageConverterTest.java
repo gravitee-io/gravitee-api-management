@@ -17,25 +17,7 @@ public class PageConverterTest {
 
     @Test
     public void toUpdatePageEntity_should_convert_to_UpdatePageEntity() {
-        PageEntity pageEntity = new PageEntity();
-        pageEntity.setId("page#2");
-        pageEntity.setName("Sub Page 3");
-        pageEntity.setType("ASCIIDOC");
-        pageEntity.setParentId("page#1");
-        pageEntity.setReferenceType("API");
-        pageEntity.setReferenceId("api#1");
-        pageEntity.setConfiguration(Collections.emptyMap());
-        pageEntity.setContent("content");
-        pageEntity.setExcludedAccessControls(true);
-        pageEntity.setAccessControls(Collections.emptySet());
-        pageEntity.setHomepage(false);
-        pageEntity.setLastContributor("contributor");
-        pageEntity.setOrder(1);
-        pageEntity.setPublished(true);
-        PageSourceEntity pageSourceEntity = new PageSourceEntity();
-        pageSourceEntity.setType("API");
-        pageEntity.setSource(pageSourceEntity);
-        pageEntity.setAttachedMedia(Collections.emptyList());
+        PageEntity pageEntity = buildTestPageEntity();
 
         UpdatePageEntity updatePageEntity = pageConverter.toUpdatePageEntity(pageEntity);
 
@@ -55,6 +37,46 @@ public class PageConverterTest {
 
     @Test
     public void toNewPageEntity_should_convert_to_NewPageEntity() {
+        PageEntity pageEntity = buildTestPageEntity();
+
+        NewPageEntity newPageEntity = pageConverter.toNewPageEntity(pageEntity);
+
+        assertEquals("Sub Page 3", newPageEntity.getName());
+        assertEquals("page#1", newPageEntity.getParentId());
+        assertEquals(PageType.ASCIIDOC, newPageEntity.getType());
+        assertEquals(Collections.emptyMap(), newPageEntity.getConfiguration());
+        assertEquals("content", newPageEntity.getContent());
+        assertTrue(newPageEntity.isExcludedAccessControls());
+        assertEquals(Collections.emptySet(), newPageEntity.getAccessControls());
+        assertFalse(newPageEntity.isHomepage());
+        assertEquals("contributor", newPageEntity.getLastContributor());
+        assertEquals((Integer) 1, (Integer) newPageEntity.getOrder());
+        assertTrue(newPageEntity.isPublished());
+        assertEquals("API", newPageEntity.getSource().getType());
+        assertEquals(Collections.emptyList(), newPageEntity.getAttachedMedia());
+    }
+
+    @Test
+    public void toNewPageEntity_should_keep_crossId() {
+        PageEntity pageEntity = buildTestPageEntity();
+        pageEntity.setCrossId("test-cross-id");
+
+        NewPageEntity newPageEntity = pageConverter.toNewPageEntity(pageEntity);
+
+        assertEquals("test-cross-id", newPageEntity.getCrossId());
+    }
+
+    @Test
+    public void toNewPageEntity_should_reset_crossId_if_param_set_to_true() {
+        PageEntity pageEntity = buildTestPageEntity();
+        pageEntity.setCrossId("test-cross-id");
+
+        NewPageEntity newPageEntity = pageConverter.toNewPageEntity(pageEntity, true);
+
+        assertNull(newPageEntity.getCrossId());
+    }
+
+    private PageEntity buildTestPageEntity() {
         PageEntity pageEntity = new PageEntity();
         pageEntity.setId("page#2");
         pageEntity.setName("Sub Page 3");
@@ -74,21 +96,6 @@ public class PageConverterTest {
         pageSourceEntity.setType("API");
         pageEntity.setSource(pageSourceEntity);
         pageEntity.setAttachedMedia(Collections.emptyList());
-
-        NewPageEntity newPageEntity = pageConverter.toNewPageEntity(pageEntity);
-
-        assertEquals("Sub Page 3", newPageEntity.getName());
-        assertEquals("page#1", newPageEntity.getParentId());
-        assertEquals(PageType.ASCIIDOC, newPageEntity.getType());
-        assertEquals(Collections.emptyMap(), newPageEntity.getConfiguration());
-        assertEquals("content", newPageEntity.getContent());
-        assertTrue(newPageEntity.isExcludedAccessControls());
-        assertEquals(Collections.emptySet(), newPageEntity.getAccessControls());
-        assertFalse(newPageEntity.isHomepage());
-        assertEquals("contributor", newPageEntity.getLastContributor());
-        assertEquals((Integer) 1, (Integer) newPageEntity.getOrder());
-        assertTrue(newPageEntity.isPublished());
-        assertEquals("API", newPageEntity.getSource().getType());
-        assertEquals(Collections.emptyList(), newPageEntity.getAttachedMedia());
+        return pageEntity;
     }
 }

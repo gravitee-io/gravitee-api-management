@@ -1,7 +1,6 @@
 package io.gravitee.rest.api.service.converter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
@@ -12,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -89,20 +87,20 @@ public class PlanConverterTest {
         final PlanEntity actual = buildTestPlanEntity();
         final UpdatePlanEntity result = planConverter.toUpdatePlanEntity(actual);
 
-        Assert.assertEquals(result.getId(), actual.getId());
-        Assert.assertEquals(result.getName(), actual.getName());
-        Assert.assertEquals(result.getDescription(), actual.getDescription());
-        Assert.assertEquals(result.getValidation(), actual.getValidation());
-        Assert.assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
-        Assert.assertEquals(result.getPaths(), actual.getPaths());
-        Assert.assertEquals(result.getCharacteristics(), actual.getCharacteristics());
-        Assert.assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
-        Assert.assertEquals(result.isCommentRequired(), actual.isCommentRequired());
-        Assert.assertEquals(result.getCommentMessage(), actual.getCommentMessage());
-        Assert.assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
-        Assert.assertEquals(result.getTags(), actual.getTags());
-        Assert.assertEquals(result.getSelectionRule(), actual.getSelectionRule());
-        Assert.assertSame(result.getFlows(), actual.getFlows());
+        assertEquals(result.getId(), actual.getId());
+        assertEquals(result.getName(), actual.getName());
+        assertEquals(result.getDescription(), actual.getDescription());
+        assertEquals(result.getValidation(), actual.getValidation());
+        assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
+        assertEquals(result.getPaths(), actual.getPaths());
+        assertEquals(result.getCharacteristics(), actual.getCharacteristics());
+        assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
+        assertEquals(result.isCommentRequired(), actual.isCommentRequired());
+        assertEquals(result.getCommentMessage(), actual.getCommentMessage());
+        assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
+        assertEquals(result.getTags(), actual.getTags());
+        assertEquals(result.getSelectionRule(), actual.getSelectionRule());
+        assertSame(result.getFlows(), actual.getFlows());
     }
 
     @Test
@@ -111,19 +109,97 @@ public class PlanConverterTest {
         actual.setPaths(null);
         final UpdatePlanEntity result = planConverter.toUpdatePlanEntity(actual);
 
-        Assert.assertEquals(result.getId(), actual.getId());
-        Assert.assertEquals(result.getName(), actual.getName());
-        Assert.assertEquals(result.getDescription(), actual.getDescription());
-        Assert.assertEquals(result.getValidation(), actual.getValidation());
-        Assert.assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
-        Assert.assertEquals(result.getPaths(), new HashMap<>());
-        Assert.assertEquals(result.getCharacteristics(), actual.getCharacteristics());
-        Assert.assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
-        Assert.assertEquals(result.isCommentRequired(), actual.isCommentRequired());
-        Assert.assertEquals(result.getCommentMessage(), actual.getCommentMessage());
-        Assert.assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
-        Assert.assertEquals(result.getTags(), actual.getTags());
-        Assert.assertEquals(result.getSelectionRule(), actual.getSelectionRule());
+        assertEquals(result.getId(), actual.getId());
+        assertEquals(result.getName(), actual.getName());
+        assertEquals(result.getDescription(), actual.getDescription());
+        assertEquals(result.getValidation(), actual.getValidation());
+        assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
+        assertEquals(result.getPaths(), new HashMap<>());
+        assertEquals(result.getCharacteristics(), actual.getCharacteristics());
+        assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
+        assertEquals(result.isCommentRequired(), actual.isCommentRequired());
+        assertEquals(result.getCommentMessage(), actual.getCommentMessage());
+        assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
+        assertEquals(result.getTags(), actual.getTags());
+        assertEquals(result.getSelectionRule(), actual.getSelectionRule());
+    }
+
+    @Test
+    public void toNewPlanEntity_should_convert_to_NewPlanEntity() {
+        final PlanEntity actual = buildTestPlanEntity();
+        final NewPlanEntity result = planConverter.toNewPlanEntity(actual);
+
+        assertEquals(result.getId(), actual.getId());
+        assertEquals(result.getApi(), actual.getApi());
+        assertEquals(result.getName(), actual.getName());
+        assertEquals(result.getDescription(), actual.getDescription());
+        assertEquals(result.getValidation(), actual.getValidation());
+        assertEquals(result.getSecurity(), actual.getSecurity());
+        assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
+        assertEquals(result.getType(), actual.getType());
+        assertEquals(result.getStatus(), actual.getStatus());
+        assertEquals(result.getApi(), actual.getApi());
+        assertEquals(result.getPaths(), actual.getPaths());
+        assertEquals(result.getFlows(), actual.getFlows());
+        assertEquals(result.getCharacteristics(), actual.getCharacteristics());
+        assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
+        assertEquals(result.isCommentRequired(), actual.isCommentRequired());
+        assertEquals(result.getCommentMessage(), actual.getCommentMessage());
+        assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
+        assertEquals(result.getTags(), actual.getTags());
+        assertEquals(result.getSelectionRule(), actual.getSelectionRule());
+    }
+
+    @Test
+    public void toNewPlanEntity_should_not_set_fields_with_default_value_to_null() {
+        final PlanEntity actual = buildTestPlanEntity();
+        actual.setValidation(null);
+        actual.setSecurity(null);
+        actual.setType(null);
+        actual.setStatus(null);
+        actual.setPaths(null);
+        actual.setFlows(null);
+        final NewPlanEntity result = planConverter.toNewPlanEntity(actual);
+
+        assertEquals(result.getId(), actual.getId());
+        assertEquals(result.getApi(), actual.getApi());
+        assertEquals(result.getName(), actual.getName());
+        assertEquals(result.getDescription(), actual.getDescription());
+        assertEquals(result.getValidation(), PlanValidationType.MANUAL);
+        assertEquals(result.getSecurity(), PlanSecurityType.API_KEY);
+        assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
+        assertEquals(result.getType(), PlanType.API);
+        assertEquals(result.getStatus(), PlanStatus.STAGING);
+        assertEquals(result.getApi(), actual.getApi());
+        assertEquals(result.getPaths(), new HashMap<>());
+        assertEquals(result.getFlows(), new ArrayList<>());
+        assertEquals(result.getCharacteristics(), actual.getCharacteristics());
+        assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
+        assertEquals(result.isCommentRequired(), actual.isCommentRequired());
+        assertEquals(result.getCommentMessage(), actual.getCommentMessage());
+        assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
+        assertEquals(result.getTags(), actual.getTags());
+        assertEquals(result.getSelectionRule(), actual.getSelectionRule());
+    }
+
+    @Test
+    public void toNewPlanEntity_should_keep_crossId() {
+        PlanEntity planEntity = buildTestPlanEntity();
+        planEntity.setCrossId("test-cross-id");
+
+        NewPlanEntity newPlanEntity = planConverter.toNewPlanEntity(planEntity);
+
+        assertEquals("test-cross-id", newPlanEntity.getCrossId());
+    }
+
+    @Test
+    public void toNewPlanEntity_should_reset_crossId_if_param_set_to_true() {
+        PlanEntity planEntity = buildTestPlanEntity();
+        planEntity.setCrossId("test-cross-id");
+
+        NewPlanEntity newPlanEntity = planConverter.toNewPlanEntity(planEntity, true);
+
+        assertNull(newPlanEntity.getCrossId());
     }
 
     private PlanEntity buildTestPlanEntity() {
@@ -146,65 +222,6 @@ public class PlanConverterTest {
         planEntity.setGeneralConditions("conditions");
         planEntity.setTags(new HashSet<>());
         planEntity.setSelectionRule("selection-rule");
-
         return planEntity;
-    }
-
-    @Test
-    public void toNewPlanEntity_should_convert_to_NewPlanEntity() {
-        final PlanEntity actual = buildTestPlanEntity();
-        final NewPlanEntity result = planConverter.toNewPlanEntity(actual);
-
-        Assert.assertEquals(result.getId(), actual.getId());
-        Assert.assertEquals(result.getApi(), actual.getApi());
-        Assert.assertEquals(result.getName(), actual.getName());
-        Assert.assertEquals(result.getDescription(), actual.getDescription());
-        Assert.assertEquals(result.getValidation(), actual.getValidation());
-        Assert.assertEquals(result.getSecurity(), actual.getSecurity());
-        Assert.assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
-        Assert.assertEquals(result.getType(), actual.getType());
-        Assert.assertEquals(result.getStatus(), actual.getStatus());
-        Assert.assertEquals(result.getApi(), actual.getApi());
-        Assert.assertEquals(result.getPaths(), actual.getPaths());
-        Assert.assertEquals(result.getFlows(), actual.getFlows());
-        Assert.assertEquals(result.getCharacteristics(), actual.getCharacteristics());
-        Assert.assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
-        Assert.assertEquals(result.isCommentRequired(), actual.isCommentRequired());
-        Assert.assertEquals(result.getCommentMessage(), actual.getCommentMessage());
-        Assert.assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
-        Assert.assertEquals(result.getTags(), actual.getTags());
-        Assert.assertEquals(result.getSelectionRule(), actual.getSelectionRule());
-    }
-
-    @Test
-    public void toNewPlanEntity_should_not_set_fields_with_default_value_to_null() {
-        final PlanEntity actual = buildTestPlanEntity();
-        actual.setValidation(null);
-        actual.setSecurity(null);
-        actual.setType(null);
-        actual.setStatus(null);
-        actual.setPaths(null);
-        actual.setFlows(null);
-        final NewPlanEntity result = planConverter.toNewPlanEntity(actual);
-
-        Assert.assertEquals(result.getId(), actual.getId());
-        Assert.assertEquals(result.getApi(), actual.getApi());
-        Assert.assertEquals(result.getName(), actual.getName());
-        Assert.assertEquals(result.getDescription(), actual.getDescription());
-        Assert.assertEquals(result.getValidation(), PlanValidationType.MANUAL);
-        Assert.assertEquals(result.getSecurity(), PlanSecurityType.API_KEY);
-        Assert.assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
-        Assert.assertEquals(result.getType(), PlanType.API);
-        Assert.assertEquals(result.getStatus(), PlanStatus.STAGING);
-        Assert.assertEquals(result.getApi(), actual.getApi());
-        Assert.assertEquals(result.getPaths(), new HashMap<>());
-        Assert.assertEquals(result.getFlows(), new ArrayList<>());
-        Assert.assertEquals(result.getCharacteristics(), actual.getCharacteristics());
-        Assert.assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
-        Assert.assertEquals(result.isCommentRequired(), actual.isCommentRequired());
-        Assert.assertEquals(result.getCommentMessage(), actual.getCommentMessage());
-        Assert.assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
-        Assert.assertEquals(result.getTags(), actual.getTags());
-        Assert.assertEquals(result.getSelectionRule(), actual.getSelectionRule());
     }
 }

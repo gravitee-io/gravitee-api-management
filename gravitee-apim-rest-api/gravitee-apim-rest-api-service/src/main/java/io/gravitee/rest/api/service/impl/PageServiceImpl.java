@@ -2660,7 +2660,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             pageEntityToImport.setParentId(parentId);
 
             String newId = UuidString.generateForEnvironment(environmentId, apiId, pageEntityToImport.getId());
-            createPage(apiId, pageConverter.toNewPageEntity(pageEntityToImport), environmentId, newId);
+            createPage(apiId, pageConverter.toNewPageEntity(pageEntityToImport, true), environmentId, newId);
 
             if (child.children != null && !child.children.isEmpty()) {
                 this.duplicateChildrenPages(apiId, newId, child.children, environmentId);

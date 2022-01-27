@@ -156,7 +156,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         final String apiId = apiEntity.getId();
         LOGGER.debug("Duplicate API {}", apiId);
 
-        final UpdateApiEntity newApiEntity = apiConverter.toUpdateApiEntity(apiEntity);
+        final UpdateApiEntity newApiEntity = apiConverter.toUpdateApiEntity(apiEntity, true);
         final Proxy proxy = apiEntity.getProxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(duplicateApiEntity.getContextPath())));
         newApiEntity.setProxy(proxy);
@@ -222,7 +222,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     plan -> {
                         plan.setId(plansIdsMap.get(plan.getId()));
                         plan.setApi(duplicatedApi.getId());
-                        planService.create(planConverter.toNewPlanEntity(plan));
+                        planService.create(planConverter.toNewPlanEntity(plan, true));
                     }
                 );
         }

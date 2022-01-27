@@ -46,8 +46,12 @@ public class PageConverter {
     }
 
     public NewPageEntity toNewPageEntity(PageEntity pageEntity) {
+        return toNewPageEntity(pageEntity, false);
+    }
+
+    public NewPageEntity toNewPageEntity(PageEntity pageEntity, boolean resetCrossId) {
         NewPageEntity newPage = new NewPageEntity();
-        newPage.setCrossId(pageEntity.getCrossId());
+        newPage.setCrossId(resetCrossId ? null : pageEntity.getCrossId());
         newPage.setConfiguration(pageEntity.getConfiguration());
         newPage.setContent(pageEntity.getContent());
         newPage.setExcludedAccessControls(pageEntity.isExcludedAccessControls());
