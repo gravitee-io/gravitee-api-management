@@ -228,7 +228,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private static Page merge(UpdatePageEntity updatePageEntity, Page withUpdatePage) {
         Page page = new Page();
-
+        page.setCrossId(updatePageEntity.getCrossId() != null ? updatePageEntity.getCrossId() : withUpdatePage.getCrossId());
         page.setName(updatePageEntity.getName() != null ? updatePageEntity.getName() : withUpdatePage.getName());
         page.setContent(updatePageEntity.getContent() != null ? updatePageEntity.getContent() : withUpdatePage.getContent());
         page.setLastContributor(
@@ -268,9 +268,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return page;
     }
 
-    private static Page convert(UpdatePageEntity updatePageEntity) {
+    private static Page convert(UpdatePageEntity updatePageEntity, Page pageToUpdate) {
         Page page = new Page();
-        page.setCrossId(updatePageEntity.getCrossId());
+        page.setCrossId(pageToUpdate.getCrossId());
         page.setName(updatePageEntity.getName());
         page.setContent(updatePageEntity.getContent());
         page.setLastContributor(updatePageEntity.getLastContributor());
@@ -1144,7 +1144,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (partial) {
                 page = merge(updatePageEntity, pageToUpdate);
             } else {
-                page = convert(updatePageEntity);
+                page = convert(updatePageEntity, pageToUpdate);
             }
 
             try {
@@ -1260,7 +1260,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private boolean pageHasChanged(UpdatePageEntity updatePageEntity, Page pageToUpdate) {
-        return pageHasChanged(convert(updatePageEntity), pageToUpdate);
+        return pageHasChanged(convert(updatePageEntity, pageToUpdate), pageToUpdate);
     }
 
     private boolean pageHasChanged(Page updatedPage, Page pageToUpdate) {
@@ -2632,7 +2632,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         for (final PageServiceImpl.PageEntityTreeNode child : children) {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
-
+            pageEntityToImport.setReferenceId(apiId);
+            pageEntityToImport.setReferenceType(PageReferenceType.API.name());
             PageEntity createdOrUpdatedPage;
 
             try {
