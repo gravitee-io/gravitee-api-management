@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { HttpMethod } from '../HttpMethod';
+
 export interface Services {
   discovery?: {
     enabled?: boolean;
@@ -26,7 +29,7 @@ export interface Services {
       name?: string;
       request?: {
         path?: string;
-        method?: 'CONNECT' | 'DELETE' | 'GET' | 'HEAD' | 'OPTIONS' | 'PATCH' | 'POST' | 'PUT' | 'TRACE' | 'OTHER';
+        method?: HttpMethod;
         headers?: { name: string; value: string }[];
         body?: string;
         fromRoot?: boolean;
