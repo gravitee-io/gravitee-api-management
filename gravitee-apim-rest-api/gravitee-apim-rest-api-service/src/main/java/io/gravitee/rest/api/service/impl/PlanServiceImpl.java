@@ -176,40 +176,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
 
-            Plan plan = new Plan();
-            plan.setId(id);
-            plan.setApi(newPlan.getApi());
-            plan.setName(newPlan.getName());
-            plan.setDescription(newPlan.getDescription());
-            plan.setCreatedAt(new Date());
-            plan.setUpdatedAt(plan.getCreatedAt());
-            plan.setNeedRedeployAt(plan.getCreatedAt());
-            plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
-            plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
-            plan.setSecurityDefinition(newPlan.getSecurityDefinition());
-            plan.setStatus(Plan.Status.valueOf(newPlan.getStatus().name()));
-            plan.setExcludedGroups(newPlan.getExcludedGroups());
-            plan.setCommentRequired(newPlan.isCommentRequired());
-            plan.setCommentMessage(newPlan.getCommentMessage());
-            plan.setTags(newPlan.getTags());
-            plan.setSelectionRule(newPlan.getSelectionRule());
-            plan.setGeneralConditions(newPlan.getGeneralConditions());
-            plan.setOrder(newPlan.getOrder());
-
-            if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
-                // There is no need for a validation when authentication is KEY_LESS, force to AUTO
-                plan.setValidation(Plan.PlanValidationType.AUTO);
-            } else {
-                plan.setValidation(Plan.PlanValidationType.valueOf(newPlan.getValidation().name()));
-            }
-
-            plan.setCharacteristics(newPlan.getCharacteristics());
-
-            if (!DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
-                String planPolicies = objectMapper.writeValueAsString(newPlan.getPaths());
-                plan.setDefinition(planPolicies);
-            }
-
+            newPlan.setId(id);
+            Plan plan = planConverter.toPlan(newPlan, DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()));
             plan = planRepository.create(plan);
 
             if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {

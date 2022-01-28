@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.converter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -24,6 +25,7 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -171,5 +173,43 @@ public class PlanConverter {
         newPlanEntity.setTags(planEntity.getTags());
         newPlanEntity.setSelectionRule(planEntity.getSelectionRule());
         return newPlanEntity;
+    }
+
+    public Plan toPlan(NewPlanEntity newPlan, DefinitionVersion graviteeDefinitionVersion) throws JsonProcessingException {
+        Plan plan = new Plan();
+        plan.setId(newPlan.getId());
+        plan.setApi(newPlan.getApi());
+        plan.setName(newPlan.getName());
+        plan.setDescription(newPlan.getDescription());
+        plan.setCreatedAt(new Date());
+        plan.setUpdatedAt(plan.getCreatedAt());
+        plan.setNeedRedeployAt(plan.getCreatedAt());
+        plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
+        plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
+        plan.setSecurityDefinition(newPlan.getSecurityDefinition());
+        plan.setStatus(Plan.Status.valueOf(newPlan.getStatus().name()));
+        plan.setExcludedGroups(newPlan.getExcludedGroups());
+        plan.setCommentRequired(newPlan.isCommentRequired());
+        plan.setCommentMessage(newPlan.getCommentMessage());
+        plan.setTags(newPlan.getTags());
+        plan.setSelectionRule(newPlan.getSelectionRule());
+        plan.setGeneralConditions(newPlan.getGeneralConditions());
+        plan.setOrder(newPlan.getOrder());
+
+        if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
+            // There is no need for a validation when authentication is KEY_LESS, force to AUTO
+            plan.setValidation(Plan.PlanValidationType.AUTO);
+        } else {
+            plan.setValidation(Plan.PlanValidationType.valueOf(newPlan.getValidation().name()));
+        }
+
+        plan.setCharacteristics(newPlan.getCharacteristics());
+
+        if (!DefinitionVersion.V2.equals(graviteeDefinitionVersion)) {
+            String planPolicies = objectMapper.writeValueAsString(newPlan.getPaths());
+            plan.setDefinition(planPolicies);
+        }
+
+        return plan;
     }
 }
