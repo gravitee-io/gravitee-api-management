@@ -713,6 +713,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     PlanEntity matchingPlan = plansByCrossId.get(plan.get("crossId").asText());
                     if (matchingPlan != null) {
                         ((ObjectNode) plan).put("id", matchingPlan.getId());
+                        ((ObjectNode) plan).put("api", api.getId());
                     }
                 }
             );
@@ -734,11 +735,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     PageEntity matchingPage = pagesByCrossId.get(page.get("crossId").asText());
                     if (matchingPage != null) {
                         ((ObjectNode) page).put("id", matchingPage.getId());
-
+                        ((ObjectNode) page).put("api", api.getId());
                         pagesNodes
                             .stream()
-                    .filter(child -> isChildPageOf(child, pageId))
-                            .forEach(child -> ((ObjectNode) child).put("parentId", matchingPage.getId()));
+                            .filter(child -> isChildPageOf(child, pageId))
+                            .forEach(
+                                child -> {
+                                    ((ObjectNode) child).put("parentId", matchingPage.getId());
+                                }
+                            );
                     }
                 }
             );
@@ -762,6 +767,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .forEach(
                 plan -> {
                     ((ObjectNode) plan).put("id", UuidString.generateForEnvironment(environmentId, apiId, plan.get("id").asText()));
+                    ((ObjectNode) plan).put("api", apiId);
                 }
             );
     }
@@ -775,6 +781,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     String pageId = page.get("id").asText();
                     String generatedPageId = UuidString.generateForEnvironment(environmentId, apiId, pageId);
                     ((ObjectNode) page).put("id", generatedPageId);
+                    ((ObjectNode) page).put("api", apiId);
 
                     pagesNodes
                         .stream()
