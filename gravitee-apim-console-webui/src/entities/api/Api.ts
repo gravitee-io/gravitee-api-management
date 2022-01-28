@@ -15,6 +15,7 @@
  */
 import { Json } from '../../util/json';
 import { Flow } from '../flow/flow';
+import { HttpMethod } from '../HttpMethod';
 import { Proxy } from '../proxy';
 import { Services } from '../services';
 
@@ -72,7 +73,7 @@ export interface ApiEntrypoint {
 export type ApiFlowMode = 'DEFAULT' | 'BEST_MATCH';
 
 export interface ApiRule {
-  methods?: string;
+  methods?: HttpMethod[];
   policy?: ApiRulePolicy;
   description?: string;
   enabled?: boolean;
