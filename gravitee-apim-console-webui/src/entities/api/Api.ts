@@ -99,11 +99,8 @@ export interface ApiPlan {
 
 export interface ApiPrimaryOwner {
   id: string;
-
   email?: string;
-
   displayName?: string;
-
   type?: string;
 }
 

@@ -24,6 +24,7 @@ export interface Step {
   description?: string;
   configuration?: unknown;
   enabled?: boolean;
+  condition?: string;
 }
 
 export interface Consumer {

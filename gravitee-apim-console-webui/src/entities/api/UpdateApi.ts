@@ -20,5 +20,5 @@ export interface UpdateApi
     Api,
     'id' | 'state' | 'entrypoints' | 'context_path' | 'deployed_at' | 'created_at' | 'updated_at' | 'owner' | 'workflow_state'
   > {
-  metadata?: unknown;
+  metadata?: Record<string, unknown>;
 }
