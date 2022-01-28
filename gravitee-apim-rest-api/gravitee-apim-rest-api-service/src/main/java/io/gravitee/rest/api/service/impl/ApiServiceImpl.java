@@ -1410,6 +1410,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setDeployedAt(apiToUpdate.getDeployedAt());
             api.setCreatedAt(apiToUpdate.getCreatedAt());
             api.setLifecycleState(apiToUpdate.getLifecycleState());
+            if (updateApiEntity.getCrossId() == null) {
+                api.setCrossId(apiToUpdate.getCrossId());
+            }
+
             // If no new picture and the current picture url is not the default one, keep the current picture
             if (
                 updateApiEntity.getPicture() == null &&

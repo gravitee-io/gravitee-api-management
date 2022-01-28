@@ -1175,6 +1175,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (page.getVisibility() == null) {
                 page.setVisibility(pageToUpdate.getVisibility());
             }
+            if (page.getCrossId() == null) {
+                page.setCrossId(pageToUpdate.getCrossId());
+            }
             onlyOneHomepage(page);
 
             // if the page is used as general condition for a plan,
