@@ -107,7 +107,7 @@ function runBlock(
         shouldReload = false;
         params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
       }
-      const targetEnv = EnvironmentService.getEnvironmentFromHridOrId(Constants.org.environments, params.environmentId);
+      const targetEnv = EnvironmentService.getEnvironmentFromHridOrId(Constants.org.environments ?? [], params.environmentId);
       if (targetEnv) {
         Constants.org.currentEnv = targetEnv;
         return UserService.refreshEnvironmentPermissions().then(() => {
