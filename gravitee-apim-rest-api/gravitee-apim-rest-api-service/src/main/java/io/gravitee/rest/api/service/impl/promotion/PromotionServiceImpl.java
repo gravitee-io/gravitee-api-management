@@ -242,48 +242,40 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public PromotionEntity processPromotion(
         final String organizationId,
         final String environmentId,
-        String promotion,
+        String promotionId,
         boolean accepted,
         String user
     ) {
         try {
-            final Promotion existing = promotionRepository.findById(promotion).orElseThrow(() -> new PromotionNotFoundException(promotion));
+            final Promotion promotion = promotionRepository
+                .findById(promotionId)
+                .orElseThrow(() -> new PromotionNotFoundException(promotionId));
 
-            EnvironmentEntity environment = environmentService.findByCockpitId(existing.getTargetEnvCockpitId());
+            EnvironmentEntity environment = environmentService.findByCockpitId(promotion.getTargetEnvCockpitId());
 
-            existing.setStatus(accepted ? PromotionStatus.ACCEPTED : PromotionStatus.REJECTED);
-
-            final PromotionQuery promotionQuery = new PromotionQuery();
-            promotionQuery.setStatuses(Collections.singletonList(PromotionEntityStatus.ACCEPTED));
-            promotionQuery.setTargetEnvCockpitIds(singletonList(existing.getTargetEnvCockpitId()));
-            promotionQuery.setTargetApiExists(true);
-            promotionQuery.setApiId(existing.getApiId());
+            promotion.setStatus(accepted ? PromotionStatus.ACCEPTED : PromotionStatus.REJECTED);
 
             /*
              * needed for backward compatibility as the promotion may have stored the
              * definition without retaining the originating API ID
              */
-            JsonNode apiDefinition = objectMapper.readTree(existing.getApiDefinition());
-            ((ObjectNode) apiDefinition).put("id", existing.getApiId());
+            JsonNode apiDefinition = objectMapper.readTree(promotion.getApiDefinition());
+            ((ObjectNode) apiDefinition).put("id", promotion.getApiId());
 
-            List<PromotionEntity> previousPromotions = search(promotionQuery, new SortableImpl("created_at", false), null).getContent();
+            ApiEntity apiToUpdate = findAlreadyPromotedTargetApi(environment, promotion, apiDefinition);
 
-            // Should create a new API if there is no previous promotion for this API or if the API existed once (after a promotion) but has been deleted since
-            boolean shouldCreate =
-                CollectionUtils.isEmpty(previousPromotions) || !apiService.exists(previousPromotions.get(0).getTargetApiId());
-
-            if (PromotionStatus.ACCEPTED.equals(existing.getStatus())) {
+            if (PromotionStatus.ACCEPTED.equals(promotion.getStatus())) {
                 ApiEntity promoted = null;
 
                 // FIXME: All the methods should take then env id as input instead of relying on GraviteeContext.getCurrentEnv
                 GraviteeContext.setCurrentEnvironment(environment.getId());
-                if (shouldCreate) {
+                if (apiToUpdate == null) {
                     if (!permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), CREATE)) {
                         throw new ForbiddenAccessException();
                     }
                     promoted =
                         apiDuplicatorService.createWithImportedDefinition(
-                            existing.getApiDefinition(),
+                            promotion.getApiDefinition(),
                             user,
                             organizationId,
                             environment.getId()
@@ -293,22 +285,19 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                         throw new ForbiddenAccessException();
                     }
 
-                    PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
-                    final ApiEntity existingApi = apiService.findById(lastAcceptedPromotion.getTargetApiId());
-
                     promoted =
                         apiDuplicatorService.updateWithImportedDefinition(
-                            existingApi.getId(),
+                            apiToUpdate.getId(),
                             apiDefinition.toString(),
                             user,
                             organizationId,
                             environment.getId()
                         );
                 }
-                existing.setTargetApiId(promoted.getId());
+                promotion.setTargetApiId(promoted.getId());
             }
 
-            final PromotionEntity promotionEntity = convert(existing);
+            final PromotionEntity promotionEntity = convert(promotion);
 
             final CockpitReply<PromotionEntity> cockpitReply = cockpitPromotionService.processPromotion(promotionEntity);
 
@@ -316,7 +305,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 throw new BridgeOperationException(BridgeOperation.PROMOTE_API);
             }
 
-            final Promotion updated = promotionRepository.update(existing);
+            final Promotion updated = promotionRepository.update(promotion);
 
             return convert(updated);
         } catch (TechnicalException | IOException ex) {
@@ -453,5 +442,33 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             return null;
         }
         return new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build();
+    }
+
+    protected ApiEntity findAlreadyPromotedTargetApi(EnvironmentEntity environment, Promotion promotion, JsonNode apiDefinition) {
+        // find target API by crossId first, then fallback on last promotion target ID
+        return findAlreadyPromotedApiByCrossId(environment, apiDefinition)
+            .orElseGet(() -> findAlreadyPromotedApiFromLastPromotion(promotion));
+    }
+
+    private Optional<ApiEntity> findAlreadyPromotedApiByCrossId(EnvironmentEntity environment, JsonNode apiDefinition) {
+        return apiDefinition.hasNonNull("crossId")
+            ? apiService.findByEnvironmentIdAndCrossId(environment.getId(), apiDefinition.get("crossId").asText())
+            : Optional.empty();
+    }
+
+    private ApiEntity findAlreadyPromotedApiFromLastPromotion(Promotion promotion) {
+        final PromotionQuery promotionQuery = new PromotionQuery();
+        promotionQuery.setStatuses(Collections.singletonList(PromotionEntityStatus.ACCEPTED));
+        promotionQuery.setTargetEnvCockpitIds(singletonList(promotion.getTargetEnvCockpitId()));
+        promotionQuery.setTargetApiExists(true);
+        promotionQuery.setApiId(promotion.getApiId());
+        List<PromotionEntity> previousPromotions = search(promotionQuery, new SortableImpl("created_at", false), null).getContent();
+        if (!CollectionUtils.isEmpty(previousPromotions)) {
+            PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
+            return apiService.exists(lastAcceptedPromotion.getTargetApiId())
+                ? apiService.findById(lastAcceptedPromotion.getTargetApiId())
+                : null;
+        }
+        return null;
     }
 }
