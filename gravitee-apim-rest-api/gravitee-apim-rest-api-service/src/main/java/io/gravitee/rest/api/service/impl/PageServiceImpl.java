@@ -165,7 +165,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private static Page convert(NewPageEntity newPageEntity) {
         Page page = new Page();
-
+        page.setCrossId(newPageEntity.getCrossId());
         page.setName(newPageEntity.getName());
         final PageType type = newPageEntity.getType();
         if (type != null) {
@@ -2277,7 +2277,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private UpdatePageEntity convertToUpdateEntity(Page page, boolean removeSensitiveData) {
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
-
+        updatePageEntity.setCrossId(page.getCrossId());
         updatePageEntity.setName(page.getName());
         updatePageEntity.setContent(page.getContent());
         updatePageEntity.setLastContributor(page.getLastContributor());

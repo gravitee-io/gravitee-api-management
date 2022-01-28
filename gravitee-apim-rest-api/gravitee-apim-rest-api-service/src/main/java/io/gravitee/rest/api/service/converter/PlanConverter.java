@@ -178,6 +178,7 @@ public class PlanConverter {
     public Plan toPlan(NewPlanEntity newPlan, DefinitionVersion graviteeDefinitionVersion) throws JsonProcessingException {
         Plan plan = new Plan();
         plan.setId(newPlan.getId());
+        plan.setCrossId(newPlan.getCrossId());
         plan.setApi(newPlan.getApi());
         plan.setName(newPlan.getName());
         plan.setDescription(newPlan.getDescription());
