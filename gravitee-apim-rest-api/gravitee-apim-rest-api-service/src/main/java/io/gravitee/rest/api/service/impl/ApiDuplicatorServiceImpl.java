@@ -737,7 +737,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
                         pagesNodes
                             .stream()
-                    .filter(child -> isChildPageOf(child, pageId))
+                            .filter(child -> isChildPageOf(child, pageId))
                             .forEach(child -> ((ObjectNode) child).put("parentId", matchingPage.getId()));
                     }
                 }
@@ -801,18 +801,18 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private List<JsonNode> getPlansNodes(JsonNode apiJsonNode) {
-        List<JsonNode> plansNodes = new ArrayList<>();
-        if (apiJsonNode.has("plans") && apiJsonNode.get("plans").isArray()) {
-            apiJsonNode.get("plans").forEach(plansNodes::add);
-        }
-        return plansNodes;
+        return getChildNodesByName(apiJsonNode, "plans");
     }
 
     private List<JsonNode> getPagesNodes(JsonNode apiJsonNode) {
-        List<JsonNode> pagesNodes = new ArrayList<>();
-        if (apiJsonNode.has("pages") && apiJsonNode.get("pages").isArray()) {
-            apiJsonNode.get("pages").forEach(pagesNodes::add);
+        return getChildNodesByName(apiJsonNode, "pages");
+    }
+
+    private List<JsonNode> getChildNodesByName(JsonNode apiJsonNode, String name) {
+        List<JsonNode> nodes = new ArrayList<>();
+        if (apiJsonNode.has(name) && apiJsonNode.get(name).isArray()) {
+            apiJsonNode.get(name).forEach(nodes::add);
         }
-        return pagesNodes;
+        return nodes;
     }
 }
