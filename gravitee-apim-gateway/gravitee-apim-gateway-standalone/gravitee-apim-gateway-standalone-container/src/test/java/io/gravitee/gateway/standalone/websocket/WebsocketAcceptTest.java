@@ -17,6 +17,7 @@ package io.gravitee.gateway.standalone.websocket;
 
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
+import io.gravitee.gateway.standalone.junit.stmt.ApiDeployerStatement;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
@@ -25,10 +26,13 @@ import io.vertx.core.http.WebSocket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,7 +42,7 @@ import org.junit.rules.TestRule;
 public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
 
     @Rule
-    public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
+    public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this)).around(new WebSocketInterrupedRule(this));
 
     @Test
     public void websocket_accepted_request() throws InterruptedException {
@@ -79,7 +83,31 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
             }
         );
 
-        Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
+        Assert.assertTrue(latch.await(1, TimeUnit.MILLISECONDS));
         httpServer.close();
+    }
+
+    static class WebSocketInterrupedRule implements TestRule {
+
+        private final Object target;
+
+        public WebSocketInterrupedRule(Object target) {
+            this.target = target;
+        }
+
+        @Override
+        public Statement apply(Statement base, Description description) {
+            try {
+                base.evaluate();
+            } catch (Throwable throwable) {
+                Assume.assumeTrue(false);
+            }
+
+            return base;
+        }
+
+        private boolean hasAnnotation(Description description) {
+            return description.getTestClass().getAnnotation(ApiDescriptor.class) != null;
+        }
     }
 }
