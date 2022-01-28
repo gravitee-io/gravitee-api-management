@@ -1391,73 +1391,67 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             Api api = convert(apiId, updateApiEntity, apiToUpdate.getDefinition());
 
-            if (api != null) {
-                api.setId(apiId.trim());
-                api.setUpdatedAt(new Date());
+            api.setUpdatedAt(new Date());
 
-                // Copy fields from existing values
-                api.setEnvironmentId(apiToUpdate.getEnvironmentId());
-                api.setDeployedAt(apiToUpdate.getDeployedAt());
-                api.setCreatedAt(apiToUpdate.getCreatedAt());
-                api.setLifecycleState(apiToUpdate.getLifecycleState());
-                // If no new picture and the current picture url is not the default one, keep the current picture
-                if (
-                    updateApiEntity.getPicture() == null &&
-                    updateApiEntity.getPictureUrl() != null &&
-                    updateApiEntity.getPictureUrl().indexOf("?hash") > 0
-                ) {
-                    api.setPicture(apiToUpdate.getPicture());
-                }
-                if (
-                    updateApiEntity.getBackground() == null &&
-                    updateApiEntity.getBackgroundUrl() != null &&
-                    updateApiEntity.getBackgroundUrl().indexOf("?hash") > 0
-                ) {
-                    api.setBackground(apiToUpdate.getBackground());
-                }
-                if (updateApiEntity.getGroups() == null) {
-                    api.setGroups(apiToUpdate.getGroups());
-                }
-                if (updateApiEntity.getLabels() == null && apiToUpdate.getLabels() != null) {
-                    api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));
-                }
-                if (updateApiEntity.getCategories() == null) {
-                    api.setCategories(apiToUpdate.getCategories());
-                }
-
-                if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
-                    triggerApiDeprecatedNotification(apiId, apiToCheck);
-                }
-
-                Api updatedApi = apiRepository.update(api);
-
-                // Audit
-                auditService.createApiAuditLog(
-                    updatedApi.getId(),
-                    Collections.emptyMap(),
-                    API_UPDATED,
-                    updatedApi.getUpdatedAt(),
-                    apiToUpdate,
-                    updatedApi
-                );
-
-                if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
-                    // Audit API logging if option is enabled
-                    auditApiLogging(apiToUpdate, updatedApi);
-                }
-
-                ApiEntity apiEntity = convert(singletonList(updatedApi)).iterator().next();
-                ApiEntity apiWithMetadata = fetchMetadataForApi(apiEntity);
-
-                triggerNotification(apiId, ApiHook.API_UPDATED, apiEntity);
-
-                searchEngineService.index(apiWithMetadata, false);
-
-                return apiEntity;
-            } else {
-                LOGGER.error("Unable to update API {} because of previous error.", apiId);
-                throw new TechnicalManagementException("Unable to update API " + apiId);
+            // Copy fields from existing values
+            api.setEnvironmentId(apiToUpdate.getEnvironmentId());
+            api.setDeployedAt(apiToUpdate.getDeployedAt());
+            api.setCreatedAt(apiToUpdate.getCreatedAt());
+            api.setLifecycleState(apiToUpdate.getLifecycleState());
+            // If no new picture and the current picture url is not the default one, keep the current picture
+            if (
+                updateApiEntity.getPicture() == null &&
+                updateApiEntity.getPictureUrl() != null &&
+                updateApiEntity.getPictureUrl().indexOf("?hash") > 0
+            ) {
+                api.setPicture(apiToUpdate.getPicture());
             }
+            if (
+                updateApiEntity.getBackground() == null &&
+                updateApiEntity.getBackgroundUrl() != null &&
+                updateApiEntity.getBackgroundUrl().indexOf("?hash") > 0
+            ) {
+                api.setBackground(apiToUpdate.getBackground());
+            }
+            if (updateApiEntity.getGroups() == null) {
+                api.setGroups(apiToUpdate.getGroups());
+            }
+            if (updateApiEntity.getLabels() == null && apiToUpdate.getLabels() != null) {
+                api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));
+            }
+            if (updateApiEntity.getCategories() == null) {
+                api.setCategories(apiToUpdate.getCategories());
+            }
+
+            if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
+                triggerApiDeprecatedNotification(apiId, apiToCheck);
+            }
+
+            Api updatedApi = apiRepository.update(api);
+
+            // Audit
+            auditService.createApiAuditLog(
+                updatedApi.getId(),
+                Collections.emptyMap(),
+                API_UPDATED,
+                updatedApi.getUpdatedAt(),
+                apiToUpdate,
+                updatedApi
+            );
+
+            if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+                // Audit API logging if option is enabled
+                auditApiLogging(apiToUpdate, updatedApi);
+            }
+
+            ApiEntity apiEntity = convert(singletonList(updatedApi)).iterator().next();
+            ApiEntity apiWithMetadata = fetchMetadataForApi(apiEntity);
+
+            triggerNotification(apiId, ApiHook.API_UPDATED, apiEntity);
+
+            searchEngineService.index(apiWithMetadata, false);
+
+            return apiEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to update API " + apiId, ex);
@@ -2876,7 +2870,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private Api convert(String apiId, UpdateApiEntity updateApiEntity, String apiDefinition) {
         Api api = new Api();
-        api.setId(apiId);
+        api.setId(apiId.trim());
         if (updateApiEntity.getVisibility() != null) {
             api.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
         }
