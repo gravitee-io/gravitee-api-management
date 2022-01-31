@@ -40,19 +40,15 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageImportException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
-import io.swagger.v3.core.util.Json;
 import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -702,9 +698,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .forEach(
                 plan -> {
                     PlanEntity matchingPlan = plansByCrossId.get(plan.get("crossId").asText());
+                    ((ObjectNode) plan).put("api", api.getId());
                     if (matchingPlan != null) {
                         ((ObjectNode) plan).put("id", matchingPlan.getId());
-                        ((ObjectNode) plan).put("api", api.getId());
+                    } else {
+                        ((ObjectNode) plan).put("id", UuidString.generateRandom());
                     }
                 }
             );
@@ -724,18 +722,26 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 page -> {
                     String pageId = page.hasNonNull("id") ? page.get("id").asText() : null;
                     PageEntity matchingPage = pagesByCrossId.get(page.get("crossId").asText());
+                    ((ObjectNode) page).put("api", api.getId());
                     if (matchingPage != null) {
                         ((ObjectNode) page).put("id", matchingPage.getId());
-                        ((ObjectNode) page).put("api", api.getId());
-                        pagesNodes
-                            .stream()
-                            .filter(child -> isChildPageOf(child, pageId))
-                            .forEach(
-                                child -> {
-                                    ((ObjectNode) child).put("parentId", matchingPage.getId());
-                                }
-                            );
+                        updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
+                    } else {
+                        String newPageId = UuidString.generateRandom();
+                        ((ObjectNode) page).put("id", newPageId);
+                        updatePagesHierarchy(pagesNodes, pageId, newPageId);
                     }
+                }
+            );
+    }
+
+    private void updatePagesHierarchy(List<JsonNode> pagesNodes, String parentId, String newParentId) {
+        pagesNodes
+            .stream()
+            .filter(child -> isChildPageOf(child, parentId))
+            .forEach(
+                child -> {
+                    ((ObjectNode) child).put("parentId", newParentId);
                 }
             );
     }
