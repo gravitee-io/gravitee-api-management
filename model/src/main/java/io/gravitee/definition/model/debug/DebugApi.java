@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model;
+package io.gravitee.definition.model.debug;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.HttpResponse;
 import java.io.Serializable;
 
 public class DebugApi extends Api implements Serializable {

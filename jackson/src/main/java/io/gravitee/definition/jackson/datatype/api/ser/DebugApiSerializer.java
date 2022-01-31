@@ -19,7 +19,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.DebugApi;
+import io.gravitee.definition.model.debug.DebugApi;
 import java.io.IOException;
 
 public class DebugApiSerializer extends StdScalarSerializer<DebugApi> {

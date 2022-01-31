@@ -22,9 +22,9 @@ import io.gravitee.definition.jackson.datatype.api.deser.HttpResponseDeserialize
 import io.gravitee.definition.jackson.datatype.api.ser.DebugApiSerializer;
 import io.gravitee.definition.jackson.datatype.api.ser.HttpRequestSerializer;
 import io.gravitee.definition.jackson.datatype.api.ser.HttpResponseSerializer;
-import io.gravitee.definition.model.DebugApi;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
+import io.gravitee.definition.model.debug.DebugApi;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
