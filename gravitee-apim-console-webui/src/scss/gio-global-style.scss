@@ -5,18 +5,17 @@
 @import './gio-description-list';
 
 $background: map.get(gio.$mat-theme, background);
-$typography: map.get(gio.$mat-theme, typography);
 
 .gio-snack-bar-success {
   white-space: pre-wrap;
-  background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
-  // color: mat.get-color-from-palette($gio-success-palette, 'default-contrast');
+  background-color: mat.get-color-from-palette(gio.$mat-success-palette, default);
+  color: mat.get-color-from-palette(gio.$mat-success-palette, default-contrast);
 }
 
 .gio-snack-bar-error {
   white-space: pre-wrap;
   background-color: mat.get-color-from-palette(gio.$mat-error-palette, default);
-  // color: mat.get-color-from-palette($gio-error-palette, default-contrast);
+  color: mat.get-color-from-palette(gio.$mat-error-palette, default-contrast);
 }
 
 /**
