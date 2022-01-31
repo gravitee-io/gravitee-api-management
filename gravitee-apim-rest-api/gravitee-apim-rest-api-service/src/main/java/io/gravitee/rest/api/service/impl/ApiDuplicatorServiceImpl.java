@@ -17,8 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -48,6 +47,7 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.swagger.v3.core.util.Json;
 import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.*;
@@ -299,12 +299,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         // Views & Categories
         // Before 3.0.2, API 'categories' were called 'views'. This is for compatibility.
-        final JsonNode viewsDefinition = jsonNode.path("views");
-        if (viewsDefinition != null && viewsDefinition.isArray()) {
-            Set<String> categories = new HashSet<>();
-            for (JsonNode viewNode : viewsDefinition) {
-                categories.add(viewNode.asText());
-            }
+        final List<JsonNode> viewsNodes = getChildNodesByName(jsonNode, "views");
+        if (!viewsNodes.isEmpty()) {
+            Set<String> categories = viewsNodes.stream().map(JsonNode::asText).collect(toSet());
             importedApi.setCategories(categories);
         }
 
@@ -312,11 +309,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private void createPageAndMedia(ApiEntity createdApiEntity, JsonNode jsonNode, String environmentId) throws JsonProcessingException {
-        final JsonNode apiMedia = jsonNode.path("apiMedia");
-        if (apiMedia != null && apiMedia.isArray()) {
-            for (JsonNode media : apiMedia) {
-                mediaService.createWithDefinition(createdApiEntity.getId(), media.toString());
-            }
+        for (JsonNode media : getChildNodesByName(jsonNode, "apiMedia")) {
+            mediaService.createWithDefinition(createdApiEntity.getId(), media.toString());
         }
 
         List<PageEntity> search = pageService.search(
@@ -367,7 +361,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         return new MemberToImport(
                             userEntity.getSource(),
                             userEntity.getSourceId(),
-                            member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()),
+                            member.getRoles().stream().map(RoleEntity::getId).collect(toList()),
                             null
                         );
                     }
@@ -496,7 +490,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         UserEntity userEntity = userService.findBySource(futurePO.getSource(), futurePO.getSourceId(), false);
                         List<RoleEntity> roleEntity = null;
                         if (roleUsedInTransfert != null && !roleUsedInTransfert.isEmpty()) {
-                            roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(Collectors.toList());
+                            roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(toList());
                         }
                         membershipService.transferApiOwnership(
                             organizationId,
@@ -539,21 +533,18 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             );
         }
         // Metadata
-        final JsonNode metadataDefinition = jsonNode.path("metadata");
-        if (metadataDefinition != null && metadataDefinition.isArray()) {
-            try {
-                for (JsonNode metadataNode : metadataDefinition) {
-                    UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(
-                        metadataNode.toString(),
-                        UpdateApiMetadataEntity.class
-                    );
-                    updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
-                    apiMetadataService.update(updateApiMetadataEntity);
-                }
-            } catch (Exception ex) {
-                LOGGER.error("An error occurs while creating API metadata", ex);
-                throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
+        try {
+            for (JsonNode metadataNode : getChildNodesByName(jsonNode, "metadata")) {
+                UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(
+                    metadataNode.toString(),
+                    UpdateApiMetadataEntity.class
+                );
+                updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
+                apiMetadataService.update(updateApiMetadataEntity);
             }
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while creating API metadata", ex);
+            throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
         }
     }
 
