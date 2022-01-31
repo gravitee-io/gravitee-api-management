@@ -56,8 +56,10 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
         link.click();
         document.body.removeChild(link);
       })
-      .then((data) => {
-        $mdDialog.hide(data);
+      .then(() => {
+        ApiService.get(apiId).then((response) => {
+          $mdDialog.hide(response);
+        });
       });
   };
 }
