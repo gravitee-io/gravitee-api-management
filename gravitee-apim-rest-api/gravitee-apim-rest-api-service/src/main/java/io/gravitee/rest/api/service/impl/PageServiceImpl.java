@@ -268,9 +268,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return page;
     }
 
-    private static Page convert(UpdatePageEntity updatePageEntity, Page pageToUpdate) {
+    private static Page convert(UpdatePageEntity updatePageEntity) {
         Page page = new Page();
-        page.setCrossId(pageToUpdate.getCrossId());
+
+        page.setCrossId(updatePageEntity.getCrossId());
         page.setName(updatePageEntity.getName());
         page.setContent(updatePageEntity.getContent());
         page.setLastContributor(updatePageEntity.getLastContributor());
@@ -1144,7 +1145,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (partial) {
                 page = merge(updatePageEntity, pageToUpdate);
             } else {
-                page = convert(updatePageEntity, pageToUpdate);
+                page = convert(updatePageEntity);
             }
 
             try {
@@ -1263,7 +1264,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private boolean pageHasChanged(UpdatePageEntity updatePageEntity, Page pageToUpdate) {
-        return pageHasChanged(convert(updatePageEntity, pageToUpdate), pageToUpdate);
+        return pageHasChanged(convert(updatePageEntity), pageToUpdate);
     }
 
     private boolean pageHasChanged(Page updatedPage, Page pageToUpdate) {
