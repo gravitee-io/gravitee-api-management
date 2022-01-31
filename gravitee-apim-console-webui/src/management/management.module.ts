@@ -21,11 +21,8 @@ import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ManagementApiDesignComponent } from './api/design/design/management-api-design.component';
+import { GioPolicyStudioRoutingModule } from './api/policy-studio/gio-policy-studio-routing.module';
 
-import { FlowService } from '../services-ngx/flow.service';
-import { PolicyService } from '../services-ngx/policy.service';
-import { ResourceService } from '../services-ngx/resource.service';
-import { SpelService } from '../services-ngx/spel.service';
 import { GioConfirmDialogModule } from '../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 
@@ -38,26 +35,9 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     GioPermissionModule,
     GioConfirmDialogModule,
     GioPolicyStudioModule,
+    GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.detail.design.flowsNg' }),
   ],
   declarations: [ManagementApiDesignComponent],
   entryComponents: [ManagementApiDesignComponent],
-  providers: [
-    {
-      provide: 'FlowService',
-      useExisting: FlowService,
-    },
-    {
-      provide: 'PolicyService',
-      useExisting: PolicyService,
-    },
-    {
-      provide: 'ResourceService',
-      useExisting: ResourceService,
-    },
-    {
-      provide: 'SpelService',
-      useExisting: SpelService,
-    },
-  ],
 })
 export class ManagementModule {}

@@ -1,0 +1,9 @@
+@use '../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  // @include gio-layout.gio-full-width-content-container;
+}
+
+.management-api-design {
+  --gv-policy-studio--h: calc(100vh - 124px);
+}

@@ -30,6 +30,7 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
     '\\.js$': 'babel-jest',
+    '^.+\\.mjs$': 'babel-jest',
     '^.+\\.html$': '<rootDir>/__mocks__/rawLoader.js',
   },
   transformIgnorePatterns: [

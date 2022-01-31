@@ -23,6 +23,8 @@ import './index.scss';
 import './management/management.module.ajs';
 import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { UIRouter, UrlService } from '@uirouter/core';
+import { NgZone } from '@angular/core';
 
 import { AppModule } from './app.module';
 import { Constants } from './entities/Constants';
@@ -147,5 +149,21 @@ function initComponents() {
 }
 
 function bootstrapApplication(constants: Constants) {
-  platformBrowserDynamic([{ provide: 'Constants', useValue: constants }]).bootstrapModule(AppModule);
+  angular.module('gravitee-management').config(($urlServiceProvider: UrlService) => $urlServiceProvider.deferIntercept());
+
+  platformBrowserDynamic([{ provide: 'Constants', useValue: constants }])
+    .bootstrapModule(AppModule)
+    .then((platformRef) => {
+      // Intialize the Angular Module
+      // get() the UIRouter instance from DI to initialize the router
+      const urlService: UrlService = platformRef.injector.get(UIRouter).urlService;
+
+      // Instruct UIRouter to listen to URL changes
+      function startUIRouter() {
+        urlService.listen();
+        urlService.sync();
+      }
+
+      platformRef.injector.get<NgZone>(NgZone).run(startUIRouter);
+    });
 }

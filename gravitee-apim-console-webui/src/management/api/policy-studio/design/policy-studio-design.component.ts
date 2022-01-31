@@ -18,6 +18,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, interval, Subject, timer } from 'rxjs';
 import { catchError, filter, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { cloneDeep } from 'lodash';
+import { StateParams } from '@uirouter/angularjs';
 
 import { PolicyService } from '../../../../services-ngx/policy.service';
 import { Organization } from '../../../../entities/organization/organization';
@@ -165,9 +166,9 @@ const DYNAMIC_PROPERTY_SCHEMA = {
 };
 
 @Component({
-  selector: 'management-api-design',
-  template: require('./management-api-design.component.html'),
-  styles: [require('./management-api-design.component.scss')],
+  selector: 'policy-studio-design',
+  template: require('./policy-studio-design.component.html'),
+  styles: [require('./policy-studio-design.component.scss')],
   providers: [
     {
       provide: 'FlowService',
@@ -187,7 +188,7 @@ const DYNAMIC_PROPERTY_SCHEMA = {
     },
   ],
 })
-export class ManagementApiDesignComponent implements OnInit, OnDestroy {
+export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   isLoading = true;
 
   organization: Organization;
@@ -207,6 +208,7 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
     response?: unknown;
     request?: unknown;
   };
+  tabId: string;
 
   private api: any;
   private unsubscribe$ = new Subject<boolean>();
@@ -219,10 +221,12 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
     private readonly eventService: EventService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
   ) {}
 
   ngOnInit(): void {
+    this.tabId = this.ajsStateParams.psPage ?? 'design';
+
     combineLatest([
       this.apiService.getFlowSchemaForm(),
       this.policyService.list({ expandSchema: true, expandIcon: true }),

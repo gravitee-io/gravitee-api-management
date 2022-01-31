@@ -336,7 +336,6 @@ import interceptorConfig from './management.interceptor';
 import delegatorConfig from './management.delegator';
 import runBlock from './management.run';
 
-import uiRouter from '@uirouter/angularjs';
 import { permission, uiPermission } from 'angular-permission';
 
 import DialogAddNotificationSettingsController from '../components/notifications/notificationsettings/addnotificationsettings.dialog.controller';
@@ -571,6 +570,9 @@ import { OrgSettingsTagsComponent } from '../organization/configuration/tags/org
 import { OrgSettingsRoleMembersComponent } from '../organization/configuration/roles/org-settings-role-members.component';
 import { OrgSettingsRoleComponent } from '../organization/configuration/roles/role/org-settings-role.component';
 
+import { upgradeModule } from '@uirouter/angular-hybrid';
+import uiRouter from '@uirouter/angularjs';
+
 (<any>window).moment = moment;
 require('angular-moment-picker');
 
@@ -580,6 +582,7 @@ require('md-color-picker');
 angular.module('gravitee-management', [
   'angular-loading-bar',
   uiRouter,
+  upgradeModule.name,
   permission,
   uiPermission,
   'ngMaterial',
@@ -711,7 +714,6 @@ graviteeManagementModule.controller('ApiEndpointController', ApiEndpointControll
 graviteeManagementModule.controller('ApiEndpointGroupController', ApiEndpointGroupController);
 graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
-// graviteeManagementModule.controller('ApiDesignController', ApiDesignController);
 graviteeManagementModule.directive('ngManagementApiDesignComponent', downgradeComponent({ component: ManagementApiDesignComponent }));
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
