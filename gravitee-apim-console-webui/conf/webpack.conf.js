@@ -63,6 +63,12 @@ module.exports = {
         ],
       },
       {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto',
+        resolve: { mainFields: ['es2015', 'browser', 'module', 'main'] },
+      },
+      {
         test: /\.html$/i,
         use: ['ignore-loader'],
         include: /node_modules\/codemirror/,
@@ -148,7 +154,7 @@ module.exports = {
     filename: '[name].js',
   },
   resolve: {
-    extensions: ['.webpack.js', '.web.js', '.js', '.ts', '.json'],
+    extensions: ['.webpack.js', '.web.js', '.mjs', '.js', '.ts', '.json'],
     mainFields: ['es2015_ivy_ngcc', 'module_ivy_ngcc', 'main_ivy_ngcc', 'es2015', 'browser', 'module', 'main'],
   },
   entry: `./${path.join('src', 'index')}`,

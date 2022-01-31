@@ -19,12 +19,12 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UpgradeModule } from '@angular/upgrade/static';
+import { UIRouterUpgradeModule } from '@uirouter/angular-hybrid';
 
 import { uiRouterStateProvider, uiRouterStateParamsProvider, currentUserProvider } from './ajs-upgraded-providers';
 import { ManagementModule } from './management/management.module';
 import { OrganizationSettingsModule } from './organization/configuration/organization-settings.module';
 import { httpInterceptorProviders } from './shared/interceptors/http-interceptors';
-
 @NgModule({
   imports: [
     CommonModule,
@@ -37,6 +37,7 @@ import { httpInterceptorProviders } from './shared/interceptors/http-interceptor
       headerName: 'none',
     }),
     UpgradeModule,
+    UIRouterUpgradeModule,
     OrganizationSettingsModule,
     ManagementModule,
   ],

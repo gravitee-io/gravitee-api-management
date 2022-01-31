@@ -2,4 +2,5 @@
 
 :host {
   @include gio-layout.gio-full-width-content-container;
+  --gv-policy-studio--h: calc(100vh - 75px);
 }
