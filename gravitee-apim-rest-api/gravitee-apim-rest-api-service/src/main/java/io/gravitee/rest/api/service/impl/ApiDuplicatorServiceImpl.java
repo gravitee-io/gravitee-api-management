@@ -746,17 +746,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             );
     }
 
-    private void updatePagesHierarchy(List<JsonNode> pagesNodes, String parentId, String newParentId) {
-        pagesNodes
-            .stream()
-            .filter(child -> isChildPageOf(child, parentId))
-            .forEach(
-                child -> {
-                    ((ObjectNode) child).put("parentId", newParentId);
-                }
-            );
-    }
-
     private void recalculatePromotedIds(String environmentId, JsonNode apiJsonNode) {
         if (!apiJsonNode.hasNonNull("id") || StringUtils.isEmpty(apiJsonNode.get("id").asText())) {
             ((ObjectNode) apiJsonNode).put("id", UuidString.generateRandom());
@@ -790,13 +779,17 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     String generatedPageId = UuidString.generateForEnvironment(environmentId, apiId, pageId);
                     ((ObjectNode) page).put("id", generatedPageId);
                     ((ObjectNode) page).put("api", apiId);
-
-                    pagesNodes
-                        .stream()
-                        .filter(child -> isChildPageOf(child, pageId))
-                        .forEach(child -> ((ObjectNode) child).put("parentId", generatedPageId));
+                    updatePagesHierarchy(pagesNodes, pageId, generatedPageId);
                 }
             );
+    }
+
+
+    private void updatePagesHierarchy(List<JsonNode> pagesNodes, String parentId, String newParentId) {
+        pagesNodes
+          .stream()
+          .filter(child -> isChildPageOf(child, parentId))
+          .forEach(child -> ((ObjectNode) child).put("parentId", newParentId));
     }
 
     private boolean isChildPageOf(JsonNode pageNode, String parentPageId) {
