@@ -709,9 +709,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .forEach(
                 plan -> {
                     PlanEntity matchingPlan = plansByCrossId.get(plan.get("crossId").asText());
+                    ((ObjectNode) plan).put("api", api.getId());
                     if (matchingPlan != null) {
                         ((ObjectNode) plan).put("id", matchingPlan.getId());
-                        ((ObjectNode) plan).put("api", api.getId());
+                    } else {
+                        ((ObjectNode) plan).put("id", UuidString.generateRandom());
                     }
                 }
             );
@@ -731,18 +733,26 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 page -> {
                     String pageId = page.hasNonNull("id") ? page.get("id").asText() : null;
                     PageEntity matchingPage = pagesByCrossId.get(page.get("crossId").asText());
+                    ((ObjectNode) page).put("api", api.getId());
                     if (matchingPage != null) {
                         ((ObjectNode) page).put("id", matchingPage.getId());
-                        ((ObjectNode) page).put("api", api.getId());
-                        pagesNodes
-                            .stream()
-                            .filter(child -> isChildPageOf(child, pageId))
-                            .forEach(
-                                child -> {
-                                    ((ObjectNode) child).put("parentId", matchingPage.getId());
-                                }
-                            );
+                        updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
+                    } else {
+                        String newPageId = UuidString.generateRandom();
+                        ((ObjectNode) page).put("id", newPageId);
+                        updatePagesHierarchy(pagesNodes, pageId, newPageId);
                     }
+                }
+            );
+    }
+
+    private void updatePagesHierarchy(List<JsonNode> pagesNodes, String parentId, String newParentId) {
+        pagesNodes
+            .stream()
+            .filter(child -> isChildPageOf(child, parentId))
+            .forEach(
+                child -> {
+                    ((ObjectNode) child).put("parentId", newParentId);
                 }
             );
     }
