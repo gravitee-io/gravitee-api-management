@@ -2,6 +2,46 @@
 @import '../constants';
 
 @mixin material-layout-compatibility() {
+  .sidenav-list {
+    letter-spacing: initial;
+
+    md-list-item {
+      height: 40px;
+      font-size: 14px;
+
+      &.subheader {
+        height: auto;
+      }
+    }
+
+    h4 {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-size: 18px;
+      text-transform: uppercase;
+      color: #fdfdfd;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      padding: 15px 9px 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+    }
+
+    hr {
+      margin-top: 20px;
+      margin-bottom: 20px;
+      border: 0;
+      border-top: 1px solid #eee;
+    }
+  }
+
+  ng-md-icon {
+    position: relative;
+    top: 7px;
+  }
+
   .gv-sub-menu {
     box-sizing: border-box;
     line-height: 1.42857143;

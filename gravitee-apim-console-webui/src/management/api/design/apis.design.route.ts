@@ -83,6 +83,7 @@ function apisDesignRouterConfig($stateProvider) {
       url: '/design?flows',
       component: 'ngManagementApiDesignComponent',
       data: {
+        useAngularMaterial: true,
         perms: {
           only: ['api-definition-r'],
         },
