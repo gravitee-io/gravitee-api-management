@@ -34,7 +34,7 @@
         <embed.mongo.version>2.0.0</embed.mongo.version>
         <mongo.version>3.12.0</mongo.version>
         <mongodb-driver-reactivestreams.version>1.13.0</mongodb-driver-reactivestreams.version>
-        <spring.data.mongodb.version>2.1.5.RELEASE</spring.data.mongodb.version>
+        <spring.data.mongodb.version>2.2.13.RELEASE</spring.data.mongodb.version>
     </properties>
 
     <dependencies>
