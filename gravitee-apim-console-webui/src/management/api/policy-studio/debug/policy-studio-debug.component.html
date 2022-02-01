@@ -15,4 +15,16 @@
     limitations under the License.
 
 -->
-The debug mode page
+<div class="policy-studio-debug">
+  <div class="policy-studio-debug__request">
+    <policy-studio-debug-request (requestSubmitted)="onRequestSubmitted($event)"></policy-studio-debug-request>
+  </div>
+
+  <div class="policy-studio-debug__response">
+    <h2>Response</h2>
+
+    <div *ngIf="debugResponse && !debugResponse.isLoading">
+      {{ debugResponse.request.method }} - {{ debugResponse.request.path }} - {{ debugResponse.response.statusCode }}
+    </div>
+  </div>
+</div>

@@ -1,5 +1,15 @@
-@use '../../../../scss/gio-layout' as gio-layout;
+.policy-studio-debug {
+  display: flex;
+  flex-direction: row;
+  min-height: 100%;
 
-:host {
-  // @include gio-layout.gio-full-width-content-container;
+  &__request {
+    flex: 0 1 350px;
+    min-height: 100%;
+  }
+
+  &__response {
+    flex: 1 1 auto;
+    min-height: 100%;
+  }
 }

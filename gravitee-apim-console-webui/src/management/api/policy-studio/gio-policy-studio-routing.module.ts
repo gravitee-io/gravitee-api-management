@@ -25,6 +25,7 @@ import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 import { PolicyStudioDebugComponent } from './debug/policy-studio-debug.component';
 import { PolicyStudioDesignComponent } from './design/policy-studio-design.component';
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
+import { PolicyStudioDebugModule } from './debug/policy-studio-debug.module';
 
 import { GioConfirmDialogModule } from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -42,8 +43,10 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioPermissionModule,
     GioConfirmDialogModule,
     GioPolicyStudioModule,
+
+    PolicyStudioDebugModule,
   ],
-  declarations: [GioPolicyStudioLayoutComponent, PolicyStudioDebugComponent, PolicyStudioDesignComponent],
+  declarations: [GioPolicyStudioLayoutComponent, PolicyStudioDesignComponent],
 })
 export class GioPolicyStudioRoutingModule {
   public static withRouting(config: { stateNamePrefix: string }): ModuleWithProviders<GioPolicyStudioRoutingModule> {
