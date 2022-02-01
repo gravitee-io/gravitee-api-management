@@ -75,7 +75,7 @@
         <batik-transcoder.version>1.11</batik-transcoder.version>
         <bcpkix-jdk15on.version>1.61</bcpkix-jdk15on.version>
         <classgraph.version>4.8.90</classgraph.version>
-        <commons-io.version>2.5</commons-io.version>
+        <commons-io.version>2.11.0</commons-io.version>
         <commons-lang.version>2.6</commons-lang.version>
         <commons-lang3.version>3.9</commons-lang3.version>
         <commons-pool2.version>2.9.0</commons-pool2.version>
