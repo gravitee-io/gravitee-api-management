@@ -20,6 +20,8 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 public class DebugApi extends Api implements Serializable {
 
@@ -28,6 +30,12 @@ public class DebugApi extends Api implements Serializable {
 
     @JsonProperty("response")
     private HttpResponse response;
+
+    @JsonProperty("debugSteps")
+    private List<DebugStep> debugSteps;
+
+    @JsonProperty("initialAttributes")
+    private Map<String, String> initialAttributes;
 
     public HttpRequest getRequest() {
         return request;
@@ -43,5 +51,21 @@ public class DebugApi extends Api implements Serializable {
 
     public void setResponse(HttpResponse response) {
         this.response = response;
+    }
+
+    public List<DebugStep> getDebugSteps() {
+        return debugSteps;
+    }
+
+    public void setDebugSteps(List<DebugStep> debugSteps) {
+        this.debugSteps = debugSteps;
+    }
+
+    public Map<String, String> getInitialAttributes() {
+        return initialAttributes;
+    }
+
+    public void setInitialAttributes(Map<String, String> initialAttributes) {
+        this.initialAttributes = initialAttributes;
     }
 }
