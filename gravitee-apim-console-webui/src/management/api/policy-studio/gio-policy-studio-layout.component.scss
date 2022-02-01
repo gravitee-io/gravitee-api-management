@@ -1,5 +1,21 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 @use '../../../scss/gio-layout' as gio-layout;
 
 :host {
   @include gio-layout.gio-full-width-content-container;
+  display: flex;
+  flex-direction: column;
+}
+
+.gio-policy-studio-layout {
+  &__tab {
+    flex: 0 0 auto;
+    background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+  }
+
+  &__tab-content {
+    flex: 1 1 auto;
+  }
 }
