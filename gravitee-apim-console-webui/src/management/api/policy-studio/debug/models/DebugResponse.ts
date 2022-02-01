@@ -17,6 +17,12 @@ import { DebugRequest } from './DebugRequest';
 
 export type DebugResponse = {
   isLoading: boolean;
-  response?: unknown;
+  response?: {
+    statusCode?: number;
+    method?: string;
+    path?: string;
+    headers?: Record<string, any>;
+    body?: string;
+  };
   request?: DebugRequest;
 };

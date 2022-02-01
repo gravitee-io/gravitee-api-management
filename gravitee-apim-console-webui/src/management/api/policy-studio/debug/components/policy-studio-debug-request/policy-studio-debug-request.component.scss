@@ -9,7 +9,7 @@
 
   &__header {
     background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'lighter-background');
-    border: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
     height: 56px;
     display: flex;
     align-items: center;
