@@ -15,13 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -31,11 +30,11 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
+import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.BeforeClass;
@@ -83,11 +82,11 @@ public class ApiDuplicatorServiceImplTest {
                 .add(mapper.createObjectNode().put("id", "my-plan-id-2"))
         );
 
-        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "uat");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "uat");
 
-        assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.get("id").asText());
-        assertEquals("393ed51c-285d-3097-82eb-2bff2903dc62", newApiDefinition.get("plans").get(0).get("id").asText());
-        assertEquals("bff87514-39d4-331b-a531-73c021ecf627", newApiDefinition.get("plans").get(1).get("id").asText());
+        assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.getId());
+        assertEquals("393ed51c-285d-3097-82eb-2bff2903dc62", newApiDefinition.getPlans().get(0).getId());
+        assertEquals("bff87514-39d4-331b-a531-73c021ecf627", newApiDefinition.getPlans().get(1).getId());
     }
 
     @Test
@@ -104,11 +103,11 @@ public class ApiDuplicatorServiceImplTest {
 
         when(apiService.findByEnvironmentIdAndCrossId("uat", "api-cross-id")).thenReturn(Optional.empty());
 
-        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "uat");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "uat");
 
-        assertEquals("6bcde800-d5ae-3215-8413-cae196f9edfc", newApiDefinition.get("id").asText());
-        assertEquals("5025bd5d-b1a5-35f5-813b-65bb902aa4e7", newApiDefinition.get("plans").get(0).get("id").asText());
-        assertEquals("a4c0e8d8-ea8b-341b-9f7f-3ed456e77689", newApiDefinition.get("plans").get(1).get("id").asText());
+        assertEquals("6bcde800-d5ae-3215-8413-cae196f9edfc", newApiDefinition.getId());
+        assertEquals("5025bd5d-b1a5-35f5-813b-65bb902aa4e7", newApiDefinition.getPlans().get(0).getId());
+        assertEquals("a4c0e8d8-ea8b-341b-9f7f-3ed456e77689", newApiDefinition.getPlans().get(1).getId());
     }
 
     @Test
@@ -138,11 +137,11 @@ public class ApiDuplicatorServiceImplTest {
         when(apiService.findByEnvironmentIdAndCrossId("dev", "api-cross-id")).thenReturn(Optional.of(matchingApi));
         when(planService.findByApi("api-id-1")).thenReturn(Set.of(firstMatchingPlan, secondMatchingPlan));
 
-        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "dev");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "dev");
 
-        assertEquals("api-id-1", newApiDefinition.get("id").asText());
-        assertEquals("plan-id-1", newApiDefinition.get("plans").get(0).get("id").asText());
-        assertEquals("plan-id-2", newApiDefinition.get("plans").get(1).get("id").asText());
+        assertEquals("api-id-1", newApiDefinition.getId());
+        assertEquals("plan-id-1", newApiDefinition.getPlans().get(0).getId());
+        assertEquals("plan-id-2", newApiDefinition.getPlans().get(1).getId());
     }
 
     @Test
@@ -183,16 +182,16 @@ public class ApiDuplicatorServiceImplTest {
         when(apiService.findByEnvironmentIdAndCrossId("dev", "api-cross-id")).thenReturn(Optional.of(matchingApi));
         when(pageService.findByApi("api-id-1")).thenReturn(List.of(rootFolder, nestedFolder, page));
 
-        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "dev");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "dev");
 
-        assertEquals("api-id-1", newApiDefinition.get("id").asText());
-        assertEquals(3, newApiDefinition.get("pages").size());
-        ArrayNode pages = (ArrayNode) newApiDefinition.get("pages");
-        assertEquals("root-folder-id", pages.get(0).get("id").asText());
-        assertEquals("nested-folder-id", pages.get(1).get("id").asText());
-        assertEquals("root-folder-id", pages.get(1).get("parentId").asText());
-        assertEquals("page-id", pages.get(2).get("id").asText());
-        assertEquals("nested-folder-id", pages.get(2).get("parentId").asText());
+        assertEquals("api-id-1", newApiDefinition.getId());
+        assertEquals(3, newApiDefinition.getPages().size());
+        List<ImportJsonNodeWithIds> pages = newApiDefinition.getPages();
+        assertEquals("root-folder-id", pages.get(0).getId());
+        assertEquals("nested-folder-id", pages.get(1).getId());
+        assertEquals("root-folder-id", pages.get(1).getParentId());
+        assertEquals("page-id", pages.get(2).getId());
+        assertEquals("nested-folder-id", pages.get(2).getParentId());
     }
 
     @Test
@@ -208,16 +207,16 @@ public class ApiDuplicatorServiceImplTest {
                 .add(mapper.createObjectNode().put("id", "page-id").put("parentId", "nested-folder-id"))
         );
 
-        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "uat");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "uat");
 
-        assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.get("id").asText());
-        assertEquals(3, newApiDefinition.get("pages").size());
-        ArrayNode pages = (ArrayNode) newApiDefinition.get("pages");
-        assertEquals("cbcf3a8b-ebe3-3bff-aed6-4235201f4851", pages.get(0).get("id").asText());
-        assertEquals("1563e196-37f7-3500-adb4-65d2efe15feb", pages.get(1).get("id").asText());
-        assertEquals("cbcf3a8b-ebe3-3bff-aed6-4235201f4851", pages.get(1).get("parentId").asText());
-        assertEquals("91c32be3-e15c-392c-94f2-a509ec3ba69a", pages.get(2).get("id").asText());
-        assertEquals("1563e196-37f7-3500-adb4-65d2efe15feb", pages.get(2).get("parentId").asText());
+        assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.getId());
+        assertEquals(3, newApiDefinition.getPages().size());
+        List<ImportJsonNodeWithIds> pages = newApiDefinition.getPages();
+        assertEquals("cbcf3a8b-ebe3-3bff-aed6-4235201f4851", pages.get(0).getId());
+        assertEquals("1563e196-37f7-3500-adb4-65d2efe15feb", pages.get(1).getId());
+        assertEquals("cbcf3a8b-ebe3-3bff-aed6-4235201f4851", pages.get(1).getParentId());
+        assertEquals("91c32be3-e15c-392c-94f2-a509ec3ba69a", pages.get(2).getId());
+        assertEquals("1563e196-37f7-3500-adb4-65d2efe15feb", pages.get(2).getParentId());
     }
 
     @Test
@@ -256,15 +255,15 @@ public class ApiDuplicatorServiceImplTest {
         when(pageService.findByApi("api-id-1")).thenReturn(List.of(matchingPage));
         when(planService.findByApi("api-id-1")).thenReturn(Set.of(matchingPlan));
 
-        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "dev");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "dev");
 
-        assertEquals("api-id-1", newApiDefinition.get("id").asText());
-        assertEquals("plan-id-1", newApiDefinition.get("plans").get(0).get("id").asText());
-        assertTrue(isNotEmpty(newApiDefinition.get("plans").get(1).get("id").asText()));
-        assertEquals("I have an empty ID", newApiDefinition.get("plans").get(1).get("name").asText());
-        assertEquals("page-id-1", newApiDefinition.get("pages").get(0).get("id").asText());
-        assertTrue(isNotEmpty(newApiDefinition.get("pages").get(1).get("id").asText()));
-        assertEquals("I have no ID", newApiDefinition.get("pages").get(1).get("name").asText());
+        assertEquals("api-id-1", newApiDefinition.getId());
+        assertEquals("plan-id-1", newApiDefinition.getPlans().get(0).getId());
+        assertTrue(isNotEmpty(newApiDefinition.getPlans().get(1).getId()));
+        assertEquals("I have an empty ID", newApiDefinition.getPlans().get(1).getJsonNode().get("name").asText());
+        assertEquals("page-id-1", newApiDefinition.getPages().get(0).getId());
+        assertTrue(isNotEmpty(newApiDefinition.getPages().get(1).getId()));
+        assertEquals("I have no ID", newApiDefinition.getPages().get(1).getJsonNode().get("name").asText());
     }
 
     @Test
@@ -284,13 +283,13 @@ public class ApiDuplicatorServiceImplTest {
                 .add(mapper.createObjectNode().put("name", "no-id"))
         );
 
-        JsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(apiDefinition, "default");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.handleApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "default");
 
-        assertEquals("ed5fbfe2-9cab-3306-9e51-24721d5b6e82", newApiDefinition.get("id").asText());
-        assertEquals("de653244-912e-384e-a60d-9f8625f18c81", newApiDefinition.get("plans").get(0).get("id").asText());
-        assertTrue(isNotEmpty(newApiDefinition.get("plans").get(1).get("id").asText()));
-        assertEquals("943a8642-c5c1-336e-b6c9-44ea4ff7e1f9", newApiDefinition.get("pages").get(0).get("id").asText());
-        assertTrue(isNotEmpty(newApiDefinition.get("pages").get(1).get("id").asText()));
-        assertEquals("no-id", newApiDefinition.get("pages").get(1).get("name").asText());
+        assertEquals("ed5fbfe2-9cab-3306-9e51-24721d5b6e82", newApiDefinition.getId());
+        assertEquals("de653244-912e-384e-a60d-9f8625f18c81", newApiDefinition.getPlans().get(0).getId());
+        assertTrue(isNotEmpty(newApiDefinition.getPlans().get(1).getId()));
+        assertEquals("943a8642-c5c1-336e-b6c9-44ea4ff7e1f9", newApiDefinition.getPages().get(0).getId());
+        assertTrue(isNotEmpty(newApiDefinition.getPages().get(1).getId()));
+        assertEquals("no-id", newApiDefinition.getPages().get(1).getJsonNode().get("name").asText());
     }
 }
