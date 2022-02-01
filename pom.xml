@@ -61,7 +61,7 @@
         <gravitee-alert-api.version>1.9.0-SNAPSHOT</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.7.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.20.5</gravitee-common.version>
-        <gravitee-definition.version>1.28.2</gravitee-definition.version>
+        <gravitee-definition.version>1.30.2</gravitee-definition.version>
         <gravitee-expression-language.version>1.6.3</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.27.3</gravitee-gateway-api.version>
