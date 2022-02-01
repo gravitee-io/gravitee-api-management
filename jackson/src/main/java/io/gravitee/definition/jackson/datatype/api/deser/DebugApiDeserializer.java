@@ -53,7 +53,7 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApi> {
 
         JsonNode responseNode = node.get("response");
         if (responseNode != null) {
-            debugApi.setResponse(requestNode.traverse(jp.getCodec()).readValueAs(HttpResponse.class));
+            debugApi.setResponse(responseNode.traverse(jp.getCodec()).readValueAs(HttpResponse.class));
         }
 
         return debugApi;
