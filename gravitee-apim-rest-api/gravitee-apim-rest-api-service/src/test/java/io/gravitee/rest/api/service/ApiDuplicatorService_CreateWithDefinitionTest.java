@@ -29,7 +29,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
@@ -75,9 +74,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     @Mock
     private PlanConverter planConverter;
-
-    @Mock
-    private PageConverter pageConverter;
 
     @Mock
     private MembershipService membershipService;
@@ -126,8 +122,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 userService,
                 apiService,
                 apiConverter,
-                planConverter,
-                pageConverter
+                planConverter
             );
     }
 

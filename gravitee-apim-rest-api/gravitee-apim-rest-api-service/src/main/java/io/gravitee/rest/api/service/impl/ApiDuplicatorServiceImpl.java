@@ -38,7 +38,6 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PageImportException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -78,7 +77,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final ApiService apiService;
     private final ApiConverter apiConverter;
     private final PlanConverter planConverter;
-    private final PageConverter pageConverter;
 
     public ApiDuplicatorServiceImpl(
         HttpClientService httpClientService,
@@ -94,8 +92,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         UserService userService,
         ApiService apiService,
         ApiConverter apiConverter,
-        PlanConverter planConverter,
-        PageConverter pageConverter
+        PlanConverter planConverter
     ) {
         this.httpClientService = httpClientService;
         this.importConfiguration = importConfiguration;
@@ -111,7 +108,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.apiService = apiService;
         this.apiConverter = apiConverter;
         this.planConverter = planConverter;
-        this.pageConverter = pageConverter;
     }
 
     @Override
@@ -295,7 +291,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         // Views & Categories
         // Before 3.0.2, API 'categories' were called 'views'. This is for compatibility.
-        final List<JsonNode> viewsNodes = getChildNodesByName(jsonNode, "views");
+        final List<ObjectNode> viewsNodes = getChildNodesByName(jsonNode, "views");
         if (!viewsNodes.isEmpty()) {
             Set<String> categories = viewsNodes.stream().map(JsonNode::asText).collect(toSet());
             importedApi.setCategories(categories);
@@ -696,7 +692,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         mergePageIds(api, getPagesNodes(apiJsonNode));
     }
 
-    private void mergePlanIds(ApiEntity api, List<JsonNode> plansNodes) {
+    private void mergePlanIds(ApiEntity api, List<ObjectNode> plansNodes) {
         Map<String, PlanEntity> plansByCrossId = planService
             .findByApi(api.getId())
             .stream()
@@ -709,17 +705,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .forEach(
                 plan -> {
                     PlanEntity matchingPlan = plansByCrossId.get(plan.get("crossId").asText());
-                    ((ObjectNode) plan).put("api", api.getId());
-                    if (matchingPlan != null) {
-                        ((ObjectNode) plan).put("id", matchingPlan.getId());
-                    } else {
-                        ((ObjectNode) plan).put("id", UuidString.generateRandom());
-                    }
+                    plan.put("api", api.getId());
+                    plan.put("id", matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
                 }
             );
     }
 
-    private void mergePageIds(ApiEntity api, List<JsonNode> pagesNodes) {
+    private void mergePageIds(ApiEntity api, List<ObjectNode> pagesNodes) {
         Map<String, PageEntity> pagesByCrossId = pageService
             .findByApi(api.getId())
             .stream()
@@ -733,13 +725,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 page -> {
                     String pageId = page.hasNonNull("id") ? page.get("id").asText() : null;
                     PageEntity matchingPage = pagesByCrossId.get(page.get("crossId").asText());
-                    ((ObjectNode) page).put("api", api.getId());
+                    page.put("api", api.getId());
                     if (matchingPage != null) {
-                        ((ObjectNode) page).put("id", matchingPage.getId());
+                        page.put("id", matchingPage.getId());
                         updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
                     } else {
                         String newPageId = UuidString.generateRandom();
-                        ((ObjectNode) page).put("id", newPageId);
+                        page.put("id", newPageId);
                         updatePagesHierarchy(pagesNodes, pageId, newPageId);
                     }
                 }
@@ -757,19 +749,19 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         recalculatePageIds(getPagesNodes(apiJsonNode), environmentId, apiId);
     }
 
-    private void recalculatePlanIds(List<JsonNode> plansNodes, String environmentId, String apiId) {
+    private void recalculatePlanIds(List<ObjectNode> plansNodes, String environmentId, String apiId) {
         plansNodes
             .stream()
             .filter(plan -> plan.hasNonNull("id") && StringUtils.isNotEmpty(plan.get("id").asText()))
             .forEach(
                 plan -> {
-                    ((ObjectNode) plan).put("id", UuidString.generateForEnvironment(environmentId, apiId, plan.get("id").asText()));
-                    ((ObjectNode) plan).put("api", apiId);
+                    plan.put("id", UuidString.generateForEnvironment(environmentId, apiId, plan.get("id").asText()));
+                    plan.put("api", apiId);
                 }
             );
     }
 
-    private void recalculatePageIds(List<JsonNode> pagesNodes, String environmentId, String apiId) {
+    private void recalculatePageIds(List<ObjectNode> pagesNodes, String environmentId, String apiId) {
         pagesNodes
             .stream()
             .filter(page -> page.hasNonNull("id") && StringUtils.isNotEmpty(page.get("id").asText()))
@@ -777,19 +769,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 page -> {
                     String pageId = page.get("id").asText();
                     String generatedPageId = UuidString.generateForEnvironment(environmentId, apiId, pageId);
-                    ((ObjectNode) page).put("id", generatedPageId);
-                    ((ObjectNode) page).put("api", apiId);
+                    page.put("id", generatedPageId);
+                    page.put("api", apiId);
                     updatePagesHierarchy(pagesNodes, pageId, generatedPageId);
                 }
             );
     }
 
-
-    private void updatePagesHierarchy(List<JsonNode> pagesNodes, String parentId, String newParentId) {
-        pagesNodes
-          .stream()
-          .filter(child -> isChildPageOf(child, parentId))
-          .forEach(child -> ((ObjectNode) child).put("parentId", newParentId));
+    private void updatePagesHierarchy(List<ObjectNode> pagesNodes, String parentId, String newParentId) {
+        pagesNodes.stream().filter(child -> isChildPageOf(child, parentId)).forEach(child -> child.put("parentId", newParentId));
     }
 
     private boolean isChildPageOf(JsonNode pageNode, String parentPageId) {
@@ -804,22 +792,22 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         Stream
             .concat(getPlansNodes(apiJsonNode).stream(), getPagesNodes(apiJsonNode).stream())
             .filter(node -> !node.hasNonNull("id") || StringUtils.isEmpty(node.get("id").asText()))
-            .forEach(node -> ((ObjectNode) node).put("id", UuidString.generateRandom()));
+            .forEach(node -> node.put("id", UuidString.generateRandom()));
         return apiJsonNode;
     }
 
-    private List<JsonNode> getPlansNodes(JsonNode apiJsonNode) {
+    private List<ObjectNode> getPlansNodes(JsonNode apiJsonNode) {
         return getChildNodesByName(apiJsonNode, "plans");
     }
 
-    private List<JsonNode> getPagesNodes(JsonNode apiJsonNode) {
+    private List<ObjectNode> getPagesNodes(JsonNode apiJsonNode) {
         return getChildNodesByName(apiJsonNode, "pages");
     }
 
-    private List<JsonNode> getChildNodesByName(JsonNode apiJsonNode, String name) {
-        List<JsonNode> nodes = new ArrayList<>();
+    private List<ObjectNode> getChildNodesByName(JsonNode apiJsonNode, String name) {
+        List<ObjectNode> nodes = new ArrayList<>();
         if (apiJsonNode.has(name) && apiJsonNode.get(name).isArray()) {
-            apiJsonNode.get(name).forEach(nodes::add);
+            apiJsonNode.get(name).forEach(node -> nodes.add((ObjectNode) node));
         }
         return nodes;
     }

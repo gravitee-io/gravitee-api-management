@@ -25,14 +25,12 @@ import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
@@ -72,9 +70,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
     @Mock
     private PlanConverter planConverter;
-
-    @Mock
-    private PageConverter pageConverter;
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
@@ -129,8 +124,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 userService,
                 apiService,
                 apiConverter,
-                planConverter,
-                pageConverter
+                planConverter
             );
     }
 
