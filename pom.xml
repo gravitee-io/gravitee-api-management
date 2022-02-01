@@ -112,7 +112,7 @@
         <jsoup.version>1.14.2</jsoup.version>
         <lucene.version>7.5.0</lucene.version>
         <netty-tcnative-boringssl-static.version>2.0.42.Final</netty-tcnative-boringssl-static.version>
-        <nimbus-jose-jwt.version>8.22.1</nimbus-jose-jwt.version>
+        <nimbus-jose-jwt.version>8.23</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20191001.1</owasp-java-html-sanitizer.version>
         <powermock.version>2.0.9</powermock.version>
         <protobuf-java.version>3.17.3</protobuf-java.version>
