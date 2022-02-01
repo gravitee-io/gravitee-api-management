@@ -32,7 +32,7 @@
 
 	<properties>
 		<lettuce.version>5.3.4.RELEASE</lettuce.version>
-		<spring-data-redis.version>2.3.4.RELEASE</spring-data-redis.version>
+		<spring-data-redis.version>2.6.0</spring-data-redis.version>
 	</properties>
 
 	<dependencies>
