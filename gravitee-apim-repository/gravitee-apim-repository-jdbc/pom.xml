@@ -31,7 +31,7 @@
     <name>Gravitee.io APIM - Repository - JDBC</name>
 
     <properties>
-        <HikariCP.version>3.4.1</HikariCP.version>
+        <HikariCP.version>3.4.5</HikariCP.version>
         <liquibase.version>3.8.1</liquibase.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
         <mariaDB.version>2.4.0</mariaDB.version>
