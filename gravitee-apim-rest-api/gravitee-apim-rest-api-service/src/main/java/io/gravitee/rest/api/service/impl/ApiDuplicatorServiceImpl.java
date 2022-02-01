@@ -250,8 +250,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 checkPlansDefinitionOwnership(plansDefinition, apiId);
             }
 
-            UpdateApiEntity importedApi = convertToEntity(apiDefinition, apiJsonNode, environmentId);
-            ApiEntity updatedApiEntity = apiService.update(apiId, importedApi, false);
+            UpdateApiEntity importedApi = convertToEntity(apiJsonNode.toString(), apiJsonNode, environmentId);
+            ApiEntity updatedApiEntity = apiService.update(apiId, importedApi);
             createOrUpdateApiNestedEntities(updatedApiEntity, apiJsonNode, organizationId, environmentId);
             return updatedApiEntity;
         } catch (IOException e) {
