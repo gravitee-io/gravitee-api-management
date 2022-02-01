@@ -103,6 +103,14 @@
 
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
+            <artifactId>gravitee-apim-gateway-services-kubernetes</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-endpoint-discovery</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
