@@ -1,0 +1,27 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "request": {
+    "path": "/",
+    "method": "GET",
+    "body": "request-body",
+    "headers" : {
+      "X-Gravitee-Transaction-Id" : "transaction-id",
+      "content-type" : "application/json",
+      "X-Gravitee-Request-Id" : "request-id",
+      "accept-encoding" : "deflate, gzip, compress"
+    }
+  },
+  "proxy": {
+    "context_path": "/my-api",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:1234"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": true
+  }
+
+}
