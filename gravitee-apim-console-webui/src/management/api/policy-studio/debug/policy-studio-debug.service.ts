@@ -24,7 +24,6 @@ import { ApiService } from '../../../../services-ngx/api.service';
 import { DebugApiService } from '../../../../services-ngx/debug-api.service';
 import { EventService } from '../../../../services-ngx/event.service';
 
-
 @Injectable({
   providedIn: 'root',
 })

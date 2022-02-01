@@ -1,3 +1,6 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 .policy-studio-debug {
   display: flex;
   flex-direction: row;
@@ -6,6 +9,8 @@
   &__request {
     flex: 0 1 350px;
     min-height: 100%;
+
+    border-right: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
   }
 
   &__response {

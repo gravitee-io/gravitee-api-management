@@ -1,0 +1,63 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="policy-studio-debug-response">
+  <ng-container *ngIf="!debugResponse; then emptyResponse"></ng-container>
+  <ng-container *ngIf="!!debugResponse && debugResponse.isLoading; then loadingResponse"></ng-container>
+  <ng-container *ngIf="!!debugResponse && !debugResponse.isLoading; then displayResponse"></ng-container>
+</div>
+
+<!-- Empty Response -->
+<ng-template #emptyResponse>
+  <div class="policy-studio-debug-response__empty-response">
+    <gv-icon class="policy-studio-debug-response__empty-response__icon" shape="editor:format_align_left"></gv-icon>
+    <h5>Define and run the request you want to test!</h5>
+  </div>
+</ng-template>
+
+<!-- Loading Response -->
+<ng-template #loadingResponse>
+  <div class="policy-studio-debug-response__loading-response">
+    <gv-icon class="policy-studio-debug-response__loading-response__icon" shape="communication:sending"></gv-icon>
+    <h5>Request in progress!</h5>
+  </div>
+</ng-template>
+
+<!-- Display Response -->
+<ng-template #displayResponse>
+  <div class="policy-studio-debug-response__display-response__header">
+    Response&nbsp;<span class="mat-strong">{{ debugResponse.request.method }}</span
+    >&nbsp;{{ debugResponse.request.path }}&nbsp;
+    <span
+      [class.gio-badge-success]="responseDisplayableVM.successfulRequest"
+      [class.gio-badge-error]="responseDisplayableVM.errorRequest"
+      [class.gio-badge]="!responseDisplayableVM.errorRequest && !responseDisplayableVM.successfulRequest"
+    >
+      {{ responseDisplayableVM.statusCode }} - {{ responseDisplayableVM.statusCodeDescription }}
+    </span>
+  </div>
+  <div class="policy-studio-debug-response__display-response__content-headers">
+    <h4>Headers</h4>
+    <div *ngFor="let header of responseDisplayableVM.headers">
+      <code>{{ header.name }}: {{ header.value }}</code>
+    </div>
+  </div>
+  <div class="policy-studio-debug-response__display-response__content-body">
+    <h4>Body</h4>
+    <gv-code [value]="responseDisplayableVM.prettifiedResponse" [options]="responseDisplayableVM.gvCodeOptions" readonly></gv-code>
+  </div>
+</ng-template>

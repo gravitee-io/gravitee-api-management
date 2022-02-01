@@ -73,6 +73,16 @@ describe('PolicyStudioDebugComponent', () => {
     expectGetDebugEvent(eventId, false);
     tick(1000);
     expectGetDebugEvent(eventId, true);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.policy-studio-debug-response__display-response__header').textContent).toContain(
+      'Response GET /   200 - OK',
+    );
+
+    expect(fixture.nativeElement.querySelector('.policy-studio-debug-response__display-response__content-headers').textContent).toContain(
+      'Content-Type: text/plain',
+    );
   }));
 
   function expectSendDebugEvent(eventId: string) {
@@ -97,7 +107,15 @@ describe('PolicyStudioDebugComponent', () => {
         properties: {
           api_debug_status: success ? 'SUCCESS' : 'FAILED',
         },
-        payload: JSON.stringify({ response: { statusCode: 200, body: {} } }),
+        payload: JSON.stringify({
+          response: {
+            statusCode: 200,
+            body: 'Ok',
+            headers: {
+              'Content-Type': 'text/plain',
+            },
+          },
+        }),
       });
   }
 });

@@ -21,10 +21,6 @@
   </div>
 
   <div class="policy-studio-debug__response">
-    <h2>Response</h2>
-
-    <div *ngIf="debugResponse && !debugResponse.isLoading">
-      {{ debugResponse.request.method }} - {{ debugResponse.request.path }} - {{ debugResponse.response.statusCode }}
-    </div>
+    <policy-studio-debug-response [debugResponse]="debugResponse"></policy-studio-debug-response>
   </div>
 </div>
