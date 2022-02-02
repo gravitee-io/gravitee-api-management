@@ -16,7 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.api;
 
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -25,4 +27,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface ApiMongoRepository extends MongoRepository<ApiMongo, String>, ApiMongoRepositoryCustom {}
+public interface ApiMongoRepository extends MongoRepository<ApiMongo, String>, ApiMongoRepositoryCustom {
+    @Query("{ 'environmentId': ?0, 'crossId': ?1 }")
+    Optional<ApiMongo> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
+}

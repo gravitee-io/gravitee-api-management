@@ -36,6 +36,12 @@ public class ApiMongo extends Auditable {
     @Id
     private String id;
 
+    /**
+     * The api crossId uniquely identifies an API across environments.
+     * Apis promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     @Field("name")
     private String name;
 
@@ -205,6 +211,14 @@ public class ApiMongo extends Auditable {
         this.background = background;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -222,7 +236,8 @@ public class ApiMongo extends Auditable {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Api{");
         sb.append("id='").append(id).append('\'');
-        sb.append("name='").append(name).append('\'');
+        sb.append(", crossId='").append(crossId).append('\'');
+        sb.append(", name='").append(name).append('\'');
         sb.append(", environmentId='").append(environmentId).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", state='").append(lifecycleState).append('\'');

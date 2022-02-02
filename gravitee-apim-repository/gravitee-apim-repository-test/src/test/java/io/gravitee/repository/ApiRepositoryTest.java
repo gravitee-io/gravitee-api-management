@@ -425,4 +425,22 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         expectedCategories.add("my-category");
         assertEquals(expectedCategories, categories);
     }
+
+    @Test
+    public void shouldFindByEnvironmentIdAndCrossId_returnOptionalPresent() throws TechnicalException {
+        Optional<Api> api = apiRepository.findByEnvironmentIdAndCrossId("ENV6", "searched-crossId2");
+        assertTrue(api.isPresent());
+        assertEquals("crossId-api", api.get().getId());
+    }
+
+    @Test
+    public void shouldNotFindByEnvironmentIdAndCrossId_returnOptionalEmpty() throws TechnicalException {
+        Optional<Api> api = apiRepository.findByEnvironmentIdAndCrossId("unknown-env-id", "unknown-cross-id");
+        assertTrue(api.isEmpty());
+    }
+
+    @Test(expected = Exception.class)
+    public void shouldFindMultipleByEnvironmentIdAndCrossId_throwsException() throws TechnicalException {
+        apiRepository.findByEnvironmentIdAndCrossId("ENV6", "duplicated-crossId");
+    }
 }

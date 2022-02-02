@@ -17,9 +17,12 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.mockito.Mockito.mock;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
+import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
@@ -32,6 +35,7 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.configuration.spel.SpelService;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -223,6 +227,15 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected TokenService tokenService;
+
+    @Autowired
+    protected ApiExportService apiExportService;
+
+    @Autowired
+    protected ApiConverter apiConverter;
+
+    @Autowired
+    protected ObjectMapper objectMapper;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -496,6 +509,21 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public TokenService tokenService() {
             return mock(TokenService.class);
+        }
+
+        @Bean
+        public ApiExportService apiExportService() {
+            return mock(ApiExportService.class);
+        }
+
+        @Bean
+        public ApiConverter apiConverter() {
+            return mock(ApiConverter.class);
+        }
+
+        @Bean
+        public ObjectMapper objectMapper() {
+            return mock(GraviteeMapper.class);
         }
     }
 }

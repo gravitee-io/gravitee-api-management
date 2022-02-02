@@ -1,5 +1,6 @@
 {
   "id": "id-api",
+  "crossId": "api-cross-id",
   "name": "test",
   "version": "1",
   "description": "bmll",
@@ -100,6 +101,7 @@
   "plans" : [
     {
       "id" : "plan-id1",
+      "crossId": "plan-cross-id-1",
       "name": "free plan",
       "description" : "free plan",
       "validation" : "AUTO",
@@ -124,6 +126,7 @@
     },
     {
       "id" : "plan-id2",
+      "crossId": "plan-cross-id-2",
       "name": "keyless plan",
       "description" : "keyless plan",
       "validation" : "AUTO",

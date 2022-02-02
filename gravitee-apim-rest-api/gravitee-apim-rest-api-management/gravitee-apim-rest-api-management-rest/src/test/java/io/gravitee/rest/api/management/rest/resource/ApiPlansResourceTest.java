@@ -29,6 +29,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import java.util.Arrays;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
@@ -111,6 +112,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         when(apiService.findById(API)).thenReturn(api);
         when(planService.findById(PLAN)).thenReturn(existingPlan);
         when(planService.close(any(), any())).thenReturn(closedPlan);
+        when(apiConverter.toUpdateApiEntity(any())).thenReturn(new UpdateApiEntity());
 
         final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
 
@@ -145,6 +147,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         when(apiService.findById(API)).thenReturn(api);
         when(planService.findById(PLAN)).thenReturn(existingPlan);
+        when(apiConverter.toUpdateApiEntity(any())).thenReturn(new UpdateApiEntity());
 
         final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
 

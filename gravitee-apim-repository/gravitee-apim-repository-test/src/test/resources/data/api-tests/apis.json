@@ -81,5 +81,53 @@
     "categories": ["cycling", "hiking"],
     "apiLifecycleState": "DEPRECATED",
     "disableMembershipNotifications": true
+  },
+  {
+    "id": "crossId-api",
+    "environmentId": "ENV6",
+    "name": "duplicated-crossId-api name",
+    "crossId": "searched-crossId2",
+    "version": "13.5",
+    "definition" : "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "visibility" : "PRIVATE",
+    "groups": [],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883,
+    "lifecycleState": "STARTED",
+    "apiLifecycleState": "DEPRECATED",
+    "disableMembershipNotifications": true,
+    "categories": []
+  },
+  {
+    "id": "duplicated-crossId-api-1",
+    "environmentId": "ENV6",
+    "name": "duplicated-crossId-api name",
+    "crossId": "duplicated-crossId",
+    "version": "13.5",
+    "definition" : "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "visibility" : "PRIVATE",
+    "groups": [],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883,
+    "lifecycleState": "STARTED",
+    "apiLifecycleState": "DEPRECATED",
+    "disableMembershipNotifications": true,
+    "categories": []
+  },
+  {
+    "id": "duplicated-crossId-api-2",
+    "environmentId": "ENV6",
+    "name": "duplicated-crossId-api name",
+    "crossId": "duplicated-crossId",
+    "version": "13.5",
+    "definition" : "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "visibility" : "PRIVATE",
+    "groups": [],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883,
+    "lifecycleState": "STARTED",
+    "apiLifecycleState": "DEPRECATED",
+    "disableMembershipNotifications": true,
+    "categories": []
   }
 ]

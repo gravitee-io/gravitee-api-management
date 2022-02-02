@@ -31,6 +31,7 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -40,9 +41,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.Set;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
@@ -128,6 +127,9 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiToFindById.isDisableMembershipNotifications()).thenReturn(true);
         when(apiRepository.findById("api-to-findById")).thenReturn(of(apiToFindById));
 
+        final Api apiToFindByCrossId = mock(Api.class);
+        when(apiToFindByCrossId.getId()).thenReturn("crossId-api");
+
         final Api apiBigName = mock(Api.class);
         when(apiBigName.getId()).thenReturn("big-name");
         when(apiBigName.getEnvironmentId()).thenReturn("DEV");
@@ -207,5 +209,9 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         Set<String> apiCategories = new LinkedHashSet<>();
         apiCategories.add("my-category");
         when(apiRepository.listCategories(eq(new ApiCriteria.Builder().ids("api-to-findById").build()))).thenReturn(apiCategories);
+
+        when(apiRepository.findByEnvironmentIdAndCrossId("ENV6", "searched-crossId2")).thenReturn(Optional.of(apiToFindByCrossId));
+
+        when(apiRepository.findByEnvironmentIdAndCrossId("ENV6", "duplicated-crossId")).thenThrow(new TechnicalException("test exception"));
     }
 }

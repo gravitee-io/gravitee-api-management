@@ -36,6 +36,10 @@ public interface PageService {
 
     PageEntity findById(String pageId, String acceptedLocale);
 
+    default List<PageEntity> findByApi(String apiId) {
+        return search(new PageQuery.Builder().api(apiId).build(), false);
+    }
+
     List<PageEntity> search(PageQuery query, String environmentId);
 
     List<PageEntity> search(PageQuery query, boolean withTranslations);

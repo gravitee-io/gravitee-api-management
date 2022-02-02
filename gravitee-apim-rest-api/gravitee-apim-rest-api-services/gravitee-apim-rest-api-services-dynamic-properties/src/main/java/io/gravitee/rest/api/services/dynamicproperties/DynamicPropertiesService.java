@@ -26,6 +26,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.HttpProvider;
 import io.vertx.core.Vertx;
@@ -51,6 +52,9 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
     @Autowired
     private ApiService apiService;
+
+    @Autowired
+    private ApiConverter apiConverter;
 
     @Autowired
     private HttpClientService httpClientService;
@@ -133,6 +137,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
                     updater.setProvider(provider);
                     updater.setApiService(apiService);
+                    updater.setApiConverter(apiConverter);
                     logger.info("Add a scheduled task to poll dynamic properties each {}", dynamicPropertyService.getSchedule());
 
                     // Force the first refresh, and then run it periodically

@@ -773,6 +773,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
+    public Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId) {
+        try {
+            return apiRepository.findByEnvironmentIdAndCrossId(environment, crossId).map(apiConverter::toApiEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurred while finding API by environment " + environment + " and crossId " + crossId,
+                e
+            );
+        }
+    }
+
+    @Override
     public PrimaryOwnerEntity getPrimaryOwner(String apiId) throws TechnicalManagementException {
         MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
             GraviteeContext.getCurrentOrganization(),
@@ -1163,7 +1175,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity updateFromSwagger(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final ApiEntity apiEntityToUpdate = this.findById(apiId);
-        final UpdateApiEntity updateApiEntity = ApiService.convert(apiEntityToUpdate);
+        final UpdateApiEntity updateApiEntity = apiConverter.toUpdateApiEntity(apiEntityToUpdate);
 
         // Overwrite from swagger
         updateApiEntity.setVersion(swaggerApiEntity.getVersion());
@@ -1398,6 +1410,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setDeployedAt(apiToUpdate.getDeployedAt());
             api.setCreatedAt(apiToUpdate.getCreatedAt());
             api.setLifecycleState(apiToUpdate.getLifecycleState());
+            if (updateApiEntity.getCrossId() == null) {
+                api.setCrossId(apiToUpdate.getCrossId());
+            }
+
             // If no new picture and the current picture url is not the default one, keep the current picture
             if (
                 updateApiEntity.getPicture() == null &&
@@ -1882,7 +1898,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return apiDuplicatorService.updateWithImportedDefinition(
                 apiId,
                 objectMapper.writeValueAsString(rollbackApiEntity),
-                getAuthenticatedUsername(),
                 GraviteeContext.getCurrentOrganization(),
                 GraviteeContext.getCurrentEnvironment()
             );
@@ -2080,7 +2095,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         ApiEntity migratedApi = apiv1toAPIV2Converter.migrateToV2(apiEntity, policies, plans);
 
-        return this.update(apiId, ApiService.convert(migratedApi));
+        return this.update(apiId, apiConverter.toUpdateApiEntity(migratedApi));
     }
 
     @Override
@@ -2195,7 +2210,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiEntity.getPathMappings().addAll(swaggerApiEntity.getPathMappings());
         }
 
-        return update(apiEntity.getId(), ApiService.convert(apiEntity));
+        return update(apiEntity.getId(), apiConverter.toUpdateApiEntity(apiEntity));
     }
 
     @Override
@@ -2871,6 +2886,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private Api convert(String apiId, UpdateApiEntity updateApiEntity, String apiDefinition) {
         Api api = new Api();
         api.setId(apiId.trim());
+        api.setCrossId(updateApiEntity.getCrossId());
         if (updateApiEntity.getVisibility() != null) {
             api.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
         }

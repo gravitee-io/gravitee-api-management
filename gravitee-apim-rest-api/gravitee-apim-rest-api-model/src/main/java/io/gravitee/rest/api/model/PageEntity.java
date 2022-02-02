@@ -27,6 +27,13 @@ import java.util.*;
 public class PageEntity implements Indexable {
 
     private String id;
+
+    /**
+     * The page crossId uniquely identifies a page across environments.
+     * Pages promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     private String name;
     private String type;
     private String content;
@@ -284,6 +291,14 @@ public class PageEntity implements Indexable {
         this.accessControls = accessControls;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -307,6 +322,9 @@ public class PageEntity implements Indexable {
             "PageEntity{" +
             "id='" +
             id +
+            '\'' +
+            ", crossId='" +
+            crossId +
             '\'' +
             ", name='" +
             name +
