@@ -28,6 +28,12 @@ import javax.validation.constraints.Size;
  */
 public class UpdatePageEntity extends FetchablePageEntity {
 
+    /**
+     * The page crossId uniquely identifies a page across environments.
+     * Pages promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     @NotNull
     @Size(min = 1)
     private String name;
@@ -162,21 +168,11 @@ public class UpdatePageEntity extends FetchablePageEntity {
         this.accessControls = accessControls;
     }
 
-    public static UpdatePageEntity from(PageEntity pageEntity) {
-        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
-        updatePageEntity.setConfiguration(pageEntity.getConfiguration());
-        updatePageEntity.setContent(pageEntity.getContent());
-        updatePageEntity.setExcludedAccessControls(pageEntity.isExcludedAccessControls());
-        updatePageEntity.setAccessControls(pageEntity.getAccessControls());
-        updatePageEntity.setHomepage(pageEntity.isHomepage());
-        updatePageEntity.setLastContributor(pageEntity.getLastContributor());
-        updatePageEntity.setName(pageEntity.getName());
-        updatePageEntity.setOrder(pageEntity.getOrder());
-        updatePageEntity.setParentId(pageEntity.getParentId());
-        updatePageEntity.setPublished(pageEntity.isPublished());
-        updatePageEntity.setSource(pageEntity.getSource());
-        updatePageEntity.setAttachedMedia(pageEntity.getAttachedMedia());
+    public String getCrossId() {
+        return crossId;
+    }
 
-        return updatePageEntity;
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
     }
 }

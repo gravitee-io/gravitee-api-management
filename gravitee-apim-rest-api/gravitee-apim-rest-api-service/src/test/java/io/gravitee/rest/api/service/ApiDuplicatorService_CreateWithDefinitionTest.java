@@ -28,6 +28,8 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -36,10 +38,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -58,13 +61,20 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
     private static final String API_ID = "id-api";
     private static final String SOURCE = "source";
 
-    protected ApiDuplicatorService apiDuplicatorService;
+    @InjectMocks
+    protected ApiDuplicatorServiceImpl apiDuplicatorService;
 
     @Spy
     private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
 
     @Mock
     private ApiService apiService;
+
+    @Mock
+    private ApiConverter apiConverter;
+
+    @Mock
+    private PlanConverter planConverter;
 
     @Mock
     private MembershipService membershipService;
@@ -95,25 +105,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     @Mock
     private MediaService mediaService;
-
-    @Before
-    public void setup() {
-        apiDuplicatorService =
-            new ApiDuplicatorServiceImpl(
-                httpClientService,
-                importConfiguration,
-                mediaService,
-                objectMapper,
-                apiMetadataService,
-                membershipService,
-                roleService,
-                pageService,
-                planService,
-                groupService,
-                userService,
-                apiService
-            );
-    }
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -453,8 +444,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        String plan1newId = "b1761e88-e346-34f5-ac63-f0ba0ccf8869";
-        String plan2newId = "14ad0cbe-fbaa-3161-acb0-add9b500fc03";
+        String plan1newId = "310f7dd5-71b9-3bdd-b74d-4b76bc71c5b1";
+        String plan2newId = "ed7bef56-b9ec-3c0a-9d21-02e046df429c";
 
         // check createWithApiDefinition has been called with newly generated plans IDs in API's definition
         verify(apiService, times(1))
@@ -472,9 +463,13 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 )
             );
 
+        // check find plans by API has been called once to remove potential pre-existing plans on target API
+        verify(planService, times(1)).findByApi("id-api");
         // check planService has been called twice to create 2 plans, with same IDs as API definition
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals(plan1newId)), any(String.class));
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals(plan2newId)), any(String.class));
+        // check that plan service verifies we are not updated a plan that does not belong to us
+        verify(planService, times(1)).anyPlanMismatchWithApi(eq(List.of(plan1newId, plan2newId)), any(String.class));
         verifyNoMoreInteractions(planService);
     }
 

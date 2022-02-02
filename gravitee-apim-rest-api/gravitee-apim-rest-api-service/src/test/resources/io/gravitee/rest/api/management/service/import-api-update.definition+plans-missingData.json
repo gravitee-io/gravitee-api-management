@@ -1,5 +1,6 @@
 {
   "id": "id-api",
+  "crossId": "api-cross-id",
   "name": "test",
   "version": "1",
   "description": "bmll",
@@ -100,6 +101,7 @@
   "plans" : [
     {
       "id" : "plan-id1",
+      "crossId": "plan-cross-id-1",
       "name": "new name from imported description",
       "validation" : "AUTO",
       "security" : "API_KEY",

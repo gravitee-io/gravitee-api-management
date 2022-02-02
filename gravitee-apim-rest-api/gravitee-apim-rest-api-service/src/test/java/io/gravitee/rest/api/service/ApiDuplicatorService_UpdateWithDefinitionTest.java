@@ -30,6 +30,9 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -37,9 +40,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -58,10 +61,17 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
     private static final String API_ID = "id-api";
     private static final String SOURCE = "source";
 
-    protected ApiDuplicatorService apiDuplicatorService;
+    @InjectMocks
+    protected ApiDuplicatorServiceImpl apiDuplicatorService;
 
     @Mock
     private ApiService apiService;
+
+    @Mock
+    private ApiConverter apiConverter;
+
+    @Mock
+    private PlanConverter planConverter;
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
@@ -99,25 +109,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
     @Mock
     private MediaService mediaService;
 
-    @Before
-    public void setup() {
-        apiDuplicatorService =
-            new ApiDuplicatorServiceImpl(
-                httpClientService,
-                importConfiguration,
-                mediaService,
-                objectMapper,
-                apiMetadataService,
-                membershipService,
-                roleService,
-                pageService,
-                planService,
-                groupService,
-                userService,
-                apiService
-            );
-    }
-
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
@@ -142,7 +133,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
+        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
@@ -196,7 +187,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
             toBeImport,
-            "import",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -223,7 +213,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 user.getId(),
                 "API_OWNER"
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -234,7 +224,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         apiEntity.setId(API_ID);
         apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
-        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
+        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -294,7 +284,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
             toBeImport,
-            "import",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -320,7 +309,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 user.getId(),
                 "API_OWNER"
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -344,7 +333,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
             toBeImport,
-            "import",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -366,7 +354,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -389,7 +377,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
             toBeImport,
-            "import",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -411,7 +398,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -423,7 +410,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
+        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -437,7 +424,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
             toBeImport,
-            null,
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -452,7 +438,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 any(),
                 any()
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -464,7 +450,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
+        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -472,7 +458,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
             toBeImport,
-            null,
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -486,7 +471,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 any(),
                 any()
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -497,25 +482,28 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
-
+        apiEntity.setId("id-api");
+        apiEntity.setCrossId("api-cross-id");
         // plan1 is present both in existing api and in imported api definition
         // plan2 is present both in existing api and in imported api definition
         // plan3 is not present in existing api but added in imported api definition
         // plan4 is present in existing api, but not in imported api definition
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("plan-id1");
+        plan1.setCrossId("plan-cross-id-1");
         PlanEntity plan2 = new PlanEntity();
         plan2.setId("plan-id2");
+        plan2.setCrossId("plan-cross-id-2");
         PlanEntity plan3 = new PlanEntity();
         plan3.setId("plan-id3");
         PlanEntity plan4 = new PlanEntity();
         plan4.setId("plan-id4");
+
         when(planService.findByApi(apiEntity.getId())).thenReturn(Set.of(plan1, plan2, plan3, plan4));
 
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
             toBeImport,
-            "import",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -532,7 +520,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         verifyNoMoreInteractions(planService);
 
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -543,11 +531,13 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+        apiEntity.setCrossId("api-cross-id");
 
         // plan1 had a description and a name before import
         // imported definition contains a new name, but doesn't specify any description
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("plan-id1");
+        plan1.setCrossId("plan-cross-id-1");
         plan1.setName("plan name before import");
         plan1.setDescription("plan description before import");
         when(planService.findByApi(apiEntity.getId())).thenReturn(Set.of(plan1));
@@ -555,7 +545,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
             toBeImport,
-            "import",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -573,17 +562,24 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             );
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test(expected = ApiImportException.class)
     public void shouldRaiseAnErrorWhenUpdatingAPlanBelongingToAnotherAPI() throws IOException {
         URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
         String toBeImport = Resources.toString(resource, Charsets.UTF_8);
 
-        when(planService.anyPlanMismatchWithApi(anyList(), anyString())).thenReturn(true);
+        ApiEntity api = new ApiEntity();
+        api.setId("id-api");
+        api.setCrossId("api-cross-id");
+
+        PlanEntity apiPlan = new PlanEntity();
+        apiPlan.setId("plan-id1");
+        apiPlan.setCrossId("plan-cross-id-1");
+
+        when(planService.anyPlanMismatchWithApi(anyList(), eq("id-api"))).thenReturn(true);
 
         apiDuplicatorService.updateWithImportedDefinition(
             API_ID,
             toBeImport,
-            "import",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );

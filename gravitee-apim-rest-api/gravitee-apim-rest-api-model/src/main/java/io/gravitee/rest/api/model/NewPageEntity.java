@@ -29,6 +29,12 @@ import javax.validation.constraints.Size;
  */
 public class NewPageEntity extends FetchablePageEntity {
 
+    /**
+     * The page crossId uniquely identifies a page across environments.
+     * Pages promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     @NotNull
     @Size(min = 1)
     private String name;
@@ -169,6 +175,7 @@ public class NewPageEntity extends FetchablePageEntity {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
+        sb.append("crossId='").append(crossId).append('\'');
         sb.append("name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append(", order='").append(order).append('\'');
@@ -187,21 +194,11 @@ public class NewPageEntity extends FetchablePageEntity {
         this.attachedMedia = attachedMedia;
     }
 
-    public static NewPageEntity from(PageEntity pageEntity) {
-        NewPageEntity newPage = new NewPageEntity();
-        newPage.setConfiguration(pageEntity.getConfiguration());
-        newPage.setContent(pageEntity.getContent());
-        newPage.setExcludedAccessControls(pageEntity.isExcludedAccessControls());
-        newPage.setAccessControls(pageEntity.getAccessControls());
-        newPage.setHomepage(pageEntity.isHomepage());
-        newPage.setLastContributor(pageEntity.getLastContributor());
-        newPage.setName(pageEntity.getName());
-        newPage.setOrder(pageEntity.getOrder());
-        newPage.setParentId(pageEntity.getParentId());
-        newPage.setPublished(pageEntity.isPublished());
-        newPage.setSource(pageEntity.getSource());
-        newPage.setType(PageType.valueOf(pageEntity.getType()));
-        newPage.setAttachedMedia(pageEntity.getAttachedMedia());
-        return newPage;
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
     }
 }

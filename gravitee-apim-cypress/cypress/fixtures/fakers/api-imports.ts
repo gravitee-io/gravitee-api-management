@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 import * as faker from 'faker';
-import { ApiImport, ApiImportMember, ApiImportPage, ApiImportPlan, ApiImportProxyGroupLoadBalancerType } from '@model/api-imports';
+import {
+  ApiImport,
+  ApiImportMember,
+  ApiImportPage,
+  ApiImportPlan,
+  ApiImportProxy,
+  ApiImportProxyGroupLoadBalancerType,
+} from '@model/api-imports';
 import { ApiPageType, ApiVisibility } from '@model/apis';
 import { Flow, FlowMode, OperatorType } from '@model/api-flows';
 import { ApiFakers } from './apis';
@@ -43,44 +50,49 @@ export class ApiImportFakers {
       plans: [],
       metadata: [],
       path_mappings: [],
-      proxy: {
-        virtual_hosts: [
-          {
-            path: `/${faker.helpers.slugify(name)}`,
-          },
-        ],
-        strip_context_path: false,
-        preserve_host: false,
-        groups: [
-          {
-            name: 'default-group',
-            endpoints: [
-              {
-                inherit: true,
-                name: 'default',
-                target: 'https://api.gravitee.io/whattimeisit',
-                weight: 1,
-                backup: false,
-                type: 'http',
-              },
-            ],
-            load_balancing: {
-              type: ApiImportProxyGroupLoadBalancerType.ROUND_ROBIN,
-            },
-            http: {
-              connectTimeout: 5000,
-              idleTimeout: 60000,
-              keepAlive: true,
-              readTimeout: 10000,
-              pipelining: false,
-              maxConcurrentConnections: 100,
-              useCompression: true,
-              followRedirects: false,
-            },
-          },
-        ],
-      },
+      proxy: ApiImportFakers.proxy(),
       response_templates: {},
+      ...attributes,
+    };
+  }
+
+  static proxy(attributes?: Partial<ApiImportProxy>): ApiImportProxy {
+    return {
+      virtual_hosts: [
+        {
+          path: `/${faker.helpers.slugify(faker.commerce.productName())}`,
+        },
+      ],
+      strip_context_path: false,
+      preserve_host: false,
+      groups: [
+        {
+          name: 'default-group',
+          endpoints: [
+            {
+              inherit: true,
+              name: 'default',
+              target: 'https://api.gravitee.io/whattimeisit',
+              weight: 1,
+              backup: false,
+              type: 'http',
+            },
+          ],
+          load_balancing: {
+            type: ApiImportProxyGroupLoadBalancerType.ROUND_ROBIN,
+          },
+          http: {
+            connectTimeout: 5000,
+            idleTimeout: 60000,
+            keepAlive: true,
+            readTimeout: 10000,
+            pipelining: false,
+            maxConcurrentConnections: 100,
+            useCompression: true,
+            followRedirects: false,
+          },
+        },
+      ],
       ...attributes,
     };
   }

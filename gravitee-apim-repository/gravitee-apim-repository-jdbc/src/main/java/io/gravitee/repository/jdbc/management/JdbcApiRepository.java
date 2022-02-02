@@ -65,6 +65,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         return JdbcObjectMapper
             .builder(Api.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
@@ -523,6 +524,40 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         } catch (final Exception ex) {
             LOGGER.error("Failed to list categories api:", ex);
             throw new TechnicalException("Failed to list categories", ex);
+        }
+    }
+
+    @Override
+    public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {})", environmentId, crossId);
+        try {
+            JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(
+                getOrm().getSelectAllSql() +
+                " a left join " +
+                API_CATEGORIES +
+                " ac on a.id = ac.api_id where a.environmentId = ? and a.crossId = ?",
+                rowMapper,
+                environmentId,
+                crossId
+            );
+
+            if (rowMapper.getRows().size() > 1) {
+                throw new TechnicalException("More than one API was found for environmentId " + environmentId + " and crossId " + crossId);
+            }
+
+            Optional<Api> result = rowMapper.getRows().stream().findFirst();
+
+            if (result.isPresent()) {
+                addLabels(result.get());
+                addGroups(result.get());
+            }
+
+            LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
+            return result;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find api by environment and crossId", ex);
+            throw new TechnicalException("Failed to find api by environment and crossId", ex);
         }
     }
 }

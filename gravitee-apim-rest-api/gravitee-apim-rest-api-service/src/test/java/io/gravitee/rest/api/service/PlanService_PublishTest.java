@@ -28,6 +28,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.Collections;
@@ -75,6 +77,12 @@ public class PlanService_PublishTest {
 
     @Mock
     private ApiEntity apiEntity;
+
+    @Mock
+    private PlanConverter planConverter;
+
+    @Mock
+    private ApiConverter apiConverter;
 
     @Test(expected = PlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseAlreadyPublished() throws TechnicalException {

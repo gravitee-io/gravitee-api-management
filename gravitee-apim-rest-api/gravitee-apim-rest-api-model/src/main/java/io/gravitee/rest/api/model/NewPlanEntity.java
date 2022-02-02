@@ -29,6 +29,12 @@ public class NewPlanEntity {
 
     private String id;
 
+    /**
+     * The plan crossId uniquely identifies a plan across environments.
+     * Plans promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     @NotNull
     private String name;
 
@@ -230,6 +236,14 @@ public class NewPlanEntity {
         this.order = order;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -243,40 +257,5 @@ public class NewPlanEntity {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : name.hashCode();
-    }
-
-    public static NewPlanEntity from(PlanEntity planEntity) {
-        NewPlanEntity newPlanEntity = new NewPlanEntity();
-        newPlanEntity.setId(planEntity.getId());
-        newPlanEntity.setApi(planEntity.getApi());
-        newPlanEntity.setName(planEntity.getName());
-        newPlanEntity.setDescription(planEntity.getDescription());
-        if (planEntity.getValidation() != null) {
-            newPlanEntity.setValidation(planEntity.getValidation());
-        }
-        if (planEntity.getSecurity() != null) {
-            newPlanEntity.setSecurity(planEntity.getSecurity());
-        }
-        newPlanEntity.setSecurityDefinition(planEntity.getSecurityDefinition());
-        if (planEntity.getType() != null) {
-            newPlanEntity.setType(planEntity.getType());
-        }
-        if (planEntity.getStatus() != null) {
-            newPlanEntity.setStatus(planEntity.getStatus());
-        }
-        if (planEntity.getPaths() != null) {
-            newPlanEntity.setPaths(planEntity.getPaths());
-        }
-        if (planEntity.getFlows() != null) {
-            newPlanEntity.setFlows(planEntity.getFlows());
-        }
-        newPlanEntity.setCharacteristics(planEntity.getCharacteristics());
-        newPlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
-        newPlanEntity.setCommentRequired(planEntity.isCommentRequired());
-        newPlanEntity.setCommentMessage(planEntity.getCommentMessage());
-        newPlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
-        newPlanEntity.setTags(planEntity.getTags());
-        newPlanEntity.setSelectionRule(planEntity.getSelectionRule());
-        return newPlanEntity;
     }
 }

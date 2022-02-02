@@ -97,6 +97,9 @@ public class ApiResource extends AbstractResource {
     protected ApiDuplicatorService apiDuplicatorService;
 
     @Inject
+    protected ApiExportService apiExportService;
+
+    @Inject
     protected DebugApiService debugApiService;
 
     @PathParam("api")
@@ -440,7 +443,6 @@ public class ApiResource extends AbstractResource {
         ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
             apiDefinition,
-            getAuthenticatedUser(),
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -526,7 +528,7 @@ public class ApiResource extends AbstractResource {
         @QueryParam("exclude") @DefaultValue("") String exclude
     ) {
         final ApiEntity apiEntity = apiService.findById(api);
-        final String apiDefinition = apiDuplicatorService.exportAsJson(api, version, exclude.split(","));
+        final String apiDefinition = apiExportService.exportAsJson(api, version, exclude.split(","));
         return Response
             .ok(apiDefinition)
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))

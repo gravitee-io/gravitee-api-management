@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
@@ -32,6 +31,12 @@ import javax.validation.constraints.NotNull;
 public class UpdatePlanEntity {
 
     private String id;
+
+    /**
+     * The plan crossId uniquely identifies a plan across environments.
+     * Plans promoted between environments will share the same crossId.
+     */
+    private String crossId;
 
     @NotNull
     private String name;
@@ -192,6 +197,14 @@ public class UpdatePlanEntity {
         this.flows = flows;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -205,27 +218,5 @@ public class UpdatePlanEntity {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
-    }
-
-    public static UpdatePlanEntity from(PlanEntity planEntity) {
-        UpdatePlanEntity updatePlanEntity = new UpdatePlanEntity();
-        updatePlanEntity.setId(planEntity.getId());
-        updatePlanEntity.setName(planEntity.getName());
-        updatePlanEntity.setDescription(planEntity.getDescription());
-        updatePlanEntity.setValidation(planEntity.getValidation());
-        if (planEntity.getPaths() != null) {
-            updatePlanEntity.setPaths(planEntity.getPaths());
-        }
-        updatePlanEntity.setCharacteristics(planEntity.getCharacteristics());
-        updatePlanEntity.setOrder(planEntity.getOrder());
-        updatePlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
-        updatePlanEntity.setSecurityDefinition(planEntity.getSecurityDefinition());
-        updatePlanEntity.setCommentRequired(planEntity.isCommentRequired());
-        updatePlanEntity.setCommentMessage(planEntity.getCommentMessage());
-        updatePlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
-        updatePlanEntity.setTags(planEntity.getTags());
-        updatePlanEntity.setSelectionRule(planEntity.getSelectionRule());
-        updatePlanEntity.setFlows(planEntity.getFlows());
-        return updatePlanEntity;
     }
 }

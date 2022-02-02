@@ -26,8 +26,10 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.rest.api.model.NewPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import java.util.Collections;
@@ -60,6 +62,9 @@ public class PageService_CreateOrUpdatePagesTest {
     @Mock
     private PlanService planService;
 
+    @Mock
+    private PageConverter pageConverter;
+
     @Test
     public void shouldCreateOrUpdatePages() throws TechnicalException {
         String updatedPageId = UuidString.generateForEnvironment(ENVIRONMENT_ID, API_ID, UuidString.generateRandom());
@@ -86,6 +91,10 @@ public class PageService_CreateOrUpdatePagesTest {
         page3.setReferenceType("API");
         page3.setReferenceId(API_ID);
 
+        when(pageConverter.toUpdatePageEntity(any())).thenCallRealMethod();
+        when(pageConverter.toNewPageEntity(any())).thenCallRealMethod();
+        when(pageConverter.toNewPageEntity(any(), eq(false))).thenCallRealMethod();
+
         when(pageRepository.create(any(Page.class))).thenAnswer(returnsFirstArg());
         when(pageRepository.update(any(Page.class))).thenAnswer(returnsFirstArg());
 
@@ -99,7 +108,6 @@ public class PageService_CreateOrUpdatePagesTest {
 
         // Simulate the fact that page 1 is already created
         when(pageRepository.findById(updatedPageId)).thenReturn(Optional.of(page));
-        when(pageRepository.search(argThat(criteria -> API_ID.equals(criteria.getReferenceId())))).thenReturn(List.of(page));
 
         when(planService.findByApi(anyString())).thenReturn(Collections.emptySet());
 

@@ -63,6 +63,6 @@ public class ApiService_RollbackTest {
 
         apiService.rollback("my-api-id", rollbackApiEntity);
 
-        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition("my-api-id", "my-serialized-api", null, "DEFAULT", "DEFAULT");
+        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition("my-api-id", "my-serialized-api", "DEFAULT", "DEFAULT");
     }
 }

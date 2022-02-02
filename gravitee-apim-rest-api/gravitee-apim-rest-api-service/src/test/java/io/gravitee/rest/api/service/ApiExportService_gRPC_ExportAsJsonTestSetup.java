@@ -35,7 +35,10 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PageConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.impl.ApiExportServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -44,6 +47,7 @@ import java.net.URL;
 import java.util.*;
 import org.junit.After;
 import org.junit.Before;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.util.collections.Sets;
@@ -55,14 +59,24 @@ import org.springframework.context.ApplicationContext;
  * @author Nicolas Geraud (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
+public class ApiExportService_gRPC_ExportAsJsonTestSetup {
 
     private static final String API_ID = "id-api";
 
-    protected ApiDuplicatorService apiDuplicatorService;
+    @InjectMocks
+    protected ApiExportServiceImpl apiExportService;
 
     @Mock
     private ApiService apiService;
+
+    @Mock
+    private ApiConverter apiConverter;
+
+    @Mock
+    private PlanConverter planConverter;
+
+    @Mock
+    private PageConverter pageConverter;
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
@@ -99,25 +113,6 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
 
     @Mock
     private RoleService roleService;
-
-    @Before
-    public void setup() {
-        apiDuplicatorService =
-            new ApiDuplicatorServiceImpl(
-                httpClientService,
-                importConfiguration,
-                mediaService,
-                objectMapper,
-                apiMetadataService,
-                membershipService,
-                roleService,
-                pageService,
-                planService,
-                groupService,
-                userService,
-                apiService
-            );
-    }
 
     @Before
     public void setUp() throws TechnicalException, JsonProcessingException {
@@ -170,6 +165,7 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
+        apiEntity.setCrossId("test-api-cross-id");
         apiEntity.setDescription("Gravitee.io");
         apiEntity.setFlowMode(FlowMode.DEFAULT);
         apiEntity.setFlows(null);
@@ -301,6 +297,7 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
 
         PlanEntity publishedPlan = new PlanEntity();
         publishedPlan.setId("plan-id");
+        publishedPlan.setCrossId("test-plan-cross-id");
         publishedPlan.setApi(API_ID);
         publishedPlan.setDescription("free plan");
         publishedPlan.setType(PlanType.API);
@@ -365,7 +362,7 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiDuplicatorService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
+        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-gRPC-convertAsJsonForExport" +
