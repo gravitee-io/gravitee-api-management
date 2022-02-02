@@ -14,22 +14,36 @@
  * limitations under the License.
  */
 import { BasicAuthentication } from '@model/users';
+import { ApiPageType } from '@model/apis';
 
-export function getPages(auth: BasicAuthentication, apiId: string) {
+class ApiPagesQueryParams {
+  root?: boolean;
+  type?: ApiPageType;
+  parent?: string;
+}
+
+export function getPages(auth: BasicAuthentication, apiId: string, params = new ApiPagesQueryParams()) {
   return cy.request({
     method: 'GET',
     url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/pages`,
     auth,
     failOnStatusCode: false,
-    qs: {
-      root: true,
-    },
+    qs: params,
   });
 }
 
 export function getPage(auth: BasicAuthentication, apiId: string, pageId: string) {
   return cy.request({
     method: 'GET',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/pages/${pageId}`,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
+export function deletePage(auth: BasicAuthentication, apiId: string, pageId: string) {
+  return cy.request({
+    method: 'DELETE',
     url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/pages/${pageId}`,
     auth,
     failOnStatusCode: false,

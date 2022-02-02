@@ -29,6 +29,8 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PageConverter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -47,11 +49,13 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     private final ObjectMapper objectMapper;
     private final ApiService apiService;
+    private final ApiConverter apiConverter;
     private final SwaggerService swaggerService;
     private final PageService pageService;
     private final ApiMetadataService apiMetadataService;
     private final PlanService planService;
     private final VirtualHostService virtualHostService;
+    private final PageConverter pageConverter;
 
     public ApiServiceCockpitImpl(
         ObjectMapper objectMapper,
@@ -60,7 +64,9 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         PageService pageService,
         ApiMetadataService apiMetadataService,
         PlanService planService,
-        VirtualHostService virtualHostService
+        VirtualHostService virtualHostService,
+        ApiConverter apiConverter,
+        PageConverter pageConverter
     ) {
         this.objectMapper = objectMapper;
         this.apiService = apiService;
@@ -69,6 +75,8 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         this.apiMetadataService = apiMetadataService;
         this.planService = planService;
         this.virtualHostService = virtualHostService;
+        this.apiConverter = apiConverter;
+        this.pageConverter = pageConverter;
     }
 
     @Override
@@ -155,7 +163,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
             publishSwaggerDocumentation(apiId);
 
-            UpdateApiEntity updateEntity = ApiService.convert(apiEntity);
+            UpdateApiEntity updateEntity = apiConverter.toUpdateApiEntity(apiEntity);
             updateEntity.setVisibility(Visibility.PUBLIC);
             updateEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
             return ApiEntityResult.success(this.apiService.update(apiId, updateEntity));
@@ -169,8 +177,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
         if (updatedApiResult.isSuccess() && !ApiLifecycleState.PUBLISHED.equals(updatedApiResult.getApi().getLifecycleState())) {
             publishSwaggerDocumentation(apiId);
-
-            UpdateApiEntity updateEntity = ApiService.convert(updatedApiResult.getApi());
+            UpdateApiEntity updateEntity = apiConverter.toUpdateApiEntity(updatedApiResult.getApi());
             updateEntity.setVisibility(Visibility.PUBLIC);
             updateEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
             return ApiEntityResult.success(this.apiService.update(apiId, updateEntity));
@@ -257,7 +264,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         PageEntity page = apiDocs.get(0);
 
         if (!page.isPublished()) {
-            UpdatePageEntity updatePage = UpdatePageEntity.from(page);
+            UpdatePageEntity updatePage = pageConverter.toUpdatePageEntity(page);
             updatePage.setPublished(true);
             pageService.update(page.getId(), updatePage);
         }

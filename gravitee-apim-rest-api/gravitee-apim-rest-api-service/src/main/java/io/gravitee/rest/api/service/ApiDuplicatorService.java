@@ -23,13 +23,5 @@ public interface ApiDuplicatorService {
 
     ApiEntity duplicate(ApiEntity apiEntity, DuplicateApiEntity duplicateApiEntity, String organizationId, String environmentId);
 
-    String exportAsJson(String apiId, String exportVersion, String... filteredFields);
-
-    ApiEntity updateWithImportedDefinition(
-        String apiId,
-        String apiDefinitionOrURL,
-        String userId,
-        String organizationId,
-        String environmentId
-    );
+    ApiEntity updateWithImportedDefinition(String apiId, String apiDefinitionOrURL, String organizationId, String environmentId);
 }

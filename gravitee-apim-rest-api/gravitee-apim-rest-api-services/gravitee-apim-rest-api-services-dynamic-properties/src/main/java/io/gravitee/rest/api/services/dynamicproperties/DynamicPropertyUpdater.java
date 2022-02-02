@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import io.vertx.core.Handler;
@@ -48,6 +49,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
     private ApiEntity api;
     private Provider provider;
     private ApiService apiService;
+    private ApiConverter apiConverter;
 
     public DynamicPropertyUpdater(final ApiEntity api) {
         this.api = api;
@@ -168,7 +170,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             boolean isSync = apiService.isSynchronized(api.getId());
 
             // Update API
-            apiService.update(latestApi.getId(), ApiService.convert(latestApi));
+            apiService.update(latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi));
 
             // Do not deploy if there are manual changes to push
             if (isSync) {
@@ -188,5 +190,9 @@ public class DynamicPropertyUpdater implements Handler<Long> {
 
     public void setProvider(Provider provider) {
         this.provider = provider;
+    }
+
+    public void setApiConverter(ApiConverter apiConverter) {
+        this.apiConverter = apiConverter;
     }
 }

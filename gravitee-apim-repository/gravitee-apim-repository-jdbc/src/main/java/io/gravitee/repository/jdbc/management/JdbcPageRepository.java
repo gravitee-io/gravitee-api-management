@@ -68,6 +68,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         return JdbcObjectMapper
             .builder(Page.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, PageReferenceType.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, String.class)

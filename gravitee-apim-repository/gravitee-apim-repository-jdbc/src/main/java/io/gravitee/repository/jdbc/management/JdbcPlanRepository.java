@@ -56,6 +56,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         return JdbcObjectMapper
             .builder(Plan.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)

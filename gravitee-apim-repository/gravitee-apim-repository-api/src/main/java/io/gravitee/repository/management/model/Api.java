@@ -47,6 +47,12 @@ public class Api {
     private String environmentId;
 
     /**
+     * The api crossId uniquely identifies an API across environments.
+     * Apis promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
+    /**
      * The api name.
      */
     private String name;
@@ -122,6 +128,7 @@ public class Api {
 
     public Api(Api cloned) {
         this.id = cloned.id;
+        this.crossId = cloned.crossId;
         this.environmentId = cloned.environmentId;
         this.name = cloned.name;
         this.description = cloned.description;
@@ -285,6 +292,14 @@ public class Api {
         this.disableMembershipNotifications = disableMembershipNotifications;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -303,6 +318,9 @@ public class Api {
             "Api{" +
             "id='" +
             id +
+            '\'' +
+            "crossId='" +
+            crossId +
             '\'' +
             ", environmentId='" +
             environmentId +

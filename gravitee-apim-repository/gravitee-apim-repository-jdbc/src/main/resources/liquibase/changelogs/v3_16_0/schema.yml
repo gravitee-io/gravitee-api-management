@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.16.0
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}apis
+            columns:
+              - column:
+                  name: cross_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - addColumn:
+            tableName: ${gravitee_prefix}plans
+            columns:
+              - column:
+                  name: cross_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - addColumn:
+            tableName: ${gravitee_prefix}pages
+            columns:
+              - column:
+                  name: cross_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true

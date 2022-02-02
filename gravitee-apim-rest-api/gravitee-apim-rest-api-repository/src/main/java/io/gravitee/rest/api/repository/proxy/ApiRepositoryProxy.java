@@ -106,4 +106,9 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
         return target.listCategories(apiCriteria);
     }
+
+    @Override
+    public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+        return target.findByEnvironmentIdAndCrossId(environmentId, crossId);
+    }
 }
