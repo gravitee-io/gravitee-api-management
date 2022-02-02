@@ -119,7 +119,7 @@
         <reactor-adapter.version>3.4.3</reactor-adapter.version>
         <snakeyaml.version>1.26</snakeyaml.version>
         <swagger-annotations.version>1.6.2</swagger-annotations.version>
-        <swagger-core.version>2.0.9</swagger-core.version>
+        <swagger-core.version>2.0.10</swagger-core.version>
         <swagger-parser.version>2.0.24</swagger-parser.version>
         <testcontainers.version>1.15.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
