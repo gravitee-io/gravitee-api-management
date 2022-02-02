@@ -28,6 +28,8 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -36,6 +38,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,6 +68,12 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     @Mock
     private ApiService apiService;
+
+    @Mock
+    private ApiConverter apiConverter;
+
+    @Mock
+    private PlanConverter planConverter;
 
     @Mock
     private MembershipService membershipService;
@@ -111,7 +120,9 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 planService,
                 groupService,
                 userService,
-                apiService
+                apiService,
+                apiConverter,
+                planConverter
             );
     }
 
@@ -475,6 +486,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         // check planService has been called twice to create 2 plans, with same IDs as API definition
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals(plan1newId)), any(String.class));
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals(plan2newId)), any(String.class));
+        // check that plan service verifies we are not updated a plan that does not belong to us
+        verify(planService, times(1)).anyPlanMismatchWithApi(eq(List.of(plan1newId, plan2newId)), any(String.class));
         verifyNoMoreInteractions(planService);
     }
 

@@ -29,7 +29,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiDuplicatorService_gRPC_ExportAsJsonTest extends ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
+public class ApiExportService_gRPC_ExportAsJsonTest extends ApiExportService_gRPC_ExportAsJsonTestSetup {
 
     @Test
     public void shouldConvertAsJsonForExport() throws TechnicalException, IOException {

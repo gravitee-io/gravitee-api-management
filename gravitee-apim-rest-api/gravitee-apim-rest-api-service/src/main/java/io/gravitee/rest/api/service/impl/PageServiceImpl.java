@@ -50,6 +50,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
@@ -159,9 +160,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Autowired
     private AccessControlService accessControlService;
 
+    @Autowired
+    private PageConverter pageConverter;
+
     private static Page convert(NewPageEntity newPageEntity) {
         Page page = new Page();
-
+        page.setCrossId(newPageEntity.getCrossId());
         page.setName(newPageEntity.getName());
         final PageType type = newPageEntity.getType();
         if (type != null) {
@@ -224,7 +228,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private static Page merge(UpdatePageEntity updatePageEntity, Page withUpdatePage) {
         Page page = new Page();
-
+        page.setCrossId(updatePageEntity.getCrossId() != null ? updatePageEntity.getCrossId() : withUpdatePage.getCrossId());
         page.setName(updatePageEntity.getName() != null ? updatePageEntity.getName() : withUpdatePage.getName());
         page.setContent(updatePageEntity.getContent() != null ? updatePageEntity.getContent() : withUpdatePage.getContent());
         page.setLastContributor(
@@ -267,6 +271,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private static Page convert(UpdatePageEntity updatePageEntity) {
         Page page = new Page();
 
+        page.setCrossId(updatePageEntity.getCrossId());
         page.setName(updatePageEntity.getName());
         page.setContent(updatePageEntity.getContent());
         page.setLastContributor(updatePageEntity.getLastContributor());
@@ -977,7 +982,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Override
     public PageEntity create(final String apiId, final PageEntity pageEntity, String environmentId) {
-        final NewPageEntity newPageEntity = convert(pageEntity);
+        final NewPageEntity newPageEntity = pageConverter.toNewPageEntity(pageEntity);
         newPageEntity.setLastContributor(null);
         return createPage(apiId, newPageEntity, environmentId);
     }
@@ -1170,6 +1175,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             page.setReferenceType(pageToUpdate.getReferenceType());
             if (page.getVisibility() == null) {
                 page.setVisibility(pageToUpdate.getVisibility());
+            }
+            if (page.getCrossId() == null) {
+                page.setCrossId(pageToUpdate.getCrossId());
             }
             onlyOneHomepage(page);
 
@@ -2164,24 +2172,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private NewPageEntity convert(final PageEntity pageEntity) {
-        final NewPageEntity newPageEntity = new NewPageEntity();
-        newPageEntity.setName(pageEntity.getName());
-        newPageEntity.setOrder(pageEntity.getOrder());
-        newPageEntity.setPublished(pageEntity.isPublished());
-        newPageEntity.setVisibility(pageEntity.getVisibility());
-        newPageEntity.setSource(pageEntity.getSource());
-        newPageEntity.setType(PageType.valueOf(pageEntity.getType()));
-        newPageEntity.setParentId(pageEntity.getParentId());
-        newPageEntity.setHomepage(pageEntity.isHomepage());
-        newPageEntity.setContent(pageEntity.getContent());
-        newPageEntity.setConfiguration(pageEntity.getConfiguration());
-        newPageEntity.setExcludedAccessControls(pageEntity.isExcludedAccessControls());
-        newPageEntity.setAccessControls(pageEntity.getAccessControls());
-        newPageEntity.setLastContributor(pageEntity.getLastContributor());
-        return newPageEntity;
-    }
-
     private List<PageEntity> convert(List<Page> pages) {
         if (pages == null) {
             return emptyList();
@@ -2200,6 +2190,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
 
         pageEntity.setId(page.getId());
+        pageEntity.setCrossId(page.getCrossId());
         pageEntity.setName(page.getName());
         pageEntity.setHomepage(page.isHomepage());
         pageEntity.setType(page.getType());
@@ -2290,7 +2281,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private UpdatePageEntity convertToUpdateEntity(Page page, boolean removeSensitiveData) {
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
-
+        updatePageEntity.setCrossId(page.getCrossId());
         updatePageEntity.setName(page.getName());
         updatePageEntity.setContent(page.getContent());
         updatePageEntity.setLastContributor(page.getLastContributor());
@@ -2645,55 +2636,22 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         for (final PageServiceImpl.PageEntityTreeNode child : children) {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
+            pageEntityToImport.setReferenceId(apiId);
+            pageEntityToImport.setReferenceType(PageReferenceType.API.name());
+            PageEntity createdOrUpdatedPage;
 
-            PageEntity createdOrUpdatedPage = null;
-            if (pageEntityToImport.getId() != null) {
-                try {
-                    createdOrUpdatedPage = findByIdOrGeneratedId(pageEntityToImport.getId(), environmentId, apiId);
-                } catch (PageNotFoundException e) {
-                    // Page not found 🤷 Just create a new one
-                }
-            } else {
-                PageQuery query = new PageQuery.Builder()
-                    .api(apiId)
-                    .name(pageEntityToImport.getName())
-                    .type(PageType.valueOf(pageEntityToImport.getType()))
-                    .build();
-
-                List<PageEntity> foundPages = search(query, environmentId);
-                if (foundPages.size() == 1) {
-                    createdOrUpdatedPage = foundPages.get(0);
-                } else if (foundPages.size() > 1) {
-                    logger.error(
-                        "Not able to identify the page to update: {}. Too much pages with the same name",
-                        pageEntityToImport.getName()
-                    );
-                    throw new TechnicalManagementException(
-                        "Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much pages with the same name"
-                    );
-                }
-            }
-
-            if (createdOrUpdatedPage == null) {
-                createdOrUpdatedPage = createPage(apiId, NewPageEntity.from(pageEntityToImport), environmentId, pageEntityToImport.getId());
-            } else {
-                createdOrUpdatedPage = update(createdOrUpdatedPage.getId(), UpdatePageEntity.from(pageEntityToImport));
+            try {
+                findById(pageEntityToImport.getId());
+                createdOrUpdatedPage = update(pageEntityToImport.getId(), pageConverter.toUpdatePageEntity(pageEntityToImport));
+            } catch (PageNotFoundException e) {
+                createdOrUpdatedPage =
+                    createPage(apiId, pageConverter.toNewPageEntity(pageEntityToImport), environmentId, pageEntityToImport.getId());
             }
 
             if (child.children != null && !child.children.isEmpty()) {
                 this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children, environmentId);
             }
         }
-    }
-
-    private PageEntity findByIdOrGeneratedId(String id, String environmentId, String apiId) {
-        PageQuery query = new PageQuery.Builder().api(apiId).build();
-
-        return search(query, environmentId)
-            .stream()
-            .filter(page -> id.equals(page.getId()) || UuidString.generateForEnvironment(environmentId, apiId, id).equals(page.getId()))
-            .findFirst()
-            .orElseThrow(() -> new PageNotFoundException(id));
     }
 
     private void duplicateChildrenPages(
@@ -2707,7 +2665,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             pageEntityToImport.setParentId(parentId);
 
             String newId = UuidString.generateForEnvironment(environmentId, apiId, pageEntityToImport.getId());
-            createPage(apiId, NewPageEntity.from(pageEntityToImport), environmentId, newId);
+            createPage(apiId, pageConverter.toNewPageEntity(pageEntityToImport, true), environmentId, newId);
 
             if (child.children != null && !child.children.isEmpty()) {
                 this.duplicateChildrenPages(apiId, newId, child.children, environmentId);

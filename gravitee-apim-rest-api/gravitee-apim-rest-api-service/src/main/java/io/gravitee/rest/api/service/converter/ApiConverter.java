@@ -22,7 +22,9 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.PropertiesEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,6 +54,7 @@ public class ApiConverter {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
+        apiEntity.setCrossId(api.getCrossId());
         apiEntity.setName(api.getName());
         apiEntity.setDeployedAt(api.getDeployedAt());
         apiEntity.setCreatedAt(api.getCreatedAt());
@@ -60,6 +63,7 @@ public class ApiConverter {
         apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
         apiEntity.setCategories(api.getCategories());
+        apiEntity.setEnvironmentId(api.getEnvironmentId());
 
         if (api.getDefinition() != null) {
             try {
@@ -127,5 +131,38 @@ public class ApiConverter {
         }
 
         return apiEntity;
+    }
+
+    public UpdateApiEntity toUpdateApiEntity(ApiEntity apiEntity) {
+        return toUpdateApiEntity(apiEntity, false);
+    }
+
+    public UpdateApiEntity toUpdateApiEntity(ApiEntity apiEntity, boolean resetCrossId) {
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setCrossId(resetCrossId ? null : apiEntity.getCrossId());
+        updateApiEntity.setProxy(apiEntity.getProxy());
+        updateApiEntity.setVersion(apiEntity.getVersion());
+        updateApiEntity.setName(apiEntity.getName());
+        updateApiEntity.setProperties(new PropertiesEntity(apiEntity.getProperties()));
+        updateApiEntity.setDescription(apiEntity.getDescription());
+        updateApiEntity.setGroups(apiEntity.getGroups());
+        updateApiEntity.setPaths(apiEntity.getPaths());
+        updateApiEntity.setPicture(apiEntity.getPicture());
+        updateApiEntity.setBackground(apiEntity.getBackground());
+        updateApiEntity.setResources(apiEntity.getResources());
+        updateApiEntity.setTags(apiEntity.getTags());
+        updateApiEntity.setServices(apiEntity.getServices());
+        updateApiEntity.setVisibility(apiEntity.getVisibility());
+        updateApiEntity.setLabels(apiEntity.getLabels());
+        updateApiEntity.setPathMappings(apiEntity.getPathMappings());
+        updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
+        updateApiEntity.setPlans(apiEntity.getPlans());
+        updateApiEntity.setFlows(apiEntity.getFlows());
+        updateApiEntity.setGraviteeDefinitionVersion(apiEntity.getGraviteeDefinitionVersion());
+        updateApiEntity.setFlowMode(apiEntity.getFlowMode());
+        updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
+        updateApiEntity.setCategories(apiEntity.getCategories());
+        updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+        return updateApiEntity;
     }
 }

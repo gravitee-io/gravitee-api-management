@@ -407,15 +407,21 @@ class ApiPortalController {
   }
 
   showExportDialog() {
-    this.$mdDialog.show({
-      controller: 'DialogApiExportController',
-      controllerAs: 'dialogApiExportCtrl',
-      template: require('./dialog/apiExport.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        apiId: this.$scope.$parent.apiCtrl.api.id,
-      },
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogApiExportController',
+        controllerAs: 'dialogApiExportCtrl',
+        template: require('./dialog/apiExport.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          apiId: this.$scope.$parent.apiCtrl.api.id,
+        },
+      })
+      .then((response) => {
+        if (response) {
+          this.onApiUpdate(response.data);
+        }
+      });
   }
 
   getTenants(tenants) {

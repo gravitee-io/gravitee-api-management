@@ -30,6 +30,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -62,6 +64,12 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
     @Mock
     private ApiService apiService;
+
+    @Mock
+    private ApiConverter apiConverter;
+
+    @Mock
+    private PlanConverter planConverter;
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
@@ -114,7 +122,9 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 planService,
                 groupService,
                 userService,
-                apiService
+                apiService,
+                apiConverter,
+                planConverter
             );
     }
 
@@ -497,20 +507,25 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
-
+        apiEntity.setId("id-api");
+        apiEntity.setCrossId("api-cross-id");
         // plan1 is present both in existing api and in imported api definition
         // plan2 is present both in existing api and in imported api definition
         // plan3 is not present in existing api but added in imported api definition
         // plan4 is present in existing api, but not in imported api definition
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("plan-id1");
+        plan1.setCrossId("plan-cross-id-1");
         PlanEntity plan2 = new PlanEntity();
         plan2.setId("plan-id2");
+        plan2.setCrossId("plan-cross-id-2");
         PlanEntity plan3 = new PlanEntity();
         plan3.setId("plan-id3");
         PlanEntity plan4 = new PlanEntity();
         plan4.setId("plan-id4");
+
         when(planService.findByApi(apiEntity.getId())).thenReturn(Set.of(plan1, plan2, plan3, plan4));
+        when(apiService.findByEnvironmentIdAndCrossId("DEFAULT", "api-cross-id")).thenReturn(Optional.of(apiEntity));
 
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
@@ -520,7 +535,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        verify(planService, times(1)).findByApi(apiEntity.getId());
+        verify(planService, times(2)).findByApi(apiEntity.getId());
         // plan1, plan2 and plan4 has to be created or updated
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id1")), eq("DEFAULT"));
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id2")), eq("DEFAULT"));
@@ -543,11 +558,15 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+        apiEntity.setCrossId("api-cross-id");
+
+        when(apiService.findByEnvironmentIdAndCrossId("DEFAULT", "api-cross-id")).thenReturn(Optional.of(apiEntity));
 
         // plan1 had a description and a name before import
         // imported definition contains a new name, but doesn't specify any description
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("plan-id1");
+        plan1.setCrossId("plan-cross-id-1");
         plan1.setName("plan name before import");
         plan1.setDescription("plan description before import");
         when(planService.findByApi(apiEntity.getId())).thenReturn(Set.of(plan1));
@@ -578,7 +597,18 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
         String toBeImport = Resources.toString(resource, Charsets.UTF_8);
 
-        when(planService.anyPlanMismatchWithApi(anyList(), anyString())).thenReturn(true);
+        ApiEntity api = new ApiEntity();
+        api.setId("id-api");
+        api.setCrossId("api-cross-id");
+
+        PlanEntity apiPlan = new PlanEntity();
+        apiPlan.setId("plan-id1");
+        apiPlan.setCrossId("plan-cross-id-1");
+
+        when(apiService.findByEnvironmentIdAndCrossId("DEFAULT", "api-cross-id")).thenReturn(Optional.of(api));
+        when(planService.findByApi("id-api")).thenReturn(Set.of(apiPlan));
+
+        when(planService.anyPlanMismatchWithApi(anyList(), eq("id-api"))).thenReturn(true);
 
         apiDuplicatorService.updateWithImportedDefinition(
             API_ID,

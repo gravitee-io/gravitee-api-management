@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -25,14 +27,24 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.ArrayList;
+import java.util.Optional;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -48,7 +60,26 @@ public class PlanService_CreateOrUpdateTest {
     private static final String ENVIRONMENT_ID = "my-environment";
 
     @Spy
+    @InjectMocks
     private PlanService planService = new PlanServiceImpl();
+
+    @Mock
+    private PlanRepository planRepository;
+
+    @Mock
+    private PlanConverter planConverter;
+
+    @Mock
+    private ParameterService parameterService;
+
+    @Mock
+    private ApiService apiService;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private AuditService auditService;
 
     @Mock
     private PlanEntity planEntity;
@@ -91,13 +122,14 @@ public class PlanService_CreateOrUpdateTest {
         expected.setId("created");
 
         when(planEntity.getId()).thenReturn(null);
-        doReturn(emptyList()).when(planService).search(any());
+        when(planRepository.findById(any())).thenReturn(Optional.empty());
+
         doReturn(expected).when(planService).create(any());
 
         final PlanEntity actual = planService.createOrUpdatePlan(planEntity, ENVIRONMENT_ID);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).search(any());
+        verify(planService, times(1)).findById(any());
         verify(planService, times(1)).create(any());
     }
 
@@ -107,31 +139,13 @@ public class PlanService_CreateOrUpdateTest {
         expected.setId("updated");
 
         when(planEntity.getId()).thenReturn(null);
-        doReturn(singletonList(expected)).when(planService).search(any());
+        doReturn(expected).when(planService).findById(any());
         doReturn(expected).when(planService).update(any());
 
         final PlanEntity actual = planService.createOrUpdatePlan(planEntity, ENVIRONMENT_ID);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).search(any());
+        verify(planService, times(1)).findById(any());
         verify(planService, times(1)).update(any());
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldThrowExceptionWhenTooManyResults() throws TechnicalException {
-        final PlanEntity expected = new PlanEntity();
-        expected.setId("updated");
-
-        final ArrayList<PlanEntity> searchResult = new ArrayList<>();
-        searchResult.add(new PlanEntity());
-        searchResult.add(new PlanEntity());
-
-        when(planEntity.getId()).thenReturn(null);
-        doReturn(searchResult).when(planService).search(any());
-
-        final PlanEntity actual = planService.createOrUpdatePlan(planEntity, ENVIRONMENT_ID);
-
-        assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).search(any());
     }
 }

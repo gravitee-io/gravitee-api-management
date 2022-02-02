@@ -22,10 +22,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
-import io.gravitee.rest.api.model.DeploymentRequired;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.*;
@@ -49,6 +46,9 @@ public class ApiEntity implements Indexable {
 
     @ApiModelProperty(value = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
+
+    @ApiModelProperty(value = "API's crossId. Identifies API across environments.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    private String crossId;
 
     @ApiModelProperty(value = "API's name. Duplicate names can exists.", example = "My Api")
     private String name;
@@ -199,6 +199,9 @@ public class ApiEntity implements Indexable {
         example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background"
     )
     private String backgroundUrl;
+
+    @JsonIgnore
+    private String environmentId;
 
     @JsonIgnore
     private String referenceType;
@@ -523,6 +526,14 @@ public class ApiEntity implements Indexable {
         this.flowMode = flowMode;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -541,6 +552,9 @@ public class ApiEntity implements Indexable {
             "ApiEntity{" +
             "id='" +
             id +
+            '\'' +
+            ", crossId='" +
+            crossId +
             '\'' +
             ", name='" +
             name +
@@ -585,5 +599,13 @@ public class ApiEntity implements Indexable {
             flowMode +
             '}'
         );
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 }

@@ -37,6 +37,12 @@ public class Plan {
 
     private String id;
 
+    /**
+     * The plan crossId uniquely identifies a plan across environments.
+     * Plans promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     private String name;
 
     private String description;
@@ -115,6 +121,7 @@ public class Plan {
 
     public Plan(Plan cloned) {
         this.id = cloned.getId();
+        this.crossId = cloned.getCrossId();
         this.name = cloned.getName();
         this.description = cloned.getDescription();
         this.security = cloned.getSecurity();
@@ -320,6 +327,14 @@ public class Plan {
         this.generalConditions = generalConditions;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -341,6 +356,9 @@ public class Plan {
             "Plan{" +
             "id='" +
             id +
+            '\'' +
+            "crossId='" +
+            crossId +
             '\'' +
             ", api='" +
             api +

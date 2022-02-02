@@ -32,6 +32,8 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -96,6 +98,10 @@ public class ApiServiceCockpitImplTest {
     @Captor
     private ArgumentCaptor<UpdatePageEntity> updatePageCaptor;
 
+    private ApiConverter apiConverter = new ApiConverter();
+
+    private PageConverter pageConverter = new PageConverter();
+
     @Before
     public void setUp() throws Exception {
         service =
@@ -106,7 +112,9 @@ public class ApiServiceCockpitImplTest {
                 pageService,
                 apiMetadataService,
                 planService,
-                virtualHostService
+                virtualHostService,
+                apiConverter,
+                pageConverter
             );
     }
 

@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.Collections;
@@ -61,11 +62,11 @@ public class PlanService_FindByApiTest {
     @Mock
     private ApiEntity api;
 
+    @Mock
+    private PlanConverter planConverter;
+
     @Test
     public void shouldFindByApi() throws TechnicalException {
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getId()).thenReturn(PLAN_ID);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
         when(apiService.findById(API_ID)).thenReturn(api);
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(plan));
