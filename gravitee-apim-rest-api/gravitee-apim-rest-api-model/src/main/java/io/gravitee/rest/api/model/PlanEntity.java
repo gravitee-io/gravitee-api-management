@@ -30,6 +30,12 @@ public class PlanEntity {
 
     private String id;
 
+    /**
+     * The plan crossId uniquely identifies a plan across environments.
+     * Plans promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     private String name;
 
     private String description;
@@ -308,6 +314,14 @@ public class PlanEntity {
 
     public void setGeneralConditions(String generalConditions) {
         this.generalConditions = generalConditions;
+    }
+
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
     }
 
     @Override

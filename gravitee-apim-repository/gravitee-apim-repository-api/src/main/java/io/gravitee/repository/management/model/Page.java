@@ -32,6 +32,13 @@ public class Page {
     }
 
     private String id;
+
+    /**
+     * The page crossId uniquely identifies a page across environments.
+     * Pages promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     private String referenceId;
     private PageReferenceType referenceType;
     private String name;
@@ -221,6 +228,14 @@ public class Page {
         this.accessControls = accessControls;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -240,6 +255,9 @@ public class Page {
             "Page{" +
             "id='" +
             id +
+            '\'' +
+            "crossId='" +
+            crossId +
             '\'' +
             ", referenceId='" +
             referenceId +

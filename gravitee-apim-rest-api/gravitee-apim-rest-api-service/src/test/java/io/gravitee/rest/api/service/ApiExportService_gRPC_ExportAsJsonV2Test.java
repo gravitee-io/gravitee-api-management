@@ -29,10 +29,10 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiDuplicatorService_ExportAsJsonV2Test extends ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
+public class ApiExportService_gRPC_ExportAsJsonV2Test extends ApiExportService_gRPC_ExportAsJsonTestSetup {
 
     @Override
-    public ApiEntity prepareApiEntity(ApiEntity apiEntity) {
+    protected ApiEntity prepareApiEntity(ApiEntity apiEntity) {
         ApiEntity updatedApiEntity = super.prepareApiEntity(apiEntity);
         updatedApiEntity.setDescription("Gravitee.io 2.0.0");
         updatedApiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());

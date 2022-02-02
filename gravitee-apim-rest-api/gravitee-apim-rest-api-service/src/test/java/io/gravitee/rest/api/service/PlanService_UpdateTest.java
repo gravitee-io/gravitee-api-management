@@ -31,7 +31,10 @@ import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
 import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
@@ -90,12 +93,17 @@ public class PlanService_UpdateTest {
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    @Mock
+    private PlanConverter planConverter;
+
+    @Mock
+    private ApiConverter apiConverter;
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(parameterService.findAsBoolean(any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(true);
@@ -118,7 +126,6 @@ public class PlanService_UpdateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(parameterService.findAsBoolean(any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(true);
@@ -144,9 +151,7 @@ public class PlanService_UpdateTest {
         when(plan.getStatus()).thenReturn(PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
-        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(parameterService.findAsBoolean(any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(true);
 
@@ -226,7 +231,6 @@ public class PlanService_UpdateTest {
         when(plan.getStatus()).thenReturn(PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(any())).thenReturn(plan);
@@ -239,6 +243,8 @@ public class PlanService_UpdateTest {
         when(updatePlan.getId()).thenReturn(PLAN_ID);
         when(updatePlan.getName()).thenReturn("NameUpdated");
         when(updatePlan.getFlows()).thenReturn(asList(new Flow()));
+
+        when(apiConverter.toUpdateApiEntity(apiV2)).thenReturn(new UpdateApiEntity());
 
         planService.update(updatePlan, true);
 
@@ -277,7 +283,6 @@ public class PlanService_UpdateTest {
         when(plan.getStatus()).thenReturn(PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(any())).thenReturn(plan);
@@ -297,6 +302,8 @@ public class PlanService_UpdateTest {
         unpublishedPage.setType("MARKDOWN");
         unpublishedPage.setPublished(false);
 
+        when(apiConverter.toUpdateApiEntity(apiV2)).thenReturn(new UpdateApiEntity());
+
         planService.update(updatePlan, true);
 
         verify(apiService)
@@ -309,9 +316,7 @@ public class PlanService_UpdateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
-        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(parameterService.findAsBoolean(any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(true);
         when(apiService.findById(API_ID)).thenReturn(apiEntity);

@@ -17,8 +17,8 @@
 import { PlanSecurityType, PlanStatus, PlanType, PlanValidation } from '@model/plan';
 import { ApiImportFakers } from '@fakers/api-imports';
 import { ADMIN_USER, LOW_PERMISSION_USER } from '@fakers/users/users';
-import { getApiById, importCreateApi, deleteApi, getApiMetadata, getApiMembers } from '@commands/management/api-management-commands';
-import { getPages, getPage } from '@commands/management/api-pages-management-commands';
+import { deleteApi, getApiById, getApiMembers, getApiMetadata, importCreateApi } from '@commands/management/api-management-commands';
+import { deletePage, getPage, getPages } from '@commands/management/api-pages-management-commands';
 import { getPlan } from '@commands/management/api-plans-management-commands';
 import { ApiMetadataFormat, ApiPageType, ApiPrimaryOwnerType } from '@model/apis';
 import { GroupFakers } from '@fakers/groups';
@@ -56,64 +56,10 @@ context('API - Imports', () => {
       });
     });
 
-    describe('Create API with specified ID, not yet existing', () => {
-      const apiId = '67d8020e-b0b3-47d8-9802-0eb0b357d84c';
-      const fakeApi = ApiImportFakers.api({ id: apiId });
-
-      it('should create API and return the specified ID', () => {
-        importCreateApi(ADMIN_USER, fakeApi)
-          .ok()
-          .should((response) => {
-            expect(response.body.id).to.eq(apiId);
-          });
-      });
-
-      it('should get created API with the specified ID', () => {
-        getApiById(ADMIN_USER, apiId)
-          .ok()
-          .should((response) => {
-            expect(response.body.id).to.eq(apiId);
-          });
-      });
-
-      it('should delete created API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
-      });
-    });
-
-    describe('Create API with specified ID, already existing', () => {
-      const apiId = '67d8020e-b0b3-47d8-9802-0eb0b357d84c';
-
-      const fakeApi1 = ApiImportFakers.api({ id: apiId });
-      fakeApi1.proxy.virtual_hosts[0].path = '/testimport1/';
-
-      // api 2 has different context path as api 1, but same ID
-      const fakeApi2 = ApiImportFakers.api({ id: apiId });
-      fakeApi2.proxy.virtual_hosts[0].path = '/testimport2/';
-
-      it('should create API with the specified ID', () => {
-        importCreateApi(ADMIN_USER, fakeApi1)
-          .ok()
-          .should((response) => {
-            expect(response.body.id).to.eq(apiId);
-          });
-      });
-
-      it('should fail to create API with the same ID', () => {
-        importCreateApi(ADMIN_USER, fakeApi2)
-          .badRequest()
-          .should((response) => {
-            expect(response.body.message).to.eq('An api [67d8020e-b0b3-47d8-9802-0eb0b357d84c] already exists.');
-          });
-      });
-
-      it('should delete created API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
-      });
-    });
-
     describe('Create empty API with an already existing context path', () => {
       const apiId1 = '67d8020e-b0b3-47d8-9802-0eb0b357d84c';
+      const generatedApiId = '12d31c2a-1cdb-3824-a03e-606bc290bd7c';
+
       const fakeApi1 = ApiImportFakers.api({ id: apiId1 });
       fakeApi1.proxy.virtual_hosts[0].path = '/testimport/';
 
@@ -123,11 +69,7 @@ context('API - Imports', () => {
       fakeApi2.proxy.virtual_hosts[0].path = '/testimport/';
 
       it('should create API with the specified ID', () => {
-        importCreateApi(ADMIN_USER, fakeApi1)
-          .ok()
-          .should((response) => {
-            expect(response.body.id).to.eq(apiId1);
-          });
+        importCreateApi(ADMIN_USER, fakeApi1).ok().its('body').should('have.property', 'id').should('eq', generatedApiId);
       });
 
       it('should fail to create API with the same context path', () => {
@@ -139,7 +81,7 @@ context('API - Imports', () => {
       });
 
       it('should delete created API', () => {
-        deleteApi(ADMIN_USER, apiId1).httpStatus(204);
+        deleteApi(ADMIN_USER, generatedApiId).httpStatus(204);
       });
     });
   });
@@ -193,32 +135,101 @@ context('API - Imports', () => {
 
     describe('Create API with one page with an ID', () => {
       const apiId = '08a92f8c-e133-42ec-a92f-8ce13382ec73';
+      const expectedApiId = '2ce4fa7c-8c75-31a2-83a9-73ccc6773b13';
+
       const pageId = '7b95cbe6-099d-4b06-95cb-e6099d7b0609';
-      const generatedPageId = 'c02077fc-7c4d-3c93-8404-6184a6221391';
+      const expectedPageId = '0b827e1e-afe2-3863-8533-a723c486d4ef';
 
       const fakePage = ApiImportFakers.page({ id: pageId });
       const fakeApi = ApiImportFakers.api({ id: apiId, pages: [fakePage] });
 
       it('should create an API with one page of documentation and return specified ID', () => {
-        importCreateApi(ADMIN_USER, fakeApi).ok().its('body').should('have.property', 'id').should('eq', apiId);
+        importCreateApi(ADMIN_USER, fakeApi).ok().its('body').should('have.property', 'id').should('eq', expectedApiId);
       });
 
       it('should get API documentation pages from specified API ID', () => {
-        getPages(ADMIN_USER, apiId)
+        getPages(ADMIN_USER, expectedApiId)
           .ok()
           .its('body')
           .should('have.length', 2)
           .its(1)
           .should('have.property', 'id')
+          .should('eq', expectedPageId);
+      });
+
+      it('should get API page from generated page ID', () => {
+        getPage(ADMIN_USER, expectedApiId, expectedPageId).ok().its('body').should('have.property', 'api').should('eq', expectedApiId);
+      });
+
+      it('should delete the API', () => {
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
+      });
+    });
+
+    describe('Create API with a page tree', () => {
+      const apiId = '7f1af04f-339d-42e3-8d9e-ce478511ef13';
+      const rootFolderId = '29b97194-8786-48cb-8162-d3989ce5ad48';
+      const folderId = '7ef6a60d-3c29-459d-b05b-3d74ade03fa6';
+      const pageId = '915bc210-445b-4b7b-888b-c676e3fb8c7e';
+
+      const generatedApiId = '3a6c5568-aa36-3955-ac6f-9834cf00ec8c';
+      const generatedRootFolderId = 'e53f5b35-0798-3c2b-83b0-c080d06bbf03';
+      const generatedFolderId = 'a7451cc1-bd10-3a06-be22-14d8e3d44145';
+      const generatedPageId = '844a43b0-4e77-3a05-9880-137d9d64c224';
+
+      const fakeRootFolder = ApiImportFakers.page({ id: rootFolderId, type: ApiPageType.FOLDER, content: null });
+      const fakeFolder = ApiImportFakers.page({ id: folderId, type: ApiPageType.FOLDER, parentId: rootFolderId, content: null });
+      const fakePage = ApiImportFakers.page({ id: pageId, parentId: folderId });
+      const fakeApi = ApiImportFakers.api({ id: apiId, pages: [fakeRootFolder, fakeFolder, fakePage] });
+
+      it('should create an API with a page tree and return a generated ID', () => {
+        importCreateApi(ADMIN_USER, fakeApi).ok().its('body').should('have.property', 'id').should('eq', generatedApiId);
+      });
+
+      it('should get root folder from generated API ID', () => {
+        getPages(ADMIN_USER, generatedApiId, { root: true })
+          .ok()
+          .its('body')
+          .should('have.length', 2)
+          .its(1)
+          .should('have.property', 'id')
+          .should('eq', generatedRootFolderId);
+      });
+
+      it('should get folder in root folder', () => {
+        getPages(ADMIN_USER, generatedApiId, { parent: generatedRootFolderId })
+          .ok()
+          .its('body')
+          .should('have.length', 1)
+          .its(0)
+          .should('have.property', 'id')
+          .should('eq', generatedFolderId);
+      });
+
+      it('should get page in folder', () => {
+        getPages(ADMIN_USER, generatedApiId, { parent: generatedFolderId })
+          .ok()
+          .its('body')
+          .should('have.length', 1)
+          .its(0)
+          .should('have.property', 'id')
           .should('eq', generatedPageId);
       });
 
       it('should get API page from generated page ID', () => {
-        getPage(ADMIN_USER, apiId, generatedPageId).ok().its('body').should('have.property', 'api').should('eq', apiId);
+        getPage(ADMIN_USER, generatedApiId, generatedPageId).ok().its('body').should('have.property', 'api').should('eq', generatedApiId);
+      });
+
+      it('should delete page in folder', () => {
+        deletePage(ADMIN_USER, generatedApiId, generatedPageId).noContent();
+      });
+
+      it('should delete folder in root folder', () => {
+        deletePage(ADMIN_USER, generatedApiId, generatedFolderId).noContent();
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, '08a92f8c-e133-42ec-a92f-8ce13382ec73').noContent();
+        deleteApi(ADMIN_USER, generatedApiId).noContent();
       });
     });
 
@@ -237,7 +248,9 @@ context('API - Imports', () => {
       let planId1;
       let planId2;
 
-      const apiId = '08a92f8c-e133-42ec-a92f-8ce13382ec73';
+      const apiId = 'c4ddaa66-4646-4fca-a80b-284aa7407941';
+      const expectedApiId = '7ab9bd67-5540-396b-91ca-91479994fdd6';
+
       const fakePlan1 = ApiImportFakers.plan({ name: 'test plan', description: 'this is a test plan' });
       const fakePlan2 = ApiImportFakers.plan({ name: 'test plan', description: 'this is a test plan' });
       const fakeApi = ApiImportFakers.api({ id: apiId, plans: [fakePlan1, fakePlan2] });
@@ -258,7 +271,7 @@ context('API - Imports', () => {
       });
 
       it('should get plan1 with correct data', () => {
-        getPlan(ADMIN_USER, apiId, planId1)
+        getPlan(ADMIN_USER, expectedApiId, planId1)
           .ok()
           .should((response) => {
             expect(response.body.id).to.eq(planId1);
@@ -268,12 +281,12 @@ context('API - Imports', () => {
             expect(response.body.security).to.eq(PlanSecurityType.KEY_LESS);
             expect(response.body.type).to.eq(PlanType.API);
             expect(response.body.status).to.eq(PlanStatus.STAGING);
-            expect(response.body.order).to.eq(0);
+            expect(response.body.order).to.eq(1);
           });
       });
 
       it('should get plan2 with correct data', () => {
-        getPlan(ADMIN_USER, apiId, planId2)
+        getPlan(ADMIN_USER, expectedApiId, planId2)
           .ok()
           .should((response) => {
             expect(response.body.id).to.eq(planId2);
@@ -283,48 +296,12 @@ context('API - Imports', () => {
             expect(response.body.security).to.eq(PlanSecurityType.KEY_LESS);
             expect(response.body.type).to.eq(PlanType.API);
             expect(response.body.status).to.eq(PlanStatus.STAGING);
-            expect(response.body.order).to.eq(0);
+            expect(response.body.order).to.eq(1);
           });
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
-      });
-    });
-
-    describe('Create API with plan with ID that does not exist yet', () => {
-      let apiId;
-      let planId = '08a99999-e999-4999-a999-8ce19992e999';
-
-      const fakePlan = ApiImportFakers.plan({
-        id: planId,
-        name: 'first test plan',
-        description: 'this is the first test plan',
-      });
-      const fakeApi = ApiImportFakers.api({ plans: [fakePlan] });
-
-      it('should create API, and response should contains created plan with regenerated id', () => {
-        importCreateApi(ADMIN_USER, fakeApi)
-          .ok()
-          .should((response) => {
-            apiId = response.body.id;
-            expect(response.body.plans).to.have.length(1);
-          })
-          .then((response) => {
-            planId = response.body.plans[0].id;
-          });
-      });
-
-      it('should get created plan with specified id', () => {
-        getPlan(ADMIN_USER, apiId, planId)
-          .ok()
-          .should((response) => {
-            expect(response.body.id).to.eq(planId);
-          });
-      });
-
-      it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
     });
   });
@@ -332,6 +309,7 @@ context('API - Imports', () => {
   describe('Create API from import with metadata', () => {
     describe('Create API with metadata having key that does not yet exist', () => {
       const apiId = 'bc1287cb-b732-4ba1-b609-1e34d375b585';
+      const expectedApiId = 'c954073c-0812-3544-b313-ad4f0001ffac';
 
       let fakeApi: ApiImport;
       fakeApi = ApiImportFakers.api({
@@ -351,23 +329,26 @@ context('API - Imports', () => {
       });
 
       it('should get the created API metadata', () => {
-        getApiMetadata(ADMIN_USER, apiId).ok().its('body').its(0).should('deep.equal', {
+        getApiMetadata(ADMIN_USER, expectedApiId).ok().its('body').its(0).should('deep.equal', {
           key: 'team',
           name: 'team',
           format: ApiMetadataFormat.STRING,
           value: 'API Management',
-          apiId: 'bc1287cb-b732-4ba1-b609-1e34d375b585',
+          apiId: 'c954073c-0812-3544-b313-ad4f0001ffac',
         });
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
     });
 
     describe('Create API with metadata having key already that already exists on an other API', () => {
       const firstApiId = 'b68e1a9c-a344-460d-b0ac-1d86d61b70cf';
+      const firstExpectedApiId = 'd63a3aa0-46ba-3a93-9104-00ae4240645e';
+
       const secondApiId = '5668f9f0-12af-4541-b834-c374faedfb57';
+      const secondExpectedApiId = 'b639cf39-7d66-3b36-af37-656233c4794b';
 
       const firstApi = ApiImportFakers.api({
         id: firstApiId,
@@ -402,33 +383,34 @@ context('API - Imports', () => {
       });
 
       it('should get API metadata for the first API', () => {
-        getApiMetadata(ADMIN_USER, firstApiId).ok().its('body').its(0).should('deep.equal', {
+        getApiMetadata(ADMIN_USER, firstExpectedApiId).ok().its('body').its(0).should('deep.equal', {
           key: 'team',
           name: 'team',
           format: ApiMetadataFormat.STRING,
           value: 'API Management',
-          apiId: 'b68e1a9c-a344-460d-b0ac-1d86d61b70cf',
+          apiId: firstExpectedApiId,
         });
       });
 
       it('should get API metadata for the second API', () => {
-        getApiMetadata(ADMIN_USER, secondApiId).ok().its('body').its(0).should('deep.equal', {
+        getApiMetadata(ADMIN_USER, secondExpectedApiId).ok().its('body').its(0).should('deep.equal', {
           key: 'team',
           name: 'team',
           format: ApiMetadataFormat.STRING,
           value: 'Access Management',
-          apiId: '5668f9f0-12af-4541-b834-c374faedfb57',
+          apiId: secondExpectedApiId,
         });
       });
 
       it('should delete the APIs', () => {
-        deleteApi(ADMIN_USER, firstApiId).noContent();
-        deleteApi(ADMIN_USER, secondApiId).noContent();
+        deleteApi(ADMIN_USER, firstExpectedApiId).noContent();
+        deleteApi(ADMIN_USER, secondExpectedApiId).noContent();
       });
     });
 
     describe('Create API with metadata having an undefined key', () => {
       const apiId = '4d73b285-5b87-4186-928e-f6f6240708f3';
+      const expectedApiId = '08ee5d81-a6b8-3562-aaf6-b2c1313398cd';
 
       const fakeApi = ApiImportFakers.api({
         id: apiId,
@@ -442,20 +424,20 @@ context('API - Imports', () => {
       });
 
       it('should create an API with some metadata having an empty key', () => {
-        importCreateApi(ADMIN_USER, fakeApi).ok();
+        importCreateApi(ADMIN_USER, fakeApi).ok().its('body').should('have.property', 'id').should('eq', expectedApiId);
       });
 
       it('should get the API metadata', () => {
-        getApiMetadata(ADMIN_USER, apiId).ok().its('body').its(0).should('deep.equal', {
+        getApiMetadata(ADMIN_USER, expectedApiId).ok().its('body').its(0).should('deep.equal', {
           name: 'team',
           format: ApiMetadataFormat.STRING,
           value: 'QA',
-          apiId: '4d73b285-5b87-4186-928e-f6f6240708f3',
+          apiId: expectedApiId,
         });
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
     });
   });
@@ -463,6 +445,8 @@ context('API - Imports', () => {
   describe('Create API from import with groups', () => {
     describe('Create API with with group name that already exists', () => {
       const apiId = '7ffe12cc-15b9-48ff-b436-0c9bb18b2816';
+      const expectedApiId = 'fbbb2c4f-2aeb-31ed-8943-f4d5b03fa892';
+
       const groupName = 'architecture';
       const fakeGroup = GroupFakers.group({ name: groupName });
       const fakeApi = ApiImportFakers.api({ id: apiId, groups: [groupName] });
@@ -497,12 +481,14 @@ context('API - Imports', () => {
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
     });
 
     describe('Create API with with group name that does not exists', () => {
       const apiId = '533efd8a-22e1-4483-a8af-0c24a2abd590';
+      const expectedApiId = 'b9bf4c5e-07dc-313d-b42c-c3217fa0ed93';
+
       const groupName = 'performances';
       const fakeApi = ApiImportFakers.api({ id: apiId, groups: [groupName] });
 
@@ -525,7 +511,7 @@ context('API - Imports', () => {
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
 
       it('should delete the group', () => {
@@ -536,7 +522,9 @@ context('API - Imports', () => {
 
   describe('Create API form import with members', () => {
     describe('Create API with member (member role is specified by id)', () => {
-      const apiId = '533efd8a-22e1-4483-a8af-0c24a2abd590';
+      const apiId = '721badf2-3563-4a84-b2e8-f69752fe416c';
+      const expectedApiId = '01daa02c-b4ec-370e-9d2b-8732f4bf06b7';
+
       let member;
       let primaryOwner;
       let roleName = 'MY_TEST_ROLE';
@@ -577,7 +565,7 @@ context('API - Imports', () => {
       });
 
       it('should get API members, with a primary owner, and an additional member with associated role', () => {
-        getApiMembers(ADMIN_USER, apiId)
+        getApiMembers(ADMIN_USER, expectedApiId)
           .ok()
           .should((response) => {
             expect(response.body).have.length(2);
@@ -587,7 +575,7 @@ context('API - Imports', () => {
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
 
       it('should delete role', () => {
@@ -605,6 +593,8 @@ context('API - Imports', () => {
 
     describe('Create API with member (member role is specified by name)', () => {
       const apiId = '533efd8a-22e1-4483-a8af-0c24a2abd590';
+      const expectedApiId = 'b9bf4c5e-07dc-313d-b42c-c3217fa0ed93';
+
       let member;
       let primaryOwner;
       let roleName = 'MY_TEST_ROLE';
@@ -641,11 +631,11 @@ context('API - Imports', () => {
           members: [fakeMember],
           primaryOwner: { id: primaryOwner.id, type: ApiPrimaryOwnerType.USER, email: primaryOwner.email },
         });
-        importCreateApi(ADMIN_USER, fakeApi).ok();
+        importCreateApi(ADMIN_USER, fakeApi).ok().its('body').should('have.property', 'id').should('eq', expectedApiId);
       });
 
       it('should get API members, with a primary owner, and an additional member with associated role', () => {
-        getApiMembers(ADMIN_USER, apiId)
+        getApiMembers(ADMIN_USER, expectedApiId)
           .ok()
           .should((response) => {
             expect(response.body).have.length(2);
@@ -655,7 +645,7 @@ context('API - Imports', () => {
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
 
       it('should delete role', () => {
@@ -675,6 +665,8 @@ context('API - Imports', () => {
   describe('Create API form import with primary owner', () => {
     describe('Create API with primary owner of type "USER", already existing with same id', () => {
       const apiId = '92d900c3-7497-4739-bb98-a8f3615c2773';
+      const expectedApiId = '32961b80-aec9-3e1e-b9d5-b1e7e596f407';
+
       const fakeApi = ApiImportFakers.api({ id: apiId });
 
       let userId;
@@ -705,12 +697,14 @@ context('API - Imports', () => {
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
     });
 
     describe('Create API with primary owner of type "USER", not existing with same id', () => {
       const apiId = 'df41e94d-ddd5-47b5-a9d8-973fefc4118f';
+      const expectedApiId = '55dd7d69-a7a4-31fb-b96a-8d4338c25d82';
+
       const userId = 'i-do-not-exist';
 
       const fakeApi = ApiImportFakers.api({ id: apiId });
@@ -731,13 +725,14 @@ context('API - Imports', () => {
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
     });
 
     describe('Create API with primary owner of type "GROUP", already existing with same id', () => {
       const groupName = 'R&D';
       const apiId = '5446abb0-0199-4303-8b1a-fff57b0a9eac';
+      const expectedApiId = 'cc28bec3-598a-3728-ad19-b5c4b6c67fca';
 
       // We have to set members to null because of #6808
       const fakeApi = ApiImportFakers.api({ id: apiId, members: null });
@@ -774,7 +769,7 @@ context('API - Imports', () => {
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
 
       it('should delete the group', () => {
@@ -784,6 +779,8 @@ context('API - Imports', () => {
 
     describe('Create API with primary owner of type "GROUP", not existing with same id', () => {
       const apiId = 'b12f4414-76e1-425c-98e9-6f0c89c5b52d';
+      const expectedApiId = 'd3a8a8d5-76f4-3ee4-bbfc-ffa031af89bc';
+
       const fakeApi = ApiImportFakers.api({ id: apiId, members: null });
       const groupId = 'i-do-not-exist';
 
@@ -802,7 +799,7 @@ context('API - Imports', () => {
       });
 
       it('should delete the API', () => {
-        deleteApi(ADMIN_USER, apiId).noContent();
+        deleteApi(ADMIN_USER, expectedApiId).noContent();
       });
     });
   });

@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
 import java.util.List;
@@ -63,6 +64,9 @@ public class ApiPlansResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
+
+    @Inject
+    private ApiConverter apiConverter;
 
     @Context
     private ResourceContext resourceContext;
@@ -338,7 +342,7 @@ public class ApiPlansResource extends AbstractResource {
                     .filter(plan1 -> plan1.getId() != null && !plan1.getId().equals(planId))
                     .collect(Collectors.toList());
 
-                UpdateApiEntity updateApiEntity = ApiService.convert(api);
+                UpdateApiEntity updateApiEntity = apiConverter.toUpdateApiEntity(api);
                 updateApiEntity.setPlans(plans);
 
                 if (api.getPlans().size() != updateApiEntity.getPlans().size()) {

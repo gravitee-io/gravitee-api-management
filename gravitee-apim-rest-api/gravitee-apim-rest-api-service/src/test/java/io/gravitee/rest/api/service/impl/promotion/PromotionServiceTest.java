@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.promotion;
+package io.gravitee.rest.api.service.impl.promotion;
 
 import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_CREATED;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
@@ -39,15 +44,10 @@ import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.promotion.PromotionServiceImpl;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import org.junit.Before;
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -64,7 +64,8 @@ public class PromotionServiceTest {
     public static final String PROMOTION_ID = "my-promotion-id";
     public static final String USER_ID = "my-user-id";
 
-    private PromotionService promotionService;
+    @InjectMocks
+    private PromotionServiceImpl promotionService;
 
     @Mock
     private CockpitPromotionService cockpitPromotionService;
@@ -79,6 +80,9 @@ public class PromotionServiceTest {
     private ApiDuplicatorService apiDuplicatorService;
 
     @Mock
+    private ApiExportService apiExportService;
+
+    @Mock
     private PromotionRepository promotionRepository;
 
     @Mock
@@ -90,20 +94,8 @@ public class PromotionServiceTest {
     @Mock
     private AuditService auditService;
 
-    @Before
-    public void setUp() {
-        promotionService =
-            new PromotionServiceImpl(
-                apiService,
-                apiDuplicatorService,
-                cockpitPromotionService,
-                promotionRepository,
-                environmentService,
-                userService,
-                permissionService,
-                auditService
-            );
-    }
+    @Mock
+    private ObjectMapper objectMapper;
 
     @Test(expected = BridgeOperationException.class)
     public void shouldFailToListPromotionTargets() {
@@ -200,6 +192,7 @@ public class PromotionServiceTest {
 
     @Test
     public void shouldProcessAcceptedPromotionCreateApi() throws Exception {
+        when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
@@ -228,6 +221,7 @@ public class PromotionServiceTest {
 
     @Test
     public void shouldProcessAcceptedPromotionUpdateApi() throws Exception {
+        when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
@@ -261,6 +255,7 @@ public class PromotionServiceTest {
 
     @Test
     public void shouldProcessRejectedPromotion() throws Exception {
+        when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
 
@@ -300,6 +295,7 @@ public class PromotionServiceTest {
 
     @Test(expected = ForbiddenAccessException.class)
     public void shouldNotProcessPromotionIfNoPermissionForTargetEnvironment() throws Exception {
+        when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
         when(apiService.exists(any())).thenReturn(true);
@@ -319,6 +315,7 @@ public class PromotionServiceTest {
 
     @Test(expected = BridgeOperationException.class)
     public void shouldNotProcessPromotionIfCockpitReplyError() throws Exception {
+        when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
@@ -402,6 +399,88 @@ public class PromotionServiceTest {
         promotionService.promote(GraviteeContext.getCurrentEnvironment(), "api#1", promotionRequestEntity, "user#1");
     }
 
+    @Test
+    public void findAlreadyPromotedTargetApi_shouldFindApiByCrossId() throws Exception {
+        JsonNode apiDefinition = new ObjectMapper().readTree("{\"crossId\": \"test-cross-id\"}");
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("env-id");
+
+        // API is found by crossId
+        ApiEntity apiFoundByCrossId = mock(ApiEntity.class);
+        when(apiService.findByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.of(apiFoundByCrossId));
+
+        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(environment, new Promotion(), apiDefinition);
+
+        assertSame(resultApi, apiFoundByCrossId);
+    }
+
+    @Test
+    public void findAlreadyPromotedTargetApi_shouldFindApiInLastPromotion() throws Exception {
+        JsonNode apiDefinition = new ObjectMapper().readTree("{\"crossId\": \"test-cross-id\"}");
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("env-id");
+
+        // API is not found by crossId
+        when(apiService.findByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
+
+        // Last promotions of this API are found
+        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        // Target API of last promotion is found
+        ApiEntity apiFromLastPromotion = mock(ApiEntity.class);
+        when(apiService.exists("api#1-Promoted")).thenReturn(true);
+        when(apiService.findById("api#1-Promoted")).thenReturn(apiFromLastPromotion);
+
+        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(environment, getAPromotion(), apiDefinition);
+
+        assertSame(resultApi, apiFromLastPromotion);
+    }
+
+    @Test
+    public void findAlreadyPromotedTargetApi_shouldReturnNull_causeNoPreviousPromotion() throws Exception {
+        JsonNode apiDefinition = new ObjectMapper().readTree("{\"crossId\": \"test-cross-id\"}");
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("env-id");
+
+        // API is not found by crossId
+        when(apiService.findByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
+
+        // Searching for previous promotions of this API returns an empty list
+        Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 0, 0);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(environment, getAPromotion(), apiDefinition);
+
+        assertNull(resultApi);
+    }
+
+    @Test
+    public void findAlreadyPromotedTargetApi_shouldReturnNull_causePreviousPromotionPointsToNonExistingApi() throws Exception {
+        JsonNode apiDefinition = new ObjectMapper().readTree("{\"crossId\": \"test-cross-id\"}");
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("env-id");
+
+        // API is not found by crossId
+        when(apiService.findByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
+
+        // Last promotions of this API are found
+        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        // Target API of last promotion is not found
+        ApiEntity apiFromLastPromotion = mock(ApiEntity.class);
+        when(apiService.exists("api#1-Promoted")).thenReturn(false);
+
+        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(environment, getAPromotion(), apiDefinition);
+
+        assertNull(resultApi);
+    }
+
     private UserEntity getAUserEntity() {
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user#1");
@@ -428,6 +507,7 @@ public class PromotionServiceTest {
         promotionEntity.setTargetEnvName("targetEnv Name");
         promotionEntity.setApiDefinition("definition");
         promotionEntity.setApiId("api#1");
+        promotionEntity.setTargetApiId("api#1-Promoted");
         promotionEntity.setStatus(PromotionEntityStatus.TO_BE_VALIDATED);
         promotionEntity.setAuthor(promotionEntityAuthor);
 
@@ -446,6 +526,7 @@ public class PromotionServiceTest {
         promotion.setCreatedAt(new Date());
         promotion.setStatus(PromotionStatus.TO_BE_VALIDATED);
         promotion.setApiId("api#1");
+        promotion.setTargetApiId("api#1-Promoted");
         promotion.setApiDefinition("apiDefinition");
         promotion.setSourceEnvCockpitId("sourceEnvId");
         promotion.setSourceEnvName("sourceEnv Name");

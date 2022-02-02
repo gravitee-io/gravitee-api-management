@@ -34,15 +34,18 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PageConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.impl.ApiExportServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
-import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import org.junit.After;
 import org.junit.Before;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.util.collections.Sets;
@@ -53,14 +56,24 @@ import org.springframework.context.ApplicationContext;
  * @author Nicolas Geraud (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiDuplicatorService_ExportAsJsonTestSetup {
+public class ApiExportService_ExportAsJsonTestSetup {
 
     protected static final String API_ID = "id-api";
 
-    protected ApiDuplicatorService apiDuplicatorService;
+    @InjectMocks
+    protected ApiExportServiceImpl apiExportService;
 
     @Mock
     protected ApiService apiService;
+
+    @Mock
+    protected ApiConverter apiConverter;
+
+    @Mock
+    protected PlanConverter planConverter;
+
+    @Mock
+    protected PageConverter pageConverter;
 
     @Spy
     protected ObjectMapper objectMapper = new GraviteeMapper();
@@ -88,34 +101,6 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
 
     @Mock
     private MediaService mediaService;
-
-    @Mock
-    private RoleService roleService;
-
-    @Mock
-    private HttpClientService httpClientService;
-
-    @Mock
-    private ImportConfiguration importConfiguration;
-
-    @Before
-    public void setup() {
-        apiDuplicatorService =
-            new ApiDuplicatorServiceImpl(
-                httpClientService,
-                importConfiguration,
-                mediaService,
-                objectMapper,
-                apiMetadataService,
-                membershipService,
-                roleService,
-                pageService,
-                planService,
-                groupService,
-                userService,
-                apiService
-            );
-    }
 
     @Before
     public void setUp() throws TechnicalException {
@@ -169,6 +154,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
+        apiEntity.setCrossId("test-api-cross-id");
         apiEntity.setDescription("Gravitee.io");
         apiEntity.setFlowMode(FlowMode.DEFAULT);
         apiEntity.setFlows(null);
@@ -285,6 +271,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
 
         PlanEntity publishedPlan = new PlanEntity();
         publishedPlan.setId("plan-id");
+        publishedPlan.setCrossId("test-plan-cross-id");
         publishedPlan.setApi(API_ID);
         publishedPlan.setDescription("free plan");
         publishedPlan.setType(PlanType.API);
@@ -318,6 +305,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
         publishedPlan.setPaths(paths);
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closedPlan-id");
+        closedPlan.setCrossId("closed-test-plan-cross-id");
         closedPlan.setApi(API_ID);
         closedPlan.setDescription("free closedPlan");
         closedPlan.setType(PlanType.API);
@@ -345,7 +333,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiDuplicatorService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
+        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExport" + (filename != null ? "-" + filename : "") + ".json"
@@ -357,7 +345,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonWithoutMembers(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiDuplicatorService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "members");
+        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "members");
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMembers" +
@@ -371,7 +359,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonWithoutPages(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiDuplicatorService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "pages");
+        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "pages");
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPages" +
@@ -385,7 +373,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonWithoutPlans(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiDuplicatorService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "plans");
+        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "plans");
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPlans" +
@@ -399,7 +387,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiDuplicatorService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "metadata");
+        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "metadata");
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMetadata" +

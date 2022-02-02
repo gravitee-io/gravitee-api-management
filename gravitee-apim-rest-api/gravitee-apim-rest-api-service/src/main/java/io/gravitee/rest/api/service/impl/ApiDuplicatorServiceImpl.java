@@ -17,15 +17,11 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -38,16 +34,20 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.PageImportException;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
+import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
+import io.gravitee.rest.api.service.imports.ImportJsonNode;
+import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +74,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final GroupService groupService;
     private final UserService userService;
     private final ApiService apiService;
+    private final ApiConverter apiConverter;
+    private final PlanConverter planConverter;
 
     public ApiDuplicatorServiceImpl(
         HttpClientService httpClientService,
@@ -87,7 +89,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         PlanService planService,
         GroupService groupService,
         UserService userService,
-        ApiService apiService
+        ApiService apiService,
+        ApiConverter apiConverter,
+        PlanConverter planConverter
     ) {
         this.httpClientService = httpClientService;
         this.importConfiguration = importConfiguration;
@@ -101,31 +105,61 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.groupService = groupService;
         this.userService = userService;
         this.apiService = apiService;
+        this.apiConverter = apiConverter;
+        this.planConverter = planConverter;
     }
 
     @Override
     public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String userId, String organizationId, String environmentId) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
-            final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+            // Read the whole input definition, and recalculate his ID
+            ImportApiJsonNode apiJsonNode = recalculateApiDefinitionIds(
+                new ImportApiJsonNode(objectMapper.readTree(apiDefinition)),
+                environmentId
+            );
 
-            if (!jsonNode.hasNonNull("id")) {
-                // generate id beforehand to ensure that preprocessApiDefinitionUpdatingIds always returns a predictable ID
-                ((ObjectNode) jsonNode).put("id", UuidString.generateRandom());
-            }
+            // check API consistency before import
+            checkApiJsonConsistency(apiJsonNode);
 
-            apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
-
-            if (jsonNode.has("pages") && jsonNode.get("pages").isArray()) {
-                ArrayNode pagesDefinition = (ArrayNode) jsonNode.get("pages");
-                checkPagesConsistency(pagesDefinition);
-            }
-
-            UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode, environmentId);
-            ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, jsonNode);
-            updateApiReferences(createdApiEntity, jsonNode, organizationId, environmentId, false);
-            createPageAndMedia(createdApiEntity, jsonNode, environmentId);
+            // import
+            UpdateApiEntity importedApi = convertToEntity(apiJsonNode.toString(), apiJsonNode, environmentId);
+            ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, apiJsonNode.getJsonNode());
+            createOrUpdateApiNestedEntities(createdApiEntity, apiJsonNode, organizationId, environmentId);
+            createPageAndMedia(createdApiEntity, apiJsonNode, environmentId);
             return createdApiEntity;
+        } catch (IOException e) {
+            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
+            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+        }
+    }
+
+    @Override
+    public ApiEntity updateWithImportedDefinition(
+        String urlApiId,
+        String apiDefinitionOrURL,
+        String userId,
+        String organizationId,
+        String environmentId
+    ) {
+        String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
+
+        try {
+            // Read the whole input definition, and recalculate his ID
+            ImportApiJsonNode apiJsonNode = recalculateApiDefinitionIds(
+                new ImportApiJsonNode(objectMapper.readTree(apiDefinition)),
+                environmentId,
+                urlApiId
+            );
+
+            // check API consistency before import
+            checkApiJsonConsistency(apiJsonNode, urlApiId, environmentId);
+
+            // import
+            UpdateApiEntity importedApi = convertToEntity(apiJsonNode.toString(), apiJsonNode, environmentId);
+            ApiEntity updatedApiEntity = apiService.update(urlApiId, importedApi);
+            createOrUpdateApiNestedEntities(updatedApiEntity, apiJsonNode, organizationId, environmentId);
+            return updatedApiEntity;
         } catch (IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
@@ -143,7 +177,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         final String apiId = apiEntity.getId();
         LOGGER.debug("Duplicate API {}", apiId);
 
-        final UpdateApiEntity newApiEntity = ApiService.convert(apiEntity);
+        final UpdateApiEntity newApiEntity = apiConverter.toUpdateApiEntity(apiEntity, true);
         final Proxy proxy = apiEntity.getProxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(duplicateApiEntity.getContextPath())));
         newApiEntity.setProxy(proxy);
@@ -209,7 +243,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     plan -> {
                         plan.setId(plansIdsMap.get(plan.getId()));
                         plan.setApi(duplicatedApi.getId());
-                        planService.create(NewPlanEntity.from(plan));
+                        planService.create(planConverter.toNewPlanEntity(plan, true));
                     }
                 );
         }
@@ -217,63 +251,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return duplicatedApi;
     }
 
-    @Override
-    public String exportAsJson(final String apiId, String exportVersion, String... filteredFields) {
-        ApiEntity apiEntity = apiService.findById(apiId);
-        // set metadata for serialize process
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, exportVersion);
-        metadata.put(ApiSerializer.METADATA_FILTERED_FIELDS_LIST, Arrays.asList(filteredFields));
-        apiEntity.setMetadata(metadata);
-
-        try {
-            return objectMapper.writeValueAsString(apiEntity);
-        } catch (final Exception e) {
-            LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
-        }
-        return "";
-    }
-
-    @Override
-    public ApiEntity updateWithImportedDefinition(
-        String apiId,
-        String apiDefinitionOrURL,
-        String userId,
-        String organizationId,
-        String environmentId
-    ) {
-        String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
-        try {
-            // Read the whole definition
-            final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
-
-            // regenerate nested IDs in input json node, only if importing on a different API
-            if (!jsonNode.has("id") || !apiId.equals(jsonNode.get("id").asText())) {
-                ((ObjectNode) jsonNode).put("id", apiId);
-                apiDefinition = preprocessApiDefinitionUpdatingIds(jsonNode, environmentId);
-            }
-
-            if (jsonNode.has("pages") && jsonNode.get("pages").isArray()) {
-                ArrayNode pagesDefinition = (ArrayNode) jsonNode.get("pages");
-                checkPagesConsistency(pagesDefinition);
-            }
-
-            if (jsonNode.has("plans") && jsonNode.get("plans").isArray()) {
-                ArrayNode plansDefinition = (ArrayNode) jsonNode.get("plans");
-                checkPlansDefinitionOwnership(plansDefinition, apiId);
-            }
-
-            UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode, environmentId);
-            ApiEntity updatedApiEntity = apiService.update(apiId, importedApi, false);
-            updateApiReferences(updatedApiEntity, jsonNode, organizationId, environmentId, true);
-            return updatedApiEntity;
-        } catch (IOException e) {
-            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
-        }
-    }
-
-    private UpdateApiEntity convertToEntity(String apiDefinition, JsonNode jsonNode, final String environmentId)
+    private UpdateApiEntity convertToEntity(String apiDefinition, ImportApiJsonNode apiJsonNode, final String environmentId)
         throws JsonProcessingException {
         final UpdateApiEntity importedApi = objectMapper
             // because definition could contains other values than the api itself (pages, members)
@@ -308,24 +286,19 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         // Views & Categories
         // Before 3.0.2, API 'categories' were called 'views'. This is for compatibility.
-        final JsonNode viewsDefinition = jsonNode.path("views");
-        if (viewsDefinition != null && viewsDefinition.isArray()) {
-            Set<String> categories = new HashSet<>();
-            for (JsonNode viewNode : viewsDefinition) {
-                categories.add(viewNode.asText());
-            }
+        final List<ImportJsonNode> viewsNodes = apiJsonNode.getViews();
+        if (!viewsNodes.isEmpty()) {
+            Set<String> categories = viewsNodes.stream().map(ImportJsonNode::asText).collect(toSet());
             importedApi.setCategories(categories);
         }
 
         return importedApi;
     }
 
-    private void createPageAndMedia(ApiEntity createdApiEntity, JsonNode jsonNode, String environmentId) throws JsonProcessingException {
-        final JsonNode apiMedia = jsonNode.path("apiMedia");
-        if (apiMedia != null && apiMedia.isArray()) {
-            for (JsonNode media : apiMedia) {
-                mediaService.createWithDefinition(createdApiEntity.getId(), media.toString());
-            }
+    private void createPageAndMedia(ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode, String environmentId)
+        throws JsonProcessingException {
+        for (ImportJsonNode media : apiJsonNode.getMedia()) {
+            mediaService.createWithDefinition(createdApiEntity.getId(), media.toString());
         }
 
         List<PageEntity> search = pageService.search(
@@ -355,17 +328,25 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return apiDefinitionOrURL;
     }
 
-    private void updateApiReferences(
+    private void createOrUpdateApiNestedEntities(
         ApiEntity createdOrUpdatedApiEntity,
-        JsonNode jsonNode,
+        ImportApiJsonNode apiJsonNode,
         String organizationId,
-        String environmentId,
-        // FIXME: This whole method should be split in 2 (creation and update) and this flag should be removed
-        boolean isUpdate
+        String environmentId
     ) throws IOException {
-        // Members
-        final JsonNode membersToImport = jsonNode.path("members");
-        if (membersToImport != null && membersToImport.isArray()) {
+        createOrUpdateMembers(createdOrUpdatedApiEntity, apiJsonNode, organizationId, environmentId);
+        createOrUpdatePages(createdOrUpdatedApiEntity, apiJsonNode, environmentId);
+        createOrUpdatePlans(createdOrUpdatedApiEntity, apiJsonNode, environmentId);
+        createOrUpdateMetadata(createdOrUpdatedApiEntity, apiJsonNode);
+    }
+
+    private void createOrUpdateMembers(
+        ApiEntity createdOrUpdatedApiEntity,
+        ImportApiJsonNode apiJsonNode,
+        String organizationId,
+        String environmentId
+    ) throws JsonProcessingException {
+        if (apiJsonNode.hasMembers()) {
             // get current members of the api
             Set<MemberToImport> membersAlreadyPresent = membershipService
                 .getMembersByReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId())
@@ -376,7 +357,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         return new MemberToImport(
                             userEntity.getSource(),
                             userEntity.getSourceId(),
-                            member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()),
+                            member.getRoles().stream().map(RoleEntity::getId).collect(toList()),
                             null
                         );
                     }
@@ -396,7 +377,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 MemberToImport futurePO = null;
 
                 // upsert members
-                for (final JsonNode memberNode : membersToImport) {
+                for (final ImportJsonNode memberNode : apiJsonNode.getMembers()) {
                     MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
                     String roleToAdd = memberToImport.getRole();
                     List<String> rolesToImport = memberToImport.getRoles();
@@ -505,7 +486,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         UserEntity userEntity = userService.findBySource(futurePO.getSource(), futurePO.getSourceId(), false);
                         List<RoleEntity> roleEntity = null;
                         if (roleUsedInTransfert != null && !roleUsedInTransfert.isEmpty()) {
-                            roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(Collectors.toList());
+                            roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(toList());
                         }
                         membershipService.transferApiOwnership(
                             organizationId,
@@ -518,25 +499,33 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 }
             }
         }
+    }
 
-        //Pages
-        final JsonNode pagesDefinition = jsonNode.path("pages");
-        if (pagesDefinition != null && pagesDefinition.isArray()) {
-            List<PageEntity> pagesList = objectMapper.readValue(
-                pagesDefinition.toString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
-            );
-            pageService.createOrUpdatePages(pagesList, environmentId, createdOrUpdatedApiEntity.getId());
+    private void createOrUpdateMetadata(ApiEntity createdOrUpdatedApiEntity, ImportApiJsonNode apiJsonNode) {
+        try {
+            for (ImportJsonNode metadataNode : apiJsonNode.getMetadata()) {
+                UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(
+                    metadataNode.toString(),
+                    UpdateApiMetadataEntity.class
+                );
+                updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
+                apiMetadataService.update(updateApiMetadataEntity);
+            }
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while creating API metadata", ex);
+            throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
         }
+    }
 
-        //Plans
-        final JsonNode plansDefinition = jsonNode.path("plans");
-        if (plansDefinition != null && plansDefinition.isArray()) {
-            Map<String, PlanEntity> existingPlans = isUpdate
-                ? planService.findByApi(createdOrUpdatedApiEntity.getId()).stream().collect(toMap(PlanEntity::getId, plan -> plan))
-                : Collections.emptyMap();
+    private void createOrUpdatePlans(ApiEntity createdOrUpdatedApiEntity, ImportApiJsonNode apiJsonNode, String environmentId)
+        throws IOException {
+        if (apiJsonNode.hasPlans()) {
+            Map<String, PlanEntity> existingPlans = planService
+                .findByApi(createdOrUpdatedApiEntity.getId())
+                .stream()
+                .collect(toMap(PlanEntity::getId, plan -> plan));
 
-            List<PlanEntity> plansToImport = readPlansToImportFromDefinition(plansDefinition, existingPlans);
+            List<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
 
             findRemovedPlansIds(existingPlans.values(), plansToImport).forEach(planService::delete);
 
@@ -547,22 +536,16 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 }
             );
         }
-        // Metadata
-        final JsonNode metadataDefinition = jsonNode.path("metadata");
-        if (metadataDefinition != null && metadataDefinition.isArray()) {
-            try {
-                for (JsonNode metadataNode : metadataDefinition) {
-                    UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(
-                        metadataNode.toString(),
-                        UpdateApiMetadataEntity.class
-                    );
-                    updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
-                    apiMetadataService.update(updateApiMetadataEntity);
-                }
-            } catch (Exception ex) {
-                LOGGER.error("An error occurs while creating API metadata", ex);
-                throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
-            }
+    }
+
+    private void createOrUpdatePages(ApiEntity createdOrUpdatedApiEntity, ImportApiJsonNode apiJsonNode, String environmentId)
+        throws JsonProcessingException {
+        if (apiJsonNode.hasPages()) {
+            List<PageEntity> pagesList = objectMapper.readValue(
+                apiJsonNode.getPages().toString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
+            );
+            pageService.createOrUpdatePages(pagesList, environmentId, createdOrUpdatedApiEntity.getId());
         }
     }
 
@@ -633,79 +616,202 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    protected String preprocessApiDefinitionUpdatingIds(JsonNode apiJsonNode, String environmentId) {
-        final JsonNode plansDefinition = apiJsonNode.path("plans");
-        if (plansDefinition != null && plansDefinition.isArray()) {
-            plansDefinition.forEach(planJsonNode -> regeneratePlanId(apiJsonNode, planJsonNode, environmentId));
-        }
-
-        final JsonNode pagesDefinition = apiJsonNode.path("pages");
-        if (pagesDefinition != null && pagesDefinition.isArray()) {
-            regeneratePageIds(apiJsonNode, (ArrayNode) pagesDefinition, environmentId);
-        }
-
-        return apiJsonNode.toString();
-    }
-
-    private void regeneratePlanId(JsonNode apiJsonNode, JsonNode planJsonNode, String environmentId) {
-        String apiId = apiJsonNode.has("id") ? apiJsonNode.get("id").asText() : null;
-        String planId = planJsonNode.has("id") ? planJsonNode.get("id").asText() : null;
-        ((ObjectNode) planJsonNode).put("id", UuidString.generateForEnvironment(environmentId, apiId, planId));
-    }
-
-    private void regeneratePageIds(JsonNode apiJsonNode, ArrayNode pagesNode, String environmentId) {
-        String apiId = apiJsonNode.hasNonNull("id") ? apiJsonNode.get("id").asText() : null;
-        pagesNode.forEach(
-            pageNode -> {
-                String pageId = pageNode.hasNonNull("id") ? pageNode.get("id").asText() : null;
-                String newPageId = UuidString.generateForEnvironment(environmentId, apiId, pageId);
-                ((ObjectNode) pageNode).put("id", newPageId);
-                pagesNode.forEach(
-                    childNode -> {
-                        if (childNode.hasNonNull("parentId") && childNode.get("parentId").asText().equals(pageId)) {
-                            ((ObjectNode) childNode).put("parentId", newPageId);
-                        }
-                    }
-                );
-            }
-        );
-    }
-
     private Stream<String> findRemovedPlansIds(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
         return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan)).map(plan -> plan.getId());
     }
 
-    private List<PlanEntity> readPlansToImportFromDefinition(JsonNode plansDefinition, Map<String, PlanEntity> existingPlans)
+    private List<PlanEntity> readPlansToImportFromDefinition(ImportApiJsonNode apiJsonNode, Map<String, PlanEntity> existingPlans)
         throws IOException {
         List<PlanEntity> plansToImport = new ArrayList<>();
-        for (Iterator<JsonNode> it = plansDefinition.elements(); it.hasNext();) {
-            JsonNode planDefinition = it.next();
-            PlanEntity existingPlan = planDefinition.has("id") ? existingPlans.get(planDefinition.get("id").asText()) : null;
+        for (ImportJsonNodeWithIds planNode : apiJsonNode.getPlans()) {
+            PlanEntity existingPlan = planNode.hasId() ? existingPlans.get(planNode.getId()) : null;
             if (existingPlan != null) {
-                plansToImport.add(objectMapper.readerForUpdating(existingPlan).readValue(planDefinition));
+                plansToImport.add(objectMapper.readerForUpdating(existingPlan).readValue(planNode.getJsonNode()));
             } else {
-                plansToImport.add(objectMapper.readValue(planDefinition.toString(), PlanEntity.class));
+                plansToImport.add(objectMapper.readValue(planNode.toString(), PlanEntity.class));
             }
         }
         return plansToImport;
     }
 
-    private void checkPlansDefinitionOwnership(ArrayNode plansDefinition, String apiId) {
-        List<String> planIds = plansDefinition.findValuesAsText("id");
-        if (planService.anyPlanMismatchWithApi(planIds, apiId)) {
-            throw new TechnicalManagementException("Some inconsistencies were found in the API plans definition");
+    private void checkApiJsonConsistency(ImportApiJsonNode apiJsonNode, String urlApiId, String environmentId) {
+        if (!urlApiId.equals(apiJsonNode.getId())) {
+            throw new ApiImportException(
+                String.format(
+                    "Can't update API [%s] cause crossId [%s] already belongs to another API in environment [%s]",
+                    urlApiId,
+                    apiJsonNode.getCrossId(),
+                    environmentId
+                )
+            );
+        }
+        checkApiJsonConsistency(apiJsonNode);
+    }
+
+    private void checkApiJsonConsistency(ImportApiJsonNode apiJsonNode) {
+        checkPagesConsistency(apiJsonNode);
+        checkPlansConsistency(apiJsonNode);
+    }
+
+    private void checkPlansConsistency(ImportApiJsonNode apiJsonNode) {
+        if (apiJsonNode.hasPlans()) {
+            List<String> planIds = apiJsonNode.getPlans().stream().map(ImportJsonNodeWithIds::getId).collect(toList());
+            if (planService.anyPlanMismatchWithApi(planIds, apiJsonNode.getId())) {
+                throw new ApiImportException("Some inconsistencies were found in the API plans definition");
+            }
         }
     }
 
-    private void checkPagesConsistency(ArrayNode pagesDefinition) {
-        long systemFoldersCount = pagesDefinition
-            .findValuesAsText("type")
-            .stream()
-            .filter(type -> PageType.SYSTEM_FOLDER.name().equals(type))
-            .count();
+    private void checkPagesConsistency(ImportApiJsonNode apiJsonNode) {
+        if (apiJsonNode.hasPages()) {
+            long systemFoldersCount = apiJsonNode
+                .getPagesArray()
+                .findValuesAsText("type")
+                .stream()
+                .filter(type -> PageType.SYSTEM_FOLDER.name().equals(type))
+                .count();
 
-        if (systemFoldersCount > 1) {
-            throw new PageImportException("Only one system folder is allowed in the API pages definition");
+            if (systemFoldersCount > 1) {
+                throw new ApiImportException("Only one system folder is allowed in the API pages definition");
+            }
         }
+    }
+
+    public ImportApiJsonNode recalculateApiDefinitionIds(ImportApiJsonNode apiJsonNode, String environmentId) {
+        return recalculateApiDefinitionIds(apiJsonNode, environmentId, null);
+    }
+
+    /*
+     * If the API definition is imported from another environment we need to match the targeted
+     * entities (API, plans, pages) from the input IDs.
+     *
+     * If the API definition holds a cross ID, the entities will be matched using this unique ID.
+     *
+     * If the API definition does not hold a cross ID, the matching entity IDs will be matched using
+     * a predictable ID generation based on the target environment ID, the source API ID and the source entity ID
+     */
+    public ImportApiJsonNode recalculateApiDefinitionIds(ImportApiJsonNode apiJsonNode, String environmentId, String urlApiId) {
+        /*
+         * In case of an update, if the API definition ID is the same as the resource ID targeted by the update,
+         * we don't apply any kind of ID transformation so that we don't break previous exports that don't hold
+         * a cross ID
+         */
+        if (apiJsonNode.hasId() && apiJsonNode.getId().equals(urlApiId)) {
+            return generateEmptyIds(apiJsonNode);
+        }
+
+        findApiByEnvironmentAndCrossId(environmentId, apiJsonNode.getCrossId())
+            .ifPresentOrElse(
+                api -> recalculateIdsFromCrossId(apiJsonNode, api),
+                () -> recalculateIdsFromDefinitionIds(environmentId, apiJsonNode, urlApiId)
+            );
+
+        return generateEmptyIds(apiJsonNode);
+    }
+
+    private Optional<ApiEntity> findApiByEnvironmentAndCrossId(String environmentId, String crossId) {
+        return crossId == null ? Optional.empty() : apiService.findByEnvironmentIdAndCrossId(environmentId, crossId);
+    }
+
+    private void recalculateIdsFromCrossId(ImportApiJsonNode apiJsonNode, ApiEntity api) {
+        apiJsonNode.setId(api.getId());
+        recalculatePlanIdsFromCrossIds(api, apiJsonNode.getPlans());
+        recalculatePageIdsFromCrossIds(api, apiJsonNode.getPages());
+    }
+
+    private void recalculatePlanIdsFromCrossIds(ApiEntity api, List<ImportJsonNodeWithIds> plansNodes) {
+        Map<String, PlanEntity> plansByCrossId = planService
+            .findByApi(api.getId())
+            .stream()
+            .filter(plan -> plan.getCrossId() != null)
+            .collect(toMap(PlanEntity::getCrossId, Function.identity()));
+
+        plansNodes
+            .stream()
+            .filter(ImportJsonNodeWithIds::hasCrossId)
+            .forEach(
+                plan -> {
+                    PlanEntity matchingPlan = plansByCrossId.get(plan.getCrossId());
+                    plan.setApi(api.getId());
+                    plan.setId(matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
+                }
+            );
+    }
+
+    private void recalculatePageIdsFromCrossIds(ApiEntity api, List<ImportJsonNodeWithIds> pagesNodes) {
+        Map<String, PageEntity> pagesByCrossId = pageService
+            .findByApi(api.getId())
+            .stream()
+            .filter(page -> page.getCrossId() != null)
+            .collect(toMap(PageEntity::getCrossId, Function.identity()));
+
+        pagesNodes
+            .stream()
+            .filter(ImportJsonNodeWithIds::hasCrossId)
+            .forEach(
+                page -> {
+                    String pageId = page.hasId() ? page.getId() : null;
+                    PageEntity matchingPage = pagesByCrossId.get(page.getCrossId());
+                    page.setApi(api.getId());
+                    if (matchingPage != null) {
+                        page.setId(matchingPage.getId());
+                        updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
+                    } else {
+                        String newPageId = UuidString.generateRandom();
+                        page.setId(newPageId);
+                        updatePagesHierarchy(pagesNodes, pageId, newPageId);
+                    }
+                }
+            );
+    }
+
+    private void recalculateIdsFromDefinitionIds(String environmentId, ImportApiJsonNode apiJsonNode, String urlApiId) {
+        String targetApiId = urlApiId == null ? UuidString.generateForEnvironment(environmentId, apiJsonNode.getId()) : urlApiId;
+        apiJsonNode.setId(targetApiId);
+        recalculatePlanIdsFromDefinitionIds(apiJsonNode.getPlans(), environmentId, targetApiId);
+        recalculatePageIdsFromDefinitionIds(apiJsonNode.getPages(), environmentId, targetApiId);
+    }
+
+    private void recalculatePlanIdsFromDefinitionIds(List<ImportJsonNodeWithIds> plansNodes, String environmentId, String apiId) {
+        plansNodes
+            .stream()
+            .filter(ImportJsonNodeWithIds::hasId)
+            .forEach(
+                plan -> {
+                    plan.setId(UuidString.generateForEnvironment(environmentId, apiId, plan.getId()));
+                    plan.setApi(apiId);
+                }
+            );
+    }
+
+    private void recalculatePageIdsFromDefinitionIds(List<ImportJsonNodeWithIds> pagesNodes, String environmentId, String apiId) {
+        pagesNodes
+            .stream()
+            .filter(ImportJsonNodeWithIds::hasId)
+            .forEach(
+                page -> {
+                    String pageId = page.getId();
+                    String generatedPageId = UuidString.generateForEnvironment(environmentId, apiId, pageId);
+                    page.setId(generatedPageId);
+                    page.setApi(apiId);
+                    updatePagesHierarchy(pagesNodes, pageId, generatedPageId);
+                }
+            );
+    }
+
+    private void updatePagesHierarchy(List<ImportJsonNodeWithIds> pagesNodes, String parentId, String newParentId) {
+        pagesNodes.stream().filter(child -> isChildPageOf(child, parentId)).forEach(child -> child.setParentId(newParentId));
+    }
+
+    private boolean isChildPageOf(ImportJsonNodeWithIds pageNode, String parentPageId) {
+        return pageNode.hasParentId() && pageNode.getParentId().equals(parentPageId);
+    }
+
+    private ImportApiJsonNode generateEmptyIds(ImportApiJsonNode apiJsonNode) {
+        Stream
+            .concat(apiJsonNode.getPlans().stream(), apiJsonNode.getPages().stream())
+            .filter(node -> !node.hasId())
+            .forEach(node -> node.setId(UuidString.generateRandom()));
+        return apiJsonNode;
     }
 }

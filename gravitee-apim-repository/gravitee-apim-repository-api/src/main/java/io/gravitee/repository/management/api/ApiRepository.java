@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -55,4 +56,6 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria);
 
     Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException;
+
+    Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException;
 }

@@ -18,9 +18,9 @@ package io.gravitee.rest.api.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 import java.util.Map;
 
-public class PageImportException extends AbstractManagementException {
+public class ApiImportException extends AbstractManagementException {
 
-    public PageImportException(String message) {
+    public ApiImportException(String message) {
         super(message);
     }
 
@@ -31,7 +31,7 @@ public class PageImportException extends AbstractManagementException {
 
     @Override
     public String getTechnicalCode() {
-        return "page.invalid.import.definition";
+        return "invalid.import.definition";
     }
 
     @Override

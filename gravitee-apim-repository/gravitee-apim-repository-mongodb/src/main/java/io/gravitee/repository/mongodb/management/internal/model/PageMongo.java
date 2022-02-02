@@ -32,6 +32,12 @@ public class PageMongo extends Auditable {
     @Id
     private String id;
 
+    /**
+     * The page crossId uniquely identifies a page across environments.
+     * Pages promoted between environments will share the same crossId.
+     */
+    private String crossId;
+
     private String referenceId;
     private String referenceType;
     private String name;
@@ -212,6 +218,14 @@ public class PageMongo extends Auditable {
         this.visibility = visibility;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -231,6 +245,9 @@ public class PageMongo extends Auditable {
             "PageMongo{" +
             "id='" +
             id +
+            '\'' +
+            ", crossId='" +
+            crossId +
             '\'' +
             ", referenceId='" +
             referenceId +
