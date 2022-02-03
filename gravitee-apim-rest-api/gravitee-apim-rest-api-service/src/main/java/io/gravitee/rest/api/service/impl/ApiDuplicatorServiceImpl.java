@@ -684,7 +684,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             return generateEmptyIds(apiJsonNode);
         }
 
-        findByEnvironmentAndCrossId(environmentId, apiJsonNode.getCrossId())
+        findApiByEnvironmentAndCrossId(environmentId, apiJsonNode.getCrossId())
           .ifPresentOrElse(
             api -> recalculateIdsFromCrossId(apiJsonNode, api),
             () -> recalculateIdsFromDefinitionIds(environmentId, apiJsonNode)
@@ -693,7 +693,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return generateEmptyIds(apiJsonNode);
     }
 
-    private Optional<ApiEntity> findByEnvironmentAndCrossId(String environmentId, String crossId) {
+    private Optional<ApiEntity> findApiByEnvironmentAndCrossId(String environmentId, String crossId) {
         return crossId == null ? Optional.empty() : apiService.findByEnvironmentIdAndCrossId(environmentId, crossId);
     }
 
