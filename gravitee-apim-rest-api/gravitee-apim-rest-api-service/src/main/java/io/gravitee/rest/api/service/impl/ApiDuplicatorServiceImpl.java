@@ -703,7 +703,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         findApiByEnvironmentAndCrossId(environmentId, apiJsonNode.getCrossId())
             .ifPresentOrElse(
                 api -> recalculateIdsFromCrossId(apiJsonNode, api),
-                () -> recalculateIdsFromDefinitionIds(environmentId, apiJsonNode)
+                () -> recalculateIdsFromDefinitionIds(environmentId, apiJsonNode, urlApiId)
             );
 
         return generateEmptyIds(apiJsonNode);
@@ -765,15 +765,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             );
     }
 
-    private void recalculateIdsFromDefinitionIds(String environmentId, ImportApiJsonNode apiJsonNode) {
-        if (!apiJsonNode.hasId()) {
-            apiJsonNode.setId(UuidString.generateRandom());
-        }
-        String apiId = apiJsonNode.getId();
-        String generatedApiId = UuidString.generateForEnvironment(environmentId, apiId);
-        apiJsonNode.setId(generatedApiId);
-        recalculatePlanIdsFromDefinitionIds(apiJsonNode.getPlans(), environmentId, apiId);
-        recalculatePageIdsFromDefinitionIds(apiJsonNode.getPages(), environmentId, apiId);
+    private void recalculateIdsFromDefinitionIds(String environmentId, ImportApiJsonNode apiJsonNode, String urlApiId) {
+        String sourceApiId = apiJsonNode.hasId() ? apiJsonNode.getId() : UuidString.generateRandom();
+        String targetApiId = urlApiId != null ? urlApiId : UuidString.generateForEnvironment(environmentId, sourceApiId);
+        apiJsonNode.setId(targetApiId);
+        recalculatePlanIdsFromDefinitionIds(apiJsonNode.getPlans(), environmentId, targetApiId);
+        recalculatePageIdsFromDefinitionIds(apiJsonNode.getPages(), environmentId, targetApiId);
     }
 
     private void recalculatePlanIdsFromDefinitionIds(List<ImportJsonNodeWithIds> plansNodes, String environmentId, String apiId) {

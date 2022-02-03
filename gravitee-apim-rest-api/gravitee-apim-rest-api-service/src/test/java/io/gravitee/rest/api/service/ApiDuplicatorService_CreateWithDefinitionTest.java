@@ -444,8 +444,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        String plan1newId = "b1761e88-e346-34f5-ac63-f0ba0ccf8869";
-        String plan2newId = "14ad0cbe-fbaa-3161-acb0-add9b500fc03";
+        String plan1newId = "310f7dd5-71b9-3bdd-b74d-4b76bc71c5b1";
+        String plan2newId = "ed7bef56-b9ec-3c0a-9d21-02e046df429c";
 
         // check createWithApiDefinition has been called with newly generated plans IDs in API's definition
         verify(apiService, times(1))

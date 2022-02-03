@@ -85,8 +85,8 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "uat");
 
         assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.getId());
-        assertEquals("393ed51c-285d-3097-82eb-2bff2903dc62", newApiDefinition.getPlans().get(0).getId());
-        assertEquals("bff87514-39d4-331b-a531-73c021ecf627", newApiDefinition.getPlans().get(1).getId());
+        assertEquals("3ce45391-1777-3424-b4cb-2811b1281cea", newApiDefinition.getPlans().get(0).getId());
+        assertEquals("ecc775e1-2793-30b6-8668-251910d63563", newApiDefinition.getPlans().get(1).getId());
     }
 
     @Test
@@ -106,8 +106,8 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "uat");
 
         assertEquals("6bcde800-d5ae-3215-8413-cae196f9edfc", newApiDefinition.getId());
-        assertEquals("5025bd5d-b1a5-35f5-813b-65bb902aa4e7", newApiDefinition.getPlans().get(0).getId());
-        assertEquals("a4c0e8d8-ea8b-341b-9f7f-3ed456e77689", newApiDefinition.getPlans().get(1).getId());
+        assertEquals("9e0bf9bc-137b-39d3-9e6a-3de94ac3788c", newApiDefinition.getPlans().get(0).getId());
+        assertEquals("8484a510-1b6d-3a40-a5fe-228f54f7727c", newApiDefinition.getPlans().get(1).getId());
     }
 
     @Test
@@ -212,11 +212,11 @@ public class ApiDuplicatorServiceImplTest {
         assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.getId());
         assertEquals(3, newApiDefinition.getPages().size());
         List<ImportJsonNodeWithIds> pages = newApiDefinition.getPages();
-        assertEquals("cbcf3a8b-ebe3-3bff-aed6-4235201f4851", pages.get(0).getId());
-        assertEquals("1563e196-37f7-3500-adb4-65d2efe15feb", pages.get(1).getId());
-        assertEquals("cbcf3a8b-ebe3-3bff-aed6-4235201f4851", pages.get(1).getParentId());
-        assertEquals("91c32be3-e15c-392c-94f2-a509ec3ba69a", pages.get(2).getId());
-        assertEquals("1563e196-37f7-3500-adb4-65d2efe15feb", pages.get(2).getParentId());
+        assertEquals("dfe1ae59-6f5f-330d-8ba0-f90d82f3e104", pages.get(0).getId());
+        assertEquals("74d13d70-6b3c-33ba-80a2-329848a0ad5f", pages.get(1).getId());
+        assertEquals("dfe1ae59-6f5f-330d-8ba0-f90d82f3e104", pages.get(1).getParentId());
+        assertEquals("7c16f23b-74d7-3465-84ea-8f67a5032637", pages.get(2).getId());
+        assertEquals("74d13d70-6b3c-33ba-80a2-329848a0ad5f", pages.get(2).getParentId());
     }
 
     @Test
@@ -289,9 +289,9 @@ public class ApiDuplicatorServiceImplTest {
         );
 
         assertEquals("ed5fbfe2-9cab-3306-9e51-24721d5b6e82", newApiDefinition.getId());
-        assertEquals("de653244-912e-384e-a60d-9f8625f18c81", newApiDefinition.getPlans().get(0).getId());
+        assertEquals("cfc4cdf3-7ba7-387f-ac18-d846ce8b141c", newApiDefinition.getPlans().get(0).getId());
         assertTrue(isNotEmpty(newApiDefinition.getPlans().get(1).getId()));
-        assertEquals("943a8642-c5c1-336e-b6c9-44ea4ff7e1f9", newApiDefinition.getPages().get(0).getId());
+        assertEquals("7cfb0e92-2f22-35a6-b565-e38d45ac0de5", newApiDefinition.getPages().get(0).getId());
         assertTrue(isNotEmpty(newApiDefinition.getPages().get(1).getId()));
         assertEquals("no-id", newApiDefinition.getPages().get(1).getJsonNode().get("name").asText());
     }
