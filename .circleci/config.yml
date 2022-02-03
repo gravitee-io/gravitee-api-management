@@ -20,6 +20,16 @@ executors:
         resource_class: << parameters.class >>
 
 commands:
+    prepare-env-var:
+        description: Prepare env variables used in [version.properties] files
+        steps:
+            - run:
+                name: Prepare env variables
+                command: |
+                    export BUILD_ID=${CIRCLE_BUILD_NUM}
+                    export BUILD_NUMBER=${CIRCLE_BUILD_NUM}
+                    export GIT_COMMIT=$(git rev-parse --short HEAD)
+
     restore-maven-cache:
         description: Restore Maven cache
         steps:
@@ -772,13 +782,10 @@ jobs:
                       # Remove `-SNAPSHOT` from versions
                       mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
             - prepare-gpg
+            - prepare-env-var
             - run:
-                  name: Prepare env variables used in [version.properties] files and Maven deploy to Gravitee's private Artifactory"
+                  name: Maven deploy to Gravitee's private Artifactory"
                   command: |
-                      export BUILD_ID=${CIRCLE_BUILD_NUM}
-                      export BUILD_NUMBER=${CIRCLE_BUILD_NUM}
-                      export GIT_COMMIT=$(git rev-parse --short HEAD)
-
                       echo "  MAVEN_PROFILE_ID=[${MAVEN_PROFILE_ID}]  "
                       mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation
             - run:
