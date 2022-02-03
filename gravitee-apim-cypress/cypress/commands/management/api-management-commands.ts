@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Api, ApiErrorCodes, ApiLifecycleState, ApiMember, PortalApi, UpdateApiEntity } from '@model/apis';
+import { Api, ApiLifecycleState, ApiMember, UpdateApiEntity } from '@model/apis';
 import { ApiImport } from '@model/api-imports';
 import { BasicAuthentication } from '@model/users';
 import { ProcessSubscriptionEntity } from '@model/api-subscriptions';
+import { API_PUBLISHER_USER } from '@fakers/users/users';
+import { ApiImportFakers } from '@fakers/api-imports';
+import { PolicyFakers } from '@fakers/policies';
+import { ResourceFakers } from '@fakers/resources';
+import { Step, PlanSecurityType } from '@model/plan';
 
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({
