@@ -483,6 +483,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 )
             );
 
+        // check find plans by API has been called once to remove potential pre-existing plans on target API
+        verify(planService, times(1)).findByApi("id-api");
         // check planService has been called twice to create 2 plans, with same IDs as API definition
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals(plan1newId)), any(String.class));
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals(plan2newId)), any(String.class));

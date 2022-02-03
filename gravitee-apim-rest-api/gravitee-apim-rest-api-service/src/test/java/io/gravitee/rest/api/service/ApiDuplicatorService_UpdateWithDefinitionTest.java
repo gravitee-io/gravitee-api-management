@@ -152,7 +152,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
+        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
@@ -233,7 +233,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 user.getId(),
                 "API_OWNER"
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -244,7 +244,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         apiEntity.setId(API_ID);
         apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
-        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
+        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -330,7 +330,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 user.getId(),
                 "API_OWNER"
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -376,7 +376,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -421,7 +421,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -433,7 +433,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
+        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -462,7 +462,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 any(),
                 any()
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -474,7 +474,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
+        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -496,7 +496,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
                 any(),
                 any()
             );
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -525,7 +525,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         plan4.setId("plan-id4");
 
         when(planService.findByApi(apiEntity.getId())).thenReturn(Set.of(plan1, plan2, plan3, plan4));
-        when(apiService.findByEnvironmentIdAndCrossId("DEFAULT", "api-cross-id")).thenReturn(Optional.of(apiEntity));
 
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
@@ -535,7 +534,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        verify(planService, times(2)).findByApi(apiEntity.getId());
+        verify(planService, times(1)).findByApi(apiEntity.getId());
         // plan1, plan2 and plan4 has to be created or updated
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id1")), eq("DEFAULT"));
         verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id2")), eq("DEFAULT"));
@@ -547,7 +546,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         verifyNoMoreInteractions(planService);
 
-        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, times(1)).update(eq(API_ID), any());
         verify(apiService, never()).create(any(), any());
     }
 
@@ -559,8 +558,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         UserEntity user = new UserEntity();
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
         apiEntity.setCrossId("api-cross-id");
-
-        when(apiService.findByEnvironmentIdAndCrossId("DEFAULT", "api-cross-id")).thenReturn(Optional.of(apiEntity));
 
         // plan1 had a description and a name before import
         // imported definition contains a new name, but doesn't specify any description
@@ -604,10 +601,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         PlanEntity apiPlan = new PlanEntity();
         apiPlan.setId("plan-id1");
         apiPlan.setCrossId("plan-cross-id-1");
-
-        when(apiService.findByEnvironmentIdAndCrossId("DEFAULT", "api-cross-id")).thenReturn(Optional.of(api));
-        when(planService.findByApi("id-api")).thenReturn(Set.of(apiPlan));
-
+        
         when(planService.anyPlanMismatchWithApi(anyList(), eq("id-api"))).thenReturn(true);
 
         apiDuplicatorService.updateWithImportedDefinition(
