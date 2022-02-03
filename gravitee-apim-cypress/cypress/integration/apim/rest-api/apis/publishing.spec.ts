@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER, API_PUBLISHER_USER, APPLICATION_USER, LOW_PERMISSION_USER } from 'fixtures/fakers/users/users';
-import { ApiFakers } from 'fixtures/fakers/apis';
-import { Api, ApiErrorCodes, ApiLifecycleState, ApiMember, ApiVisibility, PortalApi } from 'model/apis';
-import { CollectionResponse, PortalError } from 'model/technical';
-import { User } from 'model/users';
-import { ApiAssertions, PortalApiAssertions } from 'assertions/api.assertion';
+import { ADMIN_USER, API_PUBLISHER_USER, APPLICATION_USER, LOW_PERMISSION_USER } from '@fakers/users/users';
+import { ApiFakers } from '@fakers/apis';
+import { Api, ApiErrorCodes, ApiLifecycleState, PortalApi } from '@model/apis';
+import { CollectionResponse, PortalError } from '@model/technical';
+import { PortalApiAssertions, ApiAssertions } from 'assertions/api.assertion';
 import { ErrorAssertions } from 'assertions/error.assertion';
-import { gio } from 'commands/gravitee.commands';
+import { gio } from '@commands/gravitee.commands';
 
-context('API - Visibility', () => {
-  describe('Private', () => {
+context('API - Publishing', () => {
+  describe('Not published', () => {
     let createdApi: Api;
-    let lowPermissionUser: User;
 
     describe('Prepare', () => {
       it('Should create an API', () => {
         const fakeApi: Api = ApiFakers.api();
+
         gio
           .management(API_PUBLISHER_USER)
           .apis()
@@ -42,55 +41,6 @@ context('API - Visibility', () => {
             createdApi = response.body;
             cy.log('Created api id:', createdApi.id);
           });
-      });
-
-      it('Should publish the API', () => {
-        const apiToPublish = {
-          ...createdApi,
-          lifecycle_state: ApiLifecycleState.PUBLISHED,
-        };
-        delete apiToPublish.id;
-        delete apiToPublish.state;
-        delete apiToPublish.created_at;
-        delete apiToPublish.updated_at;
-        delete apiToPublish.owner;
-        delete apiToPublish.contextPath;
-
-        gio
-          .management(API_PUBLISHER_USER)
-          .apis()
-          .update(createdApi.id, apiToPublish)
-          .ok()
-          .should((response) => {
-            ApiAssertions.assertThat(response).hasBeenPublished(apiToPublish);
-          })
-          .then((response) => {
-            createdApi = response.body;
-            cy.log('Created api id:', createdApi.id);
-          });
-      });
-
-      it('Should get LOW_PERMISSION user', () => {
-        gio
-          .management(API_PUBLISHER_USER)
-          .users()
-          .searchUser('user')
-          .ok()
-          .should((response) => {
-            const users = response.body;
-            const lowPermUserFromResponse = users.find((u) => u.displayName === 'user');
-
-            expect(lowPermUserFromResponse).to.be.exist;
-            lowPermissionUser = lowPermUserFromResponse;
-          });
-      });
-
-      it('Should add LOW_PERMISSION user as member of the API', () => {
-        const memberToAdd: ApiMember = {
-          ...lowPermissionUser,
-          role: 'USER',
-        };
-        gio.management(API_PUBLISHER_USER).apis().addMemberToApi(createdApi.id, memberToAdd).created();
       });
     });
 
@@ -145,7 +95,7 @@ context('API - Visibility', () => {
     });
 
     describe('As API_PUBLISHER user', () => {
-      it('Get APIs should contain created api', () => {
+      it('Get APIs should not contain created api', () => {
         gio
           .portal(API_PUBLISHER_USER)
           .apis()
@@ -153,18 +103,18 @@ context('API - Visibility', () => {
           .ok()
           .should((response) => {
             let apiIds = response.body.data.map((api) => api.id);
-            expect(apiIds).to.contain(createdApi.id);
+            expect(apiIds).to.not.contain(createdApi.id);
           });
       });
 
-      it('Should get API', () => {
+      it('Get API should return 404 - Not Found', () => {
         gio
           .portal(API_PUBLISHER_USER)
           .apis()
-          .getApiById<PortalApi>(createdApi.id)
-          .ok()
+          .getApiById<PortalError>(createdApi.id)
+          .notFound()
           .should((response) => {
-            PortalApiAssertions.assertThat(response).hasId(createdApi.id).isNotRunning().isNotPublic().isNotDraft();
+            ErrorAssertions.assertThat(response).containsMessage(createdApi.id).containsCode(ApiErrorCodes.API_NOT_FOUND);
           });
       });
     });
@@ -195,7 +145,7 @@ context('API - Visibility', () => {
     });
 
     describe('As LOW_PERMISSION user', () => {
-      it('Get APIs should contain created api', () => {
+      it('Get APIs should not contain created api', () => {
         gio
           .portal(LOW_PERMISSION_USER)
           .apis()
@@ -203,18 +153,18 @@ context('API - Visibility', () => {
           .ok()
           .should((response) => {
             let apiIds = response.body.data.map((api) => api.id);
-            expect(apiIds).to.contain(createdApi.id);
+            expect(apiIds).to.not.contain(createdApi.id);
           });
       });
 
-      it('Should get API', () => {
+      it('Get API should return 404 - Not Found', () => {
         gio
           .portal(LOW_PERMISSION_USER)
           .apis()
-          .getApiById<PortalApi>(createdApi.id)
-          .ok()
+          .getApiById<PortalError>(createdApi.id)
+          .notFound()
           .should((response) => {
-            PortalApiAssertions.assertThat(response).hasId(createdApi.id).isNotRunning().isNotPublic().isNotDraft();
+            ErrorAssertions.assertThat(response).containsMessage(createdApi.id).containsCode(ApiErrorCodes.API_NOT_FOUND);
           });
       });
     });
@@ -226,9 +176,8 @@ context('API - Visibility', () => {
     });
   });
 
-  describe('Public', () => {
+  describe('Published', () => {
     let createdApi: Api;
-    let lowPermissionUser: User;
 
     describe('Prepare', () => {
       it('Should create an API', () => {
@@ -247,7 +196,7 @@ context('API - Visibility', () => {
           });
       });
 
-      it('Should publish the API', () => {
+      it('Publish the API', () => {
         const apiToPublish = {
           ...createdApi,
           lifecycle_state: ApiLifecycleState.PUBLISHED,
@@ -269,105 +218,56 @@ context('API - Visibility', () => {
           })
           .then((response) => {
             createdApi = response.body;
-            cy.log('Created api id:', createdApi.id);
-          });
-      });
-
-      it('Should get LOW_PERMISSION user', () => {
-        gio
-          .management(API_PUBLISHER_USER)
-          .users()
-          .searchUser('user')
-          .ok()
-          .should((response) => {
-            const users = response.body;
-            const lowPermUserFromResponse = users.find((u) => u.displayName === 'user');
-
-            expect(lowPermUserFromResponse).to.be.exist;
-            lowPermissionUser = lowPermUserFromResponse;
-          });
-      });
-
-      it('Should add LOW_PERMISSION user as member of the API', () => {
-        const memberToAdd: ApiMember = {
-          ...lowPermissionUser,
-          role: 'USER',
-        };
-        gio.management(API_PUBLISHER_USER).apis().addMemberToApi(createdApi.id, memberToAdd).created();
-      });
-
-      it('Should make the API public', () => {
-        const apiToMakePublic: Api = {
-          ...createdApi,
-          visibility: ApiVisibility.PUBLIC,
-        };
-        delete apiToMakePublic.id;
-        delete apiToMakePublic.state;
-        delete apiToMakePublic.created_at;
-        delete apiToMakePublic.updated_at;
-        delete apiToMakePublic.owner;
-        delete apiToMakePublic.contextPath;
-
-        gio
-          .management(API_PUBLISHER_USER)
-          .apis()
-          .update(createdApi.id, apiToMakePublic)
-          .ok()
-          .should((response) => {
-            ApiAssertions.assertThat(response).hasId(apiToMakePublic.id).hasVisibility(ApiVisibility.PUBLIC);
-          })
-          .then((response) => {
-            createdApi = response.body;
           });
       });
     });
 
     describe('As ANONYMOUS user', () => {
-      it('Get APIs should contain created api', () => {
+      it('Get APIs should not contain created api', () => {
         gio
-          .portal(API_PUBLISHER_USER)
+          .portal()
           .apis()
           .getAll<CollectionResponse<PortalApi>>()
           .ok()
           .should((response) => {
             let apiIds = response.body.data.map((api) => api.id);
-            expect(apiIds).to.contain(createdApi.id);
+            expect(apiIds).to.not.contain(createdApi.id);
           });
       });
 
-      it('Should get API', () => {
+      it('Get API should return 404 - Not Found', () => {
         gio
-          .portal(API_PUBLISHER_USER)
+          .portal()
           .apis()
-          .getApiById<PortalApi>(createdApi.id)
-          .ok()
+          .getApiById<PortalError>(createdApi.id)
+          .notFound()
           .should((response) => {
-            PortalApiAssertions.assertThat(response).hasId(createdApi.id).isNotRunning().isPublic().isNotDraft();
+            ErrorAssertions.assertThat(response).containsMessage(createdApi.id).containsCode(ApiErrorCodes.API_NOT_FOUND);
           });
       });
     });
 
     describe('As ADMIN user', () => {
-      it('Get APIs should contain created api', () => {
+      it('Get APIs should not contain created api', () => {
         gio
-          .portal(API_PUBLISHER_USER)
+          .portal(ADMIN_USER)
           .apis()
           .getAll<CollectionResponse<PortalApi>>()
           .ok()
           .should((response) => {
             let apiIds = response.body.data.map((api) => api.id);
-            expect(apiIds).to.contain(createdApi.id);
+            expect(apiIds).to.not.contain(createdApi.id);
           });
       });
 
-      it('Should get API', () => {
+      it('Get API should return 404 - Not Found', () => {
         gio
-          .portal(API_PUBLISHER_USER)
+          .portal(ADMIN_USER)
           .apis()
-          .getApiById<PortalApi>(createdApi.id)
-          .ok()
+          .getApiById<PortalError>(createdApi.id)
+          .notFound()
           .should((response) => {
-            PortalApiAssertions.assertThat(response).hasId(createdApi.id).isNotRunning().isPublic().isNotDraft();
+            ErrorAssertions.assertThat(response).containsMessage(createdApi.id).containsCode(ApiErrorCodes.API_NOT_FOUND);
           });
       });
     });
@@ -392,38 +292,38 @@ context('API - Visibility', () => {
           .getApiById<PortalApi>(createdApi.id)
           .ok()
           .should((response) => {
-            PortalApiAssertions.assertThat(response).hasId(createdApi.id).isNotRunning().isPublic().isNotDraft();
+            PortalApiAssertions.assertThat(response).hasId(createdApi.id).isNotRunning().isNotPublic().isNotDraft();
           });
       });
     });
 
     describe('As APPLICATION user', () => {
-      it('Get APIs should contain created api', () => {
+      it('Get APIs should not contain created api', () => {
         gio
-          .portal(API_PUBLISHER_USER)
+          .portal(APPLICATION_USER)
           .apis()
           .getAll<CollectionResponse<PortalApi>>()
           .ok()
           .should((response) => {
             let apiIds = response.body.data.map((api) => api.id);
-            expect(apiIds).to.contain(createdApi.id);
+            expect(apiIds).to.not.contain(createdApi.id);
           });
       });
 
-      it('Should get API', () => {
+      it('Get API should return 404 - Not Found', () => {
         gio
-          .portal(API_PUBLISHER_USER)
+          .portal(APPLICATION_USER)
           .apis()
-          .getApiById<PortalApi>(createdApi.id)
-          .ok()
+          .getApiById<PortalError>(createdApi.id)
+          .notFound()
           .should((response) => {
-            PortalApiAssertions.assertThat(response).hasId(createdApi.id).isNotRunning().isPublic().isNotDraft();
+            ErrorAssertions.assertThat(response).containsMessage(createdApi.id).containsCode(ApiErrorCodes.API_NOT_FOUND);
           });
       });
     });
 
     describe('As LOW_PERMISSION user', () => {
-      it('Get APIs should contain created api', () => {
+      it('Get APIs should not contain created api', () => {
         gio
           .portal(LOW_PERMISSION_USER)
           .apis()
@@ -431,18 +331,18 @@ context('API - Visibility', () => {
           .ok()
           .should((response) => {
             let apiIds = response.body.data.map((api) => api.id);
-            expect(apiIds).to.contain(createdApi.id);
+            expect(apiIds).to.not.contain(createdApi.id);
           });
       });
 
-      it('Should get API', () => {
+      it('Get API should return 404 - Not Found', () => {
         gio
           .portal(LOW_PERMISSION_USER)
           .apis()
-          .getApiById<PortalApi>(createdApi.id)
-          .ok()
+          .getApiById<PortalError>(createdApi.id)
+          .notFound()
           .should((response) => {
-            PortalApiAssertions.assertThat(response).hasId(createdApi.id).isNotRunning().isPublic().isNotDraft();
+            ErrorAssertions.assertThat(response).containsMessage(createdApi.id).containsCode(ApiErrorCodes.API_NOT_FOUND);
           });
       });
     });

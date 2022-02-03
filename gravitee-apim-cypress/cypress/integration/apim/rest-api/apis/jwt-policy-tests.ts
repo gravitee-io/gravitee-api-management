@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 const jwt = require('jsonwebtoken');
-import { API_PUBLISHER_USER } from 'fixtures/fakers/users/users';
-import { deleteApi, deployApi, getApiKeys, importCreateApi, startApi, stopApi } from 'commands/management/api-management-commands';
-import { publishPlan, closePlan } from 'commands/management/api-plan-management-commands';
-import { PlanSecurityType } from 'model/plan';
-import { ApiImportFakers } from 'fixtures/fakers/api-imports';
+import { API_PUBLISHER_USER } from '@fakers/users/users';
+import { deleteApi, deployApi, getApiKeys, importCreateApi, startApi, stopApi } from '@commands/management/api-management-commands';
+import { publishPlan, closePlan } from '@commands/management/api-plan-management-commands';
+import { PlanSecurityType } from '@model/plan';
+import { ApiImportFakers } from '@fakers/api-imports';
 import { ApiImport } from '@model/api-imports';
 import { requestGateway } from 'support/common/http.commands';
 import * as faker from 'faker';

@@ -17,6 +17,14 @@ import * as faker from 'faker';
 import { Api, ApiDefinition } from '@model/apis';
 import { Plan, PlanSecurityType, PlanStatus, PlanValidation } from '@model/plan';
 
+import { ApiImportFakers } from '@fakers/api-imports';
+import { PolicyFakers } from '@fakers/policies';
+import { ResourceFakers } from '@fakers/resources';
+import { API_PUBLISHER_USER } from '@fakers/users/users';
+import { Step, PlanSecurityType } from '@model/plan';
+import { importCreateApi } from '@commands/management/api-management-commands';
+import { ApiImport } from '@model/api-imports';
+
 export class ApiFakers {
   static version() {
     const major = faker.datatype.number({ min: 1, max: 5 });
@@ -70,5 +78,18 @@ export class ApiFakers {
       name: faker.commerce.productName(),
       description: faker.commerce.productDescription(),
     };
+  }
+
+  static oauth2Api(am_domainHrid: string, clientId: string, clientSecret: string, oauthConfig?: any): ApiImport {
+    const fakeOauth2Resource = ResourceFakers.oauth2AmResource(am_domainHrid, clientId, clientSecret);
+    let fakeOauth2Policy: Step;
+    if (oauthConfig) {
+      fakeOauth2Policy = PolicyFakers.oauth2Policy(fakeOauth2Resource.name, { configuration: oauthConfig });
+    } else {
+      fakeOauth2Policy = PolicyFakers.oauth2Policy(fakeOauth2Resource.name);
+    }
+    const fakeOauth2Flow = ApiImportFakers.flow({ pre: [fakeOauth2Policy] });
+    const fakePlan = ApiImportFakers.plan({ security: PlanSecurityType.KEY_LESS, flows: [fakeOauth2Flow] });
+    return ApiImportFakers.api({ plans: [fakePlan], resources: [fakeOauth2Resource] });
   }
 }

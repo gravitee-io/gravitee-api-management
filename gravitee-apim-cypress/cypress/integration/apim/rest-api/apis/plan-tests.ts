@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER } from 'fixtures/fakers/users/users';
-import { ApiFakers } from 'fixtures/fakers/apis';
-import { PlanFakers } from 'fixtures/fakers/plans';
-import { createApi, deleteApi } from 'commands/management/api-management-commands';
-import { createPlan, deletePlan, publishPlan } from 'commands/management/api-plan-management-commands';
+import { ADMIN_USER } from '@fakers/users/users';
+import { ApiFakers } from '@fakers/apis';
+import { PlanFakers } from '@fakers/plans';
+import { createApi, deleteApi } from '@commands/management/api-management-commands';
+import { createPlan, deletePlan, publishPlan } from '@commands/management/api-plan-management-commands';
 import { PlanSecurityType } from '@model/plan';
 
 context('Plan tests', () => {
