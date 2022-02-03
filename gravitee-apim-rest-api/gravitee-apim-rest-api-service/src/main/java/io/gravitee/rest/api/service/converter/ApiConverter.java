@@ -26,13 +26,14 @@ import io.gravitee.rest.api.model.PropertiesEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -63,7 +64,6 @@ public class ApiConverter {
         apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
         apiEntity.setCategories(api.getCategories());
-        apiEntity.setEnvironmentId(api.getEnvironmentId());
 
         if (api.getDefinition() != null) {
             try {
