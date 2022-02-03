@@ -195,7 +195,7 @@ export interface UpdateApiEntity {
 export interface ResponseTemplate {
   status: number;
   headers: {};
-  body: string;
+  body: any;
 }
 
 export interface PropertyEntity {

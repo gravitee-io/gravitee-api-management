@@ -35,4 +35,24 @@ export class PolicyFakers {
       ...attributes,
     };
   }
+
+  static oauth2Policy(oauthResource: string, attributes?: Partial<Step>): Step {
+    return Cypress._.merge(
+      {
+        name: 'OAuth2',
+        policy: 'oauth2',
+        description: 'This policy was created by a Cypress test',
+        condition: '',
+        enabled: true,
+        configuration: {
+          extractPayload: false,
+          checkRequiredScopes: false,
+          modeStrict: true,
+          propagateAuthHeader: true,
+          oauthResource,
+        },
+      },
+      attributes,
+    );
+  }
 }

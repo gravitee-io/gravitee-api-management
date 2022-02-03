@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["es5", "dom"],
+    "lib": ["ES2020", "dom"],
     "types": ["cypress", "node"],
     "baseUrl": "./cypress",
     "paths": {
