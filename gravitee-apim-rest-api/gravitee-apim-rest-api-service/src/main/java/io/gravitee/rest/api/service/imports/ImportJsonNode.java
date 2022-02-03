@@ -39,7 +39,7 @@ public class ImportJsonNode {
     }
 
     protected String getField(String fieldName) {
-        return jsonNode.get(fieldName).asText();
+        return jsonNode.hasNonNull(fieldName) ? jsonNode.get(fieldName).asText() : null;
     }
 
     protected void setField(String fieldName, String value) {
