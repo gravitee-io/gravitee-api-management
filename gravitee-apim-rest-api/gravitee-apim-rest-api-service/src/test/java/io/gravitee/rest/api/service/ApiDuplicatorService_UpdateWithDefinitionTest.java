@@ -601,7 +601,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         PlanEntity apiPlan = new PlanEntity();
         apiPlan.setId("plan-id1");
         apiPlan.setCrossId("plan-cross-id-1");
-        
+
         when(planService.anyPlanMismatchWithApi(anyList(), eq("id-api"))).thenReturn(true);
 
         apiDuplicatorService.updateWithImportedDefinition(
