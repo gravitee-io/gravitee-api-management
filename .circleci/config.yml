@@ -243,6 +243,7 @@ jobs:
             - attach_workspace:
                   at: .
             - restore-maven-cache
+            - prepare-env-var
             - run:
                   name: "Build project"
                   command: |
