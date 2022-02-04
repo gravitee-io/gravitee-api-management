@@ -42,10 +42,6 @@ public class ImportApiJsonNode extends ImportJsonNodeWithIds {
         return getChildNodesWithIdByName(PLANS);
     }
 
-    public ArrayNode getPlansArray() {
-        return getArray(PLANS);
-    }
-
     public boolean hasPages() {
         return hasArray(PAGES);
     }

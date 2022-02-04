@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -569,7 +570,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             );
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test(expected = ApiImportException.class)
     public void shouldRaiseAnErrorWhenUpdatingAPlanBelongingToAnotherAPI() throws IOException {
         URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
         String toBeImport = Resources.toString(resource, Charsets.UTF_8);
