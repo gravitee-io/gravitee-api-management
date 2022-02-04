@@ -15,15 +15,17 @@
  */
 package io.gravitee.gateway.debug.policy.impl;
 
+import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
+import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
+import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStepFactory;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyChain;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -33,10 +35,12 @@ public class PolicyDebugDecorator implements Policy {
 
     private final StreamType streamType;
     private final Policy policy;
+    private final String uuid;
 
     public PolicyDebugDecorator(StreamType streamType, Policy policy) {
         this.streamType = streamType;
         this.policy = policy;
+        this.uuid = new UUID().randomString();
     }
 
     @Override
@@ -46,12 +50,25 @@ public class PolicyDebugDecorator implements Policy {
 
     @Override
     public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        policy.execute(chain, context);
+        DebugExecutionContext debugContext = (DebugExecutionContext) context;
+
+        DebugStep<?> debugStep = DebugStepFactory.createExecuteDebugStep(policy.id(), streamType, uuid);
+        debugContext.beforePolicyExecution(debugStep);
+        policy.execute(new DebugPolicyChain(chain, debugStep, debugContext), context);
     }
 
     @Override
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        return policy.stream(chain, context);
+        DebugExecutionContext debugContext = (DebugExecutionContext) context;
+
+        final ReadWriteStream<Buffer> stream = policy.stream(chain, context);
+
+        if (stream == null) {
+            return null;
+        }
+
+        DebugStep<?> debugStep = DebugStepFactory.createStreamDebugStep(policy.id(), streamType, uuid);
+        return new DebugReadWriteStream(debugContext, stream, debugStep);
     }
 
     @Override

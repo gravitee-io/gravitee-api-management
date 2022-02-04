@@ -18,9 +18,9 @@ package io.gravitee.gateway.debug;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.debug.handlers.api.DebugApiContextHandlerFactory;
 import io.gravitee.gateway.debug.policy.impl.PolicyDebugDecoratorFactoryCreator;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
-import io.gravitee.gateway.handlers.api.ApiContextHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.platform.PlatformPolicyManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
@@ -31,6 +31,7 @@ import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -81,7 +82,7 @@ public class DebugConfiguration {
     public ReactorHandlerFactory<Api> reactorHandlerFactory(
         @Qualifier("debugPolicyFactoryCreator") PolicyFactoryCreator policyFactoryCreator
     ) {
-        return new ApiContextHandlerFactory(applicationContext.getParent(), configuration, node, policyFactoryCreator);
+        return new DebugApiContextHandlerFactory(applicationContext.getParent(), configuration, node, policyFactoryCreator);
     }
 
     @Bean
