@@ -782,10 +782,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 checkFolderConsistency(newPageEntity);
             }
 
-            if (SYSTEM_FOLDER.equals(newPageType)) {
-                assertNoSystemFolderExists(environmentId, apiId);
-            }
-
             if (PageType.LINK.equals(newPageType)) {
                 String resourceType = newPageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE);
                 String content = newPageEntity.getContent();
@@ -904,17 +900,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private void assertNoSystemFolderExists(String environmentId, String apiId) {
+    private Optional<PageEntity> findSystemFolder(String environmentId, String apiId) {
         PageQuery pageQuery = new PageQuery.Builder().api(apiId).name(SystemFolderType.ASIDE.folderName()).type(SYSTEM_FOLDER).build();
-
-        search(pageQuery, environmentId)
-            .stream()
-            .findFirst()
-            .ifPresent(
-                page -> {
-                    throw new PageSystemFolderActionException("Create");
-                }
-            );
+        return search(pageQuery, environmentId).stream().findFirst();
     }
 
     private void checkTranslationConsistency(String parentId, Map<String, String> configuration, boolean forCreation)
@@ -2639,6 +2627,22 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             pageEntityToImport.setReferenceId(apiId);
             pageEntityToImport.setReferenceType(PageReferenceType.API.name());
             PageEntity createdOrUpdatedPage;
+
+            if (SYSTEM_FOLDER.name().equals(pageEntityToImport.getType())) {
+                findSystemFolder(environmentId, apiId)
+                    .ifPresent(
+                        sysFolder -> {
+                            if (!sysFolder.getId().equals(pageEntityToImport.getId())) {
+                                logger.warn(
+                                    "An existing system folder has been found for API [{}] on environment [{}] with another ID, the existing system folder will be updated",
+                                    apiId,
+                                    environmentId
+                                );
+                            }
+                            pageEntityToImport.setId(sysFolder.getId());
+                        }
+                    );
+            }
 
             try {
                 findById(pageEntityToImport.getId());

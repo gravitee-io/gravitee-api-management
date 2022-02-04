@@ -133,12 +133,12 @@ context('API - Imports', () => {
       });
     });
 
-    describe('Create API with one page with an ID', () => {
+    describe.only('Create API with one page with an ID', () => {
       const apiId = '08a92f8c-e133-42ec-a92f-8ce13382ec73';
       const expectedApiId = '2ce4fa7c-8c75-31a2-83a9-73ccc6773b13';
 
       const pageId = '7b95cbe6-099d-4b06-95cb-e6099d7b0609';
-      const expectedPageId = 'c02077fc-7c4d-3c93-8404-6184a6221391';
+      const expectedPageId = '0b827e1e-afe2-3863-8533-a723c486d4ef';
 
       const fakePage = ApiImportFakers.page({ id: pageId });
       const fakeApi = ApiImportFakers.api({ id: apiId, pages: [fakePage] });

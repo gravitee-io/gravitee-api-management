@@ -255,12 +255,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             promotion.setStatus(accepted ? PromotionStatus.ACCEPTED : PromotionStatus.REJECTED);
 
-            /*
-             * needed for backward compatibility as the promotion may have stored the
-             * definition without retaining the originating API ID
-             */
             JsonNode apiDefinition = objectMapper.readTree(promotion.getApiDefinition());
-            ((ObjectNode) apiDefinition).put("id", promotion.getApiId());
 
             ApiEntity apiToUpdate = findAlreadyPromotedTargetApi(environment, promotion, apiDefinition);
 

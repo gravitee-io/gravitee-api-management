@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
@@ -294,5 +295,12 @@ public class ApiDuplicatorServiceImplTest {
         assertEquals("7cfb0e92-2f22-35a6-b565-e38d45ac0de5", newApiDefinition.getPages().get(0).getId());
         assertTrue(isNotEmpty(newApiDefinition.getPages().get(1).getId()));
         assertEquals("no-id", newApiDefinition.getPages().get(1).getJsonNode().get("name").asText());
+    }
+
+    @Test
+    public void generateIds() { // 0b827e1e-afe2-3863-8533-a723c486d4ef
+        System.out.println(
+            UuidString.generateForEnvironment("DEFAULT", "2ce4fa7c-8c75-31a2-83a9-73ccc6773b13", "7b95cbe6-099d-4b06-95cb-e6099d7b0609")
+        );
     }
 }

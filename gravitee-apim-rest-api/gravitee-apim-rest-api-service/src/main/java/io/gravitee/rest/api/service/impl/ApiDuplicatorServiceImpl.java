@@ -766,8 +766,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private void recalculateIdsFromDefinitionIds(String environmentId, ImportApiJsonNode apiJsonNode, String urlApiId) {
-        String sourceApiId = apiJsonNode.hasId() ? apiJsonNode.getId() : UuidString.generateRandom();
-        String targetApiId = urlApiId != null ? urlApiId : UuidString.generateForEnvironment(environmentId, sourceApiId);
+        String targetApiId = urlApiId == null ? UuidString.generateForEnvironment(environmentId, apiJsonNode.getId()) : urlApiId;
         apiJsonNode.setId(targetApiId);
         recalculatePlanIdsFromDefinitionIds(apiJsonNode.getPlans(), environmentId, targetApiId);
         recalculatePageIdsFromDefinitionIds(apiJsonNode.getPages(), environmentId, targetApiId);
