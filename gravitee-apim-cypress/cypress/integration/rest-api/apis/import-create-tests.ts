@@ -133,39 +133,6 @@ context('API - Imports', () => {
       });
     });
 
-    describe('Create API with one page with an ID on another environment', () => {
-      const apiId = '08a92f8c-e133-42ec-a92f-8ce13382ec73';
-      const pageId = '7b95cbe6-099d-4b06-95cb-e6099d7b0609';
-
-      const generatedApiId = '2ce4fa7c-8c75-31a2-83a9-73ccc6773b13';
-      const generatedPageId = 'c02077fc-7c4d-3c93-8404-6184a6221391';
-
-      const fakePage = ApiImportFakers.page({ id: pageId });
-      const fakeApi = ApiImportFakers.api({ id: apiId, pages: [fakePage] });
-
-      it('should create an API with one page of documentation and return a generated ID', () => {
-        importCreateApi(ADMIN_USER, fakeApi).ok().its('body').should('have.property', 'id').should('eq', generatedApiId);
-      });
-
-      it('should get API documentation pages from generated API ID', () => {
-        getPages(ADMIN_USER, generatedApiId)
-          .ok()
-          .its('body')
-          .should('have.length', 2)
-          .its(1)
-          .should('have.property', 'id')
-          .should('eq', generatedPageId);
-      });
-
-      it('should get API page from generated page ID', () => {
-        getPage(ADMIN_USER, generatedApiId, generatedPageId).ok().its('body').should('have.property', 'api').should('eq', generatedApiId);
-      });
-
-      it('should delete the API', () => {
-        deleteApi(ADMIN_USER, generatedApiId).noContent();
-      });
-    });
-
     describe('Create API with one page with an ID', () => {
       const apiId = '08a92f8c-e133-42ec-a92f-8ce13382ec73';
       const expectedApiId = '2ce4fa7c-8c75-31a2-83a9-73ccc6773b13';
