@@ -30,8 +30,8 @@ import java.util.HashMap;
  */
 public class Stubs {
 
-    public static io.gravitee.definition.model.DebugApi getADebugApiDefinition() {
-        final io.gravitee.definition.model.DebugApi debugApi = new io.gravitee.definition.model.DebugApi();
+    public static io.gravitee.definition.model.debug.DebugApi getADebugApiDefinition() {
+        final io.gravitee.definition.model.debug.DebugApi debugApi = new io.gravitee.definition.model.debug.DebugApi();
 
         final Proxy proxy = new Proxy();
         proxy.setVirtualHosts(new ArrayList<>());

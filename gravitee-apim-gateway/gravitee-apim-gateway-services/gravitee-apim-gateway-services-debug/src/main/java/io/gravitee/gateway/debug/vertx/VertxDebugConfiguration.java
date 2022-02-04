@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.debug.vertx;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.debug.reactor.DebugReactor;
+import io.gravitee.gateway.debug.reactor.processor.DebugResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -25,7 +27,9 @@ import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFac
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
+import io.gravitee.repository.management.api.EventRepository;
 import io.vertx.core.Vertx;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -63,8 +67,8 @@ public class VertxDebugConfiguration {
     }
 
     @Bean
-    public ResponseProcessorChainFactory responseProcessorChainFactory() {
-        return new ResponseProcessorChainFactory();
+    public ResponseProcessorChainFactory responseProcessorChainFactory(EventRepository eventRepository, ObjectMapper objectMapper) {
+        return new DebugResponseProcessorChainFactory(eventRepository, objectMapper);
     }
 
     @Bean

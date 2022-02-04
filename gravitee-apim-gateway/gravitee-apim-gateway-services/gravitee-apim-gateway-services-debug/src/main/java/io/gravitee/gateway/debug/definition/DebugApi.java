@@ -29,7 +29,7 @@ public class DebugApi extends Api implements Reactable, Serializable {
 
     private String eventId;
 
-    public DebugApi(String eventId, io.gravitee.definition.model.DebugApi debugApi) {
+    public DebugApi(String eventId, io.gravitee.definition.model.debug.DebugApi debugApi) {
         super(debugApi);
         this.setResponse(debugApi.getResponse());
         this.setRequest(debugApi.getRequest());

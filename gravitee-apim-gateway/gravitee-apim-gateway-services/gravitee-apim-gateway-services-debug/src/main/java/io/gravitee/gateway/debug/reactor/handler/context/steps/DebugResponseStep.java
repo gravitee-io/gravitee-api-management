@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.debug.reactor.handler.context.steps;
 
+import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.debug.reactor.handler.context.DebugScope;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,17 +29,17 @@ import java.util.Map;
  */
 public class DebugResponseStep extends DebugStep<Response> {
 
-    public DebugResponseStep(String policyId, StreamType streamType, String uuid, DebugScope debugScope) {
-        super(policyId, streamType, uuid, debugScope);
+    public DebugResponseStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope) {
+        super(policyId, streamType, uuid, policyScope);
     }
 
     @Override
-    protected void snapshotInputData(Response response, Map<String, Object> attributes) {
+    public void snapshotInputData(Response response, Map<String, Object> attributes) {
         policyInputContent.headers(response.headers()).status(response.status()).reason(response.reason()).attributes(attributes);
     }
 
     @Override
-    protected void generateDiffMap(Response response, Map<String, Object> attributes, Buffer inputBuffer, Buffer outputBuffer) {
+    public void generateDiffMap(Response response, Map<String, Object> attributes, Buffer inputBuffer, Buffer outputBuffer) {
         if (!policyInputContent.getHeaders().deeplyEquals(response.headers())) {
             diffMap.put("headers", HttpHeaders.create(response.headers()));
         }

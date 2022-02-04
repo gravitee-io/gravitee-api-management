@@ -30,7 +30,7 @@ public class DebugApiTest {
 
     @Test
     public void shouldConstructAndComputeNewPath() throws Exception {
-        final io.gravitee.definition.model.DebugApi debugApi = Stubs.getADebugApiDefinition();
+        final io.gravitee.definition.model.debug.DebugApi debugApi = Stubs.getADebugApiDefinition();
 
         final DebugApi result = new DebugApi(EVENT_ID, debugApi);
 

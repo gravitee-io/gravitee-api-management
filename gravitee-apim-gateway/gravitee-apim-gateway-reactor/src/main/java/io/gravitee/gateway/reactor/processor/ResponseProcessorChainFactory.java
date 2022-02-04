@@ -49,6 +49,10 @@ public class ResponseProcessorChainFactory {
     private String port;
 
     public Processor<ExecutionContext> create() {
+        return new DefaultProcessorChain<>(getProcessors());
+    }
+
+    protected List<Processor<ExecutionContext>> getProcessors() {
         List<Processor<ExecutionContext>> processors = new ArrayList<>(
             Arrays.asList(new ResponseTimeProcessor(), new ReporterProcessor(reporterService))
         );
@@ -56,7 +60,6 @@ public class ResponseProcessorChainFactory {
         if (!eventProducer.isEmpty()) {
             processors.add(new AlertProcessor(eventProducer, node, port));
         }
-
-        return new DefaultProcessorChain<>(processors);
+        return processors;
     }
 }

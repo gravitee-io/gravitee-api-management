@@ -16,8 +16,8 @@
 package io.gravitee.gateway.debug.reactor.handler.context.steps;
 
 import com.google.common.base.Stopwatch;
+import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.debug.reactor.handler.context.DebugScope;
 import io.gravitee.gateway.policy.StreamType;
 import java.time.Duration;
 import java.util.HashMap;
@@ -33,17 +33,17 @@ public abstract class DebugStep<T> {
     protected final String policyId;
     protected final StreamType streamType;
     protected final String uuid;
-    protected final DebugScope debugScope;
+    protected final PolicyScope policyScope;
     protected final Map<String, Object> diffMap = new HashMap<>();
     protected final Stopwatch stopwatch;
 
     protected DebugStepContent policyInputContent;
 
-    public DebugStep(String policyId, StreamType streamType, String uuid, DebugScope debugScope) {
+    public DebugStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope) {
         this.policyId = policyId;
         this.streamType = streamType;
         this.uuid = uuid;
-        this.debugScope = debugScope;
+        this.policyScope = policyScope;
         this.stopwatch = Stopwatch.createUnstarted();
         this.policyInputContent = new DebugStepContent();
     }
@@ -57,6 +57,8 @@ public abstract class DebugStep<T> {
 
     public void after(T source, Map<String, Object> attributes, Buffer inputBuffer, Buffer outputBuffer) {
         this.stop();
+        // FIXME: here to not have problem in serializer
+        attributes.remove("gravitee.attribute.entrypoint");
         generateDiffMap(source, attributes, inputBuffer, outputBuffer);
         policyInputContent = null;
     }
@@ -95,8 +97,8 @@ public abstract class DebugStep<T> {
         return uuid;
     }
 
-    public DebugScope getDebugScope() {
-        return debugScope;
+    public PolicyScope getPolicyScope() {
+        return policyScope;
     }
 
     @Override
