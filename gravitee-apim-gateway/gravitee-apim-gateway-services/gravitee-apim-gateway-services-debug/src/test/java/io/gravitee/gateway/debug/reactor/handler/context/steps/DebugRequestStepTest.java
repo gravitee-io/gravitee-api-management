@@ -20,15 +20,14 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.debug.reactor.handler.context.DebugScope;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +51,7 @@ public class DebugRequestStepTest {
 
     @Before
     public void setUp() {
-        cut = new DebugRequestStep("policy", StreamType.ON_REQUEST, "uid", DebugScope.ON_REQUEST);
+        cut = new DebugRequestStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST);
         when(beforeRequest.headers()).thenReturn(HttpHeaders.create().add("Header", "header-value"));
 
         when(beforeRequest.contextPath()).thenReturn("contextPath");

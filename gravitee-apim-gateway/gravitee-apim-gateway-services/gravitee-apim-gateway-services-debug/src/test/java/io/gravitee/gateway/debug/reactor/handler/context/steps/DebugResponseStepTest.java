@@ -18,12 +18,10 @@ package io.gravitee.gateway.debug.reactor.handler.context.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.debug.reactor.handler.context.DebugScope;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +49,7 @@ public class DebugResponseStepTest {
 
     @Before
     public void setUp() {
-        cut = new DebugResponseStep("policy", StreamType.ON_REQUEST, "uid", DebugScope.ON_REQUEST);
+        cut = new DebugResponseStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST);
         when(beforeResponse.headers()).thenReturn(HttpHeaders.create().add("Header", "header-value"));
 
         when(beforeResponse.status()).thenReturn(200);

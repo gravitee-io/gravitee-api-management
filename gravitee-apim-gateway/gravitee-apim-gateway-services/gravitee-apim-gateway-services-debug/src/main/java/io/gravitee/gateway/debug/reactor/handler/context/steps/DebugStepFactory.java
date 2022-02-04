@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.debug.reactor.handler.context.steps;
 
-import io.gravitee.gateway.debug.reactor.handler.context.DebugScope;
+import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.policy.StreamType;
 
 /**
@@ -26,17 +26,17 @@ public class DebugStepFactory {
 
     public static DebugStep<?> createExecuteDebugStep(String policyId, StreamType streamType, String uuid) {
         if (StreamType.ON_REQUEST.equals(streamType)) {
-            return new DebugRequestStep(policyId, streamType, uuid, DebugScope.ON_REQUEST);
+            return new DebugRequestStep(policyId, streamType, uuid, PolicyScope.ON_REQUEST);
         } else {
-            return new DebugResponseStep(policyId, streamType, uuid, DebugScope.ON_RESPONSE);
+            return new DebugResponseStep(policyId, streamType, uuid, PolicyScope.ON_RESPONSE);
         }
     }
 
     public static DebugStep<?> createStreamDebugStep(String policyId, StreamType streamType, String uuid) {
         if (StreamType.ON_REQUEST.equals(streamType)) {
-            return new DebugRequestStep(policyId, streamType, uuid, DebugScope.ON_REQUEST_CONTENT);
+            return new DebugRequestStep(policyId, streamType, uuid, PolicyScope.ON_REQUEST_CONTENT);
         } else {
-            return new DebugResponseStep(policyId, streamType, uuid, DebugScope.ON_RESPONSE_CONTENT);
+            return new DebugResponseStep(policyId, streamType, uuid, PolicyScope.ON_RESPONSE_CONTENT);
         }
     }
 }

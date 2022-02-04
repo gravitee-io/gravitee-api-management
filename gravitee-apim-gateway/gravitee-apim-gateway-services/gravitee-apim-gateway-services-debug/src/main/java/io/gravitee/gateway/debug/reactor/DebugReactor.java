@@ -94,32 +94,16 @@ public class DebugReactor extends DefaultReactor {
                         .flatMap(reqEvent -> req.getBody() == null ? reqEvent.send() : reqEvent.send(req.getBody()))
                         .flatMap(
                             result -> {
-                                Map<String, List<String>> headers = convertHeaders(result.headers());
-
-                                response.setHeaders(headers);
-                                response.statusCode(result.statusCode());
-
                                 logger.debug("Response status: {}", result.statusCode());
-
                                 return result.body();
                             }
                         )
                         .onSuccess(
                             bodyEvent -> {
-                                try {
-                                    response.setBody(bodyEvent.toString());
-                                    logger.debug("Response body: {}", bodyEvent);
-                                    reactableDebugApi.setResponse(response);
-                                    debugEvent.setPayload(objectMapper.writeValueAsString(convert(reactableDebugApi)));
-                                    updateEvent(debugEvent, ApiDebugStatus.SUCCESS);
-                                    logger.info("Debugging successful, removing the handler.");
-                                } catch (TechnicalException | JsonProcessingException e) {
-                                    logger.error("Error when saving debug response...");
-                                    failEvent(debugEvent);
-                                } finally {
-                                    reactorHandlerRegistry.remove(reactableDebugApi);
-                                    logger.info("The debug handler has been removed");
-                                }
+                                logger.debug("Response body: {}", bodyEvent);
+                                logger.info("Debugging successful, removing the handler.");
+                                reactorHandlerRegistry.remove(reactableDebugApi);
+                                logger.info("The debug handler has been removed");
                             }
                         )
                         .onFailure(
@@ -145,9 +129,9 @@ public class DebugReactor extends DefaultReactor {
     private DebugApi toReactableDebugApi(io.gravitee.repository.management.model.Event event) {
         try {
             // Read API definition from event
-            io.gravitee.definition.model.DebugApi eventPayload = objectMapper.readValue(
+            io.gravitee.definition.model.debug.DebugApi eventPayload = objectMapper.readValue(
                 event.getPayload(),
-                io.gravitee.definition.model.DebugApi.class
+                io.gravitee.definition.model.debug.DebugApi.class
             );
 
             DebugApi debugApi = new DebugApi(event.getId(), eventPayload);
@@ -246,8 +230,8 @@ public class DebugReactor extends DefaultReactor {
         eventRepository.update(debugEvent);
     }
 
-    private io.gravitee.definition.model.DebugApi convert(DebugApi content) {
-        io.gravitee.definition.model.DebugApi debugAPI = new io.gravitee.definition.model.DebugApi();
+    private io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
+        io.gravitee.definition.model.debug.DebugApi debugAPI = new io.gravitee.definition.model.debug.DebugApi();
         debugAPI.setName(content.getName());
         debugAPI.setId(content.getId());
         debugAPI.setDefinitionVersion(content.getDefinitionVersion());

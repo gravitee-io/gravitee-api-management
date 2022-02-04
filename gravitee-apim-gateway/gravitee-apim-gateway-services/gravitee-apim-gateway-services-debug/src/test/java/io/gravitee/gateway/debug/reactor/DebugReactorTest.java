@@ -93,7 +93,7 @@ public class DebugReactorTest {
 
     @Test
     public void shouldDebugApiSuccessfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -112,10 +112,8 @@ public class DebugReactorTest {
         // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
         when(httpClientResponse.statusCode()).thenReturn(200);
-        when(httpClientResponse.headers()).thenReturn(new HeadersMultiMap().add("X-Graviteeio-test", "testing_api_debugging"));
         final Buffer bodyBuffer = mock(Buffer.class);
         when(bodyBuffer.toString()).thenReturn("response body");
-        when(objectMapper.writeValueAsString(any())).thenReturn(PAYLOAD);
         final Future<Buffer> bodyFuture = Future.succeededFuture(bodyBuffer);
         when(httpClientResponse.body()).thenReturn(bodyFuture);
 
@@ -134,17 +132,17 @@ public class DebugReactorTest {
         verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
-        verify(eventRepository, times(2)).update(eventCaptor.capture());
+        verify(eventRepository, times(1)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
-        assertThat(events.get(1).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
-        assertThat(events.get(1).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.SUCCESS.name());
-        assertThat(events.get(1).getPayload()).isEqualTo(PAYLOAD);
+        assertThat(events.get(0).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
+        assertThat(events.get(0).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.DEBUGGING.name());
+        assertThat(events.get(0).getPayload()).isEqualTo(PAYLOAD);
     }
 
     @Test
     public void shouldDebugApiSuccessfullyNullBody() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -162,10 +160,8 @@ public class DebugReactorTest {
         // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
         when(httpClientResponse.statusCode()).thenReturn(200);
-        when(httpClientResponse.headers()).thenReturn(new HeadersMultiMap().add("X-Graviteeio-test", "testing_api_debugging"));
         final Buffer bodyBuffer = mock(Buffer.class);
         when(bodyBuffer.toString()).thenReturn("response body");
-        when(objectMapper.writeValueAsString(any())).thenReturn(PAYLOAD);
         final Future<Buffer> bodyFuture = Future.succeededFuture(bodyBuffer);
         when(httpClientResponse.body()).thenReturn(bodyFuture);
 
@@ -184,17 +180,17 @@ public class DebugReactorTest {
         verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
-        verify(eventRepository, times(2)).update(eventCaptor.capture());
+        verify(eventRepository, times(1)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
-        assertThat(events.get(1).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
-        assertThat(events.get(1).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.SUCCESS.name());
-        assertThat(events.get(1).getPayload()).isEqualTo(PAYLOAD);
+        assertThat(events.get(0).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
+        assertThat(events.get(0).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.DEBUGGING.name());
+        assertThat(events.get(0).getPayload()).isEqualTo(PAYLOAD);
     }
 
     @Test
     public void shouldRemoveReactorHandlerIfBodyDoNotCompleteSuccessfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -212,7 +208,6 @@ public class DebugReactorTest {
         // Mock failing Buffer body in HttpClientResponse future
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
         when(httpClientResponse.statusCode()).thenReturn(200);
-        when(httpClientResponse.headers()).thenReturn(new HeadersMultiMap().add("X-Graviteeio-test", "testing_api_debugging"));
         final Future<Buffer> bodyFuture = Future.failedFuture("");
         when(httpClientResponse.body()).thenReturn(bodyFuture);
 
@@ -241,7 +236,7 @@ public class DebugReactorTest {
 
     @Test
     public void shouldRemoveReactorHandlerIfResponseDoNotCompleteSuccessfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -281,7 +276,7 @@ public class DebugReactorTest {
 
     @Test
     public void shouldRemoveReactorHandlerIfRequestDoNotCompleteSuccessfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -315,7 +310,7 @@ public class DebugReactorTest {
 
     @Test
     public void shouldRemoveReactorHandlerIfTechnicalExceptionDuringEventUpdating() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -344,7 +339,7 @@ public class DebugReactorTest {
 
     @Test
     public void shouldDoNothingWhenReactableAlreadyDebugging() throws JsonProcessingException, TechnicalException {
-        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");

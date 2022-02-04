@@ -52,6 +52,8 @@ public class VertxDebugReactorHandler implements Handler<HttpServerRequest> {
             request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         }
 
+        request = new VertxHttpServerRequestDebugDecorator(request, idGenerator);
+
         route(request, request.create());
     }
 
