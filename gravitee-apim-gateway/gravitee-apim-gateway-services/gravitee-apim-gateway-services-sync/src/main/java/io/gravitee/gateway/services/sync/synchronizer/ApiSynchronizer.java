@@ -176,7 +176,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                     try {
                         apiManager.register(api);
                     } catch (Exception e) {
-                        logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId());
+                        logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId(), e);
                     }
                 }
             )
@@ -194,7 +194,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                     try {
                         apiManager.unregister(apiId);
                     } catch (Exception e) {
-                        logger.error("An error occurred when trying to unregister api [{}].", apiId);
+                        logger.error("An error occurred when trying to unregister api [{}].", apiId, e);
                     }
                 }
             )
@@ -226,7 +226,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
             return Maybe.just(apiDefinition);
         } catch (Exception e) {
             // Log the error and ignore this event.
-            logger.error("Unable to extract api definition from event [{}].", apiEvent.getId());
+            logger.error("Unable to extract api definition from event [{}].", apiEvent.getId(), e);
             return Maybe.empty();
         }
     }
@@ -255,7 +255,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
                             return environment;
                         } catch (Exception e) {
-                            logger.warn("An error occurred fetching the environment {} and its organization.", envId);
+                            logger.warn("An error occurred fetching the environment {} and its organization.", envId, e);
                             return null;
                         }
                     }
