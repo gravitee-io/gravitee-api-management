@@ -125,6 +125,13 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByApis_andReturnEmptyListIfInputIsEmpty() throws Exception {
+        final List<Plan> plans = planRepository.findByApis(Arrays.asList());
+        assertNotNull(plans);
+        assertEquals(0, plans.size());
+    }
+
+    @Test
     public void shouldCreate() throws Exception {
         String planName = "new-plan";
 
