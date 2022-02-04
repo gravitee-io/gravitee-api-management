@@ -264,13 +264,13 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
         if (apiEnv != null) {
             definition.setEnvironmentId(apiEnv.getId());
-            definition.setEnvironmentHrid(apiEnv.getHrids() != null ? apiEnv.getHrids().stream().findFirst().get() : null);
+            definition.setEnvironmentHrid(apiEnv.getHrids() != null ? apiEnv.getHrids().stream().findFirst().orElse(null) : null);
 
             final io.gravitee.repository.management.model.Organization apiOrg = organizationMap.get(apiEnv.getOrganizationId());
 
             if (apiOrg != null) {
                 definition.setOrganizationId(apiOrg.getId());
-                definition.setOrganizationHrid(apiOrg.getHrids() != null ? apiOrg.getHrids().stream().findFirst().get() : null);
+                definition.setOrganizationHrid(apiOrg.getHrids() != null ? apiOrg.getHrids().stream().findFirst().orElse(null) : null);
             }
         }
     }
