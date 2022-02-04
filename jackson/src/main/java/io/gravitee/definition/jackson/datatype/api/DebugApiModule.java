@@ -17,14 +17,17 @@ package io.gravitee.definition.jackson.datatype.api;
 
 import io.gravitee.definition.jackson.datatype.GraviteeModule;
 import io.gravitee.definition.jackson.datatype.api.deser.DebugApiDeserializer;
+import io.gravitee.definition.jackson.datatype.api.deser.DebugStepDeserializer;
 import io.gravitee.definition.jackson.datatype.api.deser.HttpRequestDeserializer;
 import io.gravitee.definition.jackson.datatype.api.deser.HttpResponseDeserializer;
 import io.gravitee.definition.jackson.datatype.api.ser.DebugApiSerializer;
+import io.gravitee.definition.jackson.datatype.api.ser.DebugStepSerializer;
 import io.gravitee.definition.jackson.datatype.api.ser.HttpRequestSerializer;
 import io.gravitee.definition.jackson.datatype.api.ser.HttpResponseSerializer;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.debug.DebugStep;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -37,9 +40,11 @@ public class DebugApiModule extends GraviteeModule {
         addDeserializer(DebugApi.class, new DebugApiDeserializer(DebugApi.class));
         addDeserializer(HttpRequest.class, new HttpRequestDeserializer(HttpRequest.class));
         addDeserializer(HttpResponse.class, new HttpResponseDeserializer(HttpResponse.class));
+        addDeserializer(DebugStep.class, new DebugStepDeserializer(DebugStep.class));
 
         addSerializer(DebugApi.class, new DebugApiSerializer(DebugApi.class));
         addSerializer(HttpRequest.class, new HttpRequestSerializer(HttpRequest.class));
         addSerializer(HttpResponse.class, new HttpResponseSerializer(HttpResponse.class));
+        addSerializer(DebugStep.class, new DebugStepSerializer(DebugStep.class));
     }
 }

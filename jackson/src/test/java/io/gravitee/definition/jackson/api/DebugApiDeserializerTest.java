@@ -19,8 +19,11 @@ import static org.junit.Assert.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.definition.jackson.AbstractTest;
+import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.debug.DebugStep;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 
 public class DebugApiDeserializerTest extends AbstractTest {
@@ -48,6 +51,52 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(debugApi.getResponse().getHeaders().size(), 2);
         assertEquals(debugApi.getResponse().getHeaders().get("transfer-encoding"), List.of("chunked"));
         assertEquals(debugApi.getResponse().getHeaders().get("accept-encoding"), List.of("deflate", "gzip", "compress"));
+    }
+
+    @Test
+    public void debugApi_withDebugSteps() throws Exception {
+        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps.json", DebugApi.class);
+
+        assertEquals(debugApi.getDebugSteps().size(), 9);
+        assertEquals(
+            debugApi.getInitialAttributes(),
+            Map.of("gravitee.attribute.application", "1", "gravitee.attribute.user-id", "127.0.0.1")
+        );
+
+        DebugStep step1 = debugApi.getDebugSteps().get(0);
+        assertEquals(step1.getPolicyInstanceId(), "24b22176-e4fd-488e-b221-76e4fd388e30");
+        assertEquals(step1.getPolicyId(), "key-less");
+        assertEquals(step1.getDuration().longValue(), 1102529);
+        assertEquals(step1.getStatus(), DebugStep.Status.COMPLETED);
+        assertEquals(step1.getScope(), PolicyScope.ON_REQUEST);
+        assertEquals(step1.getResult().size(), 1);
+
+        final Map<String, Object> attributes = (Map<String, Object>) step1.getResult().get("attributes");
+        assertEquals(attributes.size(), 6);
+
+        assertEquals(attributes.get("gravitee.attribute.application"), "1");
+        assertEquals(attributes.get("gravitee.attribute.api.deployed-at"), "1644242411908");
+        assertEquals(attributes.get("gravitee.attribute.user-id"), "127.0.0.1");
+        assertEquals(attributes.get("gravitee.attribute.plan"), "7bc7c418-056b-4876-87c4-18056b08763d");
+        assertEquals(attributes.get("gravitee.attribute.api"), "62710ef2-83bc-4007-b10e-f283bce00763");
+        assertEquals(attributes.get("gravitee.attribute.gravitee.attribute.plan.selection.rule.based"), "false");
+
+        DebugStep step2 = debugApi.getDebugSteps().get(1);
+        assertEquals(step2.getPolicyInstanceId(), "23ab1ad0-bff0-43a4-ab1a-d0bff013a41e");
+        assertEquals(step2.getPolicyId(), "transform-headers");
+        assertEquals(step2.getDuration().longValue(), 3123247);
+        assertEquals(step2.getStatus(), DebugStep.Status.COMPLETED);
+        assertEquals(step2.getScope(), PolicyScope.ON_REQUEST);
+        assertEquals(step2.getResult().size(), 1);
+
+        final Map<String, String> headers = (Map<String, String>) step2.getResult().get("headers");
+        assertEquals(headers.size(), 5);
+
+        assertEquals(headers.get("transfer-encoding"), List.of("chunked"));
+        assertEquals(headers.get("host"), List.of("localhost:8482"));
+        assertEquals(headers.get("X-Gravitee-Transaction-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
+        assertEquals(headers.get("firstpolicy"), List.of("firstvalue", "secondvalue"));
+        assertEquals(headers.get("X-Gravitee-Request-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
     }
 
     @Test(expected = JsonMappingException.class)

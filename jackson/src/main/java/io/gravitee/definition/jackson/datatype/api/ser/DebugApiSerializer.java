@@ -43,6 +43,14 @@ public class DebugApiSerializer extends StdScalarSerializer<DebugApi> {
         if (api.getResponse() != null) {
             jgen.writeObjectField("response", api.getResponse());
         }
+
+        if (api.getDebugSteps() != null) {
+            jgen.writeObjectField("debugSteps", api.getDebugSteps());
+        }
+
+        if (api.getInitialAttributes() != null) {
+            jgen.writeObjectField("initialAttributes", api.getInitialAttributes());
+        }
         jgen.writeEndObject();
     }
 }

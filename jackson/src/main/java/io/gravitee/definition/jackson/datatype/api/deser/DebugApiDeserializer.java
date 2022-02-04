@@ -17,6 +17,7 @@ package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
@@ -24,7 +25,11 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.debug.DebugStep;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +59,18 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApi> {
         JsonNode responseNode = node.get("response");
         if (responseNode != null) {
             debugApi.setResponse(responseNode.traverse(jp.getCodec()).readValueAs(HttpResponse.class));
+        }
+
+        JsonNode resultNode = node.get("debugSteps");
+        if (resultNode != null) {
+            debugApi.setDebugSteps((resultNode.traverse(jp.getCodec()).readValueAs(new TypeReference<List<DebugStep>>() {})));
+        }
+
+        JsonNode initialAttributesNode = node.get("initialAttributes");
+        if (initialAttributesNode != null) {
+            debugApi.setInitialAttributes(
+                (initialAttributesNode.traverse(jp.getCodec()).readValueAs(new TypeReference<Map<String, Object>>() {}))
+            );
         }
 
         return debugApi;
