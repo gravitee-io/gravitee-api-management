@@ -139,10 +139,9 @@ context('API - Imports', () => {
 
       const generatedApiId = '2ce4fa7c-8c75-31a2-83a9-73ccc6773b13';
       const generatedPageId = 'c02077fc-7c4d-3c93-8404-6184a6221391';
-      const sourceEnvId = 'UAT';
 
       const fakePage = ApiImportFakers.page({ id: pageId });
-      const fakeApi = ApiImportFakers.api({ id: apiId, pages: [fakePage], environment_id: sourceEnvId });
+      const fakeApi = ApiImportFakers.api({ id: apiId, pages: [fakePage] });
 
       it('should create an API with one page of documentation and return a generated ID', () => {
         importCreateApi(ADMIN_USER, fakeApi).ok().its('body').should('have.property', 'id').should('eq', generatedApiId);
