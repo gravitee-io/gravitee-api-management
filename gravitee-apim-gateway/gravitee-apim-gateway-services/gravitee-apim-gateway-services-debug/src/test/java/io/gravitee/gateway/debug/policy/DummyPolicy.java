@@ -23,16 +23,22 @@ import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.policy.api.annotations.OnResponseContent;
 
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class DummyPolicy {
 
     @OnRequest
     public void onRequest(PolicyChain chain, Request request, Response response) {
         // Do nothing
+        chain.doNext(request, response);
     }
 
     @OnResponse
-    public void onResponse(Request chain, Response response, PolicyChain handler) {
+    public void onResponse(PolicyChain chain, Request request, Response response) {
         // Do nothing
+        chain.doNext(request, response);
     }
 
     @OnRequestContent
@@ -41,7 +47,7 @@ public class DummyPolicy {
     }
 
     @OnResponseContent
-    public void onResponseContent(Request chain, Response response, PolicyChain handler) {
+    public void onResponseContent(PolicyChain chain, Request request, Response response) {
         // Do nothing
     }
 }

@@ -15,20 +15,27 @@
  */
 package io.gravitee.gateway.debug.policy.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.reflections.ReflectionUtils.withAnnotation;
 import static org.reflections.ReflectionUtils.withModifier;
 
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.debug.policy.DummyPolicy;
+import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
+import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
+import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugResponseStep;
+import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -46,9 +53,12 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.reflections.ReflectionUtils;
 
@@ -56,6 +66,7 @@ import org.reflections.ReflectionUtils;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class PolicyDebugDecoratorTest {
 
     @Mock
@@ -73,7 +84,7 @@ public class PolicyDebugDecoratorTest {
     private Response response;
 
     @Mock
-    private ExecutionContext context;
+    private DebugExecutionContext context;
 
     @Before
     public void setUp() {
@@ -96,20 +107,28 @@ public class PolicyDebugDecoratorTest {
         Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
         when(policyMetadata.method(OnRequest.class)).thenReturn(onRequestMethod);
 
-        DummyPolicy dummyPolicy = mock(DummyPolicy.class);
+        DummyPolicy dummyPolicy = spy(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
         io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
+
+        final ArgumentCaptor<DebugStep<?>> debugStepCaptor = ArgumentCaptor.forClass(DebugStep.class);
+        final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
         debugPolicy.execute(policyChain, context);
 
         Assert.assertTrue(debugPolicy.isRunnable());
         Assert.assertFalse(debugPolicy.isStreamable());
-        verify(dummyPolicy, atLeastOnce()).onRequest(policyChain, request, response);
+        verify(dummyPolicy, atLeastOnce()).onRequest(chainCaptor.capture(), eq(request), eq(response));
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
-        verify(dummyPolicy, never()).onResponse(request, response, policyChain);
-        verify(dummyPolicy, never()).onResponseContent(request, response, policyChain);
+        verify(dummyPolicy, never()).onResponse(chainCaptor.capture(), eq(request), eq(response));
+        verify(dummyPolicy, never()).onResponseContent(policyChain, request, response);
         verify(debugPolicy, atLeastOnce()).execute(policyChain, context);
+
+        verify(context, times(1)).beforePolicyExecution(debugStepCaptor.capture());
+        verify(context, times(1)).afterPolicyExecution(debugStepCaptor.capture());
+        assertThat(debugStepCaptor.getValue()).isInstanceOf(DebugRequestStep.class);
+        assertThat(chainCaptor.getValue()).isInstanceOf(DebugPolicyChain.class);
     }
 
     @Test
@@ -119,20 +138,28 @@ public class PolicyDebugDecoratorTest {
         Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
         when(policyMetadata.method(OnResponse.class)).thenReturn(onResponseMethod);
 
-        DummyPolicy dummyPolicy = mock(DummyPolicy.class);
+        DummyPolicy dummyPolicy = spy(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
         io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
+
+        final ArgumentCaptor<DebugStep<?>> debugStepCaptor = ArgumentCaptor.forClass(DebugStep.class);
+        final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
         debugPolicy.execute(policyChain, context);
 
         Assert.assertTrue(debugPolicy.isRunnable());
         Assert.assertFalse(debugPolicy.isStreamable());
-        verify(dummyPolicy, never()).onRequest(policyChain, request, response);
+        verify(dummyPolicy, never()).onRequest(chainCaptor.capture(), eq(request), eq(response));
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
-        verify(dummyPolicy, atLeastOnce()).onResponse(request, response, policyChain);
-        verify(dummyPolicy, never()).onResponseContent(request, response, policyChain);
+        verify(dummyPolicy, atLeastOnce()).onResponse(chainCaptor.capture(), eq(request), eq(response));
+        verify(dummyPolicy, never()).onResponseContent(policyChain, request, response);
         verify(debugPolicy, atLeastOnce()).execute(policyChain, context);
+
+        verify(context, times(1)).beforePolicyExecution(debugStepCaptor.capture());
+        verify(context, times(1)).afterPolicyExecution(debugStepCaptor.capture());
+        assertThat(debugStepCaptor.getValue()).isInstanceOf(DebugResponseStep.class);
+        assertThat(chainCaptor.getValue()).isInstanceOf(DebugPolicyChain.class);
     }
 
     @Test
@@ -145,7 +172,8 @@ public class PolicyDebugDecoratorTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
+        final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_REQUEST, policy));
 
         debugPolicy.stream(policyChain, context);
 
@@ -153,9 +181,12 @@ public class PolicyDebugDecoratorTest {
         Assert.assertTrue(debugPolicy.isStreamable());
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
         verify(dummyPolicy, atLeastOnce()).onRequestContent(policyChain, request, response);
-        verify(dummyPolicy, never()).onResponse(request, response, policyChain);
-        verify(dummyPolicy, never()).onResponseContent(request, response, policyChain);
+        verify(dummyPolicy, never()).onResponse(policyChain, request, response);
+        verify(dummyPolicy, never()).onResponseContent(policyChain, request, response);
         verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
+
+        verify(context, never()).beforePolicyExecution(any());
+        verify(context, never()).afterPolicyExecution(any());
     }
 
     @Test
@@ -168,7 +199,8 @@ public class PolicyDebugDecoratorTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
+        final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy));
 
         debugPolicy.stream(policyChain, context);
 
@@ -176,9 +208,12 @@ public class PolicyDebugDecoratorTest {
         Assert.assertTrue(debugPolicy.isStreamable());
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
-        verify(dummyPolicy, never()).onResponse(request, response, policyChain);
-        verify(dummyPolicy, atLeastOnce()).onResponseContent(request, response, policyChain);
+        verify(dummyPolicy, never()).onResponse(policyChain, request, response);
+        verify(dummyPolicy, atLeastOnce()).onResponseContent(policyChain, request, response);
         verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
+
+        verify(context, never()).beforePolicyExecution(any());
+        verify(context, never()).afterPolicyExecution(any());
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {

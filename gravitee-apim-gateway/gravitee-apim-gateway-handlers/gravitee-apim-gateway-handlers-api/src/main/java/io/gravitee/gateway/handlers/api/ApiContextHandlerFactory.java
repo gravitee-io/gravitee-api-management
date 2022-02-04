@@ -45,7 +45,6 @@ import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
-import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -64,7 +63,6 @@ import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
-import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -83,7 +81,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     private final Logger logger = LoggerFactory.getLogger(ApiContextHandlerFactory.class);
 
     private ApplicationContext applicationContext;
-    private Configuration configuration;
+    private final Configuration configuration;
     private final Node node;
     private final PolicyFactoryCreator policyFactoryCreator;
 
@@ -196,6 +194,10 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         return null;
     }
 
+    protected ExecutionContextFactory executionContextFactory(ComponentProvider componentProvider) {
+        return new ExecutionContextFactory(componentProvider);
+    }
+
     public PolicyChainFactory policyChainFactory(PolicyManager policyManager) {
         return new PolicyChainFactory(policyManager);
     }
@@ -286,10 +288,6 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 
     public AuthenticationHandlerSelector authenticationHandlerSelector(AuthenticationHandlerManager authenticationHandlerManager) {
         return new DefaultAuthenticationHandlerSelector(authenticationHandlerManager);
-    }
-
-    public ExecutionContextFactory executionContextFactory(ComponentProvider componentProvider) {
-        return new ExecutionContextFactory(componentProvider);
     }
 
     public InvokerFactory invokerFactory(Api api, Vertx vertx, EndpointResolver endpointResolver) {
