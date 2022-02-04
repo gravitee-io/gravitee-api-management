@@ -47,6 +47,7 @@ import java.net.URL;
 import java.util.*;
 import org.junit.After;
 import org.junit.Before;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.util.collections.Sets;
@@ -62,7 +63,8 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
 
     private static final String API_ID = "id-api";
 
-    protected ApiExportService apiExportService;
+    @InjectMocks
+    protected ApiExportServiceImpl apiExportService;
 
     @Mock
     private ApiService apiService;
@@ -111,12 +113,6 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
 
     @Mock
     private RoleService roleService;
-
-    @Before
-    public void setup() {
-        apiExportService =
-            new ApiExportServiceImpl(objectMapper, pageService, planService, apiService, apiConverter, planConverter, pageConverter);
-    }
 
     @Before
     public void setUp() throws TechnicalException, JsonProcessingException {

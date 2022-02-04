@@ -39,9 +39,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -60,7 +60,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
     private static final String API_ID = "id-api";
     private static final String SOURCE = "source";
 
-    protected ApiDuplicatorService apiDuplicatorService;
+    @InjectMocks
+    protected ApiDuplicatorServiceImpl apiDuplicatorService;
 
     @Mock
     private ApiService apiService;
@@ -106,27 +107,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
     @Mock
     private MediaService mediaService;
-
-    @Before
-    public void setup() {
-        apiDuplicatorService =
-            new ApiDuplicatorServiceImpl(
-                httpClientService,
-                importConfiguration,
-                mediaService,
-                objectMapper,
-                apiMetadataService,
-                membershipService,
-                roleService,
-                pageService,
-                planService,
-                groupService,
-                userService,
-                apiService,
-                apiConverter,
-                planConverter
-            );
-    }
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
