@@ -58,6 +58,11 @@
   </div>
   <div class="policy-studio-debug-response__display-response__content-body">
     <h4>Body</h4>
-    <gv-code [value]="responseDisplayableVM.prettifiedResponse" [options]="responseDisplayableVM.gvCodeOptions" readonly></gv-code>
+    <gv-code
+      *ngIf="responseDisplayableVM.prettifiedResponse"
+      [value]="responseDisplayableVM.prettifiedResponse"
+      [options]="responseDisplayableVM.gvCodeOptions"
+      readonly
+    ></gv-code>
   </div>
 </ng-template>
