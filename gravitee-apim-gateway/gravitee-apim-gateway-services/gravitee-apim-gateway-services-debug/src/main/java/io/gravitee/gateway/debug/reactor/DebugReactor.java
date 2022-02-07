@@ -230,35 +230,6 @@ public class DebugReactor extends DefaultReactor {
         eventRepository.update(debugEvent);
     }
 
-    private io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
-        io.gravitee.definition.model.debug.DebugApi debugAPI = new io.gravitee.definition.model.debug.DebugApi();
-        debugAPI.setName(content.getName());
-        debugAPI.setId(content.getId());
-        debugAPI.setDefinitionVersion(content.getDefinitionVersion());
-        debugAPI.setResponse(content.getResponse());
-        debugAPI.setRequest(content.getRequest());
-        debugAPI.setFlowMode(content.getFlowMode());
-        debugAPI.setFlows(content.getFlows());
-        debugAPI.setPathMappings(content.getPathMappings());
-        debugAPI.setPlans(content.getPlans());
-        debugAPI.setPaths(content.getPaths());
-        debugAPI.setServices(content.getServices());
-        debugAPI.setProxy(content.getProxy());
-        debugAPI.setProperties(content.getProperties());
-        debugAPI.setResources(content.getResources());
-        debugAPI.setServices(content.getServices());
-        debugAPI.setResponseTemplates(content.getResponseTemplates());
-        return debugAPI;
-    }
-
-    Map<String, List<String>> convertHeaders(MultiMap headersMultimap) {
-        Map<String, List<String>> headers = new HashMap<>();
-        if (headersMultimap != null) {
-            headersMultimap.forEach(e -> headers.put(e.getKey(), headersMultimap.getAll(e.getKey())));
-        }
-        return headers;
-    }
-
     MultiMap convertHeaders(Map<String, List<String>> headers) {
         final HeadersMultiMap headersMultiMap = new HeadersMultiMap();
         if (headers != null) {

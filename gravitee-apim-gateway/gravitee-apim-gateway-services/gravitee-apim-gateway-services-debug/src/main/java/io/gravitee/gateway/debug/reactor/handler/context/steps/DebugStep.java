@@ -32,7 +32,7 @@ public abstract class DebugStep<T> {
 
     protected final String policyId;
     protected final StreamType streamType;
-    protected final String uuid;
+    protected final String policyInstanceId;
     protected final PolicyScope policyScope;
     protected final Map<String, Object> diffMap = new HashMap<>();
     protected final Stopwatch stopwatch;
@@ -42,7 +42,7 @@ public abstract class DebugStep<T> {
     public DebugStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope) {
         this.policyId = policyId;
         this.streamType = streamType;
-        this.uuid = uuid;
+        this.policyInstanceId = uuid;
         this.policyScope = policyScope;
         this.stopwatch = Stopwatch.createUnstarted();
         this.policyInputContent = new DebugStepContent();
@@ -93,8 +93,8 @@ public abstract class DebugStep<T> {
         return this.stopwatch.elapsed();
     }
 
-    public String getUuid() {
-        return uuid;
+    public String getPolicyInstanceId() {
+        return policyInstanceId;
     }
 
     public PolicyScope getPolicyScope() {

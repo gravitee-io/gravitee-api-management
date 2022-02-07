@@ -369,32 +369,6 @@ public class DebugReactorTest {
     }
 
     @Test
-    public void shouldConvertMultiMapHeadersToSimpleMap() {
-        final HeadersMultiMap headers = new HeadersMultiMap();
-        headers
-            .add("transfer-encoding", "chunked")
-            .add("X-Gravitee-Transaction-Id", "transaction-id")
-            .add("content-type", "application/json")
-            .add("X-Gravitee-Request-Id", "request-id")
-            .add("accept-encoding", "deflate")
-            .add("accept-encoding", "gzip")
-            .add("accept-encoding", "compress");
-
-        final Map<String, List<String>> result = debugReactor.convertHeaders(headers);
-
-        assertThat(result.get("transfer-encoding")).hasSize(1);
-        assertThat(result.get("transfer-encoding")).contains("chunked");
-        assertThat(result.get("X-Gravitee-Transaction-Id")).hasSize(1);
-        assertThat(result.get("X-Gravitee-Transaction-Id")).contains("transaction-id");
-        assertThat(result.get("content-type")).hasSize(1);
-        assertThat(result.get("content-type")).contains("application/json");
-        assertThat(result.get("X-Gravitee-Request-Id")).hasSize(1);
-        assertThat(result.get("X-Gravitee-Request-Id")).contains("request-id");
-        assertThat(result.get("accept-encoding")).hasSize(3);
-        assertThat(result.get("accept-encoding")).contains("deflate", "gzip", "compress");
-    }
-
-    @Test
     public void shouldConvertSimpleMapHeadersToMultiMapHeaders() {
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("transfer-encoding", singletonList("chunked"));

@@ -220,7 +220,7 @@ public class DebugRequestStepTest {
         assertThat(resultDiff.containsKey("path")).isFalse();
         assertThat(resultDiff.containsKey("contextPath")).isFalse();
         assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isTrue();
+        assertThat(resultDiff.containsKey("bodyBuffer")).isTrue();
     }
 
     private void applyDifferentValuesForFields(List<String> fields) {
