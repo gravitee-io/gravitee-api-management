@@ -277,10 +277,10 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         Optional<ApiCriteria> hasGroups = Arrays.stream(criteria).filter(apiCriteria -> !isEmpty(apiCriteria.getGroups())).findFirst();
         Optional<ApiCriteria> hasLabels = Arrays.stream(criteria).filter(apiCriteria -> hasText(apiCriteria.getLabel())).findFirst();
         if (hasGroups.isPresent()) {
-            sbQuery.append("join " + API_GROUPS + " ag on a.id = ag.api_id ");
+            sbQuery.append("left join " + API_GROUPS + " ag on a.id = ag.api_id ");
         }
         if (hasLabels.isPresent()) {
-            sbQuery.append("join " + API_LABELS + " al on a.id = al.api_id ");
+            sbQuery.append("left join " + API_LABELS + " al on a.id = al.api_id ");
         }
 
         List<String> clauses = Arrays.stream(criteria).map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
