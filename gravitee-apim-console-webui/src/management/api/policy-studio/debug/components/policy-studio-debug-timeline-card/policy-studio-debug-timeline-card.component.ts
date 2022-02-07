@@ -22,6 +22,12 @@ export type TimelineStep =
     }
   | {
       mode: 'BACKEND_TARGET';
+    }
+  | {
+      mode: 'REQUEST_INPUT';
+    }
+  | {
+      mode: 'REQUEST_OUTPUT';
     };
 
 interface TimelineCardVM {
@@ -55,6 +61,16 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
         icon: 'gio:city',
         title: 'Backend Target',
         color: 'green',
+      },
+      REQUEST_INPUT: {
+        icon: 'gio:nav-arrow-right',
+        title: 'Request Input',
+        color: 'blue',
+      },
+      REQUEST_OUTPUT: {
+        icon: 'gio:nav-arrow-right',
+        title: 'Request Output',
+        color: 'blue',
       },
     };
 
