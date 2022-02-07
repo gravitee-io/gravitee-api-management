@@ -14,11 +14,50 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 
+export type TimelineStep =
+  | {
+      mode: 'CLIENT_APP';
+    }
+  | {
+      mode: 'BACKEND_TARGET';
+    };
+
+interface TimelineCardVM {
+  icon?: string;
+  title?: string;
+  color?: 'green' | 'blue' | 'default';
+}
 @Component({
   selector: 'policy-studio-debug-timeline-card',
   template: require('./policy-studio-debug-timeline-card.component.html'),
   styles: [require('./policy-studio-debug-timeline-card.component.scss')],
 })
-export class PolicyStudioDebugTimelineCardComponent {}
+export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
+  @Input()
+  public timelineStep?: TimelineStep;
+
+  public timelineCardVM: TimelineCardVM = {};
+
+  ngOnChanges(): void {
+    if (!this.timelineStep) {
+      return;
+    }
+
+    const timelineCardTemplate: Record<TimelineStep['mode'], TimelineCardVM> = {
+      CLIENT_APP: {
+        icon: 'gio:smartphone-device',
+        title: 'Client APP',
+        color: 'green',
+      },
+      BACKEND_TARGET: {
+        icon: 'gio:city',
+        title: 'Backend Target',
+        color: 'green',
+      },
+    };
+
+    this.timelineCardVM = timelineCardTemplate[this.timelineStep.mode];
+  }
+}

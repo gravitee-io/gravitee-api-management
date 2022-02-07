@@ -16,23 +16,52 @@
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata } from '@storybook/angular';
+import { MatIconModule } from '@angular/material/icon';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import '@gravitee/ui-components/wc/gv-code';
 import '@gravitee/ui-components/wc/gv-icon';
 
-import { PolicyStudioDebugTimelineCardComponent } from './policy-studio-debug-timeline-card.component';
+import { PolicyStudioDebugTimelineCardComponent, TimelineStep } from './policy-studio-debug-timeline-card.component';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Timeline card',
   component: PolicyStudioDebugTimelineCardComponent,
   decorators: [
     moduleMetadata({
-      imports: [CommonModule, BrowserAnimationsModule],
+      imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule],
     }),
   ],
-  render: () => ({
-    template: '<policy-studio-debug-timeline-card ></policy-studio-debug-timeline-card>',
+  argTypes: {
+    timelineStep: {
+      control: {
+        type: 'object',
+      },
+    },
+  },
+  args: {
+    timelineStep: null,
+  },
+  render: ({ timelineStep }) => ({
+    props: { timelineStep },
+    template: '<policy-studio-debug-timeline-card [timelineStep]="timelineStep"></policy-studio-debug-timeline-card>',
   }),
 } as Meta;
 
-export const Default: Story = {};
+export const Empty: Story = {};
+
+export const ClientApp: Story = {
+  args: {
+    timelineStep: {
+      mode: 'CLIENT_APP',
+    } as TimelineStep,
+  },
+};
+
+export const BackendTarget: Story = {
+  args: {
+    timelineStep: {
+      mode: 'BACKEND_TARGET',
+    } as TimelineStep,
+  },
+};
