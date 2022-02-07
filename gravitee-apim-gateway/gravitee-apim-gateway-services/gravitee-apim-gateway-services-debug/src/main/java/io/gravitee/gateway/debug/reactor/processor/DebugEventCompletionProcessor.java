@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,13 +30,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -103,20 +103,6 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
             // TODO: throw exception to make handling fail ?
             e.printStackTrace();
         }
-
-        debugContext
-            .getDebugSteps()
-            .forEach(
-                debugStep -> {
-                    LOGGER.warn("---------------------------------------------------------");
-                    LOGGER.warn("Policy Id: {}", debugStep.getPolicyId());
-                    LOGGER.info("Debug scope: {}", debugStep.getPolicyScope());
-                    LOGGER.info("Elapsed time: {} ns", debugStep.elapsedTime().toNanos());
-                    LOGGER.info("Policy Diff: {}", debugStep.getDebugDiffContent());
-                    LOGGER.warn("---------------------------------------------------------");
-                    System.out.println("   ");
-                }
-            );
     }
 
     Map<String, List<String>> convertHeaders(HttpHeaders headersMultimap) {
@@ -129,19 +115,26 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
 
     private List<io.gravitee.definition.model.debug.DebugStep> convert(List<DebugStep<?>> debugSteps) {
         return debugSteps
-            .stream()
-            .map(
-                ds -> {
-                    final io.gravitee.definition.model.debug.DebugStep debugStep = new io.gravitee.definition.model.debug.DebugStep();
-                    debugStep.setId(ds.getUuid());
-                    debugStep.setPolicyId(ds.getPolicyId());
-                    debugStep.setDuration(ds.elapsedTime().toNanos());
-                    debugStep.setStatus(io.gravitee.definition.model.debug.DebugStep.Status.COMPLETED);
-                    debugStep.setScope(ds.getPolicyScope());
-                    debugStep.setOutputDiff(ds.getDebugDiffContent());
-                    return debugStep;
-                }
-            )
-            .collect(Collectors.toList());
+                .stream()
+                .map(
+                        ds -> {
+                            final io.gravitee.definition.model.debug.DebugStep debugStep = new io.gravitee.definition.model.debug.DebugStep();
+                            debugStep.setPolicyInstanceId(ds.getPolicyInstanceId());
+                            debugStep.setPolicyId(ds.getPolicyId());
+                            debugStep.setDuration(ds.elapsedTime().toNanos());
+                            debugStep.setStatus(io.gravitee.definition.model.debug.DebugStep.Status.COMPLETED);
+                            debugStep.setScope(ds.getPolicyScope());
+                            if (ds.getDebugDiffContent().containsKey("headers")) {
+                                ds.getDebugDiffContent().put("headers", convertHeaders((HttpHeaders) ds.getDebugDiffContent().get("headers")));
+                            }
+                            if (ds.getDebugDiffContent().containsKey("bodyBuffer")) {
+                                ds.getDebugDiffContent().put("body", ds.getDebugDiffContent().get("bodyBuffer").toString());
+                                ds.getDebugDiffContent().remove("bodyBuffer");
+                            }
+                            debugStep.setResult(ds.getDebugDiffContent());
+                            return debugStep;
+                        }
+                )
+                .collect(Collectors.toList());
     }
 }
