@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.15.3
+      author: GraviteeSource Team
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 1
+            sql: select count(*) from ${gravitee_prefix}environments where id = 'DEFAULT'
+        - sqlCheck:
+            expectedResult: 0
+            sql: select count(*) from ${gravitee_prefix}environment_hrids where environment_id = 'DEFAULT' and pos = 0
+      changes:
+        - sql:
+            sql: insert into ${gravitee_prefix}environment_hrids (environment_id, hrid, pos) values ('DEFAULT', 'default', 0)
