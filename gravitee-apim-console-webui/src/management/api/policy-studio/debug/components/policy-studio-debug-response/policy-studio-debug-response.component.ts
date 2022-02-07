@@ -42,7 +42,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
   ngOnChanges(): void {
     if (this.debugResponse && !this.debugResponse.isLoading) {
-      const contentTypeHeader = Object.entries(this.debugResponse.response.headers).find(([key]) => {
+      const contentTypeHeader = Object.entries(this.debugResponse.response.headers ?? {}).find(([key]) => {
         return key.toLowerCase() === 'content-type';
       });
       const contentType = contentTypeHeader ? contentTypeHeader[1].split(';')[0] : undefined;
@@ -68,7 +68,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         errorRequest: 400 <= this.debugResponse?.response.statusCode && this.debugResponse?.response.statusCode < 600,
         gvCodeOptions,
         prettifiedResponse,
-        headers: Object.entries(this.debugResponse.response.headers).map(([key, value]) => ({ name: key, value: value })),
+        headers: Object.entries(this.debugResponse.response.headers ?? {}).map(([key, value]) => ({ name: key, value: value })),
       };
     }
   }

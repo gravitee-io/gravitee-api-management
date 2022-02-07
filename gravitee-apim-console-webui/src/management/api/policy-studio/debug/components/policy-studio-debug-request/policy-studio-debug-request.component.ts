@@ -17,6 +17,7 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
+import '@gravitee/ui-components/wc/gv-schema-form';
 
 import { CorsUtil } from '../../../../../../shared/utils';
 import { DebugRequest } from '../../models/DebugRequest';
