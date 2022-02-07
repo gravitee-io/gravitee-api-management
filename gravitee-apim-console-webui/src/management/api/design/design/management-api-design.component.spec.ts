@@ -26,7 +26,7 @@ import { ManagementModule } from '../../../management.module';
 import { fakeApiFlowSchema } from '../../../../entities/flow/apiFlowSchema.fixture';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
-import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { fakeUpdateApi } from '../../../../entities/api/UpdateApi.fixture';
 
@@ -42,6 +42,7 @@ describe('ManagementApiDesignComponent', () => {
   const policies = [fakePolicyListItem()];
   const api = fakeApi();
   const resources = [fakeResourceListItem()];
+  const ajsRootScopeBroadcastMock = jest.fn();
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -52,6 +53,7 @@ describe('ManagementApiDesignComponent', () => {
           provide: CurrentUserService,
           useValue: { currentUser },
         },
+        { provide: AjsRootScope, useValue: { $broadcast: ajsRootScopeBroadcastMock } },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -158,6 +160,8 @@ describe('ManagementApiDesignComponent', () => {
         }),
       );
       req.flush(api);
+
+      expect(ajsRootScopeBroadcastMock).toHaveBeenCalledWith('apiChangeSuccess', { api });
 
       // call new ngOnInit
       httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/schema`).flush(apiFlowSchema);
