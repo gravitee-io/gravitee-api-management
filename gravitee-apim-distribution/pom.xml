@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee.apim</groupId>
         <artifactId>gravitee-api-management</artifactId>
-        <version>3.15.3-SNAPSHOT</version>
+        <version>3.15.3</version>
     </parent>
 
     <groupId>io.gravitee.apim.distribution</groupId>
