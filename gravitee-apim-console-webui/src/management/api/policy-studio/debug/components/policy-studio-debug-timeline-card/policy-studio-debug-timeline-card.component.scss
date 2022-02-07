@@ -24,6 +24,10 @@
     color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
   }
 
+  &.color-blue {
+    color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+  }
+
   &__icon {
     margin-right: 8px;
   }

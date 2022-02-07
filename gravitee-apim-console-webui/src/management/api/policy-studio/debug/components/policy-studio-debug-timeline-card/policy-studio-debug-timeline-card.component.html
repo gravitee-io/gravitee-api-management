@@ -15,6 +15,10 @@
     limitations under the License.
 
 -->
-<div class="policy-studio-debug-timeline-card" [class.color-green]="timelineCardVM.color === 'green'">
+<div
+  class="policy-studio-debug-timeline-card"
+  [class.color-green]="timelineCardVM.color === 'green'"
+  [class.color-blue]="timelineCardVM.color === 'blue'"
+>
   <mat-icon class="policy-studio-debug-timeline-card__icon" [svgIcon]="timelineCardVM.icon"></mat-icon> {{ timelineCardVM.title }}
 </div>

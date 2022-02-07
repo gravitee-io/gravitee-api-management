@@ -65,3 +65,19 @@ export const BackendTarget: Story = {
     } as TimelineStep,
   },
 };
+
+export const RequestInput: Story = {
+  args: {
+    timelineStep: {
+      mode: 'REQUEST_INPUT',
+    } as TimelineStep,
+  },
+};
+
+export const RequestOutput: Story = {
+  args: {
+    timelineStep: {
+      mode: 'REQUEST_OUTPUT',
+    } as TimelineStep,
+  },
+};
