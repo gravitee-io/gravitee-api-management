@@ -15,31 +15,25 @@
     limitations under the License.
 
 -->
-<gio-policy-studio
+<gv-design
   *ngIf="!isLoading"
-  class="management-api-design"
+  #gvDesignComponent
+  class="policy-studio-design"
   flowsTitle="API Flows"
-  [tabId]="tabId"
-  [hideTab]="true"
-  [canAdd]="true"
-  [hasPolicyFilter]="true"
-  [hasProperties]="true"
-  [hasResources]="true"
-  [hasPlans]="true"
-  [hasConditionalSteps]="true"
-  [canDebug]="true"
-  [canAdd]="true"
-  [sortable]="true"
-  [readonlyPlans]="readonlyPlans"
+  can-add
+  has-policy-filter
+  has-conditional-steps
+  sortable
+  [attr.readonly-plans]="readonlyPlans ? readonlyPlans : null"
   [flowSchema]="apiFlowSchema"
   [policies]="policies"
-  [definition]="definition"
+  [definition]="apiDefinition"
   [services]="services"
   [resourceTypes]="resourceTypes"
-  [configurationInformation]="configurationInformation"
-  [propertyProviders]="propertyProviders"
-  [dynamicPropertySchema]="dynamicPropertySchema"
-  [debugResponse]="debugResponse"
-  (save)="onSave($event)"
-  (debug)="onDebug($event)"
-></gio-policy-studio>
+  [selectedFlowsId]="selectedFlowsIds"
+  [documentation]="policyDocumentation"
+  (:gv-design:change)="onChange($event)"
+  (:gv-design:fetch-documentation)="fetchPolicyDocumentation($any($event).detail)"
+  (:gv-design:select-flows)="onFlowSelectionChanged($any($event).detail)"
+  (:gv-expression-language:ready)="fetchSpelGrammar($any($event).detail)"
+></gv-design>

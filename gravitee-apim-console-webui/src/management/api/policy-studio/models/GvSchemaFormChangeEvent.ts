@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Json } from '../../util';
+import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
 
-export type ApiFlowSchema = Record<string, Json>;
+interface GvSchemaFormDetail<T> {
+  values: T;
+}
+
+export type GvSchemaFormChangeEvent<T> = ComponentCustomEvent<GvSchemaFormDetail<T>>;

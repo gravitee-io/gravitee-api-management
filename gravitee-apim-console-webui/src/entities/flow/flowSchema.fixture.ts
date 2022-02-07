@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiFlowSchema } from './apiFlowSchema';
+import { FlowSchema } from './flowSchema';
 
-export function fakeApiFlowSchema(attributes?: ApiFlowSchema): ApiFlowSchema {
-  const base: ApiFlowSchema = {
+export function fakeFlowSchema(attributes?: FlowSchema): FlowSchema {
+  const base: FlowSchema = {
     type: 'object',
     id: 'apim',
     properties: {

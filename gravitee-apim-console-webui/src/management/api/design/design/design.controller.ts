@@ -196,7 +196,7 @@ class ApiDesignController {
         resources: this.api.resources,
         plans: this.UserService.isUserHasPermissions(['api-plan-r', 'api-plan-u']) && this.api.plans != null ? this.api.plans : [],
         properties: this.api.properties,
-        'flow-mode': this.api.flow_mode,
+        flow_mode: this.api.flow_mode,
       };
       this.services = this.api.services;
     }
@@ -209,7 +209,7 @@ class ApiDesignController {
     this.api.resources = definition.resources;
     this.api.properties = definition.properties;
     this.api.services = services;
-    this.api.flow_mode = definition['flow-mode'];
+    this.api.flow_mode = definition.flow_mode;
     this.ApiService.update(this.api).then((updatedApi) => {
       this.NotificationService.show('Design of api has been updated');
       this.setApi(updatedApi.data);
@@ -226,7 +226,7 @@ class ApiDesignController {
     debugApi.resources = definition.resources;
     debugApi.properties = definition.properties;
     debugApi.services = services;
-    debugApi.flow_mode = definition['flow-mode'];
+    debugApi.flow_mode = definition.flow_mode;
 
     const headersAsMap = (request.headers ?? [])
       .filter((header) => !!header.value)

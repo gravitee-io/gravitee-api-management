@@ -19,7 +19,7 @@ import { Observable } from 'rxjs';
 
 import { Api, UpdateApi } from '../entities/api';
 import { Constants } from '../entities/Constants';
-import { ApiFlowSchema } from '../entities/flow/apiFlowSchema';
+import { FlowSchema } from '../entities/flow/flowSchema';
 
 @Injectable({
   providedIn: 'root',
@@ -31,12 +31,12 @@ export class ApiService {
     return this.http.get<Api>(`${this.constants.env.baseURL}/apis/${name}`);
   }
 
-  getFlowSchemaForm(): Observable<ApiFlowSchema> {
-    return this.http.get<ApiFlowSchema>(`${this.constants.env.baseURL}/apis/schema`);
+  getFlowSchemaForm(): Observable<FlowSchema> {
+    return this.http.get<FlowSchema>(`${this.constants.env.baseURL}/apis/schema`);
   }
 
-  update(api: UpdateApi & { id: string }): Observable<void> {
-    return this.http.put<void>(
+  update(api: UpdateApi & { id: string }): Observable<Api> {
+    return this.http.put<Api>(
       `${this.constants.env.baseURL}/apis/${api.id}`,
       {
         version: api.version,

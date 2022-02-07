@@ -104,7 +104,7 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
             pre: [],
           },
         ],
-        'flow-mode': 'BEST_MATCH',
+        flow_mode: 'BEST_MATCH',
       });
     });
   });
@@ -113,7 +113,7 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
     it('should call the API with updated organization', async () => {
       component.onSave({
         definition: {
-          'flow-mode': 'DEFAULT',
+          flow_mode: 'DEFAULT',
           flows: [
             {
               condition: '',

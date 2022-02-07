@@ -44,7 +44,7 @@ interface FlowVM {
 }
 
 interface DefinitionVM {
-  'flow-mode': 'DEFAULT' | 'BEST_MATCH';
+  flow_mode: 'DEFAULT' | 'BEST_MATCH';
   flows: FlowVM[];
 }
 
@@ -89,7 +89,7 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
               ...flow,
               consumers: flow.consumers.map((consumer) => consumer.consumerId),
             })),
-            'flow-mode': this.organization.flowMode,
+            flow_mode: this.organization.flowMode,
           };
           this.isLoading = false;
         }),
@@ -105,7 +105,7 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
   onSave({ definition }: { definition: DefinitionVM }) {
     const updatedOrganization: Organization = {
       ...this.organization,
-      flowMode: definition['flow-mode'],
+      flowMode: definition.flow_mode,
       flows: definition.flows.map((flow) => ({
         ...flow,
         consumers: (flow.consumers ?? []).map((consumer) => ({ consumerType: 'TAG', consumerId: consumer })),

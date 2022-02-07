@@ -18,44 +18,31 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
-import { PolicyStudioDesignComponent } from './policy-studio-design.component';
+import { PolicyStudioResourcesComponent } from './policy-studio-resources.component';
+import { PolicyStudioResourcesModule } from './policy-studio-resources.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakePolicyListItem } from '../../../../entities/policy';
-import { ManagementModule } from '../../../management.module';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
-import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
-import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
-import { fakeFlowSchema } from '../../../../entities/flow/flowSchema.fixture';
+import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
-import { ApiDefinition, toApiDefinition } from '../models/ApiDefinition';
+import { toApiDefinition } from '../models/ApiDefinition';
 
-describe('PolicyStudioDesignComponent', () => {
-  let fixture: ComponentFixture<PolicyStudioDesignComponent>;
-  let component: PolicyStudioDesignComponent;
+describe('PolicyStudioResourcesComponent', () => {
+  let fixture: ComponentFixture<PolicyStudioResourcesComponent>;
+  let component: PolicyStudioResourcesComponent;
   let httpTestingController: HttpTestingController;
   let policyStudioService: PolicyStudioService;
-  let apiDefinition: ApiDefinition;
 
   const currentUser = new User();
   currentUser.userApiPermissions = ['api-plan-r', 'api-plan-u'];
 
-  const apiFlowSchema = fakeFlowSchema();
-  const policies = [fakePolicyListItem()];
   const api = fakeApi();
   const resources = [fakeResourceListItem()];
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ManagementModule],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: api.id } },
-        {
-          provide: CurrentUserService,
-          useValue: { currentUser },
-        },
-      ],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioResourcesModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -64,28 +51,31 @@ describe('PolicyStudioDesignComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(PolicyStudioDesignComponent);
+    fixture = TestBed.createComponent(PolicyStudioResourcesComponent);
     component = fixture.componentInstance;
 
     httpTestingController = TestBed.inject(HttpTestingController);
     policyStudioService = TestBed.inject(PolicyStudioService);
-    apiDefinition = toApiDefinition(api);
-    policyStudioService.emitApiDefinition(apiDefinition);
+    policyStudioService.emitApiDefinition(toApiDefinition(api));
+
     fixture.detectChanges();
-
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/schema`).flush(apiFlowSchema);
-
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon`).flush(policies);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(resources);
   });
 
   describe('ngOnInit', () => {
     it('should setup properties', async () => {
-      expect(component.apiFlowSchema).toStrictEqual(apiFlowSchema);
-      expect(component.policies).toStrictEqual(policies);
-      expect(component.resourceTypes).toStrictEqual(resources);
-      expect(component.apiDefinition).toStrictEqual(apiDefinition);
+      expect(component.apiDefinition).toStrictEqual({
+        id: api.id,
+        name: api.name,
+        flows: api.flows,
+        flow_mode: api.flow_mode,
+        resources: api.resources,
+        plans: api.plans,
+        version: api.version,
+        services: api.services,
+        properties: api.properties,
+      });
     });
   });
 
