@@ -27,6 +27,7 @@ import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.tracing.api.Tracer;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,9 +40,15 @@ public class DebugExecutionContext implements ExecutionContext {
     private final ExecutionContext context;
 
     private final List<DebugStep<?>> steps = new ArrayList<>();
+    private final Map<String, Object> initialAttributes;
 
     public DebugExecutionContext(ExecutionContext context) {
         this.context = context;
+        this.initialAttributes = new HashMap<>(context.getAttributes());
+    }
+
+    public Map<String, Object> getInitialAttributes() {
+        return initialAttributes;
     }
 
     public void beforePolicyExecution(DebugStep<?> debugStep) {

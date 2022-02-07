@@ -57,7 +57,7 @@ public class DebugResponseStep extends DebugStep<Response> {
         Buffer output = outputBuffer != null ? outputBuffer : Buffer.buffer();
 
         if (!input.getNativeBuffer().equals(output.getNativeBuffer())) {
-            diffMap.put("buffer", Buffer.buffer(output.getBytes()));
+            diffMap.put("bodyBuffer", Buffer.buffer(output.getBytes()));
         }
     }
 }
