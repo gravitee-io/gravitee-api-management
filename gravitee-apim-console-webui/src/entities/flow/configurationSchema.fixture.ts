@@ -20,7 +20,7 @@ export function fakeFlowConfigurationSchema(attributes?: FlowConfigurationSchema
     type: 'object',
     id: 'apim',
     properties: {
-      'flow-mode': {
+      flow_mode: {
         title: 'Flow Mode',
         description: 'The flow mode',
         type: 'string',

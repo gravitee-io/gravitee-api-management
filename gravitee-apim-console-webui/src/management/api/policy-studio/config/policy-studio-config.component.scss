@@ -1,0 +1,25 @@
+@use '../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+  display: flex;
+  flex-direction: column;
+  height: var(--gv-policy-studio--h);
+}
+
+.policy-studio-api-config__information {
+  display: flex;
+  align-items: center;
+
+  &__icon {
+    --gv-icon--c: var(--gv-theme-color, #5a7684);
+    --gv-icon-opacity--c: var(--gv-theme-color-info-light, #64b5f6);
+  }
+
+  &__blockquote {
+    border-left: 1px solid var(--gv-theme-color, #5a7684);
+    margin: 15px;
+    padding-left: 15px;
+    font-size: 14px;
+  }
+}

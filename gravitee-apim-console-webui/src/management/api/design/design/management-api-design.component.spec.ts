@@ -23,7 +23,7 @@ import { ManagementApiDesignComponent } from './management-api-design.component'
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
 import { ManagementModule } from '../../../management.module';
-import { fakeApiFlowSchema } from '../../../../entities/flow/apiFlowSchema.fixture';
+import { fakeFlowSchema } from '../../../../entities/flow/flowSchema.fixture';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -38,7 +38,7 @@ describe('ManagementApiDesignComponent', () => {
   const currentUser = new User();
   currentUser.userApiPermissions = ['api-plan-r', 'api-plan-u'];
 
-  const apiFlowSchema = fakeApiFlowSchema();
+  const apiFlowSchema = fakeFlowSchema();
   const policies = [fakePolicyListItem()];
   const api = fakeApi();
   const resources = [fakeResourceListItem()];
@@ -108,7 +108,7 @@ describe('ManagementApiDesignComponent', () => {
             ],
           },
         ],
-        'flow-mode': 'DEFAULT',
+        flow_mode: 'DEFAULT',
         name: '🪐 Planets',
         plans: [],
         properties: [],
@@ -139,7 +139,7 @@ describe('ManagementApiDesignComponent', () => {
           resources: [],
           plans: [],
           properties: [],
-          'flow-mode': 'BEST_MATCH',
+          flow_mode: 'BEST_MATCH',
         },
         services: api.services,
       });

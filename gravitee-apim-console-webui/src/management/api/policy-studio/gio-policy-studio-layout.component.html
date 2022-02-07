@@ -29,6 +29,15 @@
   </a>
 </nav>
 
-<section ui-view class="gio-policy-studio-layout__tab-content">
+<section ui-view class="gio-policy-studio-layout__tab-content" [ngClass]="{ 'gio-policy-studio-layout__dirty': this.isDirty }">
   <h4 style="margin: 1em 2em">Loading...</h4>
 </section>
+
+<gio-save-bar
+  class="gio-policy-studio-layout__save-bar"
+  [opened]="this.isDirty"
+  [creationMode]="false"
+  (resetClicked)="onReset()"
+  (submitted)="onSubmit()"
+>
+</gio-save-bar>

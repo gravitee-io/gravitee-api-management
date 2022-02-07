@@ -16,6 +16,13 @@
 
 import { HttpMethod } from '../HttpMethod';
 
+export interface DynamicPropertyService {
+  enabled?: boolean;
+  provider?: 'HTTP';
+  configuration?: unknown;
+  schedule?: string;
+}
+
 export interface Services {
   discovery?: {
     enabled?: boolean;
@@ -39,10 +46,5 @@ export interface Services {
       };
     }[];
   };
-  'dynamic-property'?: {
-    enabled?: boolean;
-    provider?: 'HTTP';
-    configuration?: unknown;
-    schedule?: string;
-  };
+  'dynamic-property'?: DynamicPropertyService;
 }

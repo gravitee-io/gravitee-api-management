@@ -33,14 +33,14 @@ import { DebugApiService } from '../../../../services-ngx/debug-api.service';
 import { EventService } from '../../../../services-ngx/event.service';
 import { Services } from '../../../../entities/services';
 import { ApiPlan, ApiProperty, ApiResource } from '../../../../entities/api';
-import { ApiFlowSchema } from '../../../../entities/flow/apiFlowSchema';
+import { FlowSchema } from '../../../../entities/flow/flowSchema';
 import { FlowService } from '../../../../services-ngx/flow.service';
 import { SpelService } from '../../../../services-ngx/spel.service';
 
 interface DefinitionVM {
   name: string;
   version: string;
-  'flow-mode': 'DEFAULT' | 'BEST_MATCH';
+  flow_mode: 'DEFAULT' | 'BEST_MATCH';
   flows: Flow[];
   resources: ApiResource[];
   plans: ApiPlan[];
@@ -194,7 +194,7 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
   definition: DefinitionVM;
   services: Services;
 
-  apiFlowSchema: ApiFlowSchema;
+  apiFlowSchema: FlowSchema;
   policies: PolicyListItem[];
   resourceTypes: ResourceListItem[];
   readonlyPlans = false;
@@ -245,7 +245,7 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
             resources: api.resources,
             plans: (this.permissionService.hasAnyMatching(['api-plan-r', 'api-plan-u']) ? api.plans : []) ?? [],
             properties: api.properties,
-            'flow-mode': api.flow_mode,
+            flow_mode: api.flow_mode,
           };
           this.services = api.services;
 
@@ -270,7 +270,7 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
     this.api.resources = definition.resources;
     this.api.properties = definition.properties;
     this.api.services = services;
-    this.api.flow_mode = definition['flow-mode'];
+    this.api.flow_mode = definition.flow_mode;
     this.apiService
       .update(this.api)
       .pipe(
@@ -291,7 +291,7 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
     debugApi.resources = definition.resources;
     debugApi.properties = definition.properties;
     debugApi.services = services;
-    debugApi.flow_mode = definition['flow-mode'];
+    debugApi.flow_mode = definition.flow_mode;
 
     const headersAsMap = (request.headers ?? [])
       .filter((header) => !!header.value)

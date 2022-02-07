@@ -21,14 +21,22 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
+import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDebugComponent } from './debug/policy-studio-debug.component';
 import { PolicyStudioDesignComponent } from './design/policy-studio-design.component';
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
+import { PolicyStudioConfigComponent } from './config/policy-studio-config.component';
+import { PolicyStudioPropertiesComponent } from './properties/policy-studio-properties.component';
+import { PolicyStudioResourcesComponent } from './resources/policy-studio-resources.component';
+import { PolicyStudioDesignModule } from './design/policy-studio-design.module';
 import { PolicyStudioDebugModule } from './debug/policy-studio-debug.module';
+import { PolicyStudioConfigModule } from './config/policy-studio-config.module';
+import { PolicyStudioResourcesModule } from './resources/policy-studio-resources.module';
+import { PolicyStudioPropertiesModule } from './properties/policy-studio-properties.module';
 
-import { GioConfirmDialogModule } from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioConfirmDialogModule } from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 
 @NgModule({
   imports: [
@@ -40,13 +48,18 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MatTabsModule,
     MatSnackBarModule,
 
+    GioSaveBarModule,
     GioPermissionModule,
     GioConfirmDialogModule,
     GioPolicyStudioModule,
 
+    PolicyStudioDesignModule,
+    PolicyStudioConfigModule,
+    PolicyStudioPropertiesModule,
+    PolicyStudioResourcesModule,
     PolicyStudioDebugModule,
   ],
-  declarations: [GioPolicyStudioLayoutComponent, PolicyStudioDesignComponent],
+  declarations: [GioPolicyStudioLayoutComponent],
 })
 export class GioPolicyStudioRoutingModule {
   public static withRouting(config: { stateNamePrefix: string }): ModuleWithProviders<GioPolicyStudioRoutingModule> {
@@ -63,18 +76,8 @@ export class GioPolicyStudioRoutingModule {
         },
       },
       {
-        name: `${config.stateNamePrefix}.debug`,
-        url: '/debug',
-        component: PolicyStudioDebugComponent,
-        data: {
-          useAngularMaterial: true,
-          menu: null,
-          docs: null,
-        },
-      },
-      {
         name: `${config.stateNamePrefix}.design`,
-        url: '/:psPage?flows',
+        url: '/design?flows',
         component: PolicyStudioDesignComponent,
         // dynamic: true,
         data: {
@@ -87,6 +90,46 @@ export class GioPolicyStudioRoutingModule {
             type: 'string',
             dynamic: true,
           },
+        },
+      },
+      {
+        name: `${config.stateNamePrefix}.settings`,
+        url: '/settings',
+        component: PolicyStudioConfigComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: null,
+        },
+      },
+      {
+        name: `${config.stateNamePrefix}.properties`,
+        url: '/properties',
+        component: PolicyStudioPropertiesComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: null,
+        },
+      },
+      {
+        name: `${config.stateNamePrefix}.resources`,
+        url: '/resources',
+        component: PolicyStudioResourcesComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: null,
+        },
+      },
+      {
+        name: `${config.stateNamePrefix}.debug`,
+        url: '/debug',
+        component: PolicyStudioDebugComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: null,
         },
       },
     ] as Ng2StateDeclaration[];

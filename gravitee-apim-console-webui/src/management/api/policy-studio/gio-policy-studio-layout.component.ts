@@ -13,20 +13,97 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { StateParams, StateService } from '@uirouter/angularjs';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+
+import { PolicyStudioService } from './policy-studio.service';
+import { PolicyStudioPropertiesService } from './properties/policy-studio-properties.service';
+import { ApiDefinition, toApiDefinition } from './models/ApiDefinition';
+
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { ApiService } from '../../../services-ngx/api.service';
+import { Api } from '../../../entities/api';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'gio-policy-studio-layout',
   template: require('./gio-policy-studio-layout.component.html'),
   styles: [require('./gio-policy-studio-layout.component.scss')],
 })
-export class GioPolicyStudioLayoutComponent {
+export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
+  private unsubscribe$ = new Subject<void>();
   policyStudioMenu = [
-    { label: 'Design', uiSref: 'design', params: { psPage: 'design' } },
-    { label: 'Config', uiSref: 'design', params: { psPage: 'settings' } },
-    { label: 'Properties', uiSref: 'design', params: { psPage: 'properties' } },
-    { label: 'Resources', uiSref: 'design', params: { psPage: 'resources' } },
+    { label: 'Design', uiSref: 'design' },
+    { label: 'Config', uiSref: 'settings' },
+    { label: 'Properties', uiSref: 'properties' },
+    { label: 'Resources', uiSref: 'resources' },
     { label: 'Debug', uiSref: 'debug' },
   ];
   activeLink = this.policyStudioMenu[0];
+  apiDefinition: ApiDefinition;
+  isDirty: boolean;
+
+  constructor(
+    readonly policyStudioService: PolicyStudioService,
+    readonly policyStudioPropertiesService: PolicyStudioPropertiesService,
+    readonly snackBarService: SnackBarService,
+    readonly apiService: ApiService,
+    readonly permissionService: GioPermissionService,
+    @Inject(UIRouterState) readonly ajsStateService: StateService,
+    @Inject(UIRouterStateParams) readonly ajsStateParams: StateParams,
+    @Inject(AjsRootScope) readonly ajsRootScope,
+  ) {}
+
+  ngOnInit(): void {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((api) => {
+          this.policyStudioService.emitApiDefinition(this.toApiDefinition(api));
+        }),
+      )
+      .subscribe();
+    this.policyStudioService.getApiDefinition$().pipe(takeUntil(this.unsubscribe$)).subscribe(this.onDefinitionChange.bind(this));
+  }
+
+  onDefinitionChange(apiDefinition: ApiDefinition) {
+    if (this.apiDefinition) {
+      this.isDirty = true;
+    }
+    this.apiDefinition = apiDefinition;
+  }
+
+  onSubmit() {
+    return this.apiService
+      .get(this.apiDefinition.id)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((api) => this.apiService.update({ ...api, ...this.apiDefinition })),
+        tap((api) => {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
+          this.onReset();
+        }),
+      )
+      .subscribe();
+  }
+
+  onReset() {
+    this.policyStudioService.reset();
+    this.ajsStateService.reload();
+  }
+
+  private toApiDefinition(api: Api): ApiDefinition {
+    const apiDefinition = toApiDefinition(api);
+    const plans = api.plans && this.permissionService.hasAnyMatching(['api-plan-r', 'api-plan-u']) ? api.plans : [];
+    return { ...apiDefinition, plans };
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+  }
 }

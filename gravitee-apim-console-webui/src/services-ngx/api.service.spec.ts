@@ -20,7 +20,7 @@ import { ApiService } from './api.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeApi } from '../entities/api/Api.fixture';
-import { fakeApiFlowSchema } from '../entities/flow/apiFlowSchema.fixture';
+import { fakeFlowSchema } from '../entities/flow/flowSchema.fixture';
 import { fakeUpdateApi } from '../entities/api/UpdateApi.fixture';
 
 describe('ApiService', () => {
@@ -58,7 +58,7 @@ describe('ApiService', () => {
 
   describe('getFlowSchemaForm', () => {
     it('should call the API', (done) => {
-      const mockApiFlow = fakeApiFlowSchema();
+      const mockApiFlow = fakeFlowSchema();
 
       apiService.getFlowSchemaForm().subscribe((response) => {
         expect(response).toEqual(mockApiFlow);
