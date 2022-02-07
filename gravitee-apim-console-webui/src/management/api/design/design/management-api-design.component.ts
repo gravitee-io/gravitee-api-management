@@ -25,7 +25,7 @@ import { PolicyListItem } from '../../../../entities/policy';
 import { Flow } from '../../../../entities/flow/flow';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiService } from '../../../../services-ngx/api.service';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ResourceService } from '../../../../services-ngx/resource.service';
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
@@ -220,6 +220,7 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(AjsRootScope) private readonly ajsRootScope,
   ) {}
 
   ngOnInit(): void {
@@ -275,6 +276,7 @@ export class ManagementApiDesignComponent implements OnInit, OnDestroy {
       .pipe(
         tap(() => {
           this.snackBarService.success('Design of api successfully updated!');
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api: this.api });
         }),
       )
       .subscribe(() => {

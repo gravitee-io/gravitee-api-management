@@ -19,6 +19,7 @@ import { combineLatest, EMPTY, interval, Subject, timer } from 'rxjs';
 import { catchError, filter, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { cloneDeep } from 'lodash';
 import { StateParams } from '@uirouter/angularjs';
+import { IScope } from 'angular';
 
 import { PolicyService } from '../../../../services-ngx/policy.service';
 import { Organization } from '../../../../entities/organization/organization';
@@ -26,7 +27,7 @@ import { PolicyListItem } from '../../../../entities/policy';
 import { Flow } from '../../../../entities/flow/flow';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiService } from '../../../../services-ngx/api.service';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ResourceService } from '../../../../services-ngx/resource.service';
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
@@ -222,6 +223,7 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
   ) {}
 
   ngOnInit(): void {
@@ -278,6 +280,7 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
       .update(this.api)
       .pipe(
         tap(() => {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api: this.api });
           this.snackBarService.success('Design of api successfully updated!');
         }),
       )
