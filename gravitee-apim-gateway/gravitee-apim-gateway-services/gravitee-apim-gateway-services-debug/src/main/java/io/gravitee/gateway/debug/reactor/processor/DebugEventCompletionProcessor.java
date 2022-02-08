@@ -148,12 +148,19 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
                     debugStep.setDuration(ds.elapsedTime().toNanos());
                     debugStep.setStatus(io.gravitee.definition.model.debug.DebugStep.Status.COMPLETED);
                     debugStep.setScope(ds.getPolicyScope());
-                    if (ds.getDebugDiffContent().containsKey("headers")) {
-                        ds.getDebugDiffContent().put("headers", convertHeaders((HttpHeaders) ds.getDebugDiffContent().get("headers")));
+                    if (ds.getDebugDiffContent().containsKey(DebugStep.DIFF_KEY_HEADERS)) {
+                        ds
+                            .getDebugDiffContent()
+                            .put(
+                                DebugStep.DIFF_KEY_HEADERS,
+                                convertHeaders((HttpHeaders) ds.getDebugDiffContent().get(DebugStep.DIFF_KEY_HEADERS))
+                            );
                     }
-                    if (ds.getDebugDiffContent().containsKey("bodyBuffer")) {
-                        ds.getDebugDiffContent().put("body", ds.getDebugDiffContent().get("bodyBuffer").toString());
-                        ds.getDebugDiffContent().remove("bodyBuffer");
+                    if (ds.getDebugDiffContent().containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)) {
+                        ds
+                            .getDebugDiffContent()
+                            .put(DebugStep.DIFF_KEY_BODY, ds.getDebugDiffContent().get(DebugStep.DIFF_KEY_BODY_BUFFER).toString());
+                        ds.getDebugDiffContent().remove(DebugStep.DIFF_KEY_BODY_BUFFER);
                     }
                     debugStep.setResult(ds.getDebugDiffContent());
                     return debugStep;

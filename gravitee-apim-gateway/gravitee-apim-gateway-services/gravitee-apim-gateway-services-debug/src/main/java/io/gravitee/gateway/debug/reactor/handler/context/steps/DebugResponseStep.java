@@ -42,23 +42,23 @@ public class DebugResponseStep extends DebugStep<Response> {
     @Override
     public void generateDiffMap(Response response, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer) {
         if (!policyInputContent.getHeaders().deeplyEquals(response.headers())) {
-            diffMap.put("headers", HttpHeaders.create(response.headers()));
+            diffMap.put(DIFF_KEY_HEADERS, HttpHeaders.create(response.headers()));
         }
         if (policyInputContent.getStatus() != response.status()) {
-            diffMap.put("status", response.status());
+            diffMap.put(DIFF_KEY_STATUS, response.status());
         }
         if (policyInputContent.getReason() != null && !policyInputContent.getReason().equals(response.reason())) {
-            diffMap.put("reason", response.reason());
+            diffMap.put(DIFF_KEY_REASON, response.reason());
         }
         if (!policyInputContent.getAttributes().equals(attributes)) {
-            diffMap.put("attributes", new HashMap<>(attributes));
+            diffMap.put(DIFF_KEY_ATTRIBUTES, new HashMap<>(attributes));
         }
 
         Buffer input = inputBuffer != null ? inputBuffer : Buffer.buffer();
         Buffer output = outputBuffer != null ? outputBuffer : Buffer.buffer();
 
         if (!input.getNativeBuffer().equals(output.getNativeBuffer())) {
-            diffMap.put("bodyBuffer", Buffer.buffer(output.getBytes()));
+            diffMap.put(DIFF_KEY_BODY_BUFFER, Buffer.buffer(output.getBytes()));
         }
     }
 }
