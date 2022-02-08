@@ -50,32 +50,32 @@ public class DebugRequestStep extends DebugStep<Request> {
     @Override
     public void generateDiffMap(Request request, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer) {
         if (!policyInputContent.getHeaders().deeplyEquals(request.headers())) {
-            diffMap.put("headers", HttpHeaders.create(request.headers()));
+            diffMap.put(DIFF_KEY_HEADERS, HttpHeaders.create(request.headers()));
         }
         if (!policyInputContent.getParameters().equals(request.parameters())) {
-            diffMap.put("parameters", new LinkedMultiValueMap<>(request.parameters()));
+            diffMap.put(DIFF_KEY_PARAMETERS, new LinkedMultiValueMap<>(request.parameters()));
         }
         if (!policyInputContent.getPathParameters().equals(request.pathParameters())) {
-            diffMap.put("pathParameters", new LinkedMultiValueMap<>(request.pathParameters()));
+            diffMap.put(DIFF_KEY_PATH_PARAMETERS, new LinkedMultiValueMap<>(request.pathParameters()));
         }
         if (!policyInputContent.getMethod().equals(request.method())) {
-            diffMap.put("method", request.method());
+            diffMap.put(DIFF_KEY_METHOD, request.method());
         }
         if (!policyInputContent.getPath().equals(request.path())) {
-            diffMap.put("path", request.path());
+            diffMap.put(DIFF_KEY_PATH, request.path());
         }
         if (!policyInputContent.getContextPath().equals(request.contextPath())) {
-            diffMap.put("contextPath", request.contextPath());
+            diffMap.put(DIFF_KEY_CONTEXT_PATH, request.contextPath());
         }
         if (!policyInputContent.getAttributes().equals(attributes)) {
-            diffMap.put("attributes", new HashMap<>(attributes));
+            diffMap.put(DIFF_KEY_ATTRIBUTES, new HashMap<>(attributes));
         }
 
         Buffer input = inputBuffer != null ? inputBuffer : Buffer.buffer();
         Buffer output = outputBuffer != null ? outputBuffer : Buffer.buffer();
 
         if (!input.getNativeBuffer().equals(output.getNativeBuffer())) {
-            diffMap.put("bodyBuffer", Buffer.buffer(output.getBytes()));
+            diffMap.put(DIFF_KEY_BODY_BUFFER, Buffer.buffer(output.getBytes()));
         }
     }
 }

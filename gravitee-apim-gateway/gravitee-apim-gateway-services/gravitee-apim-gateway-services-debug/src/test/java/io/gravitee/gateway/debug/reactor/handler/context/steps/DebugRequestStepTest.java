@@ -54,8 +54,8 @@ public class DebugRequestStepTest {
         cut = new DebugRequestStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST);
         when(beforeRequest.headers()).thenReturn(HttpHeaders.create().add("Header", "header-value"));
 
-        when(beforeRequest.contextPath()).thenReturn("contextPath");
-        when(beforeRequest.path()).thenReturn("path");
+        when(beforeRequest.contextPath()).thenReturn(DebugStep.DIFF_KEY_CONTEXT_PATH);
+        when(beforeRequest.path()).thenReturn(DebugStep.DIFF_KEY_PATH);
         when(beforeRequest.method()).thenReturn(HttpMethod.GET);
 
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
@@ -71,116 +71,116 @@ public class DebugRequestStepTest {
 
     @Test
     public void shouldHaveHeadersInDiffMap() {
-        applyDifferentValuesForFields(List.of("headers"));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_HEADERS));
 
         cut.before(beforeRequest, new HashMap<>());
         cut.after(afterRequest, new HashMap<>(), null, null);
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isTrue();
-        assertThat(resultDiff.containsKey("parameters")).isFalse();
-        assertThat(resultDiff.containsKey("pathParameters")).isFalse();
-        assertThat(resultDiff.containsKey("method")).isFalse();
-        assertThat(resultDiff.containsKey("path")).isFalse();
-        assertThat(resultDiff.containsKey("contextPath")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
     public void shouldHaveParametersInDiffMap() {
-        applyDifferentValuesForFields(List.of("parameters"));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_PARAMETERS));
 
         cut.before(beforeRequest, new HashMap<>());
         cut.after(afterRequest, new HashMap<>(), null, null);
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("parameters")).isTrue();
-        assertThat(resultDiff.containsKey("pathParameters")).isFalse();
-        assertThat(resultDiff.containsKey("method")).isFalse();
-        assertThat(resultDiff.containsKey("path")).isFalse();
-        assertThat(resultDiff.containsKey("contextPath")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
     public void shouldHavePathParametersInDiffMap() {
-        applyDifferentValuesForFields(List.of("pathParameters"));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_PATH_PARAMETERS));
 
         cut.before(beforeRequest, new HashMap<>());
         cut.after(afterRequest, new HashMap<>(), null, null);
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("parameters")).isFalse();
-        assertThat(resultDiff.containsKey("pathParameters")).isTrue();
-        assertThat(resultDiff.containsKey("method")).isFalse();
-        assertThat(resultDiff.containsKey("path")).isFalse();
-        assertThat(resultDiff.containsKey("contextPath")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
     public void shouldHaveMethodInDiffMap() {
-        applyDifferentValuesForFields(List.of("method"));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_METHOD));
 
         cut.before(beforeRequest, new HashMap<>());
         cut.after(afterRequest, new HashMap<>(), null, null);
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("parameters")).isFalse();
-        assertThat(resultDiff.containsKey("pathParameters")).isFalse();
-        assertThat(resultDiff.containsKey("method")).isTrue();
-        assertThat(resultDiff.containsKey("path")).isFalse();
-        assertThat(resultDiff.containsKey("contextPath")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
     public void shouldHavePathInDiffMap() {
-        applyDifferentValuesForFields(List.of("path"));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_PATH));
 
         cut.before(beforeRequest, new HashMap<>());
         cut.after(afterRequest, new HashMap<>(), null, null);
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("parameters")).isFalse();
-        assertThat(resultDiff.containsKey("pathParameters")).isFalse();
-        assertThat(resultDiff.containsKey("method")).isFalse();
-        assertThat(resultDiff.containsKey("path")).isTrue();
-        assertThat(resultDiff.containsKey("contextPath")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
     public void shouldHaveContextPathInDiffMap() {
-        applyDifferentValuesForFields(List.of("contextPath"));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_CONTEXT_PATH));
 
         cut.before(beforeRequest, new HashMap<>());
         cut.after(afterRequest, new HashMap<>(), null, null);
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("parameters")).isFalse();
-        assertThat(resultDiff.containsKey("pathParameters")).isFalse();
-        assertThat(resultDiff.containsKey("method")).isFalse();
-        assertThat(resultDiff.containsKey("path")).isFalse();
-        assertThat(resultDiff.containsKey("contextPath")).isTrue();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
@@ -194,14 +194,14 @@ public class DebugRequestStepTest {
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("parameters")).isFalse();
-        assertThat(resultDiff.containsKey("pathParameters")).isFalse();
-        assertThat(resultDiff.containsKey("method")).isFalse();
-        assertThat(resultDiff.containsKey("path")).isFalse();
-        assertThat(resultDiff.containsKey("contextPath")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isTrue();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
@@ -213,29 +213,30 @@ public class DebugRequestStepTest {
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("parameters")).isFalse();
-        assertThat(resultDiff.containsKey("pathParameters")).isFalse();
-        assertThat(resultDiff.containsKey("method")).isFalse();
-        assertThat(resultDiff.containsKey("path")).isFalse();
-        assertThat(resultDiff.containsKey("contextPath")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("bodyBuffer")).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isTrue();
     }
 
     private void applyDifferentValuesForFields(List<String> fields) {
         when(afterRequest.headers())
             .thenReturn(
-                fields.contains("headers")
+                fields.contains(DebugStep.DIFF_KEY_HEADERS)
                     ? HttpHeaders.create().add("Other-Header", "other-value")
                     : HttpHeaders.create().add("Header", "header-value")
             );
 
-        when(afterRequest.contextPath()).thenReturn(fields.contains("contextPath") ? "otherContextPath" : "contextPath");
+        when(afterRequest.contextPath())
+            .thenReturn(fields.contains(DebugStep.DIFF_KEY_CONTEXT_PATH) ? "otherContextPath" : DebugStep.DIFF_KEY_CONTEXT_PATH);
 
-        when(afterRequest.path()).thenReturn(fields.contains("path") ? "otherPath" : "path");
+        when(afterRequest.path()).thenReturn(fields.contains(DebugStep.DIFF_KEY_PATH) ? "otherPath" : DebugStep.DIFF_KEY_PATH);
 
-        when(afterRequest.method()).thenReturn(fields.contains("method") ? HttpMethod.DELETE : HttpMethod.GET);
+        when(afterRequest.method()).thenReturn(fields.contains(DebugStep.DIFF_KEY_METHOD) ? HttpMethod.DELETE : HttpMethod.GET);
 
         final LinkedMultiValueMap<String, String> originParameters = new LinkedMultiValueMap<>();
         originParameters.add("param1", "value1");
@@ -243,7 +244,7 @@ public class DebugRequestStepTest {
         final LinkedMultiValueMap<String, String> modifiedParameters = new LinkedMultiValueMap<>();
         modifiedParameters.add("otherparam1", "value1");
         modifiedParameters.add("otherparam2", "value2");
-        when(afterRequest.parameters()).thenReturn(fields.contains("parameters") ? modifiedParameters : originParameters);
+        when(afterRequest.parameters()).thenReturn(fields.contains(DebugStep.DIFF_KEY_PARAMETERS) ? modifiedParameters : originParameters);
 
         final LinkedMultiValueMap<String, String> originPathParameters = new LinkedMultiValueMap<>();
         originPathParameters.add("path-param1", "path-value1");
@@ -251,6 +252,7 @@ public class DebugRequestStepTest {
         final LinkedMultiValueMap<String, String> modifiedPathParameters = new LinkedMultiValueMap<>();
         modifiedPathParameters.add("otherpath-param1", "path-value1");
         modifiedPathParameters.add("otherpath-param2", "path-value2");
-        when(afterRequest.pathParameters()).thenReturn(fields.contains("pathParameters") ? modifiedPathParameters : originPathParameters);
+        when(afterRequest.pathParameters())
+            .thenReturn(fields.contains(DebugStep.DIFF_KEY_PATH_PARAMETERS) ? modifiedPathParameters : originPathParameters);
     }
 }

@@ -58,50 +58,50 @@ public class DebugResponseStepTest {
 
     @Test
     public void shouldHaveHeadersInDiffMap() {
-        applyDifferentValuesForFields(List.of("headers"));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_HEADERS));
 
         cut.before(beforeResponse, new HashMap<>());
         cut.after(afterResponse, new HashMap<>(), null, null);
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isTrue();
-        assertThat(resultDiff.containsKey("status")).isFalse();
-        assertThat(resultDiff.containsKey("reason")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_STATUS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_REASON)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
     public void shouldHaveStatusInDiffMap() {
-        applyDifferentValuesForFields(List.of("status"));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_STATUS));
 
         cut.before(beforeResponse, new HashMap<>());
         cut.after(afterResponse, new HashMap<>(), null, null);
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("status")).isTrue();
-        assertThat(resultDiff.containsKey("reason")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_STATUS)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_REASON)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
     public void shouldHaveReasonInDiffMap() {
-        applyDifferentValuesForFields(List.of("reason"));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_REASON));
 
         cut.before(beforeResponse, new HashMap<>());
         cut.after(afterResponse, new HashMap<>(), null, null);
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("status")).isFalse();
-        assertThat(resultDiff.containsKey("reason")).isTrue();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_STATUS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_REASON)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
@@ -115,14 +115,14 @@ public class DebugResponseStepTest {
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("parameters")).isFalse();
-        assertThat(resultDiff.containsKey("pathParameters")).isFalse();
-        assertThat(resultDiff.containsKey("method")).isFalse();
-        assertThat(resultDiff.containsKey("path")).isFalse();
-        assertThat(resultDiff.containsKey("contextPath")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isTrue();
-        assertThat(resultDiff.containsKey("buffer")).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
     }
 
     @Test
@@ -134,26 +134,26 @@ public class DebugResponseStepTest {
 
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
-        assertThat(resultDiff.containsKey("headers")).isFalse();
-        assertThat(resultDiff.containsKey("parameters")).isFalse();
-        assertThat(resultDiff.containsKey("pathParameters")).isFalse();
-        assertThat(resultDiff.containsKey("method")).isFalse();
-        assertThat(resultDiff.containsKey("path")).isFalse();
-        assertThat(resultDiff.containsKey("contextPath")).isFalse();
-        assertThat(resultDiff.containsKey("attributes")).isFalse();
-        assertThat(resultDiff.containsKey("buffer")).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_CONTEXT_PATH)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isTrue();
     }
 
     private void applyDifferentValuesForFields(List<String> fields) {
         when(afterResponse.headers())
             .thenReturn(
-                fields.contains("headers")
+                fields.contains(DebugStep.DIFF_KEY_HEADERS)
                     ? HttpHeaders.create().add("Other-Header", "other-value")
                     : HttpHeaders.create().add("Header", "header-value")
             );
 
-        when(afterResponse.status()).thenReturn(fields.contains("status") ? 500 : 200);
+        when(afterResponse.status()).thenReturn(fields.contains(DebugStep.DIFF_KEY_STATUS) ? 500 : 200);
 
-        when(afterResponse.reason()).thenReturn(fields.contains("reason") ? "Internal Server Error" : "OK");
+        when(afterResponse.reason()).thenReturn(fields.contains(DebugStep.DIFF_KEY_REASON) ? "Internal Server Error" : "OK");
     }
 }

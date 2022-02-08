@@ -23,7 +23,6 @@ import io.gravitee.gateway.policy.StreamType;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -32,6 +31,18 @@ import java.util.concurrent.TimeUnit;
  * @author GraviteeSource Team
  */
 public abstract class DebugStep<T> {
+
+    public static final String DIFF_KEY_HEADERS = "headers";
+    public static final String DIFF_KEY_PARAMETERS = "parameters";
+    public static final String DIFF_KEY_PATH = "path";
+    public static final String DIFF_KEY_PATH_PARAMETERS = "pathParameters";
+    public static final String DIFF_KEY_METHOD = "method";
+    public static final String DIFF_KEY_CONTEXT_PATH = "contextPath";
+    public static final String DIFF_KEY_ATTRIBUTES = "attributes";
+    public static final String DIFF_KEY_BODY_BUFFER = "bodyBuffer";
+    public static final String DIFF_KEY_BODY = "body";
+    public static final String DIFF_KEY_STATUS = "status";
+    public static final String DIFF_KEY_REASON = "reason";
 
     protected final String policyId;
     protected final StreamType streamType;
