@@ -19,13 +19,14 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DebugStepContent {
 
     private HttpHeaders headers;
-    private Map<String, Object> attributes;
+    private Map<String, Serializable> attributes;
     private MultiValueMap<String, String> parameters;
     private MultiValueMap<String, String> pathParameters;
     private String path;
@@ -41,7 +42,7 @@ public class DebugStepContent {
         return this;
     }
 
-    public DebugStepContent attributes(Map<String, Object> attributes) {
+    public DebugStepContent attributes(Map<String, Serializable> attributes) {
         this.attributes = new HashMap<>(attributes);
         return this;
     }
@@ -85,7 +86,7 @@ public class DebugStepContent {
         return headers;
     }
 
-    public Map<String, Object> getAttributes() {
+    public Map<String, Serializable> getAttributes() {
         return attributes;
     }
 

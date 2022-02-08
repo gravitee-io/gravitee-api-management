@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.policy.StreamType;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,12 +35,12 @@ public class DebugResponseStep extends DebugStep<Response> {
     }
 
     @Override
-    public void snapshotInputData(Response response, Map<String, Object> attributes) {
+    public void snapshotInputData(Response response, Map<String, Serializable> attributes) {
         policyInputContent.headers(response.headers()).status(response.status()).reason(response.reason()).attributes(attributes);
     }
 
     @Override
-    public void generateDiffMap(Response response, Map<String, Object> attributes, Buffer inputBuffer, Buffer outputBuffer) {
+    public void generateDiffMap(Response response, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer) {
         if (!policyInputContent.getHeaders().deeplyEquals(response.headers())) {
             diffMap.put("headers", HttpHeaders.create(response.headers()));
         }

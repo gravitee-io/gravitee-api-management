@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,13 +30,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -61,7 +60,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         Event event = null;
 
         try {
-             event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
+            event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
             final io.gravitee.definition.model.debug.DebugApi debugApi = computeDebugApiEventPayload(debugContext, debugApiComponent);
 
             event.setPayload(objectMapper.writeValueAsString(debugApi));
@@ -75,12 +74,11 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         next.handle(context);
     }
 
-    private io.gravitee.definition.model.debug.DebugApi computeDebugApiEventPayload(DebugExecutionContext debugContext, DebugApi debugApiComponent) {
+    private io.gravitee.definition.model.debug.DebugApi computeDebugApiEventPayload(
+        DebugExecutionContext debugContext,
+        DebugApi debugApiComponent
+    ) {
         final io.gravitee.definition.model.debug.DebugApi debugApi = convert(debugApiComponent);
-        // FIXME : to handle properly adfter discussion
-        if (debugContext.getInitialAttributes().containsKey("gravitee.attribute.entrypoint")) {
-            debugContext.getInitialAttributes().put("gravitee.attribute.entrypoint", debugContext.getInitialAttributes().get("gravitee.attribute.entrypoint").getClass().getSimpleName());
-        }
         debugApi.setInitialAttributes(debugContext.getInitialAttributes());
         debugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
         HttpResponse response = new HttpResponse();
@@ -111,10 +109,10 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
     }
 
     private void updateEvent(io.gravitee.repository.management.model.Event debugEvent, ApiDebugStatus apiDebugStatus)
-            throws TechnicalException {
+        throws TechnicalException {
         debugEvent
-                .getProperties()
-                .put(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name());
+            .getProperties()
+            .put(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name());
         eventRepository.update(debugEvent);
     }
 
@@ -141,26 +139,26 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
 
     private List<io.gravitee.definition.model.debug.DebugStep> convert(List<DebugStep<?>> debugSteps) {
         return debugSteps
-                .stream()
-                .map(
-                        ds -> {
-                            final io.gravitee.definition.model.debug.DebugStep debugStep = new io.gravitee.definition.model.debug.DebugStep();
-                            debugStep.setPolicyInstanceId(ds.getPolicyInstanceId());
-                            debugStep.setPolicyId(ds.getPolicyId());
-                            debugStep.setDuration(ds.elapsedTime().toNanos());
-                            debugStep.setStatus(io.gravitee.definition.model.debug.DebugStep.Status.COMPLETED);
-                            debugStep.setScope(ds.getPolicyScope());
-                            if (ds.getDebugDiffContent().containsKey("headers")) {
-                                ds.getDebugDiffContent().put("headers", convertHeaders((HttpHeaders) ds.getDebugDiffContent().get("headers")));
-                            }
-                            if (ds.getDebugDiffContent().containsKey("bodyBuffer")) {
-                                ds.getDebugDiffContent().put("body", ds.getDebugDiffContent().get("bodyBuffer").toString());
-                                ds.getDebugDiffContent().remove("bodyBuffer");
-                            }
-                            debugStep.setResult(ds.getDebugDiffContent());
-                            return debugStep;
-                        }
-                )
-                .collect(Collectors.toList());
+            .stream()
+            .map(
+                ds -> {
+                    final io.gravitee.definition.model.debug.DebugStep debugStep = new io.gravitee.definition.model.debug.DebugStep();
+                    debugStep.setPolicyInstanceId(ds.getPolicyInstanceId());
+                    debugStep.setPolicyId(ds.getPolicyId());
+                    debugStep.setDuration(ds.elapsedTime().toNanos());
+                    debugStep.setStatus(io.gravitee.definition.model.debug.DebugStep.Status.COMPLETED);
+                    debugStep.setScope(ds.getPolicyScope());
+                    if (ds.getDebugDiffContent().containsKey("headers")) {
+                        ds.getDebugDiffContent().put("headers", convertHeaders((HttpHeaders) ds.getDebugDiffContent().get("headers")));
+                    }
+                    if (ds.getDebugDiffContent().containsKey("bodyBuffer")) {
+                        ds.getDebugDiffContent().put("body", ds.getDebugDiffContent().get("bodyBuffer").toString());
+                        ds.getDebugDiffContent().remove("bodyBuffer");
+                    }
+                    debugStep.setResult(ds.getDebugDiffContent());
+                    return debugStep;
+                }
+            )
+            .collect(Collectors.toList());
     }
 }
