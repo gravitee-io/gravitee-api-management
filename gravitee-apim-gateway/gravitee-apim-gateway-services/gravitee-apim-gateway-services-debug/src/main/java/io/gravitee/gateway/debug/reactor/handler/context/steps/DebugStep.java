@@ -18,9 +18,12 @@ package io.gravitee.gateway.debug.reactor.handler.context.steps;
 import com.google.common.base.Stopwatch;
 import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.debug.reactor.handler.context.AttributeHelper;
 import io.gravitee.gateway.policy.StreamType;
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -49,21 +52,20 @@ public abstract class DebugStep<T> {
     }
 
     public void before(T source, Map<String, Object> attributes) {
-        snapshotInputData(source, attributes);
+        snapshotInputData(source, AttributeHelper.filterAndSerializeAttributes(attributes));
         this.start();
     }
 
-    protected abstract void snapshotInputData(T source, Map<String, Object> attributes);
+    protected abstract void snapshotInputData(T source, Map<String, Serializable> attributes);
 
     public void after(T source, Map<String, Object> attributes, Buffer inputBuffer, Buffer outputBuffer) {
         this.stop();
-        // FIXME: here to not have problem in serializer
-        attributes.remove("gravitee.attribute.entrypoint");
-        generateDiffMap(source, attributes, inputBuffer, outputBuffer);
+        Map<String, Serializable> cleanedAttributes = AttributeHelper.filterAndSerializeAttributes(attributes);
+        generateDiffMap(source, cleanedAttributes, inputBuffer, outputBuffer);
         policyInputContent = null;
     }
 
-    protected abstract void generateDiffMap(T source, Map<String, Object> attributes, Buffer inputBuffer, Buffer outputBuffer);
+    protected abstract void generateDiffMap(T source, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer);
 
     public Map<String, Object> getDebugDiffContent() {
         return diffMap;

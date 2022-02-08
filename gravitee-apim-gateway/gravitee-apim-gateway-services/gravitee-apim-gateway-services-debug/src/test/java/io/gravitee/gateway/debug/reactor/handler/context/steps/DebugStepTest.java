@@ -21,6 +21,7 @@ import com.google.common.base.Stopwatch;
 import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.policy.StreamType;
+import java.io.Serializable;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,10 +82,10 @@ public class DebugStepTest {
         }
 
         @Override
-        protected void snapshotInputData(Object source, Map<String, Object> attributes) {}
+        protected void snapshotInputData(Object source, Map<String, Serializable> attributes) {}
 
         @Override
-        protected void generateDiffMap(Object source, Map<String, Object> attributes, Buffer inputBuffer, Buffer outputBuffer) {}
+        protected void generateDiffMap(Object source, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer) {}
 
         public DebugStepContent getPolicyInputContent() {
             return this.policyInputContent;
