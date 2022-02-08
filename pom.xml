@@ -117,7 +117,7 @@
         <spring.security.version>5.3.1.RELEASE</spring.security.version>
         <swagger-model.version>2.0.10</swagger-model.version>
         <swagger.version>1.6.2</swagger.version>
-        <swagger-parser.version>2.0.24</swagger-parser.version>
+        <swagger-parser.version>2.0.30</swagger-parser.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
         <wiremock.version>2.26.3</wiremock.version>
