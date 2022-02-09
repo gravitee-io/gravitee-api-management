@@ -16,8 +16,8 @@
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { StateParams } from '@uirouter/core';
-import { EMPTY, interval, Subject, timer } from 'rxjs';
-import { catchError, filter, switchMap, take, takeUntil } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, takeUntil } from 'rxjs/operators';
 
 import { DebugRequest } from './models/DebugRequest';
 import { DebugResponse } from './models/DebugResponse';
@@ -60,18 +60,10 @@ export class PolicyStudioDebugComponent implements OnInit {
       isLoading: true,
     };
 
-    const maxPollingTime$ = timer(10000);
     this.policyStudioDebugService
-      .sendDebugEvent(this.apiId, debugRequest)
+      .debug(this.apiId, debugRequest)
       .pipe(
-        // Poll each 1s to find success event. Stops after 10 seconds
-        switchMap((debugEventId) =>
-          interval(1000).pipe(switchMap(() => this.policyStudioDebugService.getDebugEvent(this.apiId, debugEventId))),
-        ),
-        takeUntil(maxPollingTime$),
         takeUntil(this.unsubscribe$),
-        filter((event) => event.status === 'SUCCESS'),
-        take(1),
         catchError(() => {
           this.snackBarService.error('Unable to try the request, please try again');
           this.debugResponse = {
@@ -80,12 +72,8 @@ export class PolicyStudioDebugComponent implements OnInit {
           return EMPTY;
         }),
       )
-      .subscribe((event) => {
-        this.debugResponse = {
-          isLoading: false,
-          response: event.payload.response,
-          request: event.payload.request,
-        };
+      .subscribe((debugResponse) => {
+        this.debugResponse = debugResponse;
       });
   }
 }
