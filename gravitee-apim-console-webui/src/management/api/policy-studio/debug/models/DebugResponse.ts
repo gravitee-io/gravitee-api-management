@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DebugRequest } from './DebugRequest';
-
 export type DebugResponse = {
   isLoading: boolean;
   response?: {
@@ -24,5 +22,8 @@ export type DebugResponse = {
     headers?: Record<string, any>;
     body?: string;
   };
-  request?: DebugRequest;
+  request?: {
+    method?: string;
+    path?: string;
+  };
 };

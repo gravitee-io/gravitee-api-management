@@ -15,6 +15,22 @@
  */
 export interface DebugEvent {
   id: string;
-  payload: string;
+  payload: DebugEventPayload;
   status: 'SUCCESS' | 'FAILED';
+}
+
+interface DebugEventPayload {
+  response?: {
+    statusCode?: number;
+    method?: string;
+    path?: string;
+    headers?: Record<string, any>;
+    body?: string;
+  };
+  request?: {
+    method?: string;
+    path?: string;
+    headers?: Record<string, any>;
+    body?: string;
+  };
 }

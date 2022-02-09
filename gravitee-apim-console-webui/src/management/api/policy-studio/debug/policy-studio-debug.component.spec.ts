@@ -115,6 +115,10 @@ describe('PolicyStudioDebugComponent', () => {
               'Content-Type': 'text/plain',
             },
           },
+          request: {
+            path: '/',
+            method: 'GET',
+          },
         }),
       });
   }
