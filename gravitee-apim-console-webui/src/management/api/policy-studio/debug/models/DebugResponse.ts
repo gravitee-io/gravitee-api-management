@@ -15,14 +15,14 @@
  */
 export type DebugResponse = {
   isLoading: boolean;
-  response?: {
+  response: {
     statusCode?: number;
     method?: string;
     path?: string;
     headers?: Record<string, any>;
     body?: string;
   };
-  request?: {
+  request: {
     method?: string;
     path?: string;
   };
