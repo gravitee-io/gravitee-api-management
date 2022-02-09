@@ -24,13 +24,31 @@ interface DebugEventPayload {
     statusCode?: number;
     method?: string;
     path?: string;
-    headers?: Record<string, any>;
+    headers?: Record<string, string>;
     body?: string;
   };
   request?: {
     method?: string;
     path?: string;
-    headers?: Record<string, any>;
+    headers?: Record<string, string>;
     body?: string;
   };
+  debugSteps?: DebugEventDebugStep[];
+  initialAttributes?: Record<string, boolean | number | string>;
+  backendResponse: {
+    statusCode?: number;
+    method?: string;
+    path?: string;
+    headers?: Record<string, string>;
+    body?: string;
+  };
+}
+
+interface DebugEventDebugStep {
+  policyInstanceId: string;
+  policyId: string;
+  scope: 'ON_REQUEST' | 'ON_REQUEST_CONTENT' | 'ON_RESPONSE' | 'ON_RESPONSE_CONTENT';
+  status: 'COMPLETED' | 'ERROR';
+  duration: number;
+  result: Record<string, unknown>;
 }
