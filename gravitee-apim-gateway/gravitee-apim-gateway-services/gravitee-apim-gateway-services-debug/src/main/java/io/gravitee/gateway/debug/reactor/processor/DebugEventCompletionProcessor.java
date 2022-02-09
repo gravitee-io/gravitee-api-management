@@ -138,34 +138,36 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
     }
 
     private List<io.gravitee.definition.model.debug.DebugStep> convert(List<DebugStep<?>> debugSteps) {
-        return debugSteps
-            .stream()
-            .map(
-                ds -> {
-                    final io.gravitee.definition.model.debug.DebugStep debugStep = new io.gravitee.definition.model.debug.DebugStep();
-                    debugStep.setPolicyInstanceId(ds.getPolicyInstanceId());
-                    debugStep.setPolicyId(ds.getPolicyId());
-                    debugStep.setDuration(ds.elapsedTime().toNanos());
-                    debugStep.setStatus(io.gravitee.definition.model.debug.DebugStep.Status.COMPLETED);
-                    debugStep.setScope(ds.getPolicyScope());
-                    if (ds.getDebugDiffContent().containsKey(DebugStep.DIFF_KEY_HEADERS)) {
-                        ds
-                            .getDebugDiffContent()
-                            .put(
-                                DebugStep.DIFF_KEY_HEADERS,
-                                convertHeaders((HttpHeaders) ds.getDebugDiffContent().get(DebugStep.DIFF_KEY_HEADERS))
-                            );
+        return debugSteps.stream().map(this::convert).collect(Collectors.toList());
+    }
+
+    private io.gravitee.definition.model.debug.DebugStep convert(DebugStep<?> ds) {
+        final io.gravitee.definition.model.debug.DebugStep debugStep = new io.gravitee.definition.model.debug.DebugStep();
+        debugStep.setPolicyInstanceId(ds.getPolicyInstanceId());
+        debugStep.setPolicyId(ds.getPolicyId());
+        debugStep.setDuration(ds.elapsedTime().toNanos());
+        debugStep.setStatus(io.gravitee.definition.model.debug.DebugStep.Status.COMPLETED);
+        debugStep.setScope(ds.getPolicyScope());
+
+        Map<String, Object> result = new HashMap<>();
+        ds
+            .getDebugDiffContent()
+            .forEach(
+                (key, value) -> {
+                    if (DebugStep.DIFF_KEY_HEADERS.equals(key)) {
+                        // Headers are converted to Map<String, List<String>>
+                        result.put(DebugStep.DIFF_KEY_HEADERS, convertHeaders((HttpHeaders) value));
+                    } else if (DebugStep.DIFF_KEY_BODY_BUFFER.equals(key)) {
+                        // Body is converted from Buffer to String
+                        result.put(DebugStep.DIFF_KEY_BODY, value.toString());
+                    } else {
+                        // Everything else is kept as is
+                        result.put(key, value);
                     }
-                    if (ds.getDebugDiffContent().containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)) {
-                        ds
-                            .getDebugDiffContent()
-                            .put(DebugStep.DIFF_KEY_BODY, ds.getDebugDiffContent().get(DebugStep.DIFF_KEY_BODY_BUFFER).toString());
-                        ds.getDebugDiffContent().remove(DebugStep.DIFF_KEY_BODY_BUFFER);
-                    }
-                    debugStep.setResult(ds.getDebugDiffContent());
-                    return debugStep;
                 }
-            )
-            .collect(Collectors.toList());
+            );
+
+        debugStep.setResult(result);
+        return debugStep;
     }
 }
