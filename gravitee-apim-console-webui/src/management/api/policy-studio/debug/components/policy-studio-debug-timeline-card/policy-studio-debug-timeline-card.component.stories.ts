@@ -93,3 +93,19 @@ export const Policy: Story = {
     } as TimelineStep,
   },
 };
+
+export const ResponseInput: Story = {
+  args: {
+    timelineStep: {
+      mode: 'RESPONSE_INPUT',
+    } as TimelineStep,
+  },
+};
+
+export const ResponseOutput: Story = {
+  args: {
+    timelineStep: {
+      mode: 'RESPONSE_OUTPUT',
+    } as TimelineStep,
+  },
+};

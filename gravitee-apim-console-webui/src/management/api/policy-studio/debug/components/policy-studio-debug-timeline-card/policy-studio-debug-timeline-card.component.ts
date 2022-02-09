@@ -36,6 +36,12 @@ export type TimelineStep =
       policyName: string;
       icon: string;
       executionTime: number;
+    }
+  | {
+      mode: 'RESPONSE_INPUT';
+    }
+  | {
+      mode: 'RESPONSE_OUTPUT';
     };
 
 interface TimelineCardVM {
@@ -46,6 +52,7 @@ interface TimelineCardVM {
   color?: 'green' | 'blue' | 'default';
   executionTimeLabel?: string;
 }
+
 @Component({
   selector: 'policy-studio-debug-timeline-card',
   template: require('./policy-studio-debug-timeline-card.component.html'),
@@ -99,6 +106,18 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: timelineStep.policyName,
           color: 'default',
           executionTimeLabel: `${timelineStep.executionTime}ms`,
+        };
+      case 'RESPONSE_INPUT':
+        return {
+          icon: 'gio:nav-arrow-right',
+          title: 'Response Input',
+          color: 'blue',
+        };
+      case 'RESPONSE_OUTPUT':
+        return {
+          icon: 'gio:nav-arrow-right',
+          title: 'Response Output',
+          color: 'blue',
         };
     }
   }
