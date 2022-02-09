@@ -108,7 +108,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     private void handleProxyInvocation(final ExecutionContext context, final StreamableProcessor<ExecutionContext, Buffer> chain) {
         // Call an invoker to get a proxy connection (connection to an underlying backend, default to HTTP)
-        Invoker upstreamInvoker = (Invoker) context.getAttribute(ExecutionContext.ATTR_INVOKER);
+        Invoker upstreamInvoker = getInvoker(context);
 
         context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis());
 
@@ -146,6 +146,10 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         } else {
             context.request().endHandler(result -> chain.end());
         }
+    }
+
+    protected Invoker getInvoker(ExecutionContext context) {
+        return (Invoker) context.getAttribute(ExecutionContext.ATTR_INVOKER);
     }
 
     private void handleProxyResponse(final ExecutionContext context, final ProxyResponse proxyResponse) {

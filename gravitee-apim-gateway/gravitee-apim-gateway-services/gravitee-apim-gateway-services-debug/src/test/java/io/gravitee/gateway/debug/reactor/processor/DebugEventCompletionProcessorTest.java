@@ -27,6 +27,7 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
@@ -98,6 +99,7 @@ public class DebugEventCompletionProcessorTest {
         when(debugExecutionContext.getDebugSteps()).thenReturn(List.of(step1, step2));
         VertxHttpServerResponse debugResponse = getDebugResponse();
         when(debugExecutionContext.response()).thenReturn(debugResponse);
+        when(debugExecutionContext.getInvokerResponse()).thenReturn(getInvokerResponse());
 
         Event event = new Event();
         event.setId("event-id");
@@ -123,6 +125,7 @@ public class DebugEventCompletionProcessorTest {
         when(debugExecutionContext.getComponent(Api.class)).thenReturn(debugApi);
         VertxHttpServerResponse debugResponse = getDebugResponse();
         when(debugExecutionContext.response()).thenReturn(debugResponse);
+        when(debugExecutionContext.getInvokerResponse()).thenReturn(getInvokerResponse());
 
         Event event = new Event();
         event.setId("event-id");
@@ -148,6 +151,7 @@ public class DebugEventCompletionProcessorTest {
         when(debugExecutionContext.getComponent(Api.class)).thenReturn(debugApi);
         VertxHttpServerResponse debugResponse = getDebugResponse();
         when(debugExecutionContext.response()).thenReturn(debugResponse);
+        when(debugExecutionContext.getInvokerResponse()).thenReturn(getInvokerResponse());
 
         Event event = new Event();
         event.setId("event-id");
@@ -209,5 +213,13 @@ public class DebugEventCompletionProcessorTest {
         when(response.status()).thenReturn(200);
         when(response.getBuffer()).thenReturn(Buffer.buffer("{}"));
         return response;
+    }
+
+    private InvokerResponse getInvokerResponse() {
+        final InvokerResponse invokerResponse = new InvokerResponse();
+        invokerResponse.setStatus(200);
+        invokerResponse.getBuffer().appendBuffer(Buffer.buffer("backend response"));
+        invokerResponse.setHeaders(HttpHeaders.create().add("X-Header", "backend-header"));
+        return invokerResponse;
     }
 }
