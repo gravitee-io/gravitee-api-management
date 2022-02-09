@@ -77,7 +77,7 @@ describe('PolicyStudioDebugComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.policy-studio-debug-response__display-response__header').textContent).toContain(
-      'Response GET /   200 - OK',
+      'Response   200 - OK   GET /',
     );
 
     expect(fixture.nativeElement.querySelector('.policy-studio-debug-response__display-response__content-headers').textContent).toContain(

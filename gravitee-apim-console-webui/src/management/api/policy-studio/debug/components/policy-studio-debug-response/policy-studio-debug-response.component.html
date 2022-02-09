@@ -40,8 +40,7 @@
 <!-- Display Response -->
 <ng-template #displayResponse>
   <div class="policy-studio-debug-response__display-response__header">
-    Response&nbsp;<span class="mat-strong">{{ debugResponse.request.method }}</span
-    >&nbsp;{{ debugResponse.request.path }}&nbsp;
+    Response&nbsp;
     <span
       [class.gio-badge-success]="responseDisplayableVM.successfulRequest"
       [class.gio-badge-error]="responseDisplayableVM.errorRequest"
@@ -49,6 +48,8 @@
     >
       {{ responseDisplayableVM.statusCode }} - {{ responseDisplayableVM.statusCodeDescription }}
     </span>
+    &nbsp;<span class="mat-strong">{{ debugResponse.request.method }}</span
+    >&nbsp;{{ debugResponse.request.path }}
   </div>
   <div class="policy-studio-debug-response__display-response__content-headers">
     <h4>Headers</h4>
