@@ -5,4 +5,18 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .policy-studio-debug-timeline {
+  overflow: auto;
+  white-space: nowrap;
+  padding-bottom: 8px;
+
+  &__header {
+    background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'lighter-background');
+    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 16px;
+
+    @include gio.subtitle-typography();
+  }
 }
