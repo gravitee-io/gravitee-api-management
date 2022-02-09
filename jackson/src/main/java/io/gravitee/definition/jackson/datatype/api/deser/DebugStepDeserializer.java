@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.definition.model.debug.DebugStep;
+import io.gravitee.definition.model.debug.DebugStepStatus;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +45,7 @@ public class DebugStepDeserializer extends StdScalarDeserializer<DebugStep> {
         debugStep.setPolicyInstanceId(readStringValue(node, "policyInstanceId"));
         debugStep.setPolicyId(readStringValue(node, "policyId"));
         debugStep.setScope(PolicyScope.valueOf(readStringValue(node, "scope")));
-        debugStep.setStatus(DebugStep.Status.valueOf(readStringValue(node, "status")));
+        debugStep.setStatus(DebugStepStatus.valueOf(readStringValue(node, "status")));
         debugStep.setDuration(node.get("duration").asLong());
         JsonNode resultNode = node.get("result");
         if (resultNode != null && !resultNode.isEmpty(null)) {

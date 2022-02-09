@@ -22,6 +22,7 @@ import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.definition.model.debug.DebugStep;
+import io.gravitee.definition.model.debug.DebugStepStatus;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
@@ -67,7 +68,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(step1.getPolicyInstanceId(), "24b22176-e4fd-488e-b221-76e4fd388e30");
         assertEquals(step1.getPolicyId(), "key-less");
         assertEquals(step1.getDuration().longValue(), 1102529);
-        assertEquals(step1.getStatus(), DebugStep.Status.COMPLETED);
+        assertEquals(step1.getStatus(), DebugStepStatus.COMPLETED);
         assertEquals(step1.getScope(), PolicyScope.ON_REQUEST);
         assertEquals(step1.getResult().size(), 1);
 
@@ -85,7 +86,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(step2.getPolicyInstanceId(), "23ab1ad0-bff0-43a4-ab1a-d0bff013a41e");
         assertEquals(step2.getPolicyId(), "transform-headers");
         assertEquals(step2.getDuration().longValue(), 3123247);
-        assertEquals(step2.getStatus(), DebugStep.Status.COMPLETED);
+        assertEquals(step2.getStatus(), DebugStepStatus.COMPLETED);
         assertEquals(step2.getScope(), PolicyScope.ON_REQUEST);
         assertEquals(step2.getResult().size(), 1);
 

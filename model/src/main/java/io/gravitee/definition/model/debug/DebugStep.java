@@ -44,7 +44,7 @@ public class DebugStep {
     /**
      * "COMPLETED" | "SKIPPED" | "ERROR"
      */
-    private Status status;
+    private DebugStepStatus status;
 
     /**
      * "ON_REQUEST" | "ON_REQUEST_CONTENT" | "ON_RESPONSE" | "ON_RESPONSE_CONTENT"
@@ -55,12 +55,6 @@ public class DebugStep {
      * A map containing only the headers, body, path, params, etc. that were modified during this step
      */
     private Map<String, Object> result = new HashMap<>();
-
-    public enum Status {
-        COMPLETED,
-        SKIPPED,
-        ERROR,
-    }
 
     public String getPolicyInstanceId() {
         return policyInstanceId;
@@ -86,11 +80,11 @@ public class DebugStep {
         this.duration = duration;
     }
 
-    public Status getStatus() {
+    public DebugStepStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(DebugStepStatus status) {
         this.status = status;
     }
 
