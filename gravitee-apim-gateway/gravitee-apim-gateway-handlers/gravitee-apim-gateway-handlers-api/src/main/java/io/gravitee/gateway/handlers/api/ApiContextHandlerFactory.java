@@ -63,6 +63,7 @@ import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
+import java.lang.reflect.InvocationTargetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -101,9 +102,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     public ReactorHandler create(Api api) {
         try {
             if (api.isEnabled()) {
-                Class<?> handlerClass = this.getClass().getClassLoader().loadClass(ApiReactorHandler.class.getName());
+                final ApiReactorHandler handler = getApiReactorHandler(api);
 
-                final ApiReactorHandler handler = (ApiReactorHandler) handlerClass.getConstructor(Api.class).newInstance(api);
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
                 final CustomComponentProvider customComponentProvider = new CustomComponentProvider();
 
@@ -196,6 +196,12 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 
     protected ExecutionContextFactory executionContextFactory(ComponentProvider componentProvider) {
         return new ExecutionContextFactory(componentProvider);
+    }
+
+    protected ApiReactorHandler getApiReactorHandler(Api api)
+        throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        Class<?> handlerClass = this.getClass().getClassLoader().loadClass(ApiReactorHandler.class.getName());
+        return (ApiReactorHandler) handlerClass.getConstructor(Api.class).newInstance(api);
     }
 
     public PolicyChainFactory policyChainFactory(PolicyManager policyManager) {

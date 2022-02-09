@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugResponseStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
@@ -41,6 +42,7 @@ public class DebugExecutionContext implements ExecutionContext {
 
     private final List<DebugStep<?>> steps = new ArrayList<>();
     private final Map<String, Serializable> initialAttributes;
+    private final InvokerResponse invokerResponse = new InvokerResponse();
 
     public DebugExecutionContext(ExecutionContext context) {
         this.context = context;
@@ -127,5 +129,9 @@ public class DebugExecutionContext implements ExecutionContext {
 
     public List<DebugStep<?>> getDebugSteps() {
         return this.steps;
+    }
+
+    public InvokerResponse getInvokerResponse() {
+        return invokerResponse;
     }
 }

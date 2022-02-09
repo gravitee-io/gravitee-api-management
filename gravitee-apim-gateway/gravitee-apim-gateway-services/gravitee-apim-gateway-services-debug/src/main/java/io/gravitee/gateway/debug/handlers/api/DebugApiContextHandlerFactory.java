@@ -15,13 +15,18 @@
  */
 package io.gravitee.gateway.debug.handlers.api;
 
+import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.invoker.InvokerFactory;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFactory;
 import io.gravitee.gateway.handlers.api.ApiContextHandlerFactory;
+import io.gravitee.gateway.handlers.api.ApiReactorHandler;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.vertx.core.Vertx;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -37,6 +42,11 @@ public class DebugApiContextHandlerFactory extends ApiContextHandlerFactory {
         PolicyFactoryCreator policyFactoryCreator
     ) {
         super(applicationContext, configuration, node, policyFactoryCreator);
+    }
+
+    @Override
+    protected ApiReactorHandler getApiReactorHandler(Api api) {
+        return new DebugApiReactorHandler(api);
     }
 
     @Override

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.debug.definition.DebugApi;
@@ -81,13 +82,31 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         final io.gravitee.definition.model.debug.DebugApi debugApi = convert(debugApiComponent);
         debugApi.setInitialAttributes(debugContext.getInitialAttributes());
         debugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
-        HttpResponse response = new HttpResponse();
-        Map<String, List<String>> headers = convertHeaders(debugContext.response().headers());
-        response.setHeaders(headers);
-        response.statusCode(debugContext.response().status());
-        response.setBody(((VertxHttpServerResponseDebugDecorator) debugContext.response()).getBuffer().toString());
+
+        HttpResponse response = createResponse(
+            debugContext.response().headers(),
+            debugContext.response().status(),
+            ((VertxHttpServerResponseDebugDecorator) debugContext.response()).getBuffer()
+        );
         debugApi.setResponse(response);
+
+        HttpResponse invokerResponse = createResponse(
+            debugContext.getInvokerResponse().getHeaders(),
+            debugContext.getInvokerResponse().getStatus(),
+            debugContext.getInvokerResponse().getBuffer()
+        );
+        debugApi.setBackendResponse(invokerResponse);
+
         return debugApi;
+    }
+
+    private HttpResponse createResponse(HttpHeaders httpHeaders, int statusCode, Buffer bodyBuffer) {
+        HttpResponse response = new HttpResponse();
+        Map<String, List<String>> headers = convertHeaders(httpHeaders);
+        response.setHeaders(headers);
+        response.statusCode(statusCode);
+        response.setBody(bodyBuffer.toString());
+        return response;
     }
 
     Map<String, List<String>> convertHeaders(HttpHeaders headersMultimap) {
