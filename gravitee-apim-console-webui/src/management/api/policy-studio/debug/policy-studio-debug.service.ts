@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { filter, map, switchMap } from 'rxjs/operators';
+import { interval, Observable, timer } from 'rxjs';
+import { filter, map, switchMap, take, takeUntil } from 'rxjs/operators';
 
 import { DebugRequest } from './models/DebugRequest';
 import { DebugEvent } from './models/DebugEvent';
+import { DebugResponse } from './models/DebugResponse';
 
 import { ApiService } from '../../../../services-ngx/api.service';
 import { DebugApiService } from '../../../../services-ngx/debug-api.service';
@@ -34,7 +35,23 @@ export class PolicyStudioDebugService {
     private readonly eventService: EventService,
   ) {}
 
-  public sendDebugEvent(apiId: string, request: DebugRequest): Observable<string> {
+  public debug(apiId: string, debugRequest: DebugRequest): Observable<DebugResponse> {
+    const maxPollingTime$ = timer(10000);
+    return this.sendDebugEvent(apiId, debugRequest).pipe(
+      // Poll each 1s to find success event. Stops after 10 seconds
+      switchMap((debugEventId) => interval(1000).pipe(switchMap(() => this.getDebugEvent(apiId, debugEventId)))),
+      takeUntil(maxPollingTime$),
+      filter((event) => event.status === 'SUCCESS'),
+      take(1),
+      map((event) => ({
+        isLoading: false,
+        response: event.payload.response,
+        request: event.payload.request,
+      })),
+    );
+  }
+
+  private sendDebugEvent(apiId: string, request: DebugRequest): Observable<string> {
     const headersAsMap = (request.headers ?? [])
       .filter((header) => !!header.value)
       .reduce((acc, current) => {
@@ -53,7 +70,7 @@ export class PolicyStudioDebugService {
     );
   }
 
-  public getDebugEvent(apiId: string, eventId: string): Observable<DebugEvent> {
+  private getDebugEvent(apiId: string, eventId: string): Observable<DebugEvent> {
     return this.eventService.findById(apiId, eventId).pipe(
       filter((event) => event.type === 'DEBUG_API'),
       map((event) => ({
