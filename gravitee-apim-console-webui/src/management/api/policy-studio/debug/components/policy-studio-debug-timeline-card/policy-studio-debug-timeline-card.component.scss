@@ -4,6 +4,11 @@
 
 $typography: map.get(gio.$mat-theme, typography);
 
+:host {
+  display: inline-block;
+  margin: 4px;
+}
+
 .policy-studio-debug-timeline-card {
   @include mat.elevation(1);
 
@@ -31,6 +36,8 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__left {
+    display: contents;
+
     &__icon {
       margin-right: 8px;
       height: 24px;
