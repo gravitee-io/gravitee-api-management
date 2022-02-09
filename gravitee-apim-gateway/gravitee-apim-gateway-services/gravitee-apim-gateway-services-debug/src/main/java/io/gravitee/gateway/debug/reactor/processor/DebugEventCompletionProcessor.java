@@ -165,7 +165,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugStep.setPolicyInstanceId(ds.getPolicyInstanceId());
         debugStep.setPolicyId(ds.getPolicyId());
         debugStep.setDuration(ds.elapsedTime().toNanos());
-        debugStep.setStatus(io.gravitee.definition.model.debug.DebugStep.Status.COMPLETED);
+        debugStep.setStatus(ds.getStatus());
         debugStep.setScope(ds.getPolicyScope());
 
         Map<String, Object> result = new HashMap<>();
