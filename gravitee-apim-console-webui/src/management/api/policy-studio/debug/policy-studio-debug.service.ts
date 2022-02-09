@@ -58,7 +58,7 @@ export class PolicyStudioDebugService {
       filter((event) => event.type === 'DEBUG_API'),
       map((event) => ({
         id: event.id,
-        payload: event.payload,
+        payload: JSON.parse(event.payload),
         status: event.properties.api_debug_status === 'SUCCESS' ? 'SUCCESS' : 'FAILED',
       })),
     );

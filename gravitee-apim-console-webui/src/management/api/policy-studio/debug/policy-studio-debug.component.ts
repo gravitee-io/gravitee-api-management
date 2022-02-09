@@ -58,7 +58,6 @@ export class PolicyStudioDebugComponent implements OnInit {
   onRequestSubmitted(debugRequest: DebugRequest) {
     this.debugResponse = {
       isLoading: true,
-      request: debugRequest,
     };
 
     const maxPollingTime$ = timer(10000);
@@ -77,7 +76,6 @@ export class PolicyStudioDebugComponent implements OnInit {
           this.snackBarService.error('Unable to try the request, please try again');
           this.debugResponse = {
             isLoading: false,
-            request: debugRequest,
           };
           return EMPTY;
         }),
@@ -85,8 +83,8 @@ export class PolicyStudioDebugComponent implements OnInit {
       .subscribe((event) => {
         this.debugResponse = {
           isLoading: false,
-          response: JSON.parse(event.payload).response,
-          request: debugRequest,
+          response: event.payload.response,
+          request: event.payload.request,
         };
       });
   }
