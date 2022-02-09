@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.17.0
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}applications
+            columns:
+              - column:
+                  name: api_key_mode
+                  type: nvarchar(16)
+                  constraints:
+                    nullable: true

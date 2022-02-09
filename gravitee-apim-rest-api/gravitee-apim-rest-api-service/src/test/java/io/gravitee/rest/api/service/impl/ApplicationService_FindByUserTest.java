@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
+import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -104,6 +105,8 @@ public class ApplicationService_FindByUserTest {
         when(application.getId()).thenReturn(APPLICATION_ID);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
             .thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID), null))
@@ -159,10 +162,12 @@ public class ApplicationService_FindByUserTest {
         when(application.getId()).thenReturn(APPLICATION_ID);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(application.getEnvironmentId()).thenReturn("envId");
         when(groupApplication.getId()).thenReturn(GROUP_APPLICATION_ID);
         when(groupApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(groupApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(groupApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(groupApplication.getEnvironmentId()).thenReturn("envId");
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
@@ -215,6 +220,7 @@ public class ApplicationService_FindByUserTest {
         when(application.getId()).thenReturn(APPLICATION_ID);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
             .thenReturn(Collections.singleton(appMembership));
         when(

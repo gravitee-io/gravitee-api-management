@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Date;
@@ -77,6 +78,10 @@ public class ApplicationListItem {
 
     @JsonProperty(value = "background_url")
     private String backgroundUrl;
+
+    @JsonProperty("api_key_mode")
+    @ApiModelProperty(value = "The API key mode used for this application.", allowableValues = "SHARED, EXCLUSIVE, UNSPECIFIED")
+    private ApiKeyMode apiKeyMode;
 
     public String getId() {
         return id;
@@ -196,6 +201,14 @@ public class ApplicationListItem {
 
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public ApiKeyMode getApiKeyMode() {
+        return apiKeyMode;
+    }
+
+    public void setApiKeyMode(ApiKeyMode apiKeyMode) {
+        this.apiKeyMode = apiKeyMode;
     }
 
     @Override

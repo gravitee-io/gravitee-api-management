@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.*;
+import static io.gravitee.rest.api.model.ApiKeyMode.*;
+import static io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -30,6 +32,7 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -41,6 +44,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.ApplicationConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
@@ -106,6 +110,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private PageService pageService;
+
+    @Autowired
+    private ApplicationConverter applicationConverter;
 
     @Override
     public SubscriptionEntity findById(String subscription) {
@@ -299,6 +306,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             }
 
+            updateApplicationApiKeyMode(planEntity, applicationEntity);
+
             Subscription subscription = new Subscription();
             subscription.setPlan(plan);
             subscription.setId(UuidString.generateRandom());
@@ -368,6 +377,19 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to subscribe to the plan {}", plan, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to subscribe to the plan %s", plan), ex);
+        }
+    }
+
+    private void updateApplicationApiKeyMode(PlanEntity plan, ApplicationEntity application) {
+        if (plan.getSecurity() == API_KEY && application.getApiKeyMode() == UNSPECIFIED && countApiKeySubscriptions(application) > 0) {
+            logger.debug("Force application {} Api Key mode to EXCLUSIVE, as it's his second subscription", application.getId());
+            application.setApiKeyMode(EXCLUSIVE);
+            applicationService.update(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                application.getId(),
+                applicationConverter.toUpdateApplicationEntity(application)
+            );
         }
     }
 
@@ -442,7 +464,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 // Update the expiration date for not yet revoked api-keys relative to this subscription
                 Date endingAt = subscription.getEndingAt();
-                if (plan.getSecurity() == PlanSecurityType.API_KEY && endingAt != null) {
+                if (plan.getSecurity() == API_KEY && endingAt != null) {
                     List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                     for (ApiKeyEntity apiKey : apiKeys) {
                         Date expireAt = apiKey.getExpireAt();
@@ -572,12 +594,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     );
             }
 
-            if (plan.getSecurity() == PlanSecurityType.API_KEY && subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                if (StringUtils.isNotEmpty(processSubscription.getCustomApiKey())) {
-                    apiKeyService.generate(subscription.getId(), processSubscription.getCustomApiKey());
-                } else {
-                    apiKeyService.generate(subscription.getId());
-                }
+            if (plan.getSecurity() == API_KEY && subscription.getStatus() == Subscription.Status.ACCEPTED) {
+                acceptApiKeySubscription(processSubscription, subscription, application);
             }
 
             return subscriptionEntity;
@@ -942,6 +960,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Override
     public Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable) {
+        return search(query, pageable, false, false);
+    }
+
+    @Override
+    public Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable, boolean fillApiKey, boolean fillPlanSecurityType) {
         try {
             logger.debug("Search pageable subscriptions {}", query);
 
@@ -968,10 +991,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
                 );
 
-                Stream<SubscriptionEntity> subscriptionsStream = pageSubscription.getContent().stream().map(this::convert);
+                List<SubscriptionEntity> subscriptions = pageSubscription.getContent().stream().map(this::convert).collect(toList());
+
+                if (fillPlanSecurityType) {
+                    fillPlanSecurityType(subscriptions);
+                }
+                if (fillApiKey) {
+                    fillApiKeys(subscriptions);
+                }
 
                 return new Page<>(
-                    subscriptionsStream.collect(toList()),
+                    subscriptions,
                     pageSubscription.getPageNumber() + 1,
                     (int) pageSubscription.getPageElements(),
                     pageSubscription.getTotalElements()
@@ -984,6 +1014,35 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 ex
             );
         }
+    }
+
+    public void fillPlanSecurityType(List<SubscriptionEntity> subscriptions) {
+        Map<String, List<SubscriptionEntity>> subscriptionsByPlan = subscriptions
+            .stream()
+            .filter(subscription -> subscription.getPlan() != null)
+            .collect(Collectors.groupingBy(SubscriptionEntity::getPlan));
+
+        planService
+            .findByIdIn(subscriptionsByPlan.keySet())
+            .forEach(
+                plan -> {
+                    subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(plan.getSecurity().name()));
+                }
+            );
+    }
+
+    private void fillApiKeys(List<SubscriptionEntity> subscriptions) {
+        subscriptions.forEach(
+            subscriptionEntity -> {
+                final List<String> keys = apiKeyService
+                    .findBySubscription(subscriptionEntity.getId())
+                    .stream()
+                    .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
+                    .map(ApiKeyEntity::getKey)
+                    .collect(Collectors.toList());
+                subscriptionEntity.setKeys(keys);
+            }
+        );
     }
 
     private SubscriptionCriteria.Builder toSubscriptionCriteriaBuilder(SubscriptionQuery query) {
@@ -1297,5 +1356,32 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     ) {
         auditService.createApiAuditLog(apiId, Collections.singletonMap(APPLICATION, applicationId), event, createdAt, oldValue, newValue);
         auditService.createApplicationAuditLog(applicationId, Collections.singletonMap(API, apiId), event, createdAt, oldValue, newValue);
+    }
+
+    protected void acceptApiKeySubscription(
+        ProcessSubscriptionEntity processSubscription,
+        Subscription subscription,
+        ApplicationEntity application
+    ) {
+        if (application.getApiKeyMode() == SHARED) {
+            // TODO : FIND THE ALREADY EXISTING SHARED API KEY, AND LINK SUBSCRIPTION TO IT
+            // TODO : IF NOT YET EXISTING, GENERATE A NEW ONE
+            throw new RuntimeException("TODO");
+        } else {
+            if (StringUtils.isNotEmpty(processSubscription.getCustomApiKey())) {
+                apiKeyService.generate(subscription.getId(), processSubscription.getCustomApiKey());
+            } else {
+                apiKeyService.generate(subscription.getId());
+            }
+        }
+    }
+
+    private long countApiKeySubscriptions(ApplicationEntity application) {
+        SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
+        subscriptionQuery.setApplication(application.getId());
+        return search(subscriptionQuery)
+            .stream()
+            .filter(subscription -> planService.findById(subscription.getPlan()).getSecurity() == API_KEY)
+            .count();
     }
 }

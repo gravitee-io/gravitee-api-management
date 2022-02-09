@@ -21,10 +21,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
@@ -68,6 +65,7 @@ public class ApplicationMapperTest {
     private static final String APPLICATION_GROUP_NAME = "my-application-group-name";
     private static final String APPLICATION_STATUS = "my-application-status";
     private static final String APPLICATION_TYPE = "my-application-type";
+    private static final ApiKeyMode APPLICATION_API_KEY_MODE = ApiKeyMode.UNSPECIFIED;
     private static final String APPLICATION_USER_ID = "my-application-user-id";
     private static final String APPLICATION_USER_DISPLAYNAME = "my-application-user-display-name";
     private static final String APPLICATION_USER_EMAIL = "my-application-user-email";
@@ -157,6 +155,7 @@ public class ApplicationMapperTest {
         applicationListItem.setPrimaryOwner(primaryOwner);
         applicationListItem.setStatus(APPLICATION_STATUS);
         applicationListItem.setType(APPLICATION_TYPE);
+        applicationListItem.setApiKeyMode(APPLICATION_API_KEY_MODE);
         applicationListItem.setUpdatedAt(nowDate);
     }
 

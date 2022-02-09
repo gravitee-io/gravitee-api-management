@@ -16,12 +16,19 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.pagedresult.Metadata;
+import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -74,5 +81,25 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
             envTarget().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).getUri().toString(),
             response.getHeaders().getFirst(HttpHeaders.LOCATION)
         );
+    }
+
+    @Test
+    public void shouldGetSubscriptions_expandingSecurity() {
+        reset(apiService, planService, subscriptionService, userService);
+
+        when(subscriptionService.search(any(), any(), eq(false), eq(true)))
+            .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(any())).thenReturn(mock(Metadata.class));
+
+        final Response response = envTarget().path(APPLICATION).path("subscriptions").queryParam("expand", "security").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        JsonNode responseBody = response.readEntity(JsonNode.class);
+        assertTrue(responseBody.hasNonNull("data"));
+        ArrayNode data = (ArrayNode) responseBody.get("data");
+        assertEquals(1, data.size());
+
+        verify(subscriptionService, times(1)).search(any(), any(), eq(false), eq(true));
     }
 }

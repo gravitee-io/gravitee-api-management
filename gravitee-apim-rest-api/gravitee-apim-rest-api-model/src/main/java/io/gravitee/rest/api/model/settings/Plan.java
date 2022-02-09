@@ -48,6 +48,9 @@ public class Plan {
         @ParameterKey(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED)
         private Enabled customApiKey;
 
+        @ParameterKey(Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED)
+        private Enabled sharedApiKey;
+
         @ParameterKey(Key.PLAN_SECURITY_OAUTH2_ENABLED)
         private Enabled oauth2;
 
@@ -95,6 +98,14 @@ public class Plan {
 
         public void setJwt(Enabled jwt) {
             this.jwt = jwt;
+        }
+
+        public Enabled getSharedApiKey() {
+            return sharedApiKey;
+        }
+
+        public void setSharedApiKey(Enabled sharedApiKey) {
+            this.sharedApiKey = sharedApiKey;
         }
     }
 }

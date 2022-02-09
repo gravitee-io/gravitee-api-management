@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
+import { IPromise, IScope } from 'angular';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 
 import { PagedResult } from '../../../../entities/pagedResult';
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
+import ApplicationService from '../../../../services/application.service';
+import { PlanSecurityType } from '../../../../entities/plan/plan';
+import { ApiKeyMode } from '../../../../entities/application/application';
+import { Constants } from '../../../../entities/Constants';
 
 const defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
 
@@ -59,7 +63,9 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     constructor(
       private ApiService: ApiService,
+      private ApplicationService: ApplicationService,
       private NotificationService: NotificationService,
+      private Constants: Constants,
       private $mdDialog: angular.material.IDialogService,
       private $state: StateService,
       public $rootScope: IScope,
@@ -203,7 +209,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       this.ApiService.getPublishedApiPlans(this.api.id).then((response) => {
         // Allow only subscribable plan
         const plans = _.filter(response.data, (plan: any) => {
-          return plan.security !== 'KEY_LESS';
+          return plan.security !== PlanSecurityType.KEY_LESS;
         });
 
         this.$mdDialog
@@ -218,15 +224,15 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
             },
           })
           .then((data) => {
-            if (data && data.applicationId && data.planId) {
-              this.ApiService.subscribe(this.api.id, data.applicationId, data.planId, data.customApiKey).then((response) => {
-                const subscription = response.data;
-                this.NotificationService.show('A new subscription has been created.');
-                this.$state.go(
-                  'management.apis.detail.portal.subscriptions.subscription',
-                  { subscriptionId: subscription.id },
-                  { reload: true },
-                );
+            if (data && data.application && data.plan) {
+              this.$shouldPromptForKeyMode(data.application, data.plan).then((shouldPrompt) => {
+                if (shouldPrompt) {
+                  this.selectKeyMode()
+                    .then((mode) => this.ApplicationService.update({ ...data.application, api_key_mode: mode }))
+                    .then(() => this.doSubscribe(data.application, data.plan, data.customApiKey));
+                } else {
+                  this.doSubscribe(data.application, data.plan, data.customApiKey);
+                }
               });
             }
           });
@@ -258,6 +264,45 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
         (this.query.plans && this.query.plans.length) ||
         this.query.api_key
       );
+    }
+
+    doSubscribe(application: any, plan: any, customApiKey: string) {
+      this.ApiService.subscribe(this.api.id, application.id, plan.id, customApiKey).then((response) => {
+        const subscription = response.data;
+        this.NotificationService.show('A new subscription has been created.');
+        this.$state.go('management.apis.detail.portal.subscriptions.subscription', { subscriptionId: subscription.id }, { reload: true });
+      });
+    }
+
+    selectKeyMode() {
+      const dialog = {
+        controller: 'ApiKeyModeChoiceDialogController',
+        controllerAs: '$ctrl',
+        template: require('/src/components/dialog/apiKeyMode/api-key-mode-choice.dialog.html'),
+        clickOutsideToClose: true,
+      };
+
+      return this.$mdDialog.show(dialog);
+    }
+
+    $shouldPromptForKeyMode(application: any, plan: any): IPromise<boolean> {
+      if (plan.security === PlanSecurityType.API_KEY && this.allowsSharedApiKeys && application.api_key_mode === ApiKeyMode.UNSPECIFIED) {
+        return this.$getApiKeySubscriptionsCount(application).then((count) => {
+          return count >= 1;
+        });
+      }
+      return Promise.resolve(false);
+    }
+
+    $getApiKeySubscriptionsCount(application: any): IPromise<number> {
+      return this.ApplicationService.listSubscriptions(application.id, '?expand=security').then((response) => {
+        const applicationSubscriptions = response.data as PagedResult;
+        return applicationSubscriptions.data.filter((subscription) => subscription.security === PlanSecurityType.API_KEY).length;
+      });
+    }
+
+    get allowsSharedApiKeys(): boolean {
+      return this.Constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
     }
   },
 };

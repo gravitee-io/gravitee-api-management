@@ -50,7 +50,7 @@
         <md-radio-group ng-model="dialogSubscriptionCreateController.selectedPlan" style="width: 100%">
           <div ng-repeat="plan in dialogSubscriptionCreateController.plans | orderBy: 'order'">
             <md-radio-button
-              value="{{plan.id}}"
+              ng-value="plan"
               ng-disabled="dialogSubscriptionCreateController.planAlreadyHaveSubscriptions(plan.id) || dialogSubscriptionCreateController.hasGeneralConditions(plan)"
             >
               {{plan.name}}

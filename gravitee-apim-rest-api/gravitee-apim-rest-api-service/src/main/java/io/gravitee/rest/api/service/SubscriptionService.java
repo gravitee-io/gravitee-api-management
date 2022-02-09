@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,6 +69,8 @@ public interface SubscriptionService {
     Collection<SubscriptionEntity> search(SubscriptionQuery query);
 
     Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable);
+
+    Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable, boolean fillApiKeys, boolean fillPlansSecurityType);
 
     Metadata getMetadata(SubscriptionMetadataQuery query);
 
