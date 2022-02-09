@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -40,6 +41,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.converter.ApplicationConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Arrays;
@@ -95,6 +97,9 @@ public class ApplicationService_CreateTest {
     @Mock
     private ApplicationTypeService applicationTypeService;
 
+    @Mock
+    private ApplicationConverter applicationConverter;
+
     @Before
     public void setup() {
         GraviteeContext.cleanContext();
@@ -109,12 +114,14 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
         when(userService.findById(any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
 
         final ApplicationEntity applicationEntity = applicationService.create(
             GraviteeContext.getCurrentEnvironment(),

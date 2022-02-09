@@ -90,6 +90,8 @@ public class Application {
 
     private String background;
 
+    private ApiKeyMode apiKeyMode = ApiKeyMode.UNSPECIFIED;
+
     public Application() {}
 
     public Application(Application cloned) {
@@ -104,6 +106,7 @@ public class Application {
         this.disableMembershipNotifications = cloned.disableMembershipNotifications;
         this.background = cloned.background;
         this.domain = cloned.domain;
+        this.apiKeyMode = cloned.apiKeyMode;
     }
 
     public Date getCreatedAt() {
@@ -216,6 +219,14 @@ public class Application {
 
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public ApiKeyMode getApiKeyMode() {
+        return apiKeyMode;
+    }
+
+    public void setApiKeyMode(ApiKeyMode apiKeyMode) {
+        this.apiKeyMode = apiKeyMode;
     }
 
     @Override

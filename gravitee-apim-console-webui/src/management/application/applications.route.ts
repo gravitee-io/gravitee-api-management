@@ -284,7 +284,7 @@ function applicationsConfig($stateProvider) {
         apis: (ApiService: ApiService) => ApiService.list(null, true).then((response) => response.data),
         groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
         subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.listSubscriptions($stateParams.applicationId).then((response) => response.data),
+          ApplicationService.listSubscriptions($stateParams.applicationId, '?expand=security').then((response) => response.data),
       },
       data: {
         perms: {

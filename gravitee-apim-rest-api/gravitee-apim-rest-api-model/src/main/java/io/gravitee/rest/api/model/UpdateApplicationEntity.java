@@ -75,6 +75,10 @@ public class UpdateApplicationEntity {
     @JsonProperty("disable_membership_notifications")
     private boolean disableMembershipNotifications;
 
+    @JsonProperty("api_key_mode")
+    @ApiModelProperty(value = "The API key mode used for this application.", allowableValues = "UNSPECIFIED, SHARED, EXCLUSIVE")
+    private ApiKeyMode apiKeyMode;
+
     private String background;
 
     public String getName() {
@@ -163,6 +167,14 @@ public class UpdateApplicationEntity {
 
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public ApiKeyMode getApiKeyMode() {
+        return apiKeyMode;
+    }
+
+    public void setApiKeyMode(ApiKeyMode apiKeyMode) {
+        this.apiKeyMode = apiKeyMode;
     }
 
     @Override

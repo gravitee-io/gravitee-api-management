@@ -39,7 +39,6 @@ import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.annotations.*;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -97,7 +96,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     public PagedResult<SubscriptionEntity> getApiSubscriptions(
         @BeanParam SubscriptionParam subscriptionParam,
         @Valid @BeanParam Pageable pageable,
-        @ApiParam(allowableValues = "keys", value = "Expansion of data to return in subscriptions") @QueryParam(
+        @ApiParam(allowableValues = "keys, security", value = "Expansion of data to return in subscriptions") @QueryParam(
             "expand"
         ) List<String> expand
     ) {
@@ -105,31 +104,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
         SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
         subscriptionQuery.setApi(api);
 
-        Page<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery, pageable.toPageable());
-
-        if (expand != null && !expand.isEmpty()) {
-            for (String e : expand) {
-                switch (e) {
-                    case "keys":
-                        subscriptions
-                            .getContent()
-                            .forEach(
-                                subscriptionEntity -> {
-                                    final List<String> keys = apiKeyService
-                                        .findBySubscription(subscriptionEntity.getId())
-                                        .stream()
-                                        .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
-                                        .map(ApiKeyEntity::getKey)
-                                        .collect(Collectors.toList());
-                                    subscriptionEntity.setKeys(keys);
-                                }
-                            );
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        boolean expandApiKeys = expand != null && expand.contains("keys");
+        boolean expandPlanSecurity = expand != null && expand.contains("security");
+        Page<SubscriptionEntity> subscriptions = subscriptionService.search(
+            subscriptionQuery,
+            pageable.toPageable(),
+            expandApiKeys,
+            expandPlanSecurity
+        );
 
         PagedResult<SubscriptionEntity> result = new PagedResult<>(subscriptions, pageable.getSize());
         SubscriptionMetadataQuery subscriptionMetadataQuery = new SubscriptionMetadataQuery(

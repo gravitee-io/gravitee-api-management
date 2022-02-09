@@ -58,6 +58,8 @@ public class ApplicationMongo extends Auditable {
 
     private String domain;
 
+    private String apiKeyMode;
+
     public String getId() {
         return id;
     }
@@ -154,6 +156,14 @@ public class ApplicationMongo extends Auditable {
         this.domain = domain;
     }
 
+    public String getApiKeyMode() {
+        return apiKeyMode;
+    }
+
+    public void setApiKeyMode(String apiKeyMode) {
+        this.apiKeyMode = apiKeyMode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -177,6 +187,7 @@ public class ApplicationMongo extends Auditable {
         sb.append(", status='").append(status).append('\'');
         sb.append(", groups='").append(groups).append('\'');
         sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications).append('\'');
+        sb.append(", apiKeyMode='").append(apiKeyMode).append('\'');
         sb.append('}');
         return sb.toString();
     }

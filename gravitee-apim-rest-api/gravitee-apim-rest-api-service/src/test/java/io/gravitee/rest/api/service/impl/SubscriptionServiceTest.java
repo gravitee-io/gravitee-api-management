@@ -1266,6 +1266,64 @@ public class SubscriptionServiceTest {
         Mockito.verify(delegate, times(1)).apply(any(Metadata.class), eq(apiEntity));
     }
 
+    @Test
+    public void search_should_not_fill_planSecurity_nor_apiKeys_if_boolean_to_false() throws TechnicalException {
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApis(List.of("api-id-1"));
+
+        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", Subscription.Status.ACCEPTED, "plan-id");
+        when(subscriptionRepository.search(any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
+
+        Page<SubscriptionEntity> page = subscriptionService.search(query, Mockito.mock(Pageable.class), false, false);
+
+        assertEquals("sub1", page.getContent().get(0).getId());
+        assertNull(page.getContent().get(0).getSecurity());
+        assertNull(page.getContent().get(0).getKeys());
+        verifyNoInteractions(planService);
+        verifyNoInteractions(apiKeyService);
+    }
+
+    @Test
+    public void search_should_fill_plan_security_if_boolean_to_true() throws TechnicalException {
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApis(List.of("api-id-1"));
+
+        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", Subscription.Status.ACCEPTED, "plan-id");
+        when(subscriptionRepository.search(any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
+
+        PlanEntity foundPlan = new PlanEntity();
+        foundPlan.setId("plan-id");
+        foundPlan.setSecurity(PlanSecurityType.OAUTH2);
+        when(planService.findByIdIn(Set.of("plan-id"))).thenReturn(Set.of(foundPlan));
+
+        Page<SubscriptionEntity> page = subscriptionService.search(query, Mockito.mock(Pageable.class), false, true);
+
+        assertEquals("sub1", page.getContent().get(0).getId());
+        assertEquals("OAUTH2", page.getContent().get(0).getSecurity());
+        assertNull(page.getContent().get(0).getKeys());
+        verifyNoInteractions(apiKeyService);
+    }
+
+    @Test
+    public void search_should_fill_apikeys_if_boolean_to_true() throws TechnicalException {
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApis(List.of("api-id-1"));
+
+        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", Subscription.Status.ACCEPTED, "plan-id");
+        when(subscriptionRepository.search(any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
+
+        ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setKey("my-api-key");
+        when(apiKeyService.findBySubscription("sub1")).thenReturn(List.of(apiKey));
+
+        Page<SubscriptionEntity> page = subscriptionService.search(query, Mockito.mock(Pageable.class), true, false);
+
+        assertEquals("sub1", page.getContent().get(0).getId());
+        assertNull(page.getContent().get(0).getSecurity());
+        assertEquals("my-api-key", page.getContent().get(0).getKeys().get(0));
+        verifyNoInteractions(planService);
+    }
+
     private ApiKeyEntity buildTestApiKeyForSubscription(String subscription) {
         ApiKeyEntity apikey = new ApiKeyEntity();
         apikey.setSubscription(subscription);
@@ -1273,10 +1331,15 @@ public class SubscriptionServiceTest {
     }
 
     private Subscription buildTestSubscription(String id, String api, Subscription.Status status) {
+        return buildTestSubscription(id, api, status, null);
+    }
+
+    private Subscription buildTestSubscription(String id, String api, Subscription.Status status, String plan) {
         Subscription subscription = new Subscription();
         subscription.setId(id);
         subscription.setApi(api);
         subscription.setStatus(status);
+        subscription.setPlan(plan);
         return subscription;
     }
 }

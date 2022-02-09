@@ -87,7 +87,8 @@
     "metadata": {
       "type": "Web"
     },
-    "disableMembershipNotifications": false
+    "disableMembershipNotifications": false,
+    "apiKeyMode": "SHARED"
   },
   {
     "id": "searched-app2",

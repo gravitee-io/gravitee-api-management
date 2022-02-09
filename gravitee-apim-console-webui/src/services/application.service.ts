@@ -90,6 +90,7 @@ class ApplicationService {
       picture: application.picture,
       picture_url: application.picture_url,
       disable_membership_notifications: application.disable_membership_notifications,
+      api_key_mode: application.api_key_mode,
       background: application.background,
     });
   }

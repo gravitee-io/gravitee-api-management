@@ -29,6 +29,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -49,6 +50,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
+import io.gravitee.rest.api.service.converter.ApplicationConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
@@ -118,6 +120,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private ApplicationAlertService applicationAlertService;
+
+    @Autowired
+    private ApplicationConverter applicationConverter;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -402,7 +407,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             groupService.findByIds(newApplicationEntity.getGroups());
         }
 
-        Application application = convert(newApplicationEntity);
+        Application application = applicationConverter.toApplication(newApplicationEntity);
         application.setId(UuidString.generateRandom());
         application.setStatus(ApplicationStatus.ACTIVE);
         metadata.forEach((key, value) -> application.getMetadata().put(key, value));
@@ -541,6 +546,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 throw new InvalidApplicationTypeException();
             }
 
+            // Check that application Api Key mode is valid
+            checkApiKeyModeUpdate(updateApplicationEntity, applicationToUpdate);
+
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
 
@@ -589,7 +597,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 }
             }
 
-            Application application = convert(updateApplicationEntity);
+            Application application = applicationConverter.toApplication(updateApplicationEntity);
             application.setId(applicationId);
             application.setEnvironmentId(optApplicationToUpdate.get().getEnvironmentId());
             application.setStatus(ApplicationStatus.ACTIVE);
@@ -950,6 +958,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     item.setStatus(applicationEntity.getStatus());
                     item.setPicture(applicationEntity.getPicture());
                     item.setBackground(applicationEntity.getBackground());
+                    item.setApiKeyMode(applicationEntity.getApiKeyMode());
 
                     final Application app = applications
                         .stream()
@@ -991,6 +1000,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         applicationEntity.setSettings(getSettings(application));
         applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
+        if (application.getApiKeyMode() != null) {
+            applicationEntity.setApiKeyMode(ApiKeyMode.valueOf(application.getApiKeyMode().name()));
+        }
         return applicationEntity;
     }
 
@@ -1040,60 +1052,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             settings.setoAuthClient(clientSettings);
         }
         return settings;
-    }
-
-    private static Application convert(NewApplicationEntity newApplicationEntity) {
-        Application application = new Application();
-
-        application.setName(newApplicationEntity.getName().trim());
-        application.setDescription(newApplicationEntity.getDescription().trim());
-        application.setDomain(newApplicationEntity.getDomain());
-        application.setGroups(newApplicationEntity.getGroups());
-
-        Map<String, String> metadata = new HashMap<>();
-        if (newApplicationEntity.getSettings().getApp() != null) {
-            application.setType(ApplicationType.SIMPLE);
-            if (newApplicationEntity.getSettings().getApp().getClientId() != null) {
-                metadata.put("client_id", newApplicationEntity.getSettings().getApp().getClientId());
-            }
-            if (newApplicationEntity.getSettings().getApp().getType() != null) {
-                metadata.put("type", newApplicationEntity.getSettings().getApp().getType());
-            }
-        } else {
-            application.setType(
-                ApplicationType.valueOf(newApplicationEntity.getSettings().getoAuthClient().getApplicationType().toUpperCase())
-            );
-        }
-        application.setPicture(newApplicationEntity.getPicture());
-        application.setBackground(newApplicationEntity.getBackground());
-        application.setMetadata(metadata);
-
-        return application;
-    }
-
-    private static Application convert(UpdateApplicationEntity updateApplicationEntity) {
-        Application application = new Application();
-
-        application.setName(updateApplicationEntity.getName().trim());
-        application.setPicture(updateApplicationEntity.getPicture());
-        application.setBackground(updateApplicationEntity.getBackground());
-        application.setDescription(updateApplicationEntity.getDescription().trim());
-        application.setDomain(updateApplicationEntity.getDomain());
-        application.setGroups(updateApplicationEntity.getGroups());
-        Map<String, String> metadata = new HashMap<>();
-
-        if (updateApplicationEntity.getSettings().getApp() != null) {
-            if (updateApplicationEntity.getSettings().getApp().getClientId() != null) {
-                metadata.put("client_id", updateApplicationEntity.getSettings().getApp().getClientId());
-            }
-            if (updateApplicationEntity.getSettings().getApp().getType() != null) {
-                metadata.put("type", updateApplicationEntity.getSettings().getApp().getType());
-            }
-        }
-
-        application.setMetadata(metadata);
-        application.setDisableMembershipNotifications(updateApplicationEntity.isDisableMembershipNotifications());
-        return application;
     }
 
     @Override
@@ -1162,6 +1120,21 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             String errorMessage = String.format("An error occurs while trying to find applications by name %s and id %s", name, ids);
             LOGGER.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    private void checkApiKeyModeUpdate(UpdateApplicationEntity updateApplicationEntity, Application applicationToUpdate) {
+        // Retro-compatibility : If input apiKey mode is not specified, get it from existing application
+        if (updateApplicationEntity.getApiKeyMode() == null && applicationToUpdate.getApiKeyMode() != null) {
+            updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(applicationToUpdate.getApiKeyMode().name()));
+        }
+        // Check api key mode modification is allowed
+        else if (
+            applicationToUpdate.getApiKeyMode() != null &&
+            !applicationToUpdate.getApiKeyMode().isUpdatable() &&
+            !applicationToUpdate.getApiKeyMode().name().equals(updateApplicationEntity.getApiKeyMode().name())
+        ) {
+            throw new InvalidApplicationApiKeyModeException(applicationToUpdate.getId(), applicationToUpdate.getApiKeyMode());
         }
     }
 }
