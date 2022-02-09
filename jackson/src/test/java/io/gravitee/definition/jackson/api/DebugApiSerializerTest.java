@@ -18,13 +18,29 @@ package io.gravitee.definition.jackson.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.debug.DebugApi;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 public class DebugApiSerializerTest extends AbstractTest {
+
+    @Test
+    public void debugApi_withBackendResponse() throws Exception {
+        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response.json", DebugApi.class);
+
+        String expectedDefinition = "/io/gravitee/definition/jackson/debug/debug-api-with-backend-response-expected.json";
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(debugApi);
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
+
+        assertNotNull(generatedJsonDefinition);
+
+        assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
+    }
 
     @Test
     public void debugApi_withDebugSteps() throws Exception {

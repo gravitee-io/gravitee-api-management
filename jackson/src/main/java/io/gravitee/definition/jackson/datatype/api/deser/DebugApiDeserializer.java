@@ -27,7 +27,6 @@ import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.definition.model.debug.DebugStep;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -71,6 +70,11 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApi> {
             debugApi.setInitialAttributes(
                 (initialAttributesNode.traverse(jp.getCodec()).readValueAs(new TypeReference<Map<String, Object>>() {}))
             );
+        }
+
+        JsonNode backendResponseNode = node.get("backendResponse");
+        if (backendResponseNode != null) {
+            debugApi.setBackendResponse(backendResponseNode.traverse(jp.getCodec()).readValueAs(HttpResponse.class));
         }
 
         return debugApi;

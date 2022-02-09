@@ -99,6 +99,19 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(headers.get("X-Gravitee-Request-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
     }
 
+    @Test
+    public void debugApi_withBackendResponse() throws Exception {
+        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response.json", DebugApi.class);
+
+        assertEquals(debugApi.getBackendResponse().getStatusCode(), 200);
+        assertEquals(debugApi.getBackendResponse().getBody(), "{\"message\": \"mock backend response\"}");
+        assertEquals(debugApi.getBackendResponse().getHeaders().size(), 4);
+        assertEquals(debugApi.getBackendResponse().getHeaders().get("transfer-encoding"), List.of("chunked"));
+        assertEquals(debugApi.getBackendResponse().getHeaders().get("content-type"), List.of("application/json"));
+        assertEquals(debugApi.getBackendResponse().getHeaders().get("transfer-encoding"), List.of("chunked"));
+        assertEquals(debugApi.getBackendResponse().getHeaders().get("content-length"), List.of("42"));
+    }
+
     @Test(expected = JsonMappingException.class)
     public void debugApi_withoutRequest() throws Exception {
         load("/io/gravitee/definition/jackson/debug/debug-api-without-request.json", DebugApi.class);

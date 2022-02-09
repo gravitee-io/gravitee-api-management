@@ -1,0 +1,307 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "version": "1",
+  "gravitee": "1.0.0",
+  "flow_mode": "DEFAULT",
+  "proxy": {
+    "virtual_hosts": [
+      {
+        "path": "/my-api"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": true,
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://localhost:1234",
+            "weight": 1,
+            "backup": false,
+            "type": "http"
+          }
+        ],
+        "load_balancing": {
+          "type": "ROUND_ROBIN"
+        },
+        "http": {
+          "connectTimeout": 5000,
+          "idleTimeout": 60000,
+          "keepAlive": true,
+          "readTimeout": 10000,
+          "pipelining": false,
+          "maxConcurrentConnections": 100,
+          "useCompression": true,
+          "followRedirects": false
+        }
+      }
+    ]
+  },
+  "properties": [],
+  "request": {
+    "path": "/",
+    "method": "GET",
+    "body": "request-body",
+    "headers" : {
+      "X-Gravitee-Transaction-Id" : "transaction-id",
+      "content-type" : "application/json",
+      "X-Gravitee-Request-Id" : "request-id",
+      "accept-encoding" : "deflate, gzip, compress"
+    }
+  },
+  "response": {
+    "body": "response-body",
+    "statusCode" : 200,
+    "headers" : {
+      "transfer-encoding" : "chunked",
+      "accept-encoding" : "deflate, gzip, compress"
+    }
+  },
+  "initialAttributes": {
+    "gravitee.attribute.application": "1",
+    "gravitee.attribute.user-id": "127.0.0.1"
+  },
+  "debugSteps": [
+    {
+      "policyInstanceId": "24b22176-e4fd-488e-b221-76e4fd388e30",
+      "policyId": "key-less",
+      "scope": "ON_REQUEST",
+      "status": "COMPLETED",
+      "duration": 1102529,
+      "result": {
+        "attributes": {
+          "gravitee.attribute.application": "1",
+          "gravitee.attribute.api.deployed-at": "1644242411908",
+          "gravitee.attribute.user-id": "127.0.0.1",
+          "gravitee.attribute.plan": "7bc7c418-056b-4876-87c4-18056b08763d",
+          "gravitee.attribute.api": "62710ef2-83bc-4007-b10e-f283bce00763",
+          "gravitee.attribute.gravitee.attribute.plan.selection.rule.based": "false"
+        }
+      }
+    },
+    {
+      "policyInstanceId": "23ab1ad0-bff0-43a4-ab1a-d0bff013a41e",
+      "policyId": "transform-headers",
+      "scope": "ON_REQUEST",
+      "status": "COMPLETED",
+      "duration": 3123247,
+      "result": {
+        "headers": {
+          "transfer-encoding": [
+            "chunked"
+          ],
+          "host": [
+            "localhost:8482"
+          ],
+          "X-Gravitee-Transaction-Id": [
+            "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+          ],
+          "firstpolicy": [
+            "firstvalue",
+            "secondvalue"
+          ],
+          "X-Gravitee-Request-Id": [
+            "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+          ]
+        }
+      }
+    },
+    {
+      "policyInstanceId": "6cc8867b-91da-49d0-8886-7b91da79d041",
+      "policyId": "transform-headers",
+      "scope": "ON_REQUEST",
+      "status": "COMPLETED",
+      "duration": 82987,
+      "result": {
+        "headers": {
+          "pol2": [
+            "pol2"
+          ],
+          "transfer-encoding": [
+            "chunked"
+          ],
+          "host": [
+            "localhost:8482"
+          ],
+          "X-Gravitee-Transaction-Id": [
+            "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+          ],
+          "firstpolicy": [
+            "firstvalue"
+          ],
+          "X-Gravitee-Request-Id": [
+            "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+          ]
+        }
+      }
+    },
+    {
+      "policyInstanceId": "f764a3c9-8dc1-4bfd-a4a3-c98dc19bfd82",
+      "policyId": "policy-assign-content",
+      "scope": "ON_REQUEST_CONTENT",
+      "status": "COMPLETED",
+      "duration": 65156338,
+      "result": {
+        "headers": {
+          "pol2": [
+            "pol2"
+          ],
+          "X-Gravitee-Transaction-Id": [
+            "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+          ],
+          "Host": [
+            "api.gravitee.io"
+          ],
+          "Content-Length": [
+            "32"
+          ],
+          "firstpolicy": [
+            "firstvalue"
+          ],
+          "X-Gravitee-Request-Id": [
+            "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+          ]
+        },
+        "body": "{\n\"requestbody\": \"my bodyyyyy\"\n}"
+      }
+    },
+    {
+      "policyInstanceId": "66b3b532-a907-404f-b3b5-32a907204fae",
+      "policyId": "transform-headers",
+      "scope": "ON_RESPONSE",
+      "status": "COMPLETED",
+      "duration": 77607,
+      "result": {
+        "headers": {
+          "content-length": [
+            "283"
+          ],
+          "platform-yann": [
+            "yann"
+          ],
+          "X-Gravitee-Transaction-Id": [
+            "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+          ],
+          "responseheader": [
+            "value"
+          ],
+          "Sozu-Id": [
+            "01FVA7R8RDQCZCTE0DAKBKTNW4"
+          ],
+          "X-Gravitee-Request-Id": [
+            "9b7ea908-1d67-4236-bea9-081d673236fb"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        }
+      }
+    },
+    {
+      "policyInstanceId": "dbc5045e-dda1-4779-8504-5edda177798b",
+      "policyId": "policy-assign-attributes",
+      "scope": "ON_RESPONSE",
+      "status": "COMPLETED",
+      "duration": 45998,
+      "result": {}
+    },
+    {
+      "policyInstanceId": "810bd86e-b277-4871-8bd8-6eb27708716b",
+      "policyId": "policy-assign-content",
+      "scope": "ON_RESPONSE_CONTENT",
+      "status": "COMPLETED",
+      "duration": 1111781,
+      "result": {
+        "headers": {
+          "platform-yann": [
+            "yann"
+          ],
+          "X-Gravitee-Transaction-Id": [
+            "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+          ],
+          "responseheader": [
+            "value"
+          ],
+          "Content-Length": [
+            "48"
+          ],
+          "Sozu-Id": [
+            "01FVA7R8RDQCZCTE0DAKBKTNW4"
+          ],
+          "X-Gravitee-Request-Id": [
+            "9b7ea908-1d67-4236-bea9-081d673236fb"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "body": "{\"message\": \"first execution of assign content\"}"
+      }
+    },
+    {
+      "policyInstanceId": "e25cdb29-e580-4078-9cdb-29e58010783f",
+      "policyId": "policy-assign-content",
+      "scope": "ON_RESPONSE_CONTENT",
+      "status": "COMPLETED",
+      "duration": 329396,
+      "result": {
+        "headers": {
+          "platform-yann": [
+            "yann"
+          ],
+          "X-Gravitee-Transaction-Id": [
+            "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+          ],
+          "responseheader": [
+            "value"
+          ],
+          "Content-Length": [
+            "29"
+          ],
+          "Sozu-Id": [
+            "01FVA7R8RDQCZCTE0DAKBKTNW4"
+          ],
+          "X-Gravitee-Request-Id": [
+            "9b7ea908-1d67-4236-bea9-081d673236fb"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "body": "{\n\"message\": \"new response\"\n}"
+      }
+    },
+    {
+      "policyInstanceId": "dbc5045e-dda1-4779-8504-5edda177798b",
+      "policyId": "policy-assign-attributes",
+      "scope": "ON_RESPONSE_CONTENT",
+      "status": "COMPLETED",
+      "duration": 2700310,
+      "result": {
+        "attributes": {
+          "gravitee.attribute.application": "1",
+          "gravitee.attribute.api.deployed-at": "1644242411908",
+          "gravitee.attribute.user-id": "127.0.0.1",
+          "gravitee.attribute.plan": "7bc7c418-056b-4876-87c4-18056b08763d",
+          "my-attribute": "attribute-value",
+          "gravitee.attribute.api": "62710ef2-83bc-4007-b10e-f283bce00763",
+          "gravitee.attribute.resolved-path": "/",
+          "gravitee.attribute.gravitee.attribute.plan.selection.rule.based": "false"
+        }
+      }
+    }
+  ],
+  "backendResponse": {
+    "body": "{\"message\": \"mock backend response\"}",
+    "statusCode": 200,
+    "headers": {
+      "transfer-encoding": "chunked",
+      "accept-encoding": "deflate, gzip, compress",
+      "content-length": "42",
+      "content-type": "application/json"
+    }
+  }
+}

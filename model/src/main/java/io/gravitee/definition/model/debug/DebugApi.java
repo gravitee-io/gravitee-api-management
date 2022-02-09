@@ -37,6 +37,9 @@ public class DebugApi extends Api implements Serializable {
     @JsonProperty("initialAttributes")
     private Map<String, String> initialAttributes;
 
+    @JsonProperty("backendResponse")
+    private HttpResponse backendResponse;
+
     public HttpRequest getRequest() {
         return request;
     }
@@ -67,5 +70,13 @@ public class DebugApi extends Api implements Serializable {
 
     public void setInitialAttributes(Map<String, String> initialAttributes) {
         this.initialAttributes = initialAttributes;
+    }
+
+    public HttpResponse getBackendResponse() {
+        return backendResponse;
+    }
+
+    public void setBackendResponse(HttpResponse backendResponse) {
+        this.backendResponse = backendResponse;
     }
 }
