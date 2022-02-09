@@ -20,5 +20,27 @@
   [class.color-green]="timelineCardVM.color === 'green'"
   [class.color-blue]="timelineCardVM.color === 'blue'"
 >
-  <mat-icon class="policy-studio-debug-timeline-card__icon" [svgIcon]="timelineCardVM.icon"></mat-icon> {{ timelineCardVM.title }}
+  <div class="policy-studio-debug-timeline-card__left">
+    <mat-icon *ngIf="timelineCardVM.icon" class="policy-studio-debug-timeline-card__left__icon" [svgIcon]="timelineCardVM.icon"></mat-icon
+    ><img
+      *ngIf="timelineCardVM.iconUrl"
+      class="policy-studio-debug-timeline-card__left__icon"
+      [src]="timelineCardVM.iconUrl"
+      [alt]="timelineCardVM.title"
+    />
+  </div>
+  <div class="policy-studio-debug-timeline-card__content">
+    <div *ngIf="timelineCardVM.headerLabel" class="policy-studio-debug-timeline-card__content__header-label">
+      {{ timelineCardVM.headerLabel }}
+    </div>
+    <div>
+      {{ timelineCardVM.title }}
+    </div>
+  </div>
+  <div class="policy-studio-debug-timeline-card__right">
+    <div>
+      <!-- TODO: Error and conditional icon -->
+    </div>
+    <div *ngIf="timelineCardVM.executionTimeLabel">{{ timelineCardVM.executionTimeLabel }}</div>
+  </div>
 </div>

@@ -15,6 +15,7 @@
  */
 
 import { Component, Input, OnChanges } from '@angular/core';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 export type TimelineStep =
   | {
@@ -28,12 +29,22 @@ export type TimelineStep =
     }
   | {
       mode: 'REQUEST_OUTPUT';
+    }
+  | {
+      mode: 'POLICY';
+      flowName: string;
+      policyName: string;
+      icon: string;
+      executionTime: number;
     };
 
 interface TimelineCardVM {
   icon?: string;
+  iconUrl?: SafeUrl;
+  headerLabel?: string;
   title?: string;
   color?: 'green' | 'blue' | 'default';
+  executionTimeLabel?: string;
 }
 @Component({
   selector: 'policy-studio-debug-timeline-card',
@@ -46,34 +57,49 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
 
   public timelineCardVM: TimelineCardVM = {};
 
+  constructor(private readonly sanitizer: DomSanitizer) {}
+
   ngOnChanges(): void {
     if (!this.timelineStep) {
       return;
     }
+    this.timelineCardVM = this.toTimelineCardVM(this.timelineStep);
+  }
 
-    const timelineCardTemplate: Record<TimelineStep['mode'], TimelineCardVM> = {
-      CLIENT_APP: {
-        icon: 'gio:smartphone-device',
-        title: 'Client APP',
-        color: 'green',
-      },
-      BACKEND_TARGET: {
-        icon: 'gio:city',
-        title: 'Backend Target',
-        color: 'green',
-      },
-      REQUEST_INPUT: {
-        icon: 'gio:nav-arrow-right',
-        title: 'Request Input',
-        color: 'blue',
-      },
-      REQUEST_OUTPUT: {
-        icon: 'gio:nav-arrow-right',
-        title: 'Request Output',
-        color: 'blue',
-      },
-    };
-
-    this.timelineCardVM = timelineCardTemplate[this.timelineStep.mode];
+  private toTimelineCardVM(timelineStep: TimelineStep): TimelineCardVM {
+    switch (timelineStep.mode) {
+      case 'CLIENT_APP':
+        return {
+          icon: 'gio:smartphone-device',
+          title: 'Client APP',
+          color: 'green',
+        };
+      case 'BACKEND_TARGET':
+        return {
+          icon: 'gio:city',
+          title: 'Backend Target',
+          color: 'green',
+        };
+      case 'REQUEST_INPUT':
+        return {
+          icon: 'gio:nav-arrow-right',
+          title: 'Request Input',
+          color: 'blue',
+        };
+      case 'REQUEST_OUTPUT':
+        return {
+          icon: 'gio:nav-arrow-right',
+          title: 'Request Output',
+          color: 'blue',
+        };
+      case 'POLICY':
+        return {
+          iconUrl: this.sanitizer.bypassSecurityTrustUrl(timelineStep.icon),
+          headerLabel: timelineStep.flowName,
+          title: timelineStep.policyName,
+          color: 'default',
+          executionTimeLabel: `${timelineStep.executionTime}ms`,
+        };
+    }
   }
 }
