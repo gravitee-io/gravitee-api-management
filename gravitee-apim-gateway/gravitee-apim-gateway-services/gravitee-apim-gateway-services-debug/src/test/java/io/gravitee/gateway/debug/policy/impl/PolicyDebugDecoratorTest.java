@@ -171,6 +171,7 @@ public class PolicyDebugDecoratorTest {
 
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
+        final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
         io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
         final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_REQUEST, policy));
@@ -180,13 +181,14 @@ public class PolicyDebugDecoratorTest {
         Assert.assertFalse(debugPolicy.isRunnable());
         Assert.assertTrue(debugPolicy.isStreamable());
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
-        verify(dummyPolicy, atLeastOnce()).onRequestContent(policyChain, request, response);
+        verify(dummyPolicy, atLeastOnce()).onRequestContent(chainCaptor.capture(), eq(request), eq(response));
         verify(dummyPolicy, never()).onResponse(policyChain, request, response);
         verify(dummyPolicy, never()).onResponseContent(policyChain, request, response);
         verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
 
         verify(context, never()).beforePolicyExecution(any());
         verify(context, never()).afterPolicyExecution(any());
+        assertThat(chainCaptor.getValue()).isInstanceOf(DebugStreamablePolicyChain.class);
     }
 
     @Test
@@ -201,6 +203,7 @@ public class PolicyDebugDecoratorTest {
 
         io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
         final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy));
+        final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
         debugPolicy.stream(policyChain, context);
 
@@ -209,11 +212,12 @@ public class PolicyDebugDecoratorTest {
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, never()).onResponse(policyChain, request, response);
-        verify(dummyPolicy, atLeastOnce()).onResponseContent(policyChain, request, response);
+        verify(dummyPolicy, atLeastOnce()).onResponseContent(chainCaptor.capture(), eq(request), eq(response));
         verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
 
         verify(context, never()).beforePolicyExecution(any());
         verify(context, never()).afterPolicyExecution(any());
+        assertThat(chainCaptor.getValue()).isInstanceOf(DebugStreamablePolicyChain.class);
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {

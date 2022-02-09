@@ -20,35 +20,19 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.policy.api.PolicyChain;
-import io.gravitee.policy.api.PolicyResult;
 
-public class DebugPolicyChain implements PolicyChain {
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class DebugStreamablePolicyChain extends DebugPolicyChain {
 
-    protected final PolicyChain chain;
-    private final DebugStep<?> debugStep;
-    private final DebugExecutionContext debugContext;
-
-    public DebugPolicyChain(PolicyChain chain, DebugStep<?> debugStep, DebugExecutionContext debugContext) {
-        this.chain = chain;
-        this.debugStep = debugStep;
-        this.debugContext = debugContext;
+    public DebugStreamablePolicyChain(PolicyChain chain, DebugStep<?> debugStep, DebugExecutionContext debugContext) {
+        super(chain, debugStep, debugContext);
     }
 
     @Override
     public void doNext(Request request, Response response) {
-        debugContext.afterPolicyExecution(debugStep);
         chain.doNext(request, response);
-    }
-
-    @Override
-    public void failWith(PolicyResult policyResult) {
-        debugStep.error(policyResult);
-        chain.failWith(policyResult);
-    }
-
-    @Override
-    public void streamFailWith(PolicyResult policyResult) {
-        debugStep.error(policyResult);
-        chain.failWith(policyResult);
     }
 }

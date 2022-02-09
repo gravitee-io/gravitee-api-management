@@ -17,9 +17,11 @@ package io.gravitee.gateway.debug.reactor.handler.context.steps;
 
 import com.google.common.base.Stopwatch;
 import io.gravitee.definition.model.PolicyScope;
+import io.gravitee.definition.model.debug.DebugStepStatus;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.debug.reactor.handler.context.AttributeHelper;
 import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.policy.api.PolicyResult;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.HashMap;
@@ -43,6 +45,10 @@ public abstract class DebugStep<T> {
     public static final String DIFF_KEY_BODY = "body";
     public static final String DIFF_KEY_STATUS = "status";
     public static final String DIFF_KEY_REASON = "reason";
+    public static final String DIFF_KEY_ERROR_MESSAGE = "error.message";
+    public static final String DIFF_KEY_ERROR_KEY = "error.key";
+    public static final String DIFF_KEY_ERROR_STATUS = "error.status";
+    public static final String DIFF_KEY_ERROR_CONTENT_TYPE = "error.contentType";
 
     protected final String policyId;
     protected final StreamType streamType;
@@ -50,6 +56,7 @@ public abstract class DebugStep<T> {
     protected final PolicyScope policyScope;
     protected final Map<String, Object> diffMap = new HashMap<>();
     protected final Stopwatch stopwatch;
+    protected DebugStepStatus status;
 
     protected DebugStepContent policyInputContent;
 
@@ -74,6 +81,7 @@ public abstract class DebugStep<T> {
         Map<String, Serializable> cleanedAttributes = AttributeHelper.filterAndSerializeAttributes(attributes);
         generateDiffMap(source, cleanedAttributes, inputBuffer, outputBuffer);
         policyInputContent = null;
+        this.status = DebugStepStatus.COMPLETED;
     }
 
     protected abstract void generateDiffMap(T source, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer);
@@ -94,6 +102,19 @@ public abstract class DebugStep<T> {
         }
     }
 
+    public void error(Throwable ex) {
+        this.status = DebugStepStatus.ERROR;
+        this.diffMap.put(DIFF_KEY_ERROR_MESSAGE, ex.getMessage());
+    }
+
+    public void error(PolicyResult policyResult) {
+        this.status = DebugStepStatus.ERROR;
+        this.diffMap.put(DIFF_KEY_ERROR_MESSAGE, policyResult.message());
+        this.diffMap.put(DIFF_KEY_ERROR_KEY, policyResult.key());
+        this.diffMap.put(DIFF_KEY_ERROR_STATUS, policyResult.statusCode());
+        this.diffMap.put(DIFF_KEY_ERROR_CONTENT_TYPE, policyResult.contentType());
+    }
+
     public String getPolicyId() {
         return policyId;
     }
@@ -112,6 +133,10 @@ public abstract class DebugStep<T> {
 
     public PolicyScope getPolicyScope() {
         return policyScope;
+    }
+
+    public DebugStepStatus getStatus() {
+        return status;
     }
 
     @Override

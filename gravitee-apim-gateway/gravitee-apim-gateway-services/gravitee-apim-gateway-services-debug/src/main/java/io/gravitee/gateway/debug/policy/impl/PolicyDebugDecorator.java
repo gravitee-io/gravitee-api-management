@@ -53,22 +53,34 @@ public class PolicyDebugDecorator implements Policy {
         DebugExecutionContext debugContext = (DebugExecutionContext) context;
 
         DebugStep<?> debugStep = DebugStepFactory.createExecuteDebugStep(policy.id(), streamType, uuid);
+        final DebugPolicyChain debugPolicyChain = new DebugPolicyChain(chain, debugStep, debugContext);
         debugContext.beforePolicyExecution(debugStep);
-        policy.execute(new DebugPolicyChain(chain, debugStep, debugContext), context);
+        try {
+            policy.execute(debugPolicyChain, context);
+        } catch (Throwable ex) {
+            debugStep.error(ex);
+            throw ex;
+        }
     }
 
     @Override
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
         DebugExecutionContext debugContext = (DebugExecutionContext) context;
-
-        final ReadWriteStream<Buffer> stream = policy.stream(chain, context);
-
-        if (stream == null) {
-            return null;
-        }
-
         DebugStep<?> debugStep = DebugStepFactory.createStreamDebugStep(policy.id(), streamType, uuid);
-        return new DebugReadWriteStream(debugContext, stream, debugStep);
+        final DebugPolicyChain debugPolicyChain = new DebugStreamablePolicyChain(chain, debugStep, debugContext);
+
+        try {
+            final ReadWriteStream<Buffer> stream = policy.stream(debugPolicyChain, context);
+
+            if (stream == null) {
+                return null;
+            }
+
+            return new DebugReadWriteStream(debugContext, stream, debugStep);
+        } catch (Throwable ex) {
+            debugStep.error(ex);
+            throw ex;
+        }
     }
 
     @Override
