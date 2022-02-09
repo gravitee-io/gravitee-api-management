@@ -391,17 +391,20 @@ public class ApiServiceCockpitImplTest {
         expectedDescriptor.setWithPolicyPaths(true);
         expectedDescriptor.setWithPolicies(List.of("mock"));
 
-        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
-        swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
+
+        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
+        swaggerApi.setMetadata(new ArrayList<>());
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
         api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
+        when(virtualHostService.sanitizeAndValidate(any(Collection.class))).thenReturn(List.of(virtualHost));
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
@@ -434,6 +437,7 @@ public class ApiServiceCockpitImplTest {
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
@@ -456,14 +460,16 @@ public class ApiServiceCockpitImplTest {
         expectedDescriptor.setWithPolicyPaths(true);
         expectedDescriptor.setWithPolicies(List.of("mock"));
 
-        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
-        swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
+
+        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
+        swaggerApi.setMetadata(new ArrayList<>());
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
         api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
@@ -489,17 +495,20 @@ public class ApiServiceCockpitImplTest {
 
     @Test
     public void should_deploy_an_updated_published_api() {
-        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
-        swaggerApi.setMetadata(new ArrayList<>());
-
-        ApiEntity api = new ApiEntity();
-        api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
+
+        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
+        swaggerApi.setMetadata(new ArrayList<>());
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
         api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
+        when(virtualHostService.sanitizeAndValidate(any(Collection.class))).thenReturn(List.of(virtualHost));
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");

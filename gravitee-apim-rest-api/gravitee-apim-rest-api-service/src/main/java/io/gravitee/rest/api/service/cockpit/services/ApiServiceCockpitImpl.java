@@ -155,7 +155,9 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
 
-        return ApiEntityResult.success(this.apiService.updateFromSwagger(apiId, api, swaggerDescriptor));
+        return checkContextPath(api)
+            .map(ApiEntityResult::failure)
+            .orElseGet(() -> ApiEntityResult.success(this.apiService.updateFromSwagger(apiId, api, swaggerDescriptor)));
     }
 
     private ApiEntityResult createApiEntity(String apiId, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
