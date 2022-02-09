@@ -66,8 +66,20 @@
           ng-model="$ctrl.settings.plan.security.customApiKey.enabled"
           aria-label="apikeyCustom"
         >
-          Allow custom Api-key
+          Allow custom API key
           <md-tooltip ng-if="$ctrl.isReadonlySetting('plan.security.apikey.allowCustom.enabled')"
+            >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+          >
+        </md-checkbox>
+      </md-input-container>
+      <md-input-container class="gv-input-container-dense portal-component__sub-input">
+        <md-checkbox
+          ng-disabled="!$ctrl.settings.plan.security.apikey.enabled || $ctrl.isReadonlySetting('plan.security.apikey.sharedApiKey.enabled')"
+          ng-model="$ctrl.settings.plan.security.sharedApiKey.enabled"
+          aria-label="apikeyCustom"
+        >
+          Allow to share API key on an application
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('plan.security.sharedApiKey.enabled')"
             >{{$ctrl.providedConfigurationMessage}}</md-tooltip
           >
         </md-checkbox>
