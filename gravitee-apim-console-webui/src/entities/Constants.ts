@@ -115,6 +115,9 @@ interface EnvSettings {
       customApiKey: {
         enabled: boolean;
       };
+      sharedApiKey: {
+        enabled: boolean;
+      };
       oauth2: {
         enabled: boolean;
       };
