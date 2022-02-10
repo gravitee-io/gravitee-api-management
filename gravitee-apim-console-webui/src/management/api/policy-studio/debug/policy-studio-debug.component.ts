@@ -60,6 +60,10 @@ export class PolicyStudioDebugComponent implements OnInit {
       isLoading: true,
       request: {},
       response: {},
+      responseDebugSteps: [],
+      backendResponse: {},
+      requestDebugSteps: [],
+      initialAttributes: {},
     };
 
     this.policyStudioDebugService
@@ -72,6 +76,10 @@ export class PolicyStudioDebugComponent implements OnInit {
             isLoading: false,
             request: {},
             response: {},
+            responseDebugSteps: [],
+            backendResponse: {},
+            requestDebugSteps: [],
+            initialAttributes: {},
           };
           return EMPTY;
         }),

@@ -20,6 +20,7 @@ import { filter, map, switchMap, take, takeUntil } from 'rxjs/operators';
 import { DebugRequest } from './models/DebugRequest';
 import { DebugEvent } from './models/DebugEvent';
 import { DebugResponse } from './models/DebugResponse';
+import { RequestDebugStep, ResponseDebugStep } from './models/DebugStep';
 
 import { ApiService } from '../../../../services-ngx/api.service';
 import { DebugApiService } from '../../../../services-ngx/debug-api.service';
@@ -43,11 +44,43 @@ export class PolicyStudioDebugService {
       takeUntil(maxPollingTime$),
       filter((event) => event.status === 'SUCCESS'),
       take(1),
-      map((event) => ({
-        isLoading: false,
-        response: event.payload.response,
-        request: event.payload.request,
-      })),
+      map((event: DebugEvent) => {
+        // First, create the hydrated debug steps for the REQUEST with request initial data + attributes
+        const requestDebugSteps =
+          event.payload.debugSteps && event.payload.debugSteps.length > 0
+            ? PolicyStudioDebugService.convertRequestDebugSteps(
+                event.payload.request ?? {},
+                event.payload.initialAttributes ?? {},
+                event.payload.debugSteps.filter((event) => event.scope === 'ON_REQUEST' || event.scope === 'ON_REQUEST_CONTENT'),
+              )
+            : [];
+
+        // Then, compute response initial attributes -> either from the last REQUEST debug step or the request initial attributes
+        const responseInitialAttributes =
+          requestDebugSteps.length > 0
+            ? requestDebugSteps[requestDebugSteps.length - 1].policyOutput.attributes
+            : event.payload.initialAttributes;
+
+        // Finally, create the hydrated debug steps for the RESPONSE with initial request data + attributes
+        const responseDebugSteps =
+          event.payload.debugSteps && event.payload.debugSteps.length > 0
+            ? PolicyStudioDebugService.convertResponseDebugSteps(
+                event.payload.backendResponse ?? {},
+                responseInitialAttributes ?? {},
+                event.payload.debugSteps.filter((event) => event.scope === 'ON_RESPONSE' || event.scope === 'ON_RESPONSE_CONTENT'),
+              )
+            : [];
+
+        return {
+          isLoading: false,
+          response: event.payload.response ?? {},
+          request: event.payload.request ?? {},
+          backendResponse: event.payload.backendResponse ?? {},
+          initialAttributes: event.payload.initialAttributes ?? {},
+          requestDebugSteps,
+          responseDebugSteps,
+        };
+      }),
     );
   }
 
@@ -78,6 +111,96 @@ export class PolicyStudioDebugService {
         payload: JSON.parse(event.payload),
         status: event.properties.api_debug_status === 'SUCCESS' ? 'SUCCESS' : 'FAILED',
       })),
+    );
+  }
+
+  private static convertRequestDebugSteps(
+    initialRequest: DebugEvent['payload']['request'],
+    initialAttributes: DebugEvent['payload']['initialAttributes'],
+    debugSteps: DebugEvent['payload']['debugSteps'],
+  ): RequestDebugStep[] {
+    const [firstStep, ...others] = debugSteps;
+
+    const firstDebugStep: RequestDebugStep = {
+      policyId: firstStep.policyId,
+      status: firstStep.status,
+      policyInstanceId: firstStep.policyInstanceId,
+      scope: firstStep.scope,
+      duration: firstStep.duration,
+      policyOutput: {
+        ...initialRequest,
+        attributes: {
+          ...initialAttributes,
+        },
+        ...firstStep.result,
+      },
+    };
+
+    return others.reduce(
+      (acc, currentValue) => {
+        const previousStep = acc[acc.length - 1];
+
+        return [
+          ...acc,
+          {
+            policyId: currentValue.policyId,
+            status: currentValue.status,
+            policyInstanceId: currentValue.policyInstanceId,
+            scope: currentValue.scope,
+            duration: currentValue.duration,
+            policyOutput: {
+              ...previousStep.policyOutput,
+              ...currentValue.result,
+            },
+          },
+        ];
+      },
+      [firstDebugStep],
+    );
+  }
+
+  private static convertResponseDebugSteps(
+    backendResponse: DebugEvent['payload']['backendResponse'],
+    initialAttributes: DebugEvent['payload']['initialAttributes'],
+    debugSteps: DebugEvent['payload']['debugSteps'],
+  ): ResponseDebugStep[] {
+    const [firstStep, ...others] = debugSteps;
+
+    const firstDebugStep: ResponseDebugStep = {
+      policyId: firstStep.policyId,
+      status: firstStep.status,
+      policyInstanceId: firstStep.policyInstanceId,
+      scope: firstStep.scope,
+      duration: firstStep.duration,
+      policyOutput: {
+        ...backendResponse,
+        attributes: {
+          ...initialAttributes,
+        },
+        ...firstStep.result,
+      },
+    };
+
+    return others.reduce(
+      (acc, currentValue) => {
+        const previousStep = acc[acc.length - 1];
+
+        return [
+          ...acc,
+          {
+            policyId: currentValue.policyId,
+            status: currentValue.status,
+            policyInstanceId: currentValue.policyInstanceId,
+            scope: currentValue.scope,
+            duration: currentValue.duration,
+            policyOutput: {
+              ...previousStep.policyOutput,
+              ...currentValue.result,
+            },
+          },
+        ];
+      },
+      [firstDebugStep],
     );
   }
 }

@@ -112,7 +112,7 @@ describe('PolicyStudioDebugComponent', () => {
             statusCode: 200,
             body: 'Ok',
             headers: {
-              'Content-Type': 'text/plain',
+              'Content-Type': ['text/plain'],
             },
           },
           request: {
