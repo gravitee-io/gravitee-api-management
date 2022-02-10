@@ -21,6 +21,7 @@
   </div>
 
   <div class="policy-studio-debug__response">
-    <policy-studio-debug-response [debugResponse]="debugResponse"></policy-studio-debug-response>
+    <policy-studio-debug-response-try-it *ngIf="tryItDisplay" [debugResponse]="debugResponse"></policy-studio-debug-response-try-it>
+    <policy-studio-debug-response *ngIf="!tryItDisplay" [debugResponse]="debugResponse"></policy-studio-debug-response>
   </div>
 </div>

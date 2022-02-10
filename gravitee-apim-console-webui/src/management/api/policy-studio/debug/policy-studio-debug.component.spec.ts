@@ -39,7 +39,7 @@ describe('PolicyStudioDebugComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioDebugModule],
-      providers: [{ provide: UIRouterStateParams, useValue: { apiId: api.id } }],
+      providers: [{ provide: UIRouterStateParams, useValue: { apiId: api.id, tryItDisplay: true } }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
