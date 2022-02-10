@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
@@ -37,6 +39,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
@@ -76,6 +79,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final ApiService apiService;
     private final ApiConverter apiConverter;
     private final PlanConverter planConverter;
+    private final PermissionService permissionService;
 
     public ApiDuplicatorServiceImpl(
         HttpClientService httpClientService,
@@ -91,7 +95,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         UserService userService,
         ApiService apiService,
         ApiConverter apiConverter,
-        PlanConverter planConverter
+        PlanConverter planConverter,
+        PermissionService permissionService
     ) {
         this.httpClientService = httpClientService;
         this.importConfiguration = importConfiguration;
@@ -107,13 +112,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.apiService = apiService;
         this.apiConverter = apiConverter;
         this.planConverter = planConverter;
+        this.permissionService = permissionService;
     }
 
     @Override
     public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String organizationId, String environmentId) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
-            // Read the whole input definition, and recalculate his ID
+            // Read the whole input API definition, and recalculate its ID
             ImportApiJsonNode apiJsonNode = recalculateApiDefinitionIds(
                 new ImportApiJsonNode(objectMapper.readTree(apiDefinition)),
                 environmentId
@@ -143,19 +149,24 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
 
         try {
-            // Read the whole input definition, and recalculate his ID
+            // Read the whole input API definition, and recalculate its ID
             ImportApiJsonNode apiJsonNode = recalculateApiDefinitionIds(
                 new ImportApiJsonNode(objectMapper.readTree(apiDefinition)),
                 environmentId,
                 urlApiId
             );
 
+            // ensure user has required permission to update target API
+            if (!isAuthenticated() || !(isAdmin() || permissionService.hasPermission(API_DEFINITION, apiJsonNode.getId(), UPDATE))) {
+                throw new ForbiddenAccessException();
+            }
+
             // check API consistency before import
             checkApiJsonConsistency(apiJsonNode, urlApiId, environmentId);
 
             // import
             UpdateApiEntity importedApi = convertToEntity(apiJsonNode.toString(), apiJsonNode, environmentId);
-            ApiEntity updatedApiEntity = apiService.update(urlApiId, importedApi);
+            ApiEntity updatedApiEntity = apiService.update(apiJsonNode.getId(), importedApi);
             createOrUpdateApiNestedEntities(updatedApiEntity, apiJsonNode, organizationId, environmentId);
             return updatedApiEntity;
         } catch (IOException e) {
@@ -633,7 +644,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private void checkApiJsonConsistency(ImportApiJsonNode apiJsonNode, String urlApiId, String environmentId) {
-        if (!urlApiId.equals(apiJsonNode.getId())) {
+        if (urlApiId != null && !urlApiId.equals(apiJsonNode.getId())) {
             throw new ApiImportException(
                 String.format(
                     "Can't update API [%s] cause crossId [%s] already belongs to another API in environment [%s]",

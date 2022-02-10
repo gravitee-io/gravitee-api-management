@@ -23,5 +23,9 @@ public interface ApiDuplicatorService {
 
     ApiEntity duplicate(ApiEntity apiEntity, DuplicateApiEntity duplicateApiEntity, String organizationId, String environmentId);
 
+    default ApiEntity updateWithImportedDefinition(String apiDefinitionOrURL, String organizationId, String environmentId) {
+        return updateWithImportedDefinition(null, apiDefinitionOrURL, organizationId, environmentId);
+    }
+
     ApiEntity updateWithImportedDefinition(String apiId, String apiDefinitionOrURL, String organizationId, String environmentId);
 }

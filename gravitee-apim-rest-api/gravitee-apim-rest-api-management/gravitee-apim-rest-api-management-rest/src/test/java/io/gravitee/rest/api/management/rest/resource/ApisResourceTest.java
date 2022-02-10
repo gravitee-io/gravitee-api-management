@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -25,6 +26,7 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.Date;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -176,5 +178,28 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         verify(apiService, times(1)).migrate(any());
+    }
+
+    @Test
+    public void put_import_shouldImportApi_calling_apiDuplicator() {
+        reset(apiDuplicatorService);
+        String apiDefinition = "{ \"content\": \"this-is-a-test-api-definition\"}";
+
+        ApiEntity updatedApi = new ApiEntity();
+        updatedApi.setId("my-api-id");
+        updatedApi.setUpdatedAt(new Date());
+
+        doReturn(updatedApi)
+            .when(apiDuplicatorService)
+            .updateWithImportedDefinition(
+                eq(apiDefinition),
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment())
+            );
+
+        final Response response = envTarget().path("import").request().put(Entity.json(apiDefinition));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertEquals(updatedApi, response.readEntity(ApiEntity.class));
     }
 }
