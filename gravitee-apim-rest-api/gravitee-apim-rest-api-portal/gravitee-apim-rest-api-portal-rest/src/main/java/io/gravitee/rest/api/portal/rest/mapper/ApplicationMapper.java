@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static io.gravitee.rest.api.portal.rest.model.Application.*;
 import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersURL;
 
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -83,7 +84,6 @@ public class ApplicationMapper {
             )
         );
         application.setOwner(owner);
-
         application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         ApplicationSettings settings = applicationListItem.getSettings();
         application.setHasClientId(
@@ -97,6 +97,7 @@ public class ApplicationMapper {
                 (settings.getApp() != null && settings.getApp().getClientId() != null && !settings.getApp().getClientId().isEmpty())
             )
         );
+        application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode()));
         return application;
     }
 

@@ -107,6 +107,7 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getDescription()).thenReturn("My description");
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(applicationRepository.update(any())).thenReturn(application);
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
@@ -185,6 +186,7 @@ public class ApplicationService_UpdateTest {
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(application);

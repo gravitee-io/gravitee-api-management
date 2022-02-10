@@ -78,6 +78,10 @@ public class ApplicationListItem {
     @JsonProperty(value = "background_url")
     private String backgroundUrl;
 
+    @JsonProperty("api_key_mode")
+    @ApiModelProperty(value = "The API key mode used for this application.", allowableValues = "SHARED, EXCLUSIVE, UNSPECIFIED")
+    private String apiKeyMode;
+
     public String getId() {
         return id;
     }
@@ -196,6 +200,14 @@ public class ApplicationListItem {
 
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public String getApiKeyMode() {
+        return apiKeyMode;
+    }
+
+    public void setApiKeyMode(String apiKeyMode) {
+        this.apiKeyMode = apiKeyMode;
     }
 
     @Override

@@ -28,6 +28,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -80,6 +81,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             .addColumn(STATUS_FIELD, Types.NVARCHAR, ApplicationStatus.class)
             .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
             .addColumn("background", Types.NVARCHAR, String.class)
+            .addColumn("api_key_mode", Types.NVARCHAR, ApiKeyMode.class)
             .build();
     }
 

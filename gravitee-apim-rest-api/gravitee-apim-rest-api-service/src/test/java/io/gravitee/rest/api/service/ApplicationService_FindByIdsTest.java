@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -92,9 +93,12 @@ public class ApplicationService_FindByIdsTest {
         when(app1.getEnvironmentId()).thenReturn("DEFAULT");
         when(app1.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(app1.getId()).thenReturn(APPLICATION_IDS.get(0));
+        when(app1.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
         when(app2.getEnvironmentId()).thenReturn("DEFAULT");
         when(app2.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(app2.getId()).thenReturn(APPLICATION_IDS.get(1));
+        when(app2.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
         doReturn(primaryOwnerRole)
             .when(roleService)
