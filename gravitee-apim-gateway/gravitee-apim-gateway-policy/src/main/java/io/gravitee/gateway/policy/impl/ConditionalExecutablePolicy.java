@@ -19,10 +19,9 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
-import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
-import java.lang.reflect.Method;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,22 +29,21 @@ import org.slf4j.LoggerFactory;
 /**
  * @author GraviteeSource Team
  */
-public class ConditionalExecutablePolicy extends ExecutablePolicy {
+public class ConditionalExecutablePolicy implements Policy {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(ConditionalExecutablePolicy.class);
 
+    private final Policy delegate;
     private final Function<ExecutionContext, Boolean> evaluationFunction;
 
-    public ConditionalExecutablePolicy(
-        String id,
-        Object policy,
-        Method headMethod,
-        Method streamMethod,
-        String condition,
-        ConditionEvaluator<String> conditionEvaluator
-    ) {
-        super(id, policy, headMethod, streamMethod);
+    public ConditionalExecutablePolicy(Policy delegate, String condition, ConditionEvaluator<String> conditionEvaluator) {
+        this.delegate = delegate;
         this.evaluationFunction = context -> conditionEvaluator.evaluate(context, condition);
+    }
+
+    @Override
+    public String id() {
+        return delegate.id();
     }
 
     @Override
@@ -53,7 +51,7 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
         boolean isConditionTruthy = evaluateCondition(context);
 
         if (isConditionTruthy) {
-            super.execute(chain, context);
+            delegate.execute(chain, context);
         } else {
             chain.doNext(context.request(), context.response());
         }
@@ -61,12 +59,22 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
 
     @Override
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        ReadWriteStream<Buffer> stream = super.stream(chain, context);
+        ReadWriteStream<Buffer> stream = delegate.stream(chain, context);
 
         if (stream == null) {
             return null;
         }
         return new ConditionalReadWriteStream(stream, chain, context, this.id(), evaluationFunction);
+    }
+
+    @Override
+    public boolean isRunnable() {
+        return delegate.isRunnable();
+    }
+
+    @Override
+    public boolean isStreamable() {
+        return delegate.isStreamable();
     }
 
     private boolean evaluateCondition(ExecutionContext context) throws PolicyException {

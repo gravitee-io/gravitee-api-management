@@ -56,9 +56,10 @@ public class PolicyFactoryImpl implements PolicyFactory {
             streamMethod = policyMetadata.method(OnResponseContent.class);
         }
 
+        final ExecutablePolicy executablePolicy = new ExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod);
         if (condition != null && !condition.isBlank()) {
-            return new ConditionalExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod, condition, conditionEvaluator);
+            return new ConditionalExecutablePolicy(executablePolicy, condition, conditionEvaluator);
         }
-        return new ExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod);
+        return executablePolicy;
     }
 }

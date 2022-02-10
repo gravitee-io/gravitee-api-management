@@ -34,6 +34,7 @@ import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.policy.DummyPolicy;
 import io.gravitee.gateway.policy.DummyStreamablePolicy;
+import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -51,8 +52,6 @@ import org.mockito.junit.MockitoJUnitRunner;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ConditionalExecutablePolicyTest extends TestCase {
-
-    private ConditionalExecutablePolicy cut;
 
     @Mock
     private PolicyChain policyChain;
@@ -79,14 +78,9 @@ public class ConditionalExecutablePolicyTest extends TestCase {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(true);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(
-            "dummy",
-            fakeExecutePolicy(),
-            method,
-            method,
-            "condition",
-            conditionEvaluator
-        );
+        Policy delegatePolicy = new ExecutablePolicy("dummy", fakeExecutePolicy(), method, method);
+
+        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         policy.execute(policyChain, executionContext);
         verify(policyChain, never()).doNext(any(), any());
     }
@@ -95,15 +89,9 @@ public class ConditionalExecutablePolicyTest extends TestCase {
     public void shouldNotExecuteConditionalPolicyConditionEvaluatedToFalse() throws PolicyException {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(false);
+        Policy delegatePolicy = new ExecutablePolicy("dummy", fakeExecutePolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(
-            "dummy",
-            fakeExecutePolicy(),
-            method,
-            method,
-            "condition",
-            conditionEvaluator
-        );
+        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         policy.execute(policyChain, executionContext);
         verify(policyChain, times(1)).doNext(any(), any());
     }
@@ -112,15 +100,9 @@ public class ConditionalExecutablePolicyTest extends TestCase {
     public void shouldNotExecuteConditionalPolicyExpressionEvaluationException() throws PolicyException {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
+        Policy delegatePolicy = new ExecutablePolicy("dummy", fakeExecutePolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(
-            "dummy",
-            fakeExecutePolicy(),
-            method,
-            method,
-            "condition",
-            conditionEvaluator
-        );
+        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         policy.execute(policyChain, executionContext);
     }
 
@@ -129,15 +111,9 @@ public class ConditionalExecutablePolicyTest extends TestCase {
         method = DummyStreamablePolicy.class.getMethod("onResponseContent", Response.class, ExecutionContext.class, PolicyChain.class);
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(true);
+        Policy delegatePolicy = new ExecutablePolicy("dummy", fakeStreamPolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(
-            "dummy",
-            fakeStreamPolicy(),
-            method,
-            method,
-            "condition",
-            conditionEvaluator
-        );
+        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         final ReadWriteStream<Buffer> conditionedStream = policy.stream(policyChain, executionContext);
 
         // needed to avoid NPE in TransformableResponseStream
@@ -155,15 +131,9 @@ public class ConditionalExecutablePolicyTest extends TestCase {
         method = DummyStreamablePolicy.class.getMethod("onResponseContent", Response.class, ExecutionContext.class, PolicyChain.class);
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(false);
+        Policy delegatePolicy = new ExecutablePolicy("dummy", fakeStreamPolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(
-            "dummy",
-            fakeStreamPolicy(),
-            method,
-            method,
-            "condition",
-            conditionEvaluator
-        );
+        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         final ReadWriteStream<Buffer> conditionedStream = policy.stream(policyChain, executionContext);
         conditionedStream.write(Buffer.buffer("Test")).end();
         verify(executionContext, never()).setAttribute("stream", "On Response Content Dummy Streamable Policy");
@@ -174,15 +144,9 @@ public class ConditionalExecutablePolicyTest extends TestCase {
         method = DummyStreamablePolicy.class.getMethod("onResponseContent", Response.class, ExecutionContext.class, PolicyChain.class);
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
+        Policy delegatePolicy = new ExecutablePolicy("dummy", fakeStreamPolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(
-            "dummy",
-            fakeStreamPolicy(),
-            method,
-            method,
-            "condition",
-            conditionEvaluator
-        );
+        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         final ReadWriteStream<Buffer> conditionedStream = policy.stream(policyChain, executionContext);
         conditionedStream.write(Buffer.buffer("Test")).end();
         verify(policyChain, times(1)).streamFailWith(any());
