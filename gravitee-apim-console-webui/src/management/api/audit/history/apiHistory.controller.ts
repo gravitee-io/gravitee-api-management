@@ -25,7 +25,83 @@ import * as _ from 'lodash';
 import * as angular from 'angular';
 import { StateService } from '@uirouter/core';
 
-import { propertyProviders } from '../../design/design/design.controller';
+const propertyProviders = [
+  {
+    id: 'HTTP',
+    name: 'Custom (HTTP)',
+    schema: {
+      type: 'object',
+      properties: {
+        method: {
+          title: 'HTTP Method',
+          description: 'HTTP method to invoke the endpoint.',
+          type: 'string',
+          default: 'GET',
+          enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE'],
+        },
+        url: {
+          title: 'Http service URL',
+          description: 'http://localhost',
+          type: 'string',
+          pattern: '^(http://|https://)',
+        },
+        useSystemProxy: {
+          title: 'Use system proxy',
+          description: 'Use the system proxy configured by your administrator.',
+          type: 'boolean',
+        },
+        headers: {
+          type: 'array',
+          title: 'Request Headers',
+          items: {
+            type: 'object',
+            title: 'Header',
+            properties: {
+              name: {
+                title: 'Name',
+                type: 'string',
+              },
+              value: {
+                title: 'Value',
+                type: 'string',
+              },
+            },
+          },
+        },
+        body: {
+          title: 'Request body',
+          type: 'string',
+          'x-schema-form': {
+            type: 'codemirror',
+            codemirrorOptions: {
+              lineWrapping: true,
+              lineNumbers: true,
+              allowDropFileTypes: true,
+              autoCloseTags: true,
+            },
+          },
+        },
+        specification: {
+          title: 'Transformation (JOLT Specification)',
+          type: 'string',
+          'x-schema-form': {
+            type: 'codemirror',
+            codemirrorOptions: {
+              lineWrapping: true,
+              lineNumbers: true,
+              allowDropFileTypes: true,
+              autoCloseTags: true,
+              mode: 'javascript',
+            },
+          },
+        },
+      },
+      required: ['url', 'specification'],
+    },
+    documentation:
+      '= Custom (HTTP)\n\n=== How to ?\n\n 1. Set `Polling frequency interval` and `Time unit`\n2. Set the `HTTP service URL`\n 3. If the HTTP service doesn\'t return the expected output, add a JOLT `transformation` \n\n[source, json]\n----\n[\n  {\n    "key": 1,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 2,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 3,\n    "value": "https://south-asia.company.com/"\n  }\n]\n----\n',
+  },
+];
 
 enum Modes {
   Diff = 'Diff',
