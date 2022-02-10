@@ -68,6 +68,7 @@ public class ApplicationMapperTest {
     private static final String APPLICATION_GROUP_NAME = "my-application-group-name";
     private static final String APPLICATION_STATUS = "my-application-status";
     private static final String APPLICATION_TYPE = "my-application-type";
+    private static final String APPLICATION_API_KEY_MODE = "UNSPECIFIED";
     private static final String APPLICATION_USER_ID = "my-application-user-id";
     private static final String APPLICATION_USER_DISPLAYNAME = "my-application-user-display-name";
     private static final String APPLICATION_USER_EMAIL = "my-application-user-email";
@@ -157,6 +158,7 @@ public class ApplicationMapperTest {
         applicationListItem.setPrimaryOwner(primaryOwner);
         applicationListItem.setStatus(APPLICATION_STATUS);
         applicationListItem.setType(APPLICATION_TYPE);
+        applicationListItem.setApiKeyMode(APPLICATION_API_KEY_MODE);
         applicationListItem.setUpdatedAt(nowDate);
     }
 
