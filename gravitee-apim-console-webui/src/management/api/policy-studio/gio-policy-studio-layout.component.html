@@ -15,21 +15,24 @@
     limitations under the License.
 
 -->
-<nav mat-tab-nav-bar mat-align-tabs="end" class="gio-policy-studio-layout__tab">
-  <a
-    mat-tab-link
-    uiSrefStatus
-    #uis="uiSrefStatus"
-    *ngFor="let link of policyStudioMenu"
-    [uiParams]="link.params"
-    [uiSref]="'.' + link.uiSref"
-    [active]="uis.status.active"
-  >
-    {{ link.label }}
-  </a>
-</nav>
+<div class="gio-policy-studio-layout__header">
+  <h3 class="mat-h3 gio-policy-studio-layout__header__title">{{ apiDefinition?.name }}</h3>
+  <nav mat-tab-nav-bar mat-align-tabs="end" class="gio-policy-studio-layout__header__nav">
+    <a
+      mat-tab-link
+      uiSrefStatus
+      #uis="uiSrefStatus"
+      *ngFor="let link of policyStudioMenu"
+      [uiParams]="link.params"
+      [uiSref]="'.' + link.uiSref"
+      [active]="uis.status.active"
+    >
+      {{ link.label }}
+    </a>
+  </nav>
+</div>
 
-<section ui-view class="gio-policy-studio-layout__tab-content" [ngClass]="{ 'gio-policy-studio-layout__dirty': this.isDirty }">
+<section ui-view class="gio-policy-studio-layout__tab-content" [ngClass]="{ 'gio-policy-studio-layout__tab-content__dirty': this.isDirty }">
   <h4 style="margin: 1em 2em">Loading...</h4>
 </section>
 
