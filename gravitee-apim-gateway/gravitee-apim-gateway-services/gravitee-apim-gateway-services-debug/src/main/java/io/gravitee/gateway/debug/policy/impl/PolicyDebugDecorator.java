@@ -19,13 +19,17 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStepFactory;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.policy.impl.ConditionalExecutablePolicy;
 import io.gravitee.policy.api.PolicyChain;
+
+import java.lang.reflect.Method;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -55,6 +59,9 @@ public class PolicyDebugDecorator implements Policy {
         DebugStep<?> debugStep = DebugStepFactory.createExecuteDebugStep(policy.id(), streamType, uuid);
         final DebugPolicyChain debugPolicyChain = new DebugPolicyChain(chain, debugStep, debugContext);
         debugContext.beforePolicyExecution(debugStep);
+
+        final Policy policy = this.policy instanceof ConditionalExecutablePolicy ? new DebugConditionalExecutablePolicy((ConditionalExecutablePolicy) this.policy, debugStep) : this.policy;
+
         try {
             policy.execute(debugPolicyChain, context);
         } catch (Throwable ex) {
@@ -68,6 +75,8 @@ public class PolicyDebugDecorator implements Policy {
         DebugExecutionContext debugContext = (DebugExecutionContext) context;
         DebugStep<?> debugStep = DebugStepFactory.createStreamDebugStep(policy.id(), streamType, uuid);
         final DebugPolicyChain debugPolicyChain = new DebugStreamablePolicyChain(chain, debugStep, debugContext);
+
+        final Policy policy = this.policy instanceof ConditionalExecutablePolicy ? new DebugConditionalExecutablePolicy((ConditionalExecutablePolicy) this.policy, debugStep) : this.policy;
 
         try {
             final ReadWriteStream<Buffer> stream = policy.stream(debugPolicyChain, context);
@@ -92,4 +101,26 @@ public class PolicyDebugDecorator implements Policy {
     public boolean isRunnable() {
         return policy.isRunnable();
     }
+
+    class DebugConditionalExecutablePolicy extends ConditionalExecutablePolicy {
+
+        public DebugConditionalExecutablePolicy(ConditionalExecutablePolicy conditionalExecutablePolicy, DebugStep<?> debugStep) {
+            super(conditionalExecutablePolicy);
+            evaluationFunction = context -> {
+                final boolean isConditionTruthy = conditionEvaluator.evaluate(context, condition);
+                if (!isConditionTruthy) {
+                    debugStep.skipped(condition);
+                }
+                return isConditionTruthy;
+            };
+        }
+
+        @Override
+        protected boolean evaluateCondition(ExecutionContext context) throws PolicyException {
+            final boolean isConditionTruthy = super.evaluateCondition(context);
+
+            return isConditionTruthy;
+        }
+    }
+
 }

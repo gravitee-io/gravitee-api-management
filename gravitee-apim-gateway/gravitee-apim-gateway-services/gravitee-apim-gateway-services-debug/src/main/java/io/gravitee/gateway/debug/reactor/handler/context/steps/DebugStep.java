@@ -49,6 +49,7 @@ public abstract class DebugStep<T> {
     public static final String DIFF_KEY_ERROR_KEY = "error.key";
     public static final String DIFF_KEY_ERROR_STATUS = "error.status";
     public static final String DIFF_KEY_ERROR_CONTENT_TYPE = "error.contentType";
+    public static final String DIFF_KEY_CONDITION = "condition";
 
     protected final String policyId;
     protected final StreamType streamType;
@@ -100,6 +101,11 @@ public abstract class DebugStep<T> {
         if (stopwatch.isRunning()) {
             this.stopwatch.stop();
         }
+    }
+
+    public void skipped(String condition) {
+        this.status = DebugStepStatus.SKIPPED;
+        this.diffMap.put(DIFF_KEY_CONDITION, condition);
     }
 
     public void error(Throwable ex) {

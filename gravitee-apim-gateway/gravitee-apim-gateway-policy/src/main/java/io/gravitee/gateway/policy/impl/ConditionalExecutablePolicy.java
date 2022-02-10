@@ -34,7 +34,12 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(ConditionalExecutablePolicy.class);
 
-    private final Function<ExecutionContext, Boolean> evaluationFunction;
+    protected Function<ExecutionContext, Boolean> evaluationFunction;
+    private final Object policy;
+    private Method headMethod;
+    private Method streamMethod;
+    protected String condition;
+    protected ConditionEvaluator<String> conditionEvaluator;
 
     public ConditionalExecutablePolicy(
         String id,
@@ -45,7 +50,16 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
         ConditionEvaluator<String> conditionEvaluator
     ) {
         super(id, policy, headMethod, streamMethod);
+        this.policy = policy;
+        this.headMethod = headMethod;
+        this.streamMethod = streamMethod;
+        this.condition = condition;
+        this.conditionEvaluator = conditionEvaluator;
         this.evaluationFunction = context -> conditionEvaluator.evaluate(context, condition);
+    }
+
+    protected ConditionalExecutablePolicy(ConditionalExecutablePolicy delegate) {
+        this(delegate.id(), delegate.policy, delegate.headMethod, delegate.streamMethod, delegate.condition, delegate.conditionEvaluator);
     }
 
     @Override
@@ -69,7 +83,7 @@ public class ConditionalExecutablePolicy extends ExecutablePolicy {
         return new ConditionalReadWriteStream(stream, chain, context, this.id(), evaluationFunction);
     }
 
-    private boolean evaluateCondition(ExecutionContext context) throws PolicyException {
+    protected boolean evaluateCondition(ExecutionContext context) throws PolicyException {
         boolean isConditionTruthy;
         try {
             isConditionTruthy = evaluationFunction.apply(context);
