@@ -2666,6 +2666,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (query.getIds() != null && !query.getIds().isEmpty()) {
             builder.ids(query.getIds());
         }
+        if (query.getCrossId() != null && !query.getCrossId().isEmpty()) {
+            builder.crossId(query.getCrossId());
+        }
 
         return builder;
     }

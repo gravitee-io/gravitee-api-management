@@ -36,6 +36,7 @@ public class ApiQuery {
     private String version;
     private String name;
     private String tag;
+    private String crossId;
     private List<ApiLifecycleState> lifecycleStates;
 
     public Collection<String> getIds() {
@@ -126,6 +127,14 @@ public class ApiQuery {
         this.lifecycleStates = lifecycleStates;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -142,13 +151,14 @@ public class ApiQuery {
             Objects.equals(version, apiQuery.version) &&
             Objects.equals(name, apiQuery.name) &&
             Objects.equals(tag, apiQuery.tag) &&
-            Objects.equals(lifecycleStates, apiQuery.lifecycleStates)
+            Objects.equals(lifecycleStates, apiQuery.lifecycleStates) &&
+            Objects.equals(crossId, apiQuery.crossId)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, category, groups, contextPath, label, state, visibility, version, name, tag, lifecycleStates);
+        return Objects.hash(ids, category, groups, contextPath, label, state, visibility, version, name, tag, lifecycleStates, crossId);
     }
 
     @Override
@@ -184,6 +194,9 @@ public class ApiQuery {
             '\'' +
             ", lifecycleStates=" +
             lifecycleStates +
+            +'\'' +
+            ", crossId=" +
+            crossId +
             '}'
         );
     }

@@ -406,6 +406,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (apiCriteria.getVisibility() != null) {
                 ps.setString(lastIndex++, apiCriteria.getVisibility().name());
             }
+            if (hasText(apiCriteria.getCrossId())) {
+                ps.setString(lastIndex++, apiCriteria.getCrossId());
+            }
             if (!isEmpty(apiCriteria.getLifecycleStates())) {
                 lastIndex = getOrm().setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex);
             }
@@ -452,6 +455,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
         if (apiCriteria.getVisibility() != null) {
             clauses.add("a.visibility = ?");
+        }
+        if (hasText(apiCriteria.getCrossId())) {
+            clauses.add("a.cross_id = ?");
         }
         if (!StringUtils.isEmpty(apiCriteria.getLifecycleStates())) {
             clauses.add(
