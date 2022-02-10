@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITION;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -25,6 +27,7 @@ import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -34,13 +37,14 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -50,6 +54,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
@@ -591,6 +596,37 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiPlan.setCrossId("plan-cross-id-1");
 
         when(planService.anyPlanMismatchWithApi(anyList(), eq("id-api"))).thenReturn(true);
+
+        apiDuplicatorService.updateWithImportedDefinition(
+            API_ID,
+            toBeImport,
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
+    }
+
+    @Test(expected = ForbiddenAccessException.class)
+    public void shouldRaiseAForbiddenAccessException_whenUserNotAuthenticated() throws IOException {
+        // unauthenticate user
+        SecurityContextHolder.setContext(new SecurityContextImpl());
+
+        URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
+        String toBeImport = Resources.toString(resource, Charsets.UTF_8);
+
+        apiDuplicatorService.updateWithImportedDefinition(
+            API_ID,
+            toBeImport,
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
+    }
+
+    @Test(expected = ForbiddenAccessException.class)
+    public void shouldRaiseAForbiddenAccessException_whenUserHasNoRequiredPermission() throws IOException {
+        when(permissionService.hasPermission(API_DEFINITION, "id-api", UPDATE)).thenReturn(false);
+
+        URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
+        String toBeImport = Resources.toString(resource, Charsets.UTF_8);
 
         apiDuplicatorService.updateWithImportedDefinition(
             API_ID,

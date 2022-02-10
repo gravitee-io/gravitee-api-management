@@ -365,6 +365,30 @@ public class ApisResource extends AbstractResource {
         );
     }
 
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("import")
+    @ApiOperation(value = "Update the API from the API definition")
+    @ApiResponses(
+        {
+            @ApiResponse(code = 200, message = "API successfully updated from API definition", response = ApiEntity.class),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public Response updateWithDefinition(@ApiParam(name = "definition", required = true) String apiDefinition) {
+        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(
+            apiDefinition,
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
+        return Response
+            .ok(updatedApi)
+            .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+            .lastModified(updatedApi.getUpdatedAt())
+            .build();
+    }
+
     @Path("{api}")
     public ApiResource getApiResource() {
         return resourceContext.getResource(ApiResource.class);
