@@ -96,8 +96,8 @@ public class DebugReadWriteStreamTest {
 
         verify(bodyHandler, times(1)).handle(outputBuffer);
         verify(endHandler, times(1)).handle(null);
-        verify(context, times(1)).beforePolicyExecution(eq(debugStep));
-        verify(context, times(1)).afterPolicyExecution(eq(debugStep), inputBufferCaptor.capture(), outputBufferCaptor.capture());
+        verify(context, times(2)).beforePolicyExecution(eq(debugStep));
+        verify(context, times(2)).afterPolicyExecution(eq(debugStep), inputBufferCaptor.capture(), outputBufferCaptor.capture());
 
         assertThat(inputBufferCaptor.getValue().toString()).isEqualTo("Input string");
         assertThat(outputBufferCaptor.getValue().toString()).isEqualTo("Output string");

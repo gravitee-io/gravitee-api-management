@@ -59,12 +59,12 @@ public class DebugExecutionContext implements ExecutionContext {
     public void beforePolicyExecution(DebugStep<?> debugStep) {
         if (!steps.contains(debugStep)) {
             steps.add(debugStep);
-        }
 
-        if (StreamType.ON_REQUEST.equals(debugStep.getStreamType())) {
-            ((DebugRequestStep) debugStep).before(request(), context.getAttributes());
-        } else {
-            ((DebugResponseStep) debugStep).before(response(), context.getAttributes());
+            if (StreamType.ON_REQUEST.equals(debugStep.getStreamType())) {
+                ((DebugRequestStep) debugStep).before(request(), context.getAttributes());
+            } else {
+                ((DebugResponseStep) debugStep).before(response(), context.getAttributes());
+            }
         }
     }
 
@@ -73,10 +73,13 @@ public class DebugExecutionContext implements ExecutionContext {
     }
 
     public void afterPolicyExecution(DebugStep<?> debugStep, Buffer initialBuffer, Buffer finalBuffer) {
-        if (StreamType.ON_REQUEST.equals(debugStep.getStreamType())) {
-            ((DebugRequestStep) debugStep).after(request(), context.getAttributes(), initialBuffer, finalBuffer);
-        } else {
-            ((DebugResponseStep) debugStep).after(response(), context.getAttributes(), initialBuffer, finalBuffer);
+        if (!debugStep.isEnded()) {
+            if (StreamType.ON_REQUEST.equals(debugStep.getStreamType())) {
+                ((DebugRequestStep) debugStep).after(request(), context.getAttributes(), initialBuffer, finalBuffer);
+            } else {
+                ((DebugResponseStep) debugStep).after(response(), context.getAttributes(), initialBuffer, finalBuffer);
+            }
+            debugStep.ended();
         }
     }
 

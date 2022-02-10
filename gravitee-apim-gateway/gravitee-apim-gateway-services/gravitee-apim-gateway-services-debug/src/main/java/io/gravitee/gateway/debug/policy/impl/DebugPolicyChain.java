@@ -49,6 +49,6 @@ public class DebugPolicyChain implements PolicyChain {
     @Override
     public void streamFailWith(PolicyResult policyResult) {
         debugStep.error(policyResult);
-        chain.failWith(policyResult);
+        chain.streamFailWith(policyResult);
     }
 }
