@@ -32,7 +32,7 @@ public class DebugStepContent {
     private String path;
     private String contextPath;
     private HttpMethod method;
-    private Integer status;
+    private Integer statusCode;
     private String reason;
 
     public DebugStepContent() {}
@@ -72,8 +72,8 @@ public class DebugStepContent {
         return this;
     }
 
-    public DebugStepContent status(int status) {
-        this.status = status;
+    public DebugStepContent statusCode(int statusCode) {
+        this.statusCode = statusCode;
         return this;
     }
 
@@ -110,8 +110,8 @@ public class DebugStepContent {
         return method;
     }
 
-    public Integer getStatus() {
-        return status;
+    public Integer getStatusCode() {
+        return statusCode;
     }
 
     public String getReason() {
