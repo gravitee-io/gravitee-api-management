@@ -25,6 +25,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStepFactory;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.policy.impl.ConditionalExecutablePolicy;
 import io.gravitee.policy.api.PolicyChain;
 
 /**
@@ -54,6 +55,9 @@ public class PolicyDebugDecorator implements Policy {
 
         DebugStep<?> debugStep = DebugStepFactory.createExecuteDebugStep(policy.id(), streamType, uuid);
         final DebugPolicyChain debugPolicyChain = new DebugPolicyChain(chain, debugStep, debugContext);
+
+        final Policy policy = computeConditionalPolicy(debugStep);
+
         debugContext.beforePolicyExecution(debugStep);
         try {
             policy.execute(debugPolicyChain, context);
@@ -67,6 +71,9 @@ public class PolicyDebugDecorator implements Policy {
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
         DebugExecutionContext debugContext = (DebugExecutionContext) context;
         DebugStep<?> debugStep = DebugStepFactory.createStreamDebugStep(policy.id(), streamType, uuid);
+
+        final Policy policy = computeConditionalPolicy(debugStep);
+
         final DebugPolicyChain debugPolicyChain = new DebugStreamablePolicyChain(chain, debugStep, debugContext);
 
         try {
@@ -91,5 +98,11 @@ public class PolicyDebugDecorator implements Policy {
     @Override
     public boolean isRunnable() {
         return policy.isRunnable();
+    }
+
+    private Policy computeConditionalPolicy(DebugStep<?> debugStep) {
+        return this.policy instanceof ConditionalExecutablePolicy
+            ? new DebugConditionalExecutablePolicy((ConditionalExecutablePolicy) this.policy, debugStep)
+            : this.policy;
     }
 }

@@ -32,7 +32,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 public class DebugReadWriteStream implements ReadWriteStream<Buffer> {
 
     private final ReadWriteStream<Buffer> delegate;
-    private final DebugStep debugStep;
+    private final DebugStep<?> debugStep;
     private final DebugExecutionContext context;
     private Buffer outputBuffer;
     private Buffer inputBuffer;
@@ -47,11 +47,13 @@ public class DebugReadWriteStream implements ReadWriteStream<Buffer> {
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
         delegate.bodyHandler(
             buf -> {
-                bodyHandler.handle(buf);
                 if (outputBuffer == null) {
                     outputBuffer = Buffer.buffer();
                 }
                 outputBuffer.appendBuffer(buf);
+                // If there is a bodyHandler, then the step is ended here.
+                context.afterPolicyExecution(debugStep, inputBuffer, outputBuffer);
+                bodyHandler.handle(buf);
             }
         );
         return this;
@@ -61,6 +63,7 @@ public class DebugReadWriteStream implements ReadWriteStream<Buffer> {
     public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
         delegate.endHandler(
             avoid -> {
+                // If there is no bodyHandler, we end the step here, in the endHandler.
                 context.afterPolicyExecution(debugStep, inputBuffer, outputBuffer);
                 endHandler.handle(null);
             }
@@ -85,6 +88,7 @@ public class DebugReadWriteStream implements ReadWriteStream<Buffer> {
         if (inputBuffer == null) {
             inputBuffer = Buffer.buffer();
         }
+        context.beforePolicyExecution(debugStep);
         inputBuffer.appendBuffer(chunk);
         delegate.write(chunk);
         return this;
