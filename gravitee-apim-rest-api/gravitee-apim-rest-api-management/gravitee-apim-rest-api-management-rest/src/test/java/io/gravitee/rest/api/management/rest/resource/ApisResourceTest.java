@@ -126,12 +126,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         createdApi.setId("my-beautiful-api");
         doReturn(createdApi)
             .when(apiDuplicatorService)
-            .createWithImportedDefinition(
-                any(),
-                any(),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment())
-            );
+            .createWithImportedDefinition(any(), eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()));
 
         final Response response = envTarget().path("import").request().post(Entity.json(apiDefinition));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -149,12 +144,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         createdApi.setId("my-beautiful-api");
         doReturn(createdApi)
             .when(apiDuplicatorService)
-            .createWithImportedDefinition(
-                any(),
-                any(),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment())
-            );
+            .createWithImportedDefinition(any(), eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()));
 
         final Response response = envTarget()
             .path("import")
@@ -176,12 +166,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         createdApi.setId("my-beautiful-api");
         doReturn(createdApi)
             .when(apiDuplicatorService)
-            .createWithImportedDefinition(
-                any(),
-                any(),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment())
-            );
+            .createWithImportedDefinition(any(), eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()));
 
         final Response response = envTarget()
             .path("import")

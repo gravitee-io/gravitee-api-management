@@ -64,8 +64,7 @@ public class PromotionResource extends AbstractResource {
                     GraviteeContext.getCurrentOrganization(),
                     GraviteeContext.getCurrentEnvironment(),
                     promotion,
-                    accepted,
-                    getAuthenticatedUser()
+                    accepted
                 )
             )
             .build();
