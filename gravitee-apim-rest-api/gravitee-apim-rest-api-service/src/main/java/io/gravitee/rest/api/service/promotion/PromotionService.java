@@ -44,11 +44,5 @@ public interface PromotionService {
 
     Page<PromotionEntity> search(PromotionQuery query, Sortable sortable, Pageable pageable);
 
-    PromotionEntity processPromotion(
-        final String organizationId,
-        final String environmentId,
-        String promotion,
-        boolean accepted,
-        String user
-    );
+    PromotionEntity processPromotion(final String organizationId, final String environmentId, String promotion, boolean accepted);
 }

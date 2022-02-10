@@ -412,7 +412,6 @@ public class ApiResource extends AbstractResource {
     public Response updateApiWithDefinition(@ApiParam(name = "definition", required = true) String apiDefinition) {
         ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(
             apiDefinition,
-            getAuthenticatedUser(),
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );

@@ -24,6 +24,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -49,6 +51,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
@@ -105,6 +108,14 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     @Mock
     private MediaService mediaService;
+
+    @Before
+    public void mockAuthenticatedUser() {
+        final Authentication authentication = mock(Authentication.class);
+        final UserDetails userDetails = new UserDetails("admin", "PASSWORD", Collections.emptyList());
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+    }
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -167,7 +178,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -244,7 +254,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -292,7 +301,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -323,7 +331,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -353,7 +360,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -383,7 +389,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -409,7 +414,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -439,7 +443,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -490,7 +493,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
@@ -545,7 +547,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
-            "admin",
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );

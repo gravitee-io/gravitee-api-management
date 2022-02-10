@@ -239,13 +239,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     }
 
     @Override
-    public PromotionEntity processPromotion(
-        final String organizationId,
-        final String environmentId,
-        String promotionId,
-        boolean accepted,
-        String user
-    ) {
+    public PromotionEntity processPromotion(final String organizationId, final String environmentId, String promotionId, boolean accepted) {
         try {
             final Promotion promotion = promotionRepository
                 .findById(promotionId)
@@ -271,7 +265,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                     promoted =
                         apiDuplicatorService.createWithImportedDefinition(
                             promotion.getApiDefinition(),
-                            user,
                             organizationId,
                             environment.getId()
                         );

@@ -237,7 +237,6 @@ public class ApisResource extends AbstractResource {
     ) {
         ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(
             apiDefinition,
-            getAuthenticatedUser(),
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment()
         );
