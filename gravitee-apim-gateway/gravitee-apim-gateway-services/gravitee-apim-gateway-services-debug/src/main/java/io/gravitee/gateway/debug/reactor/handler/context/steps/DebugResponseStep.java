@@ -36,7 +36,7 @@ public class DebugResponseStep extends DebugStep<Response> {
 
     @Override
     public void snapshotInputData(Response response, Map<String, Serializable> attributes) {
-        policyInputContent.headers(response.headers()).status(response.status()).reason(response.reason()).attributes(attributes);
+        policyInputContent.headers(response.headers()).statusCode(response.status()).reason(response.reason()).attributes(attributes);
     }
 
     @Override
@@ -44,8 +44,8 @@ public class DebugResponseStep extends DebugStep<Response> {
         if (!policyInputContent.getHeaders().deeplyEquals(response.headers())) {
             diffMap.put(DIFF_KEY_HEADERS, HttpHeaders.create(response.headers()));
         }
-        if (policyInputContent.getStatus() != response.status()) {
-            diffMap.put(DIFF_KEY_STATUS, response.status());
+        if (policyInputContent.getStatusCode() != response.status()) {
+            diffMap.put(DIFF_KEY_STATUS_CODE, response.status());
         }
         if (policyInputContent.getReason() != null && !policyInputContent.getReason().equals(response.reason())) {
             diffMap.put(DIFF_KEY_REASON, response.reason());

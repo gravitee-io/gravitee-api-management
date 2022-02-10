@@ -43,7 +43,7 @@ public abstract class DebugStep<T> {
     public static final String DIFF_KEY_ATTRIBUTES = "attributes";
     public static final String DIFF_KEY_BODY_BUFFER = "bodyBuffer";
     public static final String DIFF_KEY_BODY = "body";
-    public static final String DIFF_KEY_STATUS = "status";
+    public static final String DIFF_KEY_STATUS_CODE = "statusCode";
     public static final String DIFF_KEY_REASON = "reason";
     public static final String DIFF_KEY_ERROR_MESSAGE = "error.message";
     public static final String DIFF_KEY_ERROR_KEY = "error.key";

@@ -66,7 +66,7 @@ public class DebugResponseStepTest {
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isTrue();
-        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_STATUS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_STATUS_CODE)).isFalse();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_REASON)).isFalse();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
@@ -74,7 +74,7 @@ public class DebugResponseStepTest {
 
     @Test
     public void shouldHaveStatusInDiffMap() {
-        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_STATUS));
+        applyDifferentValuesForFields(List.of(DebugStep.DIFF_KEY_STATUS_CODE));
 
         cut.before(beforeResponse, new HashMap<>());
         cut.after(afterResponse, new HashMap<>(), null, null);
@@ -82,7 +82,7 @@ public class DebugResponseStepTest {
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
-        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_STATUS)).isTrue();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_STATUS_CODE)).isTrue();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_REASON)).isFalse();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
@@ -98,7 +98,7 @@ public class DebugResponseStepTest {
         final Map<String, Object> resultDiff = cut.getDebugDiffContent();
 
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isFalse();
-        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_STATUS)).isFalse();
+        assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_STATUS_CODE)).isFalse();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_REASON)).isTrue();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_ATTRIBUTES)).isFalse();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isFalse();
@@ -152,7 +152,7 @@ public class DebugResponseStepTest {
                     : HttpHeaders.create().add("Header", "header-value")
             );
 
-        when(afterResponse.status()).thenReturn(fields.contains(DebugStep.DIFF_KEY_STATUS) ? 500 : 200);
+        when(afterResponse.status()).thenReturn(fields.contains(DebugStep.DIFF_KEY_STATUS_CODE) ? 500 : 200);
 
         when(afterResponse.reason()).thenReturn(fields.contains(DebugStep.DIFF_KEY_REASON) ? "Internal Server Error" : "OK");
     }
