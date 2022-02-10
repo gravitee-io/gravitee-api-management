@@ -110,7 +110,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String userId, String organizationId, String environmentId) {
+    public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String organizationId, String environmentId) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
             // Read the whole input definition, and recalculate his ID
@@ -124,7 +124,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             // import
             UpdateApiEntity importedApi = convertToEntity(apiJsonNode.toString(), apiJsonNode, environmentId);
-            ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, apiJsonNode.getJsonNode());
+            ApiEntity createdApiEntity = apiService.createWithApiDefinition(
+                importedApi,
+                getAuthenticatedUsername(),
+                apiJsonNode.getJsonNode()
+            );
             createOrUpdateApiNestedEntities(createdApiEntity, apiJsonNode, organizationId, environmentId);
             createPageAndMedia(createdApiEntity, apiJsonNode, environmentId);
             return createdApiEntity;

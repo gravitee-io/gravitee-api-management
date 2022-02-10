@@ -200,7 +200,7 @@ public class PromotionServiceTest {
         Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        when(apiDuplicatorService.createWithImportedDefinition(any(), any(), any(), any())).thenReturn(new ApiEntity());
+        when(apiDuplicatorService.createWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
         when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
@@ -211,11 +211,10 @@ public class PromotionServiceTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             PROMOTION_ID,
-            true,
-            USER_ID
+            true
         );
 
-        verify(apiDuplicatorService, times(1)).createWithImportedDefinition(any(), eq(USER_ID), any(), any());
+        verify(apiDuplicatorService, times(1)).createWithImportedDefinition(any(), any(), any());
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -245,8 +244,7 @@ public class PromotionServiceTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             PROMOTION_ID,
-            true,
-            USER_ID
+            true
         );
 
         verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), any(), any());
@@ -271,11 +269,10 @@ public class PromotionServiceTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             PROMOTION_ID,
-            false,
-            USER_ID
+            false
         );
 
-        verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), eq(USER_ID), any(), any());
+        verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), any(), any());
         verify(apiDuplicatorService, never()).updateWithImportedDefinition(any(), any(), any(), any());
         verify(promotionRepository, times(1)).update(any());
     }
@@ -288,8 +285,7 @@ public class PromotionServiceTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             PROMOTION_ID,
-            true,
-            USER_ID
+            true
         );
     }
 
@@ -308,8 +304,7 @@ public class PromotionServiceTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             PROMOTION_ID,
-            true,
-            USER_ID
+            true
         );
     }
 
@@ -337,8 +332,7 @@ public class PromotionServiceTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             PROMOTION_ID,
-            true,
-            USER_ID
+            true
         );
 
         verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), any(), any());
