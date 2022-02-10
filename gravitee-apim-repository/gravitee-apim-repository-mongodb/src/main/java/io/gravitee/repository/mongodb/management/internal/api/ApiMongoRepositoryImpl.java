@@ -175,6 +175,9 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                         if (apiCriteria.getLifecycleStates() != null && !apiCriteria.getLifecycleStates().isEmpty()) {
                             criteria.add(where("apiLifecycleState").in(apiCriteria.getLifecycleStates()));
                         }
+                        if (apiCriteria.getCrossId() != null && !apiCriteria.getCrossId().isEmpty()) {
+                            criteria.add(where("crossId").is(apiCriteria.getCrossId()));
+                        }
                         return criteria;
                     }
                 )

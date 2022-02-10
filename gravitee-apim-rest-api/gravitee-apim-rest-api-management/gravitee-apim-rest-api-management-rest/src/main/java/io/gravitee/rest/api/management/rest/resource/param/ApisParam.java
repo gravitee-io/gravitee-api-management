@@ -71,6 +71,10 @@ public class ApisParam {
     @ApiParam(value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-name")
     private OrderParam order;
 
+    @ApiParam(value = "filter by crossId")
+    @QueryParam("crossId")
+    private String crossId;
+
     public String getCategory() {
         return category;
     }
@@ -161,5 +165,13 @@ public class ApisParam {
 
     public OrderParam.Order getOrder() {
         return (order == null) ? null : order.getValue();
+    }
+
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
     }
 }
