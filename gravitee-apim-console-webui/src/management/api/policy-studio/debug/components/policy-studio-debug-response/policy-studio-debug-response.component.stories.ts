@@ -66,7 +66,9 @@ export const ResponseSuccess: Story = {
       isLoading: false,
       request: {
         body: '',
-        headers: [{ name: 'Content-Type', value: 'application/json' }],
+        headers: {
+          'Content-Type': ['application/json'],
+        },
         method: 'GET',
         path: '/api/v1/',
       },
@@ -74,11 +76,15 @@ export const ResponseSuccess: Story = {
         statusCode: 200,
         body: 'Ok',
         headers: {
-          'Content-Type': 'text/plain',
+          'Content-Type': ['text/plain'],
         },
         method: 'GET',
         path: '/api/v1/',
       },
+      responseDebugSteps: [],
+      backendResponse: {},
+      requestDebugSteps: [],
+      initialAttributes: {},
     } as DebugResponse,
   },
 };
@@ -89,7 +95,9 @@ export const ResponseError: Story = {
       isLoading: false,
       request: {
         body: '',
-        headers: [{ name: 'Content-Type', value: 'application/json' }],
+        headers: {
+          'Content-Type': ['application/json'],
+        },
         method: 'GET',
         path: '/api/v1/',
       },
@@ -98,6 +106,10 @@ export const ResponseError: Story = {
         method: 'GET',
         path: '/api/v1/',
       },
+      responseDebugSteps: [],
+      backendResponse: {},
+      requestDebugSteps: [],
+      initialAttributes: {},
     } as DebugResponse,
   },
 };

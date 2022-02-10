@@ -24,13 +24,13 @@ interface DebugEventPayload {
     statusCode?: number;
     method?: string;
     path?: string;
-    headers?: Record<string, string>;
+    headers?: Record<string, string[]>;
     body?: string;
   };
   request?: {
     method?: string;
     path?: string;
-    headers?: Record<string, string>;
+    headers?: Record<string, string[]>;
     body?: string;
   };
   debugSteps?: DebugEventDebugStep[];
@@ -39,7 +39,7 @@ interface DebugEventPayload {
     statusCode?: number;
     method?: string;
     path?: string;
-    headers?: Record<string, string>;
+    headers?: Record<string, string[]>;
     body?: string;
   };
 }

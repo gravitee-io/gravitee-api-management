@@ -13,17 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { RequestDebugStep, ResponseDebugStep } from './DebugStep';
+
 export type DebugResponse = {
   isLoading: boolean;
+
+  request: {
+    method?: string;
+    path?: string;
+    headers?: Record<string, string[]>;
+    body?: string;
+  };
+  initialAttributes: Record<string, boolean | number | string>;
+  requestDebugSteps: RequestDebugStep[];
+
+  backendResponse: {
+    statusCode?: number;
+    method?: string;
+    path?: string;
+    headers?: Record<string, string[]>;
+    body?: string;
+  };
+  responseDebugSteps: ResponseDebugStep[];
+
   response: {
     statusCode?: number;
     method?: string;
     path?: string;
-    headers?: Record<string, any>;
+    headers?: Record<string, string[]>;
     body?: string;
-  };
-  request: {
-    method?: string;
-    path?: string;
   };
 };
