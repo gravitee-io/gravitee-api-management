@@ -134,6 +134,21 @@ export class GioPolicyStudioRoutingModule {
         name: `${config.stateNamePrefix}.try-it`,
         url: '/try-it',
         component: PolicyStudioDebugComponent,
+        params: {
+          tryItDisplay: true,
+        },
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'management-api-policy-studio-try-it',
+          },
+        },
+      },
+      {
+        name: `${config.stateNamePrefix}.debug`,
+        url: '/debug',
+        component: PolicyStudioDebugComponent,
         data: {
           useAngularMaterial: true,
           menu: null,

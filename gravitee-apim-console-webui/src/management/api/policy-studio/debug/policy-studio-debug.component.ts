@@ -33,6 +33,7 @@ import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 })
 export class PolicyStudioDebugComponent implements OnInit {
   public debugResponse: DebugResponse;
+  public tryItDisplay = false;
 
   private apiId: string;
   private unsubscribe$ = new Subject<boolean>();
@@ -45,6 +46,8 @@ export class PolicyStudioDebugComponent implements OnInit {
 
   ngOnInit() {
     this.apiId = this.ajsStateParams.apiId;
+
+    this.tryItDisplay = this.ajsStateParams.tryItDisplay;
   }
 
   ngOnDestroy() {

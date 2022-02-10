@@ -51,5 +51,19 @@
     &nbsp;<span class="mat-strong">{{ debugResponse.request.method }}</span
     >&nbsp;{{ debugResponse.request.path }}
   </div>
-  WIP 🚧
+  <div class="policy-studio-debug-response__display-response__content-headers">
+    <h4>Headers</h4>
+    <div *ngFor="let header of responseDisplayableVM.headers">
+      <code>{{ header.name }}: {{ header.value }}</code>
+    </div>
+  </div>
+  <div class="policy-studio-debug-response__display-response__content-body">
+    <h4>Body</h4>
+    <gv-code
+      *ngIf="responseDisplayableVM.prettifiedResponse"
+      [value]="responseDisplayableVM.prettifiedResponse"
+      [options]="responseDisplayableVM.gvCodeOptions"
+      readonly
+    ></gv-code>
+  </div>
 </ng-template>

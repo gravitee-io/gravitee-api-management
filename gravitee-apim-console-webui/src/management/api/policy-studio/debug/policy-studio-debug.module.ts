@@ -24,6 +24,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { PolicyStudioDebugRequestComponent } from './components/policy-studio-debug-request/policy-studio-debug-request.component';
+import { PolicyStudioDebugResponseTryItComponent } from './components/policy-studio-debug-response-try-it/policy-studio-debug-response-try-it.component';
 import { PolicyStudioDebugResponseComponent } from './components/policy-studio-debug-response/policy-studio-debug-response.component';
 import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
 
@@ -39,7 +40,12 @@ import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
     MatSelectModule,
     MatButtonModule,
   ],
-  declarations: [PolicyStudioDebugComponent, PolicyStudioDebugRequestComponent, PolicyStudioDebugResponseComponent],
+  declarations: [
+    PolicyStudioDebugComponent,
+    PolicyStudioDebugRequestComponent,
+    PolicyStudioDebugResponseComponent,
+    PolicyStudioDebugResponseTryItComponent,
+  ],
   exports: [PolicyStudioDebugComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
