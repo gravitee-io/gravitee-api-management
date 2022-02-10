@@ -351,6 +351,22 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByCrossId() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().crossId("searched-crossId").build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(1, apis.size());
+        assertEquals("api-to-findById", apis.get(0).getId());
+    }
+
+    @Test
+    public void shouldFindByCrossId_andReturnEmptyListIfNotFound() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().crossId("api-cross-id-not-existing").build());
+        assertNotNull(apis);
+        assertTrue(apis.isEmpty());
+    }
+
+    @Test
     public void searchByPageable() {
         Page<Api> apiPage = apiRepository.search(
             new ApiCriteria.Builder().version("1").build(),
