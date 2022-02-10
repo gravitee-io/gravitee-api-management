@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -35,6 +36,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -453,7 +455,7 @@ public class ApiServiceCockpitImplTest {
     }
 
     @Test
-    public void should_update_an_published_api() {
+    public void should_update_a_published_api() {
         ImportSwaggerDescriptorEntity expectedDescriptor = new ImportSwaggerDescriptorEntity();
         expectedDescriptor.setPayload(SWAGGER_DEFINITION);
         expectedDescriptor.setWithDocumentation(true);
@@ -481,6 +483,7 @@ public class ApiServiceCockpitImplTest {
             .thenReturn(updatedApiEntity);
         when(apiService.deploy(anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
+        when(apiService.update(eq(API_ID), any(UpdateApiEntity.class))).thenReturn(updatedApiEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
@@ -514,11 +517,130 @@ public class ApiServiceCockpitImplTest {
         updatedApiEntity.setName("updated api");
         when(apiService.updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
+        when(apiService.deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
+            .thenReturn(updatedApiEntity);
 
         service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
 
         verify(apiService).deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), apiDeploymentCaptor.capture());
         assertThat(apiDeploymentCaptor.getValue().getDeploymentLabel()).isEqualTo("Model updated");
+    }
+
+    @Test
+    public void should_upgrade_documented_to_mocked_api() {
+        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
+        swaggerApi.setMetadata(new ArrayList<>());
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
+        when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
+
+        ApiEntity updatedApiEntity = new ApiEntity();
+        updatedApiEntity.setName("updated api");
+        updatedApiEntity.setState(Lifecycle.State.STOPPED);
+        when(apiService.updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
+            .thenReturn(updatedApiEntity);
+        when(apiService.deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
+            .thenReturn(updatedApiEntity);
+
+        when(apiService.start(API_ID, USER_ID)).thenReturn(updatedApiEntity);
+        when(planService.findByApi(API_ID)).thenReturn(null);
+
+        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+
+        verify(planService).findByApi(eq(API_ID));
+        verify(planService).create(newPlanCaptor.capture());
+        assertThat(newPlanCaptor.getValue())
+            .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
+            .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
+        verify(apiService).start(eq(API_ID), eq(USER_ID));
+    }
+
+    @Test
+    public void should_upgrade_documented_to_published_api() {
+        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
+        swaggerApi.setMetadata(new ArrayList<>());
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
+        when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
+
+        ApiEntity updatedApiEntity = new ApiEntity();
+        updatedApiEntity.setName("updated api");
+        updatedApiEntity.setState(Lifecycle.State.STOPPED);
+        when(apiService.updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
+            .thenReturn(updatedApiEntity);
+        when(apiService.deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
+            .thenReturn(updatedApiEntity);
+        when(apiService.start(API_ID, USER_ID)).thenReturn(updatedApiEntity);
+
+        when(planService.findByApi(API_ID)).thenReturn(null);
+
+        preparePageServiceMock();
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+
+        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+
+        verify(planService).findByApi(eq(API_ID));
+        verify(planService).create(newPlanCaptor.capture());
+        assertThat(newPlanCaptor.getValue())
+            .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
+            .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
+
+        verify(apiService).start(eq(API_ID), eq(USER_ID));
+        verify(apiService).update(eq(API_ID), updateApiCaptor.capture());
+        assertThat(updateApiCaptor.getValue())
+            .extracting(UpdateApiEntity::getLifecycleState, UpdateApiEntity::getVisibility)
+            .containsExactly(ApiLifecycleState.PUBLISHED, Visibility.PUBLIC);
+
+        verify(pageService).update(eq(PAGE_ID), updatePageCaptor.capture());
+        assertThat(updatePageCaptor.getValue()).extracting(UpdatePageEntity::isPublished).isEqualTo(true);
+    }
+
+    @Test
+    public void should_upgrade_mocked_to_published_api() {
+        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
+        swaggerApi.setMetadata(new ArrayList<>());
+        ApiEntity api = new ApiEntity();
+        api.setId(API_ID);
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        proxy.setVirtualHosts(List.of(virtualHost));
+        api.setProxy(proxy);
+        when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
+
+        ApiEntity updatedApiEntity = new ApiEntity();
+        updatedApiEntity.setName("updated api");
+        updatedApiEntity.setState(Lifecycle.State.STARTED);
+        when(apiService.updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
+            .thenReturn(updatedApiEntity);
+        when(apiService.deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
+            .thenReturn(updatedApiEntity);
+
+        when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
+
+        preparePageServiceMock();
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+
+        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+
+        verify(planService).findByApi(eq(API_ID));
+        verify(planService, never()).create(any(NewPlanEntity.class));
+
+        verify(apiService, never()).start(eq(API_ID), eq(USER_ID));
+        verify(apiService).update(eq(API_ID), updateApiCaptor.capture());
+        assertThat(updateApiCaptor.getValue())
+            .extracting(UpdateApiEntity::getLifecycleState, UpdateApiEntity::getVisibility)
+            .containsExactly(ApiLifecycleState.PUBLISHED, Visibility.PUBLIC);
+
+        verify(pageService).update(eq(PAGE_ID), updatePageCaptor.capture());
+        assertThat(updatePageCaptor.getValue()).extracting(UpdatePageEntity::isPublished).isEqualTo(true);
     }
 
     @Test
