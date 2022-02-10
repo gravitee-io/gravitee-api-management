@@ -83,7 +83,9 @@ export class GioPolicyStudioRoutingModule {
         data: {
           useAngularMaterial: true,
           menu: null,
-          docs: null,
+          docs: {
+            page: 'management-api-policy-studio-design',
+          },
         },
         params: {
           flows: {
@@ -93,13 +95,15 @@ export class GioPolicyStudioRoutingModule {
         },
       },
       {
-        name: `${config.stateNamePrefix}.settings`,
-        url: '/settings',
+        name: `${config.stateNamePrefix}.config`,
+        url: '/config',
         component: PolicyStudioConfigComponent,
         data: {
           useAngularMaterial: true,
           menu: null,
-          docs: null,
+          docs: {
+            page: 'management-api-policy-studio-config',
+          },
         },
       },
       {
@@ -109,7 +113,9 @@ export class GioPolicyStudioRoutingModule {
         data: {
           useAngularMaterial: true,
           menu: null,
-          docs: null,
+          docs: {
+            page: 'management-api-policy-studio-properties',
+          },
         },
       },
       {
@@ -119,17 +125,21 @@ export class GioPolicyStudioRoutingModule {
         data: {
           useAngularMaterial: true,
           menu: null,
-          docs: null,
+          docs: {
+            page: 'management-api-policy-studio-resources',
+          },
         },
       },
       {
-        name: `${config.stateNamePrefix}.debug`,
-        url: '/debug',
+        name: `${config.stateNamePrefix}.try-it`,
+        url: '/try-it',
         component: PolicyStudioDebugComponent,
         data: {
           useAngularMaterial: true,
           menu: null,
-          docs: null,
+          docs: {
+            page: 'management-api-policy-studio-try-it',
+          },
         },
       },
     ] as Ng2StateDeclaration[];

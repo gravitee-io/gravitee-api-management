@@ -37,10 +37,10 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();
   policyStudioMenu = [
     { label: 'Design', uiSref: 'design' },
-    { label: 'Config', uiSref: 'settings' },
+    { label: 'Configuration', uiSref: 'config' },
     { label: 'Properties', uiSref: 'properties' },
     { label: 'Resources', uiSref: 'resources' },
-    { label: 'Debug', uiSref: 'debug' },
+    { label: 'Try-it', uiSref: 'try-it' },
   ];
   activeLink = this.policyStudioMenu[0];
   apiDefinition: ApiDefinition;

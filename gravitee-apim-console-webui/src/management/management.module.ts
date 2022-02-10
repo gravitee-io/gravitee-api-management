@@ -20,7 +20,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ManagementApiDesignComponent } from './api/design/design/management-api-design.component';
 import { GioPolicyStudioRoutingModule } from './api/policy-studio/gio-policy-studio-routing.module';
 
 import { GioConfirmDialogModule } from '../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
@@ -37,7 +36,7 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     GioPolicyStudioModule,
     GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.detail.design.flowsNg' }),
   ],
-  declarations: [ManagementApiDesignComponent],
-  entryComponents: [ManagementApiDesignComponent],
+  declarations: [],
+  entryComponents: [],
 })
 export class ManagementModule {}
