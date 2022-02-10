@@ -22,4 +22,5 @@ package io.gravitee.definition.model.debug;
 public enum DebugStepStatus {
     COMPLETED,
     ERROR,
+    SKIPPED,
 }
