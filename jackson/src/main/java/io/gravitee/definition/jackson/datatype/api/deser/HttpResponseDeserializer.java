@@ -42,21 +42,10 @@ public class HttpResponseDeserializer extends StdScalarDeserializer<HttpResponse
         httpResponse.setBody(readStringValue(jsonNode, "body"));
         JsonNode statusCodeNode = jsonNode.get("statusCode");
         httpResponse.statusCode(statusCodeNode.asInt());
+
         JsonNode headersNode = jsonNode.get("headers");
         if (headersNode != null && !headersNode.isEmpty(null)) {
-            Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
-
-            final Map<String, List<String>> multiValueHeaders = headers
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> Arrays.stream(e.getValue().split(",")).map(String::trim).collect(Collectors.toList())
-                    )
-                );
-
-            httpResponse.setHeaders(multiValueHeaders);
+            httpResponse.setHeaders(headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, List<String>>>() {}));
         }
         return httpResponse;
     }

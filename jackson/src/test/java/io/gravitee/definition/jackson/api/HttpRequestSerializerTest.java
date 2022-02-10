@@ -56,7 +56,7 @@ public class HttpRequestSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         assertNotNull(generatedJsonDefinition);
-        assertTrue(generatedJsonDefinition.contains("deflate, gzip, compress"));
+        assertTrue(generatedJsonDefinition.contains("[ \"deflate\", \"gzip\", \"compress\" ]"));
 
         Assert.assertEquals(
             objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),

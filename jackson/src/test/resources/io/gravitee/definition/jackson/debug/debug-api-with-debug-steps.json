@@ -8,18 +8,34 @@
     "method": "GET",
     "body": "request-body",
     "headers": {
-      "X-Gravitee-Transaction-Id": "transaction-id",
-      "content-type": "application/json",
-      "X-Gravitee-Request-Id": "request-id",
-      "accept-encoding": "deflate, gzip, compress"
+      "X-Gravitee-Transaction-Id": [
+        "transaction-id"
+      ],
+      "content-type": [
+        "application/json"
+      ],
+      "X-Gravitee-Request-Id": [
+        "request-id"
+      ],
+      "accept-encoding": [
+        "deflate",
+        "gzip",
+        "compress"
+      ]
     }
   },
   "response": {
     "body": "response-body",
     "statusCode": 200,
     "headers": {
-      "transfer-encoding": "chunked",
-      "accept-encoding": "deflate, gzip, compress"
+      "transfer-encoding": [
+        "chunked"
+      ],
+      "accept-encoding": [
+        "deflate",
+        "gzip",
+        "compress"
+      ]
     }
   },
   "proxy": {

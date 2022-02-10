@@ -42,22 +42,12 @@ public class HttpRequestDeserializer extends StdScalarDeserializer<HttpRequest> 
         httpRequest.setPath(readStringValue(node, "path"));
         httpRequest.setMethod(readStringValue(node, "method"));
         httpRequest.setBody(readStringValue(node, "body"));
+
         JsonNode headersNode = node.get("headers");
         if (headersNode != null && !headersNode.isEmpty(null)) {
-            Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
-
-            final Map<String, List<String>> multiValueHeaders = headers
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> Arrays.stream(e.getValue().split(",")).map(String::trim).collect(Collectors.toList())
-                    )
-                );
-
-            httpRequest.setHeaders(multiValueHeaders);
+            httpRequest.setHeaders(headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, List<String>>>() {}));
         }
+
         return httpRequest;
     }
 
