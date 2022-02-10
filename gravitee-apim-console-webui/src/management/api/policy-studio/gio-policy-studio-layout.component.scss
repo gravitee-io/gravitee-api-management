@@ -10,19 +10,31 @@
 }
 
 .gio-policy-studio-layout {
-  &__tab {
-    flex: 0 0 auto;
+  &__header {
+    display: flex;
     background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+
+    &__title {
+      align-items: center;
+      color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+      display: flex;
+      padding: 14px;
+      position: absolute;
+    }
+
+    &__nav {
+      flex: 1;
+    }
   }
 
   &__tab-content {
     background-color: white;
     flex: 1 1 auto;
     --gv-policy-studio--h: calc(100vh - 105px);
-  }
 
-  &__dirty {
-    --gv-policy-studio--h: calc(100vh - 160px);
+    &__dirty {
+      --gv-policy-studio--h: calc(100vh - 160px);
+    }
   }
 
   &__save-bar {
