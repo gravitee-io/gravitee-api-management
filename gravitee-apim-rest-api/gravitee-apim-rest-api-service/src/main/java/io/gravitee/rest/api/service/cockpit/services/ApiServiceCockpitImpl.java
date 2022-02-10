@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.service.cockpit.services.ImportSwaggerDescrip
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
@@ -30,6 +31,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -94,11 +96,11 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
         if (mode == DeploymentMode.API_MOCKED) {
             logger.debug("Update Mocked Api [{}].", apiId);
-            return updateMockedApi(apiId, userId, swaggerDefinition);
+            return updateMockedApi(apiId, userId, swaggerDefinition, environmentId);
         }
 
         logger.debug("Update Published Api [{}].", apiId);
-        return updateMockedApi(apiId, userId, swaggerDefinition);
+        return updatePublishedApi(apiId, userId, swaggerDefinition, environmentId);
     }
 
     private ApiEntityResult createDocumentedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
@@ -123,11 +125,21 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         return createApiResult;
     }
 
-    private ApiEntityResult updateMockedApi(String apiId, String userId, String swaggerDefinition) {
-        updateApiEntity(apiId, buildForMockedApi(swaggerDefinition));
+    private ApiEntityResult updateMockedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+        ApiEntityResult apiEntityResult = updateApiEntity(apiId, buildForMockedApi(swaggerDefinition));
 
         ApiDeploymentEntity apiDeployment = new ApiDeploymentEntity();
         apiDeployment.setDeploymentLabel("Model updated");
+
+        Set<PlanEntity> plans = this.planService.findByApi(apiId);
+        if (null == plans || plans.isEmpty()) {
+            this.planService.create(createKeylessPlan(apiId, environmentId));
+        }
+
+        if (Lifecycle.State.STOPPED.equals(apiEntityResult.getApi().getState())) {
+            this.apiService.start(apiId, userId);
+        }
+
         return ApiEntityResult.success(apiService.deploy(apiId, userId, EventType.PUBLISH_API, apiDeployment));
     }
 
@@ -149,6 +161,21 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         }
 
         return createApiResult;
+    }
+
+    private ApiEntityResult updatePublishedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+        ApiEntityResult updatedApiResult = updateMockedApi(apiId, userId, swaggerDefinition, environmentId);
+
+        if (updatedApiResult.isSuccess() && !ApiLifecycleState.PUBLISHED.equals(updatedApiResult.getApi().getLifecycleState())) {
+            publishSwaggerDocumentation(apiId);
+
+            UpdateApiEntity updateEntity = ApiService.convert(updatedApiResult.getApi());
+            updateEntity.setVisibility(Visibility.PUBLIC);
+            updateEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
+            return ApiEntityResult.success(this.apiService.update(apiId, updateEntity));
+        }
+
+        return updatedApiResult;
     }
 
     private ApiEntityResult updateApiEntity(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
