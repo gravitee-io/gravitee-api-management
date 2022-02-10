@@ -42,6 +42,7 @@ public class ApiCriteria {
     private List<ApiLifecycleState> lifecycleStates;
     private String environmentId;
     private List<String> environments;
+    private String crossId;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -55,6 +56,7 @@ public class ApiCriteria {
         this.lifecycleStates = builder.lifecycleStates;
         this.environmentId = builder.environmentId;
         this.environments = builder.environments;
+        this.crossId = builder.crossId;
     }
 
     public Collection<String> getIds() {
@@ -101,6 +103,14 @@ public class ApiCriteria {
         return environments;
     }
 
+    public String getCrossId() {
+        return crossId;
+    }
+
+    public void setCrossId(String crossId) {
+        this.crossId = crossId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -117,13 +127,27 @@ public class ApiCriteria {
             Objects.equals(name, that.name) &&
             Objects.equals(lifecycleStates, that.lifecycleStates) &&
             Objects.equals(environmentId, that.environmentId) &&
-            Objects.equals(environments, that.environments)
+            Objects.equals(environments, that.environments) &&
+            Objects.equals(crossId, that.crossId)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, groups, category, label, state, visibility, version, name, lifecycleStates, environmentId, environments);
+        return Objects.hash(
+            ids,
+            groups,
+            category,
+            label,
+            state,
+            visibility,
+            version,
+            name,
+            lifecycleStates,
+            environmentId,
+            environments,
+            crossId
+        );
     }
 
     public static class Builder {
@@ -139,6 +163,7 @@ public class ApiCriteria {
         private List<ApiLifecycleState> lifecycleStates;
         private String environmentId;
         private List<String> environments;
+        private String crossId;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -202,6 +227,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder environments(final List<String> environments) {
             this.environments = environments;
+            return this;
+        }
+
+        public ApiCriteria.Builder crossId(final String crossId) {
+            this.crossId = crossId;
             return this;
         }
 
