@@ -19,18 +19,21 @@ import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import PortalConfigService from '../../../../services/portalConfig.service';
-import { ApiKeyMode } from '../../../../entities/applications/application';
+import { ApiKeyMode } from '../../../../entities/application/application';
+import { PlanSecurityType } from '../../../../entities/plan/plan';
 
 class ApplicationSubscribeController {
   private subscriptions: any;
-  private subscribedAPIs: any[] = [];
-  private subscribedPlans: any[] = [];
   private application: any;
   private selectedAPI: any;
-  private apis: any[] = [];
-  private plans: any[] = [];
-  private groups: any[] = [];
   private portalSettings: any;
+
+  private readonly groups = [];
+  private readonly subscribedAPIs = [];
+
+  private apis = [];
+  private plans = [];
+  private subscribedPlans = [];
 
   constructor(
     private ApiService: ApiService,
@@ -163,7 +166,11 @@ class ApplicationSubscribeController {
   }
 
   get shouldPromptForKeyMode(): boolean {
-    return this.allowsSharedApiKeys && this.subscribedAPIs.length >= 1 && this.application.api_key_mode === ApiKeyMode.UNSPECIFIED;
+    return this.allowsSharedApiKeys && this.apiKeySubscriptionsCount >= 1 && this.application.api_key_mode === ApiKeyMode.UNSPECIFIED;
+  }
+
+  get apiKeySubscriptionsCount(): number {
+    return this.subscriptions.data.filter((subscription) => subscription.security === PlanSecurityType.API_KEY).length;
   }
 
   get allowsSharedApiKeys(): boolean {

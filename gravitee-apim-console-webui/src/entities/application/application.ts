@@ -13,24 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as angular from 'angular';
-
-import { ApiKeyMode } from '../../../../entities/application/application';
-
-export default class ApplicationKeyDialogController {
-  constructor(private $mdDialog: angular.material.IDialogService) {
-    'ngInject';
-  }
-
-  get keyModes() {
-    return ApiKeyMode;
-  }
-
-  hide(keyMode?: ApiKeyMode) {
-    if (keyMode) {
-      this.$mdDialog.hide(keyMode);
-    } else {
-      this.$mdDialog.cancel();
-    }
-  }
+export enum ApiKeyMode {
+  UNSPECIFIED = 'UNSPECIFIED',
+  SHARED = 'SHARED',
+  EXCLUSIVE = 'EXCLUSIVE',
 }
