@@ -15,14 +15,24 @@
  */
 package io.gravitee.gateway.debug;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.debug.handlers.api.DebugApiContextHandlerFactory;
+import io.gravitee.gateway.debug.platform.manager.DebugOrganizationManager;
 import io.gravitee.gateway.debug.policy.impl.PolicyDebugDecoratorFactoryCreator;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
+import io.gravitee.gateway.flow.FlowResolver;
+import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.platform.OrganizationFlowResolver;
 import io.gravitee.gateway.platform.PlatformPolicyManager;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.providers.OnRequestPlatformPolicyChainProvider;
+import io.gravitee.gateway.platform.providers.OnResponsePlatformPolicyChainProvider;
+import io.gravitee.gateway.policy.ConfigurablePolicyChainProvider;
+import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -38,6 +48,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -79,9 +90,16 @@ public class DebugConfiguration {
     @Bean
     @Qualifier("debugReactorHandlerFactory")
     public ReactorHandlerFactory<Api> reactorHandlerFactory(
-        @Qualifier("debugPolicyFactoryCreator") PolicyFactoryCreator policyFactoryCreator
+        @Qualifier("debugPolicyFactoryCreator") PolicyFactoryCreator policyFactoryCreator,
+        @Qualifier("debugPolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader
     ) {
-        return new DebugApiContextHandlerFactory(applicationContext.getParent(), configuration, node, policyFactoryCreator);
+        return new DebugApiContextHandlerFactory(
+            applicationContext.getParent(),
+            configuration,
+            node,
+            policyFactoryCreator,
+            policyChainProviderLoader
+        );
     }
 
     @Bean
@@ -104,6 +122,53 @@ public class DebugConfiguration {
         @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry
     ) {
         return new DefaultEntrypointResolver(reactorHandlerRegistry);
+    }
+
+    @Bean
+    @Qualifier("debugPolicyChainProviderLoader")
+    public PolicyChainProviderLoader policyChainProviderLoader(
+        @Qualifier("debugConfigurablePolicyChainProvider") List<ConfigurablePolicyChainProvider> providers
+    ) {
+        return new PolicyChainProviderLoader(providers);
+    }
+
+    @Bean
+    @Qualifier("debugConfigurablePolicyChainProvider")
+    public OnRequestPlatformPolicyChainProvider onRequestPlatformPolicyChainProvider(
+        @Qualifier("debugFlowResolver") FlowResolver flowResolver,
+        @Qualifier("debugPlatformPolicyChainFactory") PolicyChainFactory policyChainFactory
+    ) {
+        return new OnRequestPlatformPolicyChainProvider(flowResolver, policyChainFactory);
+    }
+
+    @Bean
+    @Qualifier("debugConfigurablePolicyChainProvider")
+    public OnResponsePlatformPolicyChainProvider onResponsePlatformPolicyChainProvider(
+        @Qualifier("debugFlowResolver") FlowResolver flowResolver,
+        @Qualifier("debugPlatformPolicyChainFactory") PolicyChainFactory policyChainFactory
+    ) {
+        return new OnResponsePlatformPolicyChainProvider(flowResolver, policyChainFactory);
+    }
+
+    @Bean
+    @Qualifier("debugFlowResolver")
+    public FlowResolver flowResolver(@Qualifier("debugOrganizationManager") OrganizationManager organizationManager) {
+        return new OrganizationFlowResolver(organizationManager);
+    }
+
+    @Bean
+    @Qualifier("debugPlatformPolicyChainFactory")
+    public PolicyChainFactory policyChainFactory(@Qualifier("debugPlatformPolicyManager") PlatformPolicyManager platformPolicyManager) {
+        return new PolicyChainFactory(platformPolicyManager);
+    }
+
+    @Bean
+    @Qualifier("debugOrganizationManager")
+    public OrganizationManager organizationManager(
+        @Qualifier("debugPlatformPolicyManager") PlatformPolicyManager policyManager,
+        EventManager eventManager
+    ) {
+        return new DebugOrganizationManager(policyManager, eventManager);
     }
 
     @Bean

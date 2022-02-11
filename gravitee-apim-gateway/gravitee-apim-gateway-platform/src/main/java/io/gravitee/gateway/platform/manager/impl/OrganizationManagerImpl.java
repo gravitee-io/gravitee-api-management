@@ -15,10 +15,12 @@
  */
 package io.gravitee.gateway.platform.manager.impl;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.PlatformPolicyManager;
+import io.gravitee.gateway.platform.manager.OrganizationEvent;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +37,14 @@ public class OrganizationManagerImpl implements OrganizationManager {
     private final PlatformPolicyManager policyManager;
 
     private Organization currentOrganization;
+    private EventManager eventManager;
 
     @Autowired
     GatewayConfiguration gatewayConfiguration;
 
-    public OrganizationManagerImpl(PlatformPolicyManager policyManager) {
+    public OrganizationManagerImpl(PlatformPolicyManager policyManager, EventManager eventManager) {
         this.policyManager = policyManager;
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -53,6 +57,7 @@ public class OrganizationManagerImpl implements OrganizationManager {
         ) {
             logger.info("Register organization {}", organization);
             currentOrganization = organization;
+            eventManager.publishEvent(OrganizationEvent.REGISTER, organization);
             policyManager.setDependencies(currentOrganization.dependencies(Policy.class));
             return true;
         }
@@ -62,6 +67,7 @@ public class OrganizationManagerImpl implements OrganizationManager {
     @Override
     public void unregister(String orgId) {
         logger.info("Unregister organization {}", orgId);
+        eventManager.publishEvent(OrganizationEvent.UNREGISTER, currentOrganization);
         currentOrganization = null;
     }
 

@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.policy.spring;
 
+import io.gravitee.gateway.policy.ConfigurablePolicyChainProvider;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 public class PolicyConfiguration {
 
     @Bean
-    public PolicyChainProviderLoader policyChainProviderLoader() {
-        return new PolicyChainProviderLoader();
+    public PolicyChainProviderLoader policyChainProviderLoader(List<ConfigurablePolicyChainProvider> providers) {
+        return new PolicyChainProviderLoader(providers);
     }
 }

@@ -28,20 +28,16 @@ import java.util.stream.Collectors;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyChainProviderLoader extends SpringFactoriesLoader<ConfigurablePolicyChainProvider> {
+public class PolicyChainProviderLoader {
 
-    private List<ConfigurablePolicyChainProvider> providers;
+    private final List<ConfigurablePolicyChainProvider> providers;
 
-    public List<ConfigurablePolicyChainProvider> getProviders() {
-        if (this.providers == null) {
-            this.providers = new ArrayList<>(getFactoriesInstances());
-        }
-        return this.providers;
+    public PolicyChainProviderLoader(List<ConfigurablePolicyChainProvider> providers) {
+        this.providers = providers;
     }
 
-    @Override
-    protected Class<ConfigurablePolicyChainProvider> getObjectType() {
-        return ConfigurablePolicyChainProvider.class;
+    public List<ConfigurablePolicyChainProvider> getProviders() {
+        return this.providers;
     }
 
     public List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> get(

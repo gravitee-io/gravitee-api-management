@@ -35,13 +35,15 @@ public class OnResponsePlatformPolicyChainProvider extends ConfigurablePolicyCha
 
     private final StreamType streamType = StreamType.ON_RESPONSE;
 
-    @Autowired
     private FlowResolver flowResolver;
-
-    @Autowired
     private PolicyChainFactory policyChainFactory;
 
     private FlowProvider flowProvider;
+
+    public OnResponsePlatformPolicyChainProvider(FlowResolver flowResolver, PolicyChainFactory policyChainFactory) {
+        this.flowResolver = flowResolver;
+        this.policyChainFactory = policyChainFactory;
+    }
 
     private FlowProvider getFlowProvider() {
         if (this.flowProvider == null) {

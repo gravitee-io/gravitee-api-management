@@ -27,6 +27,7 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
+import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
@@ -110,7 +111,10 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ReactorHandlerFactory<Api> reactorHandlerFactory(PolicyFactoryCreator policyFactoryCreator) {
-        return new ApiContextHandlerFactory(applicationContext, configuration, node, policyFactoryCreator);
+    public ReactorHandlerFactory<Api> reactorHandlerFactory(
+        PolicyFactoryCreator policyFactoryCreator,
+        PolicyChainProviderLoader policyChainProviderLoader
+    ) {
+        return new ApiContextHandlerFactory(applicationContext, configuration, node, policyFactoryCreator, policyChainProviderLoader);
     }
 }

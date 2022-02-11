@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.platform.spring;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.flow.FlowResolver;
@@ -23,6 +24,8 @@ import io.gravitee.gateway.platform.OrganizationFlowResolver;
 import io.gravitee.gateway.platform.PlatformPolicyManager;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.platform.manager.impl.OrganizationManagerImpl;
+import io.gravitee.gateway.platform.providers.OnRequestPlatformPolicyChainProvider;
+import io.gravitee.gateway.platform.providers.OnResponsePlatformPolicyChainProvider;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
@@ -56,8 +59,8 @@ public class PlatformConfiguration {
     private boolean classLoaderLegacyMode;
 
     @Bean
-    public OrganizationManager organizationManager(PlatformPolicyManager policyManager) {
-        return new OrganizationManagerImpl(policyManager);
+    public OrganizationManager organizationManager(PlatformPolicyManager policyManager, EventManager eventManager) {
+        return new OrganizationManagerImpl(policyManager, eventManager);
     }
 
     @Bean
@@ -68,6 +71,22 @@ public class PlatformConfiguration {
     @Bean
     public PolicyChainFactory policyChainFactory(PlatformPolicyManager platformPolicyManager) {
         return new PolicyChainFactory(platformPolicyManager);
+    }
+
+    @Bean
+    public OnRequestPlatformPolicyChainProvider onRequestPlatformPolicyChainProvider(
+        FlowResolver flowResolver,
+        PolicyChainFactory policyChainFactory
+    ) {
+        return new OnRequestPlatformPolicyChainProvider(flowResolver, policyChainFactory);
+    }
+
+    @Bean
+    public OnResponsePlatformPolicyChainProvider onResponsePlatformPolicyChainProvider(
+        FlowResolver flowResolver,
+        PolicyChainFactory policyChainFactory
+    ) {
+        return new OnResponsePlatformPolicyChainProvider(flowResolver, policyChainFactory);
     }
 
     @Bean
