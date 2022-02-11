@@ -136,7 +136,8 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
             this.planService.create(createKeylessPlan(apiId, environmentId));
         }
 
-        if (Lifecycle.State.STOPPED.equals(apiEntityResult.getApi().getState())) {
+        ApiEntity apiEntity = apiEntityResult.getApi();
+        if (null != apiEntity && Lifecycle.State.STOPPED.equals(apiEntity.getState())) {
             this.apiService.start(apiId, userId);
         }
 
@@ -182,7 +183,9 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
 
-        return ApiEntityResult.success(this.apiService.updateFromSwagger(apiId, api, swaggerDescriptor));
+        return checkContextPath(api, apiId)
+            .map(ApiEntityResult::failure)
+            .orElseGet(() -> ApiEntityResult.success(this.apiService.updateFromSwagger(apiId, api, swaggerDescriptor)));
     }
 
     private ApiEntityResult createApiEntity(String apiId, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
@@ -208,6 +211,15 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     Optional<String> checkContextPath(SwaggerApiEntity api) {
         try {
             virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts());
+            return Optional.empty();
+        } catch (Exception e) {
+            return Optional.of(e.getMessage());
+        }
+    }
+
+    Optional<String> checkContextPath(SwaggerApiEntity api, String apiId) {
+        try {
+            virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts(), apiId);
             return Optional.empty();
         } catch (Exception e) {
             return Optional.of(e.getMessage());
