@@ -52,7 +52,10 @@
     >&nbsp;{{ debugResponse.request.path }}
   </div>
   <div>
-    <policy-studio-debug-timeline>
+    <policy-studio-debug-timeline
+      [nbPoliciesRequest]="debugResponse.requestDebugSteps.length"
+      [nbPoliciesResponse]="debugResponse.responseDebugSteps.length"
+    >
       <policy-studio-debug-timeline-card
         *ngFor="let timelineStep of responseDisplayableVM.timelineSteps"
         [timelineStep]="timelineStep"

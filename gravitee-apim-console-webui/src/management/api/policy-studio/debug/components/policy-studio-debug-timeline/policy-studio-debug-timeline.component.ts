@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'policy-studio-debug-timeline',
   template: require('./policy-studio-debug-timeline.component.html'),
   styles: [require('./policy-studio-debug-timeline.component.scss')],
 })
-export class PolicyStudioDebugTimelineComponent {}
+export class PolicyStudioDebugTimelineComponent {
+  @Input()
+  nbPoliciesRequest: number;
+
+  @Input()
+  nbPoliciesResponse: number;
+}
