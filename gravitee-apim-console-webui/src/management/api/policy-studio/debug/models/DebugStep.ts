@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 interface DebugStep<T> {
+  id: string;
   policyInstanceId: string;
   policyId: string;
   scope: PolicyScope;
