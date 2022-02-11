@@ -85,17 +85,20 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     private final Configuration configuration;
     private final Node node;
     private final PolicyFactoryCreator policyFactoryCreator;
+    private final PolicyChainProviderLoader policyChainProviderLoader;
 
     public ApiContextHandlerFactory(
         ApplicationContext applicationContext,
         Configuration configuration,
         Node node,
-        PolicyFactoryCreator policyFactoryCreator
+        PolicyFactoryCreator policyFactoryCreator,
+        PolicyChainProviderLoader policyChainProviderLoader
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
         this.node = node;
         this.policyFactoryCreator = policyFactoryCreator;
+        this.policyChainProviderLoader = policyChainProviderLoader;
     }
 
     @Override
@@ -139,7 +142,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                     api,
                     policyChainFactory,
                     policyManager,
-                    applicationContext.getBean(PolicyChainProviderLoader.class),
+                    policyChainProviderLoader,
                     authenticationHandlerSelector(
                         authenticationHandlerManager(securityProviderLoader(), authenticationHandlerEnhancer(api), apiComponentProvider)
                     )
@@ -148,9 +151,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                 final DefaultReferenceRegister referenceRegister = referenceRegister();
 
                 handler.setRequestProcessorChain(requestProcessorChainFactory);
-                handler.setResponseProcessorChain(
-                    responseProcessorChainFactory(api, policyChainFactory, applicationContext.getBean(PolicyChainProviderLoader.class))
-                );
+                handler.setResponseProcessorChain(responseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader));
                 handler.setErrorProcessorChain(errorProcessorChainFactory(api, policyChainFactory));
 
                 final GroupLifecycleManager groupLifecycleManager = groupLifecyleManager(

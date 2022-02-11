@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
+package io.gravitee.gateway.platform.manager;
 
 /**
- * Factory of PolicyFactory. A PolicyFactory is created for each new API deployed.
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyFactoryCreator {
-    PolicyFactory create();
+public enum OrganizationEvent {
+    REGISTER,
+    UNREGISTER,
 }

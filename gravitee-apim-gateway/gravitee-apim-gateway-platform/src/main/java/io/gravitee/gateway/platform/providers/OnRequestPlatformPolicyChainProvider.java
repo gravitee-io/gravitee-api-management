@@ -35,13 +35,15 @@ public class OnRequestPlatformPolicyChainProvider extends ConfigurablePolicyChai
 
     private final StreamType streamType = StreamType.ON_REQUEST;
 
-    @Autowired
-    private FlowResolver flowResolver;
-
-    @Autowired
-    private PolicyChainFactory policyChainFactory;
+    private final FlowResolver flowResolver;
+    private final PolicyChainFactory policyChainFactory;
 
     private FlowProvider flowProvider;
+
+    public OnRequestPlatformPolicyChainProvider(FlowResolver flowResolver, PolicyChainFactory policyChainFactory) {
+        this.flowResolver = flowResolver;
+        this.policyChainFactory = policyChainFactory;
+    }
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
