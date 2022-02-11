@@ -1095,6 +1095,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
         }
 
+        if (updateApplicationEntity.getApiKeyMode() != null) {
+            application.setApiKeyMode(ApiKeyMode.valueOf(updateApplicationEntity.getApiKeyMode()));
+        }
+
         application.setMetadata(metadata);
         application.setDisableMembershipNotifications(updateApplicationEntity.isDisableMembershipNotifications());
         return application;

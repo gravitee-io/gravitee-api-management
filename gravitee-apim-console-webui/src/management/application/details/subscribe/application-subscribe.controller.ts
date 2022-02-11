@@ -18,6 +18,8 @@ import * as _ from 'lodash';
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
+import PortalConfigService from '../../../../services/portalConfig.service';
+import { ApiKeyMode } from '../../../../entities/applications/application';
 
 class ApplicationSubscribeController {
   private subscriptions: any;
@@ -28,11 +30,13 @@ class ApplicationSubscribeController {
   private apis: any[] = [];
   private plans: any[] = [];
   private groups: any[] = [];
+  private portalSettings: any;
 
   constructor(
     private ApiService: ApiService,
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
+    private PortalConfigService: PortalConfigService,
     private $mdDialog,
     private $state,
     private $transitions,
@@ -40,7 +44,7 @@ class ApplicationSubscribeController {
     'ngInject';
   }
 
-  $onInit = () => {
+  async $onInit() {
     const subscriptionsByAPI = _.groupBy(this.subscriptions.data, 'api');
     _.forEach(subscriptionsByAPI, (subscriptions, api) => {
       this.subscribedAPIs.push(
@@ -53,10 +57,13 @@ class ApplicationSubscribeController {
       );
     });
 
-    this.subscribedPlans = _.map(this.subscriptions.data, 'plan');
-  };
+    const { data: portalSettings } = await this.PortalConfigService.get();
+    this.portalSettings = portalSettings;
 
-  onSelectAPI = (api) => {
+    this.subscribedPlans = _.map(this.subscriptions.data, 'plan');
+  }
+
+  onSelectAPI(api) {
     if (api) {
       const authorizedSecurity = this.getAuthorizedSecurity();
       this.ApiService.getApiPlans(api.id, 'PUBLISHED').then((response) => {
@@ -73,9 +80,9 @@ class ApplicationSubscribeController {
       delete this.plans;
       delete this.selectedAPI;
     }
-  };
+  }
 
-  getAuthorizedSecurity = (): string[] => {
+  getAuthorizedSecurity(): string[] {
     const authorizedSecurity = ['API_KEY'];
     if (this.application.settings) {
       if (this.application.settings.oauth || (this.application.settings.app && this.application.settings.app.client_id)) {
@@ -83,9 +90,28 @@ class ApplicationSubscribeController {
       }
     }
     return authorizedSecurity;
-  };
+  }
 
-  onSubscribe(api, plan) {
+  async onSubscribe(api, plan) {
+    if (this.shouldPromptForKeyMode) {
+      this.selectKeyMode()
+        .then((mode) => this.ApplicationService.update({ ...this.application, api_key_mode: mode }))
+        .then(() => this.doSubscribe(plan), _.noop);
+    } else {
+      await this.doSubscribe(plan);
+    }
+  }
+
+  async doSubscribe(plan) {
+    const message = await this.getMessage(plan);
+
+    this.ApplicationService.subscribe(this.application.id, plan.id, message).then(() => {
+      this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
+      this.$state.reload();
+    });
+  }
+
+  async getMessage(plan: any) {
     if (plan.comment_required) {
       const confirm = this.$mdDialog
         .prompt()
@@ -96,17 +122,7 @@ class ApplicationSubscribeController {
         .ok('Confirm')
         .cancel('Cancel');
 
-      this.$mdDialog.show(confirm).then((message) => {
-        this.ApplicationService.subscribe(this.application.id, plan.id, message).then(() => {
-          this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
-          this.$state.reload();
-        });
-      });
-    } else {
-      this.ApplicationService.subscribe(this.application.id, plan.id).then(() => {
-        this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
-        this.$state.reload();
-      });
+      return this.$mdDialog.show(confirm, _.noop);
     }
   }
 
@@ -133,6 +149,25 @@ class ApplicationSubscribeController {
           (excludedGroupId) => this.groups.find((apiGroup) => apiGroup.id === excludedGroupId)?.name,
         )),
     );
+  }
+
+  selectKeyMode() {
+    const dialog = {
+      controller: 'ApplicationKeyDialogController',
+      controllerAs: '$ctrl',
+      template: require('./application-key.dialog.html'),
+      clickOutsideToClose: true,
+    };
+
+    return this.$mdDialog.show(dialog);
+  }
+
+  get shouldPromptForKeyMode(): boolean {
+    return this.allowsSharedApiKeys && this.subscribedAPIs.length >= 1 && this.application.api_key_mode === ApiKeyMode.UNSPECIFIED;
+  }
+
+  get allowsSharedApiKeys(): boolean {
+    return this.portalSettings?.plan?.security?.sharedApiKey?.enabled;
   }
 }
 

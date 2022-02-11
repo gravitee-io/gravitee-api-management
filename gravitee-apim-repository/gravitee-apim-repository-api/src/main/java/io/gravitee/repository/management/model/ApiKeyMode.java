@@ -21,21 +21,21 @@ package io.gravitee.repository.management.model;
 public enum ApiKeyMode {
     /**
      * The `SHARED` API key mode allows consumer to use the same API key across all the subscriptions
-     * of a given application. This mode is enabled on demand when the triggers a subscription for the
+     * of a given application. This mode is enabled on demand when the consumer triggers a subscription for the
      * second time withing the application.
      *
      * This mode is available only if the shared mode has been activated at the environment level.
      */
     SHARED,
     /**
-     * The `EXCLUSIVE` API key mode will result to a new API key being generated each time a subscription
+     * The `EXCLUSIVE` API key mode will result in a new API key being generated each time a subscription
      * is triggered within the application.
      *
      * This is the default mode if the shared mode has been de-activated at the environment level.
      */
     EXCLUSIVE,
     /**
-     * The `UNSPECIFIED` API key mode is the default mode when shared mode has been activated at the organization level.
+     * The `UNSPECIFIED` API key mode is the default mode when shared mode has been activated at the environment level.
      * This marker value allows determining if the consumer has already made its choice when adding a second subscription
      * to the application (e.g. a second subscription has already been triggered and the choice has been made, but one
      * of the subscriptions has been deleted since)
