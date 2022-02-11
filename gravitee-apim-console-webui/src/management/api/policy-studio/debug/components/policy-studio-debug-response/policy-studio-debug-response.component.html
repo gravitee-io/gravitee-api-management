@@ -61,7 +61,9 @@
     </policy-studio-debug-timeline>
   </div>
 
-  <pre *ngIf="selectedStep">
+  <div *ngIf="selectedStep === '🚧'">🚧 Coming soon 🚧</div>
+
+  <pre *ngIf="selectedStep && selectedStep != '🚧'">
     <p>{{selectedStep.policyOutput | json}}</p>
   </pre>
 </ng-template>

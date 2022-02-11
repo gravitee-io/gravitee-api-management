@@ -44,7 +44,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
   public responseDisplayableVM: ResponseDisplayableVM;
 
-  public selectedStep: RequestDebugStep | ResponseDebugStep;
+  public selectedStep: RequestDebugStep | ResponseDebugStep | '🚧';
 
   ngOnChanges(): void {
     if (this.debugResponse && !this.debugResponse.isLoading) {
@@ -65,7 +65,9 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
       this.selectedStep = [...this.debugResponse.requestDebugSteps, ...this.debugResponse.responseDebugSteps].find(
         (value) => value.id === timelineStep.id,
       );
+      return;
     }
+    this.selectedStep = '🚧';
   }
 
   private toTimelineSteps(debugResponse: DebugResponse) {
@@ -98,7 +100,6 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
       {
         mode: 'RESPONSE_INPUT',
       },
-
       ...debugResponse.responseDebugSteps.map((debugStep) => {
         const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
 
