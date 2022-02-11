@@ -81,7 +81,7 @@ public abstract class DebugStep<T> {
         Map<String, Serializable> cleanedAttributes = AttributeHelper.filterAndSerializeAttributes(attributes);
         generateDiffMap(source, cleanedAttributes, inputBuffer, outputBuffer);
         policyInputContent = null;
-        this.status = DebugStepStatus.COMPLETED;
+        this.status = this.status == null ? DebugStepStatus.COMPLETED : this.status;
     }
 
     protected abstract void generateDiffMap(T source, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer);
