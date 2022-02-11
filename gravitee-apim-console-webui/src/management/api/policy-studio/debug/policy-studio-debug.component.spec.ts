@@ -28,12 +28,14 @@ import { PolicyStudioDebugModule } from './policy-studio-debug.module';
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { fakePolicyListItem } from '../../../../entities/policy';
 
 describe('PolicyStudioDebugComponent', () => {
   let fixture: ComponentFixture<PolicyStudioDebugComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
 
+  const policies = [fakePolicyListItem()];
   const api = fakeApi();
 
   beforeEach(() => {
@@ -53,6 +55,8 @@ describe('PolicyStudioDebugComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=icon&withResource=false`).flush(policies);
   });
 
   afterEach(() => {

@@ -51,5 +51,17 @@
     &nbsp;<span class="mat-strong">{{ debugResponse.request.method }}</span
     >&nbsp;{{ debugResponse.request.path }}
   </div>
-  WIP 🚧
+  <div>
+    <policy-studio-debug-timeline>
+      <policy-studio-debug-timeline-card
+        *ngFor="let timelineStep of responseDisplayableVM.timelineSteps"
+        [timelineStep]="timelineStep"
+        (click)="onSelectTimelineStep(timelineStep)"
+      ></policy-studio-debug-timeline-card>
+    </policy-studio-debug-timeline>
+  </div>
+
+  <pre *ngIf="selectedStep">
+    <p>{{selectedStep.policyOutput | json}}</p>
+  </pre>
 </ng-template>
