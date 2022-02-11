@@ -48,6 +48,7 @@ describe('PolicyStudioDebugService', () => {
 
       const expectedRequestDebugSteps: RequestDebugStep[] = [
         {
+          id: expect.any(String),
           policyInstanceId: 'c96188c0-c57a-4726-a188-c0c57a172604',
           policyId: 'key-less',
           scope: 'ON_REQUEST',
@@ -73,6 +74,7 @@ describe('PolicyStudioDebugService', () => {
           },
         },
         {
+          id: expect.any(String),
           policyInstanceId: '337350ac-d157-47b2-b350-acd157e7b26b',
           policyId: 'policy-assign-attributes',
           scope: 'ON_REQUEST',
@@ -99,6 +101,7 @@ describe('PolicyStudioDebugService', () => {
           },
         },
         {
+          id: expect.any(String),
           policyInstanceId: 'b3cb3acc-79ea-48ea-8b3a-cc79ea48ea7e',
           policyId: 'policy-override-request-method',
           scope: 'ON_REQUEST',
@@ -126,6 +129,7 @@ describe('PolicyStudioDebugService', () => {
           },
         },
         {
+          id: expect.any(String),
           policyInstanceId: '6fcb8a49-b853-4f47-8b8a-49b853df47bd',
           policyId: 'transform-headers',
           scope: 'ON_REQUEST',
@@ -161,6 +165,7 @@ describe('PolicyStudioDebugService', () => {
 
       const expectedResponseDebugSteps: ResponseDebugStep[] = [
         {
+          id: expect.any(String),
           policyInstanceId: '4a5265f3-0c5b-4f60-9265-f30c5b8f6041',
           policyId: 'transform-headers',
           scope: 'ON_RESPONSE',
@@ -192,6 +197,7 @@ describe('PolicyStudioDebugService', () => {
           },
         },
         {
+          id: expect.any(String),
           policyInstanceId: '0d47719b-6979-4ff2-8771-9b6979eff230',
           policyId: 'policy-assign-content',
           scope: 'ON_RESPONSE_CONTENT',
