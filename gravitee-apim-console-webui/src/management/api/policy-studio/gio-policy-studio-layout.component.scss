@@ -11,6 +11,7 @@
 
 .gio-policy-studio-layout {
   &__header {
+    position: relative;
     display: flex;
     background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
 
