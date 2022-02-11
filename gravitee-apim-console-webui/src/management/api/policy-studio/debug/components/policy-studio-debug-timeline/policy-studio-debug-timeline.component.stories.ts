@@ -49,7 +49,7 @@ export default {
   render: ({ timelineSteps }) => ({
     props: { timelineSteps },
     template: `
-    <policy-studio-debug-timeline>
+    <policy-studio-debug-timeline nbPoliciesRequest="3" nbPoliciesResponse="4">
       <policy-studio-debug-timeline-card *ngFor="let timelineStep of timelineSteps" [timelineStep]="timelineStep"></policy-studio-debug-timeline-card>
     </policy-studio-debug-timeline>
     `,
