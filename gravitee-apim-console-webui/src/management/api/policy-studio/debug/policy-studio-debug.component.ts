@@ -17,7 +17,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { StateParams } from '@uirouter/core';
 import { EMPTY, Subject } from 'rxjs';
-import { catchError, takeUntil } from 'rxjs/operators';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 
 import { DebugRequest } from './models/DebugRequest';
 import { DebugResponse } from './models/DebugResponse';
@@ -25,6 +25,7 @@ import { PolicyStudioDebugService } from './policy-studio-debug.service';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { PolicyListItem } from '../../../../entities/policy';
 
 @Component({
   selector: 'policy-studio-debug',
@@ -34,6 +35,7 @@ import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 export class PolicyStudioDebugComponent implements OnInit {
   public debugResponse: DebugResponse;
   public tryItDisplay = false;
+  public listPolicies: PolicyListItem[];
 
   private apiId: string;
   private unsubscribe$ = new Subject<boolean>();
@@ -45,6 +47,15 @@ export class PolicyStudioDebugComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.policyStudioDebugService
+      .listPolicies()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((listPolicies) => {
+          this.listPolicies = listPolicies;
+        }),
+      )
+      .subscribe();
     this.apiId = this.ajsStateParams.apiId;
 
     this.tryItDisplay = this.ajsStateParams.tryItDisplay;

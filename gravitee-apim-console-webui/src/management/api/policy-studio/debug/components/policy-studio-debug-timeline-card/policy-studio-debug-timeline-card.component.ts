@@ -36,6 +36,7 @@ export type TimelineStep =
       policyName: string;
       icon: string;
       executionTime: number;
+      id: string;
     }
   | {
       mode: 'RESPONSE_INPUT';
@@ -51,6 +52,7 @@ interface TimelineCardVM {
   title?: string;
   color?: 'green' | 'blue' | 'default';
   executionTimeLabel?: string;
+  id?: string;
 }
 
 @Component({
@@ -105,7 +107,8 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           headerLabel: timelineStep.flowName,
           title: timelineStep.policyName,
           color: 'default',
-          executionTimeLabel: `${timelineStep.executionTime}ms`,
+          executionTimeLabel: `${timelineStep.executionTime / 1_000_000}ms`,
+          id: timelineStep.id,
         };
       case 'RESPONSE_INPUT':
         return {

@@ -16,17 +16,18 @@
 
 import { Component, Input, OnChanges } from '@angular/core';
 
+import { PolicyListItem } from '../../../../../../entities/policy';
 import { DebugResponse } from '../../models/DebugResponse';
 import { HttpStatusCodeDescription } from '../../models/HttpStatusCodeDescription';
+import { TimelineStep } from '../policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
+import { RequestDebugStep, ResponseDebugStep } from '../../models/DebugStep';
 
 type ResponseDisplayableVM = {
   statusCode: number;
   statusCodeDescription: string;
   successfulRequest: boolean;
   errorRequest: boolean;
-  gvCodeOptions: Record<string, any>;
-  prettifiedResponse: string;
-  headers: { name: string; value: string }[];
+  timelineSteps: TimelineStep[];
 };
 
 @Component({
@@ -38,38 +39,82 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   @Input()
   public debugResponse?: DebugResponse;
 
+  @Input()
+  public listPolicies?: PolicyListItem[];
+
   public responseDisplayableVM: ResponseDisplayableVM;
+
+  public selectedStep: RequestDebugStep | ResponseDebugStep;
 
   ngOnChanges(): void {
     if (this.debugResponse && !this.debugResponse.isLoading) {
-      const contentTypeHeader = Object.entries(this.debugResponse.response.headers ?? {}).find(([key]) => {
-        return key.toLowerCase() === 'content-type';
-      });
-      const contentType = contentTypeHeader ? contentTypeHeader[1][0] : undefined;
-
-      const gvCodeOptions = {
-        lineNumbers: true,
-        mode: 'text',
-      };
-      let prettifiedResponse = this.debugResponse.response.body;
-
-      if (contentType === 'text/html') {
-        gvCodeOptions.mode = 'htmlmixed';
-      } else if (contentType === 'application/json') {
-        gvCodeOptions.mode = 'application/json';
-        // Convert JSON body to a human readable form with 2 spaces indentation
-        prettifiedResponse = JSON.stringify(JSON.parse(this.debugResponse.response.body), null, 2);
-      }
-
       this.responseDisplayableVM = {
         statusCode: this.debugResponse.response.statusCode,
         statusCodeDescription: HttpStatusCodeDescription[this.debugResponse.response.statusCode].description,
         successfulRequest: 200 <= this.debugResponse?.response.statusCode && this.debugResponse?.response.statusCode < 300,
         errorRequest: 400 <= this.debugResponse?.response.statusCode && this.debugResponse?.response.statusCode < 600,
-        gvCodeOptions,
-        prettifiedResponse,
-        headers: Object.entries(this.debugResponse.response.headers ?? {}).map(([key, value]) => ({ name: key, value: value.join(',') })),
+        timelineSteps: this.toTimelineSteps(this.debugResponse),
       };
     }
+  }
+
+  onSelectTimelineStep(timelineStep: TimelineStep) {
+    if (timelineStep.mode === 'POLICY') {
+      this.selectedStep = [...this.debugResponse.requestDebugSteps, ...this.debugResponse.responseDebugSteps].find(
+        (value) => value.id === timelineStep.id,
+      );
+    }
+  }
+
+  private toTimelineSteps(debugResponse: DebugResponse) {
+    const timelineSteps: TimelineStep[] = [
+      {
+        mode: 'CLIENT_APP',
+      },
+      {
+        mode: 'REQUEST_INPUT',
+      },
+      ...debugResponse.requestDebugSteps.map((debugStep) => {
+        const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
+
+        return {
+          executionTime: debugStep.duration,
+          policyName: policy?.name ?? debugStep.policyId,
+          mode: 'POLICY' as const,
+          icon: policy?.icon,
+          flowName: debugStep.scope,
+          id: debugStep.id,
+        };
+      }),
+      {
+        mode: 'REQUEST_OUTPUT',
+      },
+      {
+        mode: 'BACKEND_TARGET',
+      },
+      {
+        mode: 'RESPONSE_INPUT',
+      },
+
+      ...debugResponse.responseDebugSteps.map((debugStep) => {
+        const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
+
+        return {
+          executionTime: debugStep.duration,
+          policyName: policy?.name ?? debugStep.policyId,
+          mode: 'POLICY' as const,
+          icon: policy?.icon,
+          flowName: debugStep.scope,
+          id: debugStep.id,
+        };
+      }),
+      {
+        mode: 'RESPONSE_OUTPUT',
+      },
+      {
+        mode: 'CLIENT_APP',
+      },
+    ];
+    return timelineSteps;
   }
 }

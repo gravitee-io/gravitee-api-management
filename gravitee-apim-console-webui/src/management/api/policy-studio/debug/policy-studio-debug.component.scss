@@ -17,4 +17,14 @@
     flex: 1 1 auto;
     min-height: 100%;
   }
+
+  &__response__container {
+    width: 100%;
+    position: relative;
+  }
+
+  policy-studio-debug-response {
+    position: absolute;
+    width: 100%;
+  }
 }

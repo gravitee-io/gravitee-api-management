@@ -4,16 +4,21 @@
 
 $typography: map.get(gio.$mat-theme, typography);
 
+$cardWidth: 234px;
+$cardIconWidth: 32px;
+
 :host {
   display: inline-block;
+  vertical-align: middle;
   margin: 4px;
 }
 
 .policy-studio-debug-timeline-card {
   @include mat.elevation(1);
 
-  width: 234px;
+  width: $cardWidth;
   height: 76px;
+  position: relative;
 
   display: flex;
   flex-direction: row;
@@ -36,29 +41,43 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__left {
-    display: contents;
+    max-width: $cardIconWidth;
 
     &__icon {
-      margin-right: 8px;
       height: 24px;
-      width: 24px;
+      width: $cardIconWidth;
     }
   }
 
   &__content {
-    flex: 1 1 auto;
+    flex: 1 1 $cardWidth - $cardIconWidth - $cardIconWidth;
+    max-width: $cardWidth - $cardIconWidth - $cardIconWidth;
+
+    white-space: nowrap;
+    overflow: hidden;
 
     &__header-label {
       @include mat.typography-level($typography, caption);
       color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &__title {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
   &__right {
+    max-width: $cardIconWidth;
     align-self: normal;
+  }
 
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+  &__time-label {
+    @include mat.typography-level($typography, caption);
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
   }
 }

@@ -17,6 +17,8 @@ import { CommonModule } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata } from '@storybook/angular';
+import { MatIconModule } from '@angular/material/icon';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import '@gravitee/ui-components/wc/gv-code';
 import '@gravitee/ui-components/wc/gv-icon';
@@ -24,13 +26,18 @@ import '@gravitee/ui-components/wc/gv-icon';
 import { PolicyStudioDebugResponseComponent } from './policy-studio-debug-response.component';
 
 import { DebugResponse } from '../../models/DebugResponse';
+import { fakeDebugResponse } from '../../models/DebugResponse.fixture';
+import { PolicyStudioDebugTimelineCardComponent } from '../policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
+import { PolicyStudioDebugTimelineComponent } from '../policy-studio-debug-timeline/policy-studio-debug-timeline.component';
+import { fakePolicyListItem } from '../../../../../../entities/policy';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Response',
   component: PolicyStudioDebugResponseComponent,
   decorators: [
     moduleMetadata({
-      imports: [CommonModule, BrowserAnimationsModule],
+      declarations: [PolicyStudioDebugTimelineCardComponent, PolicyStudioDebugTimelineComponent],
+      imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }),
   ],
@@ -44,9 +51,9 @@ export default {
   args: {
     defaultValue: null,
   },
-  render: ({ debugResponse }) => ({
-    props: { debugResponse },
-    template: '<policy-studio-debug-response [debugResponse]="debugResponse"></policy-studio-debug-response>',
+  render: ({ debugResponse, listPolicies }) => ({
+    props: { debugResponse, listPolicies },
+    template: '<policy-studio-debug-response [debugResponse]="debugResponse" [listPolicies]="listPolicies"></policy-studio-debug-response>',
   }),
 } as Meta;
 
@@ -62,7 +69,7 @@ export const Loading: Story = {
 
 export const ResponseSuccess: Story = {
   args: {
-    debugResponse: {
+    debugResponse: fakeDebugResponse({
       isLoading: false,
       request: {
         body: '',
@@ -81,35 +88,13 @@ export const ResponseSuccess: Story = {
         method: 'GET',
         path: '/api/v1/',
       },
-      responseDebugSteps: [],
-      backendResponse: {},
-      requestDebugSteps: [],
-      initialAttributes: {},
-    } as DebugResponse,
-  },
-};
-
-export const ResponseError: Story = {
-  args: {
-    debugResponse: {
-      isLoading: false,
-      request: {
-        body: '',
-        headers: {
-          'Content-Type': ['application/json'],
-        },
-        method: 'GET',
-        path: '/api/v1/',
-      },
-      response: {
-        statusCode: 404,
-        method: 'GET',
-        path: '/api/v1/',
-      },
-      responseDebugSteps: [],
-      backendResponse: {},
-      requestDebugSteps: [],
-      initialAttributes: {},
-    } as DebugResponse,
+    }),
+    listPolicies: [
+      fakePolicyListItem({ id: 'key-less', name: 'Key less' }),
+      fakePolicyListItem({ id: 'policy-assign-attributes', name: 'Assign attributes' }),
+      fakePolicyListItem({ id: 'policy-override-request-method', name: 'Override request attributes' }),
+      fakePolicyListItem({ id: 'transform-headers', name: 'Transform headers' }),
+      fakePolicyListItem({ id: 'policy-assign-content', name: 'Assign content' }),
+    ],
   },
 };

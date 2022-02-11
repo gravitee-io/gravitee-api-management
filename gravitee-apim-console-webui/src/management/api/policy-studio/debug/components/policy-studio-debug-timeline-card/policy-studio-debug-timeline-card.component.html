@@ -33,7 +33,7 @@
     <div *ngIf="timelineCardVM.headerLabel" class="policy-studio-debug-timeline-card__content__header-label">
       {{ timelineCardVM.headerLabel }}
     </div>
-    <div>
+    <div class="policy-studio-debug-timeline-card__content__title" [title]="timelineCardVM.title">
       {{ timelineCardVM.title }}
     </div>
   </div>
@@ -41,6 +41,8 @@
     <div>
       <!-- TODO: Error and conditional icon -->
     </div>
-    <div *ngIf="timelineCardVM.executionTimeLabel">{{ timelineCardVM.executionTimeLabel }}</div>
+  </div>
+  <div class="policy-studio-debug-timeline-card__time-label" *ngIf="timelineCardVM.executionTimeLabel">
+    {{ timelineCardVM.executionTimeLabel }}
   </div>
 </div>
