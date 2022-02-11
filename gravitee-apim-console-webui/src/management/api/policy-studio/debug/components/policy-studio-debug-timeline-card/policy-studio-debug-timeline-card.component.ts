@@ -36,6 +36,7 @@ export type TimelineStep =
       policyName: string;
       icon: string;
       executionTime: number;
+      executionStatus: 'ERROR' | 'SKIPPED' | 'COMPLETED';
       id: string;
     }
   | {
@@ -52,6 +53,7 @@ interface TimelineCardVM {
   title?: string;
   color?: 'green' | 'blue' | 'default';
   executionTimeLabel?: string;
+  rightIcon?: string;
   id?: string;
 }
 
@@ -108,6 +110,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: timelineStep.policyName,
           color: 'default',
           executionTimeLabel: `${timelineStep.executionTime / 1_000_000}ms`,
+          rightIcon: timelineStep.executionStatus === 'ERROR' ? 'gio:warning-circled-outline' : undefined,
           id: timelineStep.id,
         };
       case 'RESPONSE_INPUT':

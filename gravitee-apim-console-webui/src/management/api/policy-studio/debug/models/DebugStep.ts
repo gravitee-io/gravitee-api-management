@@ -34,6 +34,10 @@ export type RequestDebugStep = DebugStep<{
   contextPath?: string;
   attributes?: Record<string, boolean | number | string>;
   body?: string;
+  'error.contentType'?: string;
+  'error.key'?: string;
+  'error.message'?: string;
+  'error.status'?: string;
 }>;
 
 export type ResponseDebugStep = DebugStep<{
@@ -42,4 +46,8 @@ export type ResponseDebugStep = DebugStep<{
   reason?: string;
   attributes?: Record<string, boolean | number | string>;
   body?: string;
+  'error.contentType'?: string;
+  'error.key'?: string;
+  'error.message'?: string;
+  'error.status'?: string;
 }>;

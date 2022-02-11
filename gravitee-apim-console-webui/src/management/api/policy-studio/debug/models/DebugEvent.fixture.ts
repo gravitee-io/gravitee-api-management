@@ -117,6 +117,19 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           },
         },
         {
+          policyInstanceId: 'b3cb3acc-79ea-48ea-8b3a-cc79ea48e666',
+          policyId: 'transform-headers',
+          scope: 'ON_REQUEST',
+          status: 'ERROR',
+          duration: 17968,
+          result: {
+            'error.message': 'Error message',
+            'error.key': 'POLICY_ERROR',
+            'error.status': '400',
+            'error.contentType': 'application/json',
+          },
+        },
+        {
           policyInstanceId: '4a5265f3-0c5b-4f60-9265-f30c5b8f6041',
           policyId: 'transform-headers',
           scope: 'ON_RESPONSE',

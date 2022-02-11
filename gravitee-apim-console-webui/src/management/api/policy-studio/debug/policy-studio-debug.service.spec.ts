@@ -161,6 +161,43 @@ describe('PolicyStudioDebugService', () => {
             },
           },
         },
+        {
+          duration: 17968,
+          id: expect.any(String),
+          policyId: 'transform-headers',
+          policyInstanceId: 'b3cb3acc-79ea-48ea-8b3a-cc79ea48e666',
+          policyOutput: {
+            attributes: {
+              dev: 'gmaisse',
+              'gravitee.attribute.api': 'e9b6a4f8-f660-42a4-b6a4-f8f66072a401',
+              'gravitee.attribute.api.deployed-at': 1644481512252,
+              'gravitee.attribute.application': '1',
+              'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
+              'gravitee.attribute.gravitee.attribute.plan.selection.rule.based': false,
+              'gravitee.attribute.plan': '9722a300-c59f-41c7-a2a3-00c59ff1c777',
+              'gravitee.attribute.request.method': 'POST',
+              'gravitee.attribute.resolved-path': '/',
+              'gravitee.attribute.user-id': '127.0.0.1',
+            },
+            body: '{}',
+            'error.contentType': 'application/json',
+            'error.key': 'POLICY_ERROR',
+            'error.message': 'Error message',
+            'error.status': '400',
+            headers: {
+              'X-Gravitee-Request-Id': ['8a0b25f7-bb56-4a0b-8b25-f7bb564a0b99'],
+              'X-Gravitee-Transaction-Id': ['8a0b25f7-bb56-4a0b-8b25-f7bb564a0b99'],
+              'a-header-platform': ['WOW'],
+              'dev-header': ['gmaisse'],
+              host: ['localhost:8482'],
+              'transfer-encoding': ['chunked'],
+            },
+            method: 'GET',
+            path: '/',
+          },
+          scope: 'ON_REQUEST',
+          status: 'ERROR',
+        },
       ];
 
       const expectedResponseDebugSteps: ResponseDebugStep[] = [
