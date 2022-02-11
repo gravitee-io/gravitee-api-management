@@ -536,6 +536,7 @@ public class ApiServiceCockpitImplTest {
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
@@ -548,6 +549,7 @@ public class ApiServiceCockpitImplTest {
 
         when(apiService.start(API_ID, USER_ID)).thenReturn(updatedApiEntity);
         when(planService.findByApi(API_ID)).thenReturn(null);
+        when(virtualHostService.sanitizeAndValidate(any())).thenReturn(List.of(virtualHost));
 
         service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
 
@@ -563,12 +565,14 @@ public class ApiServiceCockpitImplTest {
     public void should_upgrade_documented_to_published_api() {
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
+
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
@@ -581,6 +585,7 @@ public class ApiServiceCockpitImplTest {
         when(apiService.start(API_ID, USER_ID)).thenReturn(updatedApiEntity);
 
         when(planService.findByApi(API_ID)).thenReturn(null);
+        when(virtualHostService.sanitizeAndValidate(any())).thenReturn(List.of(virtualHost));
 
         preparePageServiceMock();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
@@ -613,17 +618,17 @@ public class ApiServiceCockpitImplTest {
         VirtualHost virtualHost = new VirtualHost();
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
+        swaggerApi.setProxy(proxy);
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setState(Lifecycle.State.STARTED);
-        when(apiService.updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
-            .thenReturn(updatedApiEntity);
         when(apiService.deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
 
         when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
+        when(virtualHostService.sanitizeAndValidate(any())).thenReturn(List.of(virtualHost));
 
         preparePageServiceMock();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);

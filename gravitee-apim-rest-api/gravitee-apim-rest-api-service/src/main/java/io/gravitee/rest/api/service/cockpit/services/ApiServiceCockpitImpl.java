@@ -136,7 +136,8 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
             this.planService.create(createKeylessPlan(apiId, environmentId));
         }
 
-        if (Lifecycle.State.STOPPED.equals(apiEntityResult.getApi().getState())) {
+        ApiEntity apiEntity = apiEntityResult.getApi();
+        if (null != apiEntity && Lifecycle.State.STOPPED.equals(apiEntity.getState())) {
             this.apiService.start(apiId, userId);
         }
 
