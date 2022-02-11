@@ -79,6 +79,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
         return {
           executionTime: debugStep.duration,
+          executionStatus: debugStep.status,
           policyName: policy?.name ?? debugStep.policyId,
           mode: 'POLICY' as const,
           icon: policy?.icon,
@@ -101,6 +102,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
         return {
           executionTime: debugStep.duration,
+          executionStatus: debugStep.status,
           policyName: policy?.name ?? debugStep.policyId,
           mode: 'POLICY' as const,
           icon: policy?.icon,
