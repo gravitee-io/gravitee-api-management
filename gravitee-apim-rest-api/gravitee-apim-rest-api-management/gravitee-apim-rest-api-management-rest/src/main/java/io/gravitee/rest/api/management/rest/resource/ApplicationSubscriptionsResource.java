@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -129,7 +130,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
     public PagedResult<SubscriptionEntity> getApplicationSubscriptions(
         @BeanParam SubscriptionParam subscriptionParam,
         @Valid @BeanParam Pageable pageable,
-        @ApiParam(allowableValues = "keys", value = "Expansion of data to return in subscriptions") @QueryParam(
+        @ApiParam(allowableValues = "keys, security", value = "Expansion of data to return in subscriptions") @QueryParam(
             "expand"
         ) List<String> expand
     ) {
@@ -142,19 +143,10 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             for (String e : expand) {
                 switch (e) {
                     case "keys":
-                        subscriptions
-                            .getContent()
-                            .forEach(
-                                subscriptionEntity -> {
-                                    final List<String> keys = apiKeyService
-                                        .findBySubscription(subscriptionEntity.getId())
-                                        .stream()
-                                        .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
-                                        .map(ApiKeyEntity::getKey)
-                                        .collect(Collectors.toList());
-                                    subscriptionEntity.setKeys(keys);
-                                }
-                            );
+                        expandKeys(subscriptions);
+                        break;
+                    case "security":
+                        expandSecurity(subscriptions);
                         break;
                     default:
                         break;
@@ -173,6 +165,37 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             .withPlans(true);
         result.setMetadata(subscriptionService.getMetadata(subscriptionMetadataQuery).toMap());
         return result;
+    }
+
+    private void expandSecurity(Page<SubscriptionEntity> subscriptions) {
+        Map<String, List<SubscriptionEntity>> subscriptionsByPlan = subscriptions
+            .getContent()
+            .stream()
+            .collect(Collectors.groupingBy(SubscriptionEntity::getPlan));
+
+        planService
+            .findByIdIn(subscriptionsByPlan.keySet())
+            .forEach(
+                plan -> {
+                    subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(plan.getSecurity().name()));
+                }
+            );
+    }
+
+    private void expandKeys(Page<SubscriptionEntity> subscriptions) {
+        subscriptions
+            .getContent()
+            .forEach(
+                subscriptionEntity -> {
+                    final List<String> keys = apiKeyService
+                        .findBySubscription(subscriptionEntity.getId())
+                        .stream()
+                        .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
+                        .map(ApiKeyEntity::getKey)
+                        .collect(Collectors.toList());
+                    subscriptionEntity.setKeys(keys);
+                }
+            );
     }
 
     @Path("{subscription}")

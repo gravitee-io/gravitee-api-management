@@ -77,6 +77,8 @@ public class SubscriptionEntity {
 
     private List<String> keys;
 
+    private String security;
+
     /**
      * Number of days before the expiration of this subscription when the last pre-expiration notification was sent
      */
@@ -224,6 +226,14 @@ public class SubscriptionEntity {
 
     public void setKeys(List<String> keys) {
         this.keys = keys;
+    }
+
+    public String getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(String security) {
+        this.security = security;
     }
 
     public Integer getDaysToExpirationOnLastNotification() {
