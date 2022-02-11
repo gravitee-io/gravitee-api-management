@@ -183,7 +183,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
 
-        return checkContextPath(api)
+        return checkContextPath(api, apiId)
             .map(ApiEntityResult::failure)
             .orElseGet(() -> ApiEntityResult.success(this.apiService.updateFromSwagger(apiId, api, swaggerDescriptor)));
     }
@@ -211,6 +211,15 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     Optional<String> checkContextPath(SwaggerApiEntity api) {
         try {
             virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts());
+            return Optional.empty();
+        } catch (Exception e) {
+            return Optional.of(e.getMessage());
+        }
+    }
+
+    Optional<String> checkContextPath(SwaggerApiEntity api, String apiId) {
+        try {
+            virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts(), apiId);
             return Optional.empty();
         } catch (Exception e) {
             return Optional.of(e.getMessage());
