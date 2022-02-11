@@ -62,6 +62,12 @@ export const Loading: Story = {
   args: {
     debugResponse: {
       isLoading: true,
+      request: {},
+      response: {},
+      responseDebugSteps: [],
+      backendResponse: {},
+      requestDebugSteps: [],
+      initialAttributes: {},
     } as DebugResponse,
   },
 };
@@ -95,5 +101,19 @@ export const ResponseSuccess: Story = {
       fakePolicyListItem({ id: 'transform-headers', name: 'Transform headers' }),
       fakePolicyListItem({ id: 'policy-assign-content', name: 'Assign content' }),
     ],
+  },
+};
+
+export const ResponseErrorFullEmpty: Story = {
+  args: {
+    debugResponse: {
+      isLoading: false,
+      request: {},
+      response: {},
+      responseDebugSteps: [],
+      backendResponse: {},
+      requestDebugSteps: [],
+      initialAttributes: {},
+    } as DebugResponse,
   },
 };
