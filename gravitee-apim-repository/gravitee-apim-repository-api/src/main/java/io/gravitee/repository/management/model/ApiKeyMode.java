@@ -24,14 +24,14 @@ public enum ApiKeyMode {
      * of a given application. This mode is enabled on demand when the triggers a subscription for the
      * second time withing the application.
      *
-     * This mode is available only if the shared mode has been activated at the organization level.
+     * This mode is available only if the shared mode has been activated at the environment level.
      */
     SHARED,
     /**
      * The `EXCLUSIVE` API key mode will result to a new API key being generated each time a subscription
      * is triggered within the application.
      *
-     * This is the default mode if the shared mode has been de-activated at the organization level.
+     * This is the default mode if the shared mode has been de-activated at the environment level.
      */
     EXCLUSIVE,
     /**
