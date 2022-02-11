@@ -49,10 +49,12 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   ngOnChanges(): void {
     if (this.debugResponse && !this.debugResponse.isLoading) {
       this.responseDisplayableVM = {
-        statusCode: this.debugResponse.response.statusCode,
-        statusCodeDescription: HttpStatusCodeDescription[this.debugResponse.response.statusCode].description,
-        successfulRequest: 200 <= this.debugResponse?.response.statusCode && this.debugResponse?.response.statusCode < 300,
-        errorRequest: 400 <= this.debugResponse?.response.statusCode && this.debugResponse?.response.statusCode < 600,
+        statusCode: this.debugResponse.response?.statusCode,
+        statusCodeDescription: this.debugResponse.response?.statusCode
+          ? HttpStatusCodeDescription[this.debugResponse.response.statusCode].description
+          : '',
+        successfulRequest: 200 <= this.debugResponse.response?.statusCode && this.debugResponse.response?.statusCode < 300,
+        errorRequest: 400 <= this.debugResponse.response?.statusCode && this.debugResponse.response?.statusCode < 600,
         timelineSteps: this.toTimelineSteps(this.debugResponse),
       };
     }
