@@ -20,7 +20,7 @@ import { PolicyListItem } from '../../../../../../entities/policy';
 import { DebugResponse } from '../../models/DebugResponse';
 import { HttpStatusCodeDescription } from '../../models/HttpStatusCodeDescription';
 import { TimelineStep } from '../policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
-import { RequestDebugStep, ResponseDebugStep } from '../../models/DebugStep';
+import { PolicyScope, RequestDebugStep, ResponseDebugStep } from '../../models/DebugStep';
 
 type ResponseDisplayableVM = {
   statusCode: number;
@@ -85,7 +85,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
           policyName: policy?.name ?? debugStep.policyId,
           mode: 'POLICY' as const,
           icon: policy?.icon,
-          flowName: debugStep.scope,
+          flowName: policyScopeToDisplayableLabel(debugStep.scope),
           id: debugStep.id,
         };
       }),
@@ -108,7 +108,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
           policyName: policy?.name ?? debugStep.policyId,
           mode: 'POLICY' as const,
           icon: policy?.icon,
-          flowName: debugStep.scope,
+          flowName: policyScopeToDisplayableLabel(debugStep.scope),
           id: debugStep.id,
         };
       }),
@@ -122,3 +122,15 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
     return timelineSteps;
   }
 }
+
+const policyScopeToDisplayableLabel = (scope: PolicyScope) => {
+  switch (scope) {
+    case 'ON_REQUEST':
+    case 'ON_RESPONSE':
+      return 'Header';
+
+    case 'ON_REQUEST_CONTENT':
+    case 'ON_RESPONSE_CONTENT':
+      return 'Body';
+  }
+};
