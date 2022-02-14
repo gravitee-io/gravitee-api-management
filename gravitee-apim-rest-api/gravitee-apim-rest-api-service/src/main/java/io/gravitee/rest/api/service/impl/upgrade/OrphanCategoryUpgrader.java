@@ -15,28 +15,23 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import static io.gravitee.rest.api.service.impl.upgrade.UpgradeStatus.*;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
-import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.Upgrader;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 @Component
-public class OrphanCategoryUpgrader implements Upgrader, Ordered {
+public class OrphanCategoryUpgrader extends OneShotUpgrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrphanCategoryUpgrader.class);
 
@@ -46,31 +41,8 @@ public class OrphanCategoryUpgrader implements Upgrader, Ordered {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @Autowired
-    private InstallationService installationService;
-
-    @Override
-    public boolean upgrade() {
-        InstallationEntity installation = installationService.getOrInitialize();
-        if (isStatus(installation, SUCCESS)) {
-            LOGGER.info("Skipping {} execution because it has already been successfully executed", this.getClass().getSimpleName());
-            return false;
-        }
-
-        if (isStatus(installation, RUNNING)) {
-            LOGGER.warn("Skipping {} execution because it is already running", this.getClass().getSimpleName());
-            return false;
-        }
-
-        try {
-            setExecutionStatus(installation, RUNNING);
-            deleteOrphanCategoryReferences();
-            setExecutionStatus(installation, SUCCESS);
-        } catch (TechnicalException e) {
-            LOGGER.error("Error while deleting orphan categories, execution will be running again on next start", e);
-            setExecutionStatus(installation, FAILURE);
-        }
-        return true;
+    public OrphanCategoryUpgrader() {
+        super(InstallationService.ORPHAN_CATEGORY_UPGRADER_STATUS);
     }
 
     @Override
@@ -78,7 +50,8 @@ public class OrphanCategoryUpgrader implements Upgrader, Ordered {
         return 100;
     }
 
-    private void deleteOrphanCategoryReferences() throws TechnicalException {
+    @Override
+    protected void processOneShotUpgrade() throws TechnicalException {
         Set<Api> updatedApis = findAndFixApisWithOrphanCategories();
         for (Api api : updatedApis) {
             LOGGER.info("Removing orphan categories for API [{}]", api.getId());
@@ -114,14 +87,5 @@ public class OrphanCategoryUpgrader implements Upgrader, Ordered {
 
     private Set<String> getExistingCategoryIds() throws TechnicalException {
         return categoryRepository.findAll().stream().map(Category::getId).collect(Collectors.toSet());
-    }
-
-    private void setExecutionStatus(InstallationEntity installation, UpgradeStatus status) {
-        installation.getAdditionalInformation().put(InstallationService.ORPHAN_CATEGORY_UPGRADER_STATUS, status.toString());
-        installationService.setAdditionalInformation(installation.getAdditionalInformation());
-    }
-
-    private boolean isStatus(InstallationEntity installation, UpgradeStatus status) {
-        return status.toString().equals(installation.getAdditionalInformation().get(InstallationService.ORPHAN_CATEGORY_UPGRADER_STATUS));
     }
 }

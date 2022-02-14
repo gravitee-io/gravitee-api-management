@@ -29,8 +29,6 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,7 +96,7 @@ public class PlansDataFixUpgraderTest {
     public void upgrade_should_run_and_set_failure_status_on_exception() throws Exception {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doThrow(new Exception("test exception")).when(upgrader).fixPlansData();
+        doThrow(new Exception("test exception")).when(upgrader).processOneShotUpgrade();
 
         boolean success = upgrader.upgrade();
 
@@ -112,7 +110,7 @@ public class PlansDataFixUpgraderTest {
     public void upgrade_should_run_and_set_success_status() throws Exception {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).fixPlansData();
+        doNothing().when(upgrader).processOneShotUpgrade();
 
         boolean success = upgrader.upgrade();
 
@@ -127,7 +125,7 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         ReflectionTestUtils.setField(upgrader, "dryRun", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).fixPlansData();
+        doNothing().when(upgrader).processOneShotUpgrade();
 
         boolean success = upgrader.upgrade();
 
@@ -156,7 +154,7 @@ public class PlansDataFixUpgraderTest {
         apiv2_2.setDefinition("{\"gravitee\": \"2.0.0\"}");
         when(apiRepository.findAll()).thenReturn(Set.of(apiv1_1, apiv2_1, apiv1_2, apiv2_2));
 
-        upgrader.fixPlansData();
+        upgrader.processOneShotUpgrade();
 
         verify(upgrader, times(1)).fixApiPlans(same(apiv2_1), any());
         verify(upgrader, times(1)).fixApiPlans(same(apiv2_2), any());

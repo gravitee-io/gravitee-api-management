@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import static io.gravitee.rest.api.service.impl.upgrade.UpgradeStatus.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -27,11 +26,9 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
-import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -40,22 +37,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
 @Component
-public class PlansDataFixUpgrader implements Upgrader, Ordered {
+public class PlansDataFixUpgrader extends OneShotUpgrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PlansDataFixUpgrader.class);
     private static final String PLAN_DESCRIPTION =
         "This plan has been recreated during a data fix process. See documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8";
     private static final String PLAN_NAME_SUFFIX = "-Recreated";
-
-    @Autowired
-    private InstallationService installationService;
 
     @Autowired
     private ApiRepository apiRepository;
@@ -83,41 +76,8 @@ public class PlansDataFixUpgrader implements Upgrader, Ordered {
 
     private boolean anomalyFound = false;
 
-    @Override
-    public boolean upgrade() {
-        if (!enabled) {
-            LOGGER.info("Skipping {} execution cause it's not enabled in configuration", this.getClass().getSimpleName());
-            return false;
-        }
-        InstallationEntity installation = installationService.getOrInitialize();
-        if (dryRun && isStatus(installation, DRY_SUCCESS)) {
-            LOGGER.info(
-                "Skipping {} execution cause it has already been successfully executed in dry mode",
-                this.getClass().getSimpleName()
-            );
-            return false;
-        }
-        if (isStatus(installation, SUCCESS)) {
-            LOGGER.info("Skipping {} execution cause it has already been successfully executed", this.getClass().getSimpleName());
-            return false;
-        }
-        if (isStatus(installation, RUNNING)) {
-            LOGGER.warn("Skipping {} execution cause it's already running", this.getClass().getSimpleName());
-            return false;
-        }
-
-        try {
-            LOGGER.info("Starting {} execution with dry-run {}", this.getClass().getSimpleName(), dryRun ? "enabled" : "disabled");
-            setExecutionStatus(installation, RUNNING);
-            fixPlansData();
-            setExecutionStatus(installation, dryRun ? DRY_SUCCESS : SUCCESS);
-        } catch (Throwable e) {
-            LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
-            setExecutionStatus(installation, FAILURE);
-            return false;
-        }
-        LOGGER.info("Finishing {} execution", this.getClass().getSimpleName());
-        return true;
+    public PlansDataFixUpgrader() {
+        super(InstallationService.PLANS_DATA_UPGRADER_STATUS);
     }
 
     @Override
@@ -125,7 +85,8 @@ public class PlansDataFixUpgrader implements Upgrader, Ordered {
         return 500;
     }
 
-    protected void fixPlansData() throws Exception {
+    @Override
+    protected void processOneShotUpgrade() throws Exception {
         for (Api api : apiRepository.findAll()) {
             io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                 api.getDefinition(),
@@ -259,15 +220,6 @@ public class PlansDataFixUpgrader implements Upgrader, Ordered {
         }
     }
 
-    private void setExecutionStatus(InstallationEntity installation, UpgradeStatus status) {
-        installation.getAdditionalInformation().put(InstallationService.PLANS_DATA_UPGRADER_STATUS, status.toString());
-        installationService.setAdditionalInformation(installation.getAdditionalInformation());
-    }
-
-    private boolean isStatus(InstallationEntity installation, UpgradeStatus status) {
-        return status.toString().equals(installation.getAdditionalInformation().get(InstallationService.PLANS_DATA_UPGRADER_STATUS));
-    }
-
     private boolean hasPlansDataAnomaly(Set<Plan> apiPlans, List<io.gravitee.definition.model.Plan> definitionPlans) {
         List<String> apiPlansIds = apiPlans
             .stream()
@@ -318,5 +270,15 @@ public class PlansDataFixUpgrader implements Upgrader, Ordered {
         LOGGER.warn("");
         LOGGER.warn("##############################################################");
         LOGGER.warn("");
+    }
+
+    @Override
+    protected boolean isDryRun() {
+        return dryRun;
+    }
+
+    @Override
+    protected boolean isEnabled() {
+        return enabled;
     }
 }
