@@ -96,7 +96,7 @@ class ApplicationSubscribeController {
   }
 
   async onSubscribe(api, plan) {
-    if (this.shouldPromptForKeyMode) {
+    if (this.shouldPromptForKeyMode(plan)) {
       this.selectKeyMode()
         .then((mode) => this.ApplicationService.update({ ...this.application, api_key_mode: mode }))
         .then(() => this.doSubscribe(plan), _.noop);
@@ -165,8 +165,13 @@ class ApplicationSubscribeController {
     return this.$mdDialog.show(dialog);
   }
 
-  get shouldPromptForKeyMode(): boolean {
-    return this.allowsSharedApiKeys && this.apiKeySubscriptionsCount >= 1 && this.application.api_key_mode === ApiKeyMode.UNSPECIFIED;
+  shouldPromptForKeyMode(plan: any): boolean {
+    return (
+      plan.security === PlanSecurityType.API_KEY &&
+      this.allowsSharedApiKeys &&
+      this.apiKeySubscriptionsCount >= 1 &&
+      this.application.api_key_mode === ApiKeyMode.UNSPECIFIED
+    );
   }
 
   get apiKeySubscriptionsCount(): number {
