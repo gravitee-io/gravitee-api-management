@@ -36,6 +36,7 @@ $cardIconWidth: 32px;
   &.selected {
     @include mat.elevation(3);
     border: 1px solid mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+    padding: 7px 7px 7px 3px;
   }
 
   &.color-green {
@@ -92,5 +93,10 @@ $cardIconWidth: 32px;
     position: absolute;
     bottom: 8px;
     right: 8px;
+  }
+
+  &.selected &__time-label {
+    bottom: 7px;
+    right: 7px;
   }
 }
