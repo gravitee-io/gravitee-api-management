@@ -76,7 +76,7 @@
         <md-checkbox
           ng-disabled="!$ctrl.settings.plan.security.apikey.enabled || $ctrl.isReadonlySetting('plan.security.apikey.sharedApiKey.enabled')"
           ng-model="$ctrl.settings.plan.security.sharedApiKey.enabled"
-          aria-label="apikeyCustom"
+          aria-label="sharedApiKey"
         >
           Allow to share API key on an application
           <md-tooltip ng-if="$ctrl.isReadonlySetting('plan.security.sharedApiKey.enabled')"
