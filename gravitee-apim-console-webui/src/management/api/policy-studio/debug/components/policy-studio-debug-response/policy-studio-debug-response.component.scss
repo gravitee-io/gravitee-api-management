@@ -20,7 +20,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &__icon {
       --gv-icon--s: 128px;
-      --gv-icon--c: var(--gv-theme-color-dark);
+      --gv-icon--c: #{mat.get-color-from-palette(gio.$mat-primary-palette, lighter)};
     }
   }
 
