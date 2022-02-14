@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -66,6 +67,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     protected static final String KID = "cockpit";
     protected static final String REDIRECT_URI_CLAIM = "redirect_uri";
     protected static final String ENVIRONMENT_CLAIM = "env";
+    protected static final String API_CLAIM = "api";
 
     private boolean enabled;
 
@@ -137,18 +139,16 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             // Cockpit user is authenticated, connect user (ie: generate cookie).
             super.connectUser(user, httpResponse);
 
+            String url = String.format(
+                "%s?organization=%s/#!/environments/%s/%s",
+                jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM),
+                jwtClaimsSet.getStringClaim(ORG_CLAIM),
+                jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM),
+                jwtClaimsSet.getStringClaim(API_CLAIM) == null ? "" : String.format("api/%s", jwtClaimsSet.getStringClaim(API_CLAIM))
+            );
+
             // Redirect the user.
-            return Response
-                .temporaryRedirect(
-                    new URI(
-                        jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM) +
-                        "?organization=" +
-                        jwtClaimsSet.getStringClaim(ORG_CLAIM) +
-                        "/#!/environments/" +
-                        jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM)
-                    )
-                )
-                .build();
+            return Response.temporaryRedirect(new URI(URLEncoder.encode(url, "UTF-8"))).build();
         } catch (Exception e) {
             LOGGER.error("Error occurred when trying to log user using cockpit.", e);
             return Response.serverError().build();
