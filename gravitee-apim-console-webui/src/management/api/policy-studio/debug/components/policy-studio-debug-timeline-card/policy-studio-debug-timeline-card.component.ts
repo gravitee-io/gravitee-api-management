@@ -17,7 +17,7 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
-export type TimelineStep =
+export type TimelineStep = (
   | {
       mode: 'CLIENT_APP';
     }
@@ -44,7 +44,8 @@ export type TimelineStep =
     }
   | {
       mode: 'RESPONSE_OUTPUT';
-    };
+    }
+) & { id: string };
 
 interface TimelineCardVM {
   icon?: string;
@@ -65,6 +66,9 @@ interface TimelineCardVM {
 export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
   @Input()
   public timelineStep?: TimelineStep;
+
+  @Input()
+  public selected?: boolean;
 
   public timelineCardVM: TimelineCardVM = {};
 

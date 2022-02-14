@@ -44,7 +44,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
   public responseDisplayableVM: ResponseDisplayableVM;
 
-  public selectedStep: RequestDebugStep | ResponseDebugStep | '🚧';
+  public selectedStep: { id: string; step?: RequestDebugStep | ResponseDebugStep | '🚧' };
 
   ngOnChanges(): void {
     if (this.debugResponse && !this.debugResponse.isLoading) {
@@ -61,21 +61,25 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   }
 
   onSelectTimelineStep(timelineStep: TimelineStep) {
+    this.selectedStep = { id: timelineStep.id, step: undefined };
+
     if (timelineStep.mode === 'POLICY') {
-      this.selectedStep = [...this.debugResponse.requestDebugSteps, ...this.debugResponse.responseDebugSteps].find(
+      this.selectedStep.step = [...this.debugResponse.requestDebugSteps, ...this.debugResponse.responseDebugSteps].find(
         (value) => value.id === timelineStep.id,
       );
       return;
     }
-    this.selectedStep = '🚧';
+    this.selectedStep.step = '🚧';
   }
 
   private toTimelineSteps(debugResponse: DebugResponse) {
     const timelineSteps: TimelineStep[] = [
       {
+        id: 'requestClientApp',
         mode: 'CLIENT_APP',
       },
       {
+        id: 'requestInput',
         mode: 'REQUEST_INPUT',
       },
       ...debugResponse.requestDebugSteps.map((debugStep) => {
@@ -92,12 +96,15 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         };
       }),
       {
+        id: 'requestOutput',
         mode: 'REQUEST_OUTPUT',
       },
       {
+        id: 'backendTarget',
         mode: 'BACKEND_TARGET',
       },
       {
+        id: 'responseInput',
         mode: 'RESPONSE_INPUT',
       },
       ...debugResponse.responseDebugSteps.map((debugStep) => {
@@ -114,9 +121,11 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         };
       }),
       {
+        id: 'responseOutput',
         mode: 'RESPONSE_OUTPUT',
       },
       {
+        id: 'responseClientApp',
         mode: 'CLIENT_APP',
       },
     ];

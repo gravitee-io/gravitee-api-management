@@ -33,6 +33,11 @@ $cardIconWidth: 32px;
     cursor: pointer;
   }
 
+  &.selected {
+    @include mat.elevation(3);
+    border: 1px solid mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+  }
+
   &.color-green {
     color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
   }
