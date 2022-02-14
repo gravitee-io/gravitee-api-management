@@ -7,6 +7,7 @@ $typography: map.get(gio.$mat-theme, typography);
 .policy-studio-debug-timeline {
   background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'lighter-background');
   border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+  position: relative;
 
   &__header {
     background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
@@ -29,6 +30,14 @@ $typography: map.get(gio.$mat-theme, typography);
   &__scroll {
     overflow: auto;
     white-space: nowrap;
-    padding-bottom: 8px;
+    padding: 8px 4px 8px 4px;
+  }
+
+  &__background {
+    position: absolute;
+    background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+    height: 24px;
+    width: 100%;
+    bottom: 38px;
   }
 }
