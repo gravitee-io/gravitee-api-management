@@ -48,9 +48,16 @@ export default {
   argTypes: {
     onRequestSubmitted: { action: 'onRequestSubmitted' },
   },
+  parameters: {
+    layout: 'fullscreen',
+  },
   render: ({ onRequestSubmitted }) => ({
     props: { onRequestSubmitted },
-    template: '<policy-studio-debug-request (requestSubmitted)="onRequestSubmitted($event)"></policy-studio-debug-request>',
+    template: `
+      <div style="height:100vh">
+        <policy-studio-debug-request (requestSubmitted)="onRequestSubmitted($event)"></policy-studio-debug-request>
+      </div>
+    `,
   }),
 } as Meta;
 

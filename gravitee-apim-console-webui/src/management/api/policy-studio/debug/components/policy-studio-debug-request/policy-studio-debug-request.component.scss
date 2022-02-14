@@ -19,22 +19,29 @@
   }
 
   &__content {
-    display: flex;
-    flex-direction: column;
-    padding: 16px 0;
+    flex: 1 1 auto;
+    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
 
-    &__field {
-      padding: 0 16px 0 16px;
-    }
+    position: relative;
+    overflow-x: auto;
 
-    &__body {
-      margin-top: 16px;
+    &__wrapper {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      height: 100%;
+      width: 100%;
+
+      &__body {
+        margin-top: 16px;
+      }
     }
   }
 
   &__btn {
     display: flex;
     flex-direction: column;
-    padding: 0 16px 0 16px;
+    padding: 16px 24px;
   }
 }
