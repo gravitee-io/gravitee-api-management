@@ -29,13 +29,14 @@ import { fakeDebugResponse } from '../../models/DebugResponse.fixture';
 import { PolicyStudioDebugTimelineCardComponent } from '../policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
 import { PolicyStudioDebugTimelineComponent } from '../policy-studio-debug-timeline/policy-studio-debug-timeline.component';
 import { fakePolicyListItem } from '../../../../../../entities/policy';
+import { PolicyStudioDebugTimelineLegendComponent } from '../policy-studio-debug-timeline-legend/policy-studio-debug-timeline-legend.component';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Response',
   component: PolicyStudioDebugResponseComponent,
   decorators: [
     moduleMetadata({
-      declarations: [PolicyStudioDebugTimelineCardComponent, PolicyStudioDebugTimelineComponent],
+      declarations: [PolicyStudioDebugTimelineCardComponent, PolicyStudioDebugTimelineComponent, PolicyStudioDebugTimelineLegendComponent],
       imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }),
