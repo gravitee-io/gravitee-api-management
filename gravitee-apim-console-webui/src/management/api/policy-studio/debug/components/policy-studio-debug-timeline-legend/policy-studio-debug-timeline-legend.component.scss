@@ -1,0 +1,38 @@
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.policy-studio-debug-timeline-legend {
+  background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+  border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+  height: 40px;
+  display: flex;
+  align-items: center;
+
+  &__badge {
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, surface);
+    margin-left: 4px;
+    margin-right: 4px;
+    padding: 3px 8px;
+    line-height: 16px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'darker');
+    font-size: mat.font-size($typography, caption);
+    font-weight: mat.font-weight($typography, caption);
+    border: 1px solid mat.get-color-from-palette(gio.$mat-neutral-palette, 'darker');
+    border-radius: 16px;
+
+    .gio-left {
+      height: 16px;
+      width: 16px;
+      margin-right: 4px;
+    }
+  }
+}
