@@ -18,36 +18,38 @@
 <form class="policy-studio-debug-request" [formGroup]="requestFormGroup" (ngSubmit)="onSendRequest()">
   <div class="policy-studio-debug-request__header">Request</div>
   <div class="policy-studio-debug-request__content">
-    <mat-form-field class="policy-studio-debug-request__content__field" appearance="fill">
-      <mat-label>HTTP method</mat-label>
-      <mat-select formControlName="method">
-        <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <div class="policy-studio-debug-request__content__wrapper">
+      <mat-form-field class="policy-studio-debug-request__content__wrapper__field" appearance="fill">
+        <mat-label>HTTP method</mat-label>
+        <mat-select formControlName="method">
+          <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-    <mat-form-field class="policy-studio-debug-request__content__field" appearance="fill">
-      <mat-label>Path</mat-label>
-      <input matInput formControlName="path" placeholder="/" />
-    </mat-form-field>
+      <mat-form-field class="policy-studio-debug-request__content__wrapper__field" appearance="fill">
+        <mat-label>Path</mat-label>
+        <input matInput formControlName="path" placeholder="/" />
+      </mat-form-field>
 
-    <mat-tab-group class="policy-studio-debug-request__content__field">
-      <mat-tab label="Headers">
-        <gv-schema-form [schema]="headersControl" (:gv-schema-form:change)="onHeadersChange($event.detail)"></gv-schema-form>
-      </mat-tab>
-      <mat-tab label="Request body">
-        <gv-code
-          class="policy-studio-debug-request__content__body"
-          [options]="{
-            placeholder: 'Put request body here',
-            lineWrapping: true,
-            lineNumbers: true,
-            allowDropFileTypes: true,
-            autoCloseTags: true
-          }"
-          (:gv-code:input)="onBodyChange($event.detail)"
-        ></gv-code>
-      </mat-tab>
-    </mat-tab-group>
+      <mat-tab-group class="policy-studio-debug-request__content__wrapper__tab-group">
+        <mat-tab label="Headers">
+          <gv-schema-form [schema]="headersControl" (:gv-schema-form:change)="onHeadersChange($event.detail)"></gv-schema-form>
+        </mat-tab>
+        <mat-tab label="Request body">
+          <gv-code
+            class="policy-studio-debug-request__content__body"
+            [options]="{
+              placeholder: 'Put request body here',
+              lineWrapping: true,
+              lineNumbers: true,
+              allowDropFileTypes: true,
+              autoCloseTags: true
+            }"
+            (:gv-code:input)="onBodyChange($event.detail)"
+          ></gv-code>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
   </div>
   <div class="policy-studio-debug-request__btn">
     <button mat-flat-button color="primary" type="submit">Send</button>
