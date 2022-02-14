@@ -8,6 +8,6 @@ databaseChangeLog:
             columns:
               - column:
                   name: api_key_mode
-                  type: nvarchar(256)
+                  type: nvarchar(16)
                   constraints:
                     nullable: true
