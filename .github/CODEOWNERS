@@ -3,7 +3,3 @@
 
 # Archi
 /gravitee-apim-gateway/                                       @gravitee-io/archi
-
-# Element-zero
-/gravitee-apim-console-webui/                                 @gravitee-io/element-zero
-/gravitee-apim-portal-webui/                                  @gravitee-io/element-zero
