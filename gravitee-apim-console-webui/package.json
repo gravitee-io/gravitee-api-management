@@ -4,7 +4,7 @@
   "description": "Gravitee.io APIM - UI Console",
   "dependencies": {
     "@fontsource/libre-franklin": "^4.4.5",
-    "@gravitee/ui-components": "3.28.7",
+    "@gravitee/ui-components": "3.29.4",
     "@highcharts/map-collection": "^1.1.3",
     "@toast-ui/editor": "^2.5.2",
     "@toast-ui/editor-plugin-code-syntax-highlight": "^1.0.0",
