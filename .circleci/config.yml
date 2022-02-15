@@ -571,29 +571,6 @@ jobs:
                       mv ./kubectl /usr/local/bin/kubectl
                       kubectl version --client=true
             - run:
-                  name: Helm upgrade and 🚀 to Element Zero cluster
-                  command: |
-                      if [ "master" == "${CIRCLE_BRANCH}" ]
-                      then
-                          az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-                          az aks get-credentials --resource-group element-zero --name element-zero
-
-                          helm upgrade --repo https://helm.gravitee.io \
-                                      --install apim \
-                                      -n apim \
-                                      --reuse-values \
-                                      apim3 \
-                                       --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                                       --set "api.image.tag=${TAG}" \
-                                       --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
-                                       --set "portal.image.tag=${TAG}" \
-                                       --set "ui.image.repository=graviteeio.azurecr.io/apim-management-ui" \
-                                       --set "ui.image.tag=${TAG}" \
-                                       --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                                       --set "gateway.image.tag=${TAG}" \
-                                       --set "redis.repositoryVersion=3.12.1"
-                      fi
-            - run:
                   name: Helm upgrade and 🚀 to APIM cluster
                   command: |
                       export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
