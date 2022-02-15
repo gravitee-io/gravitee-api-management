@@ -91,7 +91,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
         };
       case 'BACKEND_TARGET':
         return {
-          icon: 'gio:city',
+          icon: 'gio:server',
           title: 'Backend Target',
           color: 'green',
         };
