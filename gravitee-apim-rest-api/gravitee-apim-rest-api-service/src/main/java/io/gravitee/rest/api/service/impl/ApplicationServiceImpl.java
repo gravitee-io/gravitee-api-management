@@ -29,6 +29,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -993,7 +994,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setSettings(getSettings(application));
         applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
         if (application.getApiKeyMode() != null) {
-            applicationEntity.setApiKeyMode(application.getApiKeyMode().name());
+            applicationEntity.setApiKeyMode(ApiKeyMode.valueOf(application.getApiKeyMode().name()));
         }
         return applicationEntity;
     }
@@ -1096,7 +1097,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         if (updateApplicationEntity.getApiKeyMode() != null) {
-            application.setApiKeyMode(ApiKeyMode.valueOf(updateApplicationEntity.getApiKeyMode()));
+            application.setApiKeyMode(
+                io.gravitee.repository.management.model.ApiKeyMode.valueOf(updateApplicationEntity.getApiKeyMode().name())
+            );
         }
 
         application.setMetadata(metadata);

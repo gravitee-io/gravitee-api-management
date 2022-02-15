@@ -97,7 +97,7 @@ public class ApplicationMapper {
                 (settings.getApp() != null && settings.getApp().getClientId() != null && !settings.getApp().getClientId().isEmpty())
             )
         );
-        application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode()));
+        application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode().name()));
         return application;
     }
 
