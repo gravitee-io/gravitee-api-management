@@ -15,4 +15,51 @@
     limitations under the License.
 
 -->
-Inspector
+<div class="policy-studio-debug-inspector__header">
+  <h5>Inspector</h5>
+</div>
+
+<div class="policy-studio-debug-inspector__content">
+  <div class="policy-studio-debug-inspector__content__wrapper">
+    <div class="policy-studio-debug-inspector__content__wrapper__title">
+      <div>Input</div>
+      <div>Output</div>
+    </div>
+
+    <mat-tree #tree [dataSource]="dataSource" [treeControl]="treeControl">
+      <!-- This is the tree node template for leaf nodes -->
+      <mat-tree-node *matTreeNodeDef="let node" class="policy-studio-debug-inspector__tree-node-content">
+        <container-element [ngSwitch]="node.type">
+          <policy-studio-debug-inspector-table
+            *ngSwitchCase="'table'"
+            [name]="node.name"
+            [input]="node.input"
+            [output]="node.output"
+          ></policy-studio-debug-inspector-table>
+
+          <policy-studio-debug-inspector-body
+            *ngSwitchCase="'body'"
+            [input]="node.input"
+            [output]="node.output"
+          ></policy-studio-debug-inspector-body>
+
+          <policy-studio-debug-inspector-text
+            *ngSwitchDefault
+            [name]="node.name"
+            [input]="node.input"
+            [output]="node.output"
+          ></policy-studio-debug-inspector-text>
+        </container-element>
+      </mat-tree-node>
+      <!-- This is the tree node template for expandable nodes -->
+      <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding class="policy-studio-debug-inspector__tree-node">
+        <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.name">
+          <mat-icon class="mat-icon-rtl-mirror">
+            {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
+          </mat-icon>
+        </button>
+        {{ node.name }}
+      </mat-tree-node>
+    </mat-tree>
+  </div>
+</div>

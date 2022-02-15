@@ -18,8 +18,11 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTreeModule } from '@angular/material/tree';
+import { MatButtonModule } from '@angular/material/button';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+
 import '@gravitee/ui-components/wc/gv-icon';
 
 import { PolicyStudioDebugResponseComponent } from './policy-studio-debug-response.component';
@@ -30,14 +33,26 @@ import { PolicyStudioDebugTimelineCardComponent } from '../policy-studio-debug-t
 import { PolicyStudioDebugTimelineComponent } from '../policy-studio-debug-timeline/policy-studio-debug-timeline.component';
 import { fakePolicyListItem } from '../../../../../../entities/policy';
 import { PolicyStudioDebugTimelineLegendComponent } from '../policy-studio-debug-timeline-legend/policy-studio-debug-timeline-legend.component';
+import { PolicyStudioDebugInspectorTableComponent } from '../policy-studio-debug-inspector/policy-studio-debug-inspector-table/policy-studio-debug-inspector-table.component';
+import { PolicyStudioDebugInspectorBodyComponent } from '../policy-studio-debug-inspector/policy-studio-debug-inspector-body/policy-studio-debug-inspector-body.component';
+import { PolicyStudioDebugInspectorTextComponent } from '../policy-studio-debug-inspector/policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
+import { PolicyStudioDebugInspectorComponent } from '../policy-studio-debug-inspector/policy-studio-debug-inspector.component';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Response',
   component: PolicyStudioDebugResponseComponent,
   decorators: [
     moduleMetadata({
-      declarations: [PolicyStudioDebugTimelineCardComponent, PolicyStudioDebugTimelineComponent, PolicyStudioDebugTimelineLegendComponent],
-      imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule],
+      declarations: [
+        PolicyStudioDebugInspectorComponent,
+        PolicyStudioDebugInspectorBodyComponent,
+        PolicyStudioDebugInspectorTableComponent,
+        PolicyStudioDebugInspectorTextComponent,
+        PolicyStudioDebugTimelineCardComponent,
+        PolicyStudioDebugTimelineComponent,
+        PolicyStudioDebugTimelineLegendComponent,
+      ],
+      imports: [CommonModule, BrowserAnimationsModule, MatButtonModule, MatIconModule, MatTreeModule, GioIconsModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }),
   ],
@@ -51,9 +66,16 @@ export default {
   args: {
     defaultValue: null,
   },
+  parameters: {
+    layout: 'fullscreen',
+  },
   render: ({ debugResponse, listPolicies }) => ({
     props: { debugResponse, listPolicies },
-    template: '<policy-studio-debug-response [debugResponse]="debugResponse" [listPolicies]="listPolicies"></policy-studio-debug-response>',
+    template: `
+        <div style="height: 100vh">
+            <policy-studio-debug-response [debugResponse]="debugResponse" [listPolicies]="listPolicies"></policy-studio-debug-response>
+        </div>
+    `,
   }),
 } as Meta;
 

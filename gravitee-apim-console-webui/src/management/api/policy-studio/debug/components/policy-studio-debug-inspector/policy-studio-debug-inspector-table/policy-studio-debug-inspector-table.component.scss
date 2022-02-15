@@ -1,0 +1,14 @@
+:host {
+  display: flex;
+
+  > * {
+    width: 100%;
+    flex: 1;
+  }
+
+  th,
+  td {
+    width: 25%;
+    word-break: break-all;
+  }
+}
