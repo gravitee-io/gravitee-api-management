@@ -22,7 +22,7 @@
   <md-dialog-content class="application-key-dialog__content">
     <div class="application-key-dialog__content__details">
       <p>API key is unique to each subscription.</p>
-      <p>Application key is shared across subscriptions.</p>
+      <p>Shared API key is shared across subscriptions.</p>
     </div>
     <div class="application-key-dialog__content__warning">
       <p>Please note that this action is irreversible.</p>
@@ -31,8 +31,8 @@
   <md-dialog-actions>
     <div class="application-key-dialog__actions">
       <md-button class="md-primary" ng-click="$ctrl.hide()">RETURN</md-button>
-      <md-button class="md-primary md-raised" ng-click="$ctrl.hide($ctrl.keyModes.EXCLUSIVE)">SHARED KEY</md-button>
-      <md-button class="md-primary md-raised" ng-click="$ctrl.hide($ctrl.keyModes.SHARED)">APPLICATION KEY</md-button>
+      <md-button class="md-primary md-raised" ng-click="$ctrl.hide($ctrl.keyModes.EXCLUSIVE)">API KEY</md-button>
+      <md-button class="md-primary md-raised" ng-click="$ctrl.hide($ctrl.keyModes.SHARED)">SHARED API KEY</md-button>
     </div>
   </md-dialog-actions>
 </md-dialog>
