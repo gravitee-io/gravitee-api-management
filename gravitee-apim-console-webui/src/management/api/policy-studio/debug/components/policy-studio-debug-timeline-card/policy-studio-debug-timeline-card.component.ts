@@ -31,7 +31,7 @@ export type TimelineStep = (
       mode: 'REQUEST_OUTPUT';
     }
   | {
-      mode: 'POLICY';
+      mode: 'POLICY_REQUEST' | 'POLICY_RESPONSE';
       flowName: string;
       policyName: string;
       icon: string;
@@ -45,7 +45,7 @@ export type TimelineStep = (
   | {
       mode: 'RESPONSE_OUTPUT';
     }
-) & { id: string };
+) & { id: string; selected: boolean };
 
 interface TimelineCardVM {
   icon?: string;
@@ -57,6 +57,7 @@ interface TimelineCardVM {
   rightIcon?: string;
   id?: string;
   clickable: boolean;
+  selected: boolean;
 }
 
 @Component({
@@ -68,11 +69,9 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
   @Input()
   public timelineStep?: TimelineStep;
 
-  @Input()
-  public selected?: boolean;
-
   public timelineCardVM: TimelineCardVM = {
     clickable: false,
+    selected: false,
   };
 
   constructor(private readonly sanitizer: DomSanitizer) {}
@@ -92,6 +91,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Client APP',
           color: 'green',
           clickable: true,
+          selected: timelineStep.selected,
         };
       case 'BACKEND_TARGET':
         return {
@@ -99,6 +99,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Backend Target',
           color: 'green',
           clickable: false,
+          selected: timelineStep.selected,
         };
       case 'REQUEST_INPUT':
         return {
@@ -106,6 +107,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Request Input',
           color: 'blue',
           clickable: true,
+          selected: timelineStep.selected,
         };
       case 'REQUEST_OUTPUT':
         return {
@@ -113,8 +115,10 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Request Output',
           color: 'blue',
           clickable: true,
+          selected: timelineStep.selected,
         };
-      case 'POLICY':
+      case 'POLICY_REQUEST':
+      case 'POLICY_RESPONSE':
         return {
           iconUrl: this.sanitizer.bypassSecurityTrustUrl(timelineStep.icon),
           headerLabel: timelineStep.flowName,
@@ -124,6 +128,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           rightIcon: timelineStep.executionStatus === 'ERROR' ? 'gio:warning-circled-outline' : undefined,
           id: timelineStep.id,
           clickable: true,
+          selected: timelineStep.selected,
         };
       case 'RESPONSE_INPUT':
         return {
@@ -131,6 +136,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Response Input',
           color: 'blue',
           clickable: true,
+          selected: timelineStep.selected,
         };
       case 'RESPONSE_OUTPUT':
         return {
@@ -138,6 +144,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Response Output',
           color: 'blue',
           clickable: true,
+          selected: timelineStep.selected,
         };
     }
   }

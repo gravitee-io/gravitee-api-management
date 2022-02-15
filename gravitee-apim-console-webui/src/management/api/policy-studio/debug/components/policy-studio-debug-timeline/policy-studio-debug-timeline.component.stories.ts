@@ -68,7 +68,7 @@ export const ClientApp: Story = {
         mode: 'REQUEST_INPUT',
       },
       {
-        mode: 'POLICY',
+        mode: 'POLICY_REQUEST',
         executionTime: 32,
         flowName: 'Plan flow 1',
         policyName: 'IP Filtering Policy',
@@ -84,7 +84,7 @@ export const ClientApp: Story = {
         mode: 'RESPONSE_INPUT',
       },
       {
-        mode: 'POLICY',
+        mode: 'POLICY_RESPONSE',
         executionTime: 32,
         flowName: 'Plan flow 1',
         policyName: 'IP Filtering Policy',
