@@ -86,16 +86,12 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         Map<String, List<String>> registeredVirtualHosts = apis
             .stream()
             .flatMap(
-                new Function<ApiEntity, Stream<VirtualHost>>() {
-                    @Override
-                    public Stream<VirtualHost> apply(ApiEntity api) {
-                        return api
-                            .getProxy()
-                            .getVirtualHosts()
-                            .stream()
-                            .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty());
-                    }
-                }
+                (Function<ApiEntity, Stream<VirtualHost>>) api ->
+                    api
+                        .getProxy()
+                        .getVirtualHosts()
+                        .stream()
+                        .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
             )
             .collect(Collectors.groupingBy(VirtualHost::getHost, Collectors.mapping(VirtualHost::getPath, Collectors.toList())));
 
@@ -103,17 +99,8 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         List<String> registeredContextPaths = apis
             .stream()
             .flatMap(
-                new Function<ApiEntity, Stream<String>>() {
-                    @Override
-                    public Stream<String> apply(ApiEntity api) {
-                        return api
-                            .getProxy()
-                            .getVirtualHosts()
-                            .stream()
-                            .filter(virtualHost -> virtualHost.getHost() == null)
-                            .map(VirtualHost::getPath);
-                    }
-                }
+                (Function<ApiEntity, Stream<String>>) api ->
+                    api.getProxy().getVirtualHosts().stream().filter(virtualHost -> virtualHost.getHost() == null).map(VirtualHost::getPath)
             )
             .collect(Collectors.toList());
 
@@ -122,7 +109,9 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
             sanitizedVirtualHosts
                 .stream()
                 .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
-                .forEach(virtualHost -> compare(virtualHost.getPath(), registeredVirtualHosts.get(virtualHost.getHost())));
+                .forEach(
+                    virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredVirtualHosts.get(virtualHost.getHost()))
+                );
         }
 
         // Then check remaining virtual hosts without a host and compare to registered context paths
@@ -130,7 +119,7 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
             sanitizedVirtualHosts
                 .stream()
                 .filter(virtualHost -> virtualHost.getHost() == null)
-                .forEach(virtualHost -> compare(virtualHost.getPath(), registeredContextPaths));
+                .forEach(virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredContextPaths));
         }
         return sanitizedVirtualHosts;
     }
@@ -202,9 +191,10 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         return new VirtualHost(virtualHost.getHost(), path, virtualHost.isOverrideEntrypoint());
     }
 
-    private void compare(String path, List<String> paths) {
+    private void checkPathNotYetRegistered(String path, List<String> registeredPaths) {
         boolean match =
-            paths != null && paths.stream().anyMatch(registeredPath -> path.startsWith(registeredPath) || registeredPath.startsWith(path));
+            registeredPaths != null &&
+            registeredPaths.stream().anyMatch(registeredPath -> path.startsWith(registeredPath) || registeredPath.startsWith(path));
 
         if (match) {
             throw new ApiContextPathAlreadyExistsException(path);
