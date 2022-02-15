@@ -37,6 +37,7 @@
 </section>
 
 <gio-save-bar
+  *ngIf="this.isDirty"
   class="gio-policy-studio-layout__save-bar"
   [opened]="this.isDirty"
   [creationMode]="false"
