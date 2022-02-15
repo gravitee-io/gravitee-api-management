@@ -686,15 +686,16 @@ jobs:
             - run:
                   name: 🚀 to APIM cluster
                   command: |
+                      export K8S_NAME=apim-${CIRCLE_BRANCH//\./-}
                       export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
 
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       az aks get-credentials --resource-group apim-hprod --name apim-hprod
 
-                      kubectl rollout restart deployment/apim-apim3-api -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/apim-apim3-portal -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/apim-apim3-ui -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/apim-apim3-gateway -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAME}-apim3-api -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAME}-apim3-portal -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAME}-apim3-ui -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAME}-apim3-gateway -n ${K8S_NAMESPACE}
 
             - notify-on-failure
 
