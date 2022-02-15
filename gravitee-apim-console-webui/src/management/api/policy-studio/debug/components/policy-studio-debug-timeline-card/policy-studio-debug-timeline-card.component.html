@@ -40,7 +40,11 @@
   </div>
   <div class="policy-studio-debug-timeline-card__right">
     <div>
-      <mat-icon *ngIf="timelineCardVM.rightIcon" [svgIcon]="timelineCardVM.rightIcon"></mat-icon>
+      <mat-icon
+        *ngIf="timelineCardVM.rightIcon"
+        [class.error]="timelineStep.executionStatus === 'ERROR'"
+        [svgIcon]="timelineCardVM.rightIcon"
+      ></mat-icon>
     </div>
   </div>
   <div class="policy-studio-debug-timeline-card__time-label" *ngIf="timelineCardVM.executionTimeLabel">
