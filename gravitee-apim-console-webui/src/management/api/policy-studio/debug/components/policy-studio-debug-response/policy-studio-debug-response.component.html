@@ -61,7 +61,6 @@
       <policy-studio-debug-timeline-card
         *ngFor="let timelineStep of responseDisplayableVM.timelineSteps"
         [timelineStep]="timelineStep"
-        [selected]="selectedStep && selectedStep.id === timelineStep.id"
         (click)="onSelectTimelineStep(timelineStep)"
       ></policy-studio-debug-timeline-card>
     </policy-studio-debug-timeline>
@@ -72,13 +71,13 @@
     <policy-studio-debug-timeline-legend></policy-studio-debug-timeline-legend>
   </div> -->
 
-  <div *ngIf="selectedStep && selectedStep.output === '🚧'">🚧 Coming soon 🚧</div>
+  <div *ngIf="inspectorVM && inspectorVM.output === '🚧'">🚧 Coming soon 🚧</div>
 
   <policy-studio-debug-inspector
     class="policy-studio-debug-response__display-response__inspector"
-    *ngIf="selectedStep && selectedStep.output != '🚧'"
-    [inputDebugStep]="selectedStep.input"
-    [outputDebugStep]="selectedStep.output"
+    *ngIf="inspectorVM && inspectorVM.output != '🚧'"
+    [inputDebugStep]="inspectorVM.input"
+    [outputDebugStep]="inspectorVM.output"
   >
   </policy-studio-debug-inspector>
 </ng-template>

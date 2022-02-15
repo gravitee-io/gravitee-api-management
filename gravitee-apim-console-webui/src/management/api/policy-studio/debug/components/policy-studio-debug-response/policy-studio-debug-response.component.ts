@@ -45,8 +45,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
   public responseDisplayableVM: ResponseDisplayableVM;
 
-  public selectedStep: {
-    id: string;
+  public inspectorVM: {
     input?: RequestDebugStep | ResponseDebugStep | '🚧';
     output?: RequestDebugStep | ResponseDebugStep | '🚧';
   };
@@ -67,14 +66,104 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   }
 
   onSelectTimelineStep(timelineStep: TimelineStep) {
-    this.selectedStep = { id: timelineStep.id, input: undefined, output: undefined };
+    switch (timelineStep.mode) {
+      case 'POLICY_REQUEST':
+      case 'POLICY_RESPONSE':
+        this.onSelectPolicy(timelineStep);
+        break;
 
-    if (timelineStep.mode === 'POLICY') {
-      const steps = [...this.debugResponse.requestDebugSteps, ...this.debugResponse.responseDebugSteps];
+      case 'REQUEST_INPUT':
+      case 'REQUEST_OUTPUT':
+        this.onSelectInputOutput(timelineStep, 'REQUEST');
+        break;
 
-      const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
+      case 'RESPONSE_INPUT':
+      case 'RESPONSE_OUTPUT':
+        this.onSelectInputOutput(timelineStep, 'RESPONSE');
+        break;
 
-      this.selectedStep.input =
+      default:
+        this.inspectorVM = { input: '🚧', output: '🚧' };
+        break;
+    }
+  }
+
+  private toTimelineSteps(debugResponse: DebugResponse) {
+    const timelineSteps: TimelineStep[] = [
+      {
+        id: 'requestClientApp',
+        mode: 'CLIENT_APP',
+        selected: false,
+      },
+      {
+        id: 'requestInput',
+        mode: 'REQUEST_INPUT',
+        selected: false,
+      },
+      ...debugResponse.requestDebugSteps.map((debugStep) => {
+        const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
+
+        return {
+          executionTime: debugStep.duration,
+          executionStatus: debugStep.status,
+          policyName: policy?.name ?? debugStep.policyId,
+          mode: 'POLICY_REQUEST' as const,
+          icon: policy?.icon,
+          flowName: policyScopeToDisplayableLabel(debugStep.scope),
+          id: debugStep.id,
+          selected: false,
+        };
+      }),
+      {
+        id: 'requestOutput',
+        mode: 'REQUEST_OUTPUT',
+        selected: false,
+      },
+      {
+        id: 'backendTarget',
+        mode: 'BACKEND_TARGET',
+        selected: false,
+      },
+      {
+        id: 'responseInput',
+        mode: 'RESPONSE_INPUT',
+        selected: false,
+      },
+      ...debugResponse.responseDebugSteps.map((debugStep) => {
+        const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
+
+        return {
+          executionTime: debugStep.duration,
+          executionStatus: debugStep.status,
+          policyName: policy?.name ?? debugStep.policyId,
+          mode: 'POLICY_RESPONSE' as const,
+          icon: policy?.icon,
+          flowName: policyScopeToDisplayableLabel(debugStep.scope),
+          id: debugStep.id,
+          selected: false,
+        };
+      }),
+      {
+        id: 'responseOutput',
+        mode: 'RESPONSE_OUTPUT',
+        selected: false,
+      },
+      {
+        id: 'responseClientApp',
+        mode: 'CLIENT_APP',
+        selected: false,
+      },
+    ];
+    return timelineSteps;
+  }
+
+  private onSelectPolicy(timelineStep: TimelineStep) {
+    const steps = [...this.debugResponse.requestDebugSteps, ...this.debugResponse.responseDebugSteps];
+
+    const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
+
+    this.inspectorVM = {
+      input:
         outputIndex > 0
           ? steps[outputIndex - 1]
           : {
@@ -87,72 +176,26 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
               policyOutput: {
                 ...this.debugResponse.preprocessorStep,
               },
-            };
-      this.selectedStep.output = steps[outputIndex];
-      return;
-    }
-    this.selectedStep.input = '🚧';
-    this.selectedStep.output = '🚧';
+            },
+      output: steps[outputIndex],
+    };
+
+    this.responseDisplayableVM = {
+      ...this.responseDisplayableVM,
+      timelineSteps: this.responseDisplayableVM.timelineSteps.map((step) => ({ ...step, selected: step.id === timelineStep.id })),
+    };
   }
 
-  private toTimelineSteps(debugResponse: DebugResponse) {
-    const timelineSteps: TimelineStep[] = [
-      {
-        id: 'requestClientApp',
-        mode: 'CLIENT_APP',
-      },
-      {
-        id: 'requestInput',
-        mode: 'REQUEST_INPUT',
-      },
-      ...debugResponse.requestDebugSteps.map((debugStep) => {
-        const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
+  private onSelectInputOutput(_timelineStep: TimelineStep, policyMode: 'REQUEST' | 'RESPONSE') {
+    this.responseDisplayableVM = {
+      ...this.responseDisplayableVM,
+      timelineSteps: this.responseDisplayableVM.timelineSteps.map((step) => ({
+        ...step,
+        selected: [`POLICY_${policyMode}`, `${policyMode}_OUTPUT`, `${policyMode}_INPUT`].includes(step.mode),
+      })),
+    };
 
-        return {
-          executionTime: debugStep.duration,
-          executionStatus: debugStep.status,
-          policyName: policy?.name ?? debugStep.policyId,
-          mode: 'POLICY' as const,
-          icon: policy?.icon,
-          flowName: policyScopeToDisplayableLabel(debugStep.scope),
-          id: debugStep.id,
-        };
-      }),
-      {
-        id: 'requestOutput',
-        mode: 'REQUEST_OUTPUT',
-      },
-      {
-        id: 'backendTarget',
-        mode: 'BACKEND_TARGET',
-      },
-      {
-        id: 'responseInput',
-        mode: 'RESPONSE_INPUT',
-      },
-      ...debugResponse.responseDebugSteps.map((debugStep) => {
-        const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
-
-        return {
-          executionTime: debugStep.duration,
-          executionStatus: debugStep.status,
-          policyName: policy?.name ?? debugStep.policyId,
-          mode: 'POLICY' as const,
-          icon: policy?.icon,
-          flowName: policyScopeToDisplayableLabel(debugStep.scope),
-          id: debugStep.id,
-        };
-      }),
-      {
-        id: 'responseOutput',
-        mode: 'RESPONSE_OUTPUT',
-      },
-      {
-        id: 'responseClientApp',
-        mode: 'CLIENT_APP',
-      },
-    ];
-    return timelineSteps;
+    this.inspectorVM = { input: '🚧', output: '🚧' };
   }
 }
 
