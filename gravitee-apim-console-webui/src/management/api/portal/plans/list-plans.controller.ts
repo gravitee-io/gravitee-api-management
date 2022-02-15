@@ -20,6 +20,7 @@ import * as _ from 'lodash';
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import UserService from '../../../../services/user.service';
+import { PlanSecurityType } from '../../../../entities/plan/plan';
 
 class ApiListPlansController {
   private api: any;
@@ -149,7 +150,7 @@ class ApiListPlansController {
     this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then((response) => {
       const subscriptions = response.data.page.size;
       let msg = '';
-      if (plan.security === 'KEY_LESS') {
+      if (plan.security === PlanSecurityType.KEY_LESS) {
         msg = 'A keyless plan may have consumers. <br/>' + 'By closing this plan you will remove free access to this API.';
       } else {
         if (subscriptions === 0) {
@@ -163,7 +164,7 @@ class ApiListPlansController {
         }
       }
       let confirmButton = 'Yes, close this plan.';
-      if (subscriptions === 0 && plan.security === 'API_KEY') {
+      if (subscriptions === 0 && plan.security === PlanSecurityType.API_KEY) {
         confirmButton = 'Yes, delete this plan';
       }
       this.$mdDialog

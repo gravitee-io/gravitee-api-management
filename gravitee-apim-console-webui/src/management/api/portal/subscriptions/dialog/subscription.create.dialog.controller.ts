@@ -17,6 +17,7 @@ import * as _ from 'lodash';
 
 import { ApiService } from '../../../../../services/api.service';
 import ApplicationService from '../../../../../services/application.service';
+import { PlanSecurityType } from '../../../../../entities/plan/plan';
 
 function DialogSubscriptionCreateController(
   $mdDialog: angular.material.IDialogService,
@@ -57,7 +58,7 @@ function DialogSubscriptionCreateController(
   };
 
   this.planIsApiKey = (planId) => {
-    return this.plans.find((p) => p.security === 'API_KEY' && p.id === planId) != null;
+    return this.plans.find((p) => p.security === PlanSecurityType.API_KEY && p.id === planId) != null;
   };
 
   this.selectedItemChange = function () {

@@ -21,6 +21,7 @@ import * as moment from 'moment';
 import { PagedResult } from '../../../../entities/pagedResult';
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
+import { PlanSecurityType } from '../../../../entities/plan/plan';
 
 const defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
 
@@ -203,7 +204,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       this.ApiService.getPublishedApiPlans(this.api.id).then((response) => {
         // Allow only subscribable plan
         const plans = _.filter(response.data, (plan: any) => {
-          return plan.security !== 'KEY_LESS';
+          return plan.security !== PlanSecurityType.KEY_LESS;
         });
 
         this.$mdDialog

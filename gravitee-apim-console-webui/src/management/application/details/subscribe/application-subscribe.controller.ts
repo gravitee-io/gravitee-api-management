@@ -86,10 +86,10 @@ class ApplicationSubscribeController {
   }
 
   getAuthorizedSecurity(): string[] {
-    const authorizedSecurity = ['API_KEY'];
+    const authorizedSecurity = [PlanSecurityType.API_KEY];
     if (this.application.settings) {
       if (this.application.settings.oauth || (this.application.settings.app && this.application.settings.app.client_id)) {
-        authorizedSecurity.push('JWT', 'OAUTH2');
+        authorizedSecurity.push(PlanSecurityType.JWT, PlanSecurityType.OAUTH2);
       }
     }
     return authorizedSecurity;
