@@ -20,6 +20,7 @@
   [class.color-green]="timelineCardVM.color === 'green'"
   [class.color-blue]="timelineCardVM.color === 'blue'"
   [class.selected]="selected"
+  [class.clickable]="timelineCardVM.clickable"
 >
   <div class="policy-studio-debug-timeline-card__left">
     <mat-icon *ngIf="timelineCardVM.icon" class="policy-studio-debug-timeline-card__left__icon" [svgIcon]="timelineCardVM.icon"></mat-icon

@@ -56,6 +56,7 @@ interface TimelineCardVM {
   executionTimeLabel?: string;
   rightIcon?: string;
   id?: string;
+  clickable: boolean;
 }
 
 @Component({
@@ -70,7 +71,9 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
   @Input()
   public selected?: boolean;
 
-  public timelineCardVM: TimelineCardVM = {};
+  public timelineCardVM: TimelineCardVM = {
+    clickable: false,
+  };
 
   constructor(private readonly sanitizer: DomSanitizer) {}
 
@@ -88,24 +91,28 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           icon: 'gio:smartphone-device',
           title: 'Client APP',
           color: 'green',
+          clickable: true,
         };
       case 'BACKEND_TARGET':
         return {
           icon: 'gio:server',
           title: 'Backend Target',
           color: 'green',
+          clickable: false,
         };
       case 'REQUEST_INPUT':
         return {
           icon: 'gio:nav-arrow-right',
           title: 'Request Input',
           color: 'blue',
+          clickable: true,
         };
       case 'REQUEST_OUTPUT':
         return {
           icon: 'gio:nav-arrow-right',
           title: 'Request Output',
           color: 'blue',
+          clickable: true,
         };
       case 'POLICY':
         return {
@@ -116,18 +123,21 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           executionTimeLabel: `${timelineStep.executionTime / 1_000_000}ms`,
           rightIcon: timelineStep.executionStatus === 'ERROR' ? 'gio:warning-circled-outline' : undefined,
           id: timelineStep.id,
+          clickable: true,
         };
       case 'RESPONSE_INPUT':
         return {
           icon: 'gio:nav-arrow-right',
           title: 'Response Input',
           color: 'blue',
+          clickable: true,
         };
       case 'RESPONSE_OUTPUT':
         return {
           icon: 'gio:nav-arrow-right',
           title: 'Response Output',
           color: 'blue',
+          clickable: true,
         };
     }
   }
