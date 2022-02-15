@@ -104,6 +104,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.policyStudioService.reset();
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
   }
