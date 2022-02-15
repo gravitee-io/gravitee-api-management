@@ -31,6 +31,7 @@ $typography: map.get(gio.$mat-theme, typography);
     overflow: auto;
     white-space: nowrap;
     padding: 8px 4px 8px 4px;
+    min-height: 100px;
   }
 
   &__background {
