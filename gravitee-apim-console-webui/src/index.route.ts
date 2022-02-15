@@ -15,26 +15,10 @@
  */
 import { StateProvider, UrlService } from '@uirouter/angularjs';
 import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
 
 import { User } from './entities/user';
 import OrganizationService from './services/organization.service';
 import UserService from './services/user.service';
-
-function reinitToDefaultOrganization($window: angular.IWindowService, Constants) {
-  $window.localStorage.setItem('gv-last-organization-loaded', 'DEFAULT');
-  if (Constants.baseURL.endsWith('/')) {
-    Constants.baseURL = Constants.baseURL.slice(0, -1);
-  }
-
-  const orgEnvIndex = Constants.baseURL.indexOf('/organizations');
-  if (orgEnvIndex >= 0) {
-    Constants.baseURL = Constants.baseURL.substr(0, orgEnvIndex);
-  }
-
-  Constants.org.baseURL = `${Constants.baseURL}/organizations/DEFAULT`;
-  Constants.env.baseURL = `${Constants.org.baseURL}/environments/{:envId}`;
-}
 
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   'ngInject';
@@ -149,35 +133,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       controllerAs: 'resetPasswordCtrl',
     })
     .state('logout', {
-      template: '<div class="gravitee-no-sidenav-container"></div>',
-      controller: (UserService: UserService, $state: StateService, $rootScope: IScope, $window: ng.IWindowService, Constants) => {
-        delete Constants.org.currentEnv;
-        delete Constants.org.environments;
-        UserService.logout().then(() => {
-          $state.go('login');
-          $rootScope.$broadcast('graviteeUserRefresh', {});
-          $rootScope.$broadcast('graviteeUserCancelScheduledServices');
-          const userLogoutEndpoint = $window.localStorage.getItem('user-logout-url');
-          $window.localStorage.removeItem('user-logout-url');
-          reinitToDefaultOrganization($window, Constants);
-          if (userLogoutEndpoint != null) {
-            const redirectUri = window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname);
-            if (userLogoutEndpoint.endsWith('target_url=')) {
-              // If we use a Gravitee AM IDP, the logoutEndpoint will end with `target_url=` (See AMIdentityProviderEntity.java)
-              // We must fill this query param so older versions of AM still work.
-              $window.location.href =
-                userLogoutEndpoint + encodeURIComponent(redirectUri) + '&post_logout_redirect_uri=' + encodeURIComponent(redirectUri);
-            } else if (userLogoutEndpoint.endsWith('post_logout_redirect_uri=')) {
-              // Otherwise we use an OIDC IDP, and the logout endpoint may already contain the `post_logout_redirect_uri`
-              $window.location.href = userLogoutEndpoint + encodeURIComponent(redirectUri);
-            } else {
-              const separator = userLogoutEndpoint.indexOf('?') > -1 ? '&' : '?';
-              $window.location.href = userLogoutEndpoint + separator + 'post_logout_redirect_uri=' + encodeURIComponent(redirectUri);
-            }
-          }
-        });
-      },
-      controllerAs: '$ctrl',
+      component: 'logout',
     })
     .state('newsletter', {
       url: '/newsletter',
