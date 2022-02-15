@@ -22,6 +22,7 @@ import PolicyService from '../../../../../services/policy.service';
 import ResourceService from '../../../../../services/resource.service';
 import '@gravitee/ui-components/wc/gv-schema-form';
 import '@gravitee/ui-components/wc/gv-row';
+import { PlanSecurityType } from '../../../../../entities/plan/plan';
 
 const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
   require: {
@@ -40,22 +41,22 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
       this.securityTypes = _.filter(
         [
           {
-            id: 'OAUTH2',
+            id: PlanSecurityType.OAUTH2,
             name: 'OAuth2',
             policy: 'oauth2',
           },
           {
-            id: 'JWT',
+            id: PlanSecurityType.JWT,
             name: 'JWT',
             policy: 'jwt',
           },
           {
-            id: 'API_KEY',
+            id: PlanSecurityType.API_KEY,
             name: 'API Key',
             policy: 'api-key',
           },
           {
-            id: 'KEY_LESS',
+            id: PlanSecurityType.KEY_LESS,
             name: 'Keyless (public)',
           },
         ],

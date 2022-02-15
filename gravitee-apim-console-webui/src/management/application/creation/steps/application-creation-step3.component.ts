@@ -16,6 +16,7 @@
 import * as _ from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
+import { PlanSecurityType } from '../../../../entities/plan/plan';
 
 const ApplicationCreationStep3Component: ng.IComponentOptions = {
   require: {
@@ -49,13 +50,13 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
     };
 
     this.getAuthorizedSecurity = (): string[] => {
-      const authorizedSecurity = ['API_KEY'];
+      const authorizedSecurity = [PlanSecurityType.API_KEY];
       if (this.parent.application.settings) {
         if (
           this.parent.application.settings.oauth ||
           (this.parent.application.settings.app && this.parent.application.settings.app.client_id)
         ) {
-          authorizedSecurity.push('JWT', 'OAUTH2');
+          authorizedSecurity.push(PlanSecurityType.JWT, PlanSecurityType.OAUTH2);
         }
       }
       return authorizedSecurity;

@@ -21,6 +21,7 @@ import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import UserService from '../../../../services/user.service';
 import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';
+import { PlanSecurityType } from '../../../../entities/plan/plan';
 
 interface Page {
   fileName: string;
@@ -120,13 +121,13 @@ class ApiCreationController {
     this.securityTypes = [];
     if (this.Constants.env.settings.plan.security.apikey.enabled) {
       this.securityTypes.push({
-        id: 'API_KEY',
+        id: PlanSecurityType.API_KEY,
         name: 'API Key',
       });
     }
     if (this.Constants.env.settings.plan.security.keyless.enabled) {
       this.securityTypes.push({
-        id: 'KEY_LESS',
+        id: PlanSecurityType.KEY_LESS,
         name: 'Keyless (public)',
       });
     }
@@ -358,7 +359,7 @@ class ApiCreationController {
    */
   selectPlan() {
     // set validation mode
-    if (this.plan.security === 'KEY_LESS') {
+    if (this.plan.security === PlanSecurityType.KEY_LESS) {
       this.plan.validation = 'AUTO';
     }
     if (!this.plan.validation) {

@@ -17,6 +17,7 @@ import { StateService } from '@uirouter/core';
 
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
+import { PlanSecurityType } from '../../../../entities/plan/plan';
 
 const ApplicationSubscriptionComponent: ng.IComponentOptions = {
   bindings: {
@@ -52,7 +53,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
     }
 
     listApiKeys() {
-      if (this.subscription.plan.security === 'API_KEY') {
+      if (this.subscription.plan.security === PlanSecurityType.API_KEY) {
         // Retrieve api_keys for current current subscription
         this.ApplicationService.listApiKeys(this.application.id, this.subscription.id).then((response) => {
           this.keys = response.data;
@@ -112,7 +113,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
 
     close() {
       let msg = 'The application will not be able to consume this API anymore.';
-      if (this.subscription.plan.security === 'API_KEY') {
+      if (this.subscription.plan.security === PlanSecurityType.API_KEY) {
         msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
       }
 
