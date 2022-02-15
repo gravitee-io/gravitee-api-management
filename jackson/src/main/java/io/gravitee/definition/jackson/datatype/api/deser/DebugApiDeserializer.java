@@ -26,9 +26,9 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.definition.model.debug.DebugStep;
+import io.gravitee.definition.model.debug.PreprocessorStep;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,11 +65,9 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApi> {
             debugApi.setDebugSteps((resultNode.traverse(jp.getCodec()).readValueAs(new TypeReference<List<DebugStep>>() {})));
         }
 
-        JsonNode initialAttributesNode = node.get("initialAttributes");
-        if (initialAttributesNode != null) {
-            debugApi.setInitialAttributes(
-                (initialAttributesNode.traverse(jp.getCodec()).readValueAs(new TypeReference<Map<String, Object>>() {}))
-            );
+        JsonNode preprocessorStepNode = node.get("preprocessorStep");
+        if (preprocessorStepNode != null) {
+            debugApi.setPreprocessorStep((preprocessorStepNode.traverse(jp.getCodec()).readValueAs(PreprocessorStep.class)));
         }
 
         JsonNode backendResponseNode = node.get("backendResponse");

@@ -21,7 +21,6 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 public class DebugApi extends Api implements Serializable {
 
@@ -34,8 +33,8 @@ public class DebugApi extends Api implements Serializable {
     @JsonProperty("debugSteps")
     private List<DebugStep> debugSteps;
 
-    @JsonProperty("initialAttributes")
-    private Map<String, Serializable> initialAttributes;
+    @JsonProperty("preprocessorStep")
+    private PreprocessorStep preprocessorStep;
 
     @JsonProperty("backendResponse")
     private HttpResponse backendResponse;
@@ -64,19 +63,19 @@ public class DebugApi extends Api implements Serializable {
         this.debugSteps = debugSteps;
     }
 
-    public Map<String, Serializable> getInitialAttributes() {
-        return initialAttributes;
-    }
-
-    public void setInitialAttributes(Map<String, Serializable> initialAttributes) {
-        this.initialAttributes = initialAttributes;
-    }
-
     public HttpResponse getBackendResponse() {
         return backendResponse;
     }
 
     public void setBackendResponse(HttpResponse backendResponse) {
         this.backendResponse = backendResponse;
+    }
+
+    public PreprocessorStep getPreprocessorStep() {
+        return preprocessorStep;
+    }
+
+    public void setPreprocessorStep(PreprocessorStep preprocessorStep) {
+        this.preprocessorStep = preprocessorStep;
     }
 }

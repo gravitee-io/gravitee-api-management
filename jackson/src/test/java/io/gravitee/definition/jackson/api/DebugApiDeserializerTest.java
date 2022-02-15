@@ -60,9 +60,14 @@ public class DebugApiDeserializerTest extends AbstractTest {
 
         assertEquals(debugApi.getDebugSteps().size(), 9);
         assertEquals(
-            debugApi.getInitialAttributes(),
+            debugApi.getPreprocessorStep().getAttributes(),
             Map.of("gravitee.attribute.application", "1", "gravitee.attribute.user-id", "127.0.0.1")
         );
+        final Map<String, List<String>> preprocessorHeaders = debugApi.getPreprocessorStep().getHeaders();
+        assertEquals(preprocessorHeaders.size(), 2);
+
+        assertEquals(preprocessorHeaders.get("X-Gravitee-Transaction-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
+        assertEquals(preprocessorHeaders.get("X-Gravitee-Request-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
 
         DebugStep step1 = debugApi.getDebugSteps().get(0);
         assertEquals(step1.getPolicyInstanceId(), "24b22176-e4fd-488e-b221-76e4fd388e30");

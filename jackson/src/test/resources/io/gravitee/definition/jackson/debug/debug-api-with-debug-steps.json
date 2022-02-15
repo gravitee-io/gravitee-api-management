@@ -49,9 +49,19 @@
     "strip_context_path": false,
     "preserve_host": true
   },
-  "initialAttributes": {
-    "gravitee.attribute.application": "1",
-    "gravitee.attribute.user-id": "127.0.0.1"
+  "preprocessorStep": {
+    "attributes": {
+      "gravitee.attribute.application": "1",
+      "gravitee.attribute.user-id": "127.0.0.1"
+    },
+    "headers": {
+      "X-Gravitee-Transaction-Id": [
+        "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+      ],
+      "X-Gravitee-Request-Id": [
+        "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+      ]
+    }
   },
   "debugSteps": [
     {
