@@ -75,7 +75,7 @@ public class ApplicationEntity {
 
     @JsonProperty("api_key_mode")
     @ApiModelProperty(value = "The API key mode used for this application.", allowableValues = "SHARED, EXCLUSIVE, UNSPECIFIED")
-    private String apiKeyMode;
+    private ApiKeyMode apiKeyMode;
 
     private String background;
 
@@ -191,11 +191,11 @@ public class ApplicationEntity {
         this.domain = domain;
     }
 
-    public String getApiKeyMode() {
+    public ApiKeyMode getApiKeyMode() {
         return apiKeyMode;
     }
 
-    public void setApiKeyMode(String apiKeyMode) {
+    public void setApiKeyMode(ApiKeyMode apiKeyMode) {
         this.apiKeyMode = apiKeyMode;
     }
 
