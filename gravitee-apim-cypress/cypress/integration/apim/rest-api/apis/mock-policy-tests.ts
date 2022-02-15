@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER, API_PUBLISHER_USER } from 'fixtures/fakers/users/users';
-import { ApiFakers } from 'fixtures/fakers/apis';
-import { PlanFakers } from 'fixtures/fakers/plans';
+import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
+import { ApiFakers } from '@fakers/apis';
+import { PlanFakers } from '@fakers/plans';
 import {
   createApi,
   deleteApi,
@@ -25,11 +25,11 @@ import {
   startApi,
   stopApi,
   updateApi,
-} from 'commands/management/api-management-commands';
-import { createPlan, publishPlan, deletePlan } from 'commands/management/api-plan-management-commands';
-import { Api, ResponseTemplate } from 'model/apis';
-import { NewPlanEntity, PlanSecurityType } from 'model/plan';
-import { ApiImportFakers } from 'fixtures/fakers/api-imports';
+} from '@commands/management/api-management-commands';
+import { createPlan, publishPlan, deletePlan } from '@commands/management/api-plan-management-commands';
+import { Api, ResponseTemplate } from '@model/apis';
+import { NewPlanEntity, PlanSecurityType } from '@model/plan';
+import { ApiImportFakers } from '@fakers/api-imports';
 import { ApiImport } from '@model/api-imports';
 import { requestGateway } from 'support/common/http.commands';
 

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { ADMIN_USER } from 'fixtures/fakers/users/users';
-import { gio } from 'commands/gravitee.commands';
-import { ApplicationFakers } from '../../fixtures/fakers/applications';
+import { ADMIN_USER } from '@fakers/users/users';
+import { gio } from '@commands/gravitee.commands';
+import { ApplicationFakers } from '@fakers/applications';
 
 const bulkSize = 50;
 

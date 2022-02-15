@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER, API_PUBLISHER_USER, LOW_PERMISSION_USER } from 'fixtures/fakers/users/users';
-import { Api, ApiDefinition, ApiLifecycleState, ApiQualityRule, ApiState, ApiVisibility, ApiWorkflowState } from 'model/apis';
-import { ManagementError } from 'model/technical';
+import { ADMIN_USER, API_PUBLISHER_USER, LOW_PERMISSION_USER } from '@fakers/users/users';
+import { Api, ApiDefinition, ApiLifecycleState, ApiQualityRule, ApiState, ApiVisibility, ApiWorkflowState } from '@model/apis';
+import { ManagementError } from '@model/technical';
 import { ApiAssertions, ApiQualityMetricsAssertions } from 'assertions/api.assertion';
 import { TechnicalErrorAssertions } from 'assertions/error.assertion';
-import { PortalSettings } from 'model/portal-settings';
+import { PortalSettings } from '@model/portal-settings';
 import { PortalSettingsAssertions } from 'assertions/portal-settings.assertion';
-import { QualityRule } from 'model/quality-rules';
+import { QualityRule } from '@model/quality-rules';
 import { EnvironmentGroupAssertions, EnvironmentQualityRuleAssertions } from 'assertions/environment-configuration.assertion';
-import { Group, GroupEvent } from 'model/groups';
-import { Task, TaskQuality, TaskType, User } from 'model/users';
-import { Member } from 'model/members';
-import { ApiFakers } from 'fixtures/fakers/apis';
+import { Group, GroupEvent } from '@model/groups';
+import { Task, TaskQuality, TaskType, User } from '@model/users';
+import { Member } from '@model/members';
+import { ApiFakers } from '@fakers/apis';
 import * as faker from 'faker';
 import Response = Cypress.Response;
-import { gio } from 'commands/gravitee.commands';
+import { gio } from '@commands/gravitee.commands';
 
 context('API - Quality', () => {
   let createdQualityRule: QualityRule;

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER, API_PUBLISHER_USER } from 'fixtures/fakers/users/users';
-import { ApiFakers } from 'fixtures/fakers/apis';
-import { Api, ApiDefinition, ApiLifecycleState, ApiRating, ApiRatingResponse, ApiState, ApiVisibility } from 'model/apis';
+import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
+import { ApiFakers } from '@fakers/apis';
+import { Api, ApiDefinition, ApiLifecycleState, ApiRating, ApiRatingResponse, ApiState, ApiVisibility } from '@model/apis';
 import { ApiAssertions } from 'assertions/api.assertion';
-import { PortalSettings } from 'model/portal-settings';
-import { PortalError, ManagementError, ErrorResponse } from 'model/technical';
+import { PortalSettings } from '@model/portal-settings';
+import { PortalError, ManagementError, ErrorResponse } from '@model/technical';
 import { TechnicalErrorAssertions } from 'assertions/error.assertion';
-import { gio } from 'commands/gravitee.commands';
+import { gio } from '@commands/gravitee.commands';
 
 context('API - Rating', () => {
   let createdApi: Api;
