@@ -49,7 +49,7 @@
         <gravitee-policy-apikey.version>2.2.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.6.0</gravitee-policy-assign-content.version>
-        <gravitee-policy-cache.version>1.9.0</gravitee-policy-cache.version>
+        <gravitee-policy-cache.version>1.9.1</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>1.12.0</gravitee-policy-callout-http.version>
         <gravitee-policy-dynamic-routing.version>1.11.1</gravitee-policy-dynamic-routing.version>
         <gravitee-policy-generate-jwt.version>1.5.0</gravitee-policy-generate-jwt.version>
