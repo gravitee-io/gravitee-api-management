@@ -16,7 +16,7 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PolicyStudioDebugInspectorComponent } from './policy-studio-debug-inspector.component';
+import { getDiffState, PolicyStudioDebugInspectorComponent } from './policy-studio-debug-inspector.component';
 
 import { fakeRequestDebugStep } from '../../models/DebugStep.fixture';
 import { PolicyStudioDebugModule } from '../../policy-studio-debug.module';
@@ -68,5 +68,16 @@ describe('PolicyStudioDebugInspectorComponent', () => {
     expect(treeNodes[2].children[0].type).toEqual('body');
     expect(treeNodes[2].children[0].input).toBeDefined();
     expect(treeNodes[2].children[0].output).toBeDefined();
+  });
+
+  it('should get diff state between 2 params', () => {
+    expect(getDiffState('', 'foobar')).toEqual('added');
+    expect(getDiffState(undefined, 'foobar')).toEqual('added');
+    expect(getDiffState(null, 'foobar')).toEqual('added');
+    expect(getDiffState('foobar', '')).toEqual('deleted');
+    expect(getDiffState('foobar', undefined)).toEqual('deleted');
+    expect(getDiffState('foobar', null)).toEqual('deleted');
+    expect(getDiffState('foobar', 'foobar')).toBeUndefined();
+    expect(getDiffState('foobar', 'updated')).toEqual('updated');
   });
 });

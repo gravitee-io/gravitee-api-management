@@ -14,20 +14,30 @@
  * limitations under the License.
  */
 
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+
+import { getDiffState } from '../policy-studio-debug-inspector.component';
 
 @Component({
   selector: 'policy-studio-debug-inspector-text',
   template: require('./policy-studio-debug-inspector-text.component.html'),
   styles: [require('./policy-studio-debug-inspector-text.component.scss')],
 })
-export class PolicyStudioDebugInspectorTextComponent {
+export class PolicyStudioDebugInspectorTextComponent implements OnChanges {
   @Input()
-  private name: string;
+  name: string;
 
   @Input()
-  private input: string;
+  input: string;
 
   @Input()
-  private output: string;
+  output: string;
+
+  diffClass: 'added' | 'deleted' | 'updated';
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['input'] || changes['output']) {
+      this.diffClass = getDiffState(this.input, this.output);
+    }
+  }
 }

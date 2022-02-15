@@ -16,6 +16,8 @@
 
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 
+import { getDiffState } from '../policy-studio-debug-inspector.component';
+
 @Component({
   selector: 'policy-studio-debug-inspector-table',
   template: require('./policy-studio-debug-inspector-table.component.html'),
@@ -23,15 +25,20 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 })
 export class PolicyStudioDebugInspectorTableComponent implements OnChanges {
   @Input()
-  private name: string;
+  name: string;
 
   @Input()
-  private input: Record<string, unknown>;
+  private input: Record<string, string | Array<string> | boolean>;
 
   @Input()
-  private output: Record<string, unknown>;
+  private output: Record<string, string | Array<string> | boolean>;
 
-  private items: { key: string; outputValue: unknown; inputValue: unknown }[];
+  items: {
+    key: string;
+    outputValue: string;
+    inputValue: string;
+    diffClass: 'added' | 'deleted' | 'updated';
+  }[];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['input'] || changes['output']) {
@@ -39,7 +46,12 @@ export class PolicyStudioDebugInspectorTableComponent implements OnChanges {
       const output = this.output || {};
       const keys = [...new Set(Object.keys(input).concat(Object.keys(output)))];
 
-      this.items = keys.map((key) => ({ key, inputValue: input[key] || '', outputValue: output[key] || '' }));
+      this.items = keys.map((key) => {
+        const inputValue = (input[key] || '').toString();
+        const outputValue = (output[key] || '').toString();
+
+        return { key, inputValue, outputValue, diffClass: getDiffState(inputValue, outputValue) };
+      });
     }
   }
 }

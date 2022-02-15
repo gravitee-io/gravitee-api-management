@@ -77,6 +77,17 @@ const nodes: Record<string, NodeContainerElement> = {
   },
 };
 
+export function getDiffState(input: string, output: string): 'added' | 'deleted' | 'updated' {
+  if (!input && !!output) {
+    return 'added';
+  } else if (!!input && !output) {
+    return 'deleted';
+  } else if (!!input && !!output && input !== output) {
+    return 'updated';
+  }
+  return undefined;
+}
+
 @Component({
   selector: 'policy-studio-debug-inspector',
   template: require('./policy-studio-debug-inspector.component.html'),
