@@ -18,40 +18,48 @@ import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatIconModule } from '@angular/material/icon';
+import { MatTreeModule } from '@angular/material/tree';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
+import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
+import { PolicyStudioDebugInspectorBodyComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-body/policy-studio-debug-inspector-body.component';
+import { PolicyStudioDebugInspectorComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector.component';
+import { PolicyStudioDebugInspectorTableComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-table/policy-studio-debug-inspector-table.component';
 import { PolicyStudioDebugRequestComponent } from './components/policy-studio-debug-request/policy-studio-debug-request.component';
-import { PolicyStudioDebugResponseTryItComponent } from './components/policy-studio-debug-response-try-it/policy-studio-debug-response-try-it.component';
 import { PolicyStudioDebugResponseComponent } from './components/policy-studio-debug-response/policy-studio-debug-response.component';
+import { PolicyStudioDebugResponseTryItComponent } from './components/policy-studio-debug-response-try-it/policy-studio-debug-response-try-it.component';
 import { PolicyStudioDebugTimelineCardComponent } from './components/policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
 import { PolicyStudioDebugTimelineComponent } from './components/policy-studio-debug-timeline/policy-studio-debug-timeline.component';
-import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
 import { PolicyStudioDebugTimelineLegendComponent } from './components/policy-studio-debug-timeline-legend/policy-studio-debug-timeline-legend.component';
-import { PolicyStudioDebugInspectorComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector.component';
+import { PolicyStudioDebugInspectorTextComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
 
 @NgModule({
   imports: [
     CommonModule,
     ReactiveFormsModule,
 
+    MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatTabsModule,
-    MatSnackBarModule,
-    MatSelectModule,
-    MatButtonModule,
     MatIconModule,
+    MatSelectModule,
+    MatSnackBarModule,
+    MatTabsModule,
+    MatTreeModule,
 
     GioIconsModule,
   ],
   declarations: [
     PolicyStudioDebugComponent,
     PolicyStudioDebugInspectorComponent,
+    PolicyStudioDebugInspectorBodyComponent,
+    PolicyStudioDebugInspectorTableComponent,
+    PolicyStudioDebugInspectorTextComponent,
     PolicyStudioDebugRequestComponent,
     PolicyStudioDebugResponseComponent,
     PolicyStudioDebugResponseTryItComponent,

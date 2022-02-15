@@ -45,7 +45,11 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
   public responseDisplayableVM: ResponseDisplayableVM;
 
-  public selectedStep: { id: string; step?: RequestDebugStep | ResponseDebugStep | '🚧' };
+  public selectedStep: {
+    id: string;
+    input?: RequestDebugStep | ResponseDebugStep | '🚧';
+    output?: RequestDebugStep | ResponseDebugStep | '🚧';
+  };
 
   ngOnChanges(): void {
     if (this.debugResponse && !this.debugResponse.isLoading) {
@@ -63,15 +67,33 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   }
 
   onSelectTimelineStep(timelineStep: TimelineStep) {
-    this.selectedStep = { id: timelineStep.id, step: undefined };
+    this.selectedStep = { id: timelineStep.id, input: undefined, output: undefined };
 
     if (timelineStep.mode === 'POLICY') {
-      this.selectedStep.step = [...this.debugResponse.requestDebugSteps, ...this.debugResponse.responseDebugSteps].find(
-        (value) => value.id === timelineStep.id,
-      );
+      const steps = [...this.debugResponse.requestDebugSteps, ...this.debugResponse.responseDebugSteps];
+
+      const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
+
+      // FIXME: replace by preprocessStep
+      this.selectedStep.input =
+        outputIndex > 0
+          ? steps[outputIndex - 1]
+          : {
+              id: 'preprocess-step',
+              policyInstanceId: '',
+              policyId: '',
+              scope: 'ON_REQUEST',
+              status: 'COMPLETED',
+              duration: 0,
+              policyOutput: {
+                attributes: this.debugResponse.initialAttributes,
+              },
+            };
+      this.selectedStep.output = steps[outputIndex];
       return;
     }
-    this.selectedStep.step = '🚧';
+    this.selectedStep.input = '🚧';
+    this.selectedStep.output = '🚧';
   }
 
   private toTimelineSteps(debugResponse: DebugResponse) {

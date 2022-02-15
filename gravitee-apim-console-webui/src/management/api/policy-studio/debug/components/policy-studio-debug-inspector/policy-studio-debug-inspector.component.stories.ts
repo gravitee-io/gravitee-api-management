@@ -18,27 +18,63 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { MatIconModule } from '@angular/material/icon';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
-import '@gravitee/ui-components/wc/gv-code';
-import '@gravitee/ui-components/wc/gv-icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatTreeModule } from '@angular/material/tree';
+import { MatButtonModule } from '@angular/material/button';
 
 import { PolicyStudioDebugInspectorComponent } from './policy-studio-debug-inspector.component';
+import { PolicyStudioDebugInspectorTableComponent } from './policy-studio-debug-inspector-table/policy-studio-debug-inspector-table.component';
+import { PolicyStudioDebugInspectorBodyComponent } from './policy-studio-debug-inspector-body/policy-studio-debug-inspector-body.component';
+import { PolicyStudioDebugInspectorTextComponent } from './policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
+
+import { fakeErrorRequestDebugStep, fakeRequestDebugStep } from '../../models/DebugStep.fixture';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Inspector ',
   component: PolicyStudioDebugInspectorComponent,
   decorators: [
     moduleMetadata({
-      declarations: [PolicyStudioDebugInspectorComponent],
-      imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule],
+      declarations: [
+        PolicyStudioDebugInspectorTableComponent,
+        PolicyStudioDebugInspectorBodyComponent,
+        PolicyStudioDebugInspectorTextComponent,
+      ],
+      imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule, MatTreeModule, MatButtonModule],
     }),
   ],
-  render: () => ({
+  parameters: {
+    layout: 'fullscreen',
+  },
+  render: ({ inputDebugStep, outputDebugStep }) => ({
+    props: { inputDebugStep, outputDebugStep },
     template: `
-    <policy-studio-debug-inspector>
-    </policy-studio-debug-inspector>
+      <div style="height:100vh">
+        <policy-studio-debug-inspector [inputDebugStep]="inputDebugStep" [outputDebugStep]="outputDebugStep">
+        </policy-studio-debug-inspector>    
+      </div>
     `,
   }),
 } as Meta;
 
 export const Empty: Story = {};
+
+export const ResponseSuccess: Story = {
+  args: {
+    inputDebugStep: fakeRequestDebugStep(),
+    outputDebugStep: fakeRequestDebugStep({
+      policyOutput: {
+        headers: {
+          'content-length': ['3476'],
+          'x-gravitee-api': ['planets'],
+        },
+      },
+    }),
+  },
+};
+
+export const ResponseError: Story = {
+  args: {
+    inputDebugStep: fakeRequestDebugStep(),
+    outputDebugStep: fakeErrorRequestDebugStep(),
+  },
+};
