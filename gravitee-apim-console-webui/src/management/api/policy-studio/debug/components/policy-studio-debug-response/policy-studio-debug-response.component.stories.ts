@@ -90,7 +90,7 @@ export const Loading: Story = {
       responseDebugSteps: [],
       backendResponse: {},
       requestDebugSteps: [],
-      initialAttributes: {},
+      preprocessorStep: {},
     } as DebugResponse,
   },
 };
@@ -136,7 +136,7 @@ export const ResponseErrorFullEmpty: Story = {
       responseDebugSteps: [],
       backendResponse: {},
       requestDebugSteps: [],
-      initialAttributes: {},
+      preprocessorStep: {},
     } as DebugResponse,
   },
 };

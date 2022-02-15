@@ -84,7 +84,7 @@ export const ResponseSuccess: Story = {
       responseDebugSteps: [],
       backendResponse: {},
       requestDebugSteps: [],
-      initialAttributes: {},
+      preprocessorStep: {},
     } as DebugResponse,
   },
 };
@@ -109,7 +109,7 @@ export const ResponseError: Story = {
       responseDebugSteps: [],
       backendResponse: {},
       requestDebugSteps: [],
-      initialAttributes: {},
+      preprocessorStep: {},
     } as DebugResponse,
   },
 };

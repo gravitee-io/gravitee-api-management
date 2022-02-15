@@ -27,7 +27,12 @@ export type DebugResponse = {
     headers?: Record<string, string[]>;
     body?: string;
   };
-  initialAttributes: Record<string, boolean | number | string>;
+
+  preprocessorStep: {
+    attributes?: Record<string, boolean | number | string>;
+    headers?: Record<string, string[]>;
+  };
+
   requestDebugSteps: RequestDebugStep[];
 
   backendResponse: {
@@ -54,23 +59,26 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent) => {
     event.payload.debugSteps && event.payload.debugSteps.length > 0
       ? convertRequestDebugSteps(
           event.payload.request ?? {},
-          event.payload.initialAttributes ?? {},
+          event.payload.preprocessorStep ?? {},
           event.payload.debugSteps.filter((event) => event.scope === 'ON_REQUEST' || event.scope === 'ON_REQUEST_CONTENT'),
         )
       : [];
 
-  // Then, compute response initial attributes -> either from the last REQUEST debug step or the request initial attributes
-  const responseInitialAttributes =
+  // Then, compute response initial attributes and headers -> either from the last REQUEST debug step or the request initial attributes
+  const responsePreprocessorStep: DebugEvent['payload']['preprocessorStep'] =
     requestDebugSteps.length > 0
-      ? requestDebugSteps[requestDebugSteps.length - 1].policyOutput.attributes
-      : event.payload.initialAttributes;
+      ? {
+          attributes: requestDebugSteps[requestDebugSteps.length - 1].policyOutput.attributes,
+          headers: requestDebugSteps[requestDebugSteps.length - 1].policyOutput.headers,
+        }
+      : event.payload.preprocessorStep;
 
   // Finally, create the hydrated debug steps for the RESPONSE with initial request data + attributes
   const responseDebugSteps =
     event.payload.debugSteps && event.payload.debugSteps.length > 0
       ? convertResponseDebugSteps(
           event.payload.backendResponse ?? {},
-          responseInitialAttributes ?? {},
+          responsePreprocessorStep ?? {},
           event.payload.debugSteps.filter((event) => event.scope === 'ON_RESPONSE' || event.scope === 'ON_RESPONSE_CONTENT'),
         )
       : [];
@@ -80,7 +88,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent) => {
     response: event.payload.response ?? {},
     request: event.payload.request ?? {},
     backendResponse: event.payload.backendResponse ?? {},
-    initialAttributes: event.payload.initialAttributes ?? {},
+    preprocessorStep: event.payload.preprocessorStep ?? {},
     requestDebugSteps,
     responseDebugSteps,
   };
@@ -88,7 +96,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent) => {
 
 const convertRequestDebugSteps = (
   initialRequest: DebugEvent['payload']['request'],
-  initialAttributes: DebugEvent['payload']['initialAttributes'],
+  preprocessorStep: DebugEvent['payload']['preprocessorStep'],
   debugSteps: DebugEvent['payload']['debugSteps'],
 ): RequestDebugStep[] => {
   if (debugSteps.length === 0) {
@@ -106,9 +114,7 @@ const convertRequestDebugSteps = (
     duration: firstStep.duration,
     policyOutput: {
       ...initialRequest,
-      attributes: {
-        ...initialAttributes,
-      },
+      ...preprocessorStep,
       ...firstStep.result,
     },
   };
@@ -139,7 +145,7 @@ const convertRequestDebugSteps = (
 
 const convertResponseDebugSteps = (
   backendResponse: DebugEvent['payload']['backendResponse'],
-  initialAttributes: DebugEvent['payload']['initialAttributes'],
+  preprocessorStep: DebugEvent['payload']['preprocessorStep'],
   debugSteps: DebugEvent['payload']['debugSteps'],
 ): ResponseDebugStep[] => {
   if (debugSteps.length === 0) {
@@ -157,9 +163,7 @@ const convertResponseDebugSteps = (
     duration: firstStep.duration,
     policyOutput: {
       ...backendResponse,
-      attributes: {
-        ...initialAttributes,
-      },
+      ...preprocessorStep,
       ...firstStep.result,
     },
   };

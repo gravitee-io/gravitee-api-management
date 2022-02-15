@@ -34,7 +34,10 @@ interface DebugEventPayload {
     body?: string;
   };
   debugSteps?: DebugEventDebugStep[];
-  initialAttributes?: Record<string, boolean | number | string>;
+  preprocessorStep: {
+    attributes?: Record<string, boolean | number | string>;
+    headers?: Record<string, string[]>;
+  };
   backendResponse: {
     statusCode?: number;
     method?: string;
