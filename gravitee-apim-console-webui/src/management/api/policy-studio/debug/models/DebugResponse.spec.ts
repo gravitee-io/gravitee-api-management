@@ -32,7 +32,8 @@ describe('convertDebugEventToDebugResponse', () => {
         method: 'GET',
         body: '{}',
         headers: {
-          'initial-header': ['init'],
+          'X-Gravitee-Request-Id': ['303247f6-5811-4a90-b247-f658115a9033'],
+          'X-Gravitee-Transaction-Id': ['b39875e9-7fc7-4980-9875-e97fc7b980b7'],
         },
         attributes: {
           'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
@@ -58,7 +59,8 @@ describe('convertDebugEventToDebugResponse', () => {
         method: 'GET',
         body: '{}',
         headers: {
-          'initial-header': ['init'],
+          'X-Gravitee-Request-Id': ['303247f6-5811-4a90-b247-f658115a9033'],
+          'X-Gravitee-Transaction-Id': ['b39875e9-7fc7-4980-9875-e97fc7b980b7'],
         },
         attributes: {
           'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
@@ -85,7 +87,8 @@ describe('convertDebugEventToDebugResponse', () => {
         method: 'GET',
         body: '{}',
         headers: {
-          'initial-header': ['init'],
+          'X-Gravitee-Request-Id': ['303247f6-5811-4a90-b247-f658115a9033'],
+          'X-Gravitee-Transaction-Id': ['b39875e9-7fc7-4980-9875-e97fc7b980b7'],
         },
         attributes: {
           'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
@@ -245,7 +248,7 @@ describe('convertDebugEventToDebugResponse', () => {
 
     const debugResponse = convertDebugEventToDebugResponse(mockDebugEvent);
 
-    expect(debugResponse.initialAttributes).toStrictEqual(mockDebugEvent.payload.initialAttributes);
+    expect(debugResponse.preprocessorStep).toStrictEqual(mockDebugEvent.payload.preprocessorStep);
     expect(debugResponse.backendResponse).toStrictEqual(mockDebugEvent.payload.backendResponse);
     expect(debugResponse.request).toStrictEqual(mockDebugEvent.payload.request);
     expect(debugResponse.response).toStrictEqual(mockDebugEvent.payload.response);

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.HttpResponse;
+import io.gravitee.definition.model.debug.PreprocessorStep;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -80,7 +81,8 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         DebugApi debugApiComponent
     ) {
         final io.gravitee.definition.model.debug.DebugApi debugApi = convert(debugApiComponent);
-        debugApi.setInitialAttributes(debugContext.getInitialAttributes());
+        PreprocessorStep preprocessorStep = createPreprocessorStep(debugContext);
+        debugApi.setPreprocessorStep(preprocessorStep);
         debugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
 
         HttpResponse response = createResponse(
@@ -98,6 +100,13 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugApi.setBackendResponse(invokerResponse);
 
         return debugApi;
+    }
+
+    private PreprocessorStep createPreprocessorStep(DebugExecutionContext debugContext) {
+        final PreprocessorStep preprocessorStep = new PreprocessorStep();
+        preprocessorStep.setAttributes(debugContext.getInitialAttributes());
+        preprocessorStep.setHeaders(convertHeaders(debugContext.getInitialHeaders()));
+        return preprocessorStep;
     }
 
     private HttpResponse createResponse(HttpHeaders httpHeaders, int statusCode, Buffer bodyBuffer) {

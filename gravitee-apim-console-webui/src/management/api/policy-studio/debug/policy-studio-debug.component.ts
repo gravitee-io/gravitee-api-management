@@ -74,7 +74,7 @@ export class PolicyStudioDebugComponent implements OnInit {
       responseDebugSteps: [],
       backendResponse: {},
       requestDebugSteps: [],
-      initialAttributes: {},
+      preprocessorStep: {},
     };
 
     this.policyStudioDebugService
@@ -90,7 +90,7 @@ export class PolicyStudioDebugComponent implements OnInit {
             responseDebugSteps: [],
             backendResponse: {},
             requestDebugSteps: [],
-            initialAttributes: {},
+            preprocessorStep: {},
           };
           return EMPTY;
         }),

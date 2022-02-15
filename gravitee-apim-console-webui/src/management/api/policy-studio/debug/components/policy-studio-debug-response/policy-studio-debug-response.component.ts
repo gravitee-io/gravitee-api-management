@@ -74,7 +74,6 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
       const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
 
-      // FIXME: replace by preprocessStep
       this.selectedStep.input =
         outputIndex > 0
           ? steps[outputIndex - 1]
@@ -86,7 +85,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
               status: 'COMPLETED',
               duration: 0,
               policyOutput: {
-                attributes: this.debugResponse.initialAttributes,
+                ...this.debugResponse.preprocessorStep,
               },
             };
       this.selectedStep.output = steps[outputIndex];

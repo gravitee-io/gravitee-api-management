@@ -165,8 +165,14 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           },
         },
       ],
-      initialAttributes: {
-        'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
+      preprocessorStep: {
+        attributes: {
+          'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
+        },
+        headers: {
+          'X-Gravitee-Transaction-Id': ['b39875e9-7fc7-4980-9875-e97fc7b980b7'],
+          'X-Gravitee-Request-Id': ['303247f6-5811-4a90-b247-f658115a9033'],
+        },
       },
       backendResponse: {
         body: '{"headers":{"X-Gravitee-Transaction-Id":"b39875e9-7fc7-4980-9875-e97fc7b980b7","X-Gravitee-Request-Id":"303247f6-5811-4a90-b247-f658115a9033","a-header-platform":"WOW","Host":"api.gravitee.io","accept-encoding":"deflate, gzip"},"query_params":{}}',
