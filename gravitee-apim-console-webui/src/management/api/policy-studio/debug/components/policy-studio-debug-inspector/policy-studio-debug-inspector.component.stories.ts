@@ -63,9 +63,12 @@ export const ResponseSuccess: Story = {
     inputDebugStep: fakeRequestDebugStep(),
     outputDebugStep: fakeRequestDebugStep({
       policyOutput: {
+        path: '/fake/api/updated',
+        contextPath: '/context/path',
         headers: {
           'content-length': ['3476'],
           'x-gravitee-api': ['planets'],
+          'Sozu-Id': [''],
         },
       },
     }),

@@ -23,9 +23,9 @@
     </tr>
   </thead>
   <tbody>
-    <tr>
+    <tr [ngClass]="this.diffClass">
       <td>{{ input }}</td>
-      <td>{{ output }}</td>
+      <td class="output">{{ output }}</td>
     </tr>
   </tbody>
 </table>

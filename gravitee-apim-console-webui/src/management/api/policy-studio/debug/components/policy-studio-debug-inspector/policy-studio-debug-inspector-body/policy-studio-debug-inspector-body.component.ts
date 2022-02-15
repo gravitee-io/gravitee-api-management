@@ -25,8 +25,8 @@ import '@gravitee/ui-components/wc/gv-code';
 })
 export class PolicyStudioDebugInspectorBodyComponent {
   @Input()
-  private input: string;
+  input: string;
 
   @Input()
-  private output: string;
+  output: string;
 }

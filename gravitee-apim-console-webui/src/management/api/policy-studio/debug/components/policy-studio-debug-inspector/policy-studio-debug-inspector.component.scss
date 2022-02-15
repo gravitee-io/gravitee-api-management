@@ -67,3 +67,23 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 }
+
+@mixin diff() {
+  .added {
+    background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'lighter');
+    color: mat.get-color-from-palette(gio.$mat-success-palette, 'darker');
+  }
+
+  .deleted {
+    background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'lighter');
+    color: mat.get-color-from-palette(gio.$mat-error-palette, 'darker');
+
+    .output {
+      text-decoration: line-through;
+    }
+  }
+  .updated {
+    background-color: mat.get-color-from-palette(gio.$mat-warning-palette, 'lighter');
+    color: mat.get-color-from-palette(gio.$mat-warning-palette, 'darker');
+  }
+}
