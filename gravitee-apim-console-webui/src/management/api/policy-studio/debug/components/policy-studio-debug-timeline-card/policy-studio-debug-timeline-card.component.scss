@@ -86,6 +86,10 @@ $cardIconWidth: 32px;
   &__right {
     width: 24px;
     align-self: normal;
+
+    .error {
+      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    }
   }
 
   &__time-label {
