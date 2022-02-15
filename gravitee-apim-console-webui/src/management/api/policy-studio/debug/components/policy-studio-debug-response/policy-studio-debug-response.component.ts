@@ -60,7 +60,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         successfulRequest: 200 <= this.debugResponse.response?.statusCode && this.debugResponse.response?.statusCode < 300,
         errorRequest: 400 <= this.debugResponse.response?.statusCode && this.debugResponse.response?.statusCode < 600,
         timelineSteps: this.toTimelineSteps(this.debugResponse),
-        methodBadgeCSSClass: `gio-method-badge-${this.debugResponse?.request.method.toLowerCase()}` ?? '',
+        methodBadgeCSSClass: `gio-method-badge-${this.debugResponse?.request?.method?.toLowerCase()}` ?? '',
       };
     }
   }
