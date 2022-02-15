@@ -30,7 +30,7 @@ import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
 
-describe('PolicyStudioDebugComponent', () => {
+describe('PolicyStudioDebugComponent - Try It', () => {
   let fixture: ComponentFixture<PolicyStudioDebugComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
