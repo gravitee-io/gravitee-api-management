@@ -53,22 +53,22 @@ describe('PolicyStudioDebugInspectorComponent', () => {
     expect(treeNodes).not.toBeNull();
     expect(treeNodes.length).toBeGreaterThanOrEqual(3);
 
-    expect(treeNodes[0].name).toEqual('HTTP body');
-    expect(treeNodes[0].children[0].type).toEqual('body');
-    expect(treeNodes[0].children[0].input).toBeDefined();
-    expect(treeNodes[0].children[0].output).toBeDefined();
+    expect(treeNodes[0].name).toEqual('HTTP properties');
+    expect(treeNodes[0].children.length).toBeGreaterThanOrEqual(3);
+    expect(treeNodes[0].children[0].name).toEqual('Path params');
+    expect(treeNodes[0].children[0].type).toBeUndefined();
+    expect(treeNodes[0].children[0].children.length).toEqual(1);
+    expect(treeNodes[0].children[1].name).toEqual('Method');
+    expect(treeNodes[0].children[1].type).toBeUndefined();
+    expect(treeNodes[0].children[1].children[0].type).toEqual('text');
     expect(treeNodes[1].name).toEqual('HTTP headers');
     expect(treeNodes[1].children[0].type).toEqual('table');
     expect(treeNodes[1].children[0].input).toBeDefined();
     expect(treeNodes[1].children[0].output).toBeDefined();
-    expect(treeNodes[2].name).toEqual('HTTP properties');
-    expect(treeNodes[2].children.length).toBeGreaterThanOrEqual(3);
-    expect(treeNodes[2].children[0].name).toEqual('Path params');
-    expect(treeNodes[2].children[0].type).toBeUndefined();
-    expect(treeNodes[2].children[0].children.length).toEqual(1);
-    expect(treeNodes[2].children[1].name).toEqual('Method');
-    expect(treeNodes[2].children[1].type).toBeUndefined();
-    expect(treeNodes[2].children[1].children[0].type).toEqual('text');
+    expect(treeNodes[2].name).toEqual('HTTP body');
+    expect(treeNodes[2].children[0].type).toEqual('body');
+    expect(treeNodes[2].children[0].input).toBeDefined();
+    expect(treeNodes[2].children[0].output).toBeDefined();
   });
 
   it('should get diff state between 2 params', () => {

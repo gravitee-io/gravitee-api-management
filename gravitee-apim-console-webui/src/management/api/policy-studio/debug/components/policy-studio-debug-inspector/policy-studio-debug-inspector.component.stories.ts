@@ -72,6 +72,10 @@ export const ResponseSuccess: Story = {
           'x-gravitee-api': ['planets'],
           'Sozu-Id': [''],
         },
+        attributes: {
+          bool: false,
+          numeric: 3,
+        },
       },
     }),
   },
