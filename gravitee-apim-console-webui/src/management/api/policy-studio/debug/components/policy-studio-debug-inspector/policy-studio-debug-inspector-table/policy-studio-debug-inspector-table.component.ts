@@ -18,6 +18,13 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 
 import { getDiffState } from '../policy-studio-debug-inspector.component';
 
+interface RowItem {
+  key: string;
+  outputValue: string;
+  inputValue: string;
+  diffClass: 'added' | 'deleted' | 'updated';
+}
+
 @Component({
   selector: 'policy-studio-debug-inspector-table',
   template: require('./policy-studio-debug-inspector-table.component.html'),
@@ -28,30 +35,31 @@ export class PolicyStudioDebugInspectorTableComponent implements OnChanges {
   name: string;
 
   @Input()
-  private input: Record<string, string | Array<string> | boolean>;
+  input: Record<string, string | Array<string> | boolean>;
 
   @Input()
-  private output: Record<string, string | Array<string> | boolean>;
+  output: Record<string, string | Array<string> | boolean>;
 
-  items: {
-    key: string;
-    outputValue: string;
-    inputValue: string;
-    diffClass: 'added' | 'deleted' | 'updated';
-  }[];
+  rowItems: RowItem[];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['input'] || changes['output']) {
-      const input = this.input || {};
-      const output = this.output || {};
-      const keys = [...new Set(Object.keys(input).concat(Object.keys(output)))];
-
-      this.items = keys.map((key) => {
-        const inputValue = (input[key] || '').toString();
-        const outputValue = (output[key] || '').toString();
-
-        return { key, inputValue, outputValue, diffClass: getDiffState(inputValue, outputValue) };
-      });
+      this.rowItems = this.buildRowItems();
     }
+  }
+
+  buildRowItems(): RowItem[] {
+    const input = this.input || {};
+    const output = this.output || {};
+    const keys = [...new Set(Object.keys(input).concat(Object.keys(output)))].sort((a, b) =>
+      a.toLowerCase().localeCompare(b.toLowerCase()),
+    );
+
+    return keys.map((key) => {
+      const inputValue = (input[key] || '').toString();
+      const outputValue = (output[key] || '').toString();
+
+      return { key, inputValue, outputValue, diffClass: getDiffState(inputValue, outputValue) };
+    });
   }
 }

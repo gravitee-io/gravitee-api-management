@@ -25,11 +25,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let item of items" [ngClass]="item.diffClass">
-      <td>{{ item.key }}</td>
-      <td>{{ item.inputValue }}</td>
-      <td class="output">{{ item.key }}</td>
-      <td class="output">{{ item.outputValue }}</td>
+    <tr *ngFor="let rowItem of rowItems" [ngClass]="rowItem.diffClass">
+      <td>{{ rowItem.key }}</td>
+      <td>{{ rowItem.inputValue }}</td>
+      <td class="output">{{ rowItem.key }}</td>
+      <td class="output">{{ rowItem.outputValue }}</td>
     </tr>
   </tbody>
 </table>
