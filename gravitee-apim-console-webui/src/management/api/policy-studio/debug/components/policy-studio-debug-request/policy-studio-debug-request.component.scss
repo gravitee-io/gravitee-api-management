@@ -3,6 +3,9 @@
 @use '../../../../../../scss/gio-layout' as gio-layout;
 
 .policy-studio-debug-request {
+  // FIXME: To remove when HEADERS will be managed by a component coming from UI Particles
+  --gv-expandable--bdb: solid thin #{mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider')};
+
   background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
   display: flex;
   flex-direction: column;
