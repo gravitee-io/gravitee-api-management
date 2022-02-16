@@ -43,6 +43,13 @@
             [output]="node.output"
           ></policy-studio-debug-inspector-body>
 
+          <policy-studio-debug-inspector-error
+            *ngSwitchCase="'error'"
+            [name]="node.name"
+            [input]="node.input"
+            [output]="node.output"
+          ></policy-studio-debug-inspector-error>
+
           <policy-studio-debug-inspector-text
             *ngSwitchDefault
             [name]="node.name"

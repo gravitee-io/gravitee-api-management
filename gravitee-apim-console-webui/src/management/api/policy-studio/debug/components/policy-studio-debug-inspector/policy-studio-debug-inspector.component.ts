@@ -138,7 +138,7 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     const name = key.replace('error.', '');
     return {
       name,
-      type: 'text',
+      type: 'error',
       input,
       output,
     };

@@ -29,6 +29,7 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
 import { PolicyStudioDebugInspectorBodyComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-body/policy-studio-debug-inspector-body.component';
 import { PolicyStudioDebugInspectorComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector.component';
+import { PolicyStudioDebugInspectorErrorComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-error/policy-studio-debug-inspector-error.component';
 import { PolicyStudioDebugInspectorTableComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-table/policy-studio-debug-inspector-table.component';
 import { PolicyStudioDebugRequestComponent } from './components/policy-studio-debug-request/policy-studio-debug-request.component';
 import { PolicyStudioDebugResponseComponent } from './components/policy-studio-debug-response/policy-studio-debug-response.component';
@@ -58,6 +59,7 @@ import { PolicyStudioDebugInspectorTextComponent } from './components/policy-stu
     PolicyStudioDebugComponent,
     PolicyStudioDebugInspectorComponent,
     PolicyStudioDebugInspectorBodyComponent,
+    PolicyStudioDebugInspectorErrorComponent,
     PolicyStudioDebugInspectorTableComponent,
     PolicyStudioDebugInspectorTextComponent,
     PolicyStudioDebugRequestComponent,
