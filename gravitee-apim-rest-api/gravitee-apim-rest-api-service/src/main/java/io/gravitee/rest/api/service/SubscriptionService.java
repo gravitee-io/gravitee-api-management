@@ -70,6 +70,8 @@ public interface SubscriptionService {
 
     Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable);
 
+    Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable, boolean fillApiKeys, boolean fillPlansSecurityType);
+
     Metadata getMetadata(SubscriptionMetadataQuery query);
 
     SubscriptionEntity transfer(TransferSubscriptionEntity transferSubscription, String userId);
