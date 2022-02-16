@@ -77,7 +77,10 @@ describe('PolicyStudioDebugInspectorComponent', () => {
     expect(getDiffState('foobar', '')).toEqual('deleted');
     expect(getDiffState('foobar', undefined)).toEqual('deleted');
     expect(getDiffState('foobar', null)).toEqual('deleted');
-    expect(getDiffState('foobar', 'foobar')).toBeUndefined();
     expect(getDiffState('foobar', 'updated')).toEqual('updated');
+    expect(getDiffState('foobar', 'foobar')).toBeUndefined();
+    expect(getDiffState('', '')).toBeUndefined();
+    expect(getDiffState(undefined, undefined)).toBeUndefined();
+    expect(getDiffState(null, null)).toBeUndefined();
   });
 });

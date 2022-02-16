@@ -76,6 +76,10 @@ $typography: map.get(gio.$mat-theme, typography);
   .added {
     background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'lighter');
     color: mat.get-color-from-palette(gio.$mat-success-palette, 'darker');
+
+    .input {
+      visibility: hidden;
+    }
   }
 
   .deleted {
@@ -83,7 +87,7 @@ $typography: map.get(gio.$mat-theme, typography);
     color: mat.get-color-from-palette(gio.$mat-error-palette, 'darker');
 
     .output {
-      text-decoration: line-through;
+      visibility: hidden;
     }
   }
   .updated {
