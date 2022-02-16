@@ -21,6 +21,7 @@ import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree'
 import { RequestDebugStep, ResponseDebugStep } from '../../models/DebugStep';
 
 interface Node {
+  id?: string;
   name?: string;
   children?: Node[];
   type?: string;
@@ -61,6 +62,8 @@ const httpProperties: Record<string, NodeContainerElement> = {
     type: 'text',
   },
 };
+
+const NODES_SORT = ['errors', 'props', 'headers', 'attributes', 'body'];
 
 const nodes: Record<string, NodeContainerElement> = {
   headers: {
@@ -137,6 +140,7 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     const output = this.outputDebugStep.output[key];
     const name = key.replace('error.', '');
     return {
+      id: 'errors',
       name,
       type: 'error',
       input,
@@ -149,6 +153,7 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     const input = this.inputDebugStep.output[key];
     const output = this.outputDebugStep.output[key];
     return {
+      id: key,
       name,
       type: undefined,
       children: [
@@ -167,26 +172,27 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
 
     const httpPropertiesNodes: Node[] = keys.filter((key) => httpProperties[key] != null).map((key) => this.toNode(httpProperties, key));
 
-    let data: Node[] = keys.filter((key) => nodes[key] != null).map((key) => this.toNode(nodes, key));
+    const data: Node[] = keys.filter((key) => nodes[key] != null).map((key) => this.toNode(nodes, key));
 
     if (httpPropertiesNodes.length > 0) {
       data.push({
+        id: 'props',
         name: 'HTTP properties',
         type: undefined,
         children: httpPropertiesNodes,
       });
     }
 
-    data = data.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-
     const errors = keys.filter((key) => key.startsWith('error.')).map((key) => this.toErrorNode(key));
     if (errors.length > 0) {
-      data.unshift({
+      data.push({
+        id: 'errors',
         name: 'Errors',
         type: undefined,
         children: errors,
       });
     }
-    return data;
+
+    return data.sort((a, b) => NODES_SORT.indexOf(a.id) - NODES_SORT.indexOf(b.id));
   }
 }
