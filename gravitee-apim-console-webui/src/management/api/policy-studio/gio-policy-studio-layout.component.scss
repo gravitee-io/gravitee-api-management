@@ -32,17 +32,17 @@
       flex: 1 1 auto;
       --gv-policy-studio--h: calc(100vh - 105px);
 
-      &__dirty {
-        --gv-policy-studio--h: calc(100vh - 160px);
+      &.save-bar-opened {
+        --gv-policy-studio--pb: 74px;
       }
     }
 
     &__save-bar {
       position: absolute;
       bottom: 25px;
-      padding: 0 50px;
-      width: 99%;
-      margin: 0;
+      width: 50%;
+      min-width: 580px; // keep save bar button on one line for small screen
+      margin: 0 (25%);
     }
   }
 }

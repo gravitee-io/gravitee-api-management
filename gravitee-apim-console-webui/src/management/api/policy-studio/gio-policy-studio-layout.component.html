@@ -32,7 +32,7 @@
   </nav>
 </div>
 
-<section ui-view class="gio-policy-studio-layout__tab-content" [ngClass]="{ 'gio-policy-studio-layout__tab-content__dirty': this.isDirty }">
+<section ui-view class="gio-policy-studio-layout__tab-content" [class.save-bar-opened]="this.isDirty">
   <h4 style="margin: 1em 2em">Loading...</h4>
 </section>
 

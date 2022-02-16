@@ -49,6 +49,10 @@ $typography: map.get(gio.$mat-theme, typography);
           flex: 1;
         }
       }
+
+      :host-context(.save-bar-opened) & {
+        padding-bottom: 16px +74px;
+      }
     }
   }
 
