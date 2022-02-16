@@ -47,15 +47,16 @@ export default {
   ],
   argTypes: {
     onRequestSubmitted: { action: 'onRequestSubmitted' },
+    onRequestCancelled: { action: 'onRequestCancelled' },
   },
   parameters: {
     layout: 'fullscreen',
   },
-  render: ({ onRequestSubmitted }) => ({
-    props: { onRequestSubmitted },
+  render: ({ onRequestSubmitted, onRequestCancelled }) => ({
+    props: { onRequestSubmitted, onRequestCancelled },
     template: `
       <div style="height:100vh">
-        <policy-studio-debug-request (requestSubmitted)="onRequestSubmitted($event)"></policy-studio-debug-request>
+        <policy-studio-debug-request (requestSubmitted)="onRequestSubmitted($event)" (cancelSubmitted)="onRequestCancelled()"></policy-studio-debug-request>
       </div>
     `,
   }),

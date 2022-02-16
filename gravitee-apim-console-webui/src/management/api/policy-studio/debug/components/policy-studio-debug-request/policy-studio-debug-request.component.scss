@@ -1,5 +1,6 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../../../scss/gio-layout' as gio-layout;
 
 .policy-studio-debug-request {
   background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
@@ -41,11 +42,29 @@
 
   &__btn {
     display: flex;
-    flex-direction: column;
-    padding: 16px 24px;
+    flex-direction: row;
+    padding: 16px;
 
     :host-context(.save-bar-opened) & {
       padding-bottom: 16px + 74px;
+
+      @include gio-layout.desktop {
+        padding-bottom: 16px;
+      }
+
+      @include gio-layout.large-desktop {
+        padding-bottom: 16px;
+      }
+    }
+
+    &__cancel {
+      flex: 1 1 auto;
+      margin: 0 8px;
+    }
+
+    &__submit {
+      flex: 5 1 auto;
+      margin: 0 8px;
     }
   }
 }
