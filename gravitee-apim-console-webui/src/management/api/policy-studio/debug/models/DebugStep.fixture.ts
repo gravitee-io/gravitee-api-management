@@ -16,17 +16,17 @@
 
 import { merge } from 'lodash';
 
-import { RequestDebugStep } from './DebugStep';
+import { RequestPolicyDebugStep } from './DebugStep';
 
-export function fakeRequestDebugStep(attributes?: Partial<RequestDebugStep>): RequestDebugStep {
-  const base: RequestDebugStep = {
+export function fakeRequestDebugStep(attributes?: Partial<RequestPolicyDebugStep>): RequestPolicyDebugStep {
+  const base: RequestPolicyDebugStep = {
     id: 'fake-step',
     policyInstanceId: 'c96188c0-c57a-4726-a188-c0c57a172604',
     policyId: 'key-less',
     scope: 'ON_REQUEST',
     status: 'COMPLETED',
     duration: 46143,
-    policyOutput: {
+    output: {
       headers: {
         'content-length': ['246'],
         'X-Gravitee-Transaction-Id': ['b39875e9-7fc7-4980-9875-e97fc7b980b7'],
@@ -50,15 +50,15 @@ export function fakeRequestDebugStep(attributes?: Partial<RequestDebugStep>): Re
   return merge(base, attributes);
 }
 
-export function fakeErrorRequestDebugStep(attributes?: Partial<RequestDebugStep>): RequestDebugStep {
-  const base: RequestDebugStep = {
+export function fakeErrorRequestDebugStep(attributes?: Partial<RequestPolicyDebugStep>): RequestPolicyDebugStep {
+  const base: RequestPolicyDebugStep = {
     id: 'fake-step',
     policyInstanceId: 'c96188c0-c57a-4726-a188-c0c57a172604',
     policyId: 'key-less',
     scope: 'ON_REQUEST',
     status: 'COMPLETED',
     duration: 46143,
-    policyOutput: {
+    output: {
       body: '{}',
       'error.contentType': 'application/json',
       'error.key': 'POLICY_ERROR',

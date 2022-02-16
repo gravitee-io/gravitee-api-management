@@ -18,7 +18,7 @@ import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 
 import { PolicyStudioDebugService } from './policy-studio-debug.service';
 import { fakeDebugEvent } from './models/DebugEvent.fixture';
-import { RequestDebugStep, ResponseDebugStep } from './models/DebugStep';
+import { RequestPolicyDebugStep, ResponsePolicyDebugStep } from './models/DebugStep';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
@@ -46,7 +46,7 @@ describe('PolicyStudioDebugService', () => {
       const mockDebugEvent = fakeDebugEvent();
       const eventId = 'eventId';
 
-      const expectedRequestDebugSteps: RequestDebugStep[] = [
+      const expectedRequestDebugSteps: RequestPolicyDebugStep[] = [
         {
           id: expect.any(String),
           policyInstanceId: 'c96188c0-c57a-4726-a188-c0c57a172604',
@@ -54,7 +54,7 @@ describe('PolicyStudioDebugService', () => {
           scope: 'ON_REQUEST',
           status: 'COMPLETED',
           duration: 46143,
-          policyOutput: {
+          output: {
             path: '/',
             method: 'GET',
             body: '{}',
@@ -81,7 +81,7 @@ describe('PolicyStudioDebugService', () => {
           scope: 'ON_REQUEST',
           status: 'COMPLETED',
           duration: 36091,
-          policyOutput: {
+          output: {
             path: '/',
             method: 'GET',
             body: '{}',
@@ -109,7 +109,7 @@ describe('PolicyStudioDebugService', () => {
           scope: 'ON_REQUEST',
           status: 'COMPLETED',
           duration: 17968,
-          policyOutput: {
+          output: {
             path: '/',
             method: 'GET',
             body: '{}',
@@ -138,7 +138,7 @@ describe('PolicyStudioDebugService', () => {
           scope: 'ON_REQUEST',
           status: 'COMPLETED',
           duration: 30985,
-          policyOutput: {
+          output: {
             path: '/',
             method: 'GET',
             body: '{}',
@@ -169,7 +169,7 @@ describe('PolicyStudioDebugService', () => {
           id: expect.any(String),
           policyId: 'transform-headers',
           policyInstanceId: 'b3cb3acc-79ea-48ea-8b3a-cc79ea48e666',
-          policyOutput: {
+          output: {
             attributes: {
               dev: 'gmaisse',
               'gravitee.attribute.api': 'e9b6a4f8-f660-42a4-b6a4-f8f66072a401',
@@ -203,7 +203,7 @@ describe('PolicyStudioDebugService', () => {
         },
       ];
 
-      const expectedResponseDebugSteps: ResponseDebugStep[] = [
+      const expectedResponseDebugSteps: ResponsePolicyDebugStep[] = [
         {
           id: expect.any(String),
           policyInstanceId: '4a5265f3-0c5b-4f60-9265-f30c5b8f6041',
@@ -211,7 +211,7 @@ describe('PolicyStudioDebugService', () => {
           scope: 'ON_RESPONSE',
           status: 'COMPLETED',
           duration: 34524,
-          policyOutput: {
+          output: {
             body: '{"headers":{"X-Gravitee-Transaction-Id":"b39875e9-7fc7-4980-9875-e97fc7b980b7","X-Gravitee-Request-Id":"303247f6-5811-4a90-b247-f658115a9033","a-header-platform":"WOW","Host":"api.gravitee.io","accept-encoding":"deflate, gzip"},"query_params":{}}',
             statusCode: 200,
             headers: {
@@ -243,7 +243,7 @@ describe('PolicyStudioDebugService', () => {
           scope: 'ON_RESPONSE_CONTENT',
           status: 'COMPLETED',
           duration: 1255578,
-          policyOutput: {
+          output: {
             statusCode: 200,
             headers: {
               'Cache-Control': ['no-cache'],
@@ -283,8 +283,8 @@ describe('PolicyStudioDebugService', () => {
           expect(response.request).toStrictEqual(mockDebugEvent.payload.request);
           expect(response.response).toStrictEqual(mockDebugEvent.payload.response);
           expect(response.isLoading).toStrictEqual(false);
-          expect(response.requestDebugSteps).toStrictEqual(expectedRequestDebugSteps);
-          expect(response.responseDebugSteps).toStrictEqual(expectedResponseDebugSteps);
+          expect(response.requestPolicyDebugSteps).toStrictEqual(expectedRequestDebugSteps);
+          expect(response.responsePolicyDebugSteps).toStrictEqual(expectedResponseDebugSteps);
           done();
         });
 

@@ -62,7 +62,7 @@ export const ResponseSuccess: Story = {
   args: {
     inputDebugStep: fakeRequestDebugStep(),
     outputDebugStep: fakeRequestDebugStep({
-      policyOutput: {
+      output: {
         path: '/fake/api/updated',
         contextPath: '/context/path',
         headers: {
