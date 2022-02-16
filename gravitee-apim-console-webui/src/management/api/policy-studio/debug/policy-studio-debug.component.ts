@@ -39,6 +39,7 @@ export class PolicyStudioDebugComponent implements OnInit {
 
   private apiId: string;
   private unsubscribe$ = new Subject<boolean>();
+  private cancelRequest$ = new Subject<void>();
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
@@ -83,6 +84,7 @@ export class PolicyStudioDebugComponent implements OnInit {
       .debug(this.apiId, debugRequest)
       .pipe(
         takeUntil(this.unsubscribe$),
+        takeUntil(this.cancelRequest$),
         catchError(() => {
           this.snackBarService.error('Unable to try the request, please try again');
           this.debugResponse = {
@@ -102,5 +104,10 @@ export class PolicyStudioDebugComponent implements OnInit {
       .subscribe((debugResponse) => {
         this.debugResponse = debugResponse;
       });
+  }
+
+  onRequestCancelled() {
+    this.cancelRequest$.next();
+    this.debugResponse = null;
   }
 }

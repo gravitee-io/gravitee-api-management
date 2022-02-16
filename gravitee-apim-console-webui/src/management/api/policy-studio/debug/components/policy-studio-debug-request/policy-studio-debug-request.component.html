@@ -52,6 +52,17 @@
     </div>
   </div>
   <div class="policy-studio-debug-request__btn">
-    <button mat-flat-button color="primary" type="submit">Send</button>
+    <button
+      class="policy-studio-debug-request__btn__cancel"
+      mat-button
+      type="button"
+      (click)="onCancelClick()"
+      [disabled]="!debugInProgress"
+    >
+      Cancel
+    </button>
+    <button class="policy-studio-debug-request__btn__submit" mat-flat-button color="primary" type="submit" [disabled]="debugInProgress">
+      Send
+    </button>
   </div>
 </form>

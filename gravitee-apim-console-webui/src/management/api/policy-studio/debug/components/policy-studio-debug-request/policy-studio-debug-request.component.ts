@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import '@gravitee/ui-components/wc/gv-schema-form';
@@ -28,8 +28,14 @@ import { DebugRequest } from '../../models/DebugRequest';
   styles: [require('./policy-studio-debug-request.component.scss')],
 })
 export class PolicyStudioDebugRequestComponent implements OnInit {
+  @Input()
+  public debugInProgress = false;
+
   @Output()
   public requestSubmitted = new EventEmitter<DebugRequest>();
+
+  @Output()
+  public cancelSubmitted = new EventEmitter<void>();
 
   public httpMethods = CorsUtil.httpMethods;
 
@@ -87,5 +93,9 @@ export class PolicyStudioDebugRequestComponent implements OnInit {
 
   onSendRequest() {
     this.requestSubmitted.emit(this.requestFormGroup.value as DebugRequest);
+  }
+
+  onCancelClick() {
+    this.cancelSubmitted.emit();
   }
 }

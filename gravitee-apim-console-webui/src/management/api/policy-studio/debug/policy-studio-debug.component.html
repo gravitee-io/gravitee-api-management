@@ -17,7 +17,11 @@
 -->
 <div class="policy-studio-debug">
   <div class="policy-studio-debug__request">
-    <policy-studio-debug-request (requestSubmitted)="onRequestSubmitted($event)"></policy-studio-debug-request>
+    <policy-studio-debug-request
+      [debugInProgress]="debugResponse?.isLoading"
+      (requestSubmitted)="onRequestSubmitted($event)"
+      (cancelSubmitted)="onRequestCancelled()"
+    ></policy-studio-debug-request>
   </div>
 
   <div class="policy-studio-debug__response">
