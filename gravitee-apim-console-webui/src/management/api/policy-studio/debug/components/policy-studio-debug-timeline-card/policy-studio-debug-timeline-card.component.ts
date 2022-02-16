@@ -53,7 +53,7 @@ interface TimelineCardVM {
   headerLabel?: string;
   title?: string;
   color?: 'green' | 'blue' | 'default';
-  executionTimeLabel?: string;
+  executionTime?: number;
   rightIcon?: string;
   id?: string;
   clickable: boolean;
@@ -124,7 +124,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           headerLabel: timelineStep.flowName,
           title: timelineStep.policyName,
           color: 'default',
-          executionTimeLabel: `${timelineStep.executionTime / 1_000_000}ms`,
+          executionTime: timelineStep.executionTime / 1_000_000,
           rightIcon: timelineStep.executionStatus === 'ERROR' ? 'gio:warning-circled-outline' : undefined,
           id: timelineStep.id,
           clickable: true,
