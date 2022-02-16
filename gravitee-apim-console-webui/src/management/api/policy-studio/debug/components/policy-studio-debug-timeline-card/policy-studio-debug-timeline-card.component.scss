@@ -90,6 +90,10 @@ $cardIconWidth: 32px;
     .error {
       color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
     }
+
+    .skipped {
+      color: mat.get-color-from-palette(gio.$mat-content-palette, 'disabled-contrast');
+    }
   }
 
   &__time-label {

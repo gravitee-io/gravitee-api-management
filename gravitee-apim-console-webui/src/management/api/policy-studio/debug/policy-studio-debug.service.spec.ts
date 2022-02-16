@@ -136,7 +136,7 @@ describe('PolicyStudioDebugService', () => {
           policyInstanceId: '6fcb8a49-b853-4f47-8b8a-49b853df47bd',
           policyId: 'transform-headers',
           scope: 'ON_REQUEST',
-          status: 'COMPLETED',
+          status: 'SKIPPED',
           duration: 30985,
           output: {
             path: '/',
