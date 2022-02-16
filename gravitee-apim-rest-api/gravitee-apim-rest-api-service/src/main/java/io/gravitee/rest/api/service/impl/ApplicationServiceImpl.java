@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
@@ -57,7 +58,6 @@ import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.bind.DatatypeConverter;
 import org.jetbrains.annotations.NotNull;
@@ -490,7 +490,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         List<String> allowedGrantTypes = applicationType
             .getAllowed_grant_types()
             .stream()
-            .map(applicationGrantTypeEntity -> applicationGrantTypeEntity.getType())
+            .map(ApplicationGrantTypeEntity::getType)
             .collect(toList());
         if (!allowedGrantTypes.containsAll(targetGrantTypes)) {
             throw new ApplicationGrantTypesNotAllowedException(oAuthClientSettings.getApplicationType(), targetGrantTypes);
@@ -505,7 +505,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .getAllowed_grant_types()
             .stream()
             .filter(applicationGrantTypeEntity -> targetGrantTypes.contains(applicationGrantTypeEntity.getType()))
-            .map(applicationGrantTypeEntity -> applicationGrantTypeEntity.getResponse_types())
+            .map(ApplicationGrantTypeEntity::getResponse_types)
             .flatMap(Collection::stream)
             .distinct()
             .collect(toList());
@@ -527,13 +527,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 groupService.findByIds(updateApplicationEntity.getGroups());
             }
 
-            Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationId);
-            if (!optApplicationToUpdate.isPresent()) {
-                throw new ApplicationNotFoundException(applicationId);
-            }
+            Application applicationToUpdate = applicationRepository
+                .findById(applicationId)
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
-            if (ApplicationStatus.ARCHIVED.equals(optApplicationToUpdate.get().getStatus())) {
-                throw new ApplicationArchivedException(optApplicationToUpdate.get().getName());
+            if (ApplicationStatus.ARCHIVED.equals(applicationToUpdate.getStatus())) {
+                throw new ApplicationArchivedException(applicationToUpdate.getName());
             }
 
             // Check that only one settings is defined
@@ -553,9 +552,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Map<String, String> metadata = new HashMap<>();
 
             // Update a simple application
-            if (
-                optApplicationToUpdate.get().getType() == ApplicationType.SIMPLE && updateApplicationEntity.getSettings().getApp() != null
-            ) {
+            if (applicationToUpdate.getType() == ApplicationType.SIMPLE && updateApplicationEntity.getSettings().getApp() != null) {
                 // If clientId is set, check for uniqueness
                 String clientId = updateApplicationEntity.getSettings().getApp().getClientId();
 
@@ -569,7 +566,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         .stream()
                         .filter(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id")))
                         .findAny();
-                    if (byClientId.isPresent() && !byClientId.get().getId().equals(optApplicationToUpdate.get().getId())) {
+                    if (byClientId.isPresent() && !byClientId.get().getId().equals(applicationToUpdate.getId())) {
                         LOGGER.error("An application already exists with the same client_id");
                         throw new ClientIdAlreadyExistsException(clientId);
                     }
@@ -580,7 +577,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 checkClientSettings(updateApplicationEntity.getSettings().getoAuthClient());
 
                 // Update an OAuth client
-                final String registrationPayload = optApplicationToUpdate.get().getMetadata().get("registration_payload");
+                final String registrationPayload = applicationToUpdate.getMetadata().get("registration_payload");
                 if (registrationPayload != null) {
                     ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
                         registrationPayload,
@@ -599,10 +596,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             Application application = applicationConverter.toApplication(updateApplicationEntity);
             application.setId(applicationId);
-            application.setEnvironmentId(optApplicationToUpdate.get().getEnvironmentId());
+            application.setEnvironmentId(applicationToUpdate.getEnvironmentId());
             application.setStatus(ApplicationStatus.ACTIVE);
-            application.setType(optApplicationToUpdate.get().getType());
-            application.setCreatedAt(optApplicationToUpdate.get().getCreatedAt());
+            application.setType(applicationToUpdate.getType());
+            application.setCreatedAt(applicationToUpdate.getCreatedAt());
             application.setUpdatedAt(new Date());
 
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
@@ -615,7 +612,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 Collections.emptyMap(),
                 APPLICATION_UPDATED,
                 updatedApplication.getUpdatedAt(),
-                optApplicationToUpdate.get(),
+                applicationToUpdate,
                 updatedApplication
             );
 
@@ -626,16 +623,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             subscriptionService
                 .search(subQuery)
                 .forEach(
-                    new Consumer<SubscriptionEntity>() {
-                        @Override
-                        public void accept(SubscriptionEntity subscriptionEntity) {
-                            UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-                            updateSubscriptionEntity.setId(subscriptionEntity.getId());
-                            updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
-                            updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
+                    subscriptionEntity -> {
+                        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                        updateSubscriptionEntity.setId(subscriptionEntity.getId());
+                        updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
+                        updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
 
-                            subscriptionService.update(updateSubscriptionEntity, application.getMetadata().get("client_id"));
-                        }
+                        subscriptionService.update(updateSubscriptionEntity, application.getMetadata().get("client_id"));
                     }
                 );
             return convert(Collections.singleton(updatedApplication), organizationId).iterator().next();
@@ -653,19 +647,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         try {
             LOGGER.debug("Renew client secret for application {}", applicationId);
 
-            Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationId);
-            if (!optApplicationToUpdate.isPresent()) {
-                throw new ApplicationNotFoundException(applicationId);
-            }
+            Application applicationToUpdate = applicationRepository
+                .findById(applicationId)
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
-            if (ApplicationStatus.ARCHIVED.equals(optApplicationToUpdate.get().getStatus())) {
-                throw new ApplicationArchivedException(optApplicationToUpdate.get().getName());
+            if (ApplicationStatus.ARCHIVED.equals(applicationToUpdate.getStatus())) {
+                throw new ApplicationArchivedException(applicationToUpdate.getName());
             }
 
             // Check that client registration is enabled
             checkClientRegistrationEnabled(environmentId);
 
-            Application application = optApplicationToUpdate.get();
+            Application application = applicationToUpdate;
             ApplicationEntity applicationEntity = findById(environmentId, applicationId);
 
             // Check that the application can be updated with a new client secret
@@ -699,7 +692,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     Collections.emptyMap(),
                     APPLICATION_UPDATED,
                     updatedApplication.getUpdatedAt(),
-                    optApplicationToUpdate.get(),
+                    applicationToUpdate,
                     updatedApplication
                 );
 
@@ -805,12 +798,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     public void archive(String applicationId) {
         try {
             LOGGER.debug("Delete application {}", applicationId);
-            Optional<Application> optApplication = applicationRepository.findById(applicationId);
 
-            if (!optApplication.isPresent()) {
-                throw new ApplicationNotFoundException(applicationId);
-            }
-            Application application = optApplication.get();
+            Application application = applicationRepository
+                .findById(applicationId)
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
             Application previousApplication = new Application(application);
             Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(applicationId, null);
 
