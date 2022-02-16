@@ -56,9 +56,8 @@ export class PolicyStudioDebugInspectorTableComponent implements OnChanges {
     );
 
     return keys.map((key) => {
-      const inputValue = (input[key] || '').toString();
-      const outputValue = (output[key] || '').toString();
-
+      const inputValue = (input[key] ?? '').toString();
+      const outputValue = (output[key] ?? '').toString();
       return { key, inputValue, outputValue, diffClass: getDiffState(inputValue, outputValue) };
     });
   }
