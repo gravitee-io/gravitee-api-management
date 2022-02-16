@@ -15,7 +15,7 @@
  */
 import { uniqueId } from 'lodash';
 
-import { RequestDebugStep, ResponseDebugStep } from './DebugStep';
+import { RequestDebugStep, DebugSteps, RequestPolicyDebugStep, ResponsePolicyDebugStep, ResponseDebugStep } from './DebugStep';
 import { DebugEvent } from './DebugEvent';
 
 export type DebugResponse = {
@@ -33,7 +33,8 @@ export type DebugResponse = {
     headers?: Record<string, string[]>;
   };
 
-  requestDebugSteps: RequestDebugStep[];
+  requestPolicyDebugSteps: RequestPolicyDebugStep[];
+  requestDebugSteps: DebugSteps<RequestDebugStep>;
 
   backendResponse: {
     statusCode?: number;
@@ -42,7 +43,8 @@ export type DebugResponse = {
     headers?: Record<string, string[]>;
     body?: string;
   };
-  responseDebugSteps: ResponseDebugStep[];
+  responsePolicyDebugSteps: ResponsePolicyDebugStep[];
+  responseDebugSteps: DebugSteps<ResponseDebugStep>;
 
   response: {
     statusCode?: number;
@@ -53,9 +55,9 @@ export type DebugResponse = {
   };
 };
 
-export const convertDebugEventToDebugResponse = (event: DebugEvent) => {
+export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugResponse => {
   // First, create the hydrated debug steps for the REQUEST with request initial data + attributes
-  const requestDebugSteps =
+  const requestPolicyDebugSteps =
     event.payload.debugSteps && event.payload.debugSteps.length > 0
       ? convertRequestDebugSteps(
           event.payload.request ?? {},
@@ -64,17 +66,44 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent) => {
         )
       : [];
 
+  const requestInputDebugStep: RequestDebugStep = {
+    id: 'request-input',
+    status: undefined,
+    duration: 0,
+    output: {
+      ...event.payload.request,
+      ...event.payload.preprocessorStep,
+    },
+  };
+
+  const requestOutputDebugStep = requestPolicyDebugSteps.reduce(
+    (acc, current) => {
+      const status = acc.status !== 'ERROR' ? current.status : acc.status;
+      const duration = acc.duration + current.duration;
+      return {
+        ...acc,
+        status,
+        duration,
+        output: {
+          ...acc.output,
+          ...current.output,
+        },
+      };
+    },
+    { ...requestInputDebugStep, id: 'request-output' },
+  );
+
   // Then, compute response initial attributes and headers -> either from the last REQUEST debug step or the request initial attributes
   const responsePreprocessorStep: DebugEvent['payload']['preprocessorStep'] =
-    requestDebugSteps.length > 0
+    requestPolicyDebugSteps.length > 0
       ? {
-          attributes: requestDebugSteps[requestDebugSteps.length - 1].policyOutput.attributes,
-          headers: requestDebugSteps[requestDebugSteps.length - 1].policyOutput.headers,
+          attributes: requestPolicyDebugSteps[requestPolicyDebugSteps.length - 1].output.attributes,
+          headers: requestPolicyDebugSteps[requestPolicyDebugSteps.length - 1].output.headers,
         }
       : event.payload.preprocessorStep;
 
   // Finally, create the hydrated debug steps for the RESPONSE with initial request data + attributes
-  const responseDebugSteps =
+  const responsePolicyDebugSteps =
     event.payload.debugSteps && event.payload.debugSteps.length > 0
       ? convertResponseDebugSteps(
           event.payload.backendResponse ?? {},
@@ -83,14 +112,46 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent) => {
         )
       : [];
 
+  const responseInputDebugStep: RequestDebugStep = {
+    id: 'response-input',
+    status: undefined,
+    duration: 0,
+    output: responsePreprocessorStep,
+  };
+
+  const responseOutputDebugStep = responsePolicyDebugSteps.reduce(
+    (acc, current) => {
+      const status = acc.status !== 'ERROR' ? current.status : acc.status;
+      const duration = acc.duration + current.duration;
+      return {
+        ...acc,
+        status,
+        duration,
+        output: {
+          ...acc.output,
+          ...current.output,
+        },
+      };
+    },
+    { ...requestInputDebugStep, id: 'response-output' },
+  );
+
   return {
     isLoading: false,
     response: event.payload.response ?? {},
     request: event.payload.request ?? {},
     backendResponse: event.payload.backendResponse ?? {},
     preprocessorStep: event.payload.preprocessorStep ?? {},
-    requestDebugSteps,
-    responseDebugSteps,
+    requestPolicyDebugSteps,
+    responsePolicyDebugSteps,
+    requestDebugSteps: {
+      input: requestInputDebugStep,
+      output: requestOutputDebugStep,
+    },
+    responseDebugSteps: {
+      input: responseInputDebugStep,
+      output: responseOutputDebugStep,
+    },
   };
 };
 
@@ -98,21 +159,21 @@ const convertRequestDebugSteps = (
   initialRequest: DebugEvent['payload']['request'],
   preprocessorStep: DebugEvent['payload']['preprocessorStep'],
   debugSteps: DebugEvent['payload']['debugSteps'],
-): RequestDebugStep[] => {
+): RequestPolicyDebugStep[] => {
   if (debugSteps.length === 0) {
     return [];
   }
 
   const [firstStep, ...others] = debugSteps;
 
-  const firstDebugStep: RequestDebugStep = {
+  const firstDebugStep: RequestPolicyDebugStep = {
     id: uniqueId(),
     policyId: firstStep.policyId,
     status: firstStep.status,
     policyInstanceId: firstStep.policyInstanceId,
     scope: firstStep.scope,
     duration: firstStep.duration,
-    policyOutput: {
+    output: {
       ...initialRequest,
       ...preprocessorStep,
       ...firstStep.result,
@@ -132,8 +193,8 @@ const convertRequestDebugSteps = (
           policyInstanceId: currentValue.policyInstanceId,
           scope: currentValue.scope,
           duration: currentValue.duration,
-          policyOutput: {
-            ...previousStep.policyOutput,
+          output: {
+            ...previousStep.output,
             ...currentValue.result,
           },
         },
@@ -147,21 +208,21 @@ const convertResponseDebugSteps = (
   backendResponse: DebugEvent['payload']['backendResponse'],
   preprocessorStep: DebugEvent['payload']['preprocessorStep'],
   debugSteps: DebugEvent['payload']['debugSteps'],
-): ResponseDebugStep[] => {
+): ResponsePolicyDebugStep[] => {
   if (debugSteps.length === 0) {
     return [];
   }
 
   const [firstStep, ...others] = debugSteps;
 
-  const firstDebugStep: ResponseDebugStep = {
+  const firstDebugStep: ResponsePolicyDebugStep = {
     id: uniqueId(),
     policyId: firstStep.policyId,
     status: firstStep.status,
     policyInstanceId: firstStep.policyInstanceId,
     scope: firstStep.scope,
     duration: firstStep.duration,
-    policyOutput: {
+    output: {
       ...backendResponse,
       ...preprocessorStep,
       ...firstStep.result,
@@ -181,8 +242,8 @@ const convertResponseDebugSteps = (
           policyInstanceId: currentValue.policyInstanceId,
           scope: currentValue.scope,
           duration: currentValue.duration,
-          policyOutput: {
-            ...previousStep.policyOutput,
+          output: {
+            ...previousStep.output,
             ...currentValue.result,
           },
         },

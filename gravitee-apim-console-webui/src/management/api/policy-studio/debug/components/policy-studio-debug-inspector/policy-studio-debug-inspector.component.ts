@@ -133,8 +133,8 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
   private toErrorNode(key: string): Node {
-    const input = this.inputDebugStep.policyOutput[key];
-    const output = this.outputDebugStep.policyOutput[key];
+    const input = this.inputDebugStep.output[key];
+    const output = this.outputDebugStep.output[key];
     const name = key.replace('error.', '');
     return {
       name,
@@ -146,8 +146,8 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
 
   private toNode(nodes: Record<string, any>, key: string): Node {
     const { name, type } = nodes[key];
-    const input = this.inputDebugStep.policyOutput[key];
-    const output = this.outputDebugStep.policyOutput[key];
+    const input = this.inputDebugStep.output[key];
+    const output = this.outputDebugStep.output[key];
     return {
       name,
       type: undefined,
@@ -163,7 +163,7 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
   }
 
   buildTreeNodes(): Node[] {
-    const keys = [...new Set(Object.keys(this.inputDebugStep.policyOutput).concat(Object.keys(this.outputDebugStep.policyOutput)))];
+    const keys = [...new Set(Object.keys(this.inputDebugStep.output).concat(Object.keys(this.outputDebugStep.output)))];
 
     const httpPropertiesNodes: Node[] = keys.filter((key) => httpProperties[key] != null).map((key) => this.toNode(httpProperties, key));
 

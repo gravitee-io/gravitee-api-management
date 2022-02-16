@@ -27,7 +27,7 @@ describe('PolicyStudioDebugInspectorComponent', () => {
 
   const inputDebugStep = fakeRequestDebugStep();
   const outputDebugStep = fakeRequestDebugStep({
-    policyOutput: {
+    output: {
       headers: {
         'content-length': ['3476'],
       },

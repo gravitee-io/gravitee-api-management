@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-interface DebugStep<T> {
+export interface DebugStep<T> {
   id: string;
+  status: 'COMPLETED' | 'ERROR';
+  duration: number;
+  output: T;
+}
+
+interface PolicyDebugStep<T> extends DebugStep<T> {
   policyInstanceId: string;
   policyId: string;
   scope: PolicyScope;
-  status: 'COMPLETED' | 'ERROR';
-  duration: number;
-  policyOutput: T;
 }
 
-export type PolicyScope = 'ON_REQUEST' | 'ON_REQUEST_CONTENT' | 'ON_RESPONSE' | 'ON_RESPONSE_CONTENT';
-
-export type RequestDebugStep = DebugStep<{
+interface RequestOutput {
   headers?: Record<string, string[]>;
   parameters?: Record<string, string>;
   pathParameters?: Record<string, string>;
@@ -38,9 +39,9 @@ export type RequestDebugStep = DebugStep<{
   'error.key'?: string;
   'error.message'?: string;
   'error.status'?: string;
-}>;
+}
 
-export type ResponseDebugStep = DebugStep<{
+interface ResponseOutput {
   headers?: Record<string, string[]>;
   statusCode?: number;
   reason?: string;
@@ -50,4 +51,19 @@ export type ResponseDebugStep = DebugStep<{
   'error.key'?: string;
   'error.message'?: string;
   'error.status'?: string;
-}>;
+}
+
+export type PolicyScope = 'ON_REQUEST' | 'ON_REQUEST_CONTENT' | 'ON_RESPONSE' | 'ON_RESPONSE_CONTENT';
+
+export type RequestPolicyDebugStep = PolicyDebugStep<RequestOutput>;
+
+export type ResponsePolicyDebugStep = PolicyDebugStep<ResponseOutput>;
+
+export type RequestDebugStep = DebugStep<RequestOutput>;
+
+export type ResponseDebugStep = DebugStep<ResponseOutput>;
+
+export interface DebugSteps<T> {
+  input?: T;
+  output?: T;
+}

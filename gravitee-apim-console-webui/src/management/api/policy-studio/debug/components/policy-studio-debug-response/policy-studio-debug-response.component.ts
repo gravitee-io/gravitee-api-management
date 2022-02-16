@@ -100,7 +100,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         mode: 'REQUEST_INPUT',
         selected: false,
       },
-      ...debugResponse.requestDebugSteps.map((debugStep) => {
+      ...debugResponse.requestPolicyDebugSteps.map((debugStep) => {
         const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
 
         return {
@@ -129,7 +129,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         mode: 'RESPONSE_INPUT',
         selected: false,
       },
-      ...debugResponse.responseDebugSteps.map((debugStep) => {
+      ...debugResponse.responsePolicyDebugSteps.map((debugStep) => {
         const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
 
         return {
@@ -158,25 +158,12 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   }
 
   private onSelectPolicy(timelineStep: TimelineStep) {
-    const steps = [...this.debugResponse.requestDebugSteps, ...this.debugResponse.responseDebugSteps];
+    const steps = [...this.debugResponse.requestPolicyDebugSteps, ...this.debugResponse.responsePolicyDebugSteps];
 
     const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
 
     this.inspectorVM = {
-      input:
-        outputIndex > 0
-          ? steps[outputIndex - 1]
-          : {
-              id: 'preprocess-step',
-              policyInstanceId: '',
-              policyId: '',
-              scope: 'ON_REQUEST',
-              status: 'COMPLETED',
-              duration: 0,
-              policyOutput: {
-                ...this.debugResponse.preprocessorStep,
-              },
-            },
+      input: outputIndex > 0 ? steps[outputIndex - 1] : this.debugResponse.requestDebugSteps.input,
       output: steps[outputIndex],
     };
 
@@ -195,7 +182,11 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
       })),
     };
 
-    this.inspectorVM = { input: '🚧', output: '🚧' };
+    if (policyMode === 'REQUEST') {
+      this.inspectorVM = { ...this.debugResponse.requestDebugSteps };
+    } else if (policyMode === 'RESPONSE') {
+      this.inspectorVM = { ...this.debugResponse.responseDebugSteps };
+    }
   }
 }
 
