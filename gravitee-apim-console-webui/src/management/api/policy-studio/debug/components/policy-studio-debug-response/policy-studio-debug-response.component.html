@@ -19,6 +19,9 @@
   <ng-container *ngIf="!debugResponse; then emptyResponse"></ng-container>
   <ng-container *ngIf="!!debugResponse && debugResponse.isLoading; then loadingResponse"></ng-container>
   <ng-container *ngIf="!!debugResponse && !debugResponse.isLoading && !debugResponse.reachedTimeout; then displayResponse"></ng-container>
+  <ng-container
+    *ngIf="!!debugResponse && !debugResponse.isLoading && !debugResponse.reachedTimeout && !inspectorVM; then inspectorHelper"
+  ></ng-container>
   <ng-container *ngIf="!!debugResponse && !debugResponse.isLoading && debugResponse.reachedTimeout; then reachedTimeout"></ng-container>
 </div>
 
@@ -43,6 +46,14 @@
   <div class="policy-studio-debug-response__reached-timeout">
     <gv-icon class="policy-studio-debug-response__reached-timeout__icon" shape="devices:lte#2"></gv-icon>
     <h5>Bad news, it looks like your request was lost in space. Please try again.</h5>
+  </div>
+</ng-template>
+
+<!-- Display timeline helper text -->
+<ng-template #inspectorHelper>
+  <div class="policy-studio-debug-response__inspector-helper">
+    <gv-icon class="policy-studio-debug-response__inspector-helper__icon" shape="general:search"></gv-icon>
+    <h5>Select a step in the timeline to compare its inputs and outputs</h5>
   </div>
 </ng-template>
 
