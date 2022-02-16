@@ -16,7 +16,7 @@
 
 -->
 <div class="policy-studio-debug-inspector-body">
-  <gv-code [value]="input" readonly></gv-code>
+  <gv-code [value]="formattedInput" [options]="inputFormatOptions" readonly></gv-code>
 
-  <gv-code [value]="output" readonly></gv-code>
+  <gv-code [value]="formattedOutput" [options]="outputFormatOptions" readonly></gv-code>
 </div>

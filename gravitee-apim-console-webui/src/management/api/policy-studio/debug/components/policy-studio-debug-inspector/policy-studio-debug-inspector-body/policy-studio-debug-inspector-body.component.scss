@@ -2,7 +2,9 @@
   display: flex;
 
   > * {
-    width: 100%;
-    flex: 1;
+    // FIXME: Remove this when we will have a proper diff for the body
+    width: 50%;
+    max-height: 300px;
+    overflow: auto;
   }
 }
