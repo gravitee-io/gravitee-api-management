@@ -15,26 +15,28 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.repository.management.model.ApiKeyMode.SHARED;
+import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.repository.management.model.ApiKeyMode;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
@@ -77,10 +79,10 @@ public class ApplicationService_UpdateTest {
     private UserService userService;
 
     @Mock
-    private UpdateApplicationEntity existingApplication;
+    private UpdateApplicationEntity updateApplication;
 
     @Mock
-    private Application application;
+    private Application existingApplication;
 
     @Mock
     private AuditService auditService;
@@ -100,15 +102,19 @@ public class ApplicationService_UpdateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
-        when(application.getName()).thenReturn(APPLICATION_NAME);
-        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
-        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
-        when(applicationRepository.update(any())).thenReturn(application);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
@@ -124,7 +130,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            updateApplication
         );
 
         verify(applicationRepository)
@@ -142,7 +148,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            updateApplication
         );
     }
 
@@ -152,44 +158,44 @@ public class ApplicationService_UpdateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
-        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
 
-        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            updateApplication
         );
     }
 
     @Test
     public void shouldUpdateBecauseSameApplication() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
-        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getId()).thenReturn(APPLICATION_ID);
 
         Map<String, String> metadata = new HashMap<>();
         metadata.put("client_id", CLIENT_ID);
-        when(application.getMetadata()).thenReturn(metadata);
+        when(existingApplication.getMetadata()).thenReturn(metadata);
 
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getSettings()).thenReturn(settings);
 
-        when(application.getName()).thenReturn(APPLICATION_NAME);
-        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
-        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
-        when(applicationRepository.update(any())).thenReturn(application);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
@@ -205,7 +211,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            updateApplication
         );
 
         verify(applicationRepository)
@@ -224,24 +230,44 @@ public class ApplicationService_UpdateTest {
         metadata.put("client_id", CLIENT_ID);
         when(other.getMetadata()).thenReturn(metadata);
 
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
-        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
 
-        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(existingApplication.getId()).thenReturn(APPLICATION_ID);
 
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
 
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getSettings()).thenReturn(settings);
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            updateApplication
+        );
+    }
+
+    @Test(expected = InvalidApplicationApiKeyModeException.class)
+    public void should_throw_exception_trying_to_update_apiKeyMode_shared() throws TechnicalException {
+        // existing application has a SHARED api key mode
+        when(existingApplication.getApiKeyMode()).thenReturn(SHARED);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+
+        // updated application has a UNSPECIFIED api key mode
+        when(updateApplication.getApiKeyMode()).thenReturn(UNSPECIFIED);
+        when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
+        updateApplication.getSettings().setApp(new SimpleApplicationSettings());
+
+        // this should throw exception cause API key mode update is forbidden
+        applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            updateApplication
         );
     }
 }

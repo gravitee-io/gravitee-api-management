@@ -541,6 +541,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 throw new InvalidApplicationTypeException();
             }
 
+            // Check that application Api Key mode is valid
+            checkApiKeyModeUpdate(updateApplicationEntity, applicationToUpdate);
+
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
 
@@ -1164,6 +1167,21 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             String errorMessage = String.format("An error occurs while trying to find applications by name %s and id %s", name, ids);
             LOGGER.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    private void checkApiKeyModeUpdate(UpdateApplicationEntity updateApplicationEntity, Application applicationToUpdate) {
+        // Retro-compatibility : If input apiKey mode is not specified, get it from existing application
+        if (updateApplicationEntity.getApiKeyMode() == null && applicationToUpdate.getApiKeyMode() != null) {
+            updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(applicationToUpdate.getApiKeyMode().name()));
+        }
+        // Check api key mode modification is allowed
+        else if (
+            applicationToUpdate.getApiKeyMode() != null &&
+            !applicationToUpdate.getApiKeyMode().isUpdatable() &&
+            !applicationToUpdate.getApiKeyMode().name().equals(updateApplicationEntity.getApiKeyMode().name())
+        ) {
+            throw new InvalidApplicationApiKeyModeException(applicationToUpdate.getId(), applicationToUpdate.getApiKeyMode());
         }
     }
 }
