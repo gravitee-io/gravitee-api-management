@@ -167,15 +167,17 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
 
     const httpPropertiesNodes: Node[] = keys.filter((key) => httpProperties[key] != null).map((key) => this.toNode(httpProperties, key));
 
-    const data: Node[] = keys.filter((key) => nodes[key] != null).map((key) => this.toNode(nodes, key));
+    let data: Node[] = keys.filter((key) => nodes[key] != null).map((key) => this.toNode(nodes, key));
 
     if (httpPropertiesNodes.length > 0) {
-      data.unshift({
+      data.push({
         name: 'HTTP properties',
         type: undefined,
         children: httpPropertiesNodes,
       });
     }
+
+    data = data.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
     const errors = keys.filter((key) => key.startsWith('error.')).map((key) => this.toErrorNode(key));
     if (errors.length > 0) {
