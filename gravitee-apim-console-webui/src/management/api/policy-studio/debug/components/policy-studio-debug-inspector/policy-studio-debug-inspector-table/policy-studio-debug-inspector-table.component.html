@@ -26,8 +26,8 @@
   </thead>
   <tbody>
     <tr *ngFor="let rowItem of rowItems" [ngClass]="rowItem.diffClass">
-      <td>{{ rowItem.key }}</td>
-      <td>{{ rowItem.inputValue }}</td>
+      <td class="input">{{ rowItem.key }}</td>
+      <td class="input">{{ rowItem.inputValue }}</td>
       <td class="output">{{ rowItem.key }}</td>
       <td class="output">{{ rowItem.outputValue }}</td>
     </tr>
