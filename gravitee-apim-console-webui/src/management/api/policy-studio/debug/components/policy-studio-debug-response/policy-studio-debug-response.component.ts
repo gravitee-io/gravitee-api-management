@@ -82,6 +82,10 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         this.onSelectInputOutput(timelineStep, 'RESPONSE');
         break;
 
+      case 'CLIENT_APP':
+        this.onSelectClientApp();
+        break;
+
       default:
         this.inspectorVM = { input: '🚧', output: '🚧' };
         break;
@@ -187,6 +191,18 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
     } else if (policyMode === 'RESPONSE') {
       this.inspectorVM = { ...this.debugResponse.responseDebugSteps };
     }
+  }
+
+  private onSelectClientApp() {
+    this.responseDisplayableVM = {
+      ...this.responseDisplayableVM,
+      timelineSteps: this.responseDisplayableVM.timelineSteps.map((t) => ({
+        ...t,
+        selected: true,
+      })),
+    };
+
+    this.inspectorVM = { input: '🚧', output: '🚧' };
   }
 }
 
