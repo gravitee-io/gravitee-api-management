@@ -406,7 +406,7 @@ public class ApiServiceCockpitImplTest {
         api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
-        when(virtualHostService.sanitizeAndValidate(any(Collection.class))).thenReturn(List.of(virtualHost));
+        when(virtualHostService.sanitizeAndValidate(any(), eq(API_ID))).thenReturn(List.of(virtualHost));
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
@@ -511,7 +511,7 @@ public class ApiServiceCockpitImplTest {
         api.setProxy(proxy);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
-        when(virtualHostService.sanitizeAndValidate(any(Collection.class))).thenReturn(List.of(virtualHost));
+        when(virtualHostService.sanitizeAndValidate(any(), eq(API_ID))).thenReturn(List.of(virtualHost));
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
@@ -549,7 +549,7 @@ public class ApiServiceCockpitImplTest {
 
         when(apiService.start(API_ID, USER_ID)).thenReturn(updatedApiEntity);
         when(planService.findByApi(API_ID)).thenReturn(null);
-        when(virtualHostService.sanitizeAndValidate(any())).thenReturn(List.of(virtualHost));
+        when(virtualHostService.sanitizeAndValidate(any(), eq(API_ID))).thenReturn(List.of(virtualHost));
 
         service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
 
@@ -585,7 +585,7 @@ public class ApiServiceCockpitImplTest {
         when(apiService.start(API_ID, USER_ID)).thenReturn(updatedApiEntity);
 
         when(planService.findByApi(API_ID)).thenReturn(null);
-        when(virtualHostService.sanitizeAndValidate(any())).thenReturn(List.of(virtualHost));
+        when(virtualHostService.sanitizeAndValidate(any(), eq(API_ID))).thenReturn(List.of(virtualHost));
 
         preparePageServiceMock();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
@@ -628,7 +628,7 @@ public class ApiServiceCockpitImplTest {
             .thenReturn(updatedApiEntity);
 
         when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
-        when(virtualHostService.sanitizeAndValidate(any())).thenReturn(List.of(virtualHost));
+        when(virtualHostService.sanitizeAndValidate(any(), eq(API_ID))).thenReturn(List.of(virtualHost));
 
         preparePageServiceMock();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
