@@ -162,6 +162,10 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   }
 
   private onSelectPolicy(timelineStep: TimelineStep) {
+    if (isPolicySkippedStep(timelineStep)) {
+      return;
+    }
+
     const steps = [...this.debugResponse.requestPolicyDebugSteps, ...this.debugResponse.responsePolicyDebugSteps];
 
     const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
@@ -182,7 +186,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
       ...this.responseDisplayableVM,
       timelineSteps: this.responseDisplayableVM.timelineSteps.map((step) => ({
         ...step,
-        selected: [`POLICY_${policyMode}`, `${policyMode}_OUTPUT`, `${policyMode}_INPUT`].includes(step.mode),
+        selected: [`POLICY_${policyMode}`, `${policyMode}_OUTPUT`, `${policyMode}_INPUT`].includes(step.mode) && !isPolicySkippedStep(step),
       })),
     };
 
@@ -198,7 +202,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
       ...this.responseDisplayableVM,
       timelineSteps: this.responseDisplayableVM.timelineSteps.map((t) => ({
         ...t,
-        selected: true,
+        selected: !isPolicySkippedStep(t),
       })),
     };
 
@@ -216,4 +220,8 @@ const policyScopeToDisplayableLabel = (scope: PolicyScope) => {
     case 'ON_RESPONSE_CONTENT':
       return 'Body';
   }
+};
+
+const isPolicySkippedStep = (timelineStep: TimelineStep) => {
+  return (timelineStep.mode === 'POLICY_REQUEST' || timelineStep.mode === 'POLICY_RESPONSE') && timelineStep.executionStatus === 'SKIPPED';
 };

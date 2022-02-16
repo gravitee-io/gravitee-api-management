@@ -15,7 +15,7 @@
  */
 export interface DebugStep<T> {
   id: string;
-  status: 'COMPLETED' | 'ERROR';
+  status: 'COMPLETED' | 'ERROR' | 'SKIPPED';
   duration: number;
   output: T;
 }

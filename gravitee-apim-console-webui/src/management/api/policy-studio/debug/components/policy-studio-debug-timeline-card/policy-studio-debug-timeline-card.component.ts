@@ -125,9 +125,14 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: timelineStep.policyName,
           color: 'default',
           executionTime: timelineStep.executionTime / 1_000_000,
-          rightIcon: timelineStep.executionStatus === 'ERROR' ? 'gio:warning-circled-outline' : undefined,
+          rightIcon:
+            timelineStep.executionStatus === 'ERROR'
+              ? 'gio:warning-circled-outline'
+              : timelineStep.executionStatus === 'SKIPPED'
+              ? 'gio:prohibition'
+              : undefined,
           id: timelineStep.id,
-          clickable: true,
+          clickable: timelineStep.executionStatus !== 'SKIPPED',
           selected: timelineStep.selected,
         };
       case 'RESPONSE_INPUT':

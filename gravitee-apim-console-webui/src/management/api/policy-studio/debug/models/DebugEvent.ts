@@ -51,7 +51,7 @@ interface DebugEventDebugStep {
   policyInstanceId: string;
   policyId: string;
   scope: 'ON_REQUEST' | 'ON_REQUEST_CONTENT' | 'ON_RESPONSE' | 'ON_RESPONSE_CONTENT';
-  status: 'COMPLETED' | 'ERROR';
+  status: 'COMPLETED' | 'ERROR' | 'SKIPPED';
   duration: number;
   result: Record<string, unknown>;
 }
