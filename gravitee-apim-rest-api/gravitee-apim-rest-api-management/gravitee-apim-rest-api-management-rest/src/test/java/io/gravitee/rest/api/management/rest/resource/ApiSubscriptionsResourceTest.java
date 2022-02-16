@@ -15,17 +15,21 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
@@ -202,5 +206,41 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         Response response = envTarget("/_canCreate").queryParam("key", API_KEY).queryParam("application", APP_NAME).request().get();
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+    }
+
+    @Test
+    public void get_subscriptions_with_expand_security_queryParam_should_call_service_with_boolean() {
+        when(subscriptionService.search(any(), any(), eq(false), eq(true)))
+            .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(any())).thenReturn(mock(Metadata.class));
+
+        final Response response = envTarget("/").queryParam("expand", "security").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        verify(subscriptionService, times(1)).search(any(), any(), eq(false), eq(true));
+    }
+
+    @Test
+    public void get_subscriptions_with_expand_security_and_keys_queryParam_should_call_service_with_boolean() {
+        when(subscriptionService.search(any(), any(), eq(true), eq(true)))
+            .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(any())).thenReturn(mock(Metadata.class));
+
+        final Response response = envTarget("/").queryParam("expand", "security", "keys").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        verify(subscriptionService, times(1)).search(any(), any(), eq(true), eq(true));
+    }
+
+    @Test
+    public void get_subscriptions_with_expand_keys_queryParam_should_call_service_with_boolean() {
+        when(subscriptionService.search(any(), any(), eq(true), eq(false)))
+            .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(any())).thenReturn(mock(Metadata.class));
+
+        final Response response = envTarget("/").queryParam("expand", "keys").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        verify(subscriptionService, times(1)).search(any(), any(), eq(true), eq(false));
     }
 }

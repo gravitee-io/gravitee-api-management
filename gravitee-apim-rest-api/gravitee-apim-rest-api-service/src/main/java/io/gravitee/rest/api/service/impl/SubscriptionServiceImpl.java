@@ -960,6 +960,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Override
     public Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable) {
+        return search(query, pageable, false, false);
+    }
+
+    @Override
+    public Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable, boolean fillApiKey, boolean fillPlanSecurityType) {
         try {
             logger.debug("Search pageable subscriptions {}", query);
 
@@ -986,10 +991,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
                 );
 
-                Stream<SubscriptionEntity> subscriptionsStream = pageSubscription.getContent().stream().map(this::convert);
+                List<SubscriptionEntity> subscriptions = pageSubscription.getContent().stream().map(this::convert).collect(toList());
+
+                if (fillPlanSecurityType) {
+                    fillPlanSecurityType(subscriptions);
+                }
+                if (fillApiKey) {
+                    fillApiKeys(subscriptions);
+                }
 
                 return new Page<>(
-                    subscriptionsStream.collect(toList()),
+                    subscriptions,
                     pageSubscription.getPageNumber() + 1,
                     (int) pageSubscription.getPageElements(),
                     pageSubscription.getTotalElements()
@@ -1002,6 +1014,35 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 ex
             );
         }
+    }
+
+    public void fillPlanSecurityType(List<SubscriptionEntity> subscriptions) {
+        Map<String, List<SubscriptionEntity>> subscriptionsByPlan = subscriptions
+            .stream()
+            .filter(subscription -> subscription.getPlan() != null)
+            .collect(Collectors.groupingBy(SubscriptionEntity::getPlan));
+
+        planService
+            .findByIdIn(subscriptionsByPlan.keySet())
+            .forEach(
+                plan -> {
+                    subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(plan.getSecurity().name()));
+                }
+            );
+    }
+
+    private void fillApiKeys(List<SubscriptionEntity> subscriptions) {
+        subscriptions.forEach(
+            subscriptionEntity -> {
+                final List<String> keys = apiKeyService
+                    .findBySubscription(subscriptionEntity.getId())
+                    .stream()
+                    .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
+                    .map(ApiKeyEntity::getKey)
+                    .collect(Collectors.toList());
+                subscriptionEntity.setKeys(keys);
+            }
+        );
     }
 
     private SubscriptionCriteria.Builder toSubscriptionCriteriaBuilder(SubscriptionQuery query) {

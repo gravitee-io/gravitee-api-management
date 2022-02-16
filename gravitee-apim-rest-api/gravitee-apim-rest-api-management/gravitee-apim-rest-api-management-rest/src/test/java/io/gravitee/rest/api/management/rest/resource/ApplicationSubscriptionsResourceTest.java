@@ -17,21 +17,19 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import java.util.List;
-import java.util.Set;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.junit.Test;
@@ -89,15 +87,8 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
     public void shouldGetSubscriptions_expandingSecurity() {
         reset(apiService, planService, subscriptionService, userService);
 
-        SubscriptionEntity subscription = new SubscriptionEntity();
-        subscription.setPlan(PLAN);
-
-        PlanEntity plan = new PlanEntity();
-        plan.setId(PLAN);
-        plan.setSecurity(PlanSecurityType.API_KEY);
-
-        when(subscriptionService.search(any(), any())).thenReturn(new Page<>(List.of(subscription), 1, 1, 1));
-        when(planService.findByIdIn(Set.of(PLAN))).thenReturn(Set.of(plan));
+        when(subscriptionService.search(any(), any(), eq(false), eq(true)))
+            .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
         when(subscriptionService.getMetadata(any())).thenReturn(mock(Metadata.class));
 
         final Response response = envTarget().path(APPLICATION).path("subscriptions").queryParam("expand", "security").request().get();
@@ -105,13 +96,10 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals(OK_200, response.getStatus());
 
         JsonNode responseBody = response.readEntity(JsonNode.class);
-
         assertTrue(responseBody.hasNonNull("data"));
         ArrayNode data = (ArrayNode) responseBody.get("data");
         assertEquals(1, data.size());
 
-        JsonNode responseSubscription = data.get(0);
-        assertTrue(responseSubscription.hasNonNull("security"));
-        assertEquals("API_KEY", responseSubscription.get("security").asText());
+        verify(subscriptionService, times(1)).search(any(), any(), eq(false), eq(true));
     }
 }
