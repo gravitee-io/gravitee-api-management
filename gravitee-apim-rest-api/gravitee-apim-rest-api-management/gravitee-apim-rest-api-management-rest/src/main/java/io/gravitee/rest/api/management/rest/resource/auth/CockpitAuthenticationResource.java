@@ -144,7 +144,9 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM),
                 jwtClaimsSet.getStringClaim(ORG_CLAIM),
                 jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM),
-                jwtClaimsSet.getStringClaim(API_CLAIM) == null ? "" : String.format("api/%s", jwtClaimsSet.getStringClaim(API_CLAIM))
+                jwtClaimsSet.getStringClaim(API_CLAIM) == null
+                    ? ""
+                    : URLEncoder.encode(String.format("apis/%s/portal", jwtClaimsSet.getStringClaim(API_CLAIM)), "UTF-8")
             );
 
             // Redirect the user.
