@@ -210,7 +210,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
       })),
     };
 
-    this.inspectorVM = { input: '🚧', output: '🚧' };
+    this.inspectorVM = { input: this.debugResponse.requestDebugSteps.input, output: this.debugResponse.responseDebugSteps.output };
   }
 }
 
