@@ -18,7 +18,8 @@
 <div class="policy-studio-debug-response">
   <ng-container *ngIf="!debugResponse; then emptyResponse"></ng-container>
   <ng-container *ngIf="!!debugResponse && debugResponse.isLoading; then loadingResponse"></ng-container>
-  <ng-container *ngIf="!!debugResponse && !debugResponse.isLoading; then displayResponse"></ng-container>
+  <ng-container *ngIf="!!debugResponse && !debugResponse.isLoading && !debugResponse.reachedTimeout; then displayResponse"></ng-container>
+  <ng-container *ngIf="!!debugResponse && !debugResponse.isLoading && debugResponse.reachedTimeout; then reachedTimeout"></ng-container>
 </div>
 
 <!-- Empty Response -->
@@ -34,6 +35,14 @@
   <div class="policy-studio-debug-response__loading-response">
     <gv-icon class="policy-studio-debug-response__loading-response__icon" shape="communication:sending"></gv-icon>
     <h5>Request in progress!</h5>
+  </div>
+</ng-template>
+
+<!-- Debug request ended in timeout -->
+<ng-template #reachedTimeout>
+  <div class="policy-studio-debug-response__reached-timeout">
+    <gv-icon class="policy-studio-debug-response__reached-timeout__icon" shape="devices:lte#2"></gv-icon>
+    <h5>Bad news, it looks like your request was lost in space. Please try again.</h5>
   </div>
 </ng-template>
 

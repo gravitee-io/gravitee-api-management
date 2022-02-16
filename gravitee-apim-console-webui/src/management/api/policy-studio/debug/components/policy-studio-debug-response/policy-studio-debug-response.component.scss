@@ -11,7 +11,8 @@ $typography: map.get(gio.$mat-theme, typography);
   height: 100%;
 
   &__empty-response,
-  &__loading-response {
+  &__loading-response,
+  &__reached-timeout {
     display: flex;
     flex-direction: column;
     align-items: center;

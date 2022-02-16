@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { interval, Observable, timer } from 'rxjs';
-import { filter, map, switchMap, take, takeUntil } from 'rxjs/operators';
+import { interval, Observable, race, timer } from 'rxjs';
+import { filter, map, switchMap, take } from 'rxjs/operators';
 
 import { DebugRequest } from './models/DebugRequest';
 import { DebugEvent } from './models/DebugEvent';
@@ -24,7 +24,7 @@ import { convertDebugEventToDebugResponse, DebugResponse } from './models/DebugR
 import { ApiService } from '../../../../services-ngx/api.service';
 import { DebugApiService } from '../../../../services-ngx/debug-api.service';
 import { EventService } from '../../../../services-ngx/event.service';
-import { PolicyListItem } from '../../../../entities/policy/policyListItem';
+import { PolicyListItem } from '../../../../entities/policy';
 import { PolicyService } from '../../../../services-ngx/policy.service';
 
 @Injectable({
@@ -39,15 +39,30 @@ export class PolicyStudioDebugService {
   ) {}
 
   public debug(apiId: string, debugRequest: DebugRequest): Observable<DebugResponse> {
-    const maxPollingTime$ = timer(10000);
-    return this.sendDebugEvent(apiId, debugRequest).pipe(
+    const maxPollingTime$ = timer(10000).pipe(
+      map<number, DebugResponse>(() => ({
+        isLoading: false,
+        reachedTimeout: true,
+        request: {},
+        response: {},
+        responsePolicyDebugSteps: [],
+        backendResponse: {},
+        requestPolicyDebugSteps: [],
+        preprocessorStep: {},
+        requestDebugSteps: {},
+        responseDebugSteps: {},
+      })),
+    );
+
+    const pollingEvent$ = this.sendDebugEvent(apiId, debugRequest).pipe(
       // Poll each 1s to find success event. Stops after 10 seconds
       switchMap((debugEventId) => interval(1000).pipe(switchMap(() => this.getDebugEvent(apiId, debugEventId)))),
-      takeUntil(maxPollingTime$),
       filter((event) => event.status === 'SUCCESS'),
       take(1),
       map((event: DebugEvent) => convertDebugEventToDebugResponse(event)),
     );
+
+    return race(maxPollingTime$, pollingEvent$);
   }
 
   private sendDebugEvent(apiId: string, request: DebugRequest): Observable<string> {
