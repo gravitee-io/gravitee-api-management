@@ -144,11 +144,13 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM),
                 jwtClaimsSet.getStringClaim(ORG_CLAIM),
                 jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM),
-                jwtClaimsSet.getStringClaim(API_CLAIM) == null ? "" : String.format("api/%s", jwtClaimsSet.getStringClaim(API_CLAIM))
+                jwtClaimsSet.getStringClaim(API_CLAIM) == null
+                    ? ""
+                    : URLEncoder.encode(String.format("apis/%s/portal", jwtClaimsSet.getStringClaim(API_CLAIM)), "UTF-8")
             );
 
             // Redirect the user.
-            return Response.temporaryRedirect(new URI(URLEncoder.encode(url, "UTF-8"))).build();
+            return Response.temporaryRedirect(new URI(url)).build();
         } catch (Exception e) {
             LOGGER.error("Error occurred when trying to log user using cockpit.", e);
             return Response.serverError().build();
