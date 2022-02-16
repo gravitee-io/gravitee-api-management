@@ -40,7 +40,6 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     { label: 'Configuration', uiSref: 'config' },
     { label: 'Properties', uiSref: 'properties' },
     { label: 'Resources', uiSref: 'resources' },
-    { label: 'Try-it', uiSref: 'try-it' },
     { label: 'Debug', uiSref: 'debug' },
   ];
   activeLink = this.policyStudioMenu[0];

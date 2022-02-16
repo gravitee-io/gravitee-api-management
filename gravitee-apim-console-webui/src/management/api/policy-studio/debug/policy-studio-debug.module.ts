@@ -33,7 +33,6 @@ import { PolicyStudioDebugInspectorErrorComponent } from './components/policy-st
 import { PolicyStudioDebugInspectorTableComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-table/policy-studio-debug-inspector-table.component';
 import { PolicyStudioDebugRequestComponent } from './components/policy-studio-debug-request/policy-studio-debug-request.component';
 import { PolicyStudioDebugResponseComponent } from './components/policy-studio-debug-response/policy-studio-debug-response.component';
-import { PolicyStudioDebugResponseTryItComponent } from './components/policy-studio-debug-response-try-it/policy-studio-debug-response-try-it.component';
 import { PolicyStudioDebugTimelineCardComponent } from './components/policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
 import { PolicyStudioDebugTimelineComponent } from './components/policy-studio-debug-timeline/policy-studio-debug-timeline.component';
 import { PolicyStudioDebugTimelineLegendComponent } from './components/policy-studio-debug-timeline-legend/policy-studio-debug-timeline-legend.component';
@@ -64,7 +63,6 @@ import { PolicyStudioDebugInspectorTextComponent } from './components/policy-stu
     PolicyStudioDebugInspectorTextComponent,
     PolicyStudioDebugRequestComponent,
     PolicyStudioDebugResponseComponent,
-    PolicyStudioDebugResponseTryItComponent,
     PolicyStudioDebugTimelineCardComponent,
     PolicyStudioDebugTimelineComponent,
     PolicyStudioDebugTimelineLegendComponent,

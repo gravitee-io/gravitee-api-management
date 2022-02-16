@@ -34,7 +34,6 @@ import { PolicyListItem } from '../../../../entities/policy';
 })
 export class PolicyStudioDebugComponent implements OnInit {
   public debugResponse: DebugResponse;
-  public tryItDisplay = false;
   public listPolicies: PolicyListItem[];
 
   private apiId: string;
@@ -58,8 +57,6 @@ export class PolicyStudioDebugComponent implements OnInit {
       )
       .subscribe();
     this.apiId = this.ajsStateParams.apiId;
-
-    this.tryItDisplay = this.ajsStateParams.tryItDisplay;
   }
 
   ngOnDestroy() {
