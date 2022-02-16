@@ -25,14 +25,8 @@
   </div>
 
   <div class="policy-studio-debug__response">
-    <policy-studio-debug-response-try-it *ngIf="tryItDisplay" [debugResponse]="debugResponse"></policy-studio-debug-response-try-it>
-
     <div class="policy-studio-debug__response__container">
-      <policy-studio-debug-response
-        *ngIf="!tryItDisplay"
-        [debugResponse]="debugResponse"
-        [listPolicies]="listPolicies"
-      ></policy-studio-debug-response>
+      <policy-studio-debug-response [debugResponse]="debugResponse" [listPolicies]="listPolicies"></policy-studio-debug-response>
     </div>
   </div>
 </div>
