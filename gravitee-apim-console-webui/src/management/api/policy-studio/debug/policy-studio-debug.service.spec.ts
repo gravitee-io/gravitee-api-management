@@ -295,6 +295,41 @@ describe('PolicyStudioDebugService', () => {
       expectGetDebugEvent(eventId, true);
       tick(1000);
     }));
+
+    it('should return some empty data when timeout is reached', fakeAsync((done) => {
+      policyStudioDebugService
+        .debug(api.id, {
+          method: 'GET',
+          body: '',
+          headers: [],
+          path: '',
+        })
+        .subscribe((response) => {
+          expect(response).toStrictEqual({
+            isLoading: false,
+            reachedTimeout: true,
+            request: {},
+            response: {},
+            responsePolicyDebugSteps: [],
+            backendResponse: {},
+            requestPolicyDebugSteps: [],
+            preprocessorStep: {},
+            requestDebugSteps: {},
+            responseDebugSteps: {},
+          });
+          done();
+        });
+
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
+
+      // Expect without flushing to wait for the timeout
+      httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/_debug`,
+      });
+
+      tick(10000);
+    }));
   });
 
   function expectSendDebugEvent(eventId: string) {

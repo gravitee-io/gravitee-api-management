@@ -20,6 +20,7 @@ import { DebugEvent } from './DebugEvent';
 
 export type DebugResponse = {
   isLoading: boolean;
+  reachedTimeout?: boolean;
 
   request: {
     method?: string;
