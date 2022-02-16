@@ -43,5 +43,9 @@
     display: flex;
     flex-direction: column;
     padding: 16px 24px;
+
+    :host-context(.save-bar-opened) & {
+      padding-bottom: 16px + 74px;
+    }
   }
 }
