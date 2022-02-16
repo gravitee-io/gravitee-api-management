@@ -12,7 +12,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__empty-response,
   &__loading-response,
-  &__reached-timeout {
+  &__reached-timeout,
+  &__inspector-helper {
     display: flex;
     flex-direction: column;
     align-items: center;
