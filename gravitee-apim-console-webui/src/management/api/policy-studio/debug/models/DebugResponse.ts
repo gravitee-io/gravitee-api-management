@@ -116,7 +116,10 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
     id: 'response-input',
     status: undefined,
     duration: 0,
-    output: responsePreprocessorStep,
+    output: {
+      attributes: requestOutputDebugStep.output.attributes,
+      ...(event.payload.backendResponse ?? {}),
+    },
   };
 
   const responseOutputDebugStep = responsePolicyDebugSteps.reduce(
@@ -133,7 +136,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
         },
       };
     },
-    { ...requestInputDebugStep, id: 'response-output' },
+    { ...responseInputDebugStep, id: 'response-output' },
   );
 
   return {

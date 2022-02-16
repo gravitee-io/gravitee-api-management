@@ -165,15 +165,19 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
     if (isPolicySkippedStep(timelineStep)) {
       return;
     }
-
-    const steps = [...this.debugResponse.requestPolicyDebugSteps, ...this.debugResponse.responsePolicyDebugSteps];
-
-    const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
-
-    this.inspectorVM = {
-      input: outputIndex > 0 ? steps[outputIndex - 1] : this.debugResponse.requestDebugSteps.input,
-      output: steps[outputIndex],
-    };
+    if (timelineStep.mode === 'POLICY_REQUEST') {
+      const steps = this.debugResponse.requestPolicyDebugSteps;
+      const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
+      const output = steps[outputIndex];
+      const input = outputIndex > 0 ? steps[outputIndex - 1] : this.debugResponse.requestDebugSteps.input;
+      this.inspectorVM = { input, output };
+    } else if (timelineStep.mode === 'POLICY_RESPONSE') {
+      const steps = this.debugResponse.responsePolicyDebugSteps;
+      const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
+      const output = steps[outputIndex];
+      const input = outputIndex > 0 ? steps[outputIndex - 1] : this.debugResponse.responseDebugSteps.input;
+      this.inspectorVM = { input, output };
+    }
 
     this.responseDisplayableVM = {
       ...this.responseDisplayableVM,
