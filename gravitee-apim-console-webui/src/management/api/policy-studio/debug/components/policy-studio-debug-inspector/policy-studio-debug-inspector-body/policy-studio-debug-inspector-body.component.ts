@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 
 import '@gravitee/ui-components/wc/gv-code';
 
@@ -23,10 +23,47 @@ import '@gravitee/ui-components/wc/gv-code';
   template: require('./policy-studio-debug-inspector-body.component.html'),
   styles: [require('./policy-studio-debug-inspector-body.component.scss')],
 })
-export class PolicyStudioDebugInspectorBodyComponent {
+export class PolicyStudioDebugInspectorBodyComponent implements OnChanges {
   @Input()
   input: string;
 
   @Input()
   output: string;
+
+  formattedInput: string;
+  formattedOutput: string;
+
+  inputFormatOptions = {
+    lineWrapping: true,
+    lineNumbers: true,
+    mode: {},
+  };
+
+  outputFormatOptions = {
+    lineWrapping: true,
+    lineNumbers: true,
+    mode: {},
+  };
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.input) {
+      try {
+        // FIXME: Remove this hack working only for JSON when we will have a proper diff for the body
+        this.formattedInput = JSON.stringify(JSON.parse(changes.input.currentValue), null, 2);
+        this.inputFormatOptions.mode = { name: 'javascript', json: true };
+      } catch (e) {
+        this.formattedInput = changes.input.currentValue;
+      }
+    }
+
+    if (changes.output) {
+      try {
+        // FIXME: Remove this hack working only for JSON when we will have a proper diff for the body
+        this.formattedOutput = JSON.stringify(JSON.parse(changes.output.currentValue), null, 2);
+        this.outputFormatOptions.mode = { name: 'javascript', json: true };
+      } catch (e) {
+        this.formattedOutput = changes.output.currentValue;
+      }
+    }
+  }
 }
