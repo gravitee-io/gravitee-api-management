@@ -23,8 +23,9 @@ import { MatTreeModule } from '@angular/material/tree';
 import { MatButtonModule } from '@angular/material/button';
 
 import { PolicyStudioDebugInspectorComponent } from './policy-studio-debug-inspector.component';
-import { PolicyStudioDebugInspectorTableComponent } from './policy-studio-debug-inspector-table/policy-studio-debug-inspector-table.component';
 import { PolicyStudioDebugInspectorBodyComponent } from './policy-studio-debug-inspector-body/policy-studio-debug-inspector-body.component';
+import { PolicyStudioDebugInspectorErrorComponent } from './policy-studio-debug-inspector-error/policy-studio-debug-inspector-error.component';
+import { PolicyStudioDebugInspectorTableComponent } from './policy-studio-debug-inspector-table/policy-studio-debug-inspector-table.component';
 import { PolicyStudioDebugInspectorTextComponent } from './policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
 
 import { fakeErrorRequestDebugStep, fakeRequestDebugStep } from '../../models/DebugStep.fixture';
@@ -35,8 +36,9 @@ export default {
   decorators: [
     moduleMetadata({
       declarations: [
-        PolicyStudioDebugInspectorTableComponent,
         PolicyStudioDebugInspectorBodyComponent,
+        PolicyStudioDebugInspectorErrorComponent,
+        PolicyStudioDebugInspectorTableComponent,
         PolicyStudioDebugInspectorTextComponent,
       ],
       imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule, MatTreeModule, MatButtonModule],
