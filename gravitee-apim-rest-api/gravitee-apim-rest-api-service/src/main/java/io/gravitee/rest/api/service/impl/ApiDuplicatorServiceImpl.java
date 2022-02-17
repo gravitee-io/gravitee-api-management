@@ -706,11 +706,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
          * a cross ID
          */
         if (!apiJsonNode.hasId() || !apiJsonNode.getId().equals(urlApiId)) {
-                findApiByEnvironmentAndCrossId(environmentId, apiJsonNode.getCrossId())
-                    .ifPresentOrElse(
-                        api -> recalculateIdsFromCrossId(apiJsonNode, api),
-                        () -> recalculateIdsFromDefinitionIds(environmentId, apiJsonNode, urlApiId)
-                    );
+            findApiByEnvironmentAndCrossId(environmentId, apiJsonNode.getCrossId())
+                .ifPresentOrElse(
+                    api -> recalculateIdsFromCrossId(apiJsonNode, api),
+                    () -> recalculateIdsFromDefinitionIds(environmentId, apiJsonNode, urlApiId)
+                );
         }
         return generateEmptyIds(apiJsonNode);
     }
