@@ -35,6 +35,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -63,6 +66,16 @@ public class ConfigServiceTest {
 
     @Mock
     private NewsletterService newsletterService;
+
+    @Before
+    public void setup() {
+        GraviteeContext.cleanContext();
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void shouldGetPortalSettings() {
