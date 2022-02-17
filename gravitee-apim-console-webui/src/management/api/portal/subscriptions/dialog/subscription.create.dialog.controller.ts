@@ -46,8 +46,8 @@ function DialogSubscriptionCreateController(
   this.save = function () {
     if (this.selectedApp && this.selectedPlan) {
       $mdDialog.hide({
-        applicationId: this.selectedApp.id,
-        planId: this.selectedPlan,
+        application: this.selectedApp,
+        plan: this.selectedPlan,
         customApiKey: this.selectedPlanCustomApiKey,
       });
     }
@@ -69,7 +69,7 @@ function DialogSubscriptionCreateController(
         this.plansWithSubscriptions = _.map(response.data.data, (subscription) => {
           return subscription.plan;
         });
-        if (this.selectedPlan && this.planAlreadyHaveSubscriptions(this.selectedPlan)) {
+        if (this.selectedPlan && this.planAlreadyHaveSubscriptions(this.selectedPlan.id)) {
           this.selectedPlan = null;
         }
       });
