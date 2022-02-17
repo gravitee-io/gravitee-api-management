@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const jwt = require('jsonwebtoken');
+import { sign } from 'jsonwebtoken';
 import { API_PUBLISHER_USER } from '@fakers/users/users';
 import { deleteApi, deployApi, getApiKeys, importCreateApi, startApi, stopApi } from '@commands/management/api-management-commands';
 import { publishPlan, closePlan } from '@commands/management/api-plan-management-commands';
@@ -24,12 +24,12 @@ import { requestGateway } from 'support/common/http.commands';
 import * as faker from 'faker';
 import { PolicyFakers } from '@fakers/policies';
 
-context('Create and test a JWT policy', () => {
+context('Create and test JWT policy', () => {
   let createdApi: ApiImport;
   let planId: string;
   const secret = faker.random.alpha({ count: 32 });
-  const payload = { exp: 1900000000 };
-  const jwtToken = jwt.sign(payload, secret, { noTimestamp: true });
+  const jwtToken_hs256 = sign({ exp: 1900000000 }, secret, { noTimestamp: true });
+  const jwtToken_expired = sign({ exp: 1600000000 }, secret, { noTimestamp: true });
 
   before(() => {
     const fakeJwtPolicy = PolicyFakers.jwtPolicy(secret);
@@ -50,6 +50,20 @@ context('Create and test a JWT policy', () => {
       });
   });
 
+  it('should successfully call API endpoint when using JWT token', () => {
+    cy.log('JWT access token (HS256): ', jwtToken_hs256);
+    requestGateway({
+      method: 'GET',
+      url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
+      headers: {
+        Authorization: `Bearer ${jwtToken_hs256}`,
+      },
+    }).should((response: Cypress.Response<any>) => {
+      expect(response.body).to.have.property('date');
+      expect(response.body).to.have.property('timestamp');
+    });
+  });
+
   it('should fail to call API endpoint without JWT token', () => {
     requestGateway(
       {
@@ -62,30 +76,51 @@ context('Create and test a JWT policy', () => {
         },
       },
     )
-      .unauthorized()
-      .should((response: Cypress.Response<any>) => {
-        expect(response.body.message).to.equal('Unauthorized');
-      });
+      .its('body')
+      .should('have.property', 'message')
+      .and('contain', 'Unauthorized');
   });
 
-  it('should successfully call API endpoint when using JWT token', () => {
+  it('should fail to call API endpoint when using an expired JWT token', () => {
+    cy.log('JWT access token (RS256): ', jwtToken_expired);
     requestGateway(
       {
         method: 'GET',
         url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
         headers: {
-          Authorization: `Bearer ${jwtToken}`,
+          Authorization: `Bearer ${jwtToken_expired}`,
         },
       },
       {
         validWhen: (response) => {
-          return response.status === 200;
+          return response.status === 401;
         },
       },
-    ).should((response: Cypress.Response<any>) => {
-      expect(response.body).to.have.property('date');
-      expect(response.body).to.have.property('timestamp');
-    });
+    )
+      .its('body')
+      .should('have.property', 'message')
+      .and('contain', 'Unauthorized');
+  });
+
+  it('should fail to call API endpoint when using invalid JWT token', () => {
+    const invalidToken = jwtToken_hs256.slice(0, -1);
+    requestGateway(
+      {
+        method: 'GET',
+        url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
+        headers: {
+          Authorization: `Bearer ${invalidToken}`,
+        },
+      },
+      {
+        validWhen: (response) => {
+          return response.status === 401;
+        },
+      },
+    )
+      .its('body')
+      .should('have.property', 'message')
+      .and('contain', 'Unauthorized');
   });
 
   after(() => {
