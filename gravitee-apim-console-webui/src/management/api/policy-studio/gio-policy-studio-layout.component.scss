@@ -33,7 +33,7 @@
       --gv-policy-studio--h: calc(100vh - 105px);
 
       &.save-bar-opened {
-        --gv-policy-studio--pb: 74px;
+        --gv-policy-studio--pb: 84px;
       }
     }
 
@@ -42,7 +42,7 @@
       bottom: 25px;
       width: 50%;
       min-width: 580px; // keep save bar button on one line for small screen
-      margin: 0 (25%);
+      margin: 0 25%;
     }
   }
 }
