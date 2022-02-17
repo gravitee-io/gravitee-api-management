@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +47,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -68,6 +70,8 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         reset(apiService);
+        GraviteeContext.cleanContext();
+
         mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setName(API);
@@ -88,6 +92,11 @@ public class ApiResourceTest extends AbstractResourceTest {
         updateApiEntity.setProxy(proxy);
         updateApiEntity.setLifecycleState(ApiLifecycleState.CREATED);
         doReturn(mockApi).when(apiService).update(eq(API), any(), eq(true));
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test

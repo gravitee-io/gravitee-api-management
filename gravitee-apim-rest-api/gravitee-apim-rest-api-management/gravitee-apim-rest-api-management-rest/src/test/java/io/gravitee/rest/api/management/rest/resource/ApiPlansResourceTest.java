@@ -20,20 +20,19 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -55,6 +54,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         Mockito.reset(planService, apiService);
+        GraviteeContext.cleanContext();
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test

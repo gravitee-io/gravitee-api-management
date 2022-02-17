@@ -26,9 +26,11 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.NewApiMetadataEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -49,6 +51,12 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         Mockito.reset(apiMetadataService, searchEngineService);
+        GraviteeContext.cleanContext();
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test

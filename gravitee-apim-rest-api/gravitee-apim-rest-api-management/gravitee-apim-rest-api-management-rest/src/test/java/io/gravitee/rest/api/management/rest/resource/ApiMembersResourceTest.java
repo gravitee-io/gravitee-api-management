@@ -26,6 +26,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -48,6 +49,12 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         Mockito.reset(membershipService);
+        GraviteeContext.cleanContext();
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test
