@@ -58,6 +58,11 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__tree-node {
     border-top: 1px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+
+    &__error-icon {
+      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+      margin-right: 5px;
+    }
   }
 
   &__tree-node-content {

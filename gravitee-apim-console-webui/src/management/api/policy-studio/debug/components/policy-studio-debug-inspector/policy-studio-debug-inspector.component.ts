@@ -63,7 +63,7 @@ const HTTP_PROPERTIES_NODES: Record<string, NodeContainerElement> = {
   },
 };
 
-const NODES_SORT = ['errors', 'props', 'headers', 'attributes', 'body'];
+const NODES_SORT = ['props', 'headers', 'attributes', 'body'];
 
 const NODES: Record<string, NodeContainerElement> = {
   headers: {
@@ -116,6 +116,11 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     (node) => node.expandable,
   );
 
+  errorsTreeControl = new FlatTreeControl<FlatNode>(
+    (node) => node.level,
+    (node) => node.expandable,
+  );
+
   treeFlattener = new MatTreeFlattener(
     this.transformer,
     (node) => node.level,
@@ -126,12 +131,17 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
   // FIXME: remove as any
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener as any);
 
+  errorsDataSource = new MatTreeFlatDataSource(this.errorsTreeControl, this.treeFlattener as any);
+
+  errorNodes: Node[];
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['inputDebugStep'] || changes['outputDebugStep']) {
-      const { nodes, hasErrors } = this.buildTreeNodes();
-      this.dataSource.data = nodes;
-      if (hasErrors && this.treeControl.dataNodes.length > 0) {
-        this.treeControl.expand(this.treeControl.dataNodes[0]);
+      const { treeNodes, errorTreeNodes } = this.buildTreeNodes();
+      this.dataSource.data = treeNodes;
+      this.errorsDataSource.data = errorTreeNodes;
+      if (errorTreeNodes.length > 0) {
+        this.errorsTreeControl.expandAll();
       } else {
         this.treeControl.expandAll();
       }
@@ -145,7 +155,6 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     const output = this.outputDebugStep.output[key];
     const name = key.replace('error.', '');
     return {
-      id: 'errors',
       name,
       type: 'error',
       input,
@@ -172,11 +181,12 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     };
   }
 
-  buildTreeNodes(): { nodes: Node[]; hasErrors: boolean } {
+  buildTreeNodes(): { treeNodes: Node[]; errorTreeNodes: Node[] } {
     const keys = [...new Set(Object.keys(this.inputDebugStep.output).concat(Object.keys(this.outputDebugStep.output)))];
 
     const httpPropertiesTreeNodes: Node[] = keys
       .filter((key) => HTTP_PROPERTIES_NODES[key] != null)
+      .sort(this.sort)
       .map((key) => this.toNode(HTTP_PROPERTIES_NODES, key));
 
     const treeNodes: Node[] = keys.filter((key) => NODES[key] != null).map((key) => this.toNode(NODES, key));
@@ -190,16 +200,23 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
       });
     }
 
-    const errors = keys.filter((key) => key.startsWith('error.')).map((key) => this.toErrorNode(key));
+    const errors = keys
+      .filter((key) => key.startsWith('error.'))
+      .sort(this.sort)
+      .map((key) => this.toErrorNode(key));
+    const errorTreeNodes = [];
     if (errors.length > 0) {
-      treeNodes.push({
-        id: 'errors',
+      errorTreeNodes.push({
         name: 'Errors',
-        type: undefined,
+        type: 'error',
         children: errors,
       });
     }
 
-    return { nodes: treeNodes.sort((a, b) => NODES_SORT.indexOf(a.id) - NODES_SORT.indexOf(b.id)), hasErrors: errors.length > 0 };
+    return { treeNodes: treeNodes.sort((a, b) => NODES_SORT.indexOf(a.id) - NODES_SORT.indexOf(b.id)), errorTreeNodes };
+  }
+
+  private sort(a: string, b: string) {
+    return a.toLowerCase().localeCompare(b.toLowerCase());
   }
 }
