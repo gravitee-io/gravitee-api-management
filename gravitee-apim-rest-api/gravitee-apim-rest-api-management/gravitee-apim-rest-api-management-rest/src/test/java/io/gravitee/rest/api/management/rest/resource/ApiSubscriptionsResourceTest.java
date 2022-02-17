@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import javax.ws.rs.core.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -61,6 +62,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         reset(applicationService);
         reset(parameterService);
         reset(apiKeyService);
+        GraviteeContext.cleanContext();
 
         fakeSubscriptionEntity = new SubscriptionEntity();
         fakeSubscriptionEntity.setId(FAKE_SUBSCRIPTION_ID);
@@ -84,6 +86,11 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         when(userService.findById(any())).thenReturn(fakeUserEntity);
         when(planService.findById(any())).thenReturn(fakePlanEntity);
         when(applicationService.findById(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(fakeApplicationEntity);
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test
