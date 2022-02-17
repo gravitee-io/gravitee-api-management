@@ -48,27 +48,28 @@ describe('PolicyStudioDebugInspectorComponent', () => {
   });
 
   it('should build tree nodes', () => {
-    const treeNodes = component.buildTreeNodes();
+    const { nodes, hasErrors } = component.buildTreeNodes();
 
-    expect(treeNodes).not.toBeNull();
-    expect(treeNodes.length).toBeGreaterThanOrEqual(3);
+    expect(nodes).not.toBeNull();
+    expect(nodes.length).toBeGreaterThanOrEqual(3);
+    expect(hasErrors).toBeFalsy();
 
-    expect(treeNodes[0].name).toEqual('HTTP properties');
-    expect(treeNodes[0].children.length).toBeGreaterThanOrEqual(3);
-    expect(treeNodes[0].children[0].name).toEqual('Path params');
-    expect(treeNodes[0].children[0].type).toBeUndefined();
-    expect(treeNodes[0].children[0].children.length).toEqual(1);
-    expect(treeNodes[0].children[1].name).toEqual('Method');
-    expect(treeNodes[0].children[1].type).toBeUndefined();
-    expect(treeNodes[0].children[1].children[0].type).toEqual('text');
-    expect(treeNodes[1].name).toEqual('HTTP headers');
-    expect(treeNodes[1].children[0].type).toEqual('table');
-    expect(treeNodes[1].children[0].input).toBeDefined();
-    expect(treeNodes[1].children[0].output).toBeDefined();
-    expect(treeNodes[2].name).toEqual('HTTP body');
-    expect(treeNodes[2].children[0].type).toEqual('body');
-    expect(treeNodes[2].children[0].input).toBeDefined();
-    expect(treeNodes[2].children[0].output).toBeDefined();
+    expect(nodes[0].name).toEqual('HTTP properties');
+    expect(nodes[0].children.length).toBeGreaterThanOrEqual(3);
+    expect(nodes[0].children[0].name).toEqual('Path params');
+    expect(nodes[0].children[0].type).toBeUndefined();
+    expect(nodes[0].children[0].children.length).toEqual(1);
+    expect(nodes[0].children[1].name).toEqual('Method');
+    expect(nodes[0].children[1].type).toBeUndefined();
+    expect(nodes[0].children[1].children[0].type).toEqual('text');
+    expect(nodes[1].name).toEqual('HTTP headers');
+    expect(nodes[1].children[0].type).toEqual('table');
+    expect(nodes[1].children[0].input).toBeDefined();
+    expect(nodes[1].children[0].output).toBeDefined();
+    expect(nodes[2].name).toEqual('HTTP body');
+    expect(nodes[2].children[0].type).toEqual('body');
+    expect(nodes[2].children[0].input).toBeDefined();
+    expect(nodes[2].children[0].output).toBeDefined();
   });
 
   it('should get diff state between 2 params', () => {

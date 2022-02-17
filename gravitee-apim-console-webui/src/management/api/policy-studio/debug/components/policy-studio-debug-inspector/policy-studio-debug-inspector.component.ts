@@ -40,7 +40,7 @@ interface NodeContainerElement {
   type?: string;
 }
 
-const httpProperties: Record<string, NodeContainerElement> = {
+const HTTP_PROPERTIES_NODES: Record<string, NodeContainerElement> = {
   parameters: {
     name: 'Query params',
     type: 'text',
@@ -65,7 +65,7 @@ const httpProperties: Record<string, NodeContainerElement> = {
 
 const NODES_SORT = ['errors', 'props', 'headers', 'attributes', 'body'];
 
-const nodes: Record<string, NodeContainerElement> = {
+const NODES: Record<string, NodeContainerElement> = {
   headers: {
     name: 'HTTP headers',
     type: 'table',
@@ -128,8 +128,13 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['inputDebugStep'] || changes['outputDebugStep']) {
-      this.dataSource.data = this.buildTreeNodes();
-      this.treeControl.expandAll();
+      const { nodes, hasErrors } = this.buildTreeNodes();
+      this.dataSource.data = nodes;
+      if (hasErrors && this.treeControl.dataNodes.length > 0) {
+        this.treeControl.expand(this.treeControl.dataNodes[0]);
+      } else {
+        this.treeControl.expandAll();
+      }
     }
   }
 
@@ -167,25 +172,27 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     };
   }
 
-  buildTreeNodes(): Node[] {
+  buildTreeNodes(): { nodes: Node[]; hasErrors: boolean } {
     const keys = [...new Set(Object.keys(this.inputDebugStep.output).concat(Object.keys(this.outputDebugStep.output)))];
 
-    const httpPropertiesNodes: Node[] = keys.filter((key) => httpProperties[key] != null).map((key) => this.toNode(httpProperties, key));
+    const httpPropertiesTreeNodes: Node[] = keys
+      .filter((key) => HTTP_PROPERTIES_NODES[key] != null)
+      .map((key) => this.toNode(HTTP_PROPERTIES_NODES, key));
 
-    const data: Node[] = keys.filter((key) => nodes[key] != null).map((key) => this.toNode(nodes, key));
+    const treeNodes: Node[] = keys.filter((key) => NODES[key] != null).map((key) => this.toNode(NODES, key));
 
-    if (httpPropertiesNodes.length > 0) {
-      data.push({
+    if (httpPropertiesTreeNodes.length > 0) {
+      treeNodes.push({
         id: 'props',
         name: 'HTTP properties',
         type: undefined,
-        children: httpPropertiesNodes,
+        children: httpPropertiesTreeNodes,
       });
     }
 
     const errors = keys.filter((key) => key.startsWith('error.')).map((key) => this.toErrorNode(key));
     if (errors.length > 0) {
-      data.push({
+      treeNodes.push({
         id: 'errors',
         name: 'Errors',
         type: undefined,
@@ -193,6 +200,6 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
       });
     }
 
-    return data.sort((a, b) => NODES_SORT.indexOf(a.id) - NODES_SORT.indexOf(b.id));
+    return { nodes: treeNodes.sort((a, b) => NODES_SORT.indexOf(a.id) - NODES_SORT.indexOf(b.id)), hasErrors: errors.length > 0 };
   }
 }
