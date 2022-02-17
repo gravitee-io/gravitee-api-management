@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
-import { StateParams } from '@uirouter/core';
+import { Component, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
@@ -24,7 +23,6 @@ import { DebugResponse } from './models/DebugResponse';
 import { PolicyStudioDebugService } from './policy-studio-debug.service';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { PolicyListItem } from '../../../../entities/policy';
 
 @Component({
@@ -36,15 +34,10 @@ export class PolicyStudioDebugComponent implements OnInit {
   public debugResponse: DebugResponse;
   public listPolicies: PolicyListItem[];
 
-  private apiId: string;
   private unsubscribe$ = new Subject<boolean>();
   private cancelRequest$ = new Subject<void>();
 
-  constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
-    private readonly policyStudioDebugService: PolicyStudioDebugService,
-    private readonly snackBarService: SnackBarService,
-  ) {}
+  constructor(private readonly policyStudioDebugService: PolicyStudioDebugService, private readonly snackBarService: SnackBarService) {}
 
   ngOnInit() {
     this.policyStudioDebugService
@@ -56,7 +49,6 @@ export class PolicyStudioDebugComponent implements OnInit {
         }),
       )
       .subscribe();
-    this.apiId = this.ajsStateParams.apiId;
   }
 
   ngOnDestroy() {
@@ -78,7 +70,7 @@ export class PolicyStudioDebugComponent implements OnInit {
     };
 
     this.policyStudioDebugService
-      .debug(this.apiId, debugRequest)
+      .debug(debugRequest)
       .pipe(
         takeUntil(this.unsubscribe$),
         takeUntil(this.cancelRequest$),
