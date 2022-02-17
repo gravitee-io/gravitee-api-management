@@ -35,6 +35,7 @@
         "typescript": "4.5.2"
     },
     "dependencies": {
+        "@types/jsonwebtoken": "^8.5.8",
         "faker": "5.5.3"
     }
 }
