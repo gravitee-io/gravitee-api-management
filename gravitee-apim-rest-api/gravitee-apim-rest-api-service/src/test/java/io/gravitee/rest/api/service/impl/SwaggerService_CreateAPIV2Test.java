@@ -24,10 +24,8 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
