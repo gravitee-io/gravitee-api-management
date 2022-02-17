@@ -86,7 +86,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     }
 
     private static final String PROJECTION_WITHOUT_PICTURES =
-        "a.id, a.environment_id, a.name, a.description, a.type, a.created_at, a.updated_at, a.status, a.disable_membership_notifications";
+        "a.id, a.environment_id, a.name, a.description, a.type, a.created_at, a.updated_at, a.status, a.disable_membership_notifications, a.api_key_mode";
 
     private static final JdbcHelper.ChildAdder<Application> CHILD_ADDER = (Application parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();

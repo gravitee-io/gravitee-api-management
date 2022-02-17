@@ -28,6 +28,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
+import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -136,6 +137,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         final Application searchedApp2 = mock(Application.class);
         when(searchedApp1.getId()).thenReturn("searched-app1");
         when(searchedApp1.getName()).thenReturn("searched-app1");
+        when(searchedApp1.getApiKeyMode()).thenReturn(ApiKeyMode.SHARED);
         when(searchedApp2.getId()).thenReturn("searched-app2");
         when(searchedApp2.getName()).thenReturn("searched-app2");
         when(applicationRepository.findByNameAndStatuses("searched-app1")).thenReturn(singleton(searchedApp1));
