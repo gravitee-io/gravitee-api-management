@@ -21,6 +21,7 @@ import { DebugApiService } from './debug-api.service';
 import { fakeEvent } from '../entities/event/event.fixture';
 import { setupAngularJsTesting } from '../../jest.setup.js';
 import { GioHttpTestingModule } from '../shared/testing';
+import { fakeApi } from '../entities/api/Api.fixture';
 
 setupAngularJsTesting();
 
@@ -43,9 +44,10 @@ describe('DebugApiService', () => {
 
   describe('debug', () => {
     it('calls the endpoint', (done) => {
-      const api = {
+      const api = fakeApi({
         id: 'apiId',
-      };
+      });
+
       const request = {
         path: '/planets',
         method: 'POST',
@@ -63,7 +65,7 @@ describe('DebugApiService', () => {
         method: 'POST',
         url: 'https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT/apis/apiId/_debug',
       });
-      expect(req.request.body).toEqual({ request });
+      expect(req.request.body).toEqual(expect.objectContaining({ request }));
       req.flush(responseEvent);
     });
 
@@ -75,7 +77,7 @@ describe('DebugApiService', () => {
         body: '{"key": "value"}',
       };
 
-      const api = {
+      const api: any = {
         id: 'apiId',
         proxy: {
           endpoints: [

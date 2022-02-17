@@ -17,6 +17,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, Inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { Api } from '../entities/api';
 import { Constants } from '../entities/Constants';
 import { Event } from '../entities/event/event';
 
@@ -27,8 +28,7 @@ export class DebugApiService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   public debug(
-    // TODO: add ttype for api
-    api: any,
+    api: Api,
     request: {
       path: string;
       method: string;
@@ -37,7 +37,11 @@ export class DebugApiService {
     },
   ): Observable<Event> {
     // clean endpoint http proxy
+    // eslint:disable-next-line:@typescript-eslint/ban-ts-comment
+    // @ts-ignore
     if (api.proxy && api.proxy.endpoints) {
+      // eslint:disable-next-line:@typescript-eslint/ban-ts-comment
+      // @ts-ignore
       api.proxy.endpoints.forEach((endpoint) => {
         if (endpoint.proxy && !endpoint.proxy.useSystemProxy && (!endpoint.proxy.host || !endpoint.proxy.port)) {
           delete endpoint.proxy;
@@ -54,7 +58,6 @@ export class DebugApiService {
         paths: api.paths,
         flows: api.flows,
         plans: api.plans,
-        private: api.private,
         visibility: api.visibility,
         name: api.name,
         services: api.services,

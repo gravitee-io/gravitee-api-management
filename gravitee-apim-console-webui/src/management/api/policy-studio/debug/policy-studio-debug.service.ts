@@ -21,11 +21,12 @@ import { DebugRequest } from './models/DebugRequest';
 import { DebugEvent } from './models/DebugEvent';
 import { convertDebugEventToDebugResponse, DebugResponse } from './models/DebugResponse';
 
-import { ApiService } from '../../../../services-ngx/api.service';
 import { DebugApiService } from '../../../../services-ngx/debug-api.service';
 import { EventService } from '../../../../services-ngx/event.service';
 import { PolicyListItem } from '../../../../entities/policy';
 import { PolicyService } from '../../../../services-ngx/policy.service';
+import { PolicyStudioService } from '../policy-studio.service';
+import { ApiService } from '../../../../services-ngx/api.service';
 
 @Injectable({
   providedIn: 'root',
@@ -33,12 +34,13 @@ import { PolicyService } from '../../../../services-ngx/policy.service';
 export class PolicyStudioDebugService {
   constructor(
     private readonly apiService: ApiService,
+    private readonly policyStudioService: PolicyStudioService,
     private readonly debugApiService: DebugApiService,
     private readonly eventService: EventService,
     private readonly policyService: PolicyService,
   ) {}
 
-  public debug(apiId: string, debugRequest: DebugRequest): Observable<DebugResponse> {
+  public debug(debugRequest: DebugRequest): Observable<DebugResponse> {
     const maxPollingTime$ = timer(10000).pipe(
       map<number, DebugResponse>(() => ({
         isLoading: false,
@@ -54,9 +56,9 @@ export class PolicyStudioDebugService {
       })),
     );
 
-    const pollingEvent$ = this.sendDebugEvent(apiId, debugRequest).pipe(
+    const pollingEvent$ = this.sendDebugEvent(debugRequest).pipe(
       // Poll each 1s to find success event. Stops after 10 seconds
-      switchMap((debugEventId) => interval(1000).pipe(switchMap(() => this.getDebugEvent(apiId, debugEventId)))),
+      switchMap(({ apiId, debugEventId }) => interval(1000).pipe(switchMap(() => this.getDebugEvent(apiId, debugEventId)))),
       filter((event) => event.status === 'SUCCESS'),
       take(1),
       map((event: DebugEvent) => convertDebugEventToDebugResponse(event)),
@@ -65,7 +67,7 @@ export class PolicyStudioDebugService {
     return race(maxPollingTime$, pollingEvent$);
   }
 
-  private sendDebugEvent(apiId: string, request: DebugRequest): Observable<string> {
+  private sendDebugEvent(request: DebugRequest): Observable<{ apiId: string; debugEventId: string }> {
     const headersAsMap = (request.headers ?? [])
       .filter((header) => !!header.value)
       .reduce((acc, current) => {
@@ -73,14 +75,16 @@ export class PolicyStudioDebugService {
         return acc;
       }, {} as Record<string, string[]>);
 
-    return this.apiService.get(apiId).pipe(
+    return this.policyStudioService.getApiDefinition$().pipe(
+      switchMap((apiDefinition) => this.apiService.get(apiDefinition.id).pipe(map((api) => ({ ...api, ...apiDefinition })))),
       switchMap((api) =>
-        this.debugApiService.debug(api, {
-          ...request,
-          headers: headersAsMap,
-        }),
+        this.debugApiService
+          .debug(api, {
+            ...request,
+            headers: headersAsMap,
+          })
+          .pipe(map((event) => ({ apiId: api.id, debugEventId: event.id }))),
       ),
-      map((event) => event.id),
     );
   }
 

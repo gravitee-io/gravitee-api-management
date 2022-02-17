@@ -22,10 +22,13 @@ import { RequestPolicyDebugStep, ResponsePolicyDebugStep } from './models/DebugS
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
+import { PolicyStudioService } from '../policy-studio.service';
+import { toApiDefinition } from '../models/ApiDefinition';
 
 describe('PolicyStudioDebugService', () => {
   let httpTestingController: HttpTestingController;
   let policyStudioDebugService: PolicyStudioDebugService;
+  let policyStudioService: PolicyStudioService;
   const api = fakeApi();
 
   beforeEach(() => {
@@ -35,6 +38,8 @@ describe('PolicyStudioDebugService', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     policyStudioDebugService = TestBed.inject<PolicyStudioDebugService>(PolicyStudioDebugService);
+    policyStudioService = TestBed.inject(PolicyStudioService);
+    policyStudioService.emitApiDefinition(toApiDefinition(api));
   });
 
   afterEach(() => {
@@ -271,7 +276,7 @@ describe('PolicyStudioDebugService', () => {
       ];
 
       policyStudioDebugService
-        .debug(api.id, {
+        .debug({
           method: 'GET',
           body: '',
           headers: [],
@@ -298,7 +303,7 @@ describe('PolicyStudioDebugService', () => {
 
     it('should return some empty data when timeout is reached', fakeAsync((done) => {
       policyStudioDebugService
-        .debug(api.id, {
+        .debug({
           method: 'GET',
           body: '',
           headers: [],
