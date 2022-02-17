@@ -177,8 +177,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
         if (updatedApiResult.isSuccess() && !ApiLifecycleState.PUBLISHED.equals(updatedApiResult.getApi().getLifecycleState())) {
             publishSwaggerDocumentation(apiId);
-
-            UpdateApiEntity updateEntity = ApiService.convert(updatedApiResult.getApi());
+            UpdateApiEntity updateEntity = apiConverter.toUpdateApiEntity(updatedApiResult.getApi());
             updateEntity.setVisibility(Visibility.PUBLIC);
             updateEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
             return ApiEntityResult.success(this.apiService.update(apiId, updateEntity));
