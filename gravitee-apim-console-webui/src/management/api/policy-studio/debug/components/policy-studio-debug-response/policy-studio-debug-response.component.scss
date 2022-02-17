@@ -26,6 +26,31 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 
+  &__loading-response {
+    &__icon {
+      animation-name: fly;
+      animation-duration: 2500ms;
+      animation-timing-function: ease-in-out;
+      animation-delay: 0s;
+      animation-direction: alternate;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+      animation-play-state: running;
+    }
+  }
+
+  @keyframes fly {
+    0% {
+      transform: scale(1) rotate(0deg);
+    }
+    50% {
+      transform: scale(0.95) rotate(-4deg);
+    }
+    100% {
+      transform: scale(1.1) rotate(3deg);
+    }
+  }
+
   &__display-response {
     &__header {
       background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'lighter-background');
