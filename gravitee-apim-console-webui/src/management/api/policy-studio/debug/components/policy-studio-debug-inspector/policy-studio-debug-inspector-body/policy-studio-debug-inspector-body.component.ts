@@ -36,13 +36,11 @@ export class PolicyStudioDebugInspectorBodyComponent implements OnChanges {
   inputFormatOptions = {
     lineWrapping: true,
     lineNumbers: true,
-    mode: {},
   };
 
   outputFormatOptions = {
     lineWrapping: true,
     lineNumbers: true,
-    mode: {},
   };
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -50,7 +48,6 @@ export class PolicyStudioDebugInspectorBodyComponent implements OnChanges {
       try {
         // FIXME: Remove this hack working only for JSON when we will have a proper diff for the body
         this.formattedInput = JSON.stringify(JSON.parse(changes.input.currentValue), null, 2);
-        this.inputFormatOptions.mode = { name: 'javascript', json: true };
       } catch (e) {
         this.formattedInput = changes.input.currentValue;
       }
@@ -60,7 +57,6 @@ export class PolicyStudioDebugInspectorBodyComponent implements OnChanges {
       try {
         // FIXME: Remove this hack working only for JSON when we will have a proper diff for the body
         this.formattedOutput = JSON.stringify(JSON.parse(changes.output.currentValue), null, 2);
-        this.outputFormatOptions.mode = { name: 'javascript', json: true };
       } catch (e) {
         this.formattedOutput = changes.output.currentValue;
       }
