@@ -83,6 +83,13 @@ const PortalSettingsComponent: ng.IComponentOptions = {
       }
     };
 
+    this.toggleApiKeyPlan = () => {
+      if (!this.settings.plan.security.apikey.enabled) {
+        this.settings.plan.security.customApiKey.enabled = false;
+        this.settings.plan.security.sharedApiKey.enabled = false;
+      }
+    };
+
     this.isReadonlySetting = (property: string): boolean => {
       return PortalSettingsService.isReadonly(this.settings, property);
     };
