@@ -23,14 +23,17 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.UpgradeRejectedException;
-import java.util.concurrent.CountDownLatch;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
+@ExtendWith(VertxExtension.class)
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
 
@@ -40,12 +43,10 @@ public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
     @Test
     public void websocket_rejected_request() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
+        VertxTestContext testContext = new VertxTestContext();
 
         HttpServer httpServer = vertx.createHttpServer();
         httpServer.webSocketHandler(webSocket -> webSocket.reject(HttpStatusCode.UNAUTHORIZED_401)).listen(16664);
-
-        // Wait for result
-        final CountDownLatch latch = new CountDownLatch(1);
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 
@@ -56,11 +57,12 @@ public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
                 Assert.assertEquals(UpgradeRejectedException.class, event.cause().getClass());
                 Assert.assertEquals(HttpStatusCode.UNAUTHORIZED_401, ((UpgradeRejectedException) event.cause()).getStatus());
 
-                latch.countDown();
+                testContext.completeNow();
             }
         );
 
-        Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
+        testContext.awaitCompletion(10, TimeUnit.SECONDS);
         httpServer.close();
+        Assert.assertTrue(testContext.completed());
     }
 }
