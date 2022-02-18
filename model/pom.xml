@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.definition</groupId>
         <artifactId>gravitee-definition</artifactId>
-        <version>1.32.0-SNAPSHOT</version>
+        <version>1.32.0</version>
     </parent>
 
     <artifactId>gravitee-definition-model</artifactId>
