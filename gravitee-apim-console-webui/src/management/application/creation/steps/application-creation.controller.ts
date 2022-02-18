@@ -99,23 +99,13 @@ class ApplicationCreationController {
   }
 
   clickOnCreate() {
-    const alert = this.$mdDialog.confirm({
-      title: 'Create application?',
-      content:
-        'The application ' + this.application.name + (this.applicationType ? ' of type ' + this.applicationType : '') + ' will be created.',
-      ok: 'CREATE',
-      cancel: 'CANCEL',
-    });
-
-    this.$mdDialog.show(alert).then(() => {
-      if (this.shouldPromptForKeyMode()) {
-        this.selectKeyMode()
-          .then((mode) => (this.application.api_key_mode = mode))
-          .then(() => this.createApplication());
-      } else {
-        this.createApplication();
-      }
-    });
+    if (this.shouldPromptForKeyMode()) {
+      this.selectKeyMode()
+        .then((mode) => (this.application.api_key_mode = mode))
+        .then(() => this.createApplication());
+    } else {
+      this.createApplication();
+    }
   }
 
   createApplication() {
