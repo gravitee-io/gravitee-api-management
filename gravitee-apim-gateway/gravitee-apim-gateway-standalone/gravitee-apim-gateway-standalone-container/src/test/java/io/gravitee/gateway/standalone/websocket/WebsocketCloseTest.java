@@ -23,11 +23,13 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.WebSocket;
-import java.util.concurrent.CountDownLatch;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
@@ -35,6 +37,7 @@ import org.junit.rules.TestRule;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(VertxExtension.class)
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
 
@@ -44,6 +47,7 @@ public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
     @Test
     public void websocket_accepted_request() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
+        VertxTestContext testContext = new VertxTestContext();
 
         HttpServer httpServer = vertx.createHttpServer();
         httpServer
@@ -55,9 +59,6 @@ public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
             )
             .listen(16664);
 
-        // Wait for result
-        final CountDownLatch latch = new CountDownLatch(1);
-
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 
         httpClient.webSocket(
@@ -68,12 +69,13 @@ public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
                     Assert.fail();
                 } else {
                     final WebSocket webSocket = event.result();
-                    webSocket.closeHandler(event1 -> latch.countDown());
+                    webSocket.closeHandler(__ -> testContext.completeNow());
                 }
             }
         );
 
-        Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
+        testContext.awaitCompletion(10, TimeUnit.SECONDS);
         httpServer.close();
+        Assert.assertTrue(testContext.completed());
     }
 }
