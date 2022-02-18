@@ -36,7 +36,6 @@ class NewPageComponentController implements IController {
   apiId: string;
   error: any;
   page: any;
-  swaggerCodeMirrorOptions: any;
   foldersById: _.Dictionary<any>;
   systemFoldersById: _.Dictionary<any>;
   pageList: any[];
@@ -60,12 +59,6 @@ class NewPageComponentController implements IController {
     };
 
     this.$scope.getContentMode = 'inline';
-
-    this.swaggerCodeMirrorOptions = {
-      lineWrapping: true,
-      lineNumbers: true,
-      mode: { name: 'javascript', json: true },
-    };
   }
 
   $onInit() {
