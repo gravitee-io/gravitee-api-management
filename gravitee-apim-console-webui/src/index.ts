@@ -159,11 +159,12 @@ function bootstrapApplication(constants: Constants) {
       const urlService: UrlService = platformRef.injector.get(UIRouter).urlService;
 
       // Instruct UIRouter to listen to URL changes
-      function startUIRouter() {
-        urlService.listen();
-        urlService.sync();
-      }
-
-      platformRef.injector.get<NgZone>(NgZone).run(startUIRouter);
+      setTimeout(() => {
+        function startUIRouter() {
+          urlService.listen();
+          urlService.sync();
+        }
+        platformRef.injector.get<NgZone>(NgZone).run(startUIRouter);
+      }, 1000);
     });
 }
