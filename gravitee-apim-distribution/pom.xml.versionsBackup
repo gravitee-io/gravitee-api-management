@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.gravitee.apim</groupId>
+        <artifactId>gravitee-api-management</artifactId>
+        <version>3.16.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>io.gravitee.apim.distribution</groupId>
+    <artifactId>gravitee-apim-distribution</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Gravitee.io APIM - Distribution</name>
+
+    <!--
+        This pom.xml is used to prepare the full distribution of Management API & Gateway.
+        It defines all dependencies that have to be bundled by default in each component.
+        To add a new plugin in the bundle:
+         1. add the version in the <properties> section.
+            please respect alphabetic order and the separation between Gateway only, Management only and both
+         2. add the plugin in the <dependencies> section with <type>zip</type> and <scope>runtime</scope>.
+
+        To add plugins only for the dev environment, follow the same steps in the distribution-dev profile defined at the end of this file
+    -->
+
+    <properties>
+        <!-- Versions of the plugins for the full distribution -->
+        <!-- Management API & Gateway -->
+        <gravitee-connector-http.version>1.1.0</gravitee-connector-http.version>
+        <gravitee-policy-apikey.version>2.4.0</gravitee-policy-apikey.version>
+        <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
+        <gravitee-policy-assign-content.version>1.7.0</gravitee-policy-assign-content.version>
+        <gravitee-policy-cache.version>1.15.0</gravitee-policy-cache.version>
+        <gravitee-policy-callout-http.version>1.15.0</gravitee-policy-callout-http.version>
+        <gravitee-policy-dynamic-routing.version>1.11.1</gravitee-policy-dynamic-routing.version>
+        <gravitee-policy-generate-http-signature.version>1.1.0</gravitee-policy-generate-http-signature.version>
+        <gravitee-policy-generate-jwt.version>1.5.0</gravitee-policy-generate-jwt.version>
+        <gravitee-policy-groovy.version>2.1.0</gravitee-policy-groovy.version>
+        <gravitee-policy-html-json.version>1.6.0</gravitee-policy-html-json.version>
+        <gravitee-policy-http-signature.version>1.5.0</gravitee-policy-http-signature.version>
+        <gravitee-policy-ipfiltering.version>1.9.0</gravitee-policy-ipfiltering.version>
+        <gravitee-policy-json-threat-protection.version>1.3.1</gravitee-policy-json-threat-protection.version>
+        <gravitee-policy-json-to-json.version>1.7.0</gravitee-policy-json-to-json.version>
+        <gravitee-policy-json-validation.version>1.6.0</gravitee-policy-json-validation.version>
+        <gravitee-policy-json-xml.version>1.1.0</gravitee-policy-json-xml.version>
+        <gravitee-policy-jws.version>1.3.1</gravitee-policy-jws.version>
+        <gravitee-policy-jwt.version>1.22.0</gravitee-policy-jwt.version>
+        <gravitee-policy-keyless.version>1.4.0</gravitee-policy-keyless.version>
+        <gravitee-policy-latency.version>1.4.0</gravitee-policy-latency.version>
+        <gravitee-policy-metrics-reporter.version>1.2.0</gravitee-policy-metrics-reporter.version>
+        <gravitee-policy-mock.version>1.13.0</gravitee-policy-mock.version>
+        <gravitee-policy-oauth2.version>1.19.0</gravitee-policy-oauth2.version>
+        <gravitee-policy-openid-connect-userinfo.version>1.5.0</gravitee-policy-openid-connect-userinfo.version>
+        <gravitee-policy-override-http-method.version>1.3.0</gravitee-policy-override-http-method.version>
+        <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
+        <!--    <gravitee-policy-quota.version>1.15.0</gravitee-policy-quota.version>    -->
+        <!--    <gravitee-policy-spikearrest.version>1.15.0</gravitee-policy-spikearrest.version>    -->
+        <gravitee-policy-ratelimit.version>1.15.0</gravitee-policy-ratelimit.version>
+        <gravitee-policy-regex-threat-protection.version>1.3.0</gravitee-policy-regex-threat-protection.version>
+        <gravitee-policy-request-content-limit.version>1.8.0</gravitee-policy-request-content-limit.version>
+        <gravitee-policy-request-validation.version>1.13.0</gravitee-policy-request-validation.version>
+        <gravitee-policy-resource-filtering.version>1.8.0</gravitee-policy-resource-filtering.version>
+        <gravitee-policy-rest-to-soap.version>1.12.0</gravitee-policy-rest-to-soap.version>
+        <gravitee-policy-retry.version>2.1.0</gravitee-policy-retry.version>
+        <gravitee-policy-role-based-access-control.version>1.1.0</gravitee-policy-role-based-access-control.version>
+        <gravitee-policy-ssl-enforcement.version>1.2.0</gravitee-policy-ssl-enforcement.version>
+        <gravitee-policy-traffic-shadowing.version>1.1.0</gravitee-policy-traffic-shadowing.version>
+        <gravitee-policy-transformheaders.version>1.9.1</gravitee-policy-transformheaders.version>
+        <gravitee-policy-transformqueryparams.version>1.6.0</gravitee-policy-transformqueryparams.version>
+        <gravitee-policy-url-rewriting.version>1.5.0</gravitee-policy-url-rewriting.version>
+        <gravitee-policy-xml-json.version>1.8.0</gravitee-policy-xml-json.version>
+        <gravitee-policy-xml-threat-protection.version>1.3.0</gravitee-policy-xml-threat-protection.version>
+        <gravitee-policy-xml-validation.version>1.1.0</gravitee-policy-xml-validation.version>
+        <gravitee-policy-xslt.version>1.6.0</gravitee-policy-xslt.version>
+        <gravitee-resource-cache.version>1.7.0</gravitee-resource-cache.version>
+        <gravitee-resource-oauth2-provider-am.version>1.14.1</gravitee-resource-oauth2-provider-am.version>
+        <gravitee-resource-oauth2-provider-generic.version>1.16.1</gravitee-resource-oauth2-provider-generic.version>
+        <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>
+        <!-- Management API Only -->
+        <gravitee-cockpit-connectors-ws.version>2.3.0</gravitee-cockpit-connectors-ws.version>
+        <gravitee-fetcher-bitbucket.version>1.7.0</gravitee-fetcher-bitbucket.version>
+        <gravitee-fetcher-git.version>1.7.0</gravitee-fetcher-git.version>
+        <gravitee-fetcher-github.version>1.6.0</gravitee-fetcher-github.version>
+        <gravitee-fetcher-gitlab.version>1.11.0</gravitee-fetcher-gitlab.version>
+        <gravitee-fetcher-http.version>1.12.0</gravitee-fetcher-http.version>
+        <gravitee-repository-elasticsearch.version>3.11.0</gravitee-repository-elasticsearch.version>
+        <!-- Gateway Only -->
+        <gravitee-reporter-elasticsearch.version>3.11.0</gravitee-reporter-elasticsearch.version>
+        <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
+        <!--    <gravitee-gateway-services-ratelimit.version>1.15.0</gravitee-gateway-services-ratelimit.version>    -->
+        <gravitee-reporter-file.version>2.5.0</gravitee-reporter-file.version>
+        <gravitee-reporter-tcp.version>1.4.0</gravitee-reporter-tcp.version>
+        <gravitee-tracer-jaeger.version>1.1.0</gravitee-tracer-jaeger.version>
+    </properties>
+
+    <dependencies>
+        <!-- Connectors -->
+        <dependency>
+            <groupId>io.gravitee.cockpit</groupId>
+            <artifactId>gravitee-cockpit-connectors-ws</artifactId>
+            <version>${gravitee-cockpit-connectors-ws.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.connector</groupId>
+            <artifactId>gravitee-connector-http</artifactId>
+            <version>${gravitee-connector-http.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Fetchers -->
+        <dependency>
+            <groupId>io.gravitee.fetcher</groupId>
+            <artifactId>gravitee-fetcher-bitbucket</artifactId>
+            <version>${gravitee-fetcher-bitbucket.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.fetcher</groupId>
+            <artifactId>gravitee-fetcher-git</artifactId>
+            <version>${gravitee-fetcher-git.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.fetcher</groupId>
+            <artifactId>gravitee-fetcher-github</artifactId>
+            <version>${gravitee-fetcher-github.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.fetcher</groupId>
+            <artifactId>gravitee-fetcher-gitlab</artifactId>
+            <version>${gravitee-fetcher-gitlab.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.fetcher</groupId>
+            <artifactId>gravitee-fetcher-http</artifactId>
+            <version>${gravitee-fetcher-http.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Policies -->
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-apikey</artifactId>
+            <version>${gravitee-policy-apikey.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-assign-attributes</artifactId>
+            <version>${gravitee-policy-assign-attributes.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-assign-content</artifactId>
+            <version>${gravitee-policy-assign-content.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-cache</artifactId>
+            <version>${gravitee-policy-cache.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-callout-http</artifactId>
+            <version>${gravitee-policy-callout-http.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-dynamic-routing</artifactId>
+            <version>${gravitee-policy-dynamic-routing.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-generate-http-signature</artifactId>
+            <version>${gravitee-policy-generate-http-signature.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-generate-jwt</artifactId>
+            <version>${gravitee-policy-generate-jwt.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-groovy</artifactId>
+            <version>${gravitee-policy-groovy.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-html-json</artifactId>
+            <version>${gravitee-policy-html-json.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-http-signature</artifactId>
+            <version>${gravitee-policy-http-signature.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-ipfiltering</artifactId>
+            <version>${gravitee-policy-ipfiltering.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-json-threat-protection</artifactId>
+            <version>${gravitee-policy-json-threat-protection.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-json-to-json</artifactId>
+            <version>${gravitee-policy-json-to-json.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-json-validation</artifactId>
+            <version>${gravitee-policy-json-validation.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-json-xml</artifactId>
+            <version>${gravitee-policy-json-xml.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-jws</artifactId>
+            <version>${gravitee-policy-jws.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-jwt</artifactId>
+            <version>${gravitee-policy-jwt.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-keyless</artifactId>
+            <version>${gravitee-policy-keyless.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-latency</artifactId>
+            <version>${gravitee-policy-latency.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-metrics-reporter</artifactId>
+            <version>${gravitee-policy-metrics-reporter.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-mock</artifactId>
+            <version>${gravitee-policy-mock.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-oauth2</artifactId>
+            <version>${gravitee-policy-oauth2.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-openid-connect-userinfo</artifactId>
+            <version>${gravitee-policy-openid-connect-userinfo.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-override-http-method</artifactId>
+            <version>${gravitee-policy-override-http-method.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-quota</artifactId>
+            <version>${gravitee-policy-ratelimit.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-ratelimit</artifactId>
+            <version>${gravitee-policy-ratelimit.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-regex-threat-protection</artifactId>
+            <version>${gravitee-policy-regex-threat-protection.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-request-content-limit</artifactId>
+            <version>${gravitee-policy-request-content-limit.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-request-validation</artifactId>
+            <version>${gravitee-policy-request-validation.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-resource-filtering</artifactId>
+            <version>${gravitee-policy-resource-filtering.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-rest-to-soap</artifactId>
+            <version>${gravitee-policy-rest-to-soap.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-retry</artifactId>
+            <version>${gravitee-policy-retry.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-role-based-access-control</artifactId>
+            <version>${gravitee-policy-role-based-access-control.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-spikearrest</artifactId>
+            <version>${gravitee-policy-ratelimit.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-ssl-enforcement</artifactId>
+            <version>${gravitee-policy-ssl-enforcement.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-traffic-shadowing</artifactId>
+            <version>${gravitee-policy-traffic-shadowing.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-transformheaders</artifactId>
+            <version>${gravitee-policy-transformheaders.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-transformqueryparams</artifactId>
+            <version>${gravitee-policy-transformqueryparams.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-url-rewriting</artifactId>
+            <version>${gravitee-policy-url-rewriting.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-xml-json</artifactId>
+            <version>${gravitee-policy-xml-json.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-xml-threat-protection</artifactId>
+            <version>${gravitee-policy-xml-threat-protection.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-xml-validation</artifactId>
+            <version>${gravitee-policy-xml-validation.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-xslt</artifactId>
+            <version>${gravitee-policy-xslt.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Reporters -->
+        <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-elasticsearch</artifactId>
+            <version>${gravitee-reporter-elasticsearch.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-file</artifactId>
+            <version>${gravitee-reporter-file.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-tcp</artifactId>
+            <version>${gravitee-reporter-tcp.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Repositories -->
+        <dependency>
+            <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
+            <artifactId>gravitee-apim-repository-gateway-bridge-http-server</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
+            <artifactId>gravitee-apim-repository-gateway-bridge-http-client</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-jdbc</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-mongodb</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.repository</groupId>
+            <artifactId>gravitee-repository-elasticsearch</artifactId>
+            <version>${gravitee-repository-elasticsearch.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Resources -->
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-cache</artifactId>
+            <version>${gravitee-resource-cache.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-oauth2-provider-am</artifactId>
+            <version>${gravitee-resource-oauth2-provider-am.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-oauth2-provider-generic</artifactId>
+            <version>${gravitee-resource-oauth2-provider-generic.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Services -->
+        <dependency>
+            <groupId>io.gravitee.discovery</groupId>
+            <artifactId>gravitee-service-discovery-consul</artifactId>
+            <version>${gravitee-service-discovery-consul.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-gateway-services-ratelimit</artifactId>
+            <version>${gravitee-policy-ratelimit.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Tracers -->
+        <dependency>
+            <groupId>io.gravitee.tracer</groupId>
+            <artifactId>gravitee-tracer-jaeger</artifactId>
+            <version>${gravitee-tracer-jaeger.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>distribution-dev</id>
+            <properties>
+                <!-- Versions of the plugins for the full distribution on dev environment-->
+                <!-- Management API & Gateway -->
+                <gravitee-connector-kafka.version>1.1.0-SNAPSHOT</gravitee-connector-kafka.version>
+                <!-- Management API Only -->
+                <!-- Gateway Only -->
+            </properties>
+            <dependencies>
+                <!-- Connectors -->
+                <dependency>
+                    <groupId>io.gravitee.connector</groupId>
+                    <artifactId>gravitee-connector-kafka</artifactId>
+                    <version>${gravitee-connector-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>distribution-ee</id>
+            <properties>
+                <!-- Versions of the plugins for the full distribution on dev environment-->
+                <!-- Management API & Gateway -->
+                <gravitee-ae-connectors-ws.version>1.5.4</gravitee-ae-connectors-ws.version>
+                <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
+                <!-- Management API Only -->
+                <gravitee-notifier-email.version>1.3.1</gravitee-notifier-email.version>
+                <gravitee-notifier-slack.version>1.2.1</gravitee-notifier-slack.version>
+                <gravitee-notifier-webhook.version>1.1.0</gravitee-notifier-webhook.version>
+                <!-- Gateway Only -->
+            </properties>
+            <dependencies>
+                <!-- License jar to put in /lib -->
+                <dependency>
+                    <groupId>com.graviteesource.license</groupId>
+                    <artifactId>gravitee-license-node-enterprise</artifactId>
+                    <version>${gravitee-license-node.version}</version>
+                </dependency>
+                <!-- Connectors -->
+                <dependency>
+                    <groupId>com.graviteesource.ae.connectors</groupId>
+                    <artifactId>gravitee-ae-connectors-ws</artifactId>
+                    <version>${gravitee-ae-connectors-ws.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <!-- Notifiers -->
+                <dependency>
+                    <groupId>io.gravitee.notifier</groupId>
+                    <artifactId>gravitee-notifier-email</artifactId>
+                    <version>${gravitee-notifier-email.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.notifier</groupId>
+                    <artifactId>gravitee-notifier-slack</artifactId>
+                    <version>${gravitee-notifier-slack.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>io.gravitee.notifier</groupId>
+                    <artifactId>gravitee-notifier-webhook</artifactId>
+                    <version>${gravitee-notifier-webhook.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>

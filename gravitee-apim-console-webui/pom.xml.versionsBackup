@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <properties>
+    <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
+    <npm.version>6.14.11</npm.version>
+    <node.version>v14.15.5</node.version>
+  </properties>
+
+  <parent>
+    <groupId>io.gravitee.apim</groupId>
+    <artifactId>gravitee-api-management</artifactId>
+    <version>3.16.0-SNAPSHOT</version>
+  </parent>
+
+  <groupId>io.gravitee.apim.ui</groupId>
+  <artifactId>gravitee-apim-console-webui</artifactId>
+  <packaging>pom</packaging>
+  <name>Gravitee.io APIM - UI Console</name>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>dist</directory>
+            </fileset>
+            <fileset>
+              <directory>dist-tsc</directory>
+            </fileset>
+            <fileset>
+              <directory>.tmp</directory>
+            </fileset>
+            <fileset>
+              <directory>node</directory>
+            </fileset>
+            <fileset>
+              <directory>node_modules</directory>
+            </fileset>
+          </filesets>
+          <skip>${skip.npm}</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <mapping>
+            <ts>SLASHSTAR_STYLE</ts>
+          </mapping>
+          <excludes>
+            <exclude>LICENSE.txt</exclude>
+            <exclude>LICENSE_TEMPLATE.txt</exclude>
+            <exclude>src/libraries/**</exclude>
+            <exclude>**/*.scss</exclude>
+            <exclude>**/*.svg</exclude>
+            <exclude>Jenkinsfile</exclude>
+            <exclude>**/.*</exclude>
+            <exclude>**/*.adoc</exclude>
+            <exclude>**/*.woff</exclude>
+            <exclude>**/*.ttf</exclude>
+            <exclude>**/*.woff2</exclude>
+            <exclude>**/*.eot</exclude>
+            <exclude>.*</exclude>
+            <exclude>.*/**</exclude>
+            <exclude>package-json.lock</exclude>
+            <exclude>.tmp/**</exclude>
+            <exclude>.vscode/**</exclude>
+            <exclude>dist/**</exclude>
+            <exclude>dist-tsc/**</exclude>
+            <exclude>.*</exclude>
+            <exclude>.*/**</exclude>
+            <exclude>**/*.adoc</exclude>
+            <exclude>node_modules/**</exclude>
+            <exclude>node/**</exclude>
+            <exclude>LICENSE_TEMPLATE.txt</exclude>
+            <exclude>sonar-project.properties</exclude>
+            <exclude>coverage/**</exclude>
+            <exclude>**/*.snap</exclude>
+            <exclude>**/*.tmpl</exclude>
+            <exclude>**/Dockerfile*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.hubspot.maven.plugins</groupId>
+        <artifactId>prettier-maven-plugin</artifactId>
+        <version>0.12</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>${frontend-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>install node and npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>${node.version}</nodeVersion>
+              <npmVersion>${npm.version}</npmVersion>
+              <skip>${skip.npm}</skip>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-resources</phase>
+          </execution>
+          <execution>
+            <id>npm compile</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <arguments>run compile</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm lint</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration>
+              <arguments>run lint</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm test:ci</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration>
+              <arguments>run test:coverage</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build with npm</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <arguments>run build:prod</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-plugin-assembly</id>
+            <phase>none</phase>
+          </execution>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>assembly.xml</descriptor>
+              </descriptors>
+              <skipAssembly>${skip.npm}</skipAssembly>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!--Plugin used to replace version on several files -->
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <version>1.5.3</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>${project.basedir}/package.json</include>
+                <include>${project.basedir}/build.json</include>
+              </includes>
+              <replacements>
+                <replacement>
+                  <token>"name"(\s*):(\s*)"(.*)"</token>
+                  <value>"name": "${project.artifactId}"</value>
+                </replacement>
+                <replacement>
+                  <token>"version": "(.*)"</token>
+                  <value>"version": "${project.version}"</value>
+                </replacement>
+                <replacement>
+                  <token>'version': '(.*)'</token>
+                  <value>'version': '${project.version}'</value>
+                </replacement>
+                <replacement>
+                  <token>"description"(\s*):(\s*)"(.*)"</token>
+                  <value>"description": "${project.name}"</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+          <execution>
+            <id>replace-base-url</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>${project.basedir}/dist/constants.json</include>
+              </includes>
+              <replacements>
+                <replacement>
+                  <token>"baseURL": "(.*)"</token>
+                  <value>"baseURL": "http://localhost:8083/management/organizations/DEFAULT/environments/DEFAULT"
+                  </value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
