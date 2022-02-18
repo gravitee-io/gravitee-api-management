@@ -91,11 +91,9 @@
     <policy-studio-debug-timeline-legend></policy-studio-debug-timeline-legend>
   </div> -->
 
-  <div *ngIf="inspectorVM && inspectorVM.output === '🚧'">🚧 Coming soon 🚧</div>
-
   <policy-studio-debug-inspector
     class="policy-studio-debug-response__display-response__inspector"
-    *ngIf="inspectorVM && inspectorVM.output != '🚧'"
+    *ngIf="inspectorVM"
     [inputDebugStep]="inspectorVM.input"
     [outputDebugStep]="inspectorVM.output"
   >

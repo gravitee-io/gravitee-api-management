@@ -46,8 +46,8 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   public responseDisplayableVM: ResponseDisplayableVM;
 
   public inspectorVM: {
-    input?: RequestDebugStep | ResponseDebugStep | '🚧';
-    output?: RequestDebugStep | ResponseDebugStep | '🚧';
+    input?: RequestDebugStep | ResponseDebugStep;
+    output?: RequestDebugStep | ResponseDebugStep;
   };
 
   ngOnChanges(): void {
@@ -87,7 +87,6 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         break;
 
       default:
-        this.inspectorVM = { input: '🚧', output: '🚧' };
         break;
     }
   }
