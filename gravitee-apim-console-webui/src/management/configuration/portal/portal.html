@@ -52,7 +52,7 @@
       <md-input-container class="gv-input-container-dense">
         <md-checkbox
           ng-model="$ctrl.settings.plan.security.apikey.enabled"
-          ng-change="$ctrl.settings.plan.security.customApiKey.enabled = $ctrl.settings.plan.security.apikey.enabled ? $ctrl.settings.plan.security.customApiKey.enabled : false"
+          ng-change="$ctrl.toggleApiKeyPlan()"
           aria-label="apikey"
           ng-disabled="$ctrl.isReadonlySetting('plan.security.apikey.enabled')"
         >
