@@ -1066,7 +1066,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setPicture(newApplicationEntity.getPicture());
         application.setBackground(newApplicationEntity.getBackground());
         application.setMetadata(metadata);
-
+        if (newApplicationEntity.getApiKeyMode() != null) {
+            application.setApiKeyMode(
+                io.gravitee.repository.management.model.ApiKeyMode.valueOf(newApplicationEntity.getApiKeyMode().name())
+            );
+        }
         return application;
     }
 

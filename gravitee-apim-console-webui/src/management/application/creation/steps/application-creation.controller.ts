@@ -19,7 +19,9 @@ import { ApplicationType } from '../../../../entities/application';
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
+import PortalConfigService from '../../../../services/portalConfig.service';
 import '@gravitee/ui-components/wc/gv-icon';
+import { PlanSecurityType } from '../../../..//entities/plan/plan';
 
 class ApplicationCreationController {
   application: any;
@@ -32,6 +34,7 @@ class ApplicationCreationController {
   private applicationType: string;
   private apis: any[] = [];
   private groups: any[];
+  private portalSettings: any;
 
   constructor(
     private Constants,
@@ -39,6 +42,7 @@ class ApplicationCreationController {
     private $mdDialog,
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
+    private PortalConfigService: PortalConfigService,
     private $q,
     private ApiService: ApiService,
   ) {
@@ -70,6 +74,9 @@ class ApplicationCreationController {
 
   $onInit() {
     this.ApiService.list().then((response) => (this.apis = response.data));
+    this.PortalConfigService.get().then((response) => {
+      this.portalSettings = response.data;
+    });
   }
 
   next() {
@@ -97,7 +104,7 @@ class ApplicationCreationController {
     this.steps[2].title = this.getReadableApiSubscriptions();
   }
 
-  create() {
+  clickOnCreate() {
     const alert = this.$mdDialog.confirm({
       title: 'Create application?',
       content:
@@ -107,15 +114,25 @@ class ApplicationCreationController {
     });
 
     this.$mdDialog.show(alert).then(() => {
-      this.ApplicationService.create(this.application).then((response) => {
-        const application = response.data;
-        const promises = _.map(this.selectedPlans, (plan) =>
-          this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]),
-        );
-        this.$q.all(promises).then(() => {
-          this.NotificationService.show('Application ' + this.application.name + ' has been created');
-          this.$state.go('management.applications.application.general', { applicationId: application.id }, { reload: true });
-        });
+      if (this.shouldPromptForKeyMode()) {
+        this.selectKeyMode()
+          .then((mode) => (this.application.api_key_mode = mode))
+          .then(() => this.createApplication());
+      } else {
+        this.createApplication();
+      }
+    });
+  }
+
+  createApplication() {
+    this.ApplicationService.create(this.application).then((response) => {
+      const application = response.data;
+      const promises = _.map(this.selectedPlans, (plan) =>
+        this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]),
+      );
+      this.$q.all(promises).then(() => {
+        this.NotificationService.show('Application ' + this.application.name + ' has been created');
+        this.$state.go('management.applications.application.general', { applicationId: application.id }, { reload: true });
       });
     });
   }
@@ -183,6 +200,25 @@ class ApplicationCreationController {
       }) +
       '.'
     );
+  }
+
+  shouldPromptForKeyMode(): boolean {
+    const apiKeysPlansCount = this.selectedPlans.filter((plan) => plan.security === PlanSecurityType.API_KEY).length;
+    return this.allowsSharedApiKeys && apiKeysPlansCount > 1;
+  }
+
+  selectKeyMode() {
+    const dialog = {
+      controller: 'ApplicationKeyDialogController',
+      controllerAs: '$ctrl',
+      template: require('../../../application/details/subscribe/application-key.dialog.html'),
+      clickOutsideToClose: true,
+    };
+    return this.$mdDialog.show(dialog);
+  }
+
+  get allowsSharedApiKeys(): boolean {
+    return this.portalSettings?.plan?.security?.sharedApiKey?.enabled;
   }
 }
 
