@@ -39,6 +39,6 @@ $typography: map.get(gio.$mat-theme, typography);
     background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter');
     height: 24px;
     width: 100%;
-    bottom: 38px;
+    top: 94px;
   }
 }
