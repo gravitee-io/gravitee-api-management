@@ -1,5 +1,14 @@
 {
-  "extends": ["config:base", "schedule:earlyMondays"],
+  "extends": [
+    "config:base",
+    "schedule:earlyMondays"
+  ],
   "prConcurrentLimit": 3,
-  "rebaseWhen": "conflicted"
+  "rebaseWhen": "conflicted",
+  "packageRules": [
+    {
+      "matchDatasources": ["orb"],
+      "rangeStrategy": "replace"
+    }
+  ]
 }
