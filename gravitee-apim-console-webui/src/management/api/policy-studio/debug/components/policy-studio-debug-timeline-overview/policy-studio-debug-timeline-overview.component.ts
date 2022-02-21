@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { TimelineStep } from '../policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
 
@@ -26,4 +26,7 @@ import { TimelineStep } from '../policy-studio-debug-timeline-card/policy-studio
 export class PolicyStudioDebugTimelineOverviewComponent {
   @Input()
   public timelineSteps?: TimelineStep[];
+
+  @Output()
+  public selected = new EventEmitter<TimelineStep>();
 }

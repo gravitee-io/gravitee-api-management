@@ -86,7 +86,10 @@
     </policy-studio-debug-timeline>
   </div>
   <div>
-    <policy-studio-debug-timeline-overview [timelineSteps]="responseDisplayableVM.timelineSteps"></policy-studio-debug-timeline-overview>
+    <policy-studio-debug-timeline-overview
+      [timelineSteps]="responseDisplayableVM.timelineSteps"
+      (selected)="onSelectTimelineStep($event)"
+    ></policy-studio-debug-timeline-overview>
   </div>
   <div>
     <policy-studio-debug-timeline-legend></policy-studio-debug-timeline-legend>

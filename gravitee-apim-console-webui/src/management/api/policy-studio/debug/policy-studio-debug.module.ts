@@ -25,6 +25,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTreeModule } from '@angular/material/tree';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
 import { PolicyStudioDebugInspectorBodyComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-body/policy-studio-debug-inspector-body.component';
@@ -52,6 +53,7 @@ import { PolicyStudioDebugTimelineOverviewComponent } from './components/policy-
     MatSnackBarModule,
     MatTabsModule,
     MatTreeModule,
+    MatTooltipModule,
 
     GioIconsModule,
   ],

@@ -22,6 +22,7 @@ import { MatTreeModule } from '@angular/material/tree';
 import { MatButtonModule } from '@angular/material/button';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import '@gravitee/ui-components/wc/gv-icon';
 
@@ -54,7 +55,7 @@ export default {
         PolicyStudioDebugTimelineOverviewComponent,
         PolicyStudioDebugTimelineLegendComponent,
       ],
-      imports: [CommonModule, BrowserAnimationsModule, MatButtonModule, MatIconModule, MatTreeModule, GioIconsModule],
+      imports: [CommonModule, BrowserAnimationsModule, MatButtonModule, MatIconModule, MatTreeModule, GioIconsModule, MatTooltipModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }),
   ],

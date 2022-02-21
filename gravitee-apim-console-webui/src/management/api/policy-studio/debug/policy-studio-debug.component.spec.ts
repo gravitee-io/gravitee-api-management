@@ -176,6 +176,18 @@ describe('PolicyStudioDebugComponent', () => {
       const expectedDebugStepAttributes = fakeDebugEvent().payload.debugSteps[1].result.attributes as Record<string, unknown>;
       expect(inspectorContent).toContain(expectedDebugStepAttributes.dev);
     });
+
+    it('should display inspector content on selected policy with overview', () => {
+      // [Client app] | [Request Input] | [Policy 1] | [Policy 2] <- select second request policy
+      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-overview__step').values()][3].click();
+      fixture.detectChanges();
+
+      const inspectorContent = fixture.nativeElement.querySelector(
+        '.policy-studio-debug-response__display-response__inspector',
+      ).textContent;
+      const expectedDebugStepAttributes = fakeDebugEvent().payload.debugSteps[1].result.attributes as Record<string, unknown>;
+      expect(inspectorContent).toContain(expectedDebugStepAttributes.dev);
+    });
   });
 
   function expectSendDebugEvent(eventId: string) {

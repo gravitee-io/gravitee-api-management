@@ -44,7 +44,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     .color-grey {
-      color: mat.get-color-from-palette(gio.$mat-content-palette, 'disabled');
+      color: mat.get-color-from-palette(gio.$mat-content-palette, 'disabled-contrast');
     }
 
     .color-red {

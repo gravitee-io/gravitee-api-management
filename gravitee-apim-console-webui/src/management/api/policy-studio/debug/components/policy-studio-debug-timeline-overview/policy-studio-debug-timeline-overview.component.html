@@ -23,31 +23,57 @@
 
   <ng-container *ngFor="let timelineStep of timelineSteps">
     <ng-container [ngSwitch]="timelineStep.mode">
-      <div *ngSwitchCase="'CLIENT_APP'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-green" [class.selected]="timelineStep.selected"></div>
+      <div *ngSwitchCase="'CLIENT_APP'" class="policy-studio-debug-timeline-overview__step" matTooltip="Client App">
+        <div
+          class="policy-studio-debug-timeline-overview__step__line color-green"
+          [class.selected]="timelineStep.selected"
+          (click)="selected.emit(timelineStep)"
+        ></div>
       </div>
 
-      <div *ngSwitchCase="'REQUEST_INPUT'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-blue" [class.selected]="timelineStep.selected"></div>
+      <div *ngSwitchCase="'REQUEST_INPUT'" class="policy-studio-debug-timeline-overview__step" matTooltip="Request input">
+        <div
+          class="policy-studio-debug-timeline-overview__step__line color-blue"
+          [class.selected]="timelineStep.selected"
+          (click)="selected.emit(timelineStep)"
+        ></div>
       </div>
 
-      <div *ngSwitchCase="'REQUEST_OUTPUT'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-blue" [class.selected]="timelineStep.selected"></div>
+      <div *ngSwitchCase="'REQUEST_OUTPUT'" class="policy-studio-debug-timeline-overview__step" matTooltip="Request output">
+        <div
+          class="policy-studio-debug-timeline-overview__step__line color-blue"
+          [class.selected]="timelineStep.selected"
+          (click)="selected.emit(timelineStep)"
+        ></div>
       </div>
 
-      <div *ngSwitchCase="'RESPONSE_INPUT'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-blue" [class.selected]="timelineStep.selected"></div>
+      <div *ngSwitchCase="'RESPONSE_INPUT'" class="policy-studio-debug-timeline-overview__step" matTooltip="Response input">
+        <div
+          class="policy-studio-debug-timeline-overview__step__line color-blue"
+          [class.selected]="timelineStep.selected"
+          (click)="selected.emit(timelineStep)"
+        ></div>
       </div>
 
-      <div *ngSwitchCase="'RESPONSE_OUTPUT'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-blue" [class.selected]="timelineStep.selected"></div>
+      <div *ngSwitchCase="'RESPONSE_OUTPUT'" class="policy-studio-debug-timeline-overview__step" matTooltip="Response output">
+        <div
+          class="policy-studio-debug-timeline-overview__step__line color-blue"
+          [class.selected]="timelineStep.selected"
+          (click)="selected.emit(timelineStep)"
+        ></div>
       </div>
 
       <div *ngSwitchCase="'BACKEND_TARGET'" class="policy-studio-debug-timeline-overview__center-target-backend">
         <mat-icon class="gio-left" svgIcon="gio:server"></mat-icon>
       </div>
 
-      <div *ngSwitchDefault class="policy-studio-debug-timeline-overview__step">
+      <div
+        *ngSwitchDefault
+        class="policy-studio-debug-timeline-overview__step"
+        [matTooltip]="timelineStep.policyName"
+        [class.disabled]="timelineStep.executionStatus === 'SKIPPED'"
+        (click)="timelineStep.executionStatus !== 'SKIPPED' && selected.emit(timelineStep)"
+      >
         <div
           class="policy-studio-debug-timeline-overview__step__line"
           [class.color-red]="timelineStep.executionStatus === 'ERROR'"
