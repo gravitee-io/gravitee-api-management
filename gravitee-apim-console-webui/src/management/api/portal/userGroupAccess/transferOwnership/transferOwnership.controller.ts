@@ -42,7 +42,6 @@ class ApiTransferOwnershipController {
     private resolvedApi,
     private resolvedMembers,
     private resolvedGroups,
-    private resolvedApiGroups,
     private $state,
     private $mdDialog: ng.material.IDialogService,
     private NotificationService,
@@ -65,8 +64,10 @@ class ApiTransferOwnershipController {
     _.forEach(resolvedGroups, (grp) => {
       this.displayGroups[grp.id] = false;
     });
-    this.groupMembers = resolvedApiGroups;
-    this.groupIdsWithMembers = Object.keys(this.groupMembers);
+
+    ApiService.getGroupsWithMembers(this.api.id).then(({ data: groupWithMembers }) => {
+      this.groupIdsWithMembers = groupWithMembers;
+    });
 
     RoleService.list('API').then((roles) => {
       this.roles = roles;
