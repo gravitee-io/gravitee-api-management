@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.debug.reactor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.Event;
 import io.gravitee.definition.model.HttpRequest;
