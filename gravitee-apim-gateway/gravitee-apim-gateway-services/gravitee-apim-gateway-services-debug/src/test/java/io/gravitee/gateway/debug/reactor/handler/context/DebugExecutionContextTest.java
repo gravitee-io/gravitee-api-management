@@ -19,15 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.definition.model.PolicyScope;
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugResponseStep;
-import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
-import io.gravitee.gateway.policy.StreamType;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +37,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class DebugExecutionContextTest {
 
     @Mock
-    private ExecutionContext executionContext;
+    private MutableExecutionContext executionContext;
 
     @Mock
     private DebugResponseStep debugStep;
