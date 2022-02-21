@@ -41,6 +41,14 @@ $typography: map.get(gio.$mat-theme, typography);
       &.color-red {
         background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
       }
+
+      &.selected::before {
+        content: '•';
+        display: block;
+        text-align: center;
+        font-size: 20px;
+        color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
     }
 
     // Add margin between step
