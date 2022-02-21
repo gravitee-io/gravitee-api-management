@@ -24,23 +24,23 @@
   <ng-container *ngFor="let timelineStep of timelineSteps">
     <ng-container [ngSwitch]="timelineStep.mode">
       <div *ngSwitchCase="'CLIENT_APP'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-green"></div>
+        <div class="policy-studio-debug-timeline-overview__step__line color-green" [class.selected]="timelineStep.selected"></div>
       </div>
 
       <div *ngSwitchCase="'REQUEST_INPUT'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-blue"></div>
+        <div class="policy-studio-debug-timeline-overview__step__line color-blue" [class.selected]="timelineStep.selected"></div>
       </div>
 
       <div *ngSwitchCase="'REQUEST_OUTPUT'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-blue"></div>
+        <div class="policy-studio-debug-timeline-overview__step__line color-blue" [class.selected]="timelineStep.selected"></div>
       </div>
 
       <div *ngSwitchCase="'RESPONSE_INPUT'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-blue"></div>
+        <div class="policy-studio-debug-timeline-overview__step__line color-blue" [class.selected]="timelineStep.selected"></div>
       </div>
 
       <div *ngSwitchCase="'RESPONSE_OUTPUT'" class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line color-blue"></div>
+        <div class="policy-studio-debug-timeline-overview__step__line color-blue" [class.selected]="timelineStep.selected"></div>
       </div>
 
       <div *ngSwitchCase="'BACKEND_TARGET'" class="policy-studio-debug-timeline-overview__center-target-backend">
@@ -52,6 +52,7 @@
           class="policy-studio-debug-timeline-overview__step__line"
           [class.color-red]="timelineStep.executionStatus === 'ERROR'"
           [class.color-grey]="timelineStep.executionStatus === 'SKIPPED'"
+          [class.selected]="timelineStep.selected"
         ></div>
       </div>
     </ng-container>

@@ -65,6 +65,7 @@ export const SimpleAllCases: Story = {
       },
       {
         mode: 'REQUEST_INPUT',
+        selected: true,
       },
       {
         mode: 'POLICY_REQUEST',
@@ -83,6 +84,7 @@ export const SimpleAllCases: Story = {
       },
       {
         mode: 'REQUEST_OUTPUT',
+        selected: true,
       },
       {
         mode: 'BACKEND_TARGET',
