@@ -23,10 +23,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -87,6 +84,11 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
 
     @Override
     public Set<Subscription> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public List<Subscription> findByIdIn(Collection<String> ids) {
         throw new IllegalStateException();
     }
 }

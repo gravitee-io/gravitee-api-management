@@ -76,4 +76,9 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     public Set<ApiKey> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

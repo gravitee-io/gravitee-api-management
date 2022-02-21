@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -78,6 +79,11 @@ public class HttpSubscriptionRepository extends AbstractRepository implements Su
 
     @Override
     public Set<Subscription> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public List<Subscription> findByIdIn(Collection<String> ids) {
         throw new IllegalStateException();
     }
 }

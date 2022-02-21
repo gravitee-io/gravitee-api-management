@@ -15,10 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.util.stream.Collectors.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
-import io.gravitee.repository.management.model.AlertEvent;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
@@ -47,8 +48,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     public ApiKey create(ApiKey apiKey) throws TechnicalException {
         ApiKeyMongo apiKeyMongo = mapper.map(apiKey, ApiKeyMongo.class);
         apiKeyMongo = internalApiKeyRepo.insert(apiKeyMongo);
-
-        return mapper.map(apiKeyMongo, ApiKey.class);
+        return toApiKey(apiKeyMongo);
     }
 
     @Override
@@ -64,21 +64,17 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
         }
 
         apiKeyMongo = internalApiKeyRepo.save(mapper.map(apiKey, ApiKeyMongo.class));
-        return mapper.map(apiKeyMongo, ApiKey.class);
+        return toApiKey(apiKeyMongo);
     }
 
     @Override
     public Set<ApiKey> findBySubscription(String subscription) {
-        return internalApiKeyRepo
-            .findBySubscription(subscription)
-            .stream()
-            .map(apiKey -> mapper.map(apiKey, ApiKey.class))
-            .collect(Collectors.toSet());
+        return internalApiKeyRepo.findBySubscription(subscription).stream().map(this::toApiKey).collect(toSet());
     }
 
     @Override
     public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
-        return internalApiKeyRepo.findByPlan(plan).stream().map(apiKey -> mapper.map(apiKey, ApiKey.class)).collect(Collectors.toSet());
+        return internalApiKeyRepo.findByPlan(plan).stream().map(this::toApiKey).collect(toSet());
     }
 
     @Override
@@ -88,21 +84,34 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public Optional<ApiKey> findById(String id) throws TechnicalException {
-        return internalApiKeyRepo.findById(id).map(apiKey -> mapper.map(apiKey, ApiKey.class));
+        return internalApiKeyRepo.findById(id).map(this::toApiKey);
     }
 
     @Override
     public List<ApiKey> findByKey(String key) {
-        return internalApiKeyRepo.findByKey(key).stream().map(apiKey -> mapper.map(apiKey, ApiKey.class)).collect(Collectors.toList());
+        return internalApiKeyRepo.findByKey(key).stream().map(this::toApiKey).collect(toList());
     }
 
     @Override
     public Optional<ApiKey> findByKeyAndApi(String key, String api) {
-        return internalApiKeyRepo.findByKeyAndApi(key, api).stream().findFirst().map(apiKey -> mapper.map(apiKey, ApiKey.class));
+        return internalApiKeyRepo.findByKeyAndApi(key, api).stream().findFirst().map(this::toApiKey);
     }
 
     @Override
     public Set<ApiKey> findAll() throws TechnicalException {
-        return internalApiKeyRepo.findAll().stream().map(apiKeyMongo -> mapper.map(apiKeyMongo, ApiKey.class)).collect(Collectors.toSet());
+        return internalApiKeyRepo.findAll().stream().map(this::toApiKey).collect(toSet());
+    }
+
+    @Override
+    public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
+        try {
+            return internalApiKeyRepo.findByApplication(applicationId).stream().map(this::toApiKey).collect(toList());
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred trying to find api key by application", e);
+        }
+    }
+
+    private ApiKey toApiKey(ApiKeyMongo apiKeyMongo) {
+        return mapper.map(apiKeyMongo, ApiKey.class);
     }
 }
