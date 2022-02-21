@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
@@ -37,9 +38,9 @@ import java.util.Map;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugExecutionContext implements ExecutionContext {
+public class DebugExecutionContext implements MutableExecutionContext {
 
-    private final ExecutionContext context;
+    private final MutableExecutionContext context;
 
     private final List<DebugStep<?>> steps = new ArrayList<>();
     private final Map<String, Serializable> initialAttributes;
@@ -47,7 +48,7 @@ public class DebugExecutionContext implements ExecutionContext {
     private final HttpHeaders initialHeaders;
 
     public DebugExecutionContext(ExecutionContext context) {
-        this.context = context;
+        this.context = (MutableExecutionContext) context;
         this.initialAttributes = AttributeHelper.filterAndSerializeAttributes(context.getAttributes());
         this.initialHeaders = HttpHeaders.create(request().headers());
     }
@@ -143,5 +144,17 @@ public class DebugExecutionContext implements ExecutionContext {
 
     public HttpHeaders getInitialHeaders() {
         return initialHeaders;
+    }
+
+    @Override
+    public MutableExecutionContext request(Request request) {
+        context.request(request);
+        return this;
+    }
+
+    @Override
+    public MutableExecutionContext response(Response response) {
+        context.response(response);
+        return this;
     }
 }
