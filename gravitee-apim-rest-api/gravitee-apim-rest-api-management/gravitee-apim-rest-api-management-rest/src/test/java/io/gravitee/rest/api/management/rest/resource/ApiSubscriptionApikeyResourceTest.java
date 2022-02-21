@@ -21,8 +21,10 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import org.junit.After;
@@ -57,7 +59,9 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void delete_should_call_revoke_service_and_return_http_204() {
         ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        existingApiKey.setSubscription(SUBSCRIPTION_ID);
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        existingApiKey.setSubscriptions(List.of(subscription));
         when(apiKeyService.findById(APIKEY_ID)).thenReturn(existingApiKey);
 
         Response response = envTarget().request().delete();
@@ -69,7 +73,10 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void delete_should_return_http_400_when_apikey_on_another_subscription() {
         ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        existingApiKey.setSubscription("another-subscription");
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("another-subscription");
+        existingApiKey.setSubscriptions(List.of(subscription));
+
         when(apiKeyService.findById(APIKEY_ID)).thenReturn(existingApiKey);
 
         Response response = envTarget().request().delete();
@@ -123,7 +130,9 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void post_on_reactivate_should_call_reactivate_service_and_return_http_200() {
         ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        existingApiKey.setSubscription(SUBSCRIPTION_ID);
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        existingApiKey.setSubscriptions(List.of(subscription));
         when(apiKeyService.findById(APIKEY_ID)).thenReturn(existingApiKey);
 
         Response response = envTarget("/_reactivate").request().post(null);
@@ -135,7 +144,10 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void post_on_reactivate_should_return_http_400_when_apikey_on_another_subscription() {
         ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        existingApiKey.setSubscription("another-subscription");
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("another-subscription");
+        existingApiKey.setSubscriptions(List.of(subscription));
+
         when(apiKeyService.findById(APIKEY_ID)).thenReturn(existingApiKey);
 
         Response response = envTarget("/_reactivate").request().post(null);

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
 import java.util.Collection;
@@ -26,23 +27,17 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApiKeyService {
-    ApiKeyEntity generate(String subscription);
+    ApiKeyEntity generate(ApplicationEntity application, SubscriptionEntity subscription, String customApiKey);
 
-    ApiKeyEntity generate(String subscription, String customApiKey);
+    ApiKeyEntity renew(SubscriptionEntity subscription);
 
-    ApiKeyEntity renew(String subscription);
-
-    ApiKeyEntity renew(String subscription, String customApiKey);
+    ApiKeyEntity renew(SubscriptionEntity subscription, String customApiKey);
 
     void revoke(String keyId, boolean notify);
 
     void revoke(ApiKeyEntity apiKeyEntity, boolean notify);
 
-    void revoke(String apiKey, String apiId, boolean notify);
-
     ApiKeyEntity reactivate(ApiKeyEntity apiKeyEntity);
-
-    ApiKeyEntity reactivate(String apiKey, String apiId);
 
     List<ApiKeyEntity> findBySubscription(String subscription);
 
@@ -52,13 +47,15 @@ public interface ApiKeyService {
 
     ApiKeyEntity findByKeyAndApi(String apiKey, String apiId);
 
+    List<ApiKeyEntity> findByApplication(String applicationId);
+
     void delete(String apiKey);
 
     ApiKeyEntity update(ApiKeyEntity apiKeyEntity);
 
     ApiKeyEntity updateDaysToExpirationOnLastNotification(ApiKeyEntity apiKeyEntity, Integer value);
 
-    ApiKeyEntity updateDaysToExpirationOnLastNotification(String apiKey, String apiId, Integer value);
+    boolean canCreate(String apiKey, SubscriptionEntity subscription);
 
     boolean canCreate(String apiKey, String apiId, String applicationId);
 

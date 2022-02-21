@@ -18,8 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
@@ -27,6 +26,8 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.model.Key;
+import java.util.Date;
+import java.util.List;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -55,11 +56,15 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
     public void init() {
         resetAllMocks();
 
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION);
+
         apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setKey(KEY);
-        apiKeyEntity.setSubscription(SUBSCRIPTION);
+        apiKeyEntity.setSubscriptions(List.of(subscription));
+        apiKeyEntity.setCreatedAt(new Date());
 
-        doReturn(apiKeyEntity).when(apiKeyService).renew(SUBSCRIPTION);
+        doReturn(apiKeyEntity).when(apiKeyService).renew(subscription);
         doReturn(apiKeyEntity).when(apiKeyService).findByKeyAndApi(KEY, API);
 
         doReturn(new Key().key(KEY)).when(keyMapper).convert(apiKeyEntity);
@@ -73,11 +78,14 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldRenewSubscription() {
+        when(apiKeyService.renew(any())).thenReturn(apiKeyEntity);
+        when(keyMapper.convert(any(ApiKeyEntity.class))).thenCallRealMethod();
+
         final Response response = target(SUBSCRIPTION).path("keys/_renew").request().post(null);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        Mockito.verify(apiKeyService).renew(SUBSCRIPTION);
+        Mockito.verify(apiKeyService).renew(any());
 
         Key key = response.readEntity(Key.class);
         assertNotNull(key);
@@ -125,9 +133,14 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldRevokeKeyNoSubscription() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setApi(API);
+        subscription.setId(SUBSCRIPTION);
         apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setKey(KEY);
+        apiKeyEntity.setSubscriptions(List.of(subscription));
 
+        doReturn(subscription).when(subscriptionService).findById(SUBSCRIPTION);
         doReturn(apiKeyEntity).when(apiKeyService).findByKeyAndApi(KEY, API);
 
         final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
@@ -140,9 +153,12 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotRevokeKey() {
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(ANOTHER_SUBSCRIPTION);
+
         apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setKey(KEY);
-        apiKeyEntity.setSubscription(ANOTHER_SUBSCRIPTION);
+        apiKeyEntity.setSubscriptions(List.of(subscriptionEntity));
 
         doReturn(apiKeyEntity).when(apiKeyService).findByKeyAndApi(KEY, API);
 

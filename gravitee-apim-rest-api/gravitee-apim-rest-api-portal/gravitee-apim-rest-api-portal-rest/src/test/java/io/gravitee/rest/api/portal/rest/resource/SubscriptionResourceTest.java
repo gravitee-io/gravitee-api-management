@@ -68,7 +68,7 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
         doReturn(Arrays.asList(new ApiKeyEntity())).when(apiKeyService).findBySubscription(SUBSCRIPTION);
 
         doReturn(new Subscription()).when(subscriptionMapper).convert(any());
-        doReturn(new Key()).when(keyMapper).convert(any());
+        doReturn(new Key()).when(keyMapper).convert(any(ApiKeyEntity.class));
         doReturn(true).when(permissionService).hasPermission(any(), any(), any());
     }
 

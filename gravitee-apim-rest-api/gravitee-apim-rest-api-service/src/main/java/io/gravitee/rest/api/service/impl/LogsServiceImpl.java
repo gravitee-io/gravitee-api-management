@@ -379,7 +379,14 @@ public class LogsServiceImpl implements LogsService {
             try {
                 ApiKeyEntity key = apiKeyService.findByKeyAndApi(log.getSecurityToken(), log.getApi());
                 if (key != null) {
-                    return key.getSubscription();
+                    // TODO
+                    return key
+                        .getSubscriptions()
+                        .stream()
+                        .filter(s -> s.getApi().equals(log.getApi()))
+                        .findFirst()
+                        .map(SubscriptionEntity::getId)
+                        .orElseThrow(() -> new ApiKeyNotFoundException());
                 }
             } catch (ApiKeyNotFoundException e) {
                 // wrong apikey

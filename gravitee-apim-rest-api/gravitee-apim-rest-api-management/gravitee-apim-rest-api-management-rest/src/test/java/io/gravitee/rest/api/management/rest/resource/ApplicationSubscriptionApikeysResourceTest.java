@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import java.util.List;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -63,7 +64,11 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
     public void post_on_renew_should_return_renew_apikeys_and_return_http_201_with_location_header() {
         ApiKeyEntity renewedApiKey = new ApiKeyEntity();
         renewedApiKey.setId("test-id");
-        when(apiKeyService.renew(SUBSCRIPTION_ID)).thenReturn(renewedApiKey);
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+        when(apiKeyService.renew(subscription)).thenReturn(renewedApiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
