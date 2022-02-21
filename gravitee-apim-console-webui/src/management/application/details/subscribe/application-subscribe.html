@@ -56,15 +56,15 @@
           <div layout="row" layout-wrap class="inset" ng-if="$ctrl.subscribedAPIs.length > 0">
             <md-table-container style="width: 100%; min-height: 100px; text-align: center">
               <table md-table>
-                <thead md-head md-order="query.order">
+                <thead md-head md-order="order" ng-init="order = 'name'">
                   <tr md-row>
-                    <th md-column width="1%" md-order-by="name"><span>Name</span></th>
+                    <th md-column width="1%" md-order-by="name" selected><span>Name</span></th>
                     <th md-column width="1%">Plans</th>
                     <th md-column width="1%"></th>
                   </tr>
                 </thead>
                 <tbody md-body>
-                  <tr md-row ng-repeat="api in $ctrl.subscribedAPIs track by api.id">
+                  <tr md-row ng-repeat="api in $ctrl.subscribedAPIs | orderBy: order track by api.id">
                     <td md-cell nowrap>
                       <gravitee-identity-picture
                         image-id="api.id"
