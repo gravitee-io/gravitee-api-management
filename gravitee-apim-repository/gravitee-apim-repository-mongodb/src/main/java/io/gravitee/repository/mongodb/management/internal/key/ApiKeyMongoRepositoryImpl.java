@@ -15,16 +15,18 @@
  */
 package io.gravitee.repository.mongodb.management.internal.key;
 
-import io.gravitee.common.data.domain.Page;
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Filters.*;
+
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.model.Sorts;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,38 +39,86 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
 
     @Override
     public List<ApiKeyMongo> search(ApiKeyCriteria filter) {
-        Query query = new Query();
+        List<Bson> pipeline = new ArrayList<>();
 
         if (!filter.isIncludeRevoked()) {
-            query.addCriteria(Criteria.where("revoked").is(false));
-        }
-
-        if (filter.getPlans() != null) {
-            query.addCriteria(Criteria.where("plan").in(filter.getPlans()));
+            pipeline.add(match(eq("revoked", false)));
         }
 
         // set range query
         if (filter.getFrom() != 0 && filter.getTo() != 0) {
-            query.addCriteria(Criteria.where("updatedAt").gte(new Date(filter.getFrom())).lt(new Date(filter.getTo())));
+            pipeline.add(match(and(gte("updatedAt", new Date(filter.getFrom())), lte("updatedAt", new Date(filter.getTo())))));
         }
 
-        if (filter.getExpireAfter() > 0 || filter.getExpireBefore() > 0) {
-            // Need to mutualize the instantiation of this filter otherwise mongo driver is throwing an error, when
-            // using multiple `Criteria.where("expireAt").xxx` with the same query
-            Criteria expireAtCriteria = Criteria.where("expireAt");
-
-            if (filter.getExpireAfter() > 0) {
-                expireAtCriteria = expireAtCriteria.gte(new Date(filter.getExpireAfter()));
-            }
-            if (filter.getExpireBefore() > 0) {
-                expireAtCriteria = expireAtCriteria.lte(new Date(filter.getExpireBefore()));
-            }
-
-            query.addCriteria(expireAtCriteria);
+        if (filter.getExpireAfter() > 0 && filter.getExpireBefore() > 0) {
+            pipeline.add(
+                match(and(gte("expireAt", new Date(filter.getExpireAfter())), lte("expireAt", new Date(filter.getExpireBefore()))))
+            );
+        } else if (filter.getExpireAfter() > 0) {
+            pipeline.add(match(gte("expireAt", new Date(filter.getExpireAfter()))));
+        } else if (filter.getExpireBefore() > 0) {
+            pipeline.add(match(lte("expireAt", new Date(filter.getExpireBefore()))));
         }
 
-        query.with(Sort.by(Sort.Direction.DESC, "updatedAt"));
+        if (filter.getPlans() != null) {
+            pipeline.add(lookup("subscriptions", "subscriptions", "_id", "sub"));
+            pipeline.add(unwind("$sub"));
+            pipeline.add(match(in("sub.plan", filter.getPlans())));
+        }
 
-        return mongoTemplate.find(query, ApiKeyMongo.class);
+        pipeline.add(sort(Sorts.descending("updatedAt")));
+
+        AggregateIterable<Document> aggregate = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
+            .aggregate(pipeline);
+
+        return getListFromAggregate(aggregate);
+    }
+
+    @Override
+    public List<ApiKeyMongo> findByKeyAndApi(String key, String api) {
+        List<Bson> pipeline = List.of(
+            match(eq("key", key)),
+            lookup("subscriptions", "subscriptions", "_id", "sub"),
+            unwind("$sub"),
+            match(eq("sub.api", api))
+        );
+
+        AggregateIterable<Document> aggregate = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
+            .aggregate(pipeline);
+
+        return getListFromAggregate(aggregate);
+    }
+
+    @Override
+    public List<ApiKeyMongo> findByPlan(String plan) {
+        List<Bson> pipeline = new ArrayList<>();
+        pipeline.add(lookup("subscriptions", "subscriptions", "_id", "sub"));
+        pipeline.add(unwind("$sub"));
+        pipeline.add(match(eq("sub.plan", plan)));
+
+        AggregateIterable<Document> aggregate = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
+            .aggregate(pipeline);
+
+        return getListFromAggregate(aggregate);
+    }
+
+    private List<ApiKeyMongo> getListFromAggregate(AggregateIterable<Document> aggregate) {
+        ArrayList<ApiKeyMongo> apiKeys = new ArrayList<>();
+        for (Document doc : aggregate) {
+            ApiKeyMongo apiKeyMongo = new ApiKeyMongo();
+            apiKeyMongo.setId(doc.getString("_id"));
+            apiKeyMongo.setKey(doc.getString("key"));
+            apiKeyMongo.setSubscriptions(new HashSet<>(doc.getList("subscriptions", String.class, List.of())));
+            apiKeyMongo.setApplication(doc.getString("application"));
+            apiKeyMongo.setCreatedAt(doc.getDate("createdAt"));
+            apiKeyMongo.setUpdatedAt(doc.getDate("updatedAt"));
+            apiKeyMongo.setRevoked(doc.getBoolean("revoked"));
+            apiKeyMongo.setPaused(doc.getBoolean("paused"));
+            apiKeys.add(apiKeyMongo);
+        }
+        return apiKeys;
     }
 }

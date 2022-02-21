@@ -21,6 +21,7 @@ import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria.Builder;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.*;
@@ -40,7 +41,6 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
 
         ApiKey apiKey = new ApiKey();
         apiKey.setId(id);
-        apiKey.setApi("api1");
         apiKey.setKey("apiKey");
         apiKey.setCreatedAt(new Date());
         apiKey.setRevoked(true);
@@ -58,7 +58,6 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         assertNotNull("ApiKey not found", keyFound);
 
         assertEquals("Key value saved doesn't match", apiKey.getKey(), keyFound.getKey());
-        assertEquals("Key api saved doesn't match", apiKey.getApi(), keyFound.getApi());
         assertTrue("Key expiration doesn't match", compareDate(apiKey.getExpireAt(), keyFound.getExpireAt()));
         assertEquals("Key paused status doesn't match", apiKey.isPaused(), keyFound.isPaused());
         assertEquals("Key revoked status doesn't match", apiKey.isRevoked(), keyFound.isRevoked());
@@ -77,7 +76,9 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
 
         ApiKey keyFound = optional.get();
         assertNotNull("ApiKey not found", keyFound);
-        assertNotNull("No subscription relative to the key", keyFound.getSubscription());
+
+        assertNotNull("No subscriptions relative to the key", keyFound.getSubscriptions());
+        assertEquals("Subscriptions count does not match", 1, keyFound.getSubscriptions().size());
         assertTrue("Key paused status doesn't match", keyFound.isPaused());
         assertTrue("Key revoked status doesn't match", keyFound.isRevoked());
         assertEquals(
@@ -85,6 +86,12 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
             Integer.valueOf(30),
             keyFound.getDaysToExpirationOnLastNotification()
         );
+
+        /*
+         * 3.17 backward compatibility checks
+         */
+        assertNotNull(keyFound.getSubscription());
+        assertNotNull(keyFound.getApi());
     }
 
     @Test
@@ -224,5 +231,20 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         assertEquals("found 2 apikeys", 2, apiKeys.size());
         assertEquals("findByCriteria2", apiKeys.get(0).getKey());
         assertEquals("findByCriteria1", apiKeys.get(1).getKey());
+    }
+
+    @Test
+    public void findByKeyAndApi_should_return_fulfilled_optional() throws TechnicalException {
+        Optional<ApiKey> apiKeyOpt = apiKeyRepository.findByKeyAndApi("findByCriteria2", "api2");
+        assertFalse(apiKeyOpt.isEmpty());
+        ApiKey apiKey6 = apiKeyOpt.get();
+        assertEquals("id-of-apikey-6", apiKey6.getId());
+        assertEquals(List.of("sub2"), apiKey6.getSubscriptions());
+    }
+
+    @Test
+    public void findByKeyAndApi_should_return_empty_optional() throws TechnicalException {
+        Optional<ApiKey> apiKeyOpt = apiKeyRepository.findByKeyAndApi("uknown-key", "unknown-id");
+        assertTrue(apiKeyOpt.isEmpty());
     }
 }
