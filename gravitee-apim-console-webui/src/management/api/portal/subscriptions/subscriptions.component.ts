@@ -25,6 +25,7 @@ import PortalConfigService from '../../../../services/portalConfig.service';
 import ApplicationService from '../../../../services/application.service';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
 import { ApiKeyMode } from '../../../../entities/application/application';
+import { Constants } from '../../../../entities/Constants';
 
 const defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
 
@@ -60,13 +61,12 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     };
 
     private subscriptionsFiltersForm: any;
-    private portalSettings: any;
 
     constructor(
       private ApiService: ApiService,
       private ApplicationService: ApplicationService,
       private NotificationService: NotificationService,
-      private PortalConfigService: PortalConfigService,
+      private Constants: Constants,
       private $mdDialog: angular.material.IDialogService,
       private $state: StateService,
       public $rootScope: IScope,
@@ -103,9 +103,6 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     $onInit() {
       this.getSubscriptionAnalytics();
-      this.PortalConfigService.get().then((response) => {
-        this.portalSettings = response.data;
-      });
     }
 
     onPaginate(page) {
@@ -306,7 +303,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     }
 
     get allowsSharedApiKeys(): boolean {
-      return this.portalSettings?.plan?.security?.sharedApiKey?.enabled;
+      return this.Constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
     }
   },
 };
