@@ -38,7 +38,7 @@
         <mariaDB.version>2.5.3</mariaDB.version>
         <mssql-jdbc.version>9.4.1.jre8</mssql-jdbc.version>
         <mysql-connector-java.version>8.0.17</mysql-connector-java.version>
-        <postgresql.version>42.3.2</postgresql.version>
+        <postgresql.version>42.3.3</postgresql.version>
         <postgresql-embedded.version>2.10</postgresql-embedded.version>
         <testcontainers.version>1.16.2</testcontainers.version>
         <wix-embedded-mysql.version>4.6.1</wix-embedded-mysql.version>
