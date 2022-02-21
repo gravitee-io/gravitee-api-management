@@ -76,9 +76,7 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     @Override
     public void handle(ExecutionContext context) {
         // Wrap the actual request to contextualize it
-        ((MutableExecutionContext) context).request(
-                new ContextualizedHttpServerRequest(((Entrypoint) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request())
-            );
+        contextualizeRequest(context);
 
         try {
             doHandle(executionContextFactory.create(context));
@@ -93,6 +91,12 @@ public abstract class AbstractReactorHandler<T extends Reactable>
 
             handler.handle(context);
         }
+    }
+
+    protected void contextualizeRequest(ExecutionContext context) {
+        ((MutableExecutionContext) context).request(
+                new ContextualizedHttpServerRequest(((Entrypoint) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request())
+            );
     }
 
     protected void dumpVirtualHosts() {

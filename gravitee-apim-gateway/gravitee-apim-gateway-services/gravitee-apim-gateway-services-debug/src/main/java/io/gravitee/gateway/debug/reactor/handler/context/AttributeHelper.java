@@ -17,7 +17,6 @@ package io.gravitee.gateway.debug.reactor.handler.context;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public abstract class AttributeHelper {
@@ -27,16 +26,10 @@ public abstract class AttributeHelper {
             return null;
         }
 
-        // FIXME: context-path is removed for now as it is updated with the event id in the debug mode context
-        // we need to rework that before making it accessible to the user
-        // https://github.com/gravitee-io/issues/issues/7072
-        List<String> attributesToExclude = List.of("gravitee.attribute.context-path");
-
         Map<String, Serializable> filteredAttributes = new HashMap<>();
         attributes
             .keySet()
             .stream()
-            .filter(key -> !attributesToExclude.contains(key))
             .filter(key -> attributes.get(key) != null)
             .filter(key -> attributes.get(key) instanceof Serializable)
             .forEach(

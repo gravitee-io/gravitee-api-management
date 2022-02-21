@@ -17,6 +17,7 @@ package io.gravitee.gateway.debug.definition;
 
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
+import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
@@ -38,7 +39,9 @@ public class DebugApi extends Api implements Reactable, Serializable {
         // Instead of doing it here, we could implement a custom DebugHandlerEntrypointFactory which allows to override
         // path(), create a new virtual host with this new path to accept an overriden request targeting this path.
         if (getProxy() != null && getProxy().getVirtualHosts() != null) {
-            getProxy().getVirtualHosts().forEach(virtualHost -> virtualHost.setPath(computeNewPath(virtualHost.getPath())));
+            getProxy()
+                .getVirtualHosts()
+                .forEach(virtualHost -> virtualHost.setPath(PathTransformer.computePathWithEventId(eventId, virtualHost.getPath())));
         }
     }
 
@@ -69,10 +72,5 @@ public class DebugApi extends Api implements Reactable, Serializable {
 
     public String getEventId() {
         return eventId;
-    }
-
-    private String computeNewPath(String path) {
-        final String strippedPath = path.startsWith("/") ? path.substring(1) : path;
-        return "/" + eventId + "-" + strippedPath;
     }
 }
