@@ -195,6 +195,10 @@ public class ApplicationEntity {
         return apiKeyMode;
     }
 
+    public boolean hasApiKeySharedMode() {
+        return apiKeyMode == ApiKeyMode.SHARED;
+    }
+
     public void setApiKeyMode(ApiKeyMode apiKeyMode) {
         this.apiKeyMode = apiKeyMode;
     }

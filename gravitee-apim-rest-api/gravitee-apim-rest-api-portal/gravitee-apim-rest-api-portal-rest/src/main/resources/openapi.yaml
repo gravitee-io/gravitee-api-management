@@ -4901,12 +4901,12 @@ components:
           type: string
         key:
           type: string
-        api:
-          type: string
         application:
-          type: string
-        plan:
-          type: string
+          $ref: '#/components/schemas/Application'
+        subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
         paused:
           type: boolean
         revoked:

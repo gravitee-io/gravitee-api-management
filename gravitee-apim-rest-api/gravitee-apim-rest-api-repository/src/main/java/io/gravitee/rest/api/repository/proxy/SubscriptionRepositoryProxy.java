@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -68,5 +69,10 @@ public class SubscriptionRepositoryProxy extends AbstractProxy<SubscriptionRepos
     @Override
     public Set<Subscription> findAll() throws TechnicalException {
         return target.findAll();
+    }
+
+    @Override
+    public List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException {
+        return target.findByIdIn(ids);
     }
 }

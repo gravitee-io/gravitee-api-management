@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -79,4 +80,6 @@ public interface SubscriptionService {
     String exportAsCsv(Collection<SubscriptionEntity> subscriptions, Map<String, Map<String, Object>> metadata);
 
     Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionQuery subscriptionQuery, Order order);
+
+    Set<SubscriptionEntity> findByIdIn(Collection<String> subscriptions);
 }

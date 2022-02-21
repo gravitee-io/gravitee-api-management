@@ -16,7 +16,9 @@
 package io.gravitee.repository.management.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -44,24 +46,32 @@ public class ApiKey implements Serializable {
     private String key;
 
     /**
+     * The subscriptions for which the Api Key is generated
+     */
+    private List<String> subscriptions = new ArrayList<>();
+
+    /**
      * The subscription for which the Api Key is generated
+     *
      */
     private String subscription;
 
     /**
-     * The application used to make the subscription
-     */
-    private String application;
-
-    /**
      * The subscribed plan
+     *
      */
     private String plan;
 
     /**
      * The api on which this api key is used
+     *
      */
     private String api;
+
+    /**
+     * The application used to make the subscription
+     */
+    private String application;
 
     /**
      * Expiration date (end date) of the Api Key
@@ -103,7 +113,7 @@ public class ApiKey implements Serializable {
     public ApiKey(ApiKey cloned) {
         this.id = cloned.id;
         this.key = cloned.key;
-        this.subscription = cloned.subscription;
+        this.subscriptions = cloned.subscriptions;
         this.application = cloned.application;
         this.plan = cloned.plan;
         this.expireAt = cloned.expireAt;
@@ -140,14 +150,6 @@ public class ApiKey implements Serializable {
         this.application = application;
     }
 
-    public String getPlan() {
-        return plan;
-    }
-
-    public void setPlan(String plan) {
-        this.plan = plan;
-    }
-
     public Date getExpireAt() {
         return expireAt;
     }
@@ -180,12 +182,12 @@ public class ApiKey implements Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public String getSubscription() {
-        return subscription;
+    public List<String> getSubscriptions() {
+        return subscriptions;
     }
 
-    public void setSubscription(String subscription) {
-        this.subscription = subscription;
+    public void setSubscriptions(List<String> subscriptions) {
+        this.subscriptions = subscriptions;
     }
 
     public boolean isPaused() {
@@ -212,10 +214,44 @@ public class ApiKey implements Serializable {
         this.id = id;
     }
 
+    /**
+     * @deprecated
+     * Starting from 3.17 this field is kept for backward compatibility only and subscriptions should be used instead
+     */
+    @Deprecated(since = "3.17.0", forRemoval = true)
+    public String getSubscription() {
+        return subscription;
+    }
+
+    @Deprecated(since = "3.17.0", forRemoval = true)
+    public void setSubscription(String subscription) {
+        this.subscription = subscription;
+    }
+
+    /**
+     * @deprecated
+     * Starting from 3.17 this field is kept for backward compatibility and plans should be accessed through subscriptions instead
+     */
+    @Deprecated(since = "3.17.0", forRemoval = true)
+    public String getPlan() {
+        return plan;
+    }
+
+    @Deprecated(since = "3.17.0", forRemoval = true)
+    public void setPlan(String plan) {
+        this.plan = plan;
+    }
+
+    /**
+     * @deprecated
+     * Starting from 3.17 this field is kept for backward compatibility and apis should be accessed through subscriptions instead
+     */
+    @Deprecated(since = "3.17.0", forRemoval = true)
     public String getApi() {
         return api;
     }
 
+    @Deprecated(since = "3.17.0", forRemoval = true)
     public void setApi(String api) {
         this.api = api;
     }
