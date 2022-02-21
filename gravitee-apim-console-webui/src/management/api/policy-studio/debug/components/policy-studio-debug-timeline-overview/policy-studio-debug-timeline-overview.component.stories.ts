@@ -17,6 +17,7 @@ import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDebugTimelineOverviewComponent } from './policy-studio-debug-timeline-overview.component';
 
@@ -24,14 +25,13 @@ import {
   PolicyStudioDebugTimelineCardComponent,
   TimelineStep,
 } from '../policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
-
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Timeline Overview',
   component: PolicyStudioDebugTimelineOverviewComponent,
   decorators: [
     moduleMetadata({
       declarations: [PolicyStudioDebugTimelineCardComponent],
-      imports: [CommonModule, BrowserAnimationsModule],
+      imports: [CommonModule, BrowserAnimationsModule, GioIconsModule],
     }),
   ],
   argTypes: {
@@ -47,7 +47,7 @@ export default {
   render: ({ timelineSteps }) => ({
     props: { timelineSteps },
     template: `
-    <policy-studio-debug-timeline-overview>
+    <policy-studio-debug-timeline-overview [timelineSteps]="timelineSteps">
     </policy-studio-debug-timeline-overview>
     `,
   }),
@@ -89,6 +89,9 @@ export const ClientApp: Story = {
       },
       {
         mode: 'RESPONSE_OUTPUT',
+      },
+      {
+        mode: 'CLIENT_APP',
       },
     ] as TimelineStep[],
   },

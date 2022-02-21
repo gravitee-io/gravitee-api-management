@@ -5,4 +5,39 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .policy-studio-debug-timeline-overview {
+  background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+  border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+  height: 40px;
+  display: flex;
+  align-items: center;
+
+  &__left-client-app,
+  &__right-client-app,
+  &__center-target-backend {
+    color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'darker');
+    flex: 0 0 24px;
+    margin: 0 8px;
+  }
+
+  &__step {
+    flex: 1 1 auto;
+
+    &__line {
+      height: 4px;
+      background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+
+      &.color-green {
+        background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+      }
+
+      &.color-blue {
+        background-color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+      }
+    }
+
+    // Add margin between step
+    & + & {
+      margin-left: 2px;
+    }
+  }
 }
