@@ -16,4 +16,44 @@
 
 -->
 
-<div class="policy-studio-debug-timeline-overview">policy-studio-debug-timeline-overview</div>
+<div class="policy-studio-debug-timeline-overview">
+  <div class="policy-studio-debug-timeline-overview__left-client-app">
+    <mat-icon class="gio-left" svgIcon="gio:smartphone-device"></mat-icon>
+  </div>
+
+  <ng-container *ngFor="let timelineStep of timelineSteps">
+    <ng-container [ngSwitch]="timelineStep.mode">
+      <div *ngSwitchCase="'CLIENT_APP'" class="policy-studio-debug-timeline-overview__step">
+        <div class="policy-studio-debug-timeline-overview__step__line color-green"></div>
+      </div>
+
+      <div *ngSwitchCase="'REQUEST_INPUT'" class="policy-studio-debug-timeline-overview__step">
+        <div class="policy-studio-debug-timeline-overview__step__line color-blue"></div>
+      </div>
+
+      <div *ngSwitchCase="'REQUEST_OUTPUT'" class="policy-studio-debug-timeline-overview__step">
+        <div class="policy-studio-debug-timeline-overview__step__line color-blue"></div>
+      </div>
+
+      <div *ngSwitchCase="'RESPONSE_INPUT'" class="policy-studio-debug-timeline-overview__step">
+        <div class="policy-studio-debug-timeline-overview__step__line color-blue"></div>
+      </div>
+
+      <div *ngSwitchCase="'RESPONSE_OUTPUT'" class="policy-studio-debug-timeline-overview__step">
+        <div class="policy-studio-debug-timeline-overview__step__line color-blue"></div>
+      </div>
+
+      <div *ngSwitchCase="'BACKEND_TARGET'" class="policy-studio-debug-timeline-overview__center-target-backend">
+        <mat-icon class="gio-left" svgIcon="gio:server"></mat-icon>
+      </div>
+
+      <div *ngSwitchDefault class="policy-studio-debug-timeline-overview__step">
+        <div class="policy-studio-debug-timeline-overview__step__line"></div>
+      </div>
+    </ng-container>
+  </ng-container>
+
+  <div class="policy-studio-debug-timeline-overview__right-client-app">
+    <mat-icon class="gio-left" svgIcon="gio:smartphone-device"></mat-icon>
+  </div>
+</div>

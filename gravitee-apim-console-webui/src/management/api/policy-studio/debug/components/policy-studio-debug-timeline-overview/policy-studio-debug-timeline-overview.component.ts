@@ -16,9 +16,14 @@
 
 import { Component, Input } from '@angular/core';
 
+import { TimelineStep } from '../policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
+
 @Component({
   selector: 'policy-studio-debug-timeline-overview',
   template: require('./policy-studio-debug-timeline-overview.component.html'),
   styles: [require('./policy-studio-debug-timeline-overview.component.scss')],
 })
-export class PolicyStudioDebugTimelineOverviewComponent {}
+export class PolicyStudioDebugTimelineOverviewComponent {
+  @Input()
+  public timelineSteps?: TimelineStep[];
+}
