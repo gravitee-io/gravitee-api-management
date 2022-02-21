@@ -14,17 +14,32 @@
  * limitations under the License.
  */
 
-import { Component, Input } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'policy-studio-debug-timeline',
   template: require('./policy-studio-debug-timeline.component.html'),
   styles: [require('./policy-studio-debug-timeline.component.scss')],
 })
-export class PolicyStudioDebugTimelineComponent {
+export class PolicyStudioDebugTimelineComponent implements AfterViewInit, OnDestroy {
   @Input()
   nbPoliciesRequest: number;
 
   @Input()
   nbPoliciesResponse: number;
+
+  @ViewChild('horizontalScroll', { static: false }) horizontalScroll: ElementRef<HTMLDivElement>;
+
+  private scrollHorizontally = (evt: WheelEvent) => {
+    evt.preventDefault();
+    this.horizontalScroll.nativeElement.scrollLeft += evt.deltaY + evt.deltaX;
+  };
+
+  ngAfterViewInit() {
+    this.horizontalScroll.nativeElement.addEventListener('wheel', this.scrollHorizontally);
+  }
+
+  ngOnDestroy() {
+    this.horizontalScroll.nativeElement.removeEventListener('wheel', this.scrollHorizontally);
+  }
 }
