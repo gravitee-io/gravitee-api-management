@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
+import io.gravitee.rest.api.service.converter.ApplicationConverter;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
@@ -96,6 +97,9 @@ public class ApplicationService_UpdateTest {
     @Mock
     private ClientRegistrationService clientRegistrationService;
 
+    @Mock
+    private ApplicationConverter applicationConverter;
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
@@ -125,6 +129,7 @@ public class ApplicationService_UpdateTest {
         po.setReferenceType(MembershipReferenceType.APPLICATION);
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         final ApplicationEntity applicationEntity = applicationService.update(
             GraviteeContext.getCurrentOrganization(),
@@ -162,6 +167,7 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
         when(updateApplication.getDescription()).thenReturn("My description");
@@ -196,6 +202,7 @@ public class ApplicationService_UpdateTest {
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
         when(updateApplication.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(existingApplication);
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
