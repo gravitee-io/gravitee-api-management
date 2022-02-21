@@ -54,3 +54,4 @@ export function setupAngularJsTesting() {
     });
   });
 }
+window.HTMLElement.prototype.scrollIntoView = jest.fn();

@@ -91,6 +91,13 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
     }
   }
 
+  onSelectTimelineStepOverview(timelineStep: TimelineStep) {
+    const elementList = document.getElementById('card_' + timelineStep.id);
+    elementList.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+
+    this.onSelectTimelineStep(timelineStep);
+  }
+
   private toTimelineSteps(debugResponse: DebugResponse) {
     const timelineSteps: TimelineStep[] = [
       {

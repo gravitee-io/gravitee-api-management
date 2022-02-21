@@ -80,6 +80,7 @@
     >
       <policy-studio-debug-timeline-card
         *ngFor="let timelineStep of responseDisplayableVM.timelineSteps"
+        [id]="'card_' + timelineStep.id"
         [timelineStep]="timelineStep"
         (click)="onSelectTimelineStep(timelineStep)"
       ></policy-studio-debug-timeline-card>
@@ -88,7 +89,7 @@
   <div>
     <policy-studio-debug-timeline-overview
       [timelineSteps]="responseDisplayableVM.timelineSteps"
-      (selected)="onSelectTimelineStep($event)"
+      (selected)="onSelectTimelineStepOverview($event)"
     ></policy-studio-debug-timeline-overview>
   </div>
   <div>
