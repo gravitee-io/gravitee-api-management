@@ -18,15 +18,14 @@ import * as _ from 'lodash';
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
-import PortalConfigService from '../../../../services/portalConfig.service';
 import { ApiKeyMode } from '../../../../entities/application/application';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
+import { Constants } from '../../../../entities/Constants';
 
 class ApplicationSubscribeController {
   private subscriptions: any;
   private application: any;
   private selectedAPI: any;
-  private portalSettings: any;
 
   private readonly groups = [];
   private readonly subscribedAPIs = [];
@@ -37,9 +36,9 @@ class ApplicationSubscribeController {
 
   constructor(
     private ApiService: ApiService,
+    private Constants: Constants,
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
-    private PortalConfigService: PortalConfigService,
     private $mdDialog,
     private $state,
     private $transitions,
@@ -59,9 +58,6 @@ class ApplicationSubscribeController {
         }),
       );
     });
-
-    const { data: portalSettings } = await this.PortalConfigService.get();
-    this.portalSettings = portalSettings;
 
     this.subscribedPlans = _.map(this.subscriptions.data, 'plan');
   }
@@ -179,7 +175,7 @@ class ApplicationSubscribeController {
   }
 
   get allowsSharedApiKeys(): boolean {
-    return this.portalSettings?.plan?.security?.sharedApiKey?.enabled;
+    return this.Constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
   }
 }
 

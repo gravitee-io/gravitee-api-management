@@ -19,7 +19,6 @@ import { ApplicationType } from '../../../../entities/application';
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
-import PortalConfigService from '../../../../services/portalConfig.service';
 import '@gravitee/ui-components/wc/gv-icon';
 import { PlanSecurityType } from '../../../..//entities/plan/plan';
 
@@ -34,7 +33,6 @@ class ApplicationCreationController {
   private applicationType: string;
   private apis: any[] = [];
   private groups: any[];
-  private portalSettings: any;
 
   constructor(
     private Constants,
@@ -42,7 +40,6 @@ class ApplicationCreationController {
     private $mdDialog,
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
-    private PortalConfigService: PortalConfigService,
     private $q,
     private ApiService: ApiService,
   ) {
@@ -74,9 +71,6 @@ class ApplicationCreationController {
 
   $onInit() {
     this.ApiService.list().then((response) => (this.apis = response.data));
-    this.PortalConfigService.get().then((response) => {
-      this.portalSettings = response.data;
-    });
   }
 
   next() {
@@ -208,7 +202,7 @@ class ApplicationCreationController {
   }
 
   get allowsSharedApiKeys(): boolean {
-    return this.portalSettings?.plan?.security?.sharedApiKey?.enabled;
+    return this.Constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
   }
 }
 
