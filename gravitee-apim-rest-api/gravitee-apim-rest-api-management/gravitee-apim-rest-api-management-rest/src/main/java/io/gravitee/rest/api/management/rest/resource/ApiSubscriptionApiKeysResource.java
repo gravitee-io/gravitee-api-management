@@ -19,12 +19,14 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.annotations.*;
 import java.net.URI;
@@ -50,6 +52,9 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
 
     @Inject
     private ParameterService parameterService;
+
+    @Inject
+    private SubscriptionService subscriptionService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
@@ -105,7 +110,9 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
         }
 
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription, customApiKey);
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+
+        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscriptionEntity, customApiKey);
 
         URI location = URI.create(uriInfo.getPath().replace("_renew", apiKeyEntity.getId()));
         return Response.created(location).entity(apiKeyEntity).build();

@@ -21,6 +21,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -69,7 +70,8 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response reactivateApiKeyForApiSubscription() {
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(apikey);
-        if (apiKeyEntity.getSubscription() != null && !subscription.equals(apiKeyEntity.getSubscription())) {
+
+        if (!apiKeyEntity.hasSubscription(subscription)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("api key in path does not correspond to the subscription").build();
         }
 
@@ -83,7 +85,8 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApiSubscription() {
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(apikey);
-        if (apiKeyEntity.getSubscription() != null && !subscription.equals(apiKeyEntity.getSubscription())) {
+
+        if (!apiKeyEntity.hasSubscription(subscription)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("api key in path does not correspond to the subscription").build();
         }
 

@@ -18,9 +18,14 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static org.junit.Assert.*;
 
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 
 /**
@@ -29,10 +34,8 @@ import org.junit.Test;
  */
 public class KeyMapperTest {
 
-    private static final String API = "my-api";
-    private static final String APPLICATION = "my-application";
-    private static final String PLAN = "my-plan";
-    private static final String SUBSCRIPTION = "my-subscription";
+    private static final String APPLICATION_ID = "my-application";
+    private static final String SUBSCRIPTION_ID = "my-subscription";
     private static final String KEY = "my-key";
     private static final String ID = "my-ID";
 
@@ -44,29 +47,31 @@ public class KeyMapperTest {
     @Test
     public void should_convert() {
         ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
-        apiKeyEntity.setApplication(APPLICATION);
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(APPLICATION_ID);
+        application.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        application.setId(APPLICATION_ID);
+        apiKeyEntity.setApplication(application);
         apiKeyEntity.setCreatedAt(nowDate);
         apiKeyEntity.setExpireAt(nowDate);
         apiKeyEntity.setKey(KEY);
         apiKeyEntity.setPaused(false);
-        apiKeyEntity.setPlan(PLAN);
         apiKeyEntity.setRevoked(false);
         apiKeyEntity.setRevokedAt(nowDate);
-        apiKeyEntity.setSubscription(SUBSCRIPTION);
+        apiKeyEntity.setSubscriptions(Set.of(subscription));
         apiKeyEntity.setUpdatedAt(nowDate);
-        apiKeyEntity.setApi(API);
         apiKeyEntity.setId(ID);
 
         Key key = keyMapper.convert(apiKeyEntity);
 
         assertNotNull(key);
-        assertEquals(API, key.getApi());
-        assertEquals(APPLICATION, key.getApplication());
+        assertEquals(APPLICATION_ID, key.getApplication().getId());
         assertEquals(now.toEpochMilli(), key.getCreatedAt().toInstant().toEpochMilli());
         assertEquals(KEY, key.getKey());
         assertEquals(ID, key.getId());
         assertEquals(Boolean.FALSE, key.getPaused());
-        assertEquals(PLAN, key.getPlan());
         assertEquals(Boolean.FALSE, key.getRevoked());
         assertNull(key.getRevokedAt());
     }

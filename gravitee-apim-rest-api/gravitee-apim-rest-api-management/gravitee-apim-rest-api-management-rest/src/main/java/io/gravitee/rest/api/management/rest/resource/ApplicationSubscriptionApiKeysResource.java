@@ -19,9 +19,11 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.swagger.annotations.*;
 import java.net.URI;
 import java.util.List;
@@ -42,6 +44,9 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractResource {
 
     @Inject
     private ApiKeyService apiKeyService;
+
+    @Inject
+    private SubscriptionService subscriptionService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
@@ -84,8 +89,8 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response renewApiKeyForApplicationSubscription() {
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription);
-
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscriptionEntity);
         URI location = URI.create(uriInfo.getPath().replace("_renew", apiKeyEntity.getId()));
         return Response.created(location).entity(apiKeyEntity).build();
     }
