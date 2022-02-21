@@ -11,3 +11,36 @@ databaseChangeLog:
                   type: nvarchar(16)
                   constraints:
                     nullable: true
+        - createTable:
+            tableName: ${gravitee_prefix}key_subscriptions
+            columns:
+              - column: { name: key_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: subscription_id, type: nvarchar(64), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}key_subscriptions
+            columnNames: key_id, subscription_id
+            tableName: ${gravitee_prefix}key_subscriptions
+        - addForeignKeyConstraint:
+            baseColumnNames: key_id
+            baseTableName: ${gravitee_prefix}key_subscriptions
+            constraintName: fk_key_subscriptions_key
+            referencedColumnNames: id
+            referencedTableName: ${gravitee_prefix}keys
+        - addForeignKeyConstraint:
+            baseColumnNames: subscription_id
+            baseTableName: ${gravitee_prefix}key_subscriptions
+            constraintName: fk_subscription_key_subscriptions
+            referencedColumnNames: id
+            referencedTableName: ${gravitee_prefix}subscriptions
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: api
+            tableName: ${gravitee_prefix}keys
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: plan
+            tableName: ${gravitee_prefix}keys
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: subscription
+            tableName: ${gravitee_prefix}keys

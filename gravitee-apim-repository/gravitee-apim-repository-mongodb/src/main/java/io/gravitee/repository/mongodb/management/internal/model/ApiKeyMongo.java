@@ -16,7 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -42,24 +44,37 @@ public class ApiKeyMongo {
     private String key;
 
     /**
+     * The subscriptions for which the Api Key is generated
+     *
+     * The collection should contain more than one element only if the subscriptions are made
+     * for an application where the SHARED mode has been configured for API Key subscriptions
+     *
+     * @see io.gravitee.repository.management.model.ApiKeyMode
+     */
+    private Set<String> subscriptions = new HashSet<>();
+
+    /**
      * The subscription for which the Api Key is generated
+     *
      */
     private String subscription;
 
     /**
-     * The application used to make the subscription
-     */
-    private String application;
-
-    /**
      * The subscribed plan
+     *
      */
     private String plan;
 
     /**
      * The api on which this api key is used
+     *
      */
     private String api;
+
+    /**
+     * The application used to make the subscription
+     */
+    private String application;
 
     /**
      * Expiration date (end date) of the Api Key
@@ -104,12 +119,12 @@ public class ApiKeyMongo {
         this.key = key;
     }
 
-    public String getSubscription() {
-        return subscription;
+    public Set<String> getSubscriptions() {
+        return subscriptions;
     }
 
-    public void setSubscription(String subscription) {
-        this.subscription = subscription;
+    public void setSubscriptions(Set<String> subscriptions) {
+        this.subscriptions = subscriptions;
     }
 
     public String getApplication() {
@@ -118,14 +133,6 @@ public class ApiKeyMongo {
 
     public void setApplication(String application) {
         this.application = application;
-    }
-
-    public String getPlan() {
-        return plan;
-    }
-
-    public void setPlan(String plan) {
-        this.plan = plan;
     }
 
     public Date getExpireAt() {
@@ -192,10 +199,44 @@ public class ApiKeyMongo {
         this.id = id;
     }
 
+    /**
+     * @deprecated
+     * Starting from 3.17 this field is kept for backward compatibility only and subscriptions should be used instead
+     */
+    @Deprecated
+    public String getSubscription() {
+        return subscription;
+    }
+
+    @Deprecated(since = "3.17.0", forRemoval = true)
+    public void setSubscription(String subscription) {
+        this.subscription = subscription;
+    }
+
+    /**
+     * @deprecated
+     * Starting from 3.17 this field is kept for backward compatibility and plans should be accessed through subscriptions instead
+     */
+    @Deprecated(since = "3.17.0", forRemoval = true)
+    public String getPlan() {
+        return plan;
+    }
+
+    @Deprecated(since = "3.17.0", forRemoval = true)
+    public void setPlan(String plan) {
+        this.plan = plan;
+    }
+
+    /**
+     * @deprecated
+     * Starting from 3.17 this field is kept for backward compatibility and apis should be accessed through subscriptions instead
+     */
+    @Deprecated(since = "3.17.0", forRemoval = true)
     public String getApi() {
         return api;
     }
 
+    @Deprecated(since = "3.17.0", forRemoval = true)
     public void setApi(String api) {
         this.api = api;
     }
