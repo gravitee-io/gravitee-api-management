@@ -48,7 +48,11 @@
       </div>
 
       <div *ngSwitchDefault class="policy-studio-debug-timeline-overview__step">
-        <div class="policy-studio-debug-timeline-overview__step__line"></div>
+        <div
+          class="policy-studio-debug-timeline-overview__step__line"
+          [class.color-red]="timelineStep.executionStatus === 'ERROR'"
+          [class.color-grey]="timelineStep.executionStatus === 'SKIPPED'"
+        ></div>
       </div>
     </ng-container>
   </ng-container>
