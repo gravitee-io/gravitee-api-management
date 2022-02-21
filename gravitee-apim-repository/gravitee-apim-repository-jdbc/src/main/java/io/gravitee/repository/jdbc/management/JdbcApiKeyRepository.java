@@ -256,6 +256,30 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
+    public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
+        LOGGER.debug("JdbcApiKeyRepository.findByApplication({})", applicationId);
+        try {
+            String query =
+                getOrm().getSelectAllSql() +
+                " k" +
+                " left join " +
+                KEY_SUBSCRIPTIONS +
+                " ks on ks.key_id = k.id " +
+                "where k.application = ?" +
+                " order by k.updated_at desc ";
+
+            CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+
+            jdbcTemplate.query(query, rowMapper, applicationId);
+
+            return rowMapper.getRows();
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find api keys by application", ex);
+            throw new TechnicalException("Failed to find api keys by application", ex);
+        }
+    }
+
+    @Override
     public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
         LOGGER.debug("JdbcApiKeyRepository.findByKeyAndApi(****, {})", api);
         try {

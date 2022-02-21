@@ -234,6 +234,18 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void findByApplication_should_find_api_keys() throws TechnicalException {
+        List<ApiKey> apiKeys = apiKeyRepository.findByApplication("app1");
+        assertEquals(2, apiKeys.size());
+        ApiKey apiKey5 = apiKeys.get(0);
+        assertEquals("id-of-apikey-5", apiKey5.getId());
+        assertEquals(List.of("sub1"), apiKey5.getSubscriptions());
+        ApiKey apiKey4 = apiKeys.get(1);
+        assertEquals("id-of-apikey-4", apiKey4.getId());
+        assertEquals(List.of("sub1"), apiKey4.getSubscriptions());
+    }
+
+    @Test
     public void findByKeyAndApi_should_return_fulfilled_optional() throws TechnicalException {
         Optional<ApiKey> apiKeyOpt = apiKeyRepository.findByKeyAndApi("findByCriteria2", "api2");
         assertFalse(apiKeyOpt.isEmpty());

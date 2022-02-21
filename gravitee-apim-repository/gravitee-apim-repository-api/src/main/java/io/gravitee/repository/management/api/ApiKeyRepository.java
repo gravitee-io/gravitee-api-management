@@ -78,6 +78,15 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     Set<ApiKey> findBySubscription(String subscription) throws TechnicalException;
 
     /**
+     * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Application}
+     *
+     * @param applicationId application ID
+     * @return API keys issued for the given application
+     * @throws TechnicalException
+     */
+    List<ApiKey> findByApplication(String applicationId) throws TechnicalException;
+
+    /**
      * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Plan}
      */
     Set<ApiKey> findByPlan(String plan) throws TechnicalException;

@@ -102,6 +102,15 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
         return internalApiKeyRepo.findAll().stream().map(this::toApiKey).collect(toSet());
     }
 
+    @Override
+    public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
+        try {
+            return internalApiKeyRepo.findByApplication(applicationId).stream().map(this::toApiKey).collect(toList());
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred trying to find api key by application", e);
+        }
+    }
+
     private ApiKey toApiKey(ApiKeyMongo apiKeyMongo) {
         return mapper.map(apiKeyMongo, ApiKey.class);
     }

@@ -84,6 +84,7 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         )
             .thenReturn(asList(apiKey2, apiKey3));
 
+        when(apiKeyRepository.findByApplication("app1")).thenReturn(List.of(apiKey5, apiKey4));
         when(apiKeyRepository.findByKeyAndApi("findByCriteria2", "api2")).thenReturn(Optional.of(apiKey6));
     }
 
