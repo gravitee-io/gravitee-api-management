@@ -37,6 +37,7 @@ import { PolicyStudioDebugTimelineCardComponent } from './components/policy-stud
 import { PolicyStudioDebugTimelineComponent } from './components/policy-studio-debug-timeline/policy-studio-debug-timeline.component';
 import { PolicyStudioDebugTimelineLegendComponent } from './components/policy-studio-debug-timeline-legend/policy-studio-debug-timeline-legend.component';
 import { PolicyStudioDebugInspectorTextComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
+import { PolicyStudioDebugTimelineOverviewComponent } from './components/policy-studio-debug-timeline-overview/policy-studio-debug-timeline-overview.component';
 
 @NgModule({
   imports: [
@@ -65,6 +66,7 @@ import { PolicyStudioDebugInspectorTextComponent } from './components/policy-stu
     PolicyStudioDebugResponseComponent,
     PolicyStudioDebugTimelineCardComponent,
     PolicyStudioDebugTimelineComponent,
+    PolicyStudioDebugTimelineOverviewComponent,
     PolicyStudioDebugTimelineLegendComponent,
   ],
   exports: [PolicyStudioDebugComponent],
