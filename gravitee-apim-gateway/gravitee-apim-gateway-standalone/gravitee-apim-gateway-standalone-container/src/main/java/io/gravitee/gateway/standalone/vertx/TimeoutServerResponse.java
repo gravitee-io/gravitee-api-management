@@ -95,6 +95,11 @@ public class TimeoutServerResponse implements Response {
         release();
     }
 
+    @Override
+    public Response endHandler(Handler<Void> endHandler) {
+        return response.endHandler(endHandler);
+    }
+
     private void release() {
         vertx.cancelTimer(timerId);
     }
