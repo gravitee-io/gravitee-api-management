@@ -85,11 +85,12 @@
       ></policy-studio-debug-timeline-card>
     </policy-studio-debug-timeline>
   </div>
-  <!--
-    TODO: To add with mini timeline
+  <div>
+    <policy-studio-debug-timeline-overview [timelineSteps]="responseDisplayableVM.timelineSteps"></policy-studio-debug-timeline-overview>
+  </div>
   <div>
     <policy-studio-debug-timeline-legend></policy-studio-debug-timeline-legend>
-  </div> -->
+  </div>
 
   <policy-studio-debug-inspector
     class="policy-studio-debug-response__display-response__inspector"

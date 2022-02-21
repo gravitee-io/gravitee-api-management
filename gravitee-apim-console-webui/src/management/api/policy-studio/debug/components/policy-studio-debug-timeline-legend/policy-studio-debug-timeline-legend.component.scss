@@ -34,5 +34,21 @@ $typography: map.get(gio.$mat-theme, typography);
       width: 16px;
       margin-right: 4px;
     }
+
+    .color-green {
+      color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+    }
+
+    .color-blue {
+      color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+    }
+
+    .color-grey {
+      color: mat.get-color-from-palette(gio.$mat-content-palette, 'disabled');
+    }
+
+    .color-red {
+      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    }
   }
 }
