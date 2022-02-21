@@ -21,6 +21,12 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__step {
     flex: 1 1 auto;
+    height: 24px;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
 
     &__line {
       height: 4px;
@@ -42,13 +48,24 @@ $typography: map.get(gio.$mat-theme, typography);
         background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
       }
 
-      &.selected::before {
+      &::before {
         content: '•';
         display: block;
         text-align: center;
-        font-size: 20px;
-        color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+        color: transparent;
       }
+
+      &.selected::before {
+        color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+      }
+    }
+
+    &.disabled {
+      cursor: initial;
+    }
+
+    &:hover:not(.disabled) > &__line::before {
+      color: mat.get-color-from-palette(gio.$mat-content-palette, 'darker');
     }
 
     // Add margin between step

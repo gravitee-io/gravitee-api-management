@@ -19,6 +19,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { PolicyStudioDebugTimelineOverviewComponent } from './policy-studio-debug-timeline-overview.component';
 
@@ -33,7 +34,7 @@ export default {
   decorators: [
     moduleMetadata({
       declarations: [PolicyStudioDebugTimelineCardComponent],
-      imports: [CommonModule, BrowserAnimationsModule, GioIconsModule],
+      imports: [CommonModule, BrowserAnimationsModule, GioIconsModule, MatTooltipModule],
     }),
   ],
   argTypes: {
@@ -42,14 +43,15 @@ export default {
         type: 'object',
       },
     },
+    onStepSelected: { action: 'onStepSelected' },
   },
   args: {
     timelineSteps: null,
   },
-  render: ({ timelineSteps }) => ({
-    props: { timelineSteps },
+  render: ({ timelineSteps, onStepSelected }) => ({
+    props: { timelineSteps, onStepSelected },
     template: `
-    <policy-studio-debug-timeline-overview [timelineSteps]="timelineSteps">
+    <policy-studio-debug-timeline-overview [timelineSteps]="timelineSteps" (selected)="onStepSelected($event)">
     </policy-studio-debug-timeline-overview>
     `,
   }),
