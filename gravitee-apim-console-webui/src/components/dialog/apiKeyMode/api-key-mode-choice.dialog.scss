@@ -1,0 +1,16 @@
+.api-key-mode-choice-dialog {
+  padding: 10px 20px;
+}
+
+.api-key-mode-choice-dialog .api-key-mode-choice-dialog__content__title {
+  margin-top: 5px;
+}
+
+.api-key-mode-choice-dialog .api-key-mode-choice-dialog__content__details {
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+.api-key-mode-choice-dialog .api-key-mode-choice-dialog__content__warning {
+  color: var(--gv-theme-color-danger);
+}

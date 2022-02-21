@@ -438,7 +438,7 @@ import DialogReviewController from './api/review/reviewDialog.controller';
 import DialogRequestForChangesController from './api/portal/general/dialog/requestForChanges.controller';
 import ApplicationSubscribeComponent from './application/details/subscribe/application-subscribe.component';
 import ApplicationSubscribeController from './application/details/subscribe/application-subscribe.controller';
-import ApplicationKeyDialogController from './application/details/subscribe/application-key.dialog.controller';
+import ApiKeyModeChoiceDialogController from '../components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
 
 import QualityRuleService from '../services/qualityRule.service';
 import ApiQualityRulesComponent from '../management/configuration/api-quality-rules/api-quality-rules.component';
@@ -934,7 +934,7 @@ graviteeManagementModule.component('application', ApplicationComponent);
 
 graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponent);
 graviteeManagementModule.controller('ApplicationSubscribeController', ApplicationSubscribeController);
-graviteeManagementModule.controller('ApplicationKeyDialogController', ApplicationKeyDialogController);
+graviteeManagementModule.controller('ApiKeyModeChoiceDialogController', ApiKeyModeChoiceDialogController);
 
 graviteeManagementModule.component('createApplication', ApplicationCreationComponent);
 graviteeManagementModule.controller('ApplicationCreationController', ApplicationCreationController);

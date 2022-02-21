@@ -277,9 +277,9 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     selectKeyMode() {
       const dialog = {
-        controller: 'ApplicationKeyDialogController',
+        controller: 'ApiKeyModeChoiceDialogController',
         controllerAs: '$ctrl',
-        template: require('../../../application/details/subscribe/application-key.dialog.html'),
+        template: require('/src/components/dialog/apiKeyMode/api-key-mode-choice.dialog.html'),
         clickOutsideToClose: true,
       };
 

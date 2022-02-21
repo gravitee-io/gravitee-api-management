@@ -152,9 +152,9 @@ class ApplicationSubscribeController {
 
   selectKeyMode() {
     const dialog = {
-      controller: 'ApplicationKeyDialogController',
+      controller: 'ApiKeyModeChoiceDialogController',
       controllerAs: '$ctrl',
-      template: require('./application-key.dialog.html'),
+      template: require('/src/components/dialog/apiKeyMode/api-key-mode-choice.dialog.html'),
       clickOutsideToClose: true,
     };
 
