@@ -15,21 +15,25 @@
  */
 package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
+
 import java.io.Serializable;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Rule implements Serializable {
+public class Rule extends HashMap<String, Object> /* This is to generate the correct Open-API definition*/implements Serializable {
 
     @JsonProperty("methods")
     private Set<HttpMethod> methods = EnumSet.allOf(HttpMethod.class);
 
-    @JsonProperty("policy")
+    @JsonIgnore
     private Policy policy;
 
     @JsonProperty("description")
