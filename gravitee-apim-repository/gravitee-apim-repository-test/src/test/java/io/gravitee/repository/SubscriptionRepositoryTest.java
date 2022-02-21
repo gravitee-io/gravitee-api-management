@@ -131,6 +131,23 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByIdIn_withUnknownId() throws TechnicalException {
+        List<Subscription> subscriptions = subscriptionRepository.findByIdIn(Set.of("sub1", "unknown-id"));
+        assertEquals(1, subscriptions.size());
+        Subscription subscription = subscriptions.iterator().next();
+        assertEquals("Subscription id", "sub1", subscription.getId());
+        assertEquals("Subscription plan", "plan1", subscription.getPlan());
+        assertEquals("Subscription application", "app1", subscription.getApplication());
+        assertEquals("Subscription api", "api1", subscription.getApi());
+    }
+
+    @Test
+    public void shouldFindByIdIn_withEmptyList() throws TechnicalException {
+        List<Subscription> subscriptions = subscriptionRepository.findByIdIn(Set.of());
+        assertEquals(0, subscriptions.size());
+    }
+
+    @Test
     public void shouldNotFindById() throws TechnicalException {
         Optional<Subscription> subscription = this.subscriptionRepository.findById("unknown-sub");
 

@@ -19,7 +19,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -83,6 +83,7 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
         when(subscriptionRepository.findById("unknown-sub")).thenReturn(empty());
         when(subscriptionRepository.findById("sub2")).thenReturn(empty());
         when(subscriptionRepository.update(sub1)).thenReturn(sub1);
+        when(subscriptionRepository.findByIdIn(argThat(ids -> ids != null && ids.contains("sub1")))).thenReturn(List.of(sub1));
 
         when(subscriptionRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
