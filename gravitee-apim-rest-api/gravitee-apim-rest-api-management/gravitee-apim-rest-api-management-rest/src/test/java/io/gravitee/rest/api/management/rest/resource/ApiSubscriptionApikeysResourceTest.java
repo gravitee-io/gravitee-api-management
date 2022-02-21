@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -70,6 +71,7 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
         mockExistingSubscriptionWithApplication(ApiKeyMode.EXCLUSIVE);
 
         ApiKeyEntity renewedApiKey = new ApiKeyEntity();
+        SubscriptionEntity subscription = new SubscriptionEntity();
         renewedApiKey.setId("test-id");
 
         when(apiKeyService.renew(any(), any())).thenReturn(renewedApiKey);
