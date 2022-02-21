@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.converter;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import io.gravitee.repository.management.model.Application;
@@ -39,13 +38,13 @@ public class ApplicationConverterTest {
     }
 
     @Test
-    public void newApplicationEntity_toApplication_should_not_convert_null_ApiKeyMode() {
+    public void newApplicationEntity_toApplication_should_set_unspecified_byDefault_if_null_ApiKeyMode() {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
         newApplicationEntity.setApiKeyMode(null);
 
         Application application = applicationConverter.toApplication(newApplicationEntity);
 
-        assertNull(application.getApiKeyMode());
+        assertSame(io.gravitee.repository.management.model.ApiKeyMode.UNSPECIFIED, application.getApiKeyMode());
     }
 
     @Test
@@ -59,12 +58,12 @@ public class ApplicationConverterTest {
     }
 
     @Test
-    public void updateApplicationEntity_toApplication_should_not_convert_null_ApiKeyMode() {
+    public void updateApplicationEntity_toApplication_should_set_unspecified_byDefault_if_null_ApiKeyMode() {
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setApiKeyMode(null);
 
         Application application = applicationConverter.toApplication(updateApplicationEntity);
 
-        assertNull(application.getApiKeyMode());
+        assertSame(io.gravitee.repository.management.model.ApiKeyMode.UNSPECIFIED, application.getApiKeyMode());
     }
 }

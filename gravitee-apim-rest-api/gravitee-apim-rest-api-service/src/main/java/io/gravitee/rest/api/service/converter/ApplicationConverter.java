@@ -100,6 +100,6 @@ public class ApplicationConverter {
     }
 
     private ApiKeyMode toModelApiKeyMode(io.gravitee.rest.api.model.ApiKeyMode apiKeyMode) {
-        return apiKeyMode != null ? ApiKeyMode.valueOf(apiKeyMode.name()) : null;
+        return apiKeyMode != null ? ApiKeyMode.valueOf(apiKeyMode.name()) : ApiKeyMode.UNSPECIFIED;
     }
 }
