@@ -51,6 +51,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
     private static final List<String> tablesToTruncate = Arrays.asList(
         "apis",
         "keys",
+        "key_subscriptions",
+        "subscriptions",
         "api_groups",
         "api_headers",
         "api_labels",
@@ -108,7 +110,6 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "rating_answers",
         "roles",
         "role_permissions",
-        "subscriptions",
         "tags",
         "tickets",
         "tenants",

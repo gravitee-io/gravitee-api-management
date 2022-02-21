@@ -25,10 +25,12 @@ import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.SubscriptionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -105,16 +107,26 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
         internalSubscriptionRepository.deleteById(plan);
     }
 
+    @Override
+    public Set<Subscription> findAll() throws TechnicalException {
+        return internalSubscriptionRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException {
+        try {
+            Iterable<SubscriptionMongo> subscriptions = internalSubscriptionRepository.findAllById(ids);
+            return StreamSupport.stream(subscriptions.spliterator(), false).map(this::map).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred trying to find subscriptions by id list", e);
+        }
+    }
+
     private SubscriptionMongo map(Subscription subscription) {
         return (subscription == null) ? null : mapper.map(subscription, SubscriptionMongo.class);
     }
 
     private Subscription map(SubscriptionMongo subscriptionMongo) {
         return (subscriptionMongo == null) ? null : mapper.map(subscriptionMongo, Subscription.class);
-    }
-
-    @Override
-    public Set<Subscription> findAll() throws TechnicalException {
-        return internalSubscriptionRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }

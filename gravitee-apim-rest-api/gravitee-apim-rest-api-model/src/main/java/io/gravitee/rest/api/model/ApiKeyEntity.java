@@ -15,9 +15,13 @@
  */
 package io.gravitee.rest.api.model;
 
+import static java.util.stream.Collectors.*;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
-import java.util.Objects;
+import io.gravitee.rest.api.model.settings.Application;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,13 +33,9 @@ public class ApiKeyEntity {
 
     private String key;
 
-    private String subscription;
+    private Set<SubscriptionEntity> subscriptions = new HashSet<>();
 
-    private String application;
-
-    private String plan;
-
-    private String api;
+    private ApplicationEntity application;
 
     @JsonProperty("expire_at")
     private Date expireAt;
@@ -66,30 +66,6 @@ public class ApiKeyEntity {
 
     public void setKey(String key) {
         this.key = key;
-    }
-
-    public String getSubscription() {
-        return subscription;
-    }
-
-    public void setSubscription(String subscription) {
-        this.subscription = subscription;
-    }
-
-    public String getApplication() {
-        return application;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
-
-    public String getPlan() {
-        return plan;
-    }
-
-    public void setPlan(String plan) {
-        this.plan = plan;
     }
 
     public Date getExpireAt() {
@@ -164,12 +140,38 @@ public class ApiKeyEntity {
         this.id = id;
     }
 
-    public String getApi() {
-        return api;
+    public Set<SubscriptionEntity> getSubscriptions() {
+        return subscriptions;
     }
 
-    public void setApi(String api) {
-        this.api = api;
+    public void setSubscriptions(Set<SubscriptionEntity> subscriptions) {
+        this.subscriptions = subscriptions;
+    }
+
+    public ApplicationEntity getApplication() {
+        return application;
+    }
+
+    public void setApplication(ApplicationEntity application) {
+        this.application = application;
+    }
+
+    @JsonIgnore
+    public List<String> getSubscriptionIds() {
+        return subscriptions.stream().map(SubscriptionEntity::getId).collect(toList());
+    }
+
+    public boolean hasSubscription(String subscriptionId) {
+        return getSubscriptionIds().stream().anyMatch(subscriptionId::equals);
+    }
+
+    public void addSubscription(SubscriptionEntity subscription) {
+        Set<SubscriptionEntity> updatedSubscriptions = new HashSet<>();
+        updatedSubscriptions.add(subscription);
+        if (subscriptions != null) {
+            updatedSubscriptions.addAll(subscriptions);
+        }
+        setSubscriptions(updatedSubscriptions);
     }
 
     @Override

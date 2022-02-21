@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.Subscription.AuditEvent.*;
 import static io.gravitee.rest.api.model.ApiKeyMode.*;
 import static io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
 import static java.lang.System.lineSeparator;
+import static java.util.stream.Collectors.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -127,6 +128,19 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to find a subscription using its ID: %s", subscriptionId),
                 ex
+            );
+        }
+    }
+
+    @Override
+    public Set<SubscriptionEntity> findByIdIn(Collection<String> subscriptionIds) {
+        try {
+            return subscriptionRepository.findByIdIn(subscriptionIds).stream().map(this::convert).collect(toSet());
+        } catch (TechnicalException e) {
+            logger.error("An error occurs while trying to find subscriptions using IDs [{}]", subscriptionIds, e);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find subscriptions using IDs [%s]", subscriptionIds),
+                e
             );
         }
     }
@@ -586,7 +600,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             if (plan.getSecurity() == API_KEY && subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                acceptApiKeySubscription(processSubscription, subscription, application);
+                apiKeyService.generate(application, subscriptionEntity, processSubscription.getCustomApiKey());
             }
 
             return subscriptionEntity;
@@ -951,7 +965,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 List<SubscriptionEntity> filteredSubscriptions = apiKeyService
                     .findByKey(query.getApiKey())
                     .stream()
-                    .map(apiKey -> findById(apiKey.getSubscription()))
+                    .flatMap(apiKey -> findByIdIn(apiKey.getSubscriptionIds()).stream())
                     .filter(
                         subscription ->
                             query.matchesApi(subscription.getApi()) &&
@@ -999,7 +1013,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         Map<String, List<SubscriptionEntity>> subscriptionsByPlan = subscriptions
             .stream()
             .filter(subscription -> subscription.getPlan() != null)
-            .collect(Collectors.groupingBy(SubscriptionEntity::getPlan));
+            .collect(groupingBy(SubscriptionEntity::getPlan));
 
         planService
             .findByIdIn(subscriptionsByPlan.keySet())
@@ -1016,7 +1030,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .stream()
                     .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
                     .map(ApiKeyEntity::getKey)
-                    .collect(Collectors.toList());
+                    .collect(toList());
                 subscriptionEntity.setKeys(keys);
             }
         );
@@ -1038,7 +1052,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .getStatuses()
                     .stream()
                     .map(subscriptionStatus -> Subscription.Status.valueOf(subscriptionStatus.name()))
-                    .collect(Collectors.toSet())
+                    .collect(toSet())
             );
         }
 
@@ -1073,11 +1087,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setPlan(transferSubscription.getPlan());
 
             subscription = subscriptionRepository.update(subscription);
-            final List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-            for (final ApiKeyEntity apiKey : apiKeys) {
-                apiKey.setPlan(transferSubscription.getPlan());
-                apiKeyService.update(apiKey);
-            }
 
             final ApplicationEntity application = applicationService.findById(
                 GraviteeContext.getCurrentEnvironment(),
@@ -1205,7 +1214,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     return applicationService
                         .findByIds(query.getOrganization(), query.getEnvironment(), appIds)
                         .stream()
-                        .collect(Collectors.toMap(ApplicationListItem::getId, Function.identity()));
+                        .collect(toMap(ApplicationListItem::getId, Function.identity()));
                 }
             );
 
@@ -1217,7 +1226,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     return apiService
                         .findByEnvironmentAndIdIn(environment, apiIds)
                         .stream()
-                        .collect(Collectors.toMap(ApiEntity::getId, Function.identity()));
+                        .collect(toMap(ApiEntity::getId, Function.identity()));
                 }
             );
 
@@ -1226,7 +1235,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .map(
                 withPlans -> {
                     Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlan).collect(toSet());
-                    return planService.findByIdIn(planIds).stream().collect(Collectors.toMap(PlanEntity::getId, Function.identity()));
+                    return planService.findByIdIn(planIds).stream().collect(toMap(PlanEntity::getId, Function.identity()));
                 }
             );
 
@@ -1235,7 +1244,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .map(
                 withSubscribers -> {
                     Set<String> subscriberIds = subscriptions.stream().map(SubscriptionEntity::getSubscribedBy).collect(toSet());
-                    return userService.findByIds(subscriberIds).stream().collect(Collectors.toMap(UserEntity::getId, Function.identity()));
+                    return userService.findByIds(subscriberIds).stream().collect(toMap(UserEntity::getId, Function.identity()));
                 }
             );
 
@@ -1334,24 +1343,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     ) {
         auditService.createApiAuditLog(apiId, Collections.singletonMap(APPLICATION, applicationId), event, createdAt, oldValue, newValue);
         auditService.createApplicationAuditLog(applicationId, Collections.singletonMap(API, apiId), event, createdAt, oldValue, newValue);
-    }
-
-    protected void acceptApiKeySubscription(
-        ProcessSubscriptionEntity processSubscription,
-        Subscription subscription,
-        ApplicationEntity application
-    ) {
-        if (application.getApiKeyMode() == SHARED) {
-            // TODO : FIND THE ALREADY EXISTING SHARED API KEY, AND LINK SUBSCRIPTION TO IT
-            // TODO : IF NOT YET EXISTING, GENERATE A NEW ONE
-            throw new RuntimeException("TODO");
-        } else {
-            if (StringUtils.isNotEmpty(processSubscription.getCustomApiKey())) {
-                apiKeyService.generate(subscription.getId(), processSubscription.getCustomApiKey());
-            } else {
-                apiKeyService.generate(subscription.getId());
-            }
-        }
     }
 
     private long countApiKeySubscriptions(ApplicationEntity application) {

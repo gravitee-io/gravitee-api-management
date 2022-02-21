@@ -1,0 +1,90 @@
+[
+  {
+    "id": "subscription1",
+    "api": "api1",
+    "plan": "plan2",
+    "application": "b9651828-7620-446e-a518-287620d46ea3",
+    "status": "ACCEPTED",
+    "processedAt": 1645192111324,
+    "startingAt": 1645192111324,
+    "createdAt": 1645192111324,
+    "updatedAt": 1645192111324
+  },
+  {
+    "id": "subscription2",
+    "api": "api2",
+    "plan": "plan3",
+    "application": "b9651828-7620-446e-a518-287620d46ea3",
+    "status": "ACCEPTED",
+    "processedAt": 1645192111324,
+    "startingAt": 1645192111324,
+    "createdAt": 1645192111324,
+    "updatedAt": 1645192111324
+  },
+  {
+    "id": "sub1",
+    "api": "api2",
+    "plan": "plan4",
+    "application": "app1",
+    "status": "ACCEPTED",
+    "processedAt": 1645192110345,
+    "startingAt": 1645192110345,
+    "createdAt": 1645192110345,
+    "updatedAt": 1645192110345
+  },
+  {
+    "id": "sub2",
+    "api": "api2",
+    "plan": "plan4",
+    "application": "app2",
+    "status": "ACCEPTED",
+    "processedAt": 1645192110345,
+    "startingAt": 1645192110345,
+    "createdAt": 1645192110345,
+    "updatedAt": 1645192110345
+  },
+  {
+    "id": "sub3",
+    "plan": "plan1",
+    "api": "api2",
+    "application": "app1",
+    "status": "ACCEPTED",
+    "processedAt": 1645192110345,
+    "startingAt": 1645192110345,
+    "createdAt": 1645192110345,
+    "updatedAt": 1645192110345
+  },
+  {
+    "id": "sub4",
+    "plan": "plan4",
+    "api": "api4",
+    "application": "app4",
+    "status": "ACCEPTED",
+    "processedAt": 1645192110345,
+    "startingAt": 1645192110345,
+    "createdAt": 1645192110345,
+    "updatedAt": 1645192110345
+  },
+  {
+    "id": "sub5",
+    "plan": "plan5",
+    "api": "api5",
+    "application": "app4",
+    "status": "ACCEPTED",
+    "processedAt": 1645192110345,
+    "startingAt": 1645192110345,
+    "createdAt": 1645192110345,
+    "updatedAt": 1645192110345
+  },
+  {
+    "id": "sub6",
+    "plan": "plan6",
+    "api": "api6",
+    "application": "app4",
+    "status": "ACCEPTED",
+    "processedAt": 1645192110345,
+    "startingAt": 1645192110345,
+    "createdAt": 1645192110345,
+    "updatedAt": 1645192110345
+  }
+]
