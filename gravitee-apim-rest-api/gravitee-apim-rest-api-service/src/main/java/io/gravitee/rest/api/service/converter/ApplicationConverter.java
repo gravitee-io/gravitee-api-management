@@ -15,8 +15,16 @@
  */
 package io.gravitee.rest.api.service.converter;
 
+import io.gravitee.repository.management.model.ApiKeyMode;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,5 +46,60 @@ public class ApplicationConverter {
         updateApplicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
         updateApplicationEntity.setType(application.getType());
         return updateApplicationEntity;
+    }
+
+    public Application toApplication(NewApplicationEntity newApplicationEntity) {
+        Application application = new Application();
+
+        application.setName(StringUtils.trim(newApplicationEntity.getName()));
+        application.setDescription(StringUtils.trim(newApplicationEntity.getDescription()));
+        application.setDomain(newApplicationEntity.getDomain());
+        application.setGroups(newApplicationEntity.getGroups());
+
+        if (newApplicationEntity.getSettings() != null) {
+            if (newApplicationEntity.getSettings().getApp() != null) {
+                application.setType(ApplicationType.SIMPLE);
+            } else {
+                application.setType(
+                    ApplicationType.valueOf(newApplicationEntity.getSettings().getoAuthClient().getApplicationType().toUpperCase())
+                );
+            }
+        }
+        application.setPicture(newApplicationEntity.getPicture());
+        application.setBackground(newApplicationEntity.getBackground());
+        application.setMetadata(toMetadata(newApplicationEntity.getSettings()));
+        application.setApiKeyMode(toModelApiKeyMode(newApplicationEntity.getApiKeyMode()));
+        return application;
+    }
+
+    public Application toApplication(UpdateApplicationEntity updateApplicationEntity) {
+        Application application = new Application();
+        application.setName(StringUtils.trim(updateApplicationEntity.getName()));
+        application.setDescription(StringUtils.trim(updateApplicationEntity.getDescription()));
+        application.setPicture(updateApplicationEntity.getPicture());
+        application.setBackground(updateApplicationEntity.getBackground());
+        application.setDomain(updateApplicationEntity.getDomain());
+        application.setGroups(updateApplicationEntity.getGroups());
+        application.setApiKeyMode(toModelApiKeyMode(updateApplicationEntity.getApiKeyMode()));
+        application.setMetadata(toMetadata(updateApplicationEntity.getSettings()));
+        application.setDisableMembershipNotifications(updateApplicationEntity.isDisableMembershipNotifications());
+        return application;
+    }
+
+    private Map<String, String> toMetadata(ApplicationSettings applicationSettings) {
+        Map<String, String> metadata = new HashMap<>();
+        if (applicationSettings != null && applicationSettings.getApp() != null) {
+            if (applicationSettings.getApp().getClientId() != null) {
+                metadata.put("client_id", applicationSettings.getApp().getClientId());
+            }
+            if (applicationSettings.getApp().getType() != null) {
+                metadata.put("type", applicationSettings.getApp().getType());
+            }
+        }
+        return metadata;
+    }
+
+    private ApiKeyMode toModelApiKeyMode(io.gravitee.rest.api.model.ApiKeyMode apiKeyMode) {
+        return apiKeyMode != null ? ApiKeyMode.valueOf(apiKeyMode.name()) : null;
     }
 }

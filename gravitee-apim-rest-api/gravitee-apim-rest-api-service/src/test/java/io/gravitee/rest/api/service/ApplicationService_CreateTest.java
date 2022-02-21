@@ -40,6 +40,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.converter.ApplicationConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Arrays;
@@ -95,6 +96,9 @@ public class ApplicationService_CreateTest {
     @Mock
     private ApplicationTypeService applicationTypeService;
 
+    @Mock
+    private ApplicationConverter applicationConverter;
+
     @Before
     public void setup() {
         GraviteeContext.cleanContext();
@@ -116,6 +120,7 @@ public class ApplicationService_CreateTest {
         when(newApplication.getDescription()).thenReturn("My description");
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
         when(userService.findById(any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
 
         final ApplicationEntity applicationEntity = applicationService.create(
             GraviteeContext.getCurrentEnvironment(),
