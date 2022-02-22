@@ -58,8 +58,11 @@ public class ApiDeployerStatement extends Statement {
 
     @Override
     public void evaluate() throws Throwable {
-        URL home = ApiDeployerStatement.class.getResource("/gravitee-01/");
-        System.setProperty("gravitee.home", URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8.name()));
+        final String homeFolder = target.getClass().getAnnotation(ApiDescriptor.class).configFolder();
+        URL home = ApiDeployerStatement.class.getResource(homeFolder);
+        String graviteeHome = URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8.name());
+        System.setProperty("gravitee.home", graviteeHome);
+        System.setProperty("gravitee.conf", graviteeHome + File.separator + "config" + File.separator + "gravitee.yml");
 
         GatewayTestContainer container = new GatewayTestContainer();
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
