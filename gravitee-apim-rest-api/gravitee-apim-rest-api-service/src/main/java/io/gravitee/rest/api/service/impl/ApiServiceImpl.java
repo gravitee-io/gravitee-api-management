@@ -3851,32 +3851,43 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return members
                 .stream()
-                .peek(member -> computeMemberRoles(environmentId, api, member))
+                .peek(member -> member.setRoles(computeMemberRoles(environmentId, api, member)))
                 .collect(groupingBy(MemberEntity::getReferenceId, mapping(GroupMemberEntity::new, toList())));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error has occurred while trying to retrieve groups for API " + apiId);
         }
     }
 
-    private void computeMemberRoles(String environmentId, Api api, MemberEntity member) {
-        member
+    private List<RoleEntity> computeMemberRoles(String environmentId, Api api, MemberEntity member) {
+        return member
             .getRoles()
             .stream()
-            .filter(RoleEntity::isApiPrimaryOwner)
-            .findFirst()
-            .ifPresent(
-                role -> {
-                    GroupEntity memberGroup = groupService.findById(environmentId, member.getReferenceId());
-                    String groupDefaultApiRoleName = memberGroup.getRoles().get(RoleScope.API);
+            .map(role -> role.isApiPrimaryOwner() ? mapApiPrimaryOwnerRole(environmentId, api, member.getReferenceId()) : role)
+            .collect(toList());
+    }
 
-                    PrimaryOwnerEntity primaryOwner = getPrimaryOwner(api);
+    private RoleEntity mapApiPrimaryOwnerRole(String environmentId, Api api, String groupId) {
+        GroupEntity memberGroup = groupService.findById(environmentId, groupId);
+        String groupDefaultApiRoleName = memberGroup.getRoles() == null ? null : memberGroup.getRoles().get(RoleScope.API);
 
-                    if (!memberGroup.getId().equals(primaryOwner.getId())) {
-                        roleService
-                            .findByScopeAndName(RoleScope.API, groupDefaultApiRoleName)
-                            .ifPresentOrElse(groupRole -> role.setName(groupRole.getName()), () -> role.setName(null));
-                    }
-                }
-            );
+        PrimaryOwnerEntity primaryOwner = getPrimaryOwner(api);
+
+        /*
+         * If the group is not primary owner and the API, return the default group role for the API scope
+         *
+         * See https://github.com/gravitee-io/issues/issues/6360#issuecomment-1030610543
+         */
+        RoleEntity role = new RoleEntity();
+        role.setScope(RoleScope.API);
+
+        if (memberGroup.getId().equals(primaryOwner.getId())) {
+            role.setName(SystemRole.PRIMARY_OWNER.name());
+        } else if (groupDefaultApiRoleName != null) {
+            roleService
+                .findByScopeAndName(RoleScope.API, groupDefaultApiRoleName)
+                .ifPresent(groupRole -> role.setName(groupRole.getName()));
+        }
+
+        return role;
     }
 }
