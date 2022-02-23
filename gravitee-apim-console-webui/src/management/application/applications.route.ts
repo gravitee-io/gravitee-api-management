@@ -176,27 +176,9 @@ function applicationsConfig($stateProvider) {
       template: '<div ui-view></div>',
     })
     .state('management.applications.application.subscriptions.list', {
-      url: '?page&size&:api&:status&:api_key',
+      url: '?page&size&:shared_page&:shared_size&:api&:status&:api_key',
       component: 'applicationSubscriptions',
       resolve: {
-        subscriptions: ($stateParams, ApplicationService: ApplicationService) => {
-          let query = '?page=' + $stateParams.page + '&size=' + $stateParams.size;
-
-          if ($stateParams.status) {
-            query += '&status=' + $stateParams.status;
-          }
-
-          if ($stateParams.api) {
-            query += '&api=' + $stateParams.api;
-          }
-
-          if ($stateParams.api_key) {
-            query += '&api_key=' + $stateParams.api_key;
-          }
-
-          return ApplicationService.listSubscriptions($stateParams.applicationId, query).then((response) => response.data);
-        },
-
         subscribers: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.getSubscribedAPI($stateParams.applicationId).then((response) => response.data),
       },
@@ -231,6 +213,16 @@ function applicationsConfig($stateProvider) {
           value: 10,
           dynamic: true,
         },
+        shared_page: {
+          type: 'int',
+          value: 1,
+          dynamic: true,
+        },
+        shared_size: {
+          type: 'int',
+          value: 10,
+          dynamic: true,
+        },
         api_key: {
           type: 'string',
           dynamic: true,
@@ -238,7 +230,7 @@ function applicationsConfig($stateProvider) {
       },
     })
     .state('management.applications.application.subscriptions.subscription', {
-      url: '/:subscriptionId?page&size&:api&:status&:api_key',
+      url: '/:subscriptionId?page&size&:shared_page&:shared_size&:api&:status&:api_key',
       component: 'applicationSubscription',
       resolve: {
         subscription: ($stateParams, ApplicationService: ApplicationService) =>
@@ -267,6 +259,16 @@ function applicationsConfig($stateProvider) {
           dynamic: true,
         },
         size: {
+          type: 'int',
+          value: 10,
+          dynamic: true,
+        },
+        shared_page: {
+          type: 'int',
+          value: 1,
+          dynamic: true,
+        },
+        shared_size: {
           type: 'int',
           value: 10,
           dynamic: true,

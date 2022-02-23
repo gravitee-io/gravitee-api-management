@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationSubscriptionsComponent: ng.IComponentOptions = {
+const ApplicationSubscriptionsListComponent: ng.IComponentOptions = {
   bindings: {
+    listLabel: '<',
     application: '<',
     subscribers: '<',
+    filterEvent: '<',
+    queryParamsPrefix: '<',
+    securityTypes: '<',
+    subscriptions: '=',
   },
-  controller: 'ApplicationSubscriptionsController',
-  template: require('./application-subscriptions.html'),
+  controller: 'ApplicationSubscriptionsListController',
+  template: require('./application-subscriptions-list.component.html'),
 };
 
-export default ApplicationSubscriptionsComponent;
+export default ApplicationSubscriptionsListComponent;
