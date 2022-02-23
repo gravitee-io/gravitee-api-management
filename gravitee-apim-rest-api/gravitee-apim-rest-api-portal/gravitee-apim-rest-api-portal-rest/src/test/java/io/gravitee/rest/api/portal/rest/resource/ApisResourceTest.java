@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -26,6 +27,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -33,6 +36,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -57,26 +61,31 @@ public class ApisResourceTest extends AbstractResourceTest {
         publishedApi1.setLifecycleState(ApiLifecycleState.PUBLISHED);
         publishedApi1.setName("1");
         publishedApi1.setId("1");
+        publishedApi1.setLabels(List.of("label1", "label2"));
 
         ApiEntity unpublishedApi = new ApiEntity();
         unpublishedApi.setLifecycleState(ApiLifecycleState.UNPUBLISHED);
         unpublishedApi.setName("2");
         unpublishedApi.setId("2");
+        unpublishedApi.setLabels(List.of("unpublished", "label2"));
 
         ApiEntity publishedApi2 = new ApiEntity();
         publishedApi2.setLifecycleState(ApiLifecycleState.PUBLISHED);
         publishedApi2.setName("3");
         publishedApi2.setId("3");
+        publishedApi2.setLabels(List.of("label1", "label2"));
 
         ApiEntity publishedApi3 = new ApiEntity();
         publishedApi3.setLifecycleState(ApiLifecycleState.PUBLISHED);
         publishedApi3.setName("4");
         publishedApi3.setId("4");
+        publishedApi3.setLabels(List.of("label1", "label2", "label3"));
 
         ApiEntity publishedApi4 = new ApiEntity();
         publishedApi4.setLifecycleState(ApiLifecycleState.PUBLISHED);
         publishedApi4.setName("5");
         publishedApi4.setId("5");
+        publishedApi4.setLabels(List.of("label1"));
 
         ApiEntity publishedApi5 = new ApiEntity();
         publishedApi5.setLifecycleState(ApiLifecycleState.PUBLISHED);
@@ -90,12 +99,9 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         doReturn(new FilteredEntities<ApiEntity>(new ArrayList<>(mockApis), null)).when(filteringService).filterApis(any(), any(), any());
 
-        doReturn(new Api().name("1").id("1")).when(apiMapper).convert(publishedApi1);
-        doReturn(new Api().name("2").id("2")).when(apiMapper).convert(unpublishedApi);
-        doReturn(new Api().name("3").id("3")).when(apiMapper).convert(publishedApi2);
-        doReturn(new Api().name("4").id("4")).when(apiMapper).convert(publishedApi3);
-        doReturn(new Api().name("5").id("5")).when(apiMapper).convert(publishedApi4);
-        doReturn(new Api().name("6").id("6")).when(apiMapper).convert(publishedApi5);
+        when(apiMapper.convert(any())).thenCallRealMethod();
+
+        when(parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
     }
 
     @Test
@@ -139,6 +145,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(5, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
     }
 
     @Test
@@ -154,6 +161,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
 
         Links links = apiResponse.getLinks();
         assertNotNull(links);
@@ -172,6 +180,24 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(5, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
+    }
+
+    @Test
+    public void shouldGetAllApisWithoutLabels() {
+        when(parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)).thenReturn(false);
+        final Response response = target().queryParam("size", -1).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
+        assertEquals(5, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(5, apiResponse.getData().size());
+        assertEquals(0, getmaxLabelsListSize(apiResponse));
     }
 
     @Test
@@ -239,6 +265,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         searchedApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
         searchedApi.setName("3");
         searchedApi.setId("3");
+        searchedApi.setLabels(List.of("label1", "label2"));
 
         doReturn(new HashSet<>(Arrays.asList(searchedApi))).when(apiService).search(any(), anyMap());
         final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
@@ -267,6 +294,46 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
+    }
+
+    @Test
+    public void shouldSearchApisWithoutLabel() throws TechnicalException {
+        when(parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)).thenReturn(false);
+        ApiEntity searchedApi = new ApiEntity();
+        searchedApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
+        searchedApi.setName("3");
+        searchedApi.setId("3");
+        searchedApi.setLabels(List.of("label1", "label2"));
+
+        doReturn(new HashSet<>(Arrays.asList(searchedApi))).when(apiService).search(any(), anyMap());
+        final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiQuery> queryCaptor = ArgumentCaptor.forClass(ApiQuery.class);
+        Mockito.verify(apiService).findPublishedByUser(eq(USER_NAME), queryCaptor.capture());
+        final ApiQuery query = queryCaptor.getValue();
+        assertNull(query.getContextPath());
+        assertNull(query.getLabel());
+        assertNull(query.getVersion());
+        assertNull(query.getName());
+        assertNull(query.getTag());
+
+        ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito
+            .verify(apiMapper, Mockito.times(1))
+            .computeApiLinks(basePathCaptor.capture(), ArgumentCaptor.forClass(Date.class).capture());
+        final String expectedBasePath = target().getUri().toString();
+        final List<String> bastPathList = basePathCaptor.getAllValues();
+        assertTrue(bastPathList.contains(expectedBasePath + "/3"));
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
+        assertEquals("3", apiEntityCaptor.getValue().getName());
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) == 0);
     }
 
     @Test
@@ -282,6 +349,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(2, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
     }
 
     @Test
@@ -304,6 +372,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(3, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
     }
 
     @Test
@@ -328,6 +397,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(3, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
     }
 
     @Test
@@ -352,6 +422,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(3, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
     }
 
     @Test
@@ -367,6 +438,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
     }
 
     @Test
@@ -389,6 +461,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
     }
 
     @Test
@@ -413,6 +486,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
     }
 
     @Test
@@ -437,5 +511,23 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
+    }
+
+    private int getmaxLabelsListSize(ApisResponse apiResponse) {
+        return apiResponse
+            .getData()
+            .stream()
+            .map(
+                api -> {
+                    if (api.getLabels() != null) {
+                        return api.getLabels().size();
+                    } else {
+                        return 0;
+                    }
+                }
+            )
+            .max(Comparator.comparingInt(i -> i))
+            .orElse(0);
     }
 }
