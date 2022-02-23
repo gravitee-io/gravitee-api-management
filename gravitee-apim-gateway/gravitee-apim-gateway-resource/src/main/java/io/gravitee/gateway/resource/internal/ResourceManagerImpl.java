@@ -75,7 +75,7 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
 
                     classLoader.addClassLoader(
                         resourcePlugin.resource().getCanonicalName(),
-                        () -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
+                        () -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, classLoader)
                     );
 
                     logger.debug("Loading resource {} for {}", resource.getName(), reactable);

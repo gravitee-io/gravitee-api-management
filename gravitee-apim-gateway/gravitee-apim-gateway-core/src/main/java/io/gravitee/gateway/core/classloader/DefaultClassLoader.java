@@ -17,7 +17,7 @@ package io.gravitee.gateway.core.classloader;
 
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -31,6 +31,7 @@ public class DefaultClassLoader extends ClassLoader {
 
     private final Map<String, ClassLoader> delegates;
     private final ClassLoader mParentLoader;
+    private Set<String> currentSearch = new HashSet<>();
 
     /**
      * Constructor for special classloader to give to proxy making code
@@ -70,20 +71,15 @@ public class DefaultClassLoader extends ClassLoader {
 
     @Override
     protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        Class class2Load = findLoadedClass(name);
-
-        if (class2Load != null) {
-            if (resolve) {
-                resolveClass(class2Load);
-            }
-
-            return class2Load;
+        if (currentSearch.contains(name)) {
+            throw new ClassNotFoundException(name);
         }
 
-        // Loading it locally first
-        // This means "search the shared classloaders first
+        currentSearch.add(name);
+
         try {
-            class2Load = findClass(name);
+            Class class2Load = findLoadedClass(name);
+
             if (class2Load != null) {
                 if (resolve) {
                     resolveClass(class2Load);
@@ -91,23 +87,38 @@ public class DefaultClassLoader extends ClassLoader {
 
                 return class2Load;
             }
-        } catch (ClassNotFoundException cnfe) {
-            // ignore
-        }
 
-        // Send it to the parent classloader
-        try {
-            class2Load = mParentLoader.loadClass(name);
-            if (resolve) {
-                resolveClass(class2Load);
+            // Loading it locally first
+            // This means "search the shared classloaders first
+            try {
+                class2Load = findClass(name);
+                if (class2Load != null) {
+                    if (resolve) {
+                        resolveClass(class2Load);
+                    }
+
+                    return class2Load;
+                }
+            } catch (ClassNotFoundException cnfe) {
+                // ignore
             }
-            return class2Load;
-        } catch (ClassNotFoundException cnfe) {
-            // ignore
-        }
 
-        //  All efforts are in vain - class was not found
-        throw new ClassNotFoundException(name);
+            // Send it to the parent classloader
+            try {
+                class2Load = mParentLoader.loadClass(name);
+                if (resolve) {
+                    resolveClass(class2Load);
+                }
+                return class2Load;
+            } catch (ClassNotFoundException cnfe) {
+                // ignore
+            }
+
+            //  All efforts are in vain - class was not found
+            throw new ClassNotFoundException(name);
+        } finally {
+            currentSearch.remove(name);
+        }
     }
 
     public Class findClass(String name) throws ClassNotFoundException {

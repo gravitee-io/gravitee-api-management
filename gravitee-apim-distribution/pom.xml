@@ -50,7 +50,7 @@
         <gravitee-policy-apikey.version>2.4.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.7.0</gravitee-policy-assign-content.version>
-        <gravitee-policy-cache.version>1.15.0</gravitee-policy-cache.version>
+        <gravitee-policy-cache.version>1.15.1-SNAPSHOT</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>1.15.0</gravitee-policy-callout-http.version>
         <gravitee-policy-dynamic-routing.version>1.11.1</gravitee-policy-dynamic-routing.version>
         <gravitee-policy-generate-http-signature.version>1.1.0</gravitee-policy-generate-http-signature.version>
@@ -545,6 +545,14 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-cache-redis</artifactId>
+            <version>1.1.0-SNAPSHOT</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-oauth2-provider-am</artifactId>
