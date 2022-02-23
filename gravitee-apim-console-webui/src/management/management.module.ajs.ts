@@ -574,6 +574,8 @@ import { OrgSettingsRoleComponent } from '../organization/configuration/roles/ro
 
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
+import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
+import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -948,6 +950,7 @@ graviteeManagementModule.component('applicationHeader', ApplicationHeaderCompone
 graviteeManagementModule.component('applicationGeneral', ApplicationGeneralComponent);
 graviteeManagementModule.component('applicationSubscriptions', ApplicationSubscriptionsComponent);
 graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponent);
+graviteeManagementModule.component('applicationSubscriptionsList', ApplicationSubscriptionsListComponent);
 graviteeManagementModule.component('applicationMembers', ApplicationMembersComponent);
 graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsComponent);
 graviteeManagementModule.component('applicationLogs', ApplicationLogsComponent);
@@ -957,6 +960,7 @@ graviteeManagementModule.controller('ApplicationsController', ApplicationsContro
 graviteeManagementModule.controller('ApplicationGeneralController', ApplicationGeneralController);
 graviteeManagementModule.controller('ApplicationMembersController', ApplicationMembersController);
 graviteeManagementModule.controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController);
+graviteeManagementModule.controller('ApplicationSubscriptionsListController', ApplicationSubscriptionsListController);
 graviteeManagementModule.controller('ApplicationAnalyticsController', ApplicationAnalyticsController);
 graviteeManagementModule.controller('ApplicationLogsController', ApplicationLogsController);
 graviteeManagementModule.controller('DialogTransferApplicationController', DialogTransferApplicationController);

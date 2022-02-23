@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
+import { StateParams, StateService } from '@uirouter/core';
 
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
@@ -29,7 +29,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
     private subscription: any;
     private keys: any[];
     private application: any;
-    private backStateParams: any;
+    private backStateParams: StateParams;
 
     constructor(
       private $mdDialog: angular.material.IDialogService,
@@ -38,14 +38,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
       private $state: StateService,
     ) {
       'ngInject';
-
-      this.backStateParams = {
-        api: $state.params.api,
-        status: $state.params.status,
-        page: $state.params.page,
-        size: $state.params.size,
-        api_key: $state.params.api_key,
-      };
+      this.backStateParams = $state.params;
     }
 
     $onInit() {

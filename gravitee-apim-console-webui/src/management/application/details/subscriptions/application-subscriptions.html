@@ -15,104 +15,70 @@
     limitations under the License.
 
 -->
-<div class="gv-forms gv-forms-fluid" layout="column">
+<div class="application-subscriptions gv-forms gv-forms-fluid" layout="column">
   <application-header application="$ctrl.application"></application-header>
-  <div class="gv-form">
-    <h2>Subscriptions</h2>
-    <div class="gv-form-content" layout="column">
-      <form ng-submit="$ctrl.search()" name="$ctrl.subscriptionsFiltersForm">
-        <div layout-gt-sm="row">
-          <md-input-container class="md-block" flex-gt-sm flex="40">
-            <label>Api</label>
-            <md-select ng-model="$ctrl.query.apis" placeholder="Apis" multiple>
-              <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id"
-                >{{ subscriber.name }} ()
-              </md-option>
-            </md-select>
-          </md-input-container>
-          <md-input-container class="md-block" flex-gt-sm flex="40">
-            <label>Status</label>
-            <md-select ng-model="$ctrl.query.status" placeholder="Status" multiple>
-              <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.status">{{ value }}</md-option>
-            </md-select>
-          </md-input-container>
-          <md-input-container class="md-block" flex-gt-sm flex="20">
-            <label>API key</label>
-            <input ng-model="$ctrl.query.api_key" />
-          </md-input-container>
-          <div>
-            <md-button type="submit" class="md-raised md-primary"> Search </md-button>
-            <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="!$ctrl.hasFilter()"> Clear </md-button>
-          </div>
-        </div>
-      </form>
 
-      <md-table-container ng-if="$ctrl.subscriptions.data.length > 0">
-        <table md-table class="gv-table-dense">
-          <thead md-head>
-            <tr md-row>
-              <th md-column>API</th>
-              <th md-column>Plan</th>
-              <th md-column>Created at</th>
-              <th md-column>Processed at</th>
-              <th md-column>Start at</th>
-              <th md-column>End at</th>
-              <th md-column>Status</th>
-            </tr>
-          </thead>
-          <tbody md-body>
-            <tr md-row ng-repeat="subscription in $ctrl.subscriptions.data track by subscription.id">
-              <td md-cell>
-                <a
-                  style="font-weight: bold"
-                  ui-sref="management.applications.application.subscriptions.subscription({subscriptionId: subscription.id,
-            page: $ctrl.query.page,
-            size: $ctrl.query.size,
-            status: $ctrl.query.status,
-            api: $ctrl.query.apis,
-            api_key: $ctrl.query.api_key})"
-                >
-                  {{$ctrl.subscriptions.metadata[subscription.api].name}}
-                </a>
-              </td>
-              <td md-cell>{{$ctrl.subscriptions.metadata[subscription.plan].name}}</td>
-              <td md-cell>{{subscription.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-              <td md-cell>{{subscription.processed_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-              <td md-cell>{{subscription.starting_at || '-' | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-              <td md-cell>{{subscription.ending_at || '-' | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-              <td md-cell style="text-transform: capitalize">
-                <md-tooltip ng-if="subscription.reason" md-direction="left">{{subscription.reason}}</md-tooltip>
-                {{subscription.status}}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </md-table-container>
-
-      <md-table-pagination
-        ng-if="$ctrl.subscriptions.data.length > 0"
-        md-limit="$ctrl.subscriptions.page.per_page"
-        md-limit-options="[10, 25, 50, 75, 100]"
-        md-page="$ctrl.subscriptions.page.current"
-        md-total="{{$ctrl.subscriptions.page.total_elements}}"
-        md-on-paginate="$ctrl.onPaginate"
-        md-page-select
-      >
-      </md-table-pagination>
-
-      <gravitee-empty-state
-        ng-if="$ctrl.subscriptions.data.length === 0"
-        icon="vpn_key"
-        model="Subscription"
-        message="Application's subscriptions will appear here"
-      ></gravitee-empty-state>
-      <md-button
-        ng-if="$ctrl.subscriptions.data.length === 0"
-        class="md-raised"
-        style="width: 200px; margin: 0 auto"
-        ui-sref="management.applications.application.subscriptions.subscribe"
-        >Start playing with APIs</md-button
-      >
+  <form ng-submit="$ctrl.doFilter()" name="$ctrl.subscriptionsFiltersForm">
+    <div layout-gt-sm="row">
+      <md-input-container class="md-block" flex-gt-sm flex="40">
+        <label>Api</label>
+        <md-select ng-model="$ctrl.filter.apis" placeholder="Apis" multiple>
+          <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id"
+            >{{ subscriber.name }}
+          </md-option>
+        </md-select>
+      </md-input-container>
+      <md-input-container class="md-block" flex-gt-sm flex="40">
+        <label>Status</label>
+        <md-select ng-model="$ctrl.filter.status" placeholder="Status" multiple>
+          <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.status">{{ value }}</md-option>
+        </md-select>
+      </md-input-container>
+      <md-input-container class="md-block" flex-gt-sm flex="20">
+        <label>API key</label>
+        <input ng-model="$ctrl.filter.apiKey" />
+      </md-input-container>
+      <div>
+        <md-button type="submit" class="md-raised md-primary"> Search </md-button>
+        <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilter()" ng-disabled="!$ctrl.hasFilter()"> Clear </md-button>
+      </div>
     </div>
+  </form>
+
+  <div ng-if="$ctrl.application.api_key_mode !== 'SHARED'">
+    <application-subscriptions-list
+      list-label="'Subscriptions'"
+      application="$ctrl.application"
+      subscribers="$ctrl.subscribers"
+      filter-event="$ctrl.$filterEvent"
+      subscriptions="$ctrl.exclusiveSubscriptions"
+    ></application-subscriptions-list>
+  </div>
+
+  <div ng-if="$ctrl.application.api_key_mode === 'SHARED'">
+    <application-subscriptions-list
+      list-label="'Subscriptions'"
+      application="$ctrl.application"
+      subscribers="$ctrl.subscribers"
+      filter-event="$ctrl.$filterEvent"
+      subscriptions="$ctrl.exclusiveSubscriptions"
+      security-types="['OAUTH2','JWT']"
+    ></application-subscriptions-list>
+    <application-subscriptions-list
+      list-label="'Subscriptions using shared API Key'"
+      application="$ctrl.application"
+      subscribers="$ctrl.subscribers"
+      filter-event="$ctrl.$filterEvent"
+      security-types="['API_KEY']"
+      subscriptions="$ctrl.sharedSubscriptions"
+      query-params-prefix="'shared_'"
+    ></application-subscriptions-list>
+  </div>
+
+  <div class="empty-list" ng-if="$ctrl.exclusiveSubscriptions.data.length === 0 && $ctrl.sharedSubscriptions.data.length === 0">
+    <gravitee-empty-state icon="vpn_key" model="Subscription" message="Application's subscriptions will appear here"></gravitee-empty-state>
+    <md-button class="subscribe-button md-raised" ui-sref="management.applications.application.subscriptions.subscribe"
+      >Start playing with APIs</md-button
+    >
   </div>
 </div>

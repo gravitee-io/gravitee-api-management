@@ -1,0 +1,20 @@
+.application-subscriptions {
+  .empty-list {
+    text-align: center;
+
+    .subscribe-button {
+      width: 200px;
+      margin: 0 auto;
+    }
+  }
+
+  .application-subscriptions-list {
+    .api-link {
+      font-weight: bold;
+    }
+
+    .status-cell {
+      text-transform: capitalize;
+    }
+  }
+}
