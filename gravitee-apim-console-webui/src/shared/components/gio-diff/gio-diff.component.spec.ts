@@ -13,26 +13,92 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GioDiffComponent } from './gio-diff.component';
+import { GioDiffHarness } from './gio-diff.harness';
 import { GioDiffModule } from './gio-diff.module';
 
-describe('GioDiffComponent', () => {
-  let component: GioDiffComponent;
-  let fixture: ComponentFixture<GioDiffComponent>;
+@Component({
+  template: `<gio-diff [left]="left" [right]="right"></gio-diff>`,
+})
+class TestComponent {
+  left = '';
+  right = '';
+}
 
-  beforeEach(() => {
+describe('GioDiffComponent', () => {
+  let component: TestComponent;
+  let fixture: ComponentFixture<TestComponent>;
+  let loader: HarnessLoader;
+
+  beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [GioDiffModule],
+      declarations: [TestComponent],
       providers: [],
     });
-    fixture = TestBed.createComponent(GioDiffComponent);
+    fixture = TestBed.createComponent(TestComponent);
+  });
+  beforeEach(() => {
+    loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('should init correctly', () => {
-    expect(component).toBeTruthy();
+  describe('with diff between left and right', () => {
+    beforeEach(() => {
+      component.left = JSON.stringify(
+        {
+          name: 'Yann',
+          age: 30,
+          animals: null,
+        },
+        undefined,
+        4,
+      );
+      component.right = JSON.stringify(
+        {
+          name: 'Yann',
+          age: 31,
+          animals: ['🐩'],
+        },
+        undefined,
+        4,
+      );
+    });
+
+    it('should switch between side-by-side(default) -> row -> line-by-line format', async () => {
+      expect(component).toBeTruthy();
+
+      const gioDiff = await loader.getHarness(GioDiffHarness);
+      expect(await gioDiff.hasNoDiffToDisplay()).toEqual(false);
+
+      expect(await gioDiff.getOutputFormat()).toEqual('side-by-side');
+
+      await gioDiff.selectOutputFormat('row');
+      expect(await gioDiff.getOutputFormat()).toEqual('row');
+
+      await gioDiff.selectOutputFormat('line-by-line');
+      expect(await gioDiff.getOutputFormat()).toEqual('line-by-line');
+    });
+  });
+
+  describe('without diff between left and right', () => {
+    it('should force row format and display only one gv-code', async () => {
+      expect(component).toBeTruthy();
+
+      const gioDiff = await loader.getHarness(GioDiffHarness);
+
+      expect(await gioDiff.getOutputFormat()).toEqual('row');
+
+      // Keep row format because line-by-line & side-by-side are disabled
+      await gioDiff.selectOutputFormat('line-by-line');
+      await gioDiff.selectOutputFormat('side-by-side');
+      expect(await gioDiff.getOutputFormat()).toEqual('row');
+
+      expect(await gioDiff.hasNoDiffToDisplay()).toEqual(true);
+    });
   });
 });
