@@ -33,7 +33,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
-@ExtendWith(VertxExtension.class)
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
 

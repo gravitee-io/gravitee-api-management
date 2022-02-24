@@ -37,7 +37,6 @@ import org.junit.rules.TestRule;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ExtendWith(VertxExtension.class)
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketPingFrameTest extends AbstractWebSocketGatewayTest {
 
@@ -59,6 +58,8 @@ public class WebsocketPingFrameTest extends AbstractWebSocketGatewayTest {
                             if (frame.isPing()) {
                                 Assert.assertEquals("PING", frame.textData());
                                 testContext.completeNow();
+                            } else {
+                                testContext.failNow("The frame is not a text frame");
                             }
                         }
                     );

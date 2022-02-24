@@ -36,7 +36,6 @@ import org.junit.rules.TestRule;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ExtendWith(VertxExtension.class)
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketBidirectionalTest extends AbstractWebSocketGatewayTest {
 
@@ -58,6 +57,8 @@ public class WebsocketBidirectionalTest extends AbstractWebSocketGatewayTest {
                             if (frame.isText()) {
                                 Assert.assertEquals("PONG", frame.textData());
                                 testContext.completeNow();
+                            } else {
+                                testContext.failNow("The frame is not a text frame");
                             }
                         }
                     );

@@ -22,13 +22,11 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.WebSocket;
-import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
@@ -36,7 +34,6 @@ import org.junit.rules.TestRule;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ExtendWith(VertxExtension.class)
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
 
@@ -73,6 +70,8 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
                             if (frame.isText()) {
                                 Assert.assertEquals("PING", frame.textData());
                                 testContext.completeNow();
+                            } else {
+                                testContext.failNow("The frame is not a text frame");
                             }
                         }
                     );
