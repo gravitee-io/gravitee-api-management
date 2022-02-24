@@ -27,14 +27,18 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import java.util.Collections;
 import org.junit.BeforeClass;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderInterceptor {
+public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderInterceptor, ApplicationContextAware {
 
     protected Api api;
+    protected ApplicationContext context;
 
     @BeforeClass
     public static void init() {
@@ -71,6 +75,11 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderIn
         plan.setSecurity("key_less");
 
         api.setPlans(Collections.singletonList(plan));
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.context = applicationContext;
     }
 
     @Override
