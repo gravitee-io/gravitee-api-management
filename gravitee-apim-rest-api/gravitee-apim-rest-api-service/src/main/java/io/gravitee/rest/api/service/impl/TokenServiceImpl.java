@@ -17,6 +17,9 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.TOKEN;
 import static io.gravitee.repository.management.model.Token.AuditEvent.*;
+import static java.util.Collections.reverseOrder;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.utils.UUID;
@@ -126,17 +129,17 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     public Token findByToken(String token) {
         try {
             LOGGER.debug("Find token entity by token value");
-            final Optional<Token> optionalToken = tokenRepository
+
+            Token matchingToken = tokenRepository
                 .findAll()
                 .stream()
+                .sorted(comparing(Token::getLastUseAt, nullsLast(reverseOrder())))
                 .filter(t -> passwordEncoder.matches(token, t.getToken()))
-                .findAny();
-            if (optionalToken.isPresent()) {
-                final Token t = optionalToken.get();
-                t.setLastUseAt(new Date());
-                return tokenRepository.update(t);
-            }
-            throw new IllegalStateException("Token not found");
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Token not found"));
+
+            matchingToken.setLastUseAt(new Date());
+            return tokenRepository.update(matchingToken);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find token entity for a given token value";
             LOGGER.error(error, ex);
