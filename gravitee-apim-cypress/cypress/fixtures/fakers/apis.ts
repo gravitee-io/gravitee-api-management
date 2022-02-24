@@ -92,4 +92,11 @@ export class ApiFakers {
     const fakePlan = ApiImportFakers.plan({ security: PlanSecurityType.KEY_LESS, flows: [fakeOauth2Flow] });
     return ApiImportFakers.api({ plans: [fakePlan], resources: [fakeOauth2Resource] });
   }
+
+  static jwtApi(jwtConfig?: any): ApiImport {
+    const fakeJwtPolicy = PolicyFakers.jwtPolicy({ configuration: jwtConfig });
+    const fakeJwtFlow = ApiImportFakers.flow({ pre: [fakeJwtPolicy] });
+    const fakePlan = ApiImportFakers.plan({ security: PlanSecurityType.KEY_LESS, flows: [fakeJwtFlow] });
+    return ApiImportFakers.api({ plans: [fakePlan] });
+  }
 }

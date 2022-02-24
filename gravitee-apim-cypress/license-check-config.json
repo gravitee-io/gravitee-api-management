@@ -32,7 +32,8 @@
     "package-json.lock",
     ".tmp/**",
     ".vscode/**",
-    "**/*.spec.ts.snap"
+    "**/*.spec.ts.snap",
+    "cypress/fixtures/keys/**"
   ],
   "license": "LICENSE_TEMPLATE.txt",
   "licenseFormats": {

@@ -17,6 +17,7 @@
 import './common/tools.commands';
 import './common/http.commands';
 import './common/ui.commands';
+import './common/api.commands';
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')

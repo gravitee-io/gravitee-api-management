@@ -151,6 +151,16 @@ context('Testing OAuth2 policy', () => {
       });
   });
 
+  after(() => {
+    cy.teardownApi(noScopeApi);
+    cy.teardownApi(oneScopeApi);
+    cy.teardownApi(expiredTokenApi);
+    am_deleteApplication(am_apiToken, am_domainId, am_noScopeApplication.id);
+    am_deleteApplication(am_apiToken, am_domainId, am_oneScopeApplication.id);
+    am_deleteApplication(am_apiToken, am_domainId, am_expiredTokenApplication.id);
+    am_deleteDomain(am_apiToken, am_domainId);
+  });
+
   describe('General access token tests', () => {
     before(() => {
       requestGateway({
@@ -169,7 +179,6 @@ context('Testing OAuth2 policy', () => {
 
     it('should successfully call API endpoint when using access token', () => {
       requestGateway({
-        method: 'GET',
         url: `${Cypress.env('gatewayServer')}${noScopeApi.context_path}`,
         auth: { bearer: noScopeToken },
       }).should((response: Cypress.Response<any>) => {
@@ -181,7 +190,6 @@ context('Testing OAuth2 policy', () => {
     it('should fail to call API endpoint without using access token', () => {
       requestGateway(
         {
-          method: 'GET',
           url: `${Cypress.env('gatewayServer')}${noScopeApi.context_path}`,
         },
         {
@@ -199,7 +207,6 @@ context('Testing OAuth2 policy', () => {
     it('should fail to call API endpoint using an invalid access token', () => {
       requestGateway(
         {
-          method: 'GET',
           url: `${Cypress.env('gatewayServer')}${noScopeApi.context_path}`,
           auth: { bearer: 'invalid_token' },
         },
@@ -240,7 +247,6 @@ context('Testing OAuth2 policy', () => {
 
     it('should successfully call API when access token contains a scope that is not required in APIM (non-strict)', () => {
       requestGateway({
-        method: 'GET',
         url: `${Cypress.env('gatewayServer')}${noScopeApi.context_path}`,
         auth: { bearer: tokenWithScope },
       }).should((response: Cypress.Response<any>) => {
@@ -251,7 +257,6 @@ context('Testing OAuth2 policy', () => {
 
     it('should successfully call API when scope of access token matches the configured scopes in APIM (strict mode)', () => {
       requestGateway({
-        method: 'GET',
         url: `${Cypress.env('gatewayServer')}${oneScopeApi.context_path}`,
         auth: { bearer: tokenWithScope },
       }).should((response: Cypress.Response<any>) => {
@@ -263,7 +268,6 @@ context('Testing OAuth2 policy', () => {
     it("should fail to call API when scope of access token doesn't contain scope that is configured in APIM (strict mode)", () => {
       requestGateway(
         {
-          method: 'GET',
           url: `${Cypress.env('gatewayServer')}${oneScopeApi.context_path}`,
           auth: { bearer: noScopeToken },
         },
@@ -308,7 +312,6 @@ context('Testing OAuth2 policy', () => {
     it('should fail to call API endpoint with an expired JWT access token', () => {
       requestGateway(
         {
-          method: 'GET',
           url: `${Cypress.env('gatewayServer')}${expiredTokenApi.context_path}`,
           auth: { bearer: expiredToken },
         },
@@ -321,25 +324,5 @@ context('Testing OAuth2 policy', () => {
         expect(response.body).to.have.property('error', 'Invalid Access Token');
       });
     });
-  });
-
-  after(() => {
-    am_deleteApplication(am_apiToken, am_domainId, am_noScopeApplication.id);
-    am_deleteApplication(am_apiToken, am_domainId, am_oneScopeApplication.id);
-    am_deleteApplication(am_apiToken, am_domainId, am_expiredTokenApplication.id);
-
-    am_deleteDomain(am_apiToken, am_domainId);
-
-    closePlan(API_PUBLISHER_USER, noScopeApi.id, noScopeApi.plans[0].id).ok();
-    closePlan(API_PUBLISHER_USER, oneScopeApi.id, oneScopeApi.plans[0].id).ok();
-    closePlan(API_PUBLISHER_USER, expiredTokenApi.id, expiredTokenApi.plans[0].id).ok();
-
-    stopApi(API_PUBLISHER_USER, noScopeApi.id).noContent();
-    stopApi(API_PUBLISHER_USER, oneScopeApi.id).noContent();
-    stopApi(API_PUBLISHER_USER, expiredTokenApi.id).noContent();
-
-    deleteApi(API_PUBLISHER_USER, noScopeApi.id).noContent();
-    deleteApi(API_PUBLISHER_USER, oneScopeApi.id).noContent();
-    deleteApi(API_PUBLISHER_USER, expiredTokenApi.id).noContent();
   });
 });
