@@ -16,24 +16,26 @@
 import { Step } from '@model/plan';
 
 export class PolicyFakers {
-  static jwtPolicy(secret: string, attributes?: Partial<Step>): Step {
-    return {
-      name: 'JSON Web Tokens',
-      policy: 'jwt',
-      description: 'This policy was created by a Cypress test',
-      condition: '',
-      enabled: true,
-      configuration: {
-        propagateAuthHeader: true,
-        signature: 'HMAC_HS256',
-        resolverParameter: secret,
-        publicKeyResolver: 'GIVEN_KEY',
-        useSystemProxy: false,
-        extractClaims: false,
-        userClaim: 'sub',
+  static jwtPolicy(jwtPolicyConfig?: Partial<Step>): Step {
+    return Cypress._.merge(
+      {
+        name: 'JSON Web Tokens',
+        policy: 'jwt',
+        description: 'This policy was created by a Cypress test',
+        condition: '',
+        enabled: true,
+        configuration: {
+          propagateAuthHeader: true,
+          signature: 'HMAC_HS256',
+          resolverParameter: 'secretKey123',
+          publicKeyResolver: 'GIVEN_KEY',
+          useSystemProxy: false,
+          extractClaims: false,
+          userClaim: 'sub',
+        },
       },
-      ...attributes,
-    };
+      jwtPolicyConfig,
+    );
   }
 
   static oauth2Policy(oauthResource: string, attributes?: Partial<Step>): Step {

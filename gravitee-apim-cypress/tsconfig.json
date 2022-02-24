@@ -6,6 +6,7 @@
     "baseUrl": "./cypress",
     "paths": {
       "@fakers/*": ["fixtures/fakers/*"],
+      "@keys/*": ["fixtures/keys/*"],
       "@model/*": ["model/*"],
       "@commands/*": ["commands/*"]
     }

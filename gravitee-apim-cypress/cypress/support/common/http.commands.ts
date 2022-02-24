@@ -135,6 +135,7 @@ export function requestGateway(
     validWhen: (response) => {
       return response.status === 200;
     },
+    method: 'GET',
     ...options,
   };
   request = <Cypress.RequestOptions>{
