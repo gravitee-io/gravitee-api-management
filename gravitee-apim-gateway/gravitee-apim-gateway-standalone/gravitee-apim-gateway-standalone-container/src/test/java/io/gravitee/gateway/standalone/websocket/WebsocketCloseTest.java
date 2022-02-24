@@ -37,7 +37,6 @@ import org.junit.rules.TestRule;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ExtendWith(VertxExtension.class)
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
 
