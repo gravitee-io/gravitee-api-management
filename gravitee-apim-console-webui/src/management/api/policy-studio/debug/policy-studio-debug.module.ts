@@ -40,6 +40,8 @@ import { PolicyStudioDebugTimelineLegendComponent } from './components/policy-st
 import { PolicyStudioDebugInspectorTextComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
 import { PolicyStudioDebugTimelineOverviewComponent } from './components/policy-studio-debug-timeline-overview/policy-studio-debug-timeline-overview.component';
 
+import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -56,6 +58,7 @@ import { PolicyStudioDebugTimelineOverviewComponent } from './components/policy-
     MatTooltipModule,
 
     GioIconsModule,
+    GioDiffModule,
   ],
   declarations: [
     PolicyStudioDebugComponent,
