@@ -16,8 +16,6 @@
 
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 
-import '@gravitee/ui-components/wc/gv-code';
-
 @Component({
   selector: 'policy-studio-debug-inspector-body',
   template: require('./policy-studio-debug-inspector-body.component.html'),
@@ -32,16 +30,6 @@ export class PolicyStudioDebugInspectorBodyComponent implements OnChanges {
 
   formattedInput: string;
   formattedOutput: string;
-
-  inputFormatOptions = {
-    lineWrapping: true,
-    lineNumbers: true,
-  };
-
-  outputFormatOptions = {
-    lineWrapping: true,
-    lineNumbers: true,
-  };
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.input) {
