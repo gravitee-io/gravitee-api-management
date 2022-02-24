@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FormsModule } from '@angular/forms';
 import { moduleMetadata } from '@storybook/angular';
 import { Story, Meta } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
@@ -24,13 +25,40 @@ export default {
   component: GioDiffComponent,
   decorators: [
     moduleMetadata({
-      imports: [GioDiffModule],
+      imports: [FormsModule, GioDiffModule],
     }),
   ],
-  argTypes: {},
-  render: () => ({
-    props: {},
+  render: ({ leftContent, rightContent }) => ({
+    template: `
+      <div style="display: flex;justify-content: space-around;">
+        <textarea style="flex: 1 1 auto; margin: 16px;" rows="13" [(ngModel)]="leftContent"></textarea>
+        <textarea style="flex: 1 1 auto; margin: 16px;" rows="13" [(ngModel)]="rightContent"></textarea>
+      </div>
+      <gio-diff [left]="leftContent" [right]="rightContent"></gio-diff>
+    `,
+    props: { leftContent, rightContent },
   }),
 } as Meta;
 
-export const Default: Story = {};
+export const Default: Story = {
+  args: {
+    leftContent: JSON.stringify(
+      {
+        name: 'Yann',
+        age: 30,
+        animals: null,
+      },
+      undefined,
+      4,
+    ),
+    rightContent: JSON.stringify(
+      {
+        name: 'Yann',
+        age: 31,
+        animals: ['🐩'],
+      },
+      undefined,
+      4,
+    ),
+  },
+};

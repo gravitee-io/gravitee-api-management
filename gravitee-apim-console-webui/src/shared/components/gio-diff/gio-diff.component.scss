@@ -1,0 +1,47 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@import '../../../../node_modules/diff2html/bundles/css/diff2html.min.css';
+
+// ⚠️ !! Encapsulation disabled for this file
+gio-diff {
+  // Remove header bar added by diff2html
+  .d2h-file-header {
+    display: none;
+  }
+
+  .gio-diff {
+    background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'lighter-background');
+
+    &__header {
+      display: flex;
+      flex-direction: row;
+
+      border-top: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+      align-items: center;
+      padding: 8px;
+
+      &__output-format {
+        display: flex;
+        align-items: center;
+        height: 36px;
+      }
+    }
+
+    &__content {
+      background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+      &__row {
+        display: flex;
+
+        &__gv-code {
+          flex: 1 1 50%;
+          max-height: 300px;
+          overflow: auto;
+
+          &.single {
+            flex: 1 1 auto;
+          }
+        }
+      }
+    }
+  }
+}

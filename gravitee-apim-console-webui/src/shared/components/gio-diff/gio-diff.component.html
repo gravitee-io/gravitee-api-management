@@ -15,4 +15,32 @@
     limitations under the License.
 
 -->
-🚧
+<div class="gio-diff">
+  <div class="gio-diff__header">
+    <mat-button-toggle-group
+      class="gio-diff__header__output-format"
+      [(ngModel)]="outputFormat"
+      (ngModelChange)="computeDiff()"
+      aria-label="Output format button group"
+    >
+      <mat-button-toggle value="row">Row</mat-button-toggle>
+      <mat-button-toggle [disabled]="!hasChanges" value="side-by-side">Diff Side By Side</mat-button-toggle>
+      <mat-button-toggle [disabled]="!hasChanges" value="line-by-lin">Diff Line By Line</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <div class="gio-diff__content">
+    <div *ngIf="outputFormat !== 'row'" [innerHtml]="diffHTML"></div>
+
+    <div *ngIf="outputFormat === 'row'" class="gio-diff__content__row">
+      <gv-code
+        class="gio-diff__content__row__gv-code"
+        [class.single]="!hasChanges"
+        [value]="left"
+        [options]="gvCodeOptions"
+        readonly
+      ></gv-code>
+      <gv-code *ngIf="hasChanges" class="gio-diff__content__row__gv-code" [value]="right" [options]="gvCodeOptions" readonly></gv-code>
+    </div>
+  </div>
+</div>

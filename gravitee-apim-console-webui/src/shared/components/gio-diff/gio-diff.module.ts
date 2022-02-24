@@ -15,11 +15,13 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { GioDiffComponent } from './gio-diff.component';
 
 @NgModule({
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, MatButtonToggleModule],
   declarations: [GioDiffComponent],
   exports: [GioDiffComponent],
   entryComponents: [GioDiffComponent],
