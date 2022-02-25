@@ -28,7 +28,7 @@
 
     <groupId>io.gravitee.apim</groupId>
     <artifactId>gravitee-api-management</artifactId>
-    <version>3.10.11-SNAPSHOT</version>
+    <version>3.10.11</version>
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM</name>
@@ -58,7 +58,7 @@
         <vertx.version>4.1.3</vertx.version>
         <!-- Gravitee dependencies version -->
         <gravitee-bom.version>1.4</gravitee-bom.version>
-        <gravitee-alert-api.version>1.9.0-SNAPSHOT</gravitee-alert-api.version>
+        <gravitee-alert-api.version>1.9.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.7.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.20.5</gravitee-common.version>
         <gravitee-definition.version>1.28.2</gravitee-definition.version>
@@ -66,7 +66,7 @@
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.27.3</gravitee-gateway-api.version>
         <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
-        <gravitee-node.version>1.16.5-SNAPSHOT</gravitee-node.version>
+        <gravitee-node.version>1.16.5</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
         <gravitee-plugin.version>1.18.0</gravitee-plugin.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
