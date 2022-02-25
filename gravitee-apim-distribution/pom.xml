@@ -65,7 +65,7 @@
         <gravitee-policy-jwt.version>1.20.0</gravitee-policy-jwt.version>
         <gravitee-policy-keyless.version>1.4.0</gravitee-policy-keyless.version>
         <gravitee-policy-latency.version>1.4.0</gravitee-policy-latency.version>
-        <gravitee-policy-metrics-reporter.version>1.1.0</gravitee-policy-metrics-reporter.version>
+        <gravitee-policy-metrics-reporter.version>1.1.1</gravitee-policy-metrics-reporter.version>
         <gravitee-policy-mock.version>1.12.0</gravitee-policy-mock.version>
         <gravitee-policy-oauth2.version>1.18.0</gravitee-policy-oauth2.version>
         <gravitee-policy-openid-connect-userinfo.version>1.4.0</gravitee-policy-openid-connect-userinfo.version>
