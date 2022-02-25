@@ -19,7 +19,9 @@
   class="policy-studio-debug-timeline-card"
   [class.color-green]="timelineCardVM.color === 'green'"
   [class.color-blue]="timelineCardVM.color === 'blue'"
-  [class.selected]="timelineCardVM.selected"
+  [class.selected-start]="timelineCardVM.selection === 'start'"
+  [class.selected-content]="timelineCardVM.selection === 'content'"
+  [class.selected-end]="timelineCardVM.selection === 'end'"
   [class.clickable]="timelineCardVM.clickable"
 >
   <div class="policy-studio-debug-timeline-card__left">

@@ -62,7 +62,7 @@ export const ClientApp: Story = {
   args: {
     timelineSteps: [
       {
-        mode: 'CLIENT_APP',
+        mode: 'CLIENT_APP_REQUEST',
       },
       {
         mode: 'REQUEST_INPUT',
@@ -92,6 +92,9 @@ export const ClientApp: Story = {
       },
       {
         mode: 'RESPONSE_OUTPUT',
+      },
+      {
+        mode: 'CLIENT_APP_RESPONSE',
       },
     ] as TimelineStep[],
   },

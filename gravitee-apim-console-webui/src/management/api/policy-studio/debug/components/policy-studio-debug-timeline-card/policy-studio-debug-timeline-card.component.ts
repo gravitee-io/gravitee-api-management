@@ -19,7 +19,7 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 export type TimelineStep = (
   | {
-      mode: 'CLIENT_APP';
+      mode: 'CLIENT_APP_REQUEST';
     }
   | {
       mode: 'BACKEND_TARGET';
@@ -45,7 +45,10 @@ export type TimelineStep = (
   | {
       mode: 'RESPONSE_OUTPUT';
     }
-) & { id: string; selected: boolean };
+  | {
+      mode: 'CLIENT_APP_RESPONSE';
+    }
+) & { id: string; selection: 'start' | 'content' | 'end' | 'none' };
 
 interface TimelineCardVM {
   icon?: string;
@@ -57,7 +60,7 @@ interface TimelineCardVM {
   rightIcon?: string;
   id?: string;
   clickable: boolean;
-  selected: boolean;
+  selection: 'start' | 'content' | 'end' | 'none';
 }
 
 @Component({
@@ -71,7 +74,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
 
   public timelineCardVM: TimelineCardVM = {
     clickable: false,
-    selected: false,
+    selection: 'none',
   };
 
   constructor(private readonly sanitizer: DomSanitizer) {}
@@ -85,13 +88,14 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
 
   private toTimelineCardVM(timelineStep: TimelineStep): TimelineCardVM {
     switch (timelineStep.mode) {
-      case 'CLIENT_APP':
+      case 'CLIENT_APP_REQUEST':
+      case 'CLIENT_APP_RESPONSE':
         return {
           icon: 'gio:smartphone-device',
           title: 'Client APP',
           color: 'green',
           clickable: true,
-          selected: timelineStep.selected,
+          selection: timelineStep.selection,
         };
       case 'BACKEND_TARGET':
         return {
@@ -99,7 +103,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Backend Target',
           color: 'green',
           clickable: false,
-          selected: timelineStep.selected,
+          selection: timelineStep.selection,
         };
       case 'REQUEST_INPUT':
         return {
@@ -107,7 +111,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Request Input',
           color: 'blue',
           clickable: true,
-          selected: timelineStep.selected,
+          selection: timelineStep.selection,
         };
       case 'REQUEST_OUTPUT':
         return {
@@ -115,7 +119,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Request Output',
           color: 'blue',
           clickable: true,
-          selected: timelineStep.selected,
+          selection: timelineStep.selection,
         };
       case 'POLICY_REQUEST':
       case 'POLICY_RESPONSE':
@@ -133,7 +137,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
               : undefined,
           id: timelineStep.id,
           clickable: timelineStep.executionStatus !== 'SKIPPED',
-          selected: timelineStep.selected,
+          selection: timelineStep.selection,
         };
       case 'RESPONSE_INPUT':
         return {
@@ -141,7 +145,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Response Input',
           color: 'blue',
           clickable: true,
-          selected: timelineStep.selected,
+          selection: timelineStep.selection,
         };
       case 'RESPONSE_OUTPUT':
         return {
@@ -149,7 +153,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           title: 'Response Output',
           color: 'blue',
           clickable: true,
-          selected: timelineStep.selected,
+          selection: timelineStep.selection,
         };
     }
   }
