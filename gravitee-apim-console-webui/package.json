@@ -1,6 +1,6 @@
 {
   "name": "gravitee-apim-console-webui",
-  "version": "3.5.29",
+  "version": "3.5.30",
   "description": "Gravitee.io APIM - UI Console",
   "dependencies": {
     "@gravitee/ui-components": "3.28.5",
