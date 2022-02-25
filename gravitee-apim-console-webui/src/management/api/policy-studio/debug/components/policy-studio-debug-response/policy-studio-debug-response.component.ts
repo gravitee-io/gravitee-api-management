@@ -82,7 +82,8 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         this.onSelectInputOutput(timelineStep, 'RESPONSE');
         break;
 
-      case 'CLIENT_APP':
+      case 'CLIENT_APP_REQUEST':
+      case 'CLIENT_APP_RESPONSE':
         this.onSelectClientApp();
         break;
 
@@ -102,13 +103,13 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
     const timelineSteps: TimelineStep[] = [
       {
         id: 'requestClientApp',
-        mode: 'CLIENT_APP',
-        selected: false,
+        mode: 'CLIENT_APP_REQUEST',
+        selection: 'none',
       },
       {
         id: 'requestInput',
         mode: 'REQUEST_INPUT',
-        selected: false,
+        selection: 'none',
       },
       ...debugResponse.requestPolicyDebugSteps.map((debugStep) => {
         const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
@@ -121,23 +122,23 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
           icon: policy?.icon,
           flowName: policyScopeToDisplayableLabel(debugStep.scope),
           id: debugStep.id,
-          selected: false,
+          selection: 'none' as const,
         };
       }),
       {
         id: 'requestOutput',
         mode: 'REQUEST_OUTPUT',
-        selected: false,
+        selection: 'none',
       },
       {
         id: 'backendTarget',
         mode: 'BACKEND_TARGET',
-        selected: false,
+        selection: 'none',
       },
       {
         id: 'responseInput',
         mode: 'RESPONSE_INPUT',
-        selected: false,
+        selection: 'none',
       },
       ...debugResponse.responsePolicyDebugSteps.map((debugStep) => {
         const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
@@ -150,18 +151,18 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
           icon: policy?.icon,
           flowName: policyScopeToDisplayableLabel(debugStep.scope),
           id: debugStep.id,
-          selected: false,
+          selection: 'none' as const,
         };
       }),
       {
         id: 'responseOutput',
         mode: 'RESPONSE_OUTPUT',
-        selected: false,
+        selection: 'none',
       },
       {
         id: 'responseClientApp',
-        mode: 'CLIENT_APP',
-        selected: false,
+        mode: 'CLIENT_APP_RESPONSE',
+        selection: 'none',
       },
     ];
     return timelineSteps;
@@ -187,17 +188,28 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
     this.responseDisplayableVM = {
       ...this.responseDisplayableVM,
-      timelineSteps: this.responseDisplayableVM.timelineSteps.map((step) => ({ ...step, selected: step.id === timelineStep.id })),
+      timelineSteps: this.responseDisplayableVM.timelineSteps.map(
+        (step) => ({ ...step, selection: step.id === timelineStep.id ? 'start' : 'none' } as TimelineStep),
+      ),
     };
   }
 
   private onSelectInputOutput(_timelineStep: TimelineStep, policyMode: 'REQUEST' | 'RESPONSE') {
+    const modeSelectionResolver = {
+      [`${policyMode}_INPUT`]: 'start',
+      [`POLICY_${policyMode}`]: 'content',
+      [`${policyMode}_OUTPUT`]: 'end',
+    };
+
     this.responseDisplayableVM = {
       ...this.responseDisplayableVM,
-      timelineSteps: this.responseDisplayableVM.timelineSteps.map((step) => ({
-        ...step,
-        selected: [`POLICY_${policyMode}`, `${policyMode}_OUTPUT`, `${policyMode}_INPUT`].includes(step.mode) && !isPolicySkippedStep(step),
-      })),
+      timelineSteps: this.responseDisplayableVM.timelineSteps.map(
+        (step) =>
+          ({
+            ...step,
+            selection: isPolicySkippedStep(step) ? 'none' : modeSelectionResolver[step.mode] ?? 'none',
+          } as TimelineStep),
+      ),
     };
 
     if (policyMode === 'REQUEST') {
@@ -208,12 +220,20 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   }
 
   private onSelectClientApp() {
+    const modeSelectionResolver = {
+      [`CLIENT_APP_REQUEST`]: 'start',
+      [`CLIENT_APP_RESPONSE`]: 'end',
+    };
+
     this.responseDisplayableVM = {
       ...this.responseDisplayableVM,
-      timelineSteps: this.responseDisplayableVM.timelineSteps.map((t) => ({
-        ...t,
-        selected: !isPolicySkippedStep(t),
-      })),
+      timelineSteps: this.responseDisplayableVM.timelineSteps.map(
+        (step) =>
+          ({
+            ...step,
+            selection: isPolicySkippedStep(step) ? 'none' : modeSelectionResolver[step.mode] ?? 'content',
+          } as TimelineStep),
+      ),
     };
 
     this.inspectorVM = { input: this.debugResponse.requestDebugSteps.input, output: this.debugResponse.responseDebugSteps.output };

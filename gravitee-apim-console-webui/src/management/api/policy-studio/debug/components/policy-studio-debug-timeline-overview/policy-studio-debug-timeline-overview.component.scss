@@ -55,7 +55,9 @@ $typography: map.get(gio.$mat-theme, typography);
         color: transparent;
       }
 
-      &.selected::before {
+      &.selected-start::before,
+      &.selected-content::before,
+      &.selected-end::before {
         color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
       }
     }
