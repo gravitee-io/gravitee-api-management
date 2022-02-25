@@ -27,7 +27,6 @@
         <version>3.10.11-SNAPSHOT</version>
     </parent>
 
-
     <artifactId>gravitee-apim-gateway-env</artifactId>
     <name>Gravitee.io APIM - Gateway - Environment</name>
 
