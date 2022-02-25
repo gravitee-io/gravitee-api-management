@@ -176,6 +176,29 @@ describe('PolicyStudioDebugComponent', () => {
       const expectedDebugStepAttributes = fakeDebugEvent().payload.debugSteps[1].result.attributes as Record<string, unknown>;
       expect(inspectorContent).toContain(expectedDebugStepAttributes.dev);
     });
+
+    it('should clear inspector selection after new request', fakeAsync(async () => {
+      const getInspectorContent = () =>
+        fixture.nativeElement.querySelector('.policy-studio-debug-response__display-response__inspector')?.textContent ?? null;
+
+      // Select card and expect inspector content
+      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
+        .find((card) => card.textContent.includes('Header  policy-assign-attributes'))
+        .click();
+      fixture.detectChanges();
+      expect(getInspectorContent()).not.toEqual(null);
+
+      // Send new debug request and expect empty inspector content
+      const sendButton = await loader.getHarness(MatButtonHarness.with({ text: 'Send' }));
+      await sendButton.click();
+      tick();
+      expectSendDebugEvent(EVENT_ID);
+      tick(1000);
+      expectGetDebugEvent(EVENT_ID, true);
+      fixture.detectChanges();
+
+      expect(getInspectorContent()).toEqual(null);
+    }));
   });
 
   function expectSendDebugEvent(eventId: string) {
