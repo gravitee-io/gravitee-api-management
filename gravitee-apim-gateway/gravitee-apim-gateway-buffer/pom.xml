@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.apim.gateway</groupId>
         <artifactId>gravitee-apim-gateway</artifactId>
-        <version>3.5.30</version>
+        <version>3.5.31-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-apim-gateway-buffer</artifactId>
