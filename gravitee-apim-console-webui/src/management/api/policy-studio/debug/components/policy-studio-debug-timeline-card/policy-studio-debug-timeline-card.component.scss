@@ -33,6 +33,7 @@ $cardIconWidth: 32px;
     cursor: pointer;
   }
 
+  &.selected-single,
   &.selected-start,
   &.selected-content,
   &.selected-end {

@@ -31,6 +31,9 @@ $typography: map.get(gio.$mat-theme, typography);
     &__line {
       height: 4px;
       background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+      display: flex;
+      flex-direction: column;
+      align-items: center;
 
       &.color-green {
         background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
@@ -48,26 +51,66 @@ $typography: map.get(gio.$mat-theme, typography);
         background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
       }
 
+      // Empty before. With 6px width. All before must respect this size to avoid a shift in selection
       &::before {
-        content: '•';
-        display: block;
-        text-align: center;
-        color: transparent;
+        content: '';
+        width: 0px;
+        height: 0px;
+        margin-top: 8px;
+        border-left: 6px solid transparent;
       }
 
-      &.selected-start::before,
-      &.selected-content::before,
+      // `>` before
+      &.selected-start::before {
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        border-left: 6px solid mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+
+      // `•` before
+      &.selected-single::before,
+      &.selected-content::before {
+        margin-top: 9px;
+        background-color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'default');
+        border: 1px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+        border-radius: 50%;
+        padding: 2px;
+      }
+      &.selected-single::before {
+        background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+
+      // `<` before
       &.selected-end::before {
-        color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        border-right: 6px solid mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+        border-left: 0px solid transparent;
+      }
+    }
+
+    &:hover:not(.disabled) {
+      .selected-start::before {
+        border-left: 6px solid mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+      .selected-single::before,
+      .selected-content::before {
+        background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+      .selected-end::before {
+        border-right: 6px solid mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+      .selected-none::before {
+        margin-top: 9px;
+        background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+        border: 1px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+        border-radius: 50%;
+        padding: 2px;
       }
     }
 
     &.disabled {
       cursor: initial;
-    }
-
-    &:hover:not(.disabled) > &__line::before {
-      color: mat.get-color-from-palette(gio.$mat-content-palette, 'darker');
     }
 
     // Add margin between step
