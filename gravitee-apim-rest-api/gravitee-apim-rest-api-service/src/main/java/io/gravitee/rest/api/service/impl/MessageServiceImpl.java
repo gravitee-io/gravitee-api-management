@@ -287,35 +287,11 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                                 .map(MembershipEntity::getMemberId)
                                 .collect(Collectors.toSet())
                         );
-                        // get all indirect members
-                        applicationService
-                            .findByIds(context, applicationIds)
-                            .stream()
-                            .map(applicationEntity -> applicationEntity.getGroups())
-                            .reduce(
-                                (a, b) -> {
-                                    a.addAll(b);
-                                    return a;
-                                }
-                            )
-                            .ifPresent(
-                                applicationsGroups -> {
-                                    if (!applicationsGroups.isEmpty()) {
-                                        // get all indirect members
-                                        recipientIds.addAll(
-                                            membershipService
-                                                .getMembershipsByReferencesAndRole(
-                                                    MembershipReferenceType.GROUP,
-                                                    new ArrayList<>(applicationsGroups),
-                                                    optRole.get().getId()
-                                                )
-                                                .stream()
-                                                .map(MembershipEntity::getMemberId)
-                                                .collect(Collectors.toSet())
-                                        );
-                                    }
-                                }
-                            );
+
+                        Set<String> indirectMemberIds = this.getIndirectMemberIds(context, applicationIds, optRole.get());
+                        if (indirectMemberIds != null) {
+                            recipientIds.addAll(indirectMemberIds);
+                        }
                     } else if (roleName.equals(API_SUBSCRIBERS)) {
                         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(api.getId());
                         List<String> subscribersId = subscriptions
@@ -333,6 +309,34 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             LOGGER.error("An error occurs while trying to get recipients", ex);
             throw new TechnicalManagementException("An error occurs while trying to get recipients", ex);
         }
+    }
+
+    private Set<String> getIndirectMemberIds(ExecutionContext context, List<String> applicationIds, RoleEntity roleEntity) {
+        if (!applicationIds.isEmpty()) {
+            // get all indirect members
+            Optional<Set<String>> applicationsGroups = applicationService
+                .findByIds(context, applicationIds)
+                .stream()
+                .map(ApplicationListItem::getGroups)
+                .reduce(
+                    (a, b) -> {
+                        a.addAll(b);
+                        return a;
+                    }
+                );
+            if (applicationsGroups.isPresent()) {
+                return membershipService
+                    .getMembershipsByReferencesAndRole(
+                        MembershipReferenceType.GROUP,
+                        new ArrayList<>(applicationsGroups.get()),
+                        roleEntity.getId()
+                    )
+                    .stream()
+                    .map(MembershipEntity::getMemberId)
+                    .collect(Collectors.toSet());
+            }
+        }
+        return null;
     }
 
     private Set<String> getRecipientsEmails(Set<String> recipientsId) {
