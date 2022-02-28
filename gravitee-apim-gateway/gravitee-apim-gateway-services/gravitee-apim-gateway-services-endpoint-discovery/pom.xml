@@ -57,6 +57,12 @@
             <artifactId>gravitee-plugin-service-discovery</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.definition</groupId>
+            <artifactId>gravitee-definition-jackson</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
