@@ -17,7 +17,6 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -45,8 +44,11 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSubscriptionRepository.class);
 
+    private final String plansTableName;
+
     JdbcSubscriptionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "subscriptions");
+        plansTableName = getTableNameFor("plans");
     }
 
     @Override
@@ -145,56 +147,60 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                 index = getOrm().setArguments(ps, data, index);
             }
             if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
-                getOrm().setArguments(ps, criteria.getStatuses().stream().map(Enum::name).collect(toList()), index);
+                getOrm().setArguments(ps, criteria.getStatuses(), index);
             }
         };
     }
 
     private Page<Subscription> searchPage(final SubscriptionCriteria criteria, final Pageable pageable) {
         final List<Object> argsList = new ArrayList<>();
-        final StringBuilder builder = new StringBuilder(getOrm().getSelectAllSql() + " ");
+        final StringBuilder builder = new StringBuilder(getOrm().getSelectAllSql() + " s ");
         boolean started = false;
+
+        if (!isEmpty(criteria.getPlanSecurityTypes())) {
+            builder.append("INNER JOIN " + plansTableName + " p ON s." + escapeReservedWord("plan") + " = p.id ");
+            started = addStringsWhereClause(criteria.getPlanSecurityTypes(), "p.security", argsList, builder, started);
+        }
         if (criteria.getFrom() > 0) {
-            builder.append(WHERE_CLAUSE);
-            builder.append("updated_at >= ?");
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("s.updated_at >= ?");
             argsList.add(new Date(criteria.getFrom()));
             started = true;
         }
         if (criteria.getTo() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("updated_at <= ?");
+            builder.append("s.updated_at <= ?");
             argsList.add(new Date(criteria.getTo()));
             started = true;
         }
         if (hasText(criteria.getClientId())) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("client_id = ?");
+            builder.append("s.client_id = ?");
             argsList.add(criteria.getClientId());
             started = true;
         }
         if (criteria.getEndingAtAfter() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("ending_at >= ?");
+            builder.append("s.ending_at >= ?");
             argsList.add(new Date(criteria.getEndingAtAfter()));
             started = true;
         }
         if (criteria.getEndingAtBefore() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("ending_at <= ?");
+            builder.append("s.ending_at <= ?");
             argsList.add(new Date(criteria.getEndingAtBefore()));
             started = true;
         }
 
-        started = addStringsWhereClause(criteria.getPlans(), escapeReservedWord("plan"), argsList, builder, started);
-        started = addStringsWhereClause(criteria.getApplications(), "application", argsList, builder, started);
-        started = addStringsWhereClause(criteria.getApis(), "api", argsList, builder, started);
+        started = addStringsWhereClause(criteria.getPlans(), "s." + escapeReservedWord("plan"), argsList, builder, started);
+        started = addStringsWhereClause(criteria.getApplications(), "s.application", argsList, builder, started);
+        started = addStringsWhereClause(criteria.getApis(), "s.api", argsList, builder, started);
 
         if (!isEmpty(criteria.getStatuses())) {
-            final Collection<String> statuses = criteria.getStatuses().stream().map(Enum::name).collect(toList());
-            addStringsWhereClause(statuses, "status", argsList, builder, started);
+            addStringsWhereClause(criteria.getStatuses(), "s.status", argsList, builder, started);
         }
 
-        builder.append(" order by created_at desc ");
+        builder.append(" order by s.created_at desc ");
 
         List<Subscription> subscriptions;
         try {

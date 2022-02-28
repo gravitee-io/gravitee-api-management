@@ -1,0 +1,32 @@
+[
+   {
+      "id": "plan1",
+      "name": "plan1-name",
+      "security": "OAUTH2",
+      "api": "api1"
+   },
+   {
+      "id": "plan2",
+      "name": "plan2-name",
+      "security": "API_KEY",
+      "api": "api1"
+   },
+   {
+      "id": "plan3",
+      "name": "plan3-name",
+      "security": "KEY_LESS",
+      "api": "api1"
+   },
+   {
+      "id": "plan4",
+      "name": "plan4-name",
+      "security": "API_KEY",
+      "api": "api1"
+   },
+   {
+      "id": "plan5",
+      "name": "plan5-name",
+      "security": "API_KEY",
+      "api": "api1"
+   }
+]

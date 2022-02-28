@@ -220,6 +220,9 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         @QueryParam("api_key")
         private String apiKey;
 
+        @QueryParam("security_types")
+        private ListStringParam securityTypes;
+
         public ListStringParam getPlans() {
             return plans;
         }
@@ -252,6 +255,14 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             this.apiKey = apiKey;
         }
 
+        public ListStringParam getSecurityTypes() {
+            return securityTypes;
+        }
+
+        public void setSecurityTypes(ListStringParam securityTypes) {
+            this.securityTypes = securityTypes;
+        }
+
         private SubscriptionQuery toQuery() {
             SubscriptionQuery query = new SubscriptionQuery();
 
@@ -269,6 +280,10 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
             if (apiKey != null) {
                 query.setApiKey(apiKey);
+            }
+
+            if (securityTypes != null && securityTypes.getValue() != null) {
+                query.setPlanSecurityTypes(securityTypes.getValue());
             }
             return query;
         }

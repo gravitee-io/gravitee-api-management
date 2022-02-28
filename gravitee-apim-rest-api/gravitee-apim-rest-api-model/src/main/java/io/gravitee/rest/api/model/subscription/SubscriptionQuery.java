@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.model.subscription;
 
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +33,8 @@ public class SubscriptionQuery {
     private Collection<SubscriptionStatus> statuses;
 
     private Collection<String> applications;
+
+    private Collection<String> planSecurityTypes;
 
     private String apiKey;
 
@@ -131,6 +132,14 @@ public class SubscriptionQuery {
         this.endingAtBefore = endingAtBefore;
     }
 
+    public Collection<String> getPlanSecurityTypes() {
+        return planSecurityTypes;
+    }
+
+    public void setPlanSecurityTypes(Collection<String> planSecurityTypes) {
+        this.planSecurityTypes = planSecurityTypes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -145,13 +154,14 @@ public class SubscriptionQuery {
             Objects.equals(plans, that.plans) &&
             Objects.equals(statuses, that.statuses) &&
             Objects.equals(applications, that.applications) &&
+            Objects.equals(planSecurityTypes, that.planSecurityTypes) &&
             Objects.equals(apiKey, that.apiKey)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(apis, plans, statuses, applications, apiKey, from, to, endingAtAfter, endingAtBefore);
+        return Objects.hash(apis, plans, statuses, applications, planSecurityTypes, apiKey, from, to, endingAtAfter, endingAtBefore);
     }
 
     public boolean matchesApi(String api) {

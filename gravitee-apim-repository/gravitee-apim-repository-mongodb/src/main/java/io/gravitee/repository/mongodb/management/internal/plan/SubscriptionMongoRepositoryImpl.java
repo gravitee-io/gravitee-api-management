@@ -17,13 +17,14 @@ package io.gravitee.repository.mongodb.management.internal.plan;
 
 import static com.mongodb.client.model.Accumulators.sum;
 import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.ascending;
 import static com.mongodb.client.model.Sorts.descending;
-import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.model.Facet;
+import com.mongodb.client.model.Sorts;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -33,11 +34,7 @@ import java.util.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,95 +50,85 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
     @Override
     public Page<SubscriptionMongo> search(SubscriptionCriteria criteria, Pageable pageable) {
-        Query query = new Query();
+        List<Bson> dataPipeline = new ArrayList<>();
 
         if (criteria.getClientId() != null) {
-            query.addCriteria(Criteria.where("clientId").is(criteria.getClientId()));
+            dataPipeline.add(match(eq("clientId", criteria.getClientId())));
         }
 
         if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
             if (criteria.getApis().size() == 1) {
-                query.addCriteria(Criteria.where("api").is(criteria.getApis().iterator().next()));
+                dataPipeline.add(match(eq("api", criteria.getApis().iterator().next())));
             } else {
-                query.addCriteria(Criteria.where("api").in(criteria.getApis()));
+                dataPipeline.add(match(in("api", criteria.getApis())));
             }
         }
 
         if (criteria.getPlans() != null && !criteria.getPlans().isEmpty()) {
             if (criteria.getPlans().size() == 1) {
-                query.addCriteria(Criteria.where("plan").is(criteria.getPlans().iterator().next()));
+                dataPipeline.add(match(eq("plan", criteria.getPlans().iterator().next())));
             } else {
-                query.addCriteria(Criteria.where("plan").in(criteria.getPlans()));
+                dataPipeline.add(match(in("plan", criteria.getPlans())));
             }
         }
 
         if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
-            Criteria statusCriteria = Criteria.where("status");
             if (criteria.getStatuses().size() == 1) {
-                query.addCriteria(statusCriteria.is(criteria.getStatuses().iterator().next()));
+                dataPipeline.add(match(eq("status", criteria.getStatuses().iterator().next())));
             } else {
-                query.addCriteria(statusCriteria.in(criteria.getStatuses()));
+                dataPipeline.add(match(in("status", criteria.getStatuses())));
             }
         }
 
         if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
-            Criteria applicationCriteria = Criteria.where("application");
             if (criteria.getApplications().size() == 1) {
-                query.addCriteria(applicationCriteria.is(criteria.getApplications().iterator().next()));
+                dataPipeline.add(match(eq("application", criteria.getApplications().iterator().next())));
             } else {
-                query.addCriteria(applicationCriteria.in(criteria.getApplications()));
+                dataPipeline.add(match(in("application", criteria.getApplications())));
             }
         }
 
-        if (criteria.getFrom() > 0 || criteria.getTo() > 0) {
-            // Need to mutualize the instantiation of this criteria otherwise mongo drive is throwing an error, when
-            // using multiple `Criteria.where("updatedAt").xxx` with the same query
-            Criteria updatedAtCriteria = Criteria.where("updatedAt");
-
-            if (criteria.getFrom() > 0) {
-                updatedAtCriteria = updatedAtCriteria.gte(new Date(criteria.getFrom()));
-            }
-            if (criteria.getTo() > 0) {
-                updatedAtCriteria = updatedAtCriteria.lte(new Date(criteria.getTo()));
-            }
-
-            query.addCriteria(updatedAtCriteria);
+        if (criteria.getFrom() > 0) {
+            dataPipeline.add(match(gte("updatedAt", new Date(criteria.getFrom()))));
+        }
+        if (criteria.getTo() > 0) {
+            dataPipeline.add(match(lte("updatedAt", new Date(criteria.getTo()))));
         }
 
-        if (criteria.getEndingAtAfter() > 0 || criteria.getEndingAtBefore() > 0) {
-            // Need to mutualize the instantiation of this criteria otherwise mongo drive is throwing an error, when
-            // using multiple `Criteria.where("endingAt").xxx` with the same query
-            Criteria endingAtCriteria = Criteria.where("endingAt");
+        if (criteria.getEndingAtAfter() > 0) {
+            dataPipeline.add(match(gte("endingAt", new Date(criteria.getEndingAtAfter()))));
+        }
+        if (criteria.getEndingAtBefore() > 0) {
+            dataPipeline.add(match(lte("endingAt", new Date(criteria.getEndingAtBefore()))));
+        }
 
-            if (criteria.getEndingAtAfter() > 0) {
-                endingAtCriteria = endingAtCriteria.gte(new Date(criteria.getEndingAtAfter()));
-            }
-            if (criteria.getEndingAtBefore() > 0) {
-                endingAtCriteria = endingAtCriteria.lte(new Date(criteria.getEndingAtBefore()));
-            }
-
-            query.addCriteria(endingAtCriteria);
+        if (!isEmpty(criteria.getPlanSecurityTypes())) {
+            dataPipeline.add(lookup("plans", "plan", "_id", "subscribedPlan"));
+            dataPipeline.add(unwind("$subscribedPlan"));
+            dataPipeline.add(match(in("subscribedPlan.security", criteria.getPlanSecurityTypes())));
         }
 
         // set sort by created at
-        query.with(Sort.by(Sort.Direction.DESC, "createdAt"));
+        dataPipeline.add(sort(Sorts.descending("createdAt")));
 
-        Long total = null;
+        List<Facet> facets = new ArrayList<>();
+        facets.add(new Facet("data", dataPipeline));
 
-        // set pageable
+        // if pageable, dedicate a facet to count total subscriptions matching criteria
         if (pageable != null) {
-            total = mongoTemplate.count(query, SubscriptionMongo.class);
-            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
+            List<Bson> countPipeline = new ArrayList<>(dataPipeline);
+            countPipeline.add(count("totalCount"));
+            facets.add(new Facet("totalCount", countPipeline));
+
+            dataPipeline.add(skip(pageable.pageNumber() * pageable.pageSize()));
+            dataPipeline.add(limit(pageable.pageSize()));
         }
 
-        List<SubscriptionMongo> subscriptions = mongoTemplate.find(query, SubscriptionMongo.class);
+        AggregateIterable<Document> aggregateIterable = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+            .aggregate(List.of(facet(facets)));
 
-        return new Page<>(
-            subscriptions,
-            (pageable != null) ? pageable.pageNumber() : 0,
-            subscriptions.size(),
-            total == null ? subscriptions.size() : total
-        );
+        return buildSubscriptionsPage(pageable, aggregateIterable);
     }
 
     @Override
@@ -158,7 +145,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         }
 
         if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
-            aggregations.add(match(in("status", criteria.getStatuses().stream().map(Enum::name).collect(toList()))));
+            aggregations.add(match(in("status", criteria.getStatuses())));
         }
 
         aggregations.add(group(group, sum(NUMBER_OF_SUBSCRIPTIONS, 1)));
@@ -181,5 +168,29 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         );
         return references;
+    }
+
+    private Page<SubscriptionMongo> buildSubscriptionsPage(Pageable pageable, AggregateIterable<Document> aggregateIterable) {
+        List<SubscriptionMongo> subscriptions = new ArrayList<>();
+
+        Integer totalCount = null;
+
+        for (Document doc : aggregateIterable) {
+            if (doc.containsKey("totalCount") && !doc.getList("totalCount", Document.class).isEmpty()) {
+                totalCount = doc.getList("totalCount", Document.class).get(0).getInteger("totalCount");
+            }
+            if (doc.containsKey("data")) {
+                doc
+                    .getList("data", Document.class)
+                    .forEach(dataDoc -> subscriptions.add(mongoTemplate.getConverter().read(SubscriptionMongo.class, dataDoc)));
+            }
+        }
+
+        return new Page<>(
+            subscriptions,
+            pageable != null ? pageable.pageNumber() : 0,
+            subscriptions.size(),
+            totalCount == null ? subscriptions.size() : totalCount
+        );
     }
 }

@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2;
+import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
@@ -55,7 +58,7 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Subscription api", "api1", subscription.getApi());
         assertEquals("Subscription reason", "reason", subscription.getReason());
         assertEquals("Subscription request", "request", subscription.getRequest());
-        assertEquals("Subscription status", Subscription.Status.PENDING, subscription.getStatus());
+        assertEquals("Subscription status", PENDING, subscription.getStatus());
         assertEquals("Subscription processed by", "user1", subscription.getProcessedBy());
         assertEquals("Subscription subscribed by", "user2", subscription.getSubscribedBy());
         assertTrue("Subscription starting at", compareDate(1439022010883L, subscription.getStartingAt().getTime()));
@@ -119,7 +122,7 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Subscription application", "app1", subscription.getApplication());
         assertEquals("Subscription api", "api1", subscription.getApi());
         assertEquals("Subscription reason", "reason", subscription.getReason());
-        assertEquals("Subscription status", Subscription.Status.PENDING, subscription.getStatus());
+        assertEquals("Subscription status", PENDING, subscription.getStatus());
         assertEquals("Subscription processed by", "user1", subscription.getProcessedBy());
         assertEquals("Subscription subscribed by", "user2", subscription.getSubscribedBy());
         assertTrue("Subscription starting at", compareDate(1439022010883L, subscription.getStartingAt().getTime()));
@@ -264,7 +267,7 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     public void shouldFindReferenceIdsOrderByNumberOfSubscriptionsDesc() throws TechnicalException {
         Set<String> ranking =
             this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-                    new SubscriptionCriteria.Builder().status(Subscription.Status.PENDING).build(),
+                    new SubscriptionCriteria.Builder().status(PENDING).build(),
                     Order.DESC
                 );
 
@@ -284,5 +287,33 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         Iterator<String> iterator = ranking.iterator();
         assertEquals("First", "app1", iterator.next());
         assertEquals("Second", "app2", iterator.next());
+    }
+
+    @Test
+    public void shouldFindBySecurityType() throws TechnicalException {
+        List<Subscription> subscriptions =
+            this.subscriptionRepository.search(new SubscriptionCriteria.Builder().planSecurityTypes(List.of(API_KEY, OAUTH2)).build());
+
+        assertNotNull(subscriptions);
+        assertEquals(3, subscriptions.size());
+        assertEquals("sub5", subscriptions.get(0).getId());
+        assertEquals("plan5", subscriptions.get(0).getPlan());
+        assertEquals("sub4", subscriptions.get(1).getId());
+        assertEquals("plan2", subscriptions.get(1).getPlan());
+        assertEquals("sub1", subscriptions.get(2).getId());
+        assertEquals("plan1", subscriptions.get(2).getPlan());
+    }
+
+    @Test
+    public void shouldFindBySecurityTypeAndStatus() throws TechnicalException {
+        List<Subscription> subscriptions =
+            this.subscriptionRepository.search(
+                    new SubscriptionCriteria.Builder().planSecurityTypes(List.of(API_KEY, OAUTH2)).statuses(List.of(PENDING)).build()
+                );
+
+        assertNotNull(subscriptions);
+        assertEquals(2, subscriptions.size());
+        assertEquals("sub4", subscriptions.get(0).getId());
+        assertEquals("sub1", subscriptions.get(1).getId());
     }
 }

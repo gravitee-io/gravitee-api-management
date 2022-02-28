@@ -15,11 +15,13 @@
  */
 package io.gravitee.repository.config.mock;
 
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2;
+import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -68,6 +70,11 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
 
         final Subscription sub4 = new Subscription();
         sub4.setId("sub4");
+        sub4.setPlan("plan2");
+
+        final Subscription sub5 = new Subscription();
+        sub5.setId("sub5");
+        sub5.setPlan("plan5");
 
         when(subscriptionRepository.search(new SubscriptionCriteria.Builder().plans(singleton("plan1")).build()))
             .thenReturn(singletonList(sub1));
@@ -123,5 +130,15 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
             )
         )
             .thenReturn(ranking);
+
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().planSecurityTypes(List.of(API_KEY, OAUTH2)).build()))
+            .thenReturn(List.of(sub5, sub4, sub1));
+
+        when(
+            subscriptionRepository.search(
+                new SubscriptionCriteria.Builder().planSecurityTypes(List.of(API_KEY, OAUTH2)).statuses(List.of(PENDING)).build()
+            )
+        )
+            .thenReturn(List.of(sub4, sub1));
     }
 }
