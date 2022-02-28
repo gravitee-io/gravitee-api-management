@@ -21,4 +21,5 @@ package io.gravitee.gateway.policy;
  */
 public enum PolicyChainOrder {
     BEFORE_API,
+    AFTER_API,
 }

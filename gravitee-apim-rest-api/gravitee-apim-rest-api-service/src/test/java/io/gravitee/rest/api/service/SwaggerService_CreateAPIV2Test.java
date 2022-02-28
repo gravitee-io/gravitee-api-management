@@ -38,8 +38,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest {
 
+    @Override
+    protected DefinitionVersion getDefinitionVersion() {
+        return DefinitionVersion.V2;
+    }
+
     protected SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        return swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
+        return swaggerService.createAPI(swaggerDescriptor, this.getDefinitionVersion());
     }
 
     @Override

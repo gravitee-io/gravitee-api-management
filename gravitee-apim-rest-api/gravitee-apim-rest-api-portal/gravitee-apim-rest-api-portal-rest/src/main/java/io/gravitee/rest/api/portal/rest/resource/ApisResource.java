@@ -20,6 +20,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
@@ -27,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import java.time.OffsetDateTime;
@@ -57,6 +60,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private CategoryService categoryService;
+
+    @Inject
+    private ParameterService parameterService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -115,7 +121,7 @@ public class ApisResource extends AbstractResource {
             }
         }
 
-        List<Api> apisList = resultStream.map(apiMapper::convert).map(this::addApiLinks).collect(Collectors.toList());
+        final List<Api> apisList = transformApiEntityStream(resultStream);
 
         return createListResponse(apisList, paginationParam, filteredApis.getMetadata());
     }
@@ -134,16 +140,37 @@ public class ApisResource extends AbstractResource {
         filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
         try {
-            List<Api> apisList = apiService
-                .search(query, filters)
-                .stream()
-                .map(apiMapper::convert)
-                .map(this::addApiLinks)
-                .collect(Collectors.toList());
+            final List<Api> apisList = transformApiEntityStream(apiService.search(query, filters).stream());
             return createListResponse(apisList, paginationParam);
         } catch (TechnicalException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
+    }
+
+    /**
+     * Convert ApiEntity to Api
+     * Then, add api links
+     * Finally, set the labels depending on the parameter PORTAL_APIS_SHOW_TAGS_IN_APIHEADER
+     * @param apiEntityStream: the stream to convert
+     * @return the converted list of Api
+     */
+    private List<Api> transformApiEntityStream(Stream<ApiEntity> apiEntityStream) {
+        final boolean apiShowTagsInApiHeaders = parameterService.findAsBoolean(
+            Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+            ParameterReferenceType.ENVIRONMENT
+        );
+
+        return apiEntityStream
+            .map(apiMapper::convert)
+            .map(this::addApiLinks)
+            .peek(
+                api -> {
+                    if (!apiShowTagsInApiHeaders) {
+                        api.setLabels(List.of());
+                    }
+                }
+            )
+            .collect(Collectors.toList());
     }
 
     private ApiQuery createQueryFromParam(ApisParam apisParam) {

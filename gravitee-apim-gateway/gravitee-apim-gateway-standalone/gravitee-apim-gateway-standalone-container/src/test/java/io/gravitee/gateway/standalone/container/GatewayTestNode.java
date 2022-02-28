@@ -42,7 +42,6 @@ public class GatewayTestNode extends GatewayNode {
         components.remove(AlertEventProducerManager.class);
         components.remove(ServiceManager.class);
         components.remove(ManagementService.class);
-        components.remove(ReporterManager.class);
         components.remove(NodeMonitoringReporterService.class);
         components.remove(NodeHealthCheckService.class);
         components.remove(NodeInfosService.class);

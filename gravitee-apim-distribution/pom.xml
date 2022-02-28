@@ -51,7 +51,7 @@
         <gravitee-policy-apikey.version>2.3.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.6.0</gravitee-policy-assign-content.version>
-        <gravitee-policy-cache.version>1.13.0</gravitee-policy-cache.version>
+        <gravitee-policy-cache.version>1.13.1</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>1.14.0</gravitee-policy-callout-http.version>
         <gravitee-policy-dynamic-routing.version>1.11.1</gravitee-policy-dynamic-routing.version>
         <gravitee-policy-generate-http-signature.version>1.0.0</gravitee-policy-generate-http-signature.version>

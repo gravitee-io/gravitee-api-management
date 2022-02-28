@@ -159,6 +159,13 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
         assertEquals(2, alerts.size());
     }
 
+    @Test
+    public void shouldFindByReferenceAndReferenceIds_andReturnEmptyListWhenInputListIsEmpty() throws Exception {
+        final List<AlertTrigger> alerts = alertRepository.findByReferenceAndReferenceIds("API", Collections.emptyList());
+        assertNotNull(alerts);
+        assertEquals(0, alerts.size());
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownAlert() throws Exception {
         AlertTrigger unknownAlert = new AlertTrigger();

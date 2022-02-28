@@ -15,7 +15,12 @@
       }
     ],
     "strip_context_path": false,
-    "dumpRequest": true
+    "dumpRequest": true,
+    "logging": {
+      "mode": "CLIENT_PROXY",
+      "content": "HEADERS_PAYLOADS",
+      "scope": "REQUEST_RESPONSE"
+    }
   },
 
   "paths": {

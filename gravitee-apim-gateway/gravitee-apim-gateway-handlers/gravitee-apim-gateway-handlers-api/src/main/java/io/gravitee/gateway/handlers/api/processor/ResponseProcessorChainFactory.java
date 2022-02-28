@@ -60,7 +60,6 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
     @Override
     public void afterPropertiesSet() {
         add(() -> new ShutdownProcessor(node));
-        addAll(policyChainProviderLoader.get(PolicyChainOrder.BEFORE_API, StreamType.ON_RESPONSE));
 
         final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
             new HttpMethodConditionEvaluator(),
@@ -112,5 +111,7 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
             add(() -> new PathMappingProcessor(api.getPathMappings()));
         }
+
+        addAll(policyChainProviderLoader.get(PolicyChainOrder.AFTER_API, StreamType.ON_RESPONSE));
     }
 }

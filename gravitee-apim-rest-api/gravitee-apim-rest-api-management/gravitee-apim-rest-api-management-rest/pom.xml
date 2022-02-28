@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -34,7 +34,7 @@
 	<name>Gravitee.io APIM - Management API - Management - Rest API</name>
 
 	<properties>
-		<swagger-jersey2-jaxrs.version>1.6.2</swagger-jersey2-jaxrs.version>
+		<swagger-jersey2-jaxrs.version>1.6.5</swagger-jersey2-jaxrs.version>
 	</properties>
 
 	<dependencies>

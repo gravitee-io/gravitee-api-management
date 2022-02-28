@@ -15,8 +15,11 @@
  */
 package io.gravitee.repository.bridge.client.utils;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import io.gravitee.common.data.domain.Page;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 import java.util.List;
@@ -29,6 +32,9 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class BodyCodecs {
+    static {
+        DatabindCodec.mapper().enable(JsonGenerator.Feature.IGNORE_UNKNOWN).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
 
     public static <T> BodyCodec<Optional<T>> optional(Class<T> clazz) {
         return new BodyCodecImpl<>(buffer -> Optional.of(buffer.toJsonObject().mapTo(clazz)));

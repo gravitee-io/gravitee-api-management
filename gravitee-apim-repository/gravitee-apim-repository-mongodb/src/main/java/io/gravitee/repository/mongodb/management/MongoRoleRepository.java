@@ -97,8 +97,8 @@ public class MongoRoleRepository implements RoleRepository {
         try {
             internalRoleRepo.deleteById(roleId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting role [{}]", roleId, e);
-            throw new TechnicalException("An error occured when deleting role");
+            LOGGER.error("An error occurred when deleting role [{}]", roleId, e);
+            throw new TechnicalException("An error occurred when deleting role");
         }
     }
 
