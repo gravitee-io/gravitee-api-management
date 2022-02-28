@@ -27,6 +27,7 @@ $cardIconWidth: 32px;
   border-radius: 8px;
   background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
 
+  &.clickable.hover,
   &.clickable:hover {
     @include mat.elevation-transition();
     @include mat.elevation(3);

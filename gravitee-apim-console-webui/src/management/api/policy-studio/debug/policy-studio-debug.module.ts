@@ -39,6 +39,7 @@ import { PolicyStudioDebugTimelineComponent } from './components/policy-studio-d
 import { PolicyStudioDebugTimelineLegendComponent } from './components/policy-studio-debug-timeline-legend/policy-studio-debug-timeline-legend.component';
 import { PolicyStudioDebugInspectorTextComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
 import { PolicyStudioDebugTimelineOverviewComponent } from './components/policy-studio-debug-timeline-overview/policy-studio-debug-timeline-overview.component';
+import { PolicyStudioDebugTimelineHoverComponent } from './components/policy-studio-debug-timeline-hover/policy-studio-debug-timeline-hover.directive';
 
 import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.module';
 
@@ -73,6 +74,7 @@ import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.m
     PolicyStudioDebugTimelineComponent,
     PolicyStudioDebugTimelineOverviewComponent,
     PolicyStudioDebugTimelineLegendComponent,
+    PolicyStudioDebugTimelineHoverComponent,
   ],
   exports: [PolicyStudioDebugComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

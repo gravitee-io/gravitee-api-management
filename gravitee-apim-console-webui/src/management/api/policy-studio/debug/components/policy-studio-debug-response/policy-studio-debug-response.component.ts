@@ -65,6 +65,13 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
     }
   }
 
+  onSelectTimelineStepOverview(timelineStep: TimelineStep) {
+    const elementList = document.getElementById('card_' + timelineStep.id);
+    elementList.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+
+    this.onSelectTimelineStep(timelineStep);
+  }
+
   onSelectTimelineStep(timelineStep: TimelineStep) {
     switch (timelineStep.mode) {
       case 'POLICY_REQUEST':
@@ -90,13 +97,6 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
       default:
         break;
     }
-  }
-
-  onSelectTimelineStepOverview(timelineStep: TimelineStep) {
-    const elementList = document.getElementById('card_' + timelineStep.id);
-    elementList.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-
-    this.onSelectTimelineStep(timelineStep);
   }
 
   private toTimelineSteps(debugResponse: DebugResponse) {

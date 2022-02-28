@@ -89,7 +89,8 @@ $typography: map.get(gio.$mat-theme, typography);
       }
     }
 
-    &:hover:not(.disabled) {
+    &:hover:not(.disabled),
+    &.hover:not(.disabled) {
       .selected-start::before {
         border-left: 6px solid mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
       }

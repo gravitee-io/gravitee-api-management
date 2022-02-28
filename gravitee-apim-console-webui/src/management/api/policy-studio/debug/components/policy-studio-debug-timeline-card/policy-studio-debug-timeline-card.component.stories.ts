@@ -22,11 +22,14 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDebugTimelineCardComponent, TimelineStep } from './policy-studio-debug-timeline-card.component';
 
+import { PolicyStudioDebugTimelineHoverComponent } from '../policy-studio-debug-timeline-hover/policy-studio-debug-timeline-hover.directive';
+
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Timeline card',
   component: PolicyStudioDebugTimelineCardComponent,
   decorators: [
     moduleMetadata({
+      declarations: [PolicyStudioDebugTimelineHoverComponent],
       imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule],
     }),
   ],
@@ -51,6 +54,7 @@ export const Empty: Story = {};
 export const ClientApp: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'CLIENT_APP_REQUEST',
     } as TimelineStep,
   },
@@ -59,6 +63,7 @@ export const ClientApp: Story = {
 export const BackendTarget: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'BACKEND_TARGET',
     } as TimelineStep,
   },
@@ -67,6 +72,7 @@ export const BackendTarget: Story = {
 export const RequestInput: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'REQUEST_INPUT',
     } as TimelineStep,
   },
@@ -75,6 +81,7 @@ export const RequestInput: Story = {
 export const RequestOutput: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'REQUEST_OUTPUT',
     } as TimelineStep,
   },
@@ -83,6 +90,7 @@ export const RequestOutput: Story = {
 export const Policy: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'POLICY_REQUEST',
       executionTime: 123456789,
       flowName: 'Plan flow 1',
@@ -95,6 +103,7 @@ export const Policy: Story = {
 export const PolicyWithError: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'POLICY_REQUEST',
       executionTime: 123456789,
       executionStatus: 'ERROR',
@@ -108,6 +117,7 @@ export const PolicyWithError: Story = {
 export const PolicyLongText: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'POLICY_REQUEST',
       executionTime: 123456789,
       flowName: 'Plan flow 1',
@@ -120,6 +130,7 @@ export const PolicyLongText: Story = {
 export const ResponseInput: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'RESPONSE_INPUT',
     } as TimelineStep,
   },
@@ -128,6 +139,7 @@ export const ResponseInput: Story = {
 export const ResponseOutput: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'RESPONSE_OUTPUT',
     } as TimelineStep,
   },
@@ -136,6 +148,7 @@ export const ResponseOutput: Story = {
 export const Selected: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'POLICY_REQUEST',
       executionTime: 32,
       executionStatus: 'ERROR',
@@ -150,6 +163,7 @@ export const Selected: Story = {
 export const SelectedContent: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'POLICY_REQUEST',
       executionTime: 32,
       executionStatus: 'ERROR',
@@ -164,6 +178,7 @@ export const SelectedContent: Story = {
 export const PolicyWithConditional: Story = {
   args: {
     timelineStep: {
+      id: '42',
       mode: 'POLICY_REQUEST',
       executionTime: 32,
       executionStatus: 'SKIPPED',

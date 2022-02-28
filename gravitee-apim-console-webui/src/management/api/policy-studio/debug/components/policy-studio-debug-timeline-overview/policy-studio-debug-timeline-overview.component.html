@@ -26,6 +26,7 @@
       <div
         *ngSwitchCase="'CLIENT_APP_REQUEST'"
         class="policy-studio-debug-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
         matTooltip="Client App"
         (click)="selected.emit(timelineStep)"
       >
@@ -35,6 +36,7 @@
       <div
         *ngSwitchCase="'CLIENT_APP_RESPONSE'"
         class="policy-studio-debug-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
         matTooltip="Client App"
         (click)="selected.emit(timelineStep)"
       >
@@ -44,6 +46,7 @@
       <div
         *ngSwitchCase="'REQUEST_INPUT'"
         class="policy-studio-debug-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
         matTooltip="Request input"
         (click)="selected.emit(timelineStep)"
       >
@@ -53,6 +56,7 @@
       <div
         *ngSwitchCase="'REQUEST_OUTPUT'"
         class="policy-studio-debug-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
         matTooltip="Request output"
         (click)="selected.emit(timelineStep)"
       >
@@ -62,6 +66,7 @@
       <div
         *ngSwitchCase="'RESPONSE_INPUT'"
         class="policy-studio-debug-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
         matTooltip="Response input"
         (click)="selected.emit(timelineStep)"
       >
@@ -71,6 +76,7 @@
       <div
         *ngSwitchCase="'RESPONSE_OUTPUT'"
         class="policy-studio-debug-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
         matTooltip="Response output"
         (click)="selected.emit(timelineStep)"
       >
@@ -84,6 +90,7 @@
       <div
         *ngSwitchDefault
         class="policy-studio-debug-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
         [matTooltip]="timelineStep.policyName"
         [class.disabled]="timelineStep.executionStatus === 'SKIPPED'"
         (click)="timelineStep.executionStatus !== 'SKIPPED' && selected.emit(timelineStep)"
