@@ -24,8 +24,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
@@ -222,11 +224,20 @@ public class MessageService_GetRecipientIdsTest {
 
     @Test
     public void shouldGetApiConsumersWithGroups() throws TechnicalException {
+        Application app = new Application();
+        app.setId("app-id");
+        app.setGroups(new HashSet<>(Arrays.asList("group-id")));
+
         // given
         Subscription subscription = new Subscription();
-        subscription.setApplication("app-id");
+        subscription.setApplication(app.getId());
         when(mockSubscriptionRepository.search(any())).thenReturn(Collections.singletonList(subscription));
         when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER")).thenReturn(Optional.of(mock(RoleEntity.class)));
+
+        ApplicationListItem appListItem = new ApplicationListItem();
+        appListItem.setId(app.getId());
+        appListItem.setGroups(app.getGroups());
+        when(mockApplicationService.findByIds(GraviteeContext.getExecutionContext(), List.of(app.getId()))).thenReturn(Set.of(appListItem));
 
         MembershipEntity membershipGroup = new MembershipEntity();
         membershipGroup.setId("membership-group-id");
@@ -253,7 +264,7 @@ public class MessageService_GetRecipientIdsTest {
         // when
         Api api = new Api();
         api.setId("api-id");
-        api.setGroups(new HashSet<>(Arrays.asList("group-id")));
+
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setChannel(MessageChannel.MAIL);
         MessageRecipientEntity messageRecipientEntity = new MessageRecipientEntity();
