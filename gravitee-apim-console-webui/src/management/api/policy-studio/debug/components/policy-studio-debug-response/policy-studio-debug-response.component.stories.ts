@@ -39,6 +39,7 @@ import { PolicyStudioDebugInspectorBodyComponent } from '../policy-studio-debug-
 import { PolicyStudioDebugInspectorTextComponent } from '../policy-studio-debug-inspector/policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
 import { PolicyStudioDebugInspectorComponent } from '../policy-studio-debug-inspector/policy-studio-debug-inspector.component';
 import { PolicyStudioDebugTimelineOverviewComponent } from '../policy-studio-debug-timeline-overview/policy-studio-debug-timeline-overview.component';
+import { PolicyStudioDebugTimelineHoverComponent } from '../policy-studio-debug-timeline-hover/policy-studio-debug-timeline-hover.directive';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Response',
@@ -54,6 +55,7 @@ export default {
         PolicyStudioDebugTimelineComponent,
         PolicyStudioDebugTimelineOverviewComponent,
         PolicyStudioDebugTimelineLegendComponent,
+        PolicyStudioDebugTimelineHoverComponent,
       ],
       imports: [CommonModule, BrowserAnimationsModule, MatButtonModule, MatIconModule, MatTreeModule, GioIconsModule, MatTooltipModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
