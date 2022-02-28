@@ -28,6 +28,7 @@ import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -312,7 +313,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     private Set<String> getIndirectMemberIds(ExecutionContext context, List<String> applicationIds, RoleEntity roleEntity) {
-        if (!applicationIds.isEmpty()) {
+        if (!applicationIds.isEmpty() && !SystemRole.PRIMARY_OWNER.name().equals(roleEntity.getName())) {
             // get all indirect members
             Optional<Set<String>> applicationsGroups = applicationService
                 .findByIds(context, applicationIds)
