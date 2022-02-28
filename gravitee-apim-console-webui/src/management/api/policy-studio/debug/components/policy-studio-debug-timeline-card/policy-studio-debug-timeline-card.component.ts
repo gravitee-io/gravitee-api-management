@@ -48,7 +48,7 @@ export type TimelineStep = (
   | {
       mode: 'CLIENT_APP_RESPONSE';
     }
-) & { id: string; selection: 'start' | 'content' | 'end' | 'none' };
+) & { id: string; selection: 'start' | 'content' | 'end' | 'single' | 'none' };
 
 interface TimelineCardVM {
   icon?: string;
@@ -60,7 +60,7 @@ interface TimelineCardVM {
   rightIcon?: string;
   id?: string;
   clickable: boolean;
-  selection: 'start' | 'content' | 'end' | 'none';
+  selection: 'start' | 'content' | 'end' | 'single' | 'none';
 }
 
 @Component({

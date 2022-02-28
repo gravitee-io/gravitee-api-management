@@ -189,7 +189,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
     this.responseDisplayableVM = {
       ...this.responseDisplayableVM,
       timelineSteps: this.responseDisplayableVM.timelineSteps.map(
-        (step) => ({ ...step, selection: step.id === timelineStep.id ? 'start' : 'none' } as TimelineStep),
+        (step) => ({ ...step, selection: step.id === timelineStep.id ? 'single' : 'none' } as TimelineStep),
       ),
     };
   }
