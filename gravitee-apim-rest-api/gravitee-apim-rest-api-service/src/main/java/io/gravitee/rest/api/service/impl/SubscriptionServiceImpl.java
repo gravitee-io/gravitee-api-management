@@ -1065,6 +1065,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             );
         }
 
+        if (query.getPlanSecurityTypes() != null) {
+            builder.planSecurityTypes(query.getPlanSecurityTypes().stream().map(Plan.PlanSecurityType::valueOf).collect(toList()));
+        }
+
         return builder;
     }
 

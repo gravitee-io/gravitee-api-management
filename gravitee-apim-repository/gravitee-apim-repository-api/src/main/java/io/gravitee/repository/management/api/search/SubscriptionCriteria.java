@@ -15,9 +15,13 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import static java.util.stream.Collectors.toList;
+
+import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,7 +33,7 @@ public class SubscriptionCriteria {
 
     private final Collection<String> plans;
 
-    private final Collection<Subscription.Status> statuses;
+    private final Collection<String> statuses;
 
     private final Collection<String> applications;
 
@@ -38,6 +42,8 @@ public class SubscriptionCriteria {
     private final long endingAtAfter, endingAtBefore;
 
     private final String clientId;
+
+    private final Collection<String> planSecurityTypes;
 
     SubscriptionCriteria(SubscriptionCriteria.Builder builder) {
         this.from = builder.from;
@@ -49,6 +55,7 @@ public class SubscriptionCriteria {
         this.clientId = builder.clientId;
         this.endingAtAfter = builder.endingAtAfter;
         this.endingAtBefore = builder.endingAtBefore;
+        this.planSecurityTypes = builder.planSecurityTypes;
     }
 
     public Collection<String> getApis() {
@@ -67,7 +74,7 @@ public class SubscriptionCriteria {
         return to;
     }
 
-    public Collection<Subscription.Status> getStatuses() {
+    public Collection<String> getStatuses() {
         return statuses;
     }
 
@@ -85,6 +92,10 @@ public class SubscriptionCriteria {
 
     public long getEndingAtBefore() {
         return endingAtBefore;
+    }
+
+    public Collection<String> getPlanSecurityTypes() {
+        return planSecurityTypes;
     }
 
     @Override
@@ -114,6 +125,7 @@ public class SubscriptionCriteria {
         result = 31 * result + (int) (to ^ (to >>> 32));
         result = 31 * result + (int) (endingAtAfter ^ (endingAtAfter >>> 32));
         result = 31 * result + (int) (endingAtBefore ^ (endingAtBefore >>> 32));
+        result = 31 * result + (planSecurityTypes != null ? planSecurityTypes.hashCode() : 0);
         return result;
     }
 
@@ -125,13 +137,15 @@ public class SubscriptionCriteria {
 
         private Collection<String> plans;
 
-        private Collection<Subscription.Status> status;
+        private Collection<String> status;
 
         private String clientId;
 
         private long from, to;
 
         private long endingAtAfter, endingAtBefore;
+
+        private Collection<String> planSecurityTypes;
 
         public SubscriptionCriteria.Builder from(long from) {
             this.from = from;
@@ -159,12 +173,12 @@ public class SubscriptionCriteria {
         }
 
         public SubscriptionCriteria.Builder status(Subscription.Status status) {
-            this.status = Collections.singleton(status);
+            this.status = Collections.singleton(status.name());
             return this;
         }
 
         public SubscriptionCriteria.Builder statuses(Collection<Subscription.Status> status) {
-            this.status = status;
+            this.status = status.stream().map(Enum::name).collect(toList());
             return this;
         }
 
@@ -180,6 +194,11 @@ public class SubscriptionCriteria {
 
         public SubscriptionCriteria.Builder endingAtBefore(long endingAtBefore) {
             this.endingAtBefore = endingAtBefore;
+            return this;
+        }
+
+        public SubscriptionCriteria.Builder planSecurityTypes(Collection<Plan.PlanSecurityType> planSecurityType) {
+            this.planSecurityTypes = planSecurityType.stream().map(Enum::name).collect(toList());
             return this;
         }
 
