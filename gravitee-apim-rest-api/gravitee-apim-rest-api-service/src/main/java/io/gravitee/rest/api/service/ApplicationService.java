@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
 
@@ -31,6 +32,11 @@ import java.util.Set;
 public interface ApplicationService {
     ApplicationEntity findById(final String environment, String applicationId);
 
+    default Set<ApplicationListItem> findByIds(final ExecutionContext context, List<String> applicationIds) {
+        return this.findByIds(context.getOrganizationId(), context.getEnvironmentId(), applicationIds);
+    }
+
+    @Deprecated
     Set<ApplicationListItem> findByIds(final String organizationId, final String environmentId, List<String> applicationIds);
 
     Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username);

@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
@@ -286,21 +287,35 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                                 .map(MembershipEntity::getMemberId)
                                 .collect(Collectors.toSet())
                         );
-
                         // get all indirect members
-                        if (api.getGroups() != null && !api.getGroups().isEmpty()) {
-                            recipientIds.addAll(
-                                membershipService
-                                    .getMembershipsByReferencesAndRole(
-                                        MembershipReferenceType.GROUP,
-                                        new ArrayList<>(api.getGroups()),
-                                        optRole.get().getId()
-                                    )
-                                    .stream()
-                                    .map(MembershipEntity::getMemberId)
-                                    .collect(Collectors.toSet())
+                        applicationService
+                            .findByIds(context, applicationIds)
+                            .stream()
+                            .map(applicationEntity -> applicationEntity.getGroups())
+                            .reduce(
+                                (a, b) -> {
+                                    a.addAll(b);
+                                    return a;
+                                }
+                            )
+                            .ifPresent(
+                                applicationsGroups -> {
+                                    if (!applicationsGroups.isEmpty()) {
+                                        // get all indirect members
+                                        recipientIds.addAll(
+                                            membershipService
+                                                .getMembershipsByReferencesAndRole(
+                                                    MembershipReferenceType.GROUP,
+                                                    new ArrayList<>(applicationsGroups),
+                                                    optRole.get().getId()
+                                                )
+                                                .stream()
+                                                .map(MembershipEntity::getMemberId)
+                                                .collect(Collectors.toSet())
+                                        );
+                                    }
+                                }
                             );
-                        }
                     } else if (roleName.equals(API_SUBSCRIBERS)) {
                         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(api.getId());
                         List<String> subscribersId = subscriptions
