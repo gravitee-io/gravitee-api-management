@@ -37,13 +37,13 @@ public class SubscriptionCriteria {
 
     private final Collection<String> applications;
 
+    private final Collection<String> planSecurityTypes;
+
     private final long from, to;
 
     private final long endingAtAfter, endingAtBefore;
 
     private final String clientId;
-
-    private final Collection<String> planSecurityTypes;
 
     SubscriptionCriteria(SubscriptionCriteria.Builder builder) {
         this.from = builder.from;
@@ -105,28 +105,22 @@ public class SubscriptionCriteria {
 
         SubscriptionCriteria that = (SubscriptionCriteria) o;
 
-        if (from != that.from) return false;
-        if (to != that.to) return false;
-        if (apis != null ? !apis.equals(that.apis) : that.apis != null) return false;
-        if (plans != null ? !plans.equals(that.plans) : that.plans != null) return false;
-        if (statuses != null ? !statuses.equals(that.statuses) : that.statuses != null) return false;
-        if (endingAtAfter != that.endingAtAfter) return false;
-        if (endingAtBefore != that.endingAtBefore) return false;
-        return applications != null ? applications.equals(that.applications) : that.applications == null;
+        return (
+            from == that.from &&
+            to == that.to &&
+            endingAtAfter == that.endingAtAfter &&
+            endingAtBefore == that.endingAtBefore &&
+            Objects.equals(apis, that.apis) &&
+            Objects.equals(plans, that.plans) &&
+            Objects.equals(statuses, that.statuses) &&
+            Objects.equals(applications, that.applications) &&
+            Objects.equals(planSecurityTypes, that.planSecurityTypes)
+        );
     }
 
     @Override
     public int hashCode() {
-        int result = apis != null ? apis.hashCode() : 0;
-        result = 31 * result + (plans != null ? plans.hashCode() : 0);
-        result = 31 * result + (statuses != null ? statuses.hashCode() : 0);
-        result = 31 * result + (applications != null ? applications.hashCode() : 0);
-        result = 31 * result + (int) (from ^ (from >>> 32));
-        result = 31 * result + (int) (to ^ (to >>> 32));
-        result = 31 * result + (int) (endingAtAfter ^ (endingAtAfter >>> 32));
-        result = 31 * result + (int) (endingAtBefore ^ (endingAtBefore >>> 32));
-        result = 31 * result + (planSecurityTypes != null ? planSecurityTypes.hashCode() : 0);
-        return result;
+        return Objects.hash(apis, plans, statuses, applications, from, to, endingAtAfter, endingAtBefore, planSecurityTypes);
     }
 
     public static class Builder {

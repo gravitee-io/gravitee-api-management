@@ -32,7 +32,6 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -115,21 +114,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private ApplicationConverter applicationConverter;
 
     @Override
-    public SubscriptionEntity findById(String subscription) {
+    public SubscriptionEntity findById(String subscriptionId) {
         try {
-            logger.debug("Find subscription by id : {}", subscription);
+            logger.debug("Find subscription by id : {}", subscriptionId);
 
-            Optional<Subscription> optSubscription = subscriptionRepository.findById(subscription);
-
-            if (!optSubscription.isPresent()) {
-                throw new SubscriptionNotFoundException(subscription);
-            }
-
-            return convert(optSubscription.get());
+            return subscriptionRepository
+                .findById(subscriptionId)
+                .map(this::convert)
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find a subscription using its ID: {}", subscription, ex);
+            logger.error("An error occurs while trying to find a subscription using its ID: {}", subscriptionId, ex);
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to find a subscription using its ID: %s", subscription),
+                String.format("An error occurs while trying to find a subscription using its ID: %s", subscriptionId),
                 ex
             );
         }
@@ -433,12 +429,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Update subscription {}", updateSubscription.getId());
 
-            Optional<Subscription> optSubscription = subscriptionRepository.findById(updateSubscription.getId());
-            if (!optSubscription.isPresent()) {
-                throw new SubscriptionNotFoundException(updateSubscription.getId());
-            }
-
-            Subscription subscription = optSubscription.get();
+            Subscription subscription = subscriptionRepository
+                .findById(updateSubscription.getId())
+                .orElseThrow(() -> new SubscriptionNotFoundException(updateSubscription.getId()));
 
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
                 Subscription previousSubscription = new Subscription(subscription);
@@ -493,12 +486,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Subscription {} processed by {}", processSubscription.getId(), userId);
 
-            Optional<Subscription> optSubscription = subscriptionRepository.findById(processSubscription.getId());
-            if (!optSubscription.isPresent()) {
-                throw new SubscriptionNotFoundException(processSubscription.getId());
-            }
+            Subscription subscription = subscriptionRepository
+                .findById(processSubscription.getId())
+                .orElseThrow(() -> new SubscriptionNotFoundException(processSubscription.getId()));
 
-            Subscription subscription = optSubscription.get();
             Subscription previousSubscription = new Subscription(subscription);
             if (subscription.getStatus() != Subscription.Status.PENDING) {
                 throw new SubscriptionAlreadyProcessedException(subscription.getId());
@@ -623,12 +614,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Close subscription {}", subscriptionId);
 
-            Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
-            if (!optSubscription.isPresent()) {
-                throw new SubscriptionNotFoundException(subscriptionId);
-            }
-
-            Subscription subscription = optSubscription.get();
+            Subscription subscription = subscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
 
             switch (subscription.getStatus()) {
                 case ACCEPTED:
@@ -672,7 +660,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     // API Keys are automatically revoked
                     List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                     for (ApiKeyEntity apiKey : apiKeys) {
-                        Date expireAt = apiKey.getExpireAt();
                         if (!apiKey.isRevoked()) {
                             apiKey.setExpireAt(now);
                             apiKey.setRevokedAt(now);
@@ -705,12 +692,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Pause subscription {}", subscriptionId);
 
-            Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
-            if (!optSubscription.isPresent()) {
-                throw new SubscriptionNotFoundException(subscriptionId);
-            }
-
-            Subscription subscription = optSubscription.get();
+            Subscription subscription = subscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
 
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
                 Subscription previousSubscription = new Subscription(subscription);
@@ -777,12 +761,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Resume subscription {}", subscriptionId);
 
-            Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
-            if (!optSubscription.isPresent()) {
-                throw new SubscriptionNotFoundException(subscriptionId);
-            }
-
-            Subscription subscription = optSubscription.get();
+            Subscription subscription = subscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
 
             if (subscription.getStatus() == Subscription.Status.PAUSED) {
                 Subscription previousSubscription = new Subscription(subscription);
@@ -903,11 +884,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Delete subscription {}", subscriptionId);
 
-            Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
-            if (!optSubscription.isPresent()) {
-                throw new SubscriptionNotFoundException(subscriptionId);
-            }
-            Subscription subscription = optSubscription.get();
+            Subscription subscription = subscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
 
             // Delete API Keys
             apiKeyService.findBySubscription(subscriptionId).forEach(apiKey -> apiKeyService.delete(apiKey.getKey()));
@@ -1016,7 +995,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
     }
 
-    public void fillPlanSecurityType(List<SubscriptionEntity> subscriptions) {
+    private void fillPlanSecurityType(List<SubscriptionEntity> subscriptions) {
         Map<String, List<SubscriptionEntity>> subscriptionsByPlan = subscriptions
             .stream()
             .filter(subscription -> subscription.getPlan() != null)
@@ -1025,9 +1004,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         planService
             .findByIdIn(subscriptionsByPlan.keySet())
             .forEach(
-                plan -> {
-                    subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(plan.getSecurity().name()));
-                }
+                plan -> subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(plan.getSecurity().name()))
             );
     }
 
@@ -1077,14 +1054,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Subscription {} transferred by {}", transferSubscription.getId(), userId);
 
-            Optional<Subscription> optSubscription = subscriptionRepository.findById(transferSubscription.getId());
-            if (!optSubscription.isPresent()) {
-                throw new SubscriptionNotFoundException(transferSubscription.getId());
-            }
-
             PlanEntity planEntity = planService.findById(transferSubscription.getPlan());
 
-            Subscription subscription = optSubscription.get();
+            Subscription subscription = subscriptionRepository
+                .findById(transferSubscription.getId())
+                .orElseThrow(() -> new SubscriptionNotFoundException(transferSubscription.getId()));
             if (
                 planEntity.getStatus() != PlanStatus.PUBLISHED ||
                 !planEntity.getSecurity().equals(planService.findById(subscription.getPlan()).getSecurity()) ||
