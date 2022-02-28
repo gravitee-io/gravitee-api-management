@@ -90,7 +90,7 @@ public class MessageService_GetRecipientIdsTest {
         try {
             Api api = new Api();
             api.setId(apiId);
-            messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, message);
+            messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, message);
             fail("should throw MessageRecipientFormatException");
         } catch (MessageRecipientFormatException ex) {
             // ok
@@ -112,9 +112,9 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_PUBLISHER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        messageService.getRecipientsId(messageEntity);
+        messageService.getRecipientsId(GraviteeContext.getExecutionContext(), messageEntity);
 
-        verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getExecutionContext().getEnvironmentId()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, never()).getMembershipsByReferencesAndRole(any(), any(), any());
         verify(mockRoleService, never()).findByScopeAndName(any(), any());
@@ -138,7 +138,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_PUBLISHER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getExecutionContext(), messageEntity);
 
         assertNotNull("not null", recipientIds);
         assertEquals("size=1", 1, recipientIds.size());
@@ -166,7 +166,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_PUBLISHER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
+        messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, messageEntity);
 
         verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
@@ -207,7 +207,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("OWNER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, messageEntity);
 
         // then
         assertNotNull("not null", recipientIds);
@@ -261,7 +261,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("OWNER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, messageEntity);
 
         // then
         assertNotNull("not null", recipientIds);
@@ -303,7 +303,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_SUBSCRIBERS"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, messageEntity);
 
         // then
         assertNotNull("not null", recipientIds);

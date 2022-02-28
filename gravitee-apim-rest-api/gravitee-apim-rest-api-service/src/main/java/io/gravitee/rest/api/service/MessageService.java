@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
 /**
@@ -26,34 +27,35 @@ import java.util.Set;
 public interface MessageService {
     /**
      * send a message to api consumers according to recipients filters
-     * @param environmentId
+     * @param context ExecutionContext
      * @param apiId api id
      * @param message message
      * @return the number of recipients
      */
-    int create(final String environmentId, String apiId, MessageEntity message);
+    int create(final ExecutionContext context, String apiId, MessageEntity message);
 
     /**
      * send a message to all users according to recipients filters
-     * @param environmentId
+     * @param context ExecutionContext
      * @param message message
      * @return the number of recipients
      */
-    int create(final String environmentId, MessageEntity message);
+    int create(final ExecutionContext context, MessageEntity message);
 
     /**
      * get the user ids of recipients
-     * @param environment
+     * @param context ExecutionContext
      * @param api api
      * @param message message
      * @return a user id list
      */
-    Set<String> getRecipientsId(final String environment, Api api, MessageEntity message);
+    Set<String> getRecipientsId(final ExecutionContext context, Api api, MessageEntity message);
 
     /**
      * get the user ids of recipients
+     * @param context ExecutionContext
      * @param message message
      * @return a user id list
      */
-    Set<String> getRecipientsId(MessageEntity message);
+    Set<String> getRecipientsId(final ExecutionContext context, MessageEntity message);
 }

@@ -29,7 +29,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
@@ -124,7 +124,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public int create(final String environmentId, String apiId, MessageEntity message) {
+    public int create(final ExecutionContext context, String apiId, MessageEntity message) {
         assertMessageNotEmpty(message);
         try {
             Optional<Api> optionalApi = apiRepository.findById(apiId);
@@ -133,7 +133,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             }
             Api api = optionalApi.get();
 
-            int msgSize = send(api, message, getRecipientsId(environmentId, api, message));
+            int msgSize = send(context, api, message, getRecipientsId(context, api, message));
 
             auditService.createApiAuditLog(apiId, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
             return msgSize;
@@ -144,16 +144,16 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public int create(final String environmentId, MessageEntity message) {
+    public int create(final ExecutionContext context, MessageEntity message) {
         assertMessageNotEmpty(message);
 
-        int msgSize = send(null, message, getRecipientsId(message));
+        int msgSize = send(context, null, message, getRecipientsId(context, message));
 
-        auditService.createEnvironmentAuditLog(environmentId, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
+        auditService.createEnvironmentAuditLog(context.getEnvironmentId(), Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
         return msgSize;
     }
 
-    private int send(Api api, MessageEntity message, Set<String> recipientsId) {
+    private int send(ExecutionContext context, Api api, MessageEntity message, Set<String> recipientsId) {
         switch (message.getChannel()) {
             case MAIL:
                 Set<String> mails = getRecipientsEmails(recipientsId);
@@ -166,8 +166,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                             .param("message", message.getText())
                             .param("messageSubject", message.getTitle())
                             .build(),
-                        // FIXME: Remove this context
-                        GraviteeContext.getCurrentContext()
+                        context.getReferenceContext()
                     );
                 }
                 return mails.size();
@@ -214,15 +213,15 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public Set<String> getRecipientsId(MessageEntity message) {
+    public Set<String> getRecipientsId(final ExecutionContext context, MessageEntity message) {
         if (MessageChannel.HTTP.equals(message.getChannel())) {
             return Collections.singleton(message.getRecipient().getUrl());
         }
-        return getRecipientsId(GraviteeContext.getCurrentEnvironment(), null, message);
+        return getRecipientsId(context, null, message);
     }
 
     @Override
-    public Set<String> getRecipientsId(final String environmentId, Api api, MessageEntity message) {
+    public Set<String> getRecipientsId(final ExecutionContext context, Api api, MessageEntity message) {
         if (message != null && MessageChannel.HTTP.equals(message.getChannel())) {
             return Collections.singleton(message.getRecipient().getUrl());
         }
@@ -245,7 +244,11 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                     if (optRole.isPresent()) {
                         recipientIds.addAll(
                             membershipService
-                                .getMembershipsByReferenceAndRole(MembershipReferenceType.ENVIRONMENT, environmentId, optRole.get().getId())
+                                .getMembershipsByReferenceAndRole(
+                                    MembershipReferenceType.ENVIRONMENT,
+                                    context.getEnvironmentId(),
+                                    optRole.get().getId()
+                                )
                                 .stream()
                                 .map(MembershipEntity::getMemberId)
                                 .collect(Collectors.toSet())
