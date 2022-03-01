@@ -320,15 +320,23 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 throw new DictionaryNotFoundException(id);
             }
 
-            // Force un-deployment
-            if (dictionary.get().getType() == DictionaryType.MANUAL) {
-                undeploy(id);
+            if (dictionary.get().getType() == DictionaryType.DYNAMIC) {
+                this.stop(id);
             }
 
-            this.stop(id);
-
             dictionaryRepository.delete(id);
-        } catch (TechnicalException ex) {
+
+            Map<String, String> properties = new HashMap<>();
+            properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
+
+            // And create event
+            eventService.create(
+                Collections.singleton(GraviteeContext.getCurrentEnvironment()),
+                EventType.UNPUBLISH_DICTIONARY,
+                mapper.writeValueAsString(dictionary),
+                properties
+            );
+        } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }

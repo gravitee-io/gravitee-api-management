@@ -46,7 +46,8 @@
       <em style="color: red">Select at least one role</em>
     </div>
     <form name="formMember" ng-submit="$event.preventDefault()">
-      <gv-user-autocomplete users-selected="$ctrl.usersSelected"></gv-user-autocomplete>
+      <gv-user-autocomplete users-selected="$ctrl.usersSelected" disabled="$ctrl.hasPrimaryOwner()"></gv-user-autocomplete>
+      <em ng-if="$ctrl.hasPrimaryOwner()">No more members can be added because only one user can be set as an API Primary Owner.</em>
     </form>
   </md-dialog-content>
 

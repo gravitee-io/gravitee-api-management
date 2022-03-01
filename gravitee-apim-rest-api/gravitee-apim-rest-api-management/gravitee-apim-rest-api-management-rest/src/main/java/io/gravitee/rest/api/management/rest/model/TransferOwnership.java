@@ -40,7 +40,6 @@ public class TransferOwnership {
      */
     private MembershipMemberType type;
 
-    @NotNull
     @JsonProperty("role")
     private String poRole;
 

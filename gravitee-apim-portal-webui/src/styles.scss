@@ -188,6 +188,13 @@ h2.title {
   opacity: 0.5;
 }
 
+/* Hack for swagger, because the previous h2.title is also applied in the swagger-ui component */
+.swagger-ui .info .title {
+  font-size: initial;
+  line-height: initial;
+  opacity: initial;
+}
+
 h3.title {
   font-size: var(--gv-theme-font-size-l);
   line-height: var(--gv-theme-font-size-l);

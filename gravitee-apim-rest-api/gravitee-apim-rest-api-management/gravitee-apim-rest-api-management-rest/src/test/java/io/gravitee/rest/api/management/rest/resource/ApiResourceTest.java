@@ -25,6 +25,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
@@ -361,5 +362,25 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message, message.contains("Invalid image format"));
+    }
+
+    @Test
+    public void shouldImportApiPathMappingsFromPage() {
+        when(apiService.importPathMappingsFromPage(any(), eq("Foo"), eq(DefinitionVersion.valueOfLabel("1.0.0")))).thenReturn(mockApi);
+
+        final Response response = envTarget(API + "/import-path-mappings").queryParam("page", "Foo").request().post(null);
+        assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldImportApiPathMappingsFromPageWithDefinitionVersion() {
+        when(apiService.importPathMappingsFromPage(any(), eq("Foo"), eq(DefinitionVersion.valueOfLabel("2.0.0")))).thenReturn(mockApi);
+
+        final Response response = envTarget(API + "/import-path-mappings")
+            .queryParam("page", "Foo")
+            .queryParam("definitionVersion", "2.0.0")
+            .request()
+            .post(null);
+        assertEquals(OK_200, response.getStatus());
     }
 }

@@ -2,29 +2,34 @@ $userImageSize: 160px;
 
 .gravitee-user-container {
   ng-md-icon {
-    top: -5px;
+    // Needed to override some weird global styles
+    top: 0;
   }
 
-  md-input-container {
-    width: 80%;
-    margin: 0 !important;
-    padding: 0 !important;
+  &__info-row,
+  &__editable-info-row {
+    display: flex;
+    flex-direction: row;
+
+    &__icon {
+      margin-right: 12px;
+    }
+
+    &__label {
+      flex: 1 1 auto;
+    }
+  }
+
+  &__editable-info-row {
+    align-items: baseline;
+  }
+
+  &__info-row {
+    align-items: center;
   }
 }
 
 .gravitee-user-token {
   font-style: italic;
   padding: 10px;
-}
-
-.field-label {
-  padding-top: 2em;
-}
-
-.field-input-container {
-  display: inline-block;
-  position: relative;
-  padding: 2px;
-  margin: 10px 0;
-  vertical-align: middle;
 }

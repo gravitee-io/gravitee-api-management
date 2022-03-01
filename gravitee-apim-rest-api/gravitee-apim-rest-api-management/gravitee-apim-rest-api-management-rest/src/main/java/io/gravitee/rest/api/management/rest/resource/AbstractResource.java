@@ -21,6 +21,8 @@ import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -38,6 +40,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -120,6 +123,47 @@ public abstract class AbstractResource {
             .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.API));
 
         return Stream.concat(streamUserMembership, streamGroupMembership);
+    }
+
+    protected boolean canManageApi(final ApiEntity api) {
+        return isAdmin() || isDirectMember(api) || isMemberThroughGroup(api);
+    }
+
+    private boolean isDirectMember(ApiEntity api) {
+        return membershipService
+            .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API)
+            .stream()
+            .filter(membership -> membership.getReferenceId().equals(api.getId()))
+            .filter(membership -> membership.getRoleId() != null)
+            .anyMatch(
+                membership -> {
+                    RoleEntity role = roleService.findById(membership.getRoleId());
+                    return apiService.canManageApi(role);
+                }
+            );
+    }
+
+    private boolean isMemberThroughGroup(ApiEntity api) {
+        if (CollectionUtils.isEmpty(api.getGroups())) {
+            return false;
+        }
+
+        Set<String> groups = membershipService
+            .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), GROUP)
+            .stream()
+            .filter(membership -> membership.getRoleId() != null)
+            .filter(
+                membership -> {
+                    RoleEntity role = roleService.findById(membership.getRoleId());
+                    return apiService.canManageApi(role);
+                }
+            )
+            .map(MembershipEntity::getReferenceId)
+            .collect(Collectors.toSet());
+
+        groups.retainAll(api.getGroups());
+
+        return !groups.isEmpty();
     }
 
     protected void canReadApi(final String api) {

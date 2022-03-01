@@ -71,10 +71,10 @@ import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
@@ -103,6 +103,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1017,7 +1018,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         List<Api> userApis = emptyList();
-        List<Api> groupApis = emptyList();
+        Set<Api> groupApis = Set.of();
         List<Api> subscribedApis = emptyList();
 
         // for others API, user must be authenticated
@@ -1026,6 +1027,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final String[] userApiIds = membershipService
                 .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
                 .stream()
+                .filter(membership -> membership.getRoleId() != null)
+                .filter(
+                    membership -> {
+                        final RoleEntity role = roleService.findById(membership.getRoleId());
+                        if (!portal) {
+                            return canManageApi(role);
+                        }
+                        return role.getScope().equals(RoleScope.API);
+                    }
+                )
                 .map(MembershipEntity::getReferenceId)
                 .filter(
                     apiId -> {
@@ -1043,28 +1054,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
             }
 
-            // get user groups apis
-            final String[] groupIds = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
-                .stream()
-                .filter(
-                    m -> {
-                        final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
-                        if (!portal) {
-                            return (
-                                m.getRoleId() != null &&
-                                roleInGroup.getScope().equals(RoleScope.API) &&
-                                canManageApi(roleInGroup.getPermissions())
-                            );
-                        }
-                        return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
-                    }
-                )
-                .map(MembershipEntity::getReferenceId)
-                .toArray(String[]::new);
-            if (groupIds.length > 0 && groupIds[0] != null) {
-                groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
-            }
+            // get APIs from user group memberships
+            groupApis = findApisByUserGroups(userId, apiQuery, portal);
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
             if (portal) {
@@ -1073,6 +1064,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     .stream()
                     .map(ApplicationListItem::getId)
                     .collect(toSet());
+
                 if (!applications.isEmpty()) {
                     final SubscriptionQuery query = new SubscriptionQuery();
                     query.setApplications(applications);
@@ -1090,6 +1082,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         List<Api> allApis = new ArrayList<>();
+
         allApis.addAll(publicApis);
         allApis.addAll(userApis);
         allApis.addAll(groupApis);
@@ -1098,19 +1091,159 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return allApis.stream().distinct().collect(toList());
     }
 
-    private boolean canManageApi(Map<String, char[]> permissions) {
-        return permissions
-            .entrySet()
+    private Set<Api> findApisByUserGroups(String userId, ApiQuery apiQuery, boolean portal) {
+        Set<Api> apis = new HashSet<>();
+
+        // keep track of API roles mapped to their ID to avoid querying in a loop later
+        Map<String, RoleEntity> apiRoles = roleService
+            .findByScope(RoleScope.API)
+            .stream()
+            .collect(toMap(RoleEntity::getId, Function.identity()));
+
+        List<Api> nonPOGroupApis = findApisByGroupWithUserHavingNonPOApiRole(userId, apiQuery, apiRoles, portal);
+        List<Api> poGroupApis = findApisByGroupWithUserHavingPOApiRole(userId, apiQuery, apiRoles, portal);
+
+        apis.addAll(nonPOGroupApis);
+        apis.addAll(poGroupApis);
+
+        return apis;
+    }
+
+    private List<Api> findApisByGroupWithUserHavingNonPOApiRole(
+        String userId,
+        ApiQuery apiQuery,
+        Map<String, RoleEntity> apiRoles,
+        boolean portal
+    ) {
+        Set<String> nonPoRoleIds = apiRoles
+            .values()
+            .stream()
+            .filter(role -> !role.isApiPrimaryOwner())
+            .map(RoleEntity::getId)
+            .collect(toSet());
+
+        String[] groupIds = membershipService
+            .getMembershipsByMemberAndReferenceAndRoleIn(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP, nonPoRoleIds)
             .stream()
             .filter(
-                entry -> !entry.getKey().equals(ApiPermission.RATING.name()) && !entry.getKey().equals(ApiPermission.RATING_ANSWER.name())
-            )
-            .anyMatch(
-                entry -> {
-                    String stringPerm = new String(entry.getValue());
-                    return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
+                membership -> {
+                    final RoleEntity roleInGroup = apiRoles.get(membership.getRoleId());
+                    return portal || canManageApi(roleInGroup);
                 }
-            );
+            )
+            .map(MembershipEntity::getReferenceId)
+            .filter(Objects::nonNull)
+            .toArray(String[]::new);
+
+        if (groupIds.length > 0) {
+            return apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
+        }
+
+        return List.of();
+    }
+
+    /*
+     * If the user has the PRIMARY_OWNER role on the API scope in a group,
+     * the user will keep this role only if the group is primary owner
+     * on the API. If not, his role will be set to the default API role
+     * for this group.
+     *
+     * If no default role has been defined on the group,
+     * the API is removed from the list.
+     *
+     * see https://github.com/gravitee-io/issues/issues/6360
+     */
+    private List<Api> findApisByGroupWithUserHavingPOApiRole(
+        String userId,
+        ApiQuery apiQuery,
+        Map<String, RoleEntity> apiRoles,
+        boolean portal
+    ) {
+        String apiPrimaryOwnerRoleId = apiRoles
+            .values()
+            .stream()
+            .filter(RoleEntity::isApiPrimaryOwner)
+            .map(RoleEntity::getId)
+            .findFirst()
+            .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner System Role"));
+
+        String[] poGroupIds = membershipService
+            .getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                userId,
+                MembershipReferenceType.GROUP,
+                apiPrimaryOwnerRoleId
+            )
+            .stream()
+            .map(MembershipEntity::getReferenceId)
+            .filter(Objects::nonNull)
+            .toArray(String[]::new);
+
+        // keep track of roles mapped to their name to be able to evaluate the default API role permission for the groups
+        Map<String, RoleEntity> apiRolesByName = apiRoles.values().stream().collect(toMap(RoleEntity::getName, Function.identity()));
+
+        // keep track of all the groups where the user has the role Primary Owner on the API scope
+        Set<GroupEntity> userGroups = groupService.findByIds(Set.of(poGroupIds));
+
+        if (poGroupIds.length > 0) {
+            return apiRepository
+                .search(queryToCriteria(apiQuery).groups(poGroupIds).build())
+                .stream()
+                .filter(
+                    api -> {
+                        PrimaryOwnerEntity primaryOwner = getPrimaryOwner(api);
+                        /*
+                         * If one of the groups where the user has the API Primary Owner Role
+                         * is the actual Primary Owner of the API, grant permission
+                         */
+                        if (Set.of(poGroupIds).contains(primaryOwner.getId())) {
+                            return true;
+                        }
+                        /*
+                         * Otherwise, check if the default API role for one of the groups
+                         * grants permission to the user
+                         */
+                        return userGroups
+                            .stream()
+                            .map(GroupEntity::getRoles)
+                            .filter(Objects::nonNull)
+                            .anyMatch(
+                                groupDefaultRoles -> {
+                                    String defaultApiRoleName = groupDefaultRoles.get(RoleScope.API);
+                                    return portal || this.canManageApi(apiRolesByName.get(defaultApiRoleName));
+                                }
+                            );
+                    }
+                )
+                .collect(toList());
+        }
+        return List.of();
+    }
+
+    @Override
+    public boolean canManageApi(RoleEntity role) {
+        return (
+            role != null &&
+            role.getScope().equals(RoleScope.API) &&
+            role
+                .getPermissions()
+                .entrySet()
+                .stream()
+                .filter(entry -> isApiManagementPermission(entry.getKey()))
+                .anyMatch(
+                    entry -> {
+                        String stringPerm = new String(entry.getValue());
+                        return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
+                    }
+                )
+        );
+    }
+
+    private boolean isApiManagementPermission(String permissionAsString) {
+        return Arrays
+            .stream(ApiPermission.values())
+            .filter(permission -> permission != ApiPermission.RATING && permission != ApiPermission.RATING_ANSWER)
+            .anyMatch(permission -> permission.name().equals(permissionAsString));
     }
 
     @Override
@@ -1821,33 +1954,34 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (!events.getContent().isEmpty()) {
                 // According to page size, we know that we have only one element in the list
                 EventEntity lastEvent = events.getContent().get(0);
+                boolean sync = false;
+                if (PUBLISH_API.equals(lastEvent.getType())) {
+                    //TODO: Done only for backward compatibility with 0.x. Must be removed later (1.1.x ?)
+                    boolean enabled = objectMapper.getDeserializationConfig().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+                    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
+                    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
 
-                //TODO: Done only for backward compatibility with 0.x. Must be removed later (1.1.x ?)
-                boolean enabled = objectMapper.getDeserializationConfig().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
-                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
+                    final ApiEntity deployedApi = convert(payloadEntity);
+                    // Remove policy description from sync check
+                    removeDescriptionFromPolicies(api);
+                    removeDescriptionFromPolicies(deployedApi);
 
-                final ApiEntity deployedApi = convert(payloadEntity);
-                // Remove policy description from sync check
-                removeDescriptionFromPolicies(api);
-                removeDescriptionFromPolicies(deployedApi);
+                    sync = apiSynchronizationProcessor.processCheckSynchronization(deployedApi, api);
 
-                boolean sync = apiSynchronizationProcessor.processCheckSynchronization(deployedApi, api);
-
-                // 2_ If API definition is synchronized, check if there is any modification for API's plans
-                // but only for published or closed plan
-                if (sync) {
-                    Set<PlanEntity> plans = planService.findByApi(api.getId());
-                    sync =
-                        plans
-                            .stream()
-                            .filter(plan -> (plan.getStatus() != PlanStatus.STAGING))
-                            .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt()))
-                            .count() ==
-                        0;
+                    // 2_ If API definition is synchronized, check if there is any modification for API's plans
+                    // but only for published or closed plan
+                    if (sync) {
+                        Set<PlanEntity> plans = planService.findByApi(api.getId());
+                        sync =
+                            plans
+                                .stream()
+                                .filter(plan -> (plan.getStatus() != PlanStatus.STAGING))
+                                .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt()))
+                                .count() ==
+                            0;
+                    }
                 }
-
                 return sync;
             }
         } catch (Exception e) {
@@ -2209,12 +2343,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity importPathMappingsFromPage(final ApiEntity apiEntity, final String page) {
+    public ApiEntity importPathMappingsFromPage(final ApiEntity apiEntity, final String page, DefinitionVersion definitionVersion) {
         final PageEntity pageEntity = pageService.findById(page);
         if (SWAGGER.name().equals(pageEntity.getType())) {
             final ImportSwaggerDescriptorEntity importSwaggerDescriptorEntity = new ImportSwaggerDescriptorEntity();
             importSwaggerDescriptorEntity.setPayload(pageEntity.getContent());
-            final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(importSwaggerDescriptorEntity);
+            importSwaggerDescriptorEntity.setWithPathMapping(true);
+            final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(importSwaggerDescriptorEntity, definitionVersion);
             apiEntity.getPathMappings().addAll(swaggerApiEntity.getPathMappings());
         }
 
@@ -3095,6 +3230,57 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return comparator;
+    }
+
+    @Override
+    public Map<String, List<GroupMemberEntity>> getGroupsWithMembers(String environmentId, String apiId)
+        throws TechnicalManagementException {
+        try {
+            Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+            final List<String> apiGroups = api.getGroups() == null ? new ArrayList<>() : new ArrayList<>(api.getGroups());
+            Set<MemberEntity> members = membershipService.getMembersByReferencesAndRole(MembershipReferenceType.GROUP, apiGroups, null);
+
+            return members
+                .stream()
+                .peek(member -> member.setRoles(computeMemberRoles(environmentId, api, member)))
+                .collect(groupingBy(MemberEntity::getReferenceId, mapping(GroupMemberEntity::new, toList())));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error has occurred while trying to retrieve groups for API " + apiId);
+        }
+    }
+
+    private List<RoleEntity> computeMemberRoles(String environmentId, Api api, MemberEntity member) {
+        return member
+            .getRoles()
+            .stream()
+            .map(role -> role.isApiPrimaryOwner() ? mapApiPrimaryOwnerRole(environmentId, api, member.getReferenceId()) : role)
+            .collect(toList());
+    }
+
+    private RoleEntity mapApiPrimaryOwnerRole(String environmentId, Api api, String groupId) {
+        GroupEntity memberGroup = groupService.findById(environmentId, groupId);
+        String groupDefaultApiRoleName = memberGroup.getRoles() == null ? null : memberGroup.getRoles().get(RoleScope.API);
+
+        PrimaryOwnerEntity primaryOwner = getPrimaryOwner(api);
+
+        /*
+         * If the group is not primary owner and the API, return the default group role for the API scope
+         *
+         * See https://github.com/gravitee-io/issues/issues/6360#issuecomment-1030610543
+         */
+        RoleEntity role = new RoleEntity();
+        role.setScope(RoleScope.API);
+
+        if (memberGroup.getId().equals(primaryOwner.getId())) {
+            role.setName(SystemRole.PRIMARY_OWNER.name());
+        } else if (groupDefaultApiRoleName != null) {
+            roleService
+                .findByScopeAndName(RoleScope.API, groupDefaultApiRoleName)
+                .ifPresent(groupRole -> role.setName(groupRole.getName()));
+        }
+
+        return role;
     }
 
     protected void encryptProperties(List<PropertyEntity> properties) {

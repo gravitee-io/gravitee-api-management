@@ -26,10 +26,13 @@ import io.gravitee.gateway.standalone.connector.ConnectorRegister;
 import io.gravitee.gateway.standalone.container.GatewayTestContainer;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
+import io.gravitee.gateway.standalone.reporter.FakeReporter;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
+import io.gravitee.node.reporter.ReporterManager;
 import io.gravitee.plugin.connector.ConnectorPluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import java.io.File;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +42,8 @@ import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
 
@@ -60,13 +65,26 @@ public class ApiDeployerStatement extends Statement {
 
     @Override
     public void evaluate() throws Throwable {
-        URL home = ApiDeployerStatement.class.getResource("/gravitee-01/");
-        System.setProperty("gravitee.home", URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8.name()));
+        final String homeFolder = target.getClass().getAnnotation(ApiDescriptor.class).configFolder();
+        URL home = ApiDeployerStatement.class.getResource(homeFolder);
+        String graviteeHome = URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8.name());
+        System.setProperty("gravitee.home", graviteeHome);
+        System.setProperty("gravitee.conf", graviteeHome + File.separator + "config" + File.separator + "gravitee.yml");
 
         GatewayTestContainer container = new GatewayTestContainer();
+        final ApplicationContext applicationContext = container.applicationContext();
+
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
-            (ConfigurableApplicationContext) container.applicationContext()
+            (ConfigurableApplicationContext) applicationContext
         ).getBeanFactory();
+
+        FakeReporter fakeReporter = (FakeReporter) applicationContext.getBean("fakeReporter");
+        ReporterManager reporterManager = applicationContext.getBean(ReporterManager.class);
+        reporterManager.register(fakeReporter);
+
+        if (target instanceof ApplicationContextAware) {
+            ((ApplicationContextAware) target).setApplicationContext(applicationContext);
+        }
 
         if (target instanceof ConnectorRegister) {
             ConnectorPluginManager cpm = container.applicationContext().getBean(ConnectorPluginManager.class);
@@ -74,19 +92,19 @@ public class ApiDeployerStatement extends Statement {
         }
 
         if (target instanceof PolicyRegister) {
-            String[] beanNamesForType = container
-                .applicationContext()
-                .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
+            String[] beanNamesForType = applicationContext.getBeanNamesForType(
+                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
+            );
 
-            ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) container
-                .applicationContext()
-                .getBean(beanNamesForType[0]);
+            ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) applicationContext.getBean(
+                beanNamesForType[0]
+            );
 
             ((PolicyRegister) target).register(ppm);
         }
 
         if (target instanceof PolicyFactory) {
-            String[] beanNames = container.applicationContext().getBeanNamesForType(PolicyFactory.class);
+            String[] beanNames = applicationContext.getBeanNamesForType(PolicyFactory.class);
             String oldBeanName = beanNames[0];
 
             beanFactory.destroyBean(oldBeanName, beanFactory.getBean(oldBeanName));
@@ -99,7 +117,7 @@ public class ApiDeployerStatement extends Statement {
 
         final VertxEmbeddedContainer vertxContainer = startServer(container);
 
-        ApiManager apiManager = container.applicationContext().getBean(ApiManager.class);
+        ApiManager apiManager = applicationContext.getBean(ApiManager.class);
         Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 
         try {

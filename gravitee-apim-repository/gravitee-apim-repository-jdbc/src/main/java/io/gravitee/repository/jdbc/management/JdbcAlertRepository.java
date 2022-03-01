@@ -15,8 +15,9 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -77,6 +78,9 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     public List<AlertTrigger> findByReferenceAndReferenceIds(final String referenceType, final List<String> referenceIds)
         throws TechnicalException {
         LOGGER.debug("JdbcAlertRepository.findByReferenceAndReferenceIds({}, {})", referenceType, referenceIds);
+        if (isEmpty(referenceIds)) {
+            return emptyList();
+        }
         try {
             List<AlertTrigger> rows = jdbcTemplate.query(
                 getOrm().getSelectAllSql() +

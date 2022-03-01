@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.mongodb.management.internal.membership.MembershipMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -278,6 +279,36 @@ public class MongoMembershipRepository implements MembershipRepository {
             referenceType,
             referenceId,
             roleId,
+            memberships
+        );
+        return memberships;
+    }
+
+    @Override
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) throws TechnicalException {
+        logger.debug(
+            "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}, {}]",
+            memberId,
+            memberType,
+            referenceType,
+            roleIds
+        );
+        Set<Membership> memberships = internalMembershipRepo
+            .findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(memberId, memberType.name(), referenceType.name(), roleIds)
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toSet());
+        logger.debug(
+            "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}, {}] = {}",
+            memberId,
+            memberType,
+            referenceType,
+            roleIds,
             memberships
         );
         return memberships;

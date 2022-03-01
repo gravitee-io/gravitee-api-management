@@ -25,7 +25,14 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
   controller: function (DashboardService: DashboardService) {
     'ngInject';
     this.fields = DashboardService.getIndexedFields();
-    this.projections = _.concat({ label: 'Hits', value: '_count' }, DashboardService.getAverageableFields());
+    this.projections = _.concat(
+      {
+        label: 'Hits',
+        value: '_count',
+        type: 'count',
+      },
+      DashboardService.getAverageableFields(),
+    );
     this.projectionOrders = [
       { label: 'Desc', value: '-' },
       { label: 'Asc', value: '' },

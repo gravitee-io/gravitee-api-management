@@ -1045,6 +1045,25 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
+    public Set<MembershipEntity> getMembershipsByMemberAndReferenceAndRoleIn(
+        MembershipMemberType memberType,
+        String memberId,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) {
+        try {
+            return membershipRepository
+                .findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(memberId, convert(memberType), convert(referenceType), roleIds)
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+        }
+    }
+
+    @Override
     public Set<MembershipEntity> getMembershipsByMembersAndReference(
         MembershipMemberType memberType,
         List<String> memberIds,
@@ -1253,6 +1272,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                             .map(io.gravitee.repository.management.model.Membership::getRoleId)
                             .map(roleService::findById)
                             .filter(role -> role.getScope().name().equals(referenceType.name()))
+                            .map(role -> role.isApiPrimaryOwner() ? mapApiPrimaryOwnerRoleToGroupRole(referenceId, group, role) : role)
+                            .filter(Objects::nonNull)
                             .collect(Collectors.toSet())
                     );
                 }
@@ -1272,6 +1293,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 ex
             );
         }
+    }
+
+    private RoleEntity mapApiPrimaryOwnerRoleToGroupRole(String apiId, String groupId, RoleEntity role) {
+        PrimaryOwnerEntity apiPrimaryOwner = apiService.getPrimaryOwner(apiId);
+        if (apiPrimaryOwner.getId().equals(groupId)) {
+            return role;
+        }
+
+        GroupEntity userGroup = groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId);
+        String groupApiRole = userGroup.getRoles().get(RoleScope.API);
+
+        return groupApiRole == null ? null : roleService.findByScopeAndName(RoleScope.API, groupApiRole).orElse(null);
     }
 
     private Map<String, char[]> computeGlobalPermissions(Set<RoleEntity> userRoles) {

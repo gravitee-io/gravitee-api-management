@@ -28,4 +28,6 @@ import java.lang.annotation.Target;
 @Target({ ElementType.METHOD, ElementType.TYPE })
 public @interface ApiDescriptor {
     String value();
+
+    String configFolder() default "/gravitee-default";
 }

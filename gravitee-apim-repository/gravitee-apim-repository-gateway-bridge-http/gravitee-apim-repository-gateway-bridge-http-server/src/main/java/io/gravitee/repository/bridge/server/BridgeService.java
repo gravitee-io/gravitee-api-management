@@ -15,12 +15,15 @@
  */
 package io.gravitee.repository.bridge.server;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.repository.bridge.server.handler.*;
 import io.gravitee.repository.bridge.server.http.configuration.HttpServerConfiguration;
 import io.gravitee.repository.bridge.server.version.VersionHandler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.AuthenticationHandler;
@@ -70,6 +73,8 @@ public class BridgeService extends AbstractService {
         if (httpServerConfiguration.isEnabled()) {
             super.doStart();
             LOGGER.info("Start HTTP server for bridge");
+
+            configureMapper();
 
             // Start HTTP server
             Router mainRouter = Router.router(vertx);
@@ -174,6 +179,13 @@ public class BridgeService extends AbstractService {
             applicationContext.getAutowireCapableBeanFactory().autowireBean(installationHandler);
             bridgeRouter.get("/installation").handler(installationHandler::find);
         }
+    }
+
+    private void configureMapper() {
+        DatabindCodec
+            .prettyMapper()
+            .enable(JsonGenerator.Feature.IGNORE_UNKNOWN)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     @Override

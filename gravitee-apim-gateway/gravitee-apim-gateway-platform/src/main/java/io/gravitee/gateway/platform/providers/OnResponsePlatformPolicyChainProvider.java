@@ -62,6 +62,6 @@ public class OnResponsePlatformPolicyChainProvider extends ConfigurablePolicyCha
 
     @Override
     public PolicyChainOrder getChainOrder() {
-        return PolicyChainOrder.BEFORE_API;
+        return PolicyChainOrder.AFTER_API;
     }
 }

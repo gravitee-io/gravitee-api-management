@@ -203,6 +203,11 @@ public class EventsHandler extends AbstractHandler {
             builder.environments(environments);
         }
 
+        Boolean strictMode = payload.getBoolean("strictMode");
+        if (strictMode != null) {
+            builder.strictMode(strictMode);
+        }
+
         return builder.build();
     }
 }

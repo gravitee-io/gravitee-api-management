@@ -16,3 +16,14 @@
 
 -->
 <span style="font-style: italic">This rule does not require any configuration.</span>
+<span style="font-style: italic"
+  >However, it is possible to define an aggregation to receive an alert per api endpoint instead of an unique alert in case multiple
+  endpoints are concerned</span
+>
+
+<!-- Additional projections -->
+<gv-alert-trigger-projections
+  condition="$ctrl.alert.conditions[0]"
+  alert="$ctrl.alert"
+  is-readonly="$ctrl.parent.isReadonly()"
+></gv-alert-trigger-projections>
