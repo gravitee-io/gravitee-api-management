@@ -85,6 +85,14 @@
         </fileSet>
 
         <fileSet>
+            <directory>target/staging/notifiers</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>*.zip</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
             <directory>target/staging/policies</directory>
             <outputDirectory>plugins</outputDirectory>
             <includes>
