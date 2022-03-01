@@ -3238,11 +3238,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-            Set<MemberEntity> members = membershipService.getMembersByReferencesAndRole(
-                MembershipReferenceType.GROUP,
-                new ArrayList<>(api.getGroups()),
-                null
-            );
+            final List<String> apiGroups = api.getGroups() == null ? new ArrayList<>() : new ArrayList<>(api.getGroups());
+            Set<MemberEntity> members = membershipService.getMembersByReferencesAndRole(MembershipReferenceType.GROUP, apiGroups, null);
 
             return members
                 .stream()
