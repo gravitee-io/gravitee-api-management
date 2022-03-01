@@ -593,6 +593,7 @@
                 <!-- Versions of the plugins for the full distribution on dev environment-->
                 <!-- Management API & Gateway -->
                 <gravitee-connector-kafka.version>1.1.0-SNAPSHOT</gravitee-connector-kafka.version>
+                <gravitee-resource-cache-redis.version>1.0.1</gravitee-resource-cache-redis.version>
                 <!-- Management API Only -->
                 <!-- Gateway Only -->
             </properties>
@@ -602,6 +603,13 @@
                     <groupId>io.gravitee.connector</groupId>
                     <artifactId>gravitee-connector-kafka</artifactId>
                     <version>${gravitee-connector-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>io.gravitee.resource</groupId>
+                    <artifactId>gravitee-resource-cache-redis</artifactId>
+                    <version>${gravitee-resource-cache-redis.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
