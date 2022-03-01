@@ -72,50 +72,76 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     }
 
     @Override
-    public ApiEntityResult createApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
+    public ApiEntityResult createApi(
+        String apiId,
+        String userId,
+        String swaggerDefinition,
+        String environmentId,
+        DeploymentMode mode,
+        List<String> labels
+    ) {
         if (mode == DeploymentMode.API_MOCKED) {
             logger.debug("Create Mocked Api [{}].", apiId);
-            return createMockedApi(apiId, userId, swaggerDefinition, environmentId);
+            return createMockedApi(apiId, userId, swaggerDefinition, environmentId, labels);
         }
 
         if (mode == DeploymentMode.API_PUBLISHED) {
             logger.debug("Create Published Api [{}].", apiId);
-            return createPublishedApi(apiId, userId, swaggerDefinition, environmentId);
+            return createPublishedApi(apiId, userId, swaggerDefinition, environmentId, labels);
         }
 
         logger.debug("Create Documented Api [{}].", apiId);
-        return createDocumentedApi(apiId, userId, swaggerDefinition, environmentId);
+        return createDocumentedApi(apiId, userId, swaggerDefinition, environmentId, labels);
     }
 
     @Override
-    public ApiEntityResult updateApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
+    public ApiEntityResult updateApi(
+        String apiId,
+        String userId,
+        String swaggerDefinition,
+        String environmentId,
+        DeploymentMode mode,
+        List<String> labels
+    ) {
         if (mode == DeploymentMode.API_DOCUMENTED) {
             logger.debug("Update Documented Api [{}].", apiId);
-            return updateDocumentedApi(apiId, swaggerDefinition);
+            return updateDocumentedApi(apiId, swaggerDefinition, labels);
         }
 
         if (mode == DeploymentMode.API_MOCKED) {
             logger.debug("Update Mocked Api [{}].", apiId);
-            return updateMockedApi(apiId, userId, swaggerDefinition, environmentId);
+            return updateMockedApi(apiId, userId, swaggerDefinition, environmentId, labels);
         }
 
         logger.debug("Update Published Api [{}].", apiId);
-        return updatePublishedApi(apiId, userId, swaggerDefinition, environmentId);
+        return updatePublishedApi(apiId, userId, swaggerDefinition, environmentId, labels);
     }
 
-    private ApiEntityResult createDocumentedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+    private ApiEntityResult createDocumentedApi(
+        String apiId,
+        String userId,
+        String swaggerDefinition,
+        String environmentId,
+        List<String> labels
+    ) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = buildForDocumentedApi(swaggerDefinition);
-        return createApiEntity(apiId, userId, swaggerDescriptor);
+        return createApiEntity(apiId, userId, swaggerDescriptor, labels);
     }
 
-    private ApiEntityResult updateDocumentedApi(String apiId, String swaggerDefinition) {
-        return updateApiEntity(apiId, buildForDocumentedApi(swaggerDefinition));
+    private ApiEntityResult updateDocumentedApi(String apiId, String swaggerDefinition, List<String> labels) {
+        return updateApiEntity(apiId, buildForDocumentedApi(swaggerDefinition), labels);
     }
 
-    private ApiEntityResult createMockedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+    private ApiEntityResult createMockedApi(
+        String apiId,
+        String userId,
+        String swaggerDefinition,
+        String environmentId,
+        List<String> labels
+    ) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
 
-        ApiEntityResult createApiResult = createApiEntity(apiId, userId, swaggerDescriptor);
+        ApiEntityResult createApiResult = createApiEntity(apiId, userId, swaggerDescriptor, labels);
 
         if (createApiResult.isSuccess()) {
             this.planService.create(createKeylessPlan(apiId, environmentId));
@@ -125,8 +151,14 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         return createApiResult;
     }
 
-    private ApiEntityResult updateMockedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
-        ApiEntityResult apiEntityResult = updateApiEntity(apiId, buildForMockedApi(swaggerDefinition));
+    private ApiEntityResult updateMockedApi(
+        String apiId,
+        String userId,
+        String swaggerDefinition,
+        String environmentId,
+        List<String> labels
+    ) {
+        ApiEntityResult apiEntityResult = updateApiEntity(apiId, buildForMockedApi(swaggerDefinition), labels);
 
         ApiDeploymentEntity apiDeployment = new ApiDeploymentEntity();
         apiDeployment.setDeploymentLabel("Model updated");
@@ -144,10 +176,16 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         return ApiEntityResult.success(apiService.deploy(apiId, userId, EventType.PUBLISH_API, apiDeployment));
     }
 
-    private ApiEntityResult createPublishedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+    private ApiEntityResult createPublishedApi(
+        String apiId,
+        String userId,
+        String swaggerDefinition,
+        String environmentId,
+        List<String> labels
+    ) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
 
-        ApiEntityResult createApiResult = createApiEntity(apiId, userId, swaggerDescriptor);
+        ApiEntityResult createApiResult = createApiEntity(apiId, userId, swaggerDescriptor, labels);
 
         if (createApiResult.isSuccess()) {
             this.planService.create(createKeylessPlan(apiId, environmentId));
@@ -164,8 +202,14 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         return createApiResult;
     }
 
-    private ApiEntityResult updatePublishedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
-        ApiEntityResult updatedApiResult = updateMockedApi(apiId, userId, swaggerDefinition, environmentId);
+    private ApiEntityResult updatePublishedApi(
+        String apiId,
+        String userId,
+        String swaggerDefinition,
+        String environmentId,
+        List<String> labels
+    ) {
+        ApiEntityResult updatedApiResult = updateMockedApi(apiId, userId, swaggerDefinition, environmentId, labels);
 
         if (updatedApiResult.isSuccess() && !ApiLifecycleState.PUBLISHED.equals(updatedApiResult.getApi().getLifecycleState())) {
             publishSwaggerDocumentation(apiId);
@@ -179,18 +223,25 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         return updatedApiResult;
     }
 
-    private ApiEntityResult updateApiEntity(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    private ApiEntityResult updateApiEntity(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor, List<String> labels) {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
+        api.setLabels(labels);
 
         return checkContextPath(api, apiId)
             .map(ApiEntityResult::failure)
             .orElseGet(() -> ApiEntityResult.success(this.apiService.updateFromSwagger(apiId, api, swaggerDescriptor)));
     }
 
-    private ApiEntityResult createApiEntity(String apiId, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    private ApiEntityResult createApiEntity(
+        String apiId,
+        String userId,
+        ImportSwaggerDescriptorEntity swaggerDescriptor,
+        List<String> labels
+    ) {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
+        api.setLabels(labels);
 
         final Optional<String> result = checkContextPath(api);
         if (result.isEmpty()) {
