@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.observers.TestObserver;
+import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -92,6 +93,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -116,7 +118,8 @@ public class DeployModelCommandHandlerTest {
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_DOCUMENTED
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenAnswer(
@@ -144,6 +147,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_MOCKED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -167,7 +171,8 @@ public class DeployModelCommandHandlerTest {
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_MOCKED
+                DeploymentMode.API_MOCKED,
+                payload.getLabels()
             )
         )
             .thenAnswer(
@@ -191,6 +196,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_PUBLISHED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -214,7 +220,8 @@ public class DeployModelCommandHandlerTest {
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_PUBLISHED
+                DeploymentMode.API_PUBLISHED,
+                payload.getLabels()
             )
         )
             .thenAnswer(
@@ -238,6 +245,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -263,7 +271,8 @@ public class DeployModelCommandHandlerTest {
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_DOCUMENTED
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenAnswer(
@@ -287,6 +296,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_MOCKED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -310,7 +320,8 @@ public class DeployModelCommandHandlerTest {
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_MOCKED
+                DeploymentMode.API_MOCKED,
+                payload.getLabels()
             )
         )
             .thenAnswer(
@@ -334,6 +345,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_PUBLISHED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -357,7 +369,8 @@ public class DeployModelCommandHandlerTest {
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_PUBLISHED
+                DeploymentMode.API_PUBLISHED,
+                payload.getLabels()
             )
         )
             .thenAnswer(
@@ -381,6 +394,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
         payload.setMode(null);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -404,7 +418,8 @@ public class DeployModelCommandHandlerTest {
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_DOCUMENTED
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenAnswer(
@@ -428,6 +443,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -451,7 +467,8 @@ public class DeployModelCommandHandlerTest {
                 payload.getUserId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_DOCUMENTED
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenThrow(new RuntimeException("fake error"));
@@ -470,6 +487,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -509,6 +527,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -550,6 +569,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -573,7 +593,8 @@ public class DeployModelCommandHandlerTest {
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_DOCUMENTED
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenAnswer(
@@ -599,6 +620,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -632,6 +654,7 @@ public class DeployModelCommandHandlerTest {
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+        payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -655,7 +678,8 @@ public class DeployModelCommandHandlerTest {
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
-                DeploymentMode.API_DOCUMENTED
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenReturn(ApiEntityResult.failure("context path not available"));

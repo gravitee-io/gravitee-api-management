@@ -57,6 +57,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 public class ApiServiceCockpitImplTest {
 
     private static final String API_ID = "api#id";
+    private static final List<String> LABELS = List.of("label1", "label2");
     private static final String USER_ID = "user#id";
     private static final String ENVIRONMENT_ID = "environment#id";
     private static final String PAGE_ID = "page#id";
@@ -136,13 +137,14 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        api.setLabels(LABELS);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED);
+        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED, LABELS);
 
         verify(swaggerService).createAPI(descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
@@ -170,7 +172,7 @@ public class ApiServiceCockpitImplTest {
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED);
+        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED, LABELS);
 
         verifyNoInteractions(planService);
         verify(apiService, never()).start(anyString(), anyString());
@@ -199,7 +201,7 @@ public class ApiServiceCockpitImplTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED);
+        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
 
         verify(swaggerService).createAPI(descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
@@ -227,7 +229,7 @@ public class ApiServiceCockpitImplTest {
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED);
+        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
 
         verify(planService).create(newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
@@ -263,7 +265,7 @@ public class ApiServiceCockpitImplTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
         verify(swaggerService).createAPI(descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
@@ -294,7 +296,7 @@ public class ApiServiceCockpitImplTest {
 
         preparePageServiceMock();
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
         verify(planService).create(newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
@@ -322,7 +324,7 @@ public class ApiServiceCockpitImplTest {
 
         preparePageServiceMock();
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
         verify(apiService).update(eq(API_ID), updateApiCaptor.capture());
         assertThat(updateApiCaptor.getValue())
@@ -350,7 +352,7 @@ public class ApiServiceCockpitImplTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
         verify(pageService).update(eq(PAGE_ID), updatePageCaptor.capture());
         assertThat(updatePageCaptor.getValue()).extracting(UpdatePageEntity::isPublished).isEqualTo(true);
@@ -383,7 +385,7 @@ public class ApiServiceCockpitImplTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        final var result = service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED);
+        final var result = service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED, LABELS);
 
         verify(swaggerService).createAPI(descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
@@ -427,7 +429,7 @@ public class ApiServiceCockpitImplTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        final var result = service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED);
+        final var result = service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
         assertThat(result.getApi()).isEqualTo(updatedApiEntity);
 
         verify(swaggerService).createAPI(descriptorCaptor.capture(), eq(DefinitionVersion.V2));
@@ -456,7 +458,7 @@ public class ApiServiceCockpitImplTest {
         when(apiService.updateFromSwagger(eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
 
-        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED);
+        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
 
         verify(apiService).deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), apiDeploymentCaptor.capture());
         assertThat(apiDeploymentCaptor.getValue().getDeploymentLabel()).isEqualTo("Model updated");
@@ -495,7 +497,7 @@ public class ApiServiceCockpitImplTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        final var result = service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+        final var result = service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
         assertThat(result.getApi()).isEqualTo(updatedApiEntity);
 
         verify(swaggerService).createAPI(descriptorCaptor.capture(), eq(DefinitionVersion.V2));
@@ -528,7 +530,7 @@ public class ApiServiceCockpitImplTest {
         when(apiService.deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
 
-        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
         verify(apiService).deploy(eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), apiDeploymentCaptor.capture());
         assertThat(apiDeploymentCaptor.getValue().getDeploymentLabel()).isEqualTo("Model updated");
@@ -559,7 +561,7 @@ public class ApiServiceCockpitImplTest {
         when(planService.findByApi(API_ID)).thenReturn(null);
         when(virtualHostService.sanitizeAndValidate(any(), eq(API_ID))).thenReturn(List.of(virtualHost));
 
-        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
         verify(planService).findByApi(eq(API_ID));
         verify(planService).create(newPlanCaptor.capture());
@@ -598,7 +600,7 @@ public class ApiServiceCockpitImplTest {
         preparePageServiceMock();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
         verify(planService).findByApi(eq(API_ID));
         verify(planService).create(newPlanCaptor.capture());
@@ -641,7 +643,7 @@ public class ApiServiceCockpitImplTest {
         preparePageServiceMock();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED);
+        service.updateApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
         verify(planService).findByApi(eq(API_ID));
         verify(planService, never()).create(any(NewPlanEntity.class));
