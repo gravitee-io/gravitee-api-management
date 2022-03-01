@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.Single;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -79,6 +80,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         String swaggerDefinition = payload.getSwaggerDefinition();
         String environmentId = payload.getEnvironmentId();
         DeploymentMode mode = DeploymentMode.fromDeployModelPayload(payload);
+        List<String> labels = payload.getLabels();
 
         try {
             final EnvironmentEntity environment = environmentService.findByCockpitId(environmentId);
@@ -97,7 +99,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                     return Single.just(reply);
                 }
 
-                result = cockpitApiService.updateApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
+                result = cockpitApiService.updateApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode, labels);
             } else {
                 var message = permissionChecker.checkCreatePermission(user.getId(), environment.getId(), mode);
 
@@ -107,7 +109,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                     return Single.just(reply);
                 }
 
-                result = cockpitApiService.createApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
+                result = cockpitApiService.createApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode, labels);
             }
 
             if (result.isSuccess()) {
