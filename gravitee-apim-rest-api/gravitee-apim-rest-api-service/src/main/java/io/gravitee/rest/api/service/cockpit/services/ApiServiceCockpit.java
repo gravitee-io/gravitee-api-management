@@ -17,12 +17,27 @@ package io.gravitee.rest.api.service.cockpit.services;
 
 import io.gravitee.rest.api.model.api.ApiEntityResult;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
+import java.util.List;
 
 /**
  * @author Julien GIOVARESCO (julien.giovaresco at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ApiServiceCockpit {
-    ApiEntityResult createApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode);
-    ApiEntityResult updateApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode);
+    ApiEntityResult createApi(
+        String apiId,
+        String userId,
+        String swaggerDefinition,
+        String environmentId,
+        DeploymentMode mode,
+        List<String> labels
+    );
+    ApiEntityResult updateApi(
+        String apiId,
+        String userId,
+        String swaggerDefinition,
+        String environmentId,
+        DeploymentMode mode,
+        List<String> labels
+    );
 }
