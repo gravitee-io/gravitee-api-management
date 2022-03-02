@@ -15,9 +15,8 @@
  */
 package io.gravitee.gateway.services.sync.cache;
 
+import io.gravitee.gateway.handlers.api.definition.ApiKey;
 import io.gravitee.node.api.cache.Cache;
-import io.gravitee.repository.management.model.ApiKey;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

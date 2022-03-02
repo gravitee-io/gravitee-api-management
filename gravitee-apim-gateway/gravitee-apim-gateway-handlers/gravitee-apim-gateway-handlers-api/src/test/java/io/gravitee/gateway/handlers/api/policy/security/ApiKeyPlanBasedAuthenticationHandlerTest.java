@@ -23,10 +23,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.handlers.api.definition.ApiKey;
 import io.gravitee.gateway.handlers.api.policy.security.apikey.ApiKeyPlanBasedAuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
-import io.gravitee.repository.management.model.ApiKey;
 import org.junit.Test;
 
 /**
