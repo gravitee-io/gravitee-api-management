@@ -20,21 +20,26 @@ import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
 
 /**
+ * Transforms the debug request to get rid of the debug eventId.
+ * This id has to be removed from contextPath and request's path.
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ContextualizedDebugHttpServerRequest extends ContextualizedHttpServerRequest {
 
     private final String contextPath;
+    private final String path;
 
     public ContextualizedDebugHttpServerRequest(String contextPath, Request request, String eventId) {
         super(contextPath, request);
+        // Remove eventId from contextPath and request path.
         this.contextPath = PathTransformer.removeEventIdFromPath(eventId, contextPath);
+        this.path = PathTransformer.removeEventIdFromPath(eventId, super.path());
     }
 
     @Override
     public String path() {
-        return contextPath();
+        return path;
     }
 
     @Override
