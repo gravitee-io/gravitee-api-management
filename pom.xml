@@ -125,7 +125,7 @@
         <swagger-core.version>2.1.12</swagger-core.version>
         <swagger-parser.version>2.0.29</swagger-parser.version>
         <swagger-models.version>1.6.4</swagger-models.version>
-        <testcontainers.version>1.15.3</testcontainers.version>
+        <testcontainers.version>1.16.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
         <wiremock.version>2.27.2</wiremock.version>
         <wiremock-jre8.version>2.32.0</wiremock-jre8.version>

@@ -40,7 +40,6 @@
         <mysql-connector-java.version>8.0.17</mysql-connector-java.version>
         <postgresql.version>42.3.3</postgresql.version>
         <postgresql-embedded.version>2.10</postgresql-embedded.version>
-        <testcontainers.version>1.16.2</testcontainers.version>
         <wix-embedded-mysql.version>4.6.1</wix-embedded-mysql.version>
 
         <!-- Plugin configuration -->
@@ -142,6 +141,16 @@
             <groupId>com.wix</groupId>
             <artifactId>wix-embedded-mysql</artifactId>
             <version>${wix-embedded-mysql.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.java.dev.jna</groupId>
+                    <artifactId>jna</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.java.dev.jna</groupId>
+                    <artifactId>jna-platform</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>test</scope>
         </dependency>
 
