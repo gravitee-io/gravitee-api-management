@@ -51,6 +51,9 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   };
 
   ngOnChanges(): void {
+    this.responseDisplayableVM = undefined;
+    this.inspectorVM = undefined;
+
     if (this.debugResponse && !this.debugResponse.isLoading) {
       this.responseDisplayableVM = {
         statusCode: this.debugResponse.response?.statusCode,
