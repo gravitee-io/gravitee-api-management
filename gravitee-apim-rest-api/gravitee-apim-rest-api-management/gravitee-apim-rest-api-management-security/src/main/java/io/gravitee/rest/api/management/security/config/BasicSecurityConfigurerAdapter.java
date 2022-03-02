@@ -398,6 +398,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .and()
                 .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
         } else {
+            // deepcode ignore DisablesCSRFProtection: CSRF Protection is disabled here to match configuration set by the user (via gravitee.yml)
             return security.csrf().disable();
         }
     }

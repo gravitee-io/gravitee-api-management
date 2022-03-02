@@ -342,6 +342,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.isHomepage = this.isHomepageUrl(event.url);
     this.portalService.getPortalLinks().subscribe((portalLinks) => {
       if (portalLinks.slots) {
+        // deepcode ignore reDOS: <please specify a reason of ignoring this>
         this.mainRoutes = this.navRouteService.getChildrenNav({
           data: { menu: true },
           children: this.router.config.filter((route) => route.data && route.data.menu),
