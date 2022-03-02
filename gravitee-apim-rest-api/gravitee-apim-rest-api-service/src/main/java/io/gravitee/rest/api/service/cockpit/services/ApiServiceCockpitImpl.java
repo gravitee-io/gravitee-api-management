@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
+import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -267,21 +268,19 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     }
 
     Optional<String> checkContextPath(SwaggerApiEntity api) {
-        try {
-            virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts());
-            return Optional.empty();
-        } catch (Exception e) {
-            return Optional.of(e.getMessage());
-        }
+        return checkContextPath(api, null);
     }
 
     Optional<String> checkContextPath(SwaggerApiEntity api, String apiId) {
         try {
             virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts(), apiId);
-            return Optional.empty();
+        } catch (ApiContextPathAlreadyExistsException e) {
+            String ctxPath = e.getParameters().get("contextPath");
+            return Optional.of("The context [" + ctxPath + "] automatically generated from the name is already covered by another API.");
         } catch (Exception e) {
             return Optional.of(e.getMessage());
         }
+        return Optional.empty();
     }
 
     private NewPlanEntity createKeylessPlan(String apiId, String environmentId) {
