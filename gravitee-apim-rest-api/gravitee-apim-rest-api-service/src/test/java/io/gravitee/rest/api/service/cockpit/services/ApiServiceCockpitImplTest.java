@@ -37,7 +37,6 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
@@ -101,9 +100,9 @@ public class ApiServiceCockpitImplTest {
     @Captor
     private ArgumentCaptor<UpdatePageEntity> updatePageCaptor;
 
-    private ApiConverter apiConverter = new ApiConverter();
+    private final ApiConverter apiConverter = new ApiConverter();
 
-    private PageConverter pageConverter = new PageConverter();
+    private final PageConverter pageConverter = new PageConverter();
 
     @Before
     public void setUp() throws Exception {
@@ -666,10 +665,10 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
-        when(virtualHostService.sanitizeAndValidate(any(Collection.class))).thenReturn(List.of(virtualHost));
+        when(virtualHostService.sanitizeAndValidate(anyCollection(), eq(null))).thenReturn(List.of(virtualHost));
         var message = service.checkContextPath(api);
 
-        verify(virtualHostService).sanitizeAndValidate(eq(List.of(virtualHost)));
+        verify(virtualHostService).sanitizeAndValidate(eq(List.of(virtualHost)), eq(null));
         assertThat(message.isPresent()).isFalse();
     }
 
@@ -681,13 +680,14 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
-        when(virtualHostService.sanitizeAndValidate(any(Collection.class)))
+        when(virtualHostService.sanitizeAndValidate(anyCollection(), eq(null)))
             .thenThrow(new ApiContextPathAlreadyExistsException("contextPath"));
         var message = service.checkContextPath(api);
 
-        verify(virtualHostService).sanitizeAndValidate(eq(List.of(virtualHost)));
+        verify(virtualHostService).sanitizeAndValidate(eq(List.of(virtualHost)), eq(null));
         assertThat(message.isPresent()).isTrue();
-        assertThat(message.get()).isEqualTo("The path [contextPath] is already covered by an other API.");
+        assertThat(message.get())
+            .isEqualTo("The context [contextPath] automatically generated from the name is already covered by another API.");
     }
 
     private void preparePageServiceMock() {
