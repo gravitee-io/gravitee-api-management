@@ -40,7 +40,7 @@
         <mysql-connector-java.version>8.0.17</mysql-connector-java.version>
         <postgresql.version>42.3.3</postgresql.version>
         <postgresql-embedded.version>2.10</postgresql-embedded.version>
-        <wix-embedded-mysql.version>4.6.1</wix-embedded-mysql.version>
+        <wix-embedded-mysql.version>4.6.2</wix-embedded-mysql.version>
 
         <!-- Plugin configuration -->
         <default-database.jdbcType>postgresql-te</default-database.jdbcType>
