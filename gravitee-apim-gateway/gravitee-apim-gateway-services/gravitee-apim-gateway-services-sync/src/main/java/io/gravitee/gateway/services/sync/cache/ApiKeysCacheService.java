@@ -32,6 +32,7 @@ import io.gravitee.gateway.services.sync.cache.task.Result;
 import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.vertx.ext.web.Router;
 import java.time.Duration;
 import java.util.*;
@@ -73,6 +74,8 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     private ApiKeyRepository apiKeyRepository;
 
+    private SubscriptionRepository subscriptionRepository;
+
     @Autowired
     @Qualifier("syncExecutor")
     private ThreadPoolExecutor executorService;
@@ -108,6 +111,9 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
         this.apiKeyRepository = beanFactory.getBean(ApiKeyRepository.class);
         LOGGER.debug("Current API key repository implementation is {}", apiKeyRepository.getClass().getName());
+
+        this.subscriptionRepository = beanFactory.getBean(SubscriptionRepository.class);
+        LOGGER.debug("Current subscription repository implementation is {}", subscriptionRepository.getClass().getName());
 
         String[] beanNames = beanFactory.getBeanNamesForType(ApiKeyRepository.class);
         String oldBeanName = beanNames[0];
@@ -165,6 +171,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                                     chunk
                                 );
                                 refresher.setApiKeyRepository(apiKeyRepository);
+                                refresher.setSubscriptionRepository(subscriptionRepository);
                                 refresher.setCache(new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)));
 
                                 return refresher;
@@ -276,10 +283,11 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         if (!plansByApi.isEmpty()) {
             final Set<String> planIds = plansByApi.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
 
-            // If the node is not a master, we assume that the full refresh has been handle by an other node
+            // If the node is not a master, we assume that the full refresh has been handle by another node
             if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
                 final FullApiKeyRefresher refresher = new FullApiKeyRefresher(planIds);
                 refresher.setApiKeyRepository(apiKeyRepository);
+                refresher.setSubscriptionRepository(subscriptionRepository);
                 refresher.setCache(new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)));
 
                 CompletableFuture

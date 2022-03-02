@@ -17,10 +17,10 @@ package io.gravitee.gateway.handlers.api.policy.security.apikey;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.handlers.api.definition.ApiKey;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
-import io.gravitee.repository.management.model.ApiKey;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +50,7 @@ public class ApiKeyPlanBasedAuthenticationHandler implements AuthenticationHandl
 
         // Check that the plan associated to the api-key matches the current plan
         Optional<ApiKey> optApikey = (Optional<ApiKey>) context.get(APIKEY_CONTEXT_ATTRIBUTE);
-        if (optApikey != null && !optApikey.isPresent()) {
+        if (optApikey != null && optApikey.isEmpty()) {
             return true;
         }
 

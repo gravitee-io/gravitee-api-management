@@ -88,7 +88,7 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
     }
 
     @Override
-    public List<Subscription> findByIdIn(Collection<String> ids) {
-        throw new IllegalStateException();
+    public List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException {
+        return wrapped.findByIdIn(ids);
     }
 }

@@ -17,10 +17,10 @@ package io.gravitee.gateway.services.sync.cache;
 
 import static org.junit.Assert.*;
 
+import io.gravitee.gateway.handlers.api.definition.ApiKey;
 import io.gravitee.node.api.cache.CacheConfiguration;
 import io.gravitee.node.cache.standalone.StandaloneCache;
-import io.gravitee.repository.management.model.ApiKey;
-import java.util.HashMap;
+import io.gravitee.repository.management.model.Subscription;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,22 +64,28 @@ public class ApiKeysCacheTest {
 
     @Test
     public void put_should_put_apikey_in_internal_map() {
-        ApiKey apiKey = new ApiKey();
-        apiKey.setApi("api-id6");
+        io.gravitee.repository.management.model.ApiKey apiKey = new io.gravitee.repository.management.model.ApiKey();
         apiKey.setKey("key-id");
 
-        apiKeysCache.put(apiKey);
+        Subscription subscription = new Subscription();
+        subscription.setApi("api-id6");
 
-        assertSame(apiKey, apiKeysCache.cache.get("api-id6.key-id"));
+        ApiKey expected = new ApiKey(apiKey, subscription);
+        apiKeysCache.put(expected);
+
+        assertSame(expected, apiKeysCache.cache.get("api-id6.key-id"));
     }
 
     @Test
     public void remove_should_remove_apikey_from_internal_map() {
-        ApiKey apiKey = new ApiKey();
-        apiKey.setApi("api-id");
+        io.gravitee.repository.management.model.ApiKey apiKey = new io.gravitee.repository.management.model.ApiKey();
         apiKey.setKey("key-id");
 
-        apiKeysCache.remove(apiKey);
+        Subscription subscription = new Subscription();
+        subscription.setApi("api-id");
+
+        ApiKey expected = new ApiKey(apiKey, subscription);
+        apiKeysCache.remove(expected);
 
         assertEquals(2, apiKeysCache.cache.size());
         assertNull(apiKeysCache.cache.get("api-id.key-id"));

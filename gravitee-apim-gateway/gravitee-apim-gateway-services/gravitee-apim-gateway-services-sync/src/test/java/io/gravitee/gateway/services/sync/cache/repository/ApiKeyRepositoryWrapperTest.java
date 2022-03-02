@@ -15,11 +15,11 @@
  */
 package io.gravitee.gateway.services.sync.cache.repository;
 
+import io.gravitee.gateway.handlers.api.definition.ApiKey;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCache;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
-import io.gravitee.repository.management.model.ApiKey;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -75,10 +75,13 @@ public class ApiKeyRepositoryWrapperTest {
     public void shouldFindByCriteria() throws TechnicalException {
         ApiKeyCriteria apiKeyCriteria = Mockito.mock(ApiKeyCriteria.class);
 
-        List<ApiKey> mockApiKeys = Arrays.asList(Mockito.mock(ApiKey.class), Mockito.mock(ApiKey.class));
+        List<io.gravitee.repository.management.model.ApiKey> mockApiKeys = Arrays.asList(
+            Mockito.mock(io.gravitee.repository.management.model.ApiKey.class),
+            Mockito.mock(io.gravitee.repository.management.model.ApiKey.class)
+        );
         Mockito.when(wrappedRepository.findByCriteria(apiKeyCriteria)).thenReturn(mockApiKeys);
 
-        List<ApiKey> apiKeys = repository.findByCriteria(apiKeyCriteria);
+        List<io.gravitee.repository.management.model.ApiKey> apiKeys = repository.findByCriteria(apiKeyCriteria);
         Assert.assertEquals(mockApiKeys, apiKeys);
     }
 
@@ -88,7 +91,7 @@ public class ApiKeyRepositoryWrapperTest {
         String apiId = "my-Api-Id";
 
         Mockito.when(cache.get("my-Api-Id", "1234-4567-7890")).thenReturn(null);
-        Optional<ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
+        Optional<io.gravitee.repository.management.model.ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
 
         Assert.assertNotNull(optApiKey);
         Assert.assertFalse(optApiKey.isPresent());
@@ -101,7 +104,7 @@ public class ApiKeyRepositoryWrapperTest {
         ApiKey mockApiKey = Mockito.mock(ApiKey.class);
 
         Mockito.when(cache.get("my-Api-Id", "1234-4567-7890")).thenReturn(mockApiKey);
-        Optional<ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
+        Optional<io.gravitee.repository.management.model.ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
 
         Assert.assertNotNull(optApiKey);
         Assert.assertTrue(optApiKey.isPresent());
