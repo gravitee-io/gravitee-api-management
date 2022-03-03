@@ -51,11 +51,17 @@
         <gravitee-policy-apikey.version>2.3.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.6.0</gravitee-policy-assign-content.version>
+        <gravitee-policy-assign-metrics.version>1.0.1</gravitee-policy-assign-metrics.version>
+        <gravitee-policy-aws-lambda.version>1.1.0</gravitee-policy-aws-lambda.version>
+        <gravitee-policy-basic-authentication.version>1.2.0</gravitee-policy-basic-authentication.version>
         <gravitee-policy-cache.version>1.13.1</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>1.14.0</gravitee-policy-callout-http.version>
+        <gravitee-policy-circuit-breaker.version>1.0.1</gravitee-policy-circuit-breaker.version>
+        <gravitee-policy-data-logging-masking.version>1.0.1</gravitee-policy-data-logging-masking.version>
         <gravitee-policy-dynamic-routing.version>1.11.1</gravitee-policy-dynamic-routing.version>
         <gravitee-policy-generate-http-signature.version>1.0.0</gravitee-policy-generate-http-signature.version>
         <gravitee-policy-generate-jwt.version>1.5.0</gravitee-policy-generate-jwt.version>
+        <gravitee-policy-geoip-filtering.version>1.1.0</gravitee-policy-geoip-filtering.version>
         <gravitee-policy-groovy.version>1.16.0</gravitee-policy-groovy.version>
         <gravitee-policy-html-json.version>1.6.0</gravitee-policy-html-json.version>
         <gravitee-policy-http-signature.version>1.4.0</gravitee-policy-http-signature.version>
@@ -89,14 +95,21 @@
         <gravitee-policy-transformheaders.version>1.8.2</gravitee-policy-transformheaders.version>
         <gravitee-policy-transformqueryparams.version>1.6.0</gravitee-policy-transformqueryparams.version>
         <gravitee-policy-url-rewriting.version>1.4.0</gravitee-policy-url-rewriting.version>
+        <gravitee-policy-wssecurity-authentication.version>1.0.0</gravitee-policy-wssecurity-authentication.version>
         <gravitee-policy-xml-json.version>1.7.0</gravitee-policy-xml-json.version>
         <gravitee-policy-xml-threat-protection.version>1.2.1</gravitee-policy-xml-threat-protection.version>
         <gravitee-policy-xml-validation.version>1.1.0</gravitee-policy-xml-validation.version>
         <gravitee-policy-xslt.version>1.6.0</gravitee-policy-xslt.version>
+        <gravitee-resource-auth-provider-http.version>1.1.0</gravitee-resource-auth-provider-http.version>
+        <gravitee-resource-auth-provider-inline.version>1.1.0</gravitee-resource-auth-provider-inline.version>
+        <gravitee-resource-auth-provider-ldap.version>1.1.0</gravitee-resource-auth-provider-ldap.version>
         <gravitee-resource-cache.version>1.6.2</gravitee-resource-cache.version>
+        <gravitee-resource-cache-redis.version>1.0.1</gravitee-resource-cache-redis.version>
         <gravitee-resource-oauth2-provider-am.version>1.14.1</gravitee-resource-oauth2-provider-am.version>
         <gravitee-resource-oauth2-provider-generic.version>1.16.1</gravitee-resource-oauth2-provider-generic.version>
+        <gravitee-resource-oauth2-provider-keycloak.version>1.9.1</gravitee-resource-oauth2-provider-keycloak.version>
         <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>
+        <gravitee-service-geoip.version>1.1.0</gravitee-service-geoip.version>
         <!-- Management API Only -->
         <gravitee-cockpit-connectors-ws.version>2.0.1</gravitee-cockpit-connectors-ws.version>
         <gravitee-fetcher-bitbucket.version>1.7.0</gravitee-fetcher-bitbucket.version>
@@ -106,8 +119,12 @@
         <gravitee-fetcher-http.version>1.12.0</gravitee-fetcher-http.version>
         <gravitee-repository-elasticsearch.version>3.10.0</gravitee-repository-elasticsearch.version>
         <!-- Gateway Only -->
+        <gravitee-notifier-email.version>1.3.2</gravitee-notifier-email.version>
+        <gravitee-notifier-slack.version>1.2.1</gravitee-notifier-slack.version>
+        <gravitee-notifier-webhook.version>1.1.0</gravitee-notifier-webhook.version>
         <gravitee-reporter-elasticsearch.version>3.10.0</gravitee-reporter-elasticsearch.version>
         <gravitee-reporter-file.version>2.4.3</gravitee-reporter-file.version>
+        <gravitee-reporter-kafka.version>1.3.0</gravitee-reporter-kafka.version>
         <gravitee-reporter-tcp.version>1.3.3</gravitee-reporter-tcp.version>
         <!--	Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit	-->
         <!--	<gravitee-gateway-services-ratelimit.version>1.13.0</gravitee-gateway-services-ratelimit.version>	-->
@@ -195,6 +212,36 @@
                             </configuration>
                         </execution>
                         <execution>
+                            <id>copy-notifiers</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>copy</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${basedir}/target/staging/notifiers</outputDirectory>
+                                <artifactItems>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.notifier</groupId>
+                                        <artifactId>gravitee-notifier-email</artifactId>
+                                        <version>${gravitee-notifier-email.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>com.graviteesource.notifier</groupId>
+                                        <artifactId>gravitee-notifier-slack</artifactId>
+                                        <version>${gravitee-notifier-slack.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.notifier</groupId>
+                                        <artifactId>gravitee-notifier-webhook</artifactId>
+                                        <version>${gravitee-notifier-webhook.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                </artifactItems>
+                            </configuration>
+                        </execution>
+                        <execution>
                             <id>copy-policies</id>
                             <phase>package</phase>
                             <goals>
@@ -222,6 +269,24 @@
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
+                                        <groupId>com.graviteesource.policy</groupId>
+                                        <artifactId>gravitee-policy-assign-metrics</artifactId>
+                                        <version>${gravitee-policy-assign-metrics.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.policy</groupId>
+                                        <artifactId>gravitee-policy-aws-lambda</artifactId>
+                                        <version>${gravitee-policy-aws-lambda.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.policy</groupId>
+                                        <artifactId>gravitee-policy-basic-authentication</artifactId>
+                                        <version>${gravitee-policy-basic-authentication.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
                                         <groupId>io.gravitee.policy</groupId>
                                         <artifactId>gravitee-policy-cache</artifactId>
                                         <version>${gravitee-policy-cache.version}</version>
@@ -235,8 +300,26 @@
                                     </artifactItem>
                                     <artifactItem>
                                         <groupId>io.gravitee.policy</groupId>
+                                        <artifactId>gravitee-policy-circuit-breaker</artifactId>
+                                        <version>${gravitee-policy-circuit-breaker.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.policy</groupId>
                                         <artifactId>gravitee-policy-dynamic-routing</artifactId>
                                         <version>${gravitee-policy-dynamic-routing.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>com.graviteesource.policy</groupId>
+                                        <artifactId>gravitee-policy-data-logging-masking</artifactId>
+                                        <version>${gravitee-policy-data-logging-masking.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.policy</groupId>
+                                        <artifactId>gravitee-policy-generate-http-signature</artifactId>
+                                        <version>${gravitee-policy-generate-http-signature.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
@@ -249,6 +332,12 @@
                                         <groupId>io.gravitee.policy</groupId>
                                         <artifactId>gravitee-policy-generate-jwt</artifactId>
                                         <version>${gravitee-policy-generate-jwt.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.policy</groupId>
+                                        <artifactId>gravitee-policy-geoip-filtering</artifactId>
+                                        <version>${gravitee-policy-geoip-filtering.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
@@ -445,6 +534,12 @@
                                     </artifactItem>
                                     <artifactItem>
                                         <groupId>io.gravitee.policy</groupId>
+                                        <artifactId>gravitee-policy-wssecurity-authentication</artifactId>
+                                        <version>${gravitee-policy-wssecurity-authentication.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.policy</groupId>
                                         <artifactId>gravitee-policy-xml-json</artifactId>
                                         <version>${gravitee-policy-xml-json.version}</version>
                                         <type>zip</type>
@@ -489,6 +584,12 @@
                                         <groupId>io.gravitee.reporter</groupId>
                                         <artifactId>gravitee-reporter-file</artifactId>
                                         <version>${gravitee-reporter-file.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.reporter</groupId>
+                                        <artifactId>gravitee-reporter-kafka</artifactId>
+                                        <version>${gravitee-reporter-kafka.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
@@ -553,8 +654,32 @@
                                 <artifactItems>
                                     <artifactItem>
                                         <groupId>io.gravitee.resource</groupId>
+                                        <artifactId>gravitee-resource-auth-provider-http</artifactId>
+                                        <version>${gravitee-resource-auth-provider-http.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.resource</groupId>
+                                        <artifactId>gravitee-resource-auth-provider-inline</artifactId>
+                                        <version>${gravitee-resource-auth-provider-inline.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.resource</groupId>
+                                        <artifactId>gravitee-resource-auth-provider-ldap</artifactId>
+                                        <version>${gravitee-resource-auth-provider-ldap.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.resource</groupId>
                                         <artifactId>gravitee-resource-cache</artifactId>
                                         <version>${gravitee-resource-cache.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.resource</groupId>
+                                        <artifactId>gravitee-resource-cache-redis</artifactId>
+                                        <version>${gravitee-resource-cache-redis.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
@@ -567,6 +692,12 @@
                                         <groupId>io.gravitee.resource</groupId>
                                         <artifactId>gravitee-resource-oauth2-provider-generic</artifactId>
                                         <version>${gravitee-resource-oauth2-provider-generic.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.resource</groupId>
+                                        <artifactId>gravitee-resource-oauth2-provider-keycloak</artifactId>
+                                        <version>${gravitee-resource-oauth2-provider-keycloak.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                 </artifactItems>
@@ -585,6 +716,12 @@
                                         <groupId>io.gravitee.discovery</groupId>
                                         <artifactId>gravitee-service-discovery-consul</artifactId>
                                         <version>${gravitee-service-discovery-consul.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.service</groupId>
+                                        <artifactId>gravitee-service-geoip</artifactId>
+                                        <version>${gravitee-service-geoip.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
