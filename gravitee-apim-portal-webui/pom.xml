@@ -31,7 +31,7 @@
   <parent>
     <groupId>io.gravitee.apim</groupId>
     <artifactId>gravitee-api-management</artifactId>
-    <version>3.14.1-SNAPSHOT</version>
+    <version>3.14.1</version>
   </parent>
 
   <groupId>io.gravitee.apim.ui</groupId>
