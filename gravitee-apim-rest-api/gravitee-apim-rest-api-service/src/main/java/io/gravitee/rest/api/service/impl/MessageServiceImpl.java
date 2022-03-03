@@ -289,10 +289,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                                 .collect(Collectors.toSet())
                         );
 
-                        Set<String> indirectMemberIds = this.getIndirectMemberIds(context, applicationIds, optRole.get());
-                        if (indirectMemberIds != null) {
-                            recipientIds.addAll(indirectMemberIds);
-                        }
+                        recipientIds.addAll(this.getIndirectMemberIds(context, applicationIds, optRole.get()));
                     } else if (roleName.equals(API_SUBSCRIBERS)) {
                         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(api.getId());
                         List<String> subscribersId = subscriptions
@@ -313,31 +310,27 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     private Set<String> getIndirectMemberIds(ExecutionContext context, List<String> applicationIds, RoleEntity roleEntity) {
-        if (!applicationIds.isEmpty() && !SystemRole.PRIMARY_OWNER.name().equals(roleEntity.getName())) {
-            // get all indirect members
-            Optional<Set<String>> applicationsGroups = applicationService
-                .findByIds(context, applicationIds)
-                .stream()
-                .map(ApplicationListItem::getGroups)
-                .reduce(
-                    (a, b) -> {
-                        a.addAll(b);
-                        return a;
-                    }
-                );
-            if (applicationsGroups.isPresent()) {
-                return membershipService
-                    .getMembershipsByReferencesAndRole(
-                        MembershipReferenceType.GROUP,
-                        new ArrayList<>(applicationsGroups.get()),
-                        roleEntity.getId()
-                    )
-                    .stream()
-                    .map(MembershipEntity::getMemberId)
-                    .collect(Collectors.toSet());
-            }
+        if (applicationIds.isEmpty() || SystemRole.PRIMARY_OWNER.name().equals(roleEntity.getName())) {
+            return Collections.emptySet();
         }
-        return null;
+
+        // get all indirect members
+        List<String> applicationsGroups = applicationService
+            .findByIds(context, applicationIds)
+            .stream()
+            .flatMap((ApplicationListItem applicationListItem) -> applicationListItem.getGroups().stream())
+            .distinct()
+            .collect(Collectors.toList());
+
+        if (applicationsGroups.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return membershipService
+            .getMembershipsByReferencesAndRole(MembershipReferenceType.GROUP, applicationsGroups, roleEntity.getId())
+            .stream()
+            .map(MembershipEntity::getMemberId)
+            .collect(Collectors.toSet());
     }
 
     private Set<String> getRecipientsEmails(Set<String> recipientsId) {
