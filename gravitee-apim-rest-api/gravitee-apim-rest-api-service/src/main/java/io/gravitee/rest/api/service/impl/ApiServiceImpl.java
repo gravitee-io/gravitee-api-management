@@ -715,9 +715,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 // if no condition set, add one
                 if (logging.getCondition() == null || logging.getCondition().isEmpty()) {
-                    logging.setCondition(String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate));
+                    logging.setCondition("{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + "}");
                 } else {
-                    Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(logging.getCondition());
+                    String conditionWithoutBraces = logging.getCondition().trim().replaceAll("\\{", "").replaceAll("}", "");
+                    Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(conditionWithoutBraces);
                     if (matcher.matches()) {
                         String currentDurationAsStr = matcher.group("timestamp");
                         String before = formatExpression(matcher, "before");
@@ -725,14 +726,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         try {
                             final long currentDuration = Long.parseLong(currentDurationAsStr);
                             if (currentDuration > maxEndDate || (!before.isEmpty() || !after.isEmpty())) {
-                                logging.setCondition(before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after);
+                                logging.setCondition(
+                                    "{" + before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after + "}"
+                                );
                             }
                         } catch (NumberFormatException nfe) {
                             LOGGER.error("Wrong format of the logging condition. Add the default one", nfe);
-                            logging.setCondition(before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after);
+                            logging.setCondition("{" + before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after + "}");
                         }
                     } else {
-                        logging.setCondition(String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && " + logging.getCondition());
+                        logging.setCondition(
+                            "{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && " + conditionWithoutBraces + "}"
+                        );
                     }
                 }
             }
