@@ -69,7 +69,7 @@ describe('GioDiffComponent', () => {
       );
     });
 
-    it('should switch between side-by-side(default) -> row -> line-by-line format', async () => {
+    it('should switch between side-by-side(default) -> raw -> line-by-line format', async () => {
       expect(component).toBeTruthy();
 
       const gioDiff = await loader.getHarness(GioDiffHarness);
@@ -77,8 +77,8 @@ describe('GioDiffComponent', () => {
 
       expect(await gioDiff.getOutputFormat()).toEqual('side-by-side');
 
-      await gioDiff.selectOutputFormat('row');
-      expect(await gioDiff.getOutputFormat()).toEqual('row');
+      await gioDiff.selectOutputFormat('raw');
+      expect(await gioDiff.getOutputFormat()).toEqual('raw');
 
       await gioDiff.selectOutputFormat('line-by-line');
       expect(await gioDiff.getOutputFormat()).toEqual('line-by-line');
@@ -86,17 +86,17 @@ describe('GioDiffComponent', () => {
   });
 
   describe('without diff between left and right', () => {
-    it('should force row format and display only one gv-code', async () => {
+    it('should force raw format and display only one gv-code', async () => {
       expect(component).toBeTruthy();
 
       const gioDiff = await loader.getHarness(GioDiffHarness);
 
-      expect(await gioDiff.getOutputFormat()).toEqual('row');
+      expect(await gioDiff.getOutputFormat()).toEqual('raw');
 
-      // Keep row format because line-by-line & side-by-side are disabled
+      // Keep raw format because line-by-line & side-by-side are disabled
       await gioDiff.selectOutputFormat('line-by-line');
       await gioDiff.selectOutputFormat('side-by-side');
-      expect(await gioDiff.getOutputFormat()).toEqual('row');
+      expect(await gioDiff.getOutputFormat()).toEqual('raw');
 
       expect(await gioDiff.hasNoDiffToDisplay()).toEqual(true);
     });

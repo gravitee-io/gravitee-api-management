@@ -34,7 +34,7 @@ export class GioDiffComponent implements OnChanges {
 
   diffHTML: SafeHtml;
 
-  outputFormat: 'row' | 'side-by-side' | 'line-by-line' = 'side-by-side';
+  outputFormat: 'raw' | 'side-by-side' | 'line-by-line' = 'side-by-side';
   hasChanges = true;
 
   gvCodeOptions = {
@@ -55,10 +55,10 @@ export class GioDiffComponent implements OnChanges {
 
     this.hasChanges = !!Diff.parsePatch(diff).some((d) => d.hunks.length);
     if (!this.hasChanges) {
-      this.outputFormat = 'row';
+      this.outputFormat = 'raw';
     }
 
-    if (this.outputFormat !== 'row') {
+    if (this.outputFormat !== 'raw') {
       const diff2Html = Diff2Html.html(diff as any, {
         drawFileList: false,
         matching: 'lines',

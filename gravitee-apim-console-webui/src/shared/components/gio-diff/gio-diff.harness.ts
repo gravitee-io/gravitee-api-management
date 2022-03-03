@@ -40,7 +40,7 @@ export class GioDiffHarness extends MatFormFieldControlHarness {
     MatButtonToggleGroupHarness.with({ selector: '.gio-diff__header__output-format' }),
   );
 
-  async getOutputFormat(): Promise<'row' | 'side-by-side' | 'line-by-line'> {
+  async getOutputFormat(): Promise<'raw' | 'side-by-side' | 'line-by-line'> {
     if ((await this.getContentDiff2htmlElement()) && !(await this.getD2hSideBySideDisplayElement())) {
       return 'line-by-line';
     }
@@ -50,15 +50,15 @@ export class GioDiffHarness extends MatFormFieldControlHarness {
     }
 
     if (!(await this.getContentDiff2htmlElement()) && (await this.getContentGvCodeElements())) {
-      return 'row';
+      return 'raw';
     }
 
     throw new Error('Indeterminate output format');
   }
 
-  async selectOutputFormat(format: 'row' | 'side-by-side' | 'line-by-line'): Promise<void> {
+  async selectOutputFormat(format: 'raw' | 'side-by-side' | 'line-by-line'): Promise<void> {
     const formatValueNameMap = {
-      row: 'Row',
+      raw: 'Raw',
       'side-by-side': 'Diff Side By Side',
       'line-by-line': 'Diff Line By Line',
     };
@@ -70,9 +70,9 @@ export class GioDiffHarness extends MatFormFieldControlHarness {
   }
 
   /**
-   * If no diff to display only one gv-code are displayed on only 'row' output format
+   * If no diff to display only one gv-code are displayed on only 'raw' output format
    */
   async hasNoDiffToDisplay(): Promise<boolean> {
-    return (await this.getOutputFormat()) === 'row' && (await this.getContentGvCodeElements()).length === 1;
+    return (await this.getOutputFormat()) === 'raw' && (await this.getContentGvCodeElements()).length === 1;
   }
 }

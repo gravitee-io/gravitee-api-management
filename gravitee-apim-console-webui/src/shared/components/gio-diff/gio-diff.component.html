@@ -23,16 +23,16 @@
       (ngModelChange)="computeDiff()"
       aria-label="Output format button group"
     >
-      <mat-button-toggle value="row">Row</mat-button-toggle>
+      <mat-button-toggle value="raw">Raw</mat-button-toggle>
       <mat-button-toggle [disabled]="!hasChanges" value="side-by-side">Diff Side By Side</mat-button-toggle>
-      <mat-button-toggle [disabled]="!hasChanges" value="line-by-lin">Diff Line By Line</mat-button-toggle>
+      <mat-button-toggle [disabled]="!hasChanges" value="line-by-line">Diff Line By Line</mat-button-toggle>
     </mat-button-toggle-group>
   </div>
 
   <div class="gio-diff__content">
-    <div *ngIf="outputFormat !== 'row'" [innerHtml]="diffHTML"></div>
+    <div *ngIf="outputFormat !== 'raw'" [innerHtml]="diffHTML"></div>
 
-    <div *ngIf="outputFormat === 'row'" class="gio-diff__content__row">
+    <div *ngIf="outputFormat === 'raw'" class="gio-diff__content__row">
       <gv-code
         class="gio-diff__content__row__gv-code"
         [class.single]="!hasChanges"
