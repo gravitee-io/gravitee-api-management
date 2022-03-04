@@ -32,6 +32,7 @@ class ApiAdminController {
 
   constructor(
     private resolvedApi: any,
+    private resolvedApiGroups: any,
     private $state: StateService,
     private $scope: IScope,
     private $rootScope: IScope,
@@ -55,6 +56,8 @@ class ApiAdminController {
 
     this.api = resolvedApi.data;
     this.api.etag = resolvedApi.headers('etag');
+
+    this.resolvedApiGroups = resolvedApiGroups;
 
     SidenavService.setCurrentResource(this.api.name);
 
@@ -224,6 +227,14 @@ class ApiAdminController {
 
   canReview(): boolean {
     return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'IN_REVIEW';
+  }
+
+  canTransferOwnership(): boolean {
+    return this.isAdmin() || this.UserService.isApiPrimaryOwner(this.api, this.resolvedApiGroups);
+  }
+
+  isAdmin(): boolean {
+    return this.UserService.currentUser.roles['ORGANIZATION'] === 'ADMIN' || this.UserService.currentUser.roles['ENVIRONMENT'] === 'ADMIN';
   }
 
   isRequestForChanges(): boolean {

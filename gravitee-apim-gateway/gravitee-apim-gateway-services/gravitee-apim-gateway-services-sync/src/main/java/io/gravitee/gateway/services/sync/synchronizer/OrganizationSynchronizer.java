@@ -66,7 +66,14 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
             count = initialSynchronizeOrganizations(nextLastRefreshAt, environments);
         } else {
             count =
-                this.searchLatestEvents(lastRefreshAt, nextLastRefreshAt, ORGANIZATION_ID, environments, EventType.PUBLISH_ORGANIZATION)
+                this.searchLatestEvents(
+                        lastRefreshAt,
+                        nextLastRefreshAt,
+                        true,
+                        ORGANIZATION_ID,
+                        environments,
+                        EventType.PUBLISH_ORGANIZATION
+                    )
                     .compose(this::processOrganizationEvents)
                     .count()
                     .blockingGet();
@@ -80,7 +87,7 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
     }
 
     private long initialSynchronizeOrganizations(long nextLastRefreshAt, List<String> environments) {
-        return this.searchLatestEvents(null, nextLastRefreshAt, ORGANIZATION_ID, environments, EventType.PUBLISH_ORGANIZATION)
+        return this.searchLatestEvents(null, nextLastRefreshAt, true, ORGANIZATION_ID, environments, EventType.PUBLISH_ORGANIZATION)
             .compose(this::processOrganizationEvents)
             .count()
             .blockingGet();

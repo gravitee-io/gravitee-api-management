@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.membership;
 
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -58,6 +59,14 @@ public interface MembershipMongoRepository extends MongoRepository<MembershipMon
         String memberType,
         String referenceType,
         String roleId
+    );
+
+    @Query("{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2, 'roleId' : { $in: ?3 } }")
+    Set<MembershipMongo> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(
+        String memberId,
+        String memberType,
+        String referenceType,
+        Collection<String> roleIds
     );
 
     @Query("{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2, 'source' : ?3 }")

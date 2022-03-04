@@ -25,14 +25,18 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.management.model.Role;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -50,7 +54,6 @@ import org.mockito.internal.util.collections.Sets;
 public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
-    private static final String UNKNOWN_API = "unknown";
 
     @Override
     protected String contextPath() {
@@ -116,7 +119,82 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetApi() {
+    public void shouldNotAccessToApi_BecauseAccessIsNotGranted() {
+        final Response response = envTarget(API).request().get();
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldGetApi_BecauseDirectMember() {
+        String userRoleId = "role-id";
+
+        RoleEntity userRole = mock(RoleEntity.class);
+        when(userRole.getScope()).thenReturn(RoleScope.API);
+        when(userRole.getId()).thenReturn(userRoleId);
+
+        when(roleService.findById(userRoleId)).thenReturn(userRole);
+
+        when(apiService.canManageApi(userRole)).thenReturn(true);
+
+        MembershipEntity userMembership = mock(MembershipEntity.class);
+        when(userMembership.getReferenceId()).thenReturn(API);
+        when(userMembership.getRoleId()).thenReturn(userRoleId);
+
+        when(
+            membershipService.getMembershipsByMemberAndReference(
+                eq(MembershipMemberType.USER),
+                eq(USER_NAME),
+                eq(MembershipReferenceType.API)
+            )
+        )
+            .thenReturn(Set.of(userMembership));
+
+        final Response response = envTarget(API).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiEntity responseApi = response.readEntity(ApiEntity.class);
+        assertNotNull(responseApi);
+        assertEquals(API, responseApi.getName());
+    }
+
+    @Test
+    public void shouldGetApi_BecauseGroupMember() {
+        final String groupId = "group_id";
+        final String roleId = "role_id";
+
+        MembershipEntity groupMemberShip = mock(MembershipEntity.class);
+        RoleEntity role = mock(RoleEntity.class);
+
+        when(groupMemberShip.getRoleId()).thenReturn(roleId);
+        when(groupMemberShip.getReferenceId()).thenReturn(groupId);
+        when(groupMemberShip.getReferenceType()).thenReturn(MembershipReferenceType.GROUP);
+
+        when(
+            membershipService.getMembershipsByMemberAndReference(
+                eq(MembershipMemberType.USER),
+                eq(USER_NAME),
+                eq(MembershipReferenceType.API)
+            )
+        )
+            .thenReturn(Collections.emptySet());
+
+        when(
+            membershipService.getMembershipsByMemberAndReference(
+                eq(MembershipMemberType.USER),
+                eq(USER_NAME),
+                eq(MembershipReferenceType.GROUP)
+            )
+        )
+            .thenReturn(Sets.newSet(groupMemberShip));
+
+        when(role.getScope()).thenReturn(RoleScope.API);
+        when(roleService.findById(eq(roleId))).thenReturn(role);
+
+        when(apiService.canManageApi(role)).thenReturn(true);
+
+        mockApi.setGroups(Collections.singleton(groupId));
+
         final Response response = envTarget(API).request().get();
 
         assertEquals(OK_200, response.getStatus());

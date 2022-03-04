@@ -15,6 +15,8 @@
  */
 import * as _ from 'lodash';
 
+import { RoleName } from './membershipState';
+
 export class Role {
   default: boolean;
   name: string;
@@ -41,7 +43,7 @@ function DialogAddGroupMemberController(
   this.defaultApiRole = defaultApiRole;
   this.defaultApplicationRole = defaultApplicationRole;
   this.usersSelected = [];
-  this.defaultApiRole = defaultApiRole ? defaultApiRole : _.find(apiRoles, { default: true }).name;
+  this.defaultApiRole = defaultApiRole ? defaultApiRole : _.find(apiRoles, { default: true })?.name;
   this.defaultApplicationRole = defaultApplicationRole ? defaultApplicationRole : _.find(applicationRoles, { default: true }).name;
 
   this.canChangeDefaultApiRole = canChangeDefaultApiRole;
@@ -71,8 +73,12 @@ function DialogAddGroupMemberController(
     $mdDialog.hide(members);
   };
 
-  this.invalid = () => {
+  this.invalid = (): boolean => {
     return (!this.defaultApiRole && !this.defaultApplicationRole) || this.usersSelected.length === 0;
+  };
+
+  this.hasPrimaryOwner = (): boolean => {
+    return this.defaultApiRole === RoleName.PRIMARY_OWNER && this.usersSelected.length > 0;
   };
 }
 

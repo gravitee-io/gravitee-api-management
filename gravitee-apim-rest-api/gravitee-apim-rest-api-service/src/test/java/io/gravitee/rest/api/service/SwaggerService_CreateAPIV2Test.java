@@ -38,6 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest {
 
+    @Override
     protected DefinitionVersion getDefinitionVersion() {
         return DefinitionVersion.V2;
     }

@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-
 import { PageQuery } from '../entities/pageQuery';
 
 class GroupService {
@@ -95,26 +93,7 @@ class GroupService {
   }
 
   addOrUpdateMember(group, members: any[]): ng.IPromise<any> {
-    const groupRole = [];
-    // at least one role is mandatory
-    const body = [];
-    _.forEach(members, (member) => {
-      const rolenames = _.filter(_.values(member.roles), (rolename) => !_.isEmpty(rolename));
-      if (rolenames.length > 0) {
-        const roleScopes = _.keys(member.roles);
-        _.forEach(roleScopes, (roleScope) => {
-          groupRole.push({
-            scope: roleScope,
-            name: member.roles[roleScope],
-          });
-        });
-        body.push({
-          id: member.id,
-          reference: member.reference,
-          roles: groupRole,
-        });
-      }
-    });
+    const body = this.mapMembers(members);
 
     if (body.length > 0) {
       return this.$http.post([`${this.Constants.env.baseURL}/configuration/groups`, group, 'members'].join('/'), body);
@@ -159,6 +138,26 @@ class GroupService {
     delete invitation.created_at;
     delete invitation.updated_at;
     return this.$http.put(this.getInvitationsURL(groupId) + invitation.id, invitation);
+  }
+
+  private mapRoles(roles = {}) {
+    return Object.entries(roles)
+      .filter(([scope]) => !!scope)
+      .map(([scope, name]) => {
+        return { scope, name };
+      });
+  }
+
+  private mapMembers(members = []) {
+    return members
+      .map(({ id, roles, reference }) => {
+        return {
+          id,
+          reference,
+          roles: this.mapRoles(roles),
+        };
+      })
+      .filter(({ roles }) => !!roles.length); // at least one role is mandatory
   }
 }
 

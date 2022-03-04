@@ -58,6 +58,7 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
                 this.searchLatestEvents(
                         lastRefreshAt,
                         nextLastRefreshAt,
+                        false,
                         DICTIONARY_ID,
                         environments,
                         EventType.PUBLISH_DICTIONARY,
@@ -81,6 +82,7 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         return this.searchLatestEvents(
                 null,
                 nextLastRefreshAt,
+                false,
                 DICTIONARY_ID,
                 environments,
                 EventType.PUBLISH_DICTIONARY,

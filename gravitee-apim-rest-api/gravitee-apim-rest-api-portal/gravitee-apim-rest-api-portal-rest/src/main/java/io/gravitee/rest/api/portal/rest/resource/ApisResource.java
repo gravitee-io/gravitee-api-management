@@ -20,6 +20,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.FilterApiQuery;
@@ -28,6 +30,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import java.time.OffsetDateTime;
@@ -57,6 +60,9 @@ public class ApisResource extends AbstractResource<Api, String> {
 
     @Inject
     private CategoryService categoryService;
+
+    @Inject
+    private ParameterService parameterService;
 
     @GET
     @Path("categories")
@@ -133,6 +139,11 @@ public class ApisResource extends AbstractResource<Api, String> {
         if (pageContent.isEmpty()) {
             return Collections.emptyList();
         }
+        final boolean apiShowTagsInApiHeaders = parameterService.findAsBoolean(
+            Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+            ParameterReferenceType.ENVIRONMENT
+        );
+
         ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(pageContent);
         Collection<ApiEntity> apiEntities = apiService.search(apiQuery);
@@ -143,6 +154,13 @@ public class ApisResource extends AbstractResource<Api, String> {
                 apiEntity -> {
                     Api api = apiMapper.convert(apiEntity);
                     return addApiLinks(api);
+                }
+            )
+            .peek(
+                api -> {
+                    if (!apiShowTagsInApiHeaders) {
+                        api.setLabels(List.of());
+                    }
                 }
             )
             .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
