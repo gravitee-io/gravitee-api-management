@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import java.util.Map;
 import java.util.Objects;
 
@@ -91,6 +92,10 @@ public class RoleEntity {
 
     public void setSystem(boolean system) {
         this.system = system;
+    }
+
+    public boolean isApiPrimaryOwner() {
+        return scope == RoleScope.API && SystemRole.PRIMARY_OWNER.name().equals(name);
     }
 
     @Override

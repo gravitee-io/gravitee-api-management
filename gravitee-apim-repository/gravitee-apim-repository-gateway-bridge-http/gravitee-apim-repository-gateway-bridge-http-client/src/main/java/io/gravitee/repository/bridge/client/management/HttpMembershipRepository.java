@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -113,6 +114,16 @@ public class HttpMembershipRepository extends AbstractRepository implements Memb
         String referenceId,
         String roleId
     ) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) throws TechnicalException {
         throw new IllegalStateException();
     }
 

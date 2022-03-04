@@ -16,10 +16,12 @@
 package io.gravitee.rest.api.service;
 
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -62,6 +64,9 @@ public class FilteringServiceTest {
 
     @Mock
     TopApiService topApiService;
+
+    @Mock
+    ApiService apiService;
 
     @Mock
     ApplicationService applicationService;
@@ -274,5 +279,17 @@ public class FilteringServiceTest {
 
         assertEquals(3, filteredItems.size());
         assertEquals(Arrays.asList("1", "3", "4"), filteredItems);
+    }
+
+    @Test
+    public void shouldSearchApis() throws TechnicalException {
+        String aQuery = "a Query";
+
+        doReturn(Set.of("api-#1", "api-#2", "api-#3")).when(apiService).findPublishedIdsByUser(eq("user-#1"));
+        doReturn(List.of("api-#3")).when(apiService).searchIds(eq(aQuery), eq(Map.of("api", Set.of("api-#1", "api-#2", "api-#3"))));
+
+        Collection<String> searchItems = filteringService.searchApis("user-#1", aQuery);
+
+        assertThat(searchItems).singleElement().isEqualTo("api-#3");
     }
 }

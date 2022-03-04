@@ -190,6 +190,10 @@ public interface ApiService {
     void addGroup(String api, String group);
     void removeGroup(String api, String group);
 
+    Map<String, List<GroupMemberEntity>> getGroupsWithMembers(String environmentId, String apiId) throws TechnicalManagementException;
+
+    boolean canManageApi(RoleEntity role);
+
     void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans);
 
     Map<String, Long> countPublishedByUserGroupedByCategories(String userId);

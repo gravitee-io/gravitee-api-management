@@ -128,7 +128,7 @@ public class PageMapper {
             pageConfiguration.setShowExtensions(Boolean.parseBoolean(showExtensions));
         }
         if (showUrl != null) {
-            pageConfiguration.setShowUrl(showUrl);
+            pageConfiguration.setShowUrl(Boolean.parseBoolean(showUrl));
         }
         if (tryIt != null) {
             pageConfiguration.setTryIt(Boolean.parseBoolean(tryIt));

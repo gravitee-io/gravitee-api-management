@@ -58,7 +58,7 @@
         <vertx.version>4.2.4</vertx.version>
         <!-- Gravitee dependencies version -->
         <gravitee-bom.version>2.1</gravitee-bom.version>
-        <gravitee-alert-api.version>1.8.0</gravitee-alert-api.version>
+        <gravitee-alert-api.version>1.9.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.9.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.25.0</gravitee-common.version>
         <gravitee-connector-api.version>1.1.0</gravitee-connector-api.version>
@@ -123,7 +123,7 @@
         <swagger-jersey2-jaxrs.version>1.6.4</swagger-jersey2-jaxrs.version>
         <swagger-annotations.version>1.6.4</swagger-annotations.version>
         <swagger-core.version>2.1.11</swagger-core.version>
-        <swagger-parser.version>2.0.29</swagger-parser.version>
+        <swagger-parser.version>2.0.30</swagger-parser.version>
         <swagger-models.version>1.6.3</swagger-models.version>
         <testcontainers.version>1.15.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
@@ -201,12 +201,6 @@
                 <groupId>io.gravitee.gateway</groupId>
                 <artifactId>gravitee-gateway-api</artifactId>
                 <version>${gravitee-gateway-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.graviteesource.license</groupId>
-                <artifactId>gravitee-license-node</artifactId>
-                <version>${gravitee-license-node.version}</version>
             </dependency>
 
             <dependency>

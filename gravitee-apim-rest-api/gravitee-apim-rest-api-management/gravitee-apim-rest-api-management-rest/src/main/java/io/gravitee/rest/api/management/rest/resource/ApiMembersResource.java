@@ -186,14 +186,12 @@ public class ApiMembersResource extends AbstractResource {
     public Response transferApiMemberOwnership(@Valid @NotNull TransferOwnership transferOwnership) {
         List<RoleEntity> newRoles = new ArrayList<>();
 
-        Optional<RoleEntity> optNewRole = roleService.findByScopeAndName(RoleScope.API, transferOwnership.getPoRole());
-        if (optNewRole.isPresent()) {
-            newRoles.add(optNewRole.get());
-        } else {
-            //it doesn't matter
+        if (transferOwnership.getPoRole() != null) {
+            roleService.findByScopeAndName(RoleScope.API, transferOwnership.getPoRole()).ifPresent(newRoles::add);
         }
 
         apiService.findById(api);
+
         membershipService.transferApiOwnership(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
