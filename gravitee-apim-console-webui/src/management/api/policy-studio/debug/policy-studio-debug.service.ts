@@ -71,7 +71,7 @@ export class PolicyStudioDebugService {
     const headersAsMap = (request.headers ?? [])
       .filter((header) => !!header.value)
       .reduce((acc, current) => {
-        acc[current.name] = acc[current.name] ? [...acc[current.name], current.value] : [current.value];
+        acc[current.key] = acc[current.key] ? [...acc[current.key], current.value] : [current.value];
         return acc;
       }, {} as Record<string, string[]>);
 
