@@ -33,7 +33,7 @@
 
       <mat-tab-group class="policy-studio-debug-request__content__wrapper__tab-group">
         <mat-tab label="Headers">
-          <gv-schema-form [schema]="headersControl" (:gv-schema-form:change)="onHeadersChange($event.detail)"></gv-schema-form>
+          <gio-form-headers formControlName="headers"></gio-form-headers>
         </mat-tab>
         <mat-tab label="Request body">
           <gv-code

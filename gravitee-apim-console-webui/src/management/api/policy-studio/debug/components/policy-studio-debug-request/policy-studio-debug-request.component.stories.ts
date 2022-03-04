@@ -21,6 +21,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { GioFormHeadersModule } from '@gravitee/ui-particles-angular';
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
@@ -36,6 +37,8 @@ export default {
         BrowserAnimationsModule,
 
         ReactiveFormsModule,
+
+        GioFormHeadersModule,
 
         MatFormFieldModule,
         MatInputModule,

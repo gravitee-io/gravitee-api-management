@@ -41,32 +41,6 @@ export class PolicyStudioDebugRequestComponent implements OnInit {
 
   public requestFormGroup: FormGroup;
 
-  public headersControl = {
-    type: 'object',
-    id: 'urn:jsonschema:io:gravitee:debug:request:headers',
-    properties: {
-      headers: {
-        type: 'array',
-        title: ' ',
-        items: {
-          type: 'object',
-          title: 'Header',
-          properties: {
-            name: {
-              title: 'Name',
-              type: 'string',
-            },
-            value: {
-              title: 'Value',
-              type: 'string',
-            },
-          },
-        },
-        required: ['name', 'value'],
-      },
-    },
-  };
-
   private unsubscribe$ = new Subject<boolean>();
 
   ngOnInit() {
@@ -81,10 +55,6 @@ export class PolicyStudioDebugRequestComponent implements OnInit {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  onHeadersChange({ values }: { values: { headers?: { name?: string; value?: string }[] } }) {
-    this.requestFormGroup.get('headers').setValue(values.headers ?? []);
   }
 
   onBodyChange(value: string) {

@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Header } from '@gravitee/ui-particles-angular';
+
 import { HttpMethod } from '../../../../../entities/HttpMethod';
 
 export type DebugRequest = {
   body: string;
-  headers: { name: string; value: string }[];
+  headers: Header[];
   method: HttpMethod;
   path: string;
 };
