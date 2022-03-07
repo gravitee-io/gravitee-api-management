@@ -24,14 +24,8 @@ import java.util.Map;
  */
 public class InvalidApplicationApiKeyModeException extends AbstractManagementException {
 
-    public InvalidApplicationApiKeyModeException(String applicationId, ApiKeyMode currentApiKeyMode) {
-        super(
-            String.format(
-                "Can't update application %s Api key mode cause current Api Key Mode %s is not updatable",
-                applicationId,
-                currentApiKeyMode
-            )
-        );
+    public InvalidApplicationApiKeyModeException(String message) {
+        super(message);
     }
 
     @Override

@@ -346,6 +346,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             throw new InvalidApplicationTypeException();
         }
 
+        // Check that shared API key mode is enabled
+        if (
+            newApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED &&
+            !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+        ) {
+            throw new InvalidApplicationApiKeyModeException(
+                "Can't create application with SHARED api key mode cause environment setting is disabled"
+            );
+        }
+
         // Create application metadata
         Map<String, String> metadata = new HashMap<>();
 
@@ -1118,14 +1128,29 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         // Retro-compatibility : If input apiKey mode is not specified, get it from existing application
         if (updateApplicationEntity.getApiKeyMode() == null && applicationToUpdate.getApiKeyMode() != null) {
             updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(applicationToUpdate.getApiKeyMode().name()));
-        }
-        // Check api key mode modification is allowed
-        else if (
+        } else if (
             applicationToUpdate.getApiKeyMode() != null &&
             !applicationToUpdate.getApiKeyMode().isUpdatable() &&
             !applicationToUpdate.getApiKeyMode().name().equals(updateApplicationEntity.getApiKeyMode().name())
         ) {
-            throw new InvalidApplicationApiKeyModeException(applicationToUpdate.getId(), applicationToUpdate.getApiKeyMode());
+            throw new InvalidApplicationApiKeyModeException(
+                String.format(
+                    "Can't update application %s Api key mode cause current Api Key Mode %s is not updatable",
+                    applicationToUpdate.getId(),
+                    applicationToUpdate.getApiKeyMode()
+                )
+            );
+        } else if (
+            updateApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED &&
+            applicationToUpdate.getApiKeyMode() != io.gravitee.repository.management.model.ApiKeyMode.SHARED &&
+            !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+        ) {
+            throw new InvalidApplicationApiKeyModeException(
+                String.format(
+                    "Can't update application %s Api key mode to SHARED cause environment setting is disabled",
+                    applicationToUpdate.getId()
+                )
+            );
         }
     }
 }

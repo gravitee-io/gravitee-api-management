@@ -32,6 +32,8 @@ import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
@@ -40,7 +42,6 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -107,6 +108,9 @@ public class ApplicationService_UpdateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
+
+        // 'Shared API KEY' setting is enabled, allows to update to SHARED mode
+        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
@@ -271,6 +275,29 @@ public class ApplicationService_UpdateTest {
         updateApplication.getSettings().setApp(new SimpleApplicationSettings());
 
         // this should throw exception cause API key mode update is forbidden
+        applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            updateApplication
+        );
+    }
+
+    @Test(expected = InvalidApplicationApiKeyModeException.class)
+    public void should_throw_exception_trying_to_set_apiKeyMode_shared_with_env_setting_disabled() throws TechnicalException {
+        // 'Shared API KEY' setting is disabled
+        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)).thenReturn(false);
+
+        // existing application has a UNSPECIFIED api key mode
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+
+        // updated application has a SHARED api key mode
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+        when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
+        updateApplication.getSettings().setApp(new SimpleApplicationSettings());
+
+        // this should throw exception cause shard API key setting is disabled
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),

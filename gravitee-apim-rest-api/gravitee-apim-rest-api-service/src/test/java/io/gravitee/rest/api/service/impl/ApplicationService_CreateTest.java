@@ -241,4 +241,19 @@ public class ApplicationService_CreateTest {
 
         applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
     }
+
+    @Test(expected = InvalidApplicationApiKeyModeException.class)
+    public void shouldNotCreateCauseSharedApiKeyModeDisabled() {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+
+        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)).thenReturn(false);
+
+        when(newApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+
+        applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+    }
 }
