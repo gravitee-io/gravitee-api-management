@@ -28,6 +28,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
@@ -41,7 +42,6 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.SubscriptionServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import java.util.*;
@@ -282,6 +282,38 @@ public class SubscriptionServiceTest {
         when(plan.getSecurity()).thenReturn(PlanSecurityType.KEY_LESS);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
+        // Run
+        subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+    }
+
+    @Test(expected = PlanNotSubscribableException.class)
+    public void shouldNotCreateBecauseSharedModeAndExistingApiKeyPlanSubscription() throws Exception {
+        final String existingApiKeyPlanId = "existing-api-key-plan";
+
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+
+        when(application.hasApiKeySharedMode()).thenReturn(true);
+        when(applicationService.findById(anyString(), eq(APPLICATION_ID))).thenReturn(application);
+
+        PlanEntity existingApiKeyPlan = new PlanEntity();
+        existingApiKeyPlan.setId(existingApiKeyPlanId);
+        existingApiKeyPlan.setSecurity(PlanSecurityType.API_KEY);
+
+        Subscription existingSubscription = new Subscription();
+        existingSubscription.setPlan(existingApiKeyPlanId);
+        existingSubscription.setApi(API_ID);
+        existingSubscription.setApplication(APPLICATION_ID);
+
+        when(planService.findById(existingApiKeyPlanId)).thenReturn(existingApiKeyPlan);
+
+        when(
+            subscriptionRepository.search(
+                new SubscriptionCriteria.Builder().apis(Set.of(API_ID)).applications(Set.of(APPLICATION_ID)).build()
+            )
+        )
+            .thenReturn(List.of(existingSubscription));
         // Run
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
