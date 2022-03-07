@@ -86,7 +86,7 @@ public abstract class DefaultPolicyManager extends LegacyPolicyManager {
 
                         logger.debug("Loading policy {}", policy.getName());
 
-                        PolicyMetadataBuilder builder = new PolicyMetadataBuilder();
+                        PolicyManifestBuilder builder = new PolicyManifestBuilder();
                         builder.setId(policyPlugin.id());
 
                         try {

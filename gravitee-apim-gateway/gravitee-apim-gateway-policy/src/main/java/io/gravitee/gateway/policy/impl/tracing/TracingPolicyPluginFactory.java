@@ -17,7 +17,7 @@ package io.gravitee.gateway.policy.impl.tracing;
 
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
@@ -34,8 +34,8 @@ public class TracingPolicyPluginFactory extends PolicyFactoryImpl {
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
-        Policy policy = super.create(streamType, policyMetadata, policyConfiguration, condition);
+    public Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration, String condition) {
+        Policy policy = super.create(streamType, policyManifest, policyConfiguration, condition);
 
         return new TracingPolicy(policy);
     }

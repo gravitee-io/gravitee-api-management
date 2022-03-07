@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.policy.api;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.flow.policy.PolicyMetadata;
 import io.gravitee.gateway.handlers.api.path.Path;
 import io.gravitee.gateway.handlers.api.policy.RuleBasedPolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
@@ -36,7 +37,7 @@ public class ApiPolicyResolver extends RuleBasedPolicyResolver {
     public static final String API_RESOLVED_PATH = ExecutionContext.ATTR_PREFIX + "api-policy-path";
 
     @Override
-    public List<Policy> resolve(StreamType streamType, ExecutionContext context) {
+    public List<PolicyMetadata> resolve(StreamType streamType, ExecutionContext context) {
         // Has been registered in path parameters processor
         final Path path = (Path) context.getAttribute(API_RESOLVED_PATH);
 

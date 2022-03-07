@@ -18,7 +18,7 @@ package io.gravitee.gateway.policy.impl;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.policy.DummyPolicy;
 import io.gravitee.gateway.policy.PolicyException;
-import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
@@ -26,10 +26,6 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -42,7 +38,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 public class ExecutablePolicyBenchmark {
 
     DummyPolicy policy;
-    PolicyMetadata policyMetadata;
+    PolicyManifest policyManifest;
     Method requestMethod;
     ExecutablePolicy executablePolicy;
     ReflectionExecutablePolicy reflectionExecutablePolicy;
@@ -53,22 +49,22 @@ public class ExecutablePolicyBenchmark {
     public void setup() {
         policy = new DummyPolicy();
 
-        policyMetadata =
-            new PolicyMetadataBuilder()
+        policyManifest =
+            new PolicyManifestBuilder()
                 .setPolicy(DummyPolicy.class)
                 .setId("dummy")
                 .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
                 .build();
 
-        requestMethod = policyMetadata.method(OnRequest.class);
-        executablePolicy = new ExecutablePolicy("dummy", policy, requestMethod, policyMetadata.method(OnRequestContent.class));
+        requestMethod = policyManifest.method(OnRequest.class);
+        executablePolicy = new ExecutablePolicy("dummy", policy, requestMethod, policyManifest.method(OnRequestContent.class));
 
         reflectionExecutablePolicy =
             new ReflectionExecutablePolicy(
                 "dummy",
                 policy,
-                policyMetadata.method(OnRequest.class),
-                policyMetadata.method(OnRequestContent.class)
+                policyManifest.method(OnRequest.class),
+                policyManifest.method(OnRequestContent.class)
             );
 
         executionContext = new SimpleExecutionContext(new SimpleRequest(), new SimpleResponse());

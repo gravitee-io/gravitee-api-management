@@ -21,10 +21,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
+ * Contains all is needed to instantiate a Policy.
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyMetadata {
+public interface PolicyManifest {
     String id();
 
     Class<?> policy();

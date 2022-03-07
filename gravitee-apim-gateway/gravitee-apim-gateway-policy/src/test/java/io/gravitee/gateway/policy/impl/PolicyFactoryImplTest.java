@@ -21,7 +21,7 @@ import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvalu
 import io.gravitee.gateway.policy.DummyPolicy;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -85,7 +85,7 @@ public class PolicyFactoryImplTest extends TestCase {
         assertFalse(policy instanceof ConditionalExecutablePolicy);
     }
 
-    private PolicyMetadata fakePolicyMetadata() {
-        return new PolicyMetadataBuilder().setId("dummy-policy").setPolicy(DummyPolicy.class).setMethods(Map.of()).build();
+    private PolicyManifest fakePolicyMetadata() {
+        return new PolicyManifestBuilder().setId("dummy-policy").setPolicy(DummyPolicy.class).setMethods(Map.of()).build();
     }
 }

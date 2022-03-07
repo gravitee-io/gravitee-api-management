@@ -20,6 +20,7 @@ import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.plan
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.flow.policy.PolicyMetadata;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.policy.RuleBasedPolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
@@ -48,7 +49,7 @@ public class PlanPolicyResolver extends RuleBasedPolicyResolver {
     }
 
     @Override
-    public List<Policy> resolve(StreamType streamType, ExecutionContext context) {
+    public List<PolicyMetadata> resolve(StreamType streamType, ExecutionContext context) {
         Plan apiPlan = api.getPlan(context.request().metrics().getPlan());
 
         // No plan is matching the plan associated to the secured request

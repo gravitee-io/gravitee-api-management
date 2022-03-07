@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
+import io.gravitee.gateway.flow.policy.PolicyMetadata;
 import io.gravitee.gateway.flow.policy.PolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.policy.AbstractPolicyChainProvider;
 import io.gravitee.gateway.policy.StreamType;
@@ -49,7 +50,7 @@ public class ApiPolicyChainProvider extends AbstractPolicyChainProvider {
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
         // Calculate the list of policies to apply under this policy chain
-        List<PolicyResolver.Policy> policies = policyResolver.resolve(streamType, context);
+        List<PolicyMetadata> policies = policyResolver.resolve(streamType, context);
 
         return policyChainFactory.create(policies, streamType, context);
     }

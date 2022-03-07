@@ -24,36 +24,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface PolicyResolver {
-    List<Policy> resolve(StreamType streamType, ExecutionContext context);
-
-    class Policy {
-
-        private final String name;
-        private final String configuration;
-        private final String condition;
-
-        public Policy(String name, String configuration) {
-            this.name = name;
-            this.configuration = configuration;
-            this.condition = null;
-        }
-
-        public Policy(String name, String configuration, String condition) {
-            this.name = name;
-            this.configuration = configuration;
-            this.condition = condition;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getConfiguration() {
-            return configuration;
-        }
-
-        public String getCondition() {
-            return condition;
-        }
-    }
+    List<PolicyMetadata> resolve(StreamType streamType, ExecutionContext context);
 }

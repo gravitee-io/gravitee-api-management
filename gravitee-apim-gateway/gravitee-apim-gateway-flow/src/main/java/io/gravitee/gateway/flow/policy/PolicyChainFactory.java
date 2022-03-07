@@ -44,7 +44,7 @@ public class PolicyChainFactory {
     }
 
     public StreamableProcessor<ExecutionContext, Buffer> create(
-        final List<PolicyResolver.Policy> resolvedPolicies,
+        final List<PolicyMetadata> resolvedPolicies,
         final StreamType streamType,
         final ExecutionContext context
     ) {
@@ -60,7 +60,7 @@ public class PolicyChainFactory {
     }
 
     public StreamableProcessor<ExecutionContext, Buffer> create(
-        List<PolicyResolver.Policy> resolvedPolicies,
+        List<PolicyMetadata> resolvedPolicies,
         StreamType streamType,
         ExecutionContext context,
         Function<List<Policy>, StreamableProcessor<ExecutionContext, Buffer>> mapper

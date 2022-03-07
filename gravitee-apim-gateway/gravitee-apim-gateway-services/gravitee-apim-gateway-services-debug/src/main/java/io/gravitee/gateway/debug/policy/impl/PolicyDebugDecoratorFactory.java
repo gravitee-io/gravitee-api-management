@@ -17,7 +17,7 @@ package io.gravitee.gateway.debug.policy.impl;
 
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Objects;
@@ -37,17 +37,17 @@ public class PolicyDebugDecoratorFactory implements PolicyFactory {
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
-        return new PolicyDebugDecorator(streamType, delegate.create(streamType, policyMetadata, policyConfiguration));
+    public Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration) {
+        return new PolicyDebugDecorator(streamType, delegate.create(streamType, policyManifest, policyConfiguration));
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
-        return new PolicyDebugDecorator(streamType, delegate.create(streamType, policyMetadata, policyConfiguration, condition));
+    public Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration, String condition) {
+        return new PolicyDebugDecorator(streamType, delegate.create(streamType, policyManifest, policyConfiguration, condition));
     }
 
     @Override
-    public void cleanup(PolicyMetadata policyMetadata) {
-        delegate.cleanup(policyMetadata);
+    public void cleanup(PolicyManifest policyManifest) {
+        delegate.cleanup(policyManifest);
     }
 }

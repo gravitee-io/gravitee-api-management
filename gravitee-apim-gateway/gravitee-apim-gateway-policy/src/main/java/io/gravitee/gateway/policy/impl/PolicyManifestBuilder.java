@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.PolicyContext;
@@ -31,7 +31,7 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyMetadataBuilder {
+public class PolicyManifestBuilder {
 
     private String id;
 
@@ -45,38 +45,38 @@ public class PolicyMetadataBuilder {
 
     private ClassLoader classLoader;
 
-    public PolicyMetadataBuilder setId(String id) {
+    public PolicyManifestBuilder setId(String id) {
         this.id = id;
         return this;
     }
 
-    public PolicyMetadataBuilder setConfiguration(Class<? extends PolicyConfiguration> configuration) {
+    public PolicyManifestBuilder setConfiguration(Class<? extends PolicyConfiguration> configuration) {
         this.configuration = configuration;
         return this;
     }
 
-    public PolicyMetadataBuilder setContext(PolicyContext context) {
+    public PolicyManifestBuilder setContext(PolicyContext context) {
         this.context = context;
         return this;
     }
 
-    public PolicyMetadataBuilder setPolicy(Class<?> policy) {
+    public PolicyManifestBuilder setPolicy(Class<?> policy) {
         this.policy = policy;
         return this;
     }
 
-    public PolicyMetadataBuilder setMethods(Map<Class<? extends Annotation>, Method> methods) {
+    public PolicyManifestBuilder setMethods(Map<Class<? extends Annotation>, Method> methods) {
         this.methods = methods;
         return this;
     }
 
-    public PolicyMetadataBuilder setClassLoader(ClassLoader classLoader) {
+    public PolicyManifestBuilder setClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
         return this;
     }
 
-    public PolicyMetadata build() {
-        return new PolicyMetadata() {
+    public PolicyManifest build() {
+        return new PolicyManifest() {
             @Override
             public String id() {
                 return id;
