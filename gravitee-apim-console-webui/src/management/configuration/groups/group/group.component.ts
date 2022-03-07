@@ -15,6 +15,10 @@
  */
 import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
+import { IPromise } from 'angular';
+
+import { ApiOwnershipTransferType, OwnershipTransferResult } from './transferOwnershipDialog.controller';
+import { Member, MembershipState, MemberState, RoleName, RoleScope } from './membershipState';
 
 import GroupService from '../../../../services/group.service';
 import NotificationService from '../../../../services/notification.service';
@@ -28,6 +32,12 @@ interface IGroupDetailComponentScope extends ng.IScope {
   currentTab: string;
   formGroup: any;
 }
+
+interface MemberPageQuery {
+  page: number;
+  size: number;
+}
+
 const GroupComponent: ng.IComponentOptions = {
   bindings: {
     group: '<',
@@ -65,10 +75,9 @@ const GroupComponent: ng.IComponentOptions = {
         this.group.lock_application_role = false;
         this.group.disable_membership_notifications = false;
       } else {
-        GroupService.getMembers(this.group.id, this.membersPageQuery).then((response) => {
-          this.membersPage = response.data;
-          this.members = this.membersPage.data;
-          this.membersLoaded = true;
+        GroupService.getMembers(this.group?.id).then((response) => {
+          this.membershipState = new MembershipState(response.data);
+          this.getMembersPage(true);
         });
       }
 
@@ -89,10 +98,16 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.updateRole = (member: any) => {
-      GroupService.addOrUpdateMember(this.group.id, [member]).then(() => {
-        NotificationService.show('Member successfully updated');
-        $state.reload();
-      });
+      if (this.membershipState.isPrimaryOwnerDemotion(member)) {
+        this.demotePrimaryOwner(this.membershipState.stateOf(member));
+      } else if (this.membershipState.isPrimaryOwnerPromotion(member)) {
+        this.promoteNewPrimaryOwner(this.membershipState.stateOf(member));
+      } else {
+        GroupService.addOrUpdateMember(this.group.id, [member]).then(() => {
+          NotificationService.show('Member successfully updated');
+          $state.reload();
+        });
+      }
     };
 
     this.associateToApis = () => {
@@ -144,42 +159,42 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.onPaginate = (page: number) => {
-      GroupService.getMembers(this.group.id, { page: page, size: this.defaultPageSize }).then((response) => {
-        this.membersPage = response.data;
-        this.membersPageQuery.page = this.membersPage.page.current;
-        this.members = this.membersPage.data;
-        this.membersLoaded = true;
-      });
+      this.getMembersPage(true, { page, size: this.defaultPageSize });
     };
 
     this.removeUser = (ev, member: any) => {
       ev.stopPropagation();
-      $mdDialog
-        .show({
-          controller: 'DialogConfirmController',
-          controllerAs: 'ctrl',
-          template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-          clickOutsideToClose: true,
-          locals: {
-            msg: '',
-            title: 'Are you sure you want to remove the user "' + member.displayName + '"?',
-            confirmButton: 'Remove',
-          },
-        })
-        .then((response) => {
-          if (response) {
-            GroupService.deleteMember(this.group.id, member.id).then(() => {
-              NotificationService.show('Member ' + member.displayName + ' has been successfully removed');
-              GroupService.getMembers(this.group.id, this.membersPageQuery).then((response) => {
-                this.membersPage = response.data;
-                this.members = this.membersPage.data;
-                if (this.group.apiPrimaryOwner === member.id) {
-                  delete this.group.apiPrimaryOwner;
-                }
-              });
+
+      const memberState = this.membershipState.stateOf(member);
+      if (memberState.wasPrimaryOwner()) {
+        this.showTransferOwnershipModal(member, ApiOwnershipTransferType.DELETE_PRIMARY_OWNER).then(
+          ({ newPrimaryOwnerRef, primaryOwner }) => {
+            this.deleteMember(primaryOwner).then(() => {
+              const newPrimaryOwner = this.membershipState.findByRef(newPrimaryOwnerRef);
+              newPrimaryOwner.roles['API'] = 'PRIMARY_OWNER';
+              this.updateRole(newPrimaryOwner);
             });
-          }
-        });
+          },
+        );
+      } else {
+        $mdDialog
+          .show({
+            controller: 'DialogConfirmController',
+            controllerAs: 'ctrl',
+            template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+            clickOutsideToClose: true,
+            locals: {
+              msg: '',
+              title: 'Are you sure you want to remove the user "' + member.displayName + '"?',
+              confirmButton: 'Remove',
+            },
+          })
+          .then((response) => {
+            if (response) {
+              this.deleteMember(member);
+            }
+          });
+      }
     };
 
     this.showAddMemberModal = () => {
@@ -201,18 +216,109 @@ const GroupComponent: ng.IComponentOptions = {
           },
         })
         .then(
-          (members) => {
-            if (members) {
-              GroupService.addOrUpdateMember(this.group.id, members).then(() => {
-                NotificationService.show('Member(s) successfully added');
-                $state.reload();
-              });
+          (members = []) => {
+            if (members.length > 0) {
+              if (this.membershipState.isPrimaryOwnerPromotion(members[0])) {
+                this.promoteNewPrimaryOwner(this.membershipState.stateOf(members[0]));
+              } else {
+                GroupService.addOrUpdateMember(this.group.id, members)
+                  .then(() => {
+                    NotificationService.show('Member(s) successfully added');
+                    members
+                      .filter((member) => this.membershipState.isPrimaryOwnerDemotion(member))
+                      .forEach((member) => this.demotePrimaryOwner(this.membershipState.stateOf(member)));
+                  })
+                  .finally(() => this.getMembersPage());
+              }
             }
           },
           () => {
             // you cancelled the dialog
           },
         );
+    };
+
+    this.showTransferOwnershipModal = (primaryOwner, transferType): IPromise<OwnershipTransferResult> => {
+      const members = this.membershipState.findAll();
+
+      return $mdDialog.show({
+        controller: 'DialogTransferOwnershipController',
+        controllerAs: '$ctrl',
+        template: require('./transferOwnershipDialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          transferType,
+          members,
+          primaryOwner,
+          group: this.group,
+        },
+      });
+    };
+
+    this.demotePrimaryOwner = (memberState: MemberState): void => {
+      this.showTransferOwnershipModal(memberState.getLastState(), ApiOwnershipTransferType.DEMOTE_PRIMARY_OWNER).then(
+        ({ newPrimaryOwnerRef }) => {
+          const newPrimaryOwner = this.membershipState.findByRef(newPrimaryOwnerRef);
+          const previousPrimaryOwner = memberState.getCurrentState();
+
+          newPrimaryOwner.roles['API'] = 'PRIMARY_OWNER';
+
+          GroupService.addOrUpdateMember(this.group.id, [previousPrimaryOwner, newPrimaryOwner])
+            .then(() => {
+              NotificationService.show('Member successfully updated');
+            })
+            .finally(() => this.getMembersPage());
+        },
+        () => this.getMembersPage(),
+      );
+    };
+
+    this.promoteNewPrimaryOwner = (memberState: MemberState): void => {
+      this.showTransferOwnershipModal(this.membershipState.getPrimaryOwner(), ApiOwnershipTransferType.PROMOTE_NEW_PRIMARY_OWNER).then(
+        () => {
+          const previousPrimaryOwner = this.membershipState.getPrimaryOwner();
+          const newPrimaryOwner = memberState.getCurrentState();
+
+          previousPrimaryOwner.roles[RoleScope.API] = RoleName.OWNER;
+          newPrimaryOwner.roles[RoleScope.API] = RoleName.PRIMARY_OWNER;
+
+          GroupService.addOrUpdateMember(this.group.id, [previousPrimaryOwner, newPrimaryOwner])
+            .then(() => {
+              NotificationService.show('Member successfully updated');
+            })
+            .finally(() => this.getMembersPage());
+        },
+        () => this.getMembersPage(),
+      );
+    };
+
+    this.deleteMember = (member: Member): IPromise<void> => {
+      return GroupService.deleteMember(this.group.id, member.id).then(() => {
+        NotificationService.show('Member ' + member.displayName + ' has been successfully removed');
+        if (this.members.length === 1 && this.membersPageQuery.page > 0) {
+          --this.membersPageQuery.page;
+        }
+        return this.getMembersPage().then(() => {
+          if (this.group.apiPrimaryOwner === member.id) {
+            delete this.group.apiPrimaryOwner;
+          }
+        });
+      });
+    };
+
+    this.getMembersPage = (useLoader = false, membersPageQuery: Partial<MemberPageQuery> = {}): IPromise<void> => {
+      this.membersLoaded = !useLoader;
+
+      return GroupService.getMembers(this.group.id, Object.assign(this.membersPageQuery, membersPageQuery))
+        .then((response) => {
+          this.membersPage = response.data;
+          this.membersPageQuery.page = this.membersPage.page.current;
+          this.members = this.membersPage.data;
+          this.membershipState.sync(this.members);
+        })
+        .finally(() => {
+          this.membersLoaded = true;
+        });
     };
 
     this.loadGroupApis = () => {
@@ -359,14 +465,7 @@ const GroupComponent: ng.IComponentOptions = {
       return hasGroupAdmin;
     };
 
-    this.isApiRoleDisabled = (role) => {
-      return (
-        (role.system && role.name !== 'PRIMARY_OWNER') ||
-        (role.system &&
-          role.name === 'PRIMARY_OWNER' &&
-          (this.group.apiPrimaryOwner != null || ($scope.groupApis && $scope.groupApis.length > 0)))
-      );
-    };
+    this.isApiRoleDisabled = (role) => role.system && role.name !== 'PRIMARY_OWNER';
   },
 };
 

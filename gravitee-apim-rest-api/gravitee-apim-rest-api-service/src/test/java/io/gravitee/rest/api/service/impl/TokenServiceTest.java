@@ -22,8 +22,8 @@ import static io.gravitee.rest.api.model.TokenReferenceType.USER;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.anyMap;
@@ -40,14 +40,12 @@ import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
 import io.gravitee.rest.api.service.impl.TokenServiceImpl;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -254,5 +252,57 @@ public class TokenServiceTest {
                 eq(token)
             );
         verify(tokenRepository).delete(TOKEN_ID);
+    }
+
+    @Test
+    public void findByToken_should_prioritize_last_used_token() throws TechnicalException {
+        Token tokens[] = { mock(Token.class), mock(Token.class), mock(Token.class), mock(Token.class) };
+
+        when(tokens[0].getLastUseAt()).thenReturn(null);
+
+        when(tokens[1].getLastUseAt()).thenReturn(new Date(1486772200000L));
+        when(tokens[1].getToken()).thenReturn("encodedToken1");
+
+        when(tokens[2].getLastUseAt()).thenReturn(new Date(1486772200999L));
+        when(tokens[2].getToken()).thenReturn("encodedToken2");
+
+        when(tokens[3].getLastUseAt()).thenReturn(null);
+
+        when(tokenRepository.findAll()).thenReturn(newHashSet(tokens));
+        doAnswer(returnsFirstArg()).when(tokenRepository).update(any());
+
+        when(passwordEncoder.matches("inputToken", "encodedToken2")).thenReturn(false);
+        when(passwordEncoder.matches("inputToken", "encodedToken1")).thenReturn(true);
+
+        Token resultToken = tokenService.findByToken("inputToken");
+
+        // Assert that token1 has been returned cause it's the one matching input token
+        assertSame(resultToken, tokens[1]);
+
+        // Assert that there was only 2 interactions with the passwordEncoder check, in this order :
+        //   - first, token2 cause it's the most recently used
+        //   - then, token1 cause it's the next most recently used
+        // Token0 and token3 has not been checked
+        InOrder inOrder = inOrder(passwordEncoder);
+        inOrder.verify(passwordEncoder, times(1)).matches("inputToken", "encodedToken2");
+        inOrder.verify(passwordEncoder, times(1)).matches("inputToken", "encodedToken1");
+        inOrder.verifyNoMoreInteractions();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void findByToken_should_throw_IllegalStateException_when_no_token_matches() throws TechnicalException {
+        Token tokens[] = { mock(Token.class), mock(Token.class), mock(Token.class), mock(Token.class) };
+        when(tokenRepository.findAll()).thenReturn(newHashSet(tokens));
+        when(passwordEncoder.matches(any(), any())).thenReturn(false);
+
+        try {
+            tokenService.findByToken("inputToken");
+        } catch (Exception e) {
+            // Assert that all 4 tokens have been checked using passwordEncoder
+            // And none of them have been updated
+            verify(passwordEncoder, times(4)).matches(any(), any());
+            verify(tokenRepository, never()).update(any());
+            throw e;
+        }
     }
 }

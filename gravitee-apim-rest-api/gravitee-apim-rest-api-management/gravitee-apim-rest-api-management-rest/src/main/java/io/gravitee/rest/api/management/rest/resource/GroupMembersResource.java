@@ -137,19 +137,7 @@ public class GroupMembersResource extends AbstractResource {
         List<GroupMemberEntity> groupMemberEntities = members
             .keySet()
             .stream()
-            .map(
-                id -> {
-                    Map<String, String> roles = members
-                        .get(id)
-                        .stream()
-                        .flatMap(m -> m.getRoles().stream())
-                        .collect(Collectors.toMap(role -> role.getScope().name(), RoleEntity::getName));
-
-                    GroupMemberEntity groupMemberEntity = new GroupMemberEntity(members.get(id).get(0));
-                    groupMemberEntity.setRoles(roles);
-                    return groupMemberEntity;
-                }
-            )
+            .map(id -> new GroupMemberEntity(members.get(id).get(0)))
             .sorted(Comparator.comparing(GroupMemberEntity::getId))
             .collect(toList());
 

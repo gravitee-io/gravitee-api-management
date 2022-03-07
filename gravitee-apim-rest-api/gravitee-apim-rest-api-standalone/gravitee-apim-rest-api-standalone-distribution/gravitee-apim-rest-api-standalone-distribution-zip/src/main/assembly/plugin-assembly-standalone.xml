@@ -34,16 +34,16 @@
             <directory>../target/distribution</directory>
             <outputDirectory>.</outputDirectory>
             <includes>
-                <include>bin/*</include>
-                <include>config/*</include>
-                <include>dashboards/*</include>
+                <include>bin/**</include>
+                <include>config/**</include>
+                <include>dashboards/**</include>
                 <include>data</include>
                 <include>lib/**</include>
                 <include>logs</include>
                 <include>plugins/gravitee-apim-rest-api-*</include>
                 <include>plugins/ext/*</include>
-                <include>templates/*</include>
-                <include>themes/*</include>
+                <include>templates/**</include>
+                <include>themes/**</include>
             </includes>
         </fileSet>
     </fileSets>

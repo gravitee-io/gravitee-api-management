@@ -63,6 +63,12 @@
 #  failOnDuplicate: true
 
 # Management repository is used to store global configuration such as APIs, applications, apikeys, ...
+# If you use a JDBC repository, we recommend disabling liquibase scripts execution by the Gateway. Let the Management API do it.
+# management:
+#   type: jdbc
+#   jdbc:
+#     liquibase: false
+
 # This is the default configuration using MongoDB (single server)
 # For more information about MongoDB configuration, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html

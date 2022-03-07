@@ -122,6 +122,14 @@
   transition: all 50ms ease-in-out;
 }
 
+.api-analytics-logging-configuration_form-details_options {
+  margin: 0 5%;
+  width: 90%;
+}
+.api-analytics-logging-configuration_form-details_input {
+  width: 100%;
+}
+
 .api-analytics-logging-configuration_enabled {
   .api-analytics-logging-configuration_form-details {
     visibility: visible;

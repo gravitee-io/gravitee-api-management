@@ -34,8 +34,8 @@
             <directory>../target/distribution</directory>
             <outputDirectory>.</outputDirectory>
             <includes>
-                <include>bin/*</include>
-                <include>config/*</include>
+                <include>bin/**</include>
+                <include>config/**</include>
                 <include>lib/**</include>
                 <include>logs</include>
                 <include>metrics</include>

@@ -24,6 +24,7 @@ import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.TransformResponseStreamFailPolicy;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -48,6 +49,7 @@ public class StreamFailOnResponseGatewayTest extends AbstractWiremockGatewayTest
         HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
+        assertEquals(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(), response.getStatusLine().getReasonPhrase());
         wireMockRule.verify(1, postRequestedFor(urlPathEqualTo("/api")));
     }
 

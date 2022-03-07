@@ -107,9 +107,9 @@ class PageSwaggerComponentController implements IController {
     if (this.pageConfiguration?.showURL === 'true') {
       let url = '';
       if (this.$state.params.apiId) {
-        url = `${this.Constants.env.baseURL}/apis/${this.$state.params.apiId}/pages/${this.$state.params.pageId}/content'`;
+        url = `${this.Constants.env.baseURL}/apis/${this.$state.params.apiId}/pages/${this.$state.params.pageId}/content`;
       } else {
-        url = `${this.Constants.env.baseURL}/portal/pages/${this.$state.params.pageId}/content'`;
+        url = `${this.Constants.env.baseURL}/portal/pages/${this.$state.params.pageId}/content`;
       }
       if (url.includes('{:envId}')) {
         url = url.replace('{:envId}', this.Constants.org.currentEnv.id);
