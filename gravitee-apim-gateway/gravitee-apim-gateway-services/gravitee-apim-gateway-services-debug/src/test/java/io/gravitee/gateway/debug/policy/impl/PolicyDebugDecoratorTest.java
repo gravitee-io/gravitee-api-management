@@ -38,6 +38,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugResponseStep
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManifest;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
@@ -110,7 +111,9 @@ public class PolicyDebugDecoratorTest {
         DummyPolicy dummyPolicy = spy(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyManifest, null));
+        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(
+            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, fakePolicyMetadata())
+        );
 
         final ArgumentCaptor<DebugStep<?>> debugStepCaptor = ArgumentCaptor.forClass(DebugStep.class);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
@@ -141,7 +144,9 @@ public class PolicyDebugDecoratorTest {
         DummyPolicy dummyPolicy = spy(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null));
+        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(
+            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, fakePolicyMetadata())
+        );
 
         final ArgumentCaptor<DebugStep<?>> debugStepCaptor = ArgumentCaptor.forClass(DebugStep.class);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
@@ -173,7 +178,9 @@ public class PolicyDebugDecoratorTest {
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyManifest, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
+            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, fakePolicyMetadata())
+        );
         final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_REQUEST, policy));
 
         debugPolicy.stream(policyChain, context);
@@ -201,7 +208,9 @@ public class PolicyDebugDecoratorTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
+            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, fakePolicyMetadata())
+        );
         final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy));
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
@@ -228,5 +237,9 @@ public class PolicyDebugDecoratorTest {
         }
 
         return methods.iterator().next();
+    }
+
+    private PolicyMetadata fakePolicyMetadata() {
+        return new PolicyMetadata("dummy-policy", "{}");
     }
 }

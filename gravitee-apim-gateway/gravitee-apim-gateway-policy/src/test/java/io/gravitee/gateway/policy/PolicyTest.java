@@ -84,7 +84,9 @@ public class PolicyTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyManifest, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
+            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, new PolicyMetadata("", ""))
+        );
 
         policy.execute(policyChain, context);
 
@@ -107,7 +109,9 @@ public class PolicyTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
+            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, new PolicyMetadata("", ""))
+        );
 
         policy.execute(policyChain, context);
 
@@ -130,7 +134,9 @@ public class PolicyTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyManifest, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
+            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, new PolicyMetadata("", ""))
+        );
 
         policy.stream(policyChain, context);
 
@@ -153,7 +159,9 @@ public class PolicyTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
+            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, new PolicyMetadata("", ""))
+        );
 
         policy.stream(policyChain, context);
 

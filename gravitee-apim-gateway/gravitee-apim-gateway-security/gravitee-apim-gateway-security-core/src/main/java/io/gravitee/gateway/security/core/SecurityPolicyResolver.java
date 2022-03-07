@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.policy.AbstractPolicyResolver;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.List;
 import java.util.Objects;
@@ -79,8 +80,10 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
                         } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
                             return create(
                                 StreamType.ON_REQUEST,
-                                ((PluginAuthenticationPolicy) securityPolicy).name(),
-                                ((PluginAuthenticationPolicy) securityPolicy).configuration()
+                                new PolicyMetadata(
+                                    ((PluginAuthenticationPolicy) securityPolicy).name(),
+                                    ((PluginAuthenticationPolicy) securityPolicy).configuration()
+                                )
                             );
                         }
 

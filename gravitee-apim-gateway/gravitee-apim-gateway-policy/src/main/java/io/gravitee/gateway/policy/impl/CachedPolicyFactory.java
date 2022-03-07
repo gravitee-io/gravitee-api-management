@@ -18,6 +18,7 @@ package io.gravitee.gateway.policy.impl;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManifest;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Objects;
@@ -40,18 +41,15 @@ public class CachedPolicyFactory implements PolicyFactory {
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration) {
+    public Policy create(
+        StreamType streamType,
+        PolicyManifest policyManifest,
+        PolicyConfiguration policyConfiguration,
+        PolicyMetadata policyMetadata
+    ) {
         return policies.computeIfAbsent(
-            getKey(streamType, policyManifest, policyConfiguration, null),
-            k -> delegate.create(streamType, policyManifest, policyConfiguration)
-        );
-    }
-
-    @Override
-    public Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration, String condition) {
-        return policies.computeIfAbsent(
-            getKey(streamType, policyManifest, policyConfiguration, condition),
-            k -> delegate.create(streamType, policyManifest, policyConfiguration, condition)
+            getKey(streamType, policyManifest, policyConfiguration, policyMetadata.getCondition()),
+            k -> delegate.create(streamType, policyManifest, policyConfiguration, policyMetadata)
         );
     }
 

@@ -20,9 +20,9 @@ import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.plan
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.flow.policy.PolicyMetadata;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.policy.RuleBasedPolicyResolver;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.Collections;
 import java.util.List;
