@@ -13,6 +13,7 @@ import { Enabled } from './enabled';
 
 export interface ConfigurationPlanSecurity { 
     apikey?: Enabled;
+    sharedApiKey?: Enabled;
     oauth2?: Enabled;
     keyless?: Enabled;
     jwt?: Enabled;

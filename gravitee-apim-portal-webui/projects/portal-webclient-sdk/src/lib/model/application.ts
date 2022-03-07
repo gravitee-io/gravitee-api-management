@@ -60,7 +60,20 @@ export interface Application {
      * Background of the application. This attribute is only used to update a picture.\\ To get the application picture, use /application/{applicationId}/background. 
      */
     background?: string;
+    /**
+     * The API key mode to use for this application.   - The `SHARED` API key mode allows consumer to use the same API key across all the subscriptions   - The `EXCLUSIVE` API key mode will result to a new API key being generated for each subscription   - The `UNSPECIFIED` API key mode is a marker value informing that no choice as been made yet regarding     the API key mode to use for the application. 
+     */
+    api_key_mode?: Application.ApiKeyModeEnum;
     settings?: ApplicationSettings;
     _links?: ApplicationLinks;
 }
+export namespace Application {
+    export type ApiKeyModeEnum = 'SHARED' | 'EXCLUSIVE' | 'UNSPECIFIED';
+    export const ApiKeyModeEnum = {
+        SHARED: 'SHARED' as ApiKeyModeEnum,
+        EXCLUSIVE: 'EXCLUSIVE' as ApiKeyModeEnum,
+        UNSPECIFIED: 'UNSPECIFIED' as ApiKeyModeEnum
+    };
+}
+
 

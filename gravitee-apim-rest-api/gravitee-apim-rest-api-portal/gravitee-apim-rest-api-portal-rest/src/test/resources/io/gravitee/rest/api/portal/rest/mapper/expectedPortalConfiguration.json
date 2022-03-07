@@ -61,6 +61,9 @@
       "apikey" : {
         "enabled" : true
       },
+      "sharedApiKey" : {
+        "enabled" : true
+      },
       "oauth2" : {
         "enabled" : true
       },

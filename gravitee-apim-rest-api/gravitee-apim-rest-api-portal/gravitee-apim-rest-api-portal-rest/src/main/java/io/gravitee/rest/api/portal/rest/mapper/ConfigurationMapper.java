@@ -132,6 +132,7 @@ public class ConfigurationMapper {
     private ConfigurationPlanSecurity convert(Plan.PlanSecurity security) {
         ConfigurationPlanSecurity configuration = new ConfigurationPlanSecurity();
         configuration.setApikey(convert(security.getApikey()));
+        configuration.setSharedApiKey(convert(security.getSharedApiKey()));
         configuration.setJwt(convert(security.getJwt()));
         configuration.setKeyless(convert(security.getKeyless()));
         configuration.setOauth2(convert(security.getOauth2()));

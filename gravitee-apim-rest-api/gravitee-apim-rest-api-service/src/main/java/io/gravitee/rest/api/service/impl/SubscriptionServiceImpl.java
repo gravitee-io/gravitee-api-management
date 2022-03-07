@@ -1290,6 +1290,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         if (plans.containsKey(subscription.getPlan())) {
             PlanEntity plan = plans.get(subscription.getPlan());
             metadata.put(plan.getId(), "name", plan.getName());
+            metadata.put(plan.getId(), "securityType", plan.getSecurity());
         }
         return metadata;
     }

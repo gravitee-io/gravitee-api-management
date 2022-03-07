@@ -20,9 +20,13 @@ import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import {
   ApiService,
+  Application,
   ApplicationService,
   GetSubscriptionsRequestParams,
+  Key,
+  PermissionsResponse,
   PermissionsService,
+  Plan,
   Subscription,
   SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
@@ -33,6 +37,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { NotificationService } from '../../../services/notification.service';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import StatusEnum = Subscription.StatusEnum;
+import SecurityEnum = Plan.SecurityEnum;
+import ApiKeyModeEnum = Application.ApiKeyModeEnum;
 
 @Component({
   selector: 'app-application-subscriptions',
@@ -57,6 +63,9 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   canDelete: boolean;
   canUpdate: boolean;
   isSearching: boolean;
+  application: Application;
+  sharedAPIKey: Key | null;
+  sharedAPIKeyLoaded: boolean;
 
   constructor(
     private route: ActivatedRoute,
@@ -73,11 +82,11 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const application = this.route.snapshot.data.application;
-    const permissions = this.route.snapshot.data.permissions;
-    if (application) {
-      this.canDelete = permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('D');
-      this.canUpdate = permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('U');
+    this.application = this.route.snapshot.data.application;
+    const permissions: PermissionsResponse = this.route.snapshot.data.permissions;
+    if (this.application) {
+      this.canDelete = permissions?.SUBSCRIPTION?.includes('D');
+      this.canUpdate = permissions?.SUBSCRIPTION?.includes('U');
       this.format = (key) => this.translateService.get(key).toPromise();
       this.apisOptions = [];
       this.options = {
@@ -99,6 +108,20 @@ export class ApplicationSubscriptionsComponent implements OnInit {
             field: 'plan',
             label: i18n('application.subscriptions.plan'),
             format: (item) => this.metadata[item] && this.metadata[item].name,
+          },
+          {
+            field: 'plan',
+            label: i18n('application.subscriptions.security_type'),
+            type: () => 'div',
+            attributes: {
+              innerHTML: (item) => {
+                const securityType = this.metadata[item.plan]?.securityType.toLocaleLowerCase().replace('_', ' ');
+                if (this.isAPIKeySubscription(item.plan) && this.applicationHasSharedKey()) {
+                  return `${securityType} <gv-state> ${this.application.api_key_mode} </gv-state>`;
+                }
+                return securityType;
+              },
+            },
           },
           { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at'), width: '160px' },
           {
@@ -143,7 +166,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       };
 
       this.applicationService
-        .getSubscriberApisByApplicationId({ applicationId: application.id, size: -1 })
+        .getSubscriberApisByApplicationId({ applicationId: this.application.id, size: -1 })
         .toPromise()
         .then((apis) => {
           this.apisOptions = [];
@@ -153,6 +176,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
         });
 
       const statusKeys = Object.keys(StatusEnum).map((s) => 'common.status.' + s);
+
       this.translateService
         .get(statusKeys)
         .toPromise()
@@ -161,16 +185,54 @@ export class ApplicationSubscriptionsComponent implements OnInit {
             return { label: Object.values(translatedKeys)[i], value: s };
           });
           this.form.patchValue({ status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING] });
-          this.search(true);
-        });
+        })
+        .then(() => this.search(true))
+        .then(() => {
+          // FIXME: what if there are shared apikeys among not shared apikeys ?
+          if (this.applicationHasSharedKey()) {
+            return this.subscriptions?.find((subscription) => this.isAPIKeySubscription(subscription.plan));
+          }
+          return null;
+        })
+        .then((sharedAPIKeySub) => (sharedAPIKeySub ? this.loadSubscriptionKeys(sharedAPIKeySub.id) : null))
+        .then((keys) => {
+          if (keys) {
+            this.sharedAPIKey = keys.find((key) => this.isApiKeyValid(key));
+          }
+        })
+        .finally(() => (this.sharedAPIKeyLoaded = true));
     }
   }
 
-  canRenew(subscription: Subscription) {
-    return subscription && this.canUpdate && [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`].includes(subscription.status.toUpperCase());
+  canRenewApiKey(subscription: Subscription) {
+    return (
+      subscription &&
+      this.canUpdate &&
+      [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`].includes(subscription.status.toUpperCase()) &&
+      this.isAPIKeySubscription(subscription.plan) &&
+      !this.applicationHasSharedKey()
+    );
   }
 
-  canRevoke(subscription: Subscription) {
+  canRevokeApiKey(subscription: Subscription) {
+    return (
+      subscription &&
+      this.canUpdate &&
+      [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`].includes(subscription.status.toUpperCase()) &&
+      this.isAPIKeySubscription(subscription.plan) &&
+      !this.applicationHasSharedKey()
+    );
+  }
+
+  canRenewSharedApiKey() {
+    return this.canUpdate && this.applicationHasSharedKey();
+  }
+
+  canRevokeSharedApiKey() {
+    return this.canUpdate && this.applicationHasSharedKey();
+  }
+
+  canCloseSubscription(subscription: Subscription) {
     return (
       subscription &&
       this.canDelete &&
@@ -182,7 +244,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     this.ngZone.run(() => this.router.navigate(['/catalog/api/', apiId]));
   }
 
-  search(displaySubscription?) {
+  search(displaySubscription?): Promise<void> {
     const applicationId = this.route.snapshot.params.applicationId;
     const requestParameters: GetSubscriptionsRequestParams = { applicationId };
     if (this.form.value.api) {
@@ -192,7 +254,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       requestParameters.statuses = this.form.value.status;
     }
     this.isSearching = true;
-    this.subscriptionService
+    return this.subscriptionService
       .getSubscriptions(requestParameters)
       .toPromise()
       .then((response) => {
@@ -226,7 +288,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       });
   }
 
-  renewSubscription(subscriptionId) {
+  renewApiKey(subscriptionId) {
     this.subscriptionService
       .renewKeySubscription({ subscriptionId })
       .toPromise()
@@ -246,22 +308,35 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       });
   }
 
+  renewSharedApiKey() {
+    // FIXME: to implement
+  }
+
+  revokeSharedApiKey() {
+    // FIXME: to implement
+  }
+
   onSelectSubscription(subscription: Subscription) {
     this.router.navigate([], { queryParams: { subscription: subscription ? subscription.id : null }, fragment: 's' });
     if (subscription) {
       this.selectedSubscription = subscription;
       if (!this.selectedSubscription.keys || !this.selectedSubscription.keys[0]) {
-        this.subscriptionService
-          .getSubscriptionById({ subscriptionId: subscription.id, include: ['keys'] })
-          .toPromise()
-          .then((sub) => {
-            this.subscriptions.find((s) => s.id === subscription.id).keys = sub.keys;
-            this.ref.detectChanges();
-          });
+        this.loadSubscriptionKeys(subscription.id);
       }
     } else {
       delete this.selectedSubscription;
     }
+  }
+
+  loadSubscriptionKeys(subscriptionId: string): Promise<Key[]> {
+    return this.subscriptionService
+      .getSubscriptionById({ subscriptionId, include: ['keys'] })
+      .toPromise()
+      .then((subscription) => {
+        this.subscriptions.find((s) => s.id === subscriptionId).keys = subscription.keys;
+        this.ref.detectChanges();
+        return subscription.keys;
+      });
   }
 
   getValidApiKeys(sub: Subscription) {
@@ -298,5 +373,13 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   toggleDisplayExpired() {
     this.displayExpiredApiKeys = !this.displayExpiredApiKeys;
     this.ref.detectChanges();
+  }
+
+  isAPIKeySubscription(planId: string) {
+    return this.metadata[planId].securityType === SecurityEnum.APIKEY;
+  }
+
+  applicationHasSharedKey() {
+    return this.application?.api_key_mode === ApiKeyModeEnum.SHARED;
   }
 }

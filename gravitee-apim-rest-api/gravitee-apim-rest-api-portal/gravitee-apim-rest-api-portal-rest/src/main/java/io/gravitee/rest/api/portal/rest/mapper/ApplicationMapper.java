@@ -97,7 +97,11 @@ public class ApplicationMapper {
                 (settings.getApp() != null && settings.getApp().getClientId() != null && !settings.getApp().getClientId().isEmpty())
             )
         );
-        application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode().name()));
+        if (applicationListItem.getApiKeyMode() != null) {
+            application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode().name()));
+        } else {
+            application.setApiKeyMode(ApiKeyModeEnum.UNSPECIFIED);
+        }
         return application;
     }
 
@@ -178,6 +182,11 @@ public class ApplicationMapper {
             application.setSettings(appSettings);
         }
 
+        if (applicationEntity.getApiKeyMode() != null) {
+            application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationEntity.getApiKeyMode().name()));
+        } else {
+            application.setApiKeyMode(ApiKeyModeEnum.UNSPECIFIED);
+        }
         return application;
     }
 }

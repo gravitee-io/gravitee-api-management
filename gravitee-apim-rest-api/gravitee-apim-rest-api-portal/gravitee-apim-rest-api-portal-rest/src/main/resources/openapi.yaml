@@ -4405,6 +4405,8 @@ components:
       properties:
         apikey:
           $ref: '#/components/schemas/Enabled'
+        sharedApiKey:
+          $ref: '#/components/schemas/Enabled'
         oauth2:
           $ref: '#/components/schemas/Enabled'
         keyless:

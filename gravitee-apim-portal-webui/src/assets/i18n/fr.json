@@ -110,13 +110,13 @@
   "application": {
     "alerts": {
       "add": {
+        "description": {
+          "label": "Description",
+          "placeholder": "Expliquez votre alerte..."
+        },
         "reset": "Réinitialiser",
         "success": "Alerte ajoutée",
         "title": "Ajouter une alerte",
-        "description": {
-          "placeholder": "Expliquez votre alerte...",
-          "label": "Description"
-        },
         "type": {
           "placeholder": "Selectionner un type",
           "status": {
@@ -140,9 +140,11 @@
       },
       "maximum": "Vous avez atteint le maximum de 10 alertes",
       "phrase": {
-        "on": "Alerte sur",
-        "when": "Quand",
+        "api": {
+          "all": "Toutes les APIs"
+        },
         "last": "pendant les dernières",
+        "on": "Alerte sur",
         "response_time": {
           "second": "est supérieur à",
           "third": "ms"
@@ -151,9 +153,7 @@
           "second": "est supérieur à",
           "third": "%"
         },
-        "api": {
-          "all": "Toutes les APIs"
-        }
+        "when": "Quand"
       },
       "timeUnits": {
         "hours": "heures",
@@ -168,18 +168,18 @@
         "success": "Alerte mise à jour"
       },
       "webhook": {
+        "method": {
+          "title": "Sélectionnez la méthode HTTP utilisée pour appeler l'URL à chaque fois que cette alerte est levée"
+        },
+        "notifierWarning": "Pour utiliser les notifications via webhook, demandez à votre administrateur d'installer le webhook notifier plugin",
         "switch": {
           "label": "Notification via webhook",
           "title": "Activer les notifications webhook pour déclencher un appel HTTP à chaque fois que cette alerte est levée"
         },
-        "method": {
-          "title": "Sélectionnez la méthode HTTP utilisée pour appeler l'URL à chaque fois que cette alerte est levée"
-        },
         "url": {
           "placeholder": "https://mon.domaine/mon/example/url",
           "title": "Saisissez l'URL à appeler à chaque fois que cette alerte est levée"
-        },
-        "notifierWarning": "Pour utiliser les notifications via webhook, demandez à votre administrateur d'installer le webhook notifier plugin"
+        }
       }
     },
     "analytics": {
@@ -246,8 +246,8 @@
       "title": "Description"
     },
     "domain": {
-      "title": "Domaine utilisé par l'application",
-      "label": "https://mon-application.fr"
+      "label": "https://mon-application.fr",
+      "title": "Domaine utilisé par l'application"
     },
     "general": "Général",
     "information": {
@@ -411,6 +411,28 @@
       "label": "Renouveler le secret",
       "message": "Êtes-vous sûr de vouloir renouveler le secret de votre application ?<br/> En renouvelant le secret, vous ne pourrez plus générer de nouveaux jetons d'accès et appeler l'API."
     },
+    "shared-key": {
+      "info": {
+        "created_at": "Générée le",
+        "end_at": "Se termine",
+        "title": "Clé d'API"
+      },
+      "message": "Votre application est configurée pour utiliser la même clé d'API pour toutes ses souscriptions.",
+      "no-key": {
+        "create": "Vous pouvez en créer une nouvelle en cliquant sur \"Renouveler\".",
+        "message": "Malheureusement, aucune clé d'API partagée valide n'a été trouvée.",
+        "recommendation": "Veuillez contacter le propriétaire de l'application."
+      },
+      "renew": {
+        "message": "Êtes-vous sûr de vouloir renouveler cette clé d'API partagée?",
+        "title": "Renouveler"
+      },
+      "revoke": {
+        "message": "Êtes-vous sûr de vouloir révoquer cette clé d'API partagée ?",
+        "title": "Révoquer"
+      },
+      "title": "Application avec une clé d'API partagée"
+    },
     "subscriptions": {
       "api": "API",
       "apiKey": {
@@ -453,6 +475,7 @@
         "message": "Êtes-vous sûr de vouloir renouveler cette souscription ?",
         "title": "Renouveler"
       },
+      "security_type": "Type de plan",
       "selected": {
         "title": "Informations de souscription"
       },
@@ -860,10 +883,8 @@
     }
   },
   "gv-pagination": {
-    "goTo": "Aller à la page",
     "next": "Suivant",
-    "previous": "Précédent",
-    "results": "{count, plural, =0{Aucun résultat} one{{count} résultat} other{{count} résultats}}"
+    "previous": "Précédent"
   },
   "gv-plans": {
     "characteristics": {
