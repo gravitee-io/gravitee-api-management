@@ -33,6 +33,7 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -197,6 +198,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     public SubscriptionEntity create(NewSubscriptionEntity newSubscriptionEntity, String customApiKey) {
         String plan = newSubscriptionEntity.getPlan();
         String application = newSubscriptionEntity.getApplication();
+
         try {
             logger.debug("Create a new subscription for plan {} and application {}", plan, application);
 
@@ -252,10 +254,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             // Check existing subscriptions
             List<Subscription> subscriptions = subscriptionRepository.search(
-                new SubscriptionCriteria.Builder()
-                    .applications(Collections.singleton(application))
-                    .apis(Collections.singleton(planEntity.getApi()))
-                    .build()
+                new SubscriptionCriteria.Builder().applications(Set.of(application)).apis(Set.of(planEntity.getApi())).build()
             );
 
             if (!subscriptions.isEmpty()) {
@@ -290,6 +289,23 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     if (count > 0) {
                         throw new PlanOAuth2OrJWTAlreadySubscribedException(
                             "An other OAuth2 or JWT plan is already subscribed by the same application."
+                        );
+                    }
+                }
+
+                if (planEntity.getSecurity().equals(API_KEY) && applicationEntity.hasApiKeySharedMode()) {
+                    long count = subscriptions
+                        .stream()
+                        .filter(onlyValidSubs)
+                        .map(Subscription::getPlan)
+                        .distinct()
+                        .map(plan1 -> planService.findById(plan1))
+                        .filter(subPlan -> subPlan.getSecurity() == API_KEY)
+                        .count();
+
+                    if (count > 0) {
+                        throw new PlanNotSubscribableException(
+                            "You can not subscribe to a second API key plan on the same API in shared mode"
                         );
                     }
                 }
