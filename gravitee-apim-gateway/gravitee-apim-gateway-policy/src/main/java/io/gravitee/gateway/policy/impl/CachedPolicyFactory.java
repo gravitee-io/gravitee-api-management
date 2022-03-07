@@ -17,7 +17,7 @@ package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Objects;
@@ -40,31 +40,31 @@ public class CachedPolicyFactory implements PolicyFactory {
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
+    public Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration) {
         return policies.computeIfAbsent(
-            getKey(streamType, policyMetadata, policyConfiguration, null),
-            k -> delegate.create(streamType, policyMetadata, policyConfiguration)
+            getKey(streamType, policyManifest, policyConfiguration, null),
+            k -> delegate.create(streamType, policyManifest, policyConfiguration)
         );
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
+    public Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration, String condition) {
         return policies.computeIfAbsent(
-            getKey(streamType, policyMetadata, policyConfiguration, condition),
-            k -> delegate.create(streamType, policyMetadata, policyConfiguration, condition)
+            getKey(streamType, policyManifest, policyConfiguration, condition),
+            k -> delegate.create(streamType, policyManifest, policyConfiguration, condition)
         );
     }
 
     @Override
-    public void cleanup(PolicyMetadata policyMetadata) {
-        delegate.cleanup(policyMetadata);
+    public void cleanup(PolicyManifest policyManifest) {
+        delegate.cleanup(policyManifest);
     }
 
-    private String getKey(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
+    private String getKey(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration, String condition) {
         return (
             getHashCode(streamType) +
             "-" +
-            getHashCode(policyMetadata) +
+            getHashCode(policyManifest) +
             "-" +
             getHashCode(policyConfiguration) +
             "-" +

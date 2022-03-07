@@ -57,7 +57,7 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
 
     private LegacyClassLoader resourcesClassLoader;
 
-    protected final Map<String, PolicyMetadata> policies = new HashMap<>();
+    protected final Map<String, PolicyManifest> policies = new HashMap<>();
 
     protected final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager;
     protected final PolicyClassLoaderFactory policyClassLoaderFactory;
@@ -202,7 +202,7 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
 
                     logger.debug("Loading policy {}", policy.getName());
 
-                    PolicyMetadataBuilder builder = new PolicyMetadataBuilder();
+                    PolicyManifestBuilder builder = new PolicyManifestBuilder();
                     builder.setId(policyPlugin.id());
 
                     try {
@@ -278,7 +278,7 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
 
     @Override
     public io.gravitee.gateway.policy.Policy create(StreamType streamType, String policy, String configuration, String condition) {
-        PolicyMetadata metadata = policies.get(policy);
+        PolicyManifest metadata = policies.get(policy);
 
         if (metadata != null && metadata.accept(streamType)) {
             PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(metadata.configuration(), configuration);

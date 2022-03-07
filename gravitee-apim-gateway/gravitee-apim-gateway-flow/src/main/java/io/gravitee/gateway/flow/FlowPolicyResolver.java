@@ -18,6 +18,7 @@ package io.gravitee.gateway.flow;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.flow.policy.PolicyMetadata;
 import io.gravitee.gateway.flow.policy.PolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.Collections;
@@ -37,7 +38,7 @@ public class FlowPolicyResolver implements PolicyResolver {
     }
 
     @Override
-    public List<PolicyResolver.Policy> resolve(StreamType streamType, ExecutionContext context) {
+    public List<PolicyMetadata> resolve(StreamType streamType, ExecutionContext context) {
         // TODO: Before executing the flow, ensure that it should be effectively run
         List<Step> steps = streamType == StreamType.ON_REQUEST ? flow.getPre() : flow.getPost();
 
@@ -51,7 +52,7 @@ public class FlowPolicyResolver implements PolicyResolver {
         return steps
             .stream()
             .filter(Step::isEnabled)
-            .map(step -> new Policy(step.getPolicy(), step.getConfiguration(), step.getCondition()))
+            .map(step -> new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition()))
             .collect(Collectors.toList());
     }
 }

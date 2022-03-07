@@ -37,7 +37,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugResponseStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
@@ -102,15 +102,15 @@ public class PolicyDebugDecoratorTest {
 
     @Test
     public void onRequest() throws Exception {
-        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
-        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        PolicyManifest policyManifest = mock(PolicyManifest.class);
+        when(policyManifest.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
         Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
-        when(policyMetadata.method(OnRequest.class)).thenReturn(onRequestMethod);
+        when(policyManifest.method(OnRequest.class)).thenReturn(onRequestMethod);
 
         DummyPolicy dummyPolicy = spy(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyManifest, null));
 
         final ArgumentCaptor<DebugStep<?>> debugStepCaptor = ArgumentCaptor.forClass(DebugStep.class);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
@@ -133,15 +133,15 @@ public class PolicyDebugDecoratorTest {
 
     @Test
     public void onResponse() throws Exception {
-        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
-        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        PolicyManifest policyManifest = mock(PolicyManifest.class);
+        when(policyManifest.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
         Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
-        when(policyMetadata.method(OnResponse.class)).thenReturn(onResponseMethod);
+        when(policyManifest.method(OnResponse.class)).thenReturn(onResponseMethod);
 
         DummyPolicy dummyPolicy = spy(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null));
 
         final ArgumentCaptor<DebugStep<?>> debugStepCaptor = ArgumentCaptor.forClass(DebugStep.class);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
@@ -164,16 +164,16 @@ public class PolicyDebugDecoratorTest {
 
     @Test
     public void onRequestContent() throws Exception {
-        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
-        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        PolicyManifest policyManifest = mock(PolicyManifest.class);
+        when(policyManifest.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
         Method onRequestContentMethod = resolvePolicyMethod(DummyPolicy.class, OnRequestContent.class);
-        when(policyMetadata.method(OnRequestContent.class)).thenReturn(onRequestContentMethod);
+        when(policyManifest.method(OnRequestContent.class)).thenReturn(onRequestContentMethod);
 
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyManifest, null));
         final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_REQUEST, policy));
 
         debugPolicy.stream(policyChain, context);
@@ -193,15 +193,15 @@ public class PolicyDebugDecoratorTest {
 
     @Test
     public void onResponseContent() throws Exception {
-        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
-        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        PolicyManifest policyManifest = mock(PolicyManifest.class);
+        when(policyManifest.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
         Method onResponseContentMethod = resolvePolicyMethod(DummyPolicy.class, OnResponseContent.class);
-        when(policyMetadata.method(OnResponseContent.class)).thenReturn(onResponseContentMethod);
+        when(policyManifest.method(OnResponseContent.class)).thenReturn(onResponseContentMethod);
 
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null));
         final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy));
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 

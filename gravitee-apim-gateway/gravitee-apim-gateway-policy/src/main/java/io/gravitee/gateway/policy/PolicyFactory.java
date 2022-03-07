@@ -25,11 +25,11 @@ import io.gravitee.policy.api.PolicyConfiguration;
  * @author GraviteeSource Team
  */
 public interface PolicyFactory {
-    default Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
-        return create(streamType, policyMetadata, policyConfiguration, null);
+    default Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration) {
+        return create(streamType, policyManifest, policyConfiguration, null);
     }
 
-    Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition);
+    Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration, String condition);
 
-    void cleanup(PolicyMetadata policyMetadata);
+    void cleanup(PolicyManifest policyManifest);
 }

@@ -39,24 +39,24 @@ public class PolicyFactoryImpl implements PolicyFactory {
     }
 
     @Override
-    public void cleanup(PolicyMetadata policyMetadata) {
-        policyPluginFactory.cleanup(policyMetadata);
+    public void cleanup(PolicyManifest policyManifest) {
+        policyPluginFactory.cleanup(policyManifest);
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
-        Object policy = policyPluginFactory.create(policyMetadata.policy(), policyConfiguration);
+    public Policy create(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration, String condition) {
+        Object policy = policyPluginFactory.create(policyManifest.policy(), policyConfiguration);
 
         Method headMethod, streamMethod;
         if (streamType == StreamType.ON_REQUEST) {
-            headMethod = policyMetadata.method(OnRequest.class);
-            streamMethod = policyMetadata.method(OnRequestContent.class);
+            headMethod = policyManifest.method(OnRequest.class);
+            streamMethod = policyManifest.method(OnRequestContent.class);
         } else {
-            headMethod = policyMetadata.method(OnResponse.class);
-            streamMethod = policyMetadata.method(OnResponseContent.class);
+            headMethod = policyManifest.method(OnResponse.class);
+            streamMethod = policyManifest.method(OnResponseContent.class);
         }
 
-        final ExecutablePolicy executablePolicy = new ExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod);
+        final ExecutablePolicy executablePolicy = new ExecutablePolicy(policyManifest.id(), policy, headMethod, streamMethod);
         if (condition != null && !condition.isBlank()) {
             return new ConditionalExecutablePolicy(executablePolicy, condition, conditionEvaluator);
         }

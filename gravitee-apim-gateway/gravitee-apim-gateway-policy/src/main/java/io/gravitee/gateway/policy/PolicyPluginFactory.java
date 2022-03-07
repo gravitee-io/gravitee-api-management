@@ -26,5 +26,5 @@ public interface PolicyPluginFactory {
 
     void clearCache();
 
-    void cleanup(PolicyMetadata policyMetadata);
+    void cleanup(PolicyManifest policyManifest);
 }
