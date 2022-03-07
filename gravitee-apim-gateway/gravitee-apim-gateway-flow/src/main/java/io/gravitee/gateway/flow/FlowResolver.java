@@ -25,4 +25,6 @@ import java.util.List;
  */
 public interface FlowResolver {
     List<Flow> resolve(ExecutionContext context);
+
+    default String place() {return "";};
 }

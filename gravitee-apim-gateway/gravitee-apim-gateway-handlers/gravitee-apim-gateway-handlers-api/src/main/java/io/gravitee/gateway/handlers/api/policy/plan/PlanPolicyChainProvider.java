@@ -68,6 +68,6 @@ public class PlanPolicyChainProvider extends PlanProcessorProvider {
             );
         }
 
-        return policyChainFactory.create(policies, streamType, context);
+        return policyChainFactory.create(policies, streamType, "PLAN", context);
     }
 }

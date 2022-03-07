@@ -84,7 +84,7 @@ public class PolicyTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null, ""));
 
         policy.execute(policyChain, context);
 
@@ -107,7 +107,7 @@ public class PolicyTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null, ""));
 
         policy.execute(policyChain, context);
 
@@ -130,7 +130,7 @@ public class PolicyTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null, ""));
 
         policy.stream(policyChain, context);
 
@@ -153,7 +153,7 @@ public class PolicyTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null, ""));
 
         policy.stream(policyChain, context);
 

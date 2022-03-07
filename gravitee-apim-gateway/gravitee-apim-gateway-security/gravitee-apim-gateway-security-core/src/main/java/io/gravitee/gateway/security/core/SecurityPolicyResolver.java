@@ -20,6 +20,8 @@ import io.gravitee.gateway.policy.AbstractPolicyResolver;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.policy.place.PlacedPolicy;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -72,7 +74,13 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
                     public Policy apply(AuthenticationPolicy securityPolicy) {
                         if (securityPolicy instanceof HookAuthenticationPolicy) {
                             try {
-                                return (Policy) ((HookAuthenticationPolicy) securityPolicy).clazz().newInstance();
+//                                return new PlacedPolicy((Policy) ((HookAuthenticationPolicy) securityPolicy).clazz().newInstance(), "SECURITY");
+                                return create(
+                                        StreamType.ON_REQUEST,
+                                        ((Policy) ((HookAuthenticationPolicy) securityPolicy).clazz().newInstance()).id(),
+                                        "{}",
+                                        "Security"
+                                );
                             } catch (Exception ex) {
                                 logger.error("Unexpected error while loading authentication policy", ex);
                             }
@@ -81,7 +89,7 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
                                 StreamType.ON_REQUEST,
                                 ((PluginAuthenticationPolicy) securityPolicy).name(),
                                 ((PluginAuthenticationPolicy) securityPolicy).configuration()
-                            );
+                            , "SECURITY");
                         }
 
                         return null;

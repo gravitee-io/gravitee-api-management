@@ -34,8 +34,8 @@ public class TracingPolicyPluginFactory extends PolicyFactoryImpl {
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
-        Policy policy = super.create(streamType, policyMetadata, policyConfiguration, condition);
+    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String place, String condition) {
+        Policy policy = super.create(streamType, policyMetadata, policyConfiguration, place, condition);
 
         return new TracingPolicy(policy);
     }

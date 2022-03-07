@@ -54,4 +54,9 @@ public class OrganizationFlowResolver extends ConditionalFlowResolver {
         }
         return Collections.emptyList();
     }
+
+    @Override
+    public String place() {
+        return "PLATFORM";
+    }
 }

@@ -40,4 +40,9 @@ public class ApiFlowResolver extends ConditionalFlowResolver {
     public List<Flow> resolve0(ExecutionContext context) {
         return api.getFlows() != null ? api.getFlows() : Collections.emptyList();
     }
+
+    @Override
+    public String place() {
+        return "API";
+    }
 }

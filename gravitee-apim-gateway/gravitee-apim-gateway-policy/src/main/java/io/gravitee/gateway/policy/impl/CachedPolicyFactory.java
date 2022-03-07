@@ -40,18 +40,18 @@ public class CachedPolicyFactory implements PolicyFactory {
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
+    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String place) {
         return policies.computeIfAbsent(
             getKey(streamType, policyMetadata, policyConfiguration, null),
-            k -> delegate.create(streamType, policyMetadata, policyConfiguration)
+            k -> delegate.create(streamType, policyMetadata, policyConfiguration, place)
         );
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
+    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String place, String condition) {
         return policies.computeIfAbsent(
             getKey(streamType, policyMetadata, policyConfiguration, condition),
-            k -> delegate.create(streamType, policyMetadata, policyConfiguration, condition)
+            k -> delegate.create(streamType, policyMetadata, policyConfiguration, place, condition)
         );
     }
 

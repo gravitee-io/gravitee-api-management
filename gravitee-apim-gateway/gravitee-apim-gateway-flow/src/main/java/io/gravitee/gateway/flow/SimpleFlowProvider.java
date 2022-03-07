@@ -22,10 +22,13 @@ import io.gravitee.gateway.core.processor.EmptyStreamableProcessor;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
+import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,11 +60,14 @@ public class SimpleFlowProvider implements FlowProvider {
                     policyChainFactory.create(
                         new FlowPolicyResolver(flow).resolve(streamType, context),
                         streamType,
+                        flowResolver.place(),
                         context,
-                        policies ->
-                            streamType == StreamType.ON_REQUEST
-                                ? OrderedPolicyChain.create(policies, context)
-                                : OrderedPolicyChain.create(policies, context)
+                        policies -> {
+                            // TODO: setter un champs "place" sur les policies -> ici, ça depend du type du flowResolver
+                            return streamType == StreamType.ON_REQUEST
+                                    ? OrderedPolicyChain.create(policies, context)
+                                    : OrderedPolicyChain.create(policies, context);
+                        }
                     )
                 );
             }

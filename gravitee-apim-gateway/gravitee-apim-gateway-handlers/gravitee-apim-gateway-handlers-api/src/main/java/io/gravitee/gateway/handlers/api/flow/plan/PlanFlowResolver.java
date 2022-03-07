@@ -42,4 +42,9 @@ public class PlanFlowResolver extends ConditionalFlowResolver {
 
         return (plan != null) ? plan.getFlows() : null;
     }
+
+    @Override
+    public String place() {
+        return "PLAN";
+    }
 }

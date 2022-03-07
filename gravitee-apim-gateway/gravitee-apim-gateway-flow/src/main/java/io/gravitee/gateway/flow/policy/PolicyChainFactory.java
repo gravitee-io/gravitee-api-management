@@ -24,6 +24,7 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
 import io.gravitee.gateway.policy.impl.ReversedPolicyChain;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -46,11 +47,13 @@ public class PolicyChainFactory {
     public StreamableProcessor<ExecutionContext, Buffer> create(
         final List<PolicyResolver.Policy> resolvedPolicies,
         final StreamType streamType,
+        String place,
         final ExecutionContext context
     ) {
         return create(
             resolvedPolicies,
             streamType,
+            place,
             context,
             policies ->
                 streamType == StreamType.ON_REQUEST
@@ -62,6 +65,7 @@ public class PolicyChainFactory {
     public StreamableProcessor<ExecutionContext, Buffer> create(
         List<PolicyResolver.Policy> resolvedPolicies,
         StreamType streamType,
+        String place,
         ExecutionContext context,
         Function<List<Policy>, StreamableProcessor<ExecutionContext, Buffer>> mapper
     ) {
@@ -71,7 +75,8 @@ public class PolicyChainFactory {
 
         final List<Policy> policies = resolvedPolicies
             .stream()
-            .map(policy -> policyManager.create(streamType, policy.getName(), policy.getConfiguration(), policy.getCondition()))
+                //TODO: ce serait ici qu'il faut mapper le type, mais du coup ça implique de connaitre des choses
+            .map(policy -> policyManager.create(streamType, policy.getName(), policy.getConfiguration(), place, policy.getCondition()))
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 

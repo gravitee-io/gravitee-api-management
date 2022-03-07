@@ -17,6 +17,7 @@ package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.policy.*;
+import io.gravitee.gateway.policy.place.PlacedPolicy;
 import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
@@ -44,7 +45,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
     }
 
     @Override
-    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
+    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String place, String condition) {
         Object policy = policyPluginFactory.create(policyMetadata.policy(), policyConfiguration);
 
         Method headMethod, streamMethod;
@@ -56,7 +57,19 @@ public class PolicyFactoryImpl implements PolicyFactory {
             streamMethod = policyMetadata.method(OnResponseContent.class);
         }
 
-        final ExecutablePolicy executablePolicy = new ExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod);
+        final PlacedPolicy executablePolicy = new PlacedPolicy(new ExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod), place);
+        // TODO wrappler l'executable policy dans le bon type de "place" policy en passant le bon param
+//        Policy pol = ;
+//        switch (place) {
+//            case "API":
+//                pol = new ApiPolicy(executablePolicy);
+//            case "PLAN":
+//                pol = new PlanPolicy(executablePolicy);
+//            case "PLATFORM":
+//                pol = new PlatformPolicy(executablePolicy);
+//            default:
+//                pol = executablePolicy;
+//        }
         if (condition != null && !condition.isBlank()) {
             return new ConditionalExecutablePolicy(executablePolicy, condition, conditionEvaluator);
         }

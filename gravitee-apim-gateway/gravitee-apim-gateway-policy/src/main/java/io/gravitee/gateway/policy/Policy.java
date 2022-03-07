@@ -40,4 +40,6 @@ public interface Policy {
     default boolean isRunnable() {
         return true;
     }
+
+    default String place() { return ""; };
 }

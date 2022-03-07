@@ -27,6 +27,8 @@ import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.ConditionalExecutablePolicy;
 import io.gravitee.policy.api.PolicyChain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -37,6 +39,8 @@ public class PolicyDebugDecorator implements Policy {
     private final StreamType streamType;
     private final Policy policy;
     private final String uuid;
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(PolicyDebugDecorator.class);
 
     public PolicyDebugDecorator(StreamType streamType, Policy policy) {
         this.streamType = streamType;
@@ -57,6 +61,7 @@ public class PolicyDebugDecorator implements Policy {
         final DebugPolicyChain debugPolicyChain = new DebugPolicyChain(chain, debugStep, debugContext);
 
         final Policy policy = computeConditionalPolicy(debugStep);
+        LOGGER.warn("Policy {} is at {} level", id(), this.policy.place());
 
         debugContext.beforePolicyExecution(debugStep);
         try {
@@ -73,6 +78,7 @@ public class PolicyDebugDecorator implements Policy {
         DebugStep<?> debugStep = DebugStepFactory.createStreamDebugStep(policy.id(), streamType, uuid);
 
         final Policy policy = computeConditionalPolicy(debugStep);
+        LOGGER.warn("Policy {} is at {} level", id(), this.policy.place());
 
         final DebugPolicyChain debugPolicyChain = new DebugStreamablePolicyChain(chain, debugStep, debugContext);
 
@@ -98,6 +104,11 @@ public class PolicyDebugDecorator implements Policy {
     @Override
     public boolean isRunnable() {
         return policy.isRunnable();
+    }
+
+    @Override
+    public String place() {
+        return policy.place();
     }
 
     private Policy computeConditionalPolicy(DebugStep<?> debugStep) {

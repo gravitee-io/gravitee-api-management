@@ -277,13 +277,13 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
     }
 
     @Override
-    public io.gravitee.gateway.policy.Policy create(StreamType streamType, String policy, String configuration, String condition) {
+    public io.gravitee.gateway.policy.Policy create(StreamType streamType, String policy, String configuration, String place, String condition) {
         PolicyMetadata metadata = policies.get(policy);
 
         if (metadata != null && metadata.accept(streamType)) {
             PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(metadata.configuration(), configuration);
 
-            return policyFactory.create(streamType, metadata, policyConfiguration, condition);
+            return policyFactory.create(streamType, metadata, policyConfiguration, place, condition);
         }
 
         return null;

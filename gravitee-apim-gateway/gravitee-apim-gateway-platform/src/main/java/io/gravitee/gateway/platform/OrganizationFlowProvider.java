@@ -64,6 +64,7 @@ public class OrganizationFlowProvider implements FlowProvider {
                     policyChainFactory.create(
                         new FlowPolicyResolver(flow).resolve(streamType, context),
                         streamType,
+                        "PLATFORM",
                         context,
                         policies ->
                             streamType == StreamType.ON_REQUEST

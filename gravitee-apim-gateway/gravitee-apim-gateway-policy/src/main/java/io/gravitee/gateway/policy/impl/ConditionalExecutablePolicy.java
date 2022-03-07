@@ -95,6 +95,11 @@ public class ConditionalExecutablePolicy implements Policy {
         return policy.isStreamable();
     }
 
+    @Override
+    public String place() {
+        return policy.place();
+    }
+
     private boolean evaluateCondition(ExecutionContext context) throws PolicyException {
         boolean isConditionTruthy;
         try {

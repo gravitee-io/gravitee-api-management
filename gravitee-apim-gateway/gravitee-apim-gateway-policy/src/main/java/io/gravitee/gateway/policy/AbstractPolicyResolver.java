@@ -32,7 +32,7 @@ public abstract class AbstractPolicyResolver implements PolicyResolver {
         this.policyManager = policyManager;
     }
 
-    protected Policy create(StreamType streamType, String policy, String configuration) {
-        return policyManager.create(streamType, policy, configuration);
+    protected Policy create(StreamType streamType, String policy, String configuration, String place) {
+        return policyManager.create(streamType, policy, configuration, place);
     }
 }

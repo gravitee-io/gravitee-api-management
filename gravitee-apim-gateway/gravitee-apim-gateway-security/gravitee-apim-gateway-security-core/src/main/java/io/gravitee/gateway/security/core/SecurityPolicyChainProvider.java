@@ -43,6 +43,7 @@ public class SecurityPolicyChainProvider extends AbstractPolicyChainProvider {
         if (context.getAttribute("skip-security-chain") == null) {
             // Calculate the list of policies to apply under this policy chain
             List<Policy> policies = policyResolver.resolve(StreamType.ON_REQUEST, context);
+            // TODO: setter un champs "place" sur les policies: SECURITY
 
             if (policies == null) {
                 return new DirectPolicyChain(

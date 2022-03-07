@@ -53,7 +53,7 @@ public class PolicyFactoryImplTest extends TestCase {
     @Test
     public void shouldCreateExecutablePolicyIfNoCondition() {
         final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
-        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyMetadata(), policyConfiguration);
+        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyMetadata(), policyConfiguration, "");
 
         assertTrue(policy instanceof ExecutablePolicy);
         assertFalse(policy instanceof ConditionalExecutablePolicy);

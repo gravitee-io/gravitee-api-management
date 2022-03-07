@@ -51,6 +51,6 @@ public class ApiPolicyChainProvider extends AbstractPolicyChainProvider {
         // Calculate the list of policies to apply under this policy chain
         List<PolicyResolver.Policy> policies = policyResolver.resolve(streamType, context);
 
-        return policyChainFactory.create(policies, streamType, context);
+        return policyChainFactory.create(policies, streamType, "API", context);
     }
 }
