@@ -22,6 +22,7 @@ import io.gravitee.gateway.policy.DummyPolicy;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManifest;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -51,18 +52,14 @@ public class PolicyFactoryImplTest extends TestCase {
     }
 
     @Test
-    public void shouldCreateExecutablePolicyIfNoCondition() {
-        final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
-        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyMetadata(), policyConfiguration);
-
-        assertTrue(policy instanceof ExecutablePolicy);
-        assertFalse(policy instanceof ConditionalExecutablePolicy);
-    }
-
-    @Test
     public void shouldCreateConditionalExecutablePolicyIfCondition() {
         final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
-        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyMetadata(), policyConfiguration, "execution-condition");
+        final Policy policy = cut.create(
+            StreamType.ON_REQUEST,
+            fakePolicyManifest(),
+            policyConfiguration,
+            fakePolicyMetadata("execution-condition")
+        );
 
         assertTrue(policy instanceof ConditionalExecutablePolicy);
     }
@@ -70,7 +67,7 @@ public class PolicyFactoryImplTest extends TestCase {
     @Test
     public void shouldNotCreateConditionalExecutablePolicyIfNullCondition() {
         final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
-        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyMetadata(), policyConfiguration, null);
+        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyManifest(), policyConfiguration, fakePolicyMetadata(null));
 
         assertTrue(policy instanceof ExecutablePolicy);
         assertFalse(policy instanceof ConditionalExecutablePolicy);
@@ -79,13 +76,17 @@ public class PolicyFactoryImplTest extends TestCase {
     @Test
     public void shouldNotCreateConditionalExecutablePolicyIfEmptyCondition() {
         final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
-        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyMetadata(), policyConfiguration, "");
+        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyManifest(), policyConfiguration, fakePolicyMetadata(""));
 
         assertTrue(policy instanceof ExecutablePolicy);
         assertFalse(policy instanceof ConditionalExecutablePolicy);
     }
 
-    private PolicyManifest fakePolicyMetadata() {
+    private PolicyManifest fakePolicyManifest() {
         return new PolicyManifestBuilder().setId("dummy-policy").setPolicy(DummyPolicy.class).setMethods(Map.of()).build();
+    }
+
+    private PolicyMetadata fakePolicyMetadata(String condition) {
+        return condition != null ? new PolicyMetadata("dummy-policy", "{}", condition) : new PolicyMetadata("dummy-policy", "{}");
     }
 }

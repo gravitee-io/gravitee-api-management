@@ -19,9 +19,9 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
-import io.gravitee.gateway.flow.policy.PolicyMetadata;
 import io.gravitee.gateway.flow.policy.PolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.policy.AbstractPolicyChainProvider;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.List;
 

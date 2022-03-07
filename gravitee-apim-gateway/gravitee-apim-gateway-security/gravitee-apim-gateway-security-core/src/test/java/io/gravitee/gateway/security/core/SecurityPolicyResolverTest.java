@@ -23,6 +23,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +63,7 @@ public class SecurityPolicyResolverTest {
         when(securityProvider.handle(executionContext)).thenReturn(Collections.emptyList());
 
         Policy policy = mock(Policy.class);
-        when(policyManager.create(StreamType.ON_REQUEST, "my-policy", null)).thenReturn(policy);
+        when(policyManager.create(StreamType.ON_REQUEST, new PolicyMetadata("my-policy", null))).thenReturn(policy);
         when(handlerSelector.select(request)).thenReturn(securityProvider);
 
         List<Policy> policies = securityPolicyResolver.resolve(StreamType.ON_REQUEST, executionContext);

@@ -21,6 +21,7 @@ import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.NoOpPolicyChain;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
 import io.gravitee.gateway.policy.impl.ReversedPolicyChain;
@@ -71,7 +72,7 @@ public class PolicyChainFactory {
 
         final List<Policy> policies = resolvedPolicies
             .stream()
-            .map(policy -> policyManager.create(streamType, policy.getName(), policy.getConfiguration(), policy.getCondition()))
+            .map(policyMetadata -> policyManager.create(streamType, policyMetadata))
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
