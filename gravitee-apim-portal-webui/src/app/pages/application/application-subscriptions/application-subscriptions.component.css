@@ -46,6 +46,7 @@ gv-confirm {
 
 .confirm__right {
   display: flex;
+  flex-direction: column;
   justify-content: flex-end;
 }
 
@@ -57,4 +58,53 @@ gv-confirm {
 .page__box-row {
   margin: 0.2rem;
   box-sizing: border-box;
+}
+
+.page__box-content_shared-key {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.application-subscriptions__shared-key-message,
+.application-subscriptions__shared-key-info,
+.application-subscriptions__shared-key-actions {
+  padding: 0 5px;
+}
+
+.application-subscriptions__shared-key-message {
+  flex: 1;
+}
+
+.application-subscriptions__shared-key-info {
+  flex: 2;
+}
+
+.application-subscriptions__shared-key-info__title {
+  text-transform: uppercase;
+  font-size: var(--gv-theme-font-size-xs, 10px);
+  font-style: normal;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.25px;
+}
+
+.application-subscriptions__shared-key-info__row {
+  display: flex;
+  margin: 5px;
+}
+
+.application-subscriptions__shared-key-info__row__cell {
+  flex: 1;
+}
+
+.application-subscriptions__shared-key-actions,
+.application-subscriptions__shared-key-info__row__cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.application-subscriptions__shared-key-actions__button,
+.application-subscriptions__search__button {
+  min-width: 160px;
 }

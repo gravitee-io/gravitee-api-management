@@ -65,7 +65,7 @@ public class ApplicationMapperTest {
     private static final String APPLICATION_GROUP_NAME = "my-application-group-name";
     private static final String APPLICATION_STATUS = "my-application-status";
     private static final String APPLICATION_TYPE = "my-application-type";
-    private static final ApiKeyMode APPLICATION_API_KEY_MODE = ApiKeyMode.UNSPECIFIED;
+    private static final ApiKeyMode APPLICATION_API_KEY_MODE = ApiKeyMode.SHARED;
     private static final String APPLICATION_USER_ID = "my-application-user-id";
     private static final String APPLICATION_USER_DISPLAYNAME = "my-application-user-display-name";
     private static final String APPLICATION_USER_EMAIL = "my-application-user-email";
@@ -144,6 +144,7 @@ public class ApplicationMapperTest {
         applicationEntity.setPrimaryOwner(primaryOwner);
         applicationEntity.setStatus(APPLICATION_STATUS);
         applicationEntity.setType(APPLICATION_TYPE);
+        applicationEntity.setApiKeyMode(APPLICATION_API_KEY_MODE);
         applicationEntity.setUpdatedAt(nowDate);
 
         applicationListItem.setCreatedAt(nowDate);
@@ -217,6 +218,7 @@ public class ApplicationMapperTest {
         assertEquals(APPLICATION_ID, responseApplication.getId());
         assertEquals(APPLICATION_NAME, responseApplication.getName());
         assertEquals(now.toEpochMilli(), responseApplication.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(APPLICATION_API_KEY_MODE.name(), responseApplication.getApiKeyMode().getValue());
 
         List<Group> groups = responseApplication.getGroups();
         assertNotNull(groups);

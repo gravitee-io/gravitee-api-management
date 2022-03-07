@@ -97,6 +97,9 @@
       },
       "jwt" : {
         "enabled" : true
+      },
+      "sharedApiKey" : {
+        "enabled" : true
       }
     }
   },

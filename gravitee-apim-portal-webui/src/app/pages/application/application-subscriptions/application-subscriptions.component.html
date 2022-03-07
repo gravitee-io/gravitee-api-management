@@ -15,8 +15,87 @@
     limitations under the License.
 
 -->
-<div class="page__content page__content-with-aside">
+<div class="page__content page__content-with-aside application-subscriptions">
   <div class="main">
+    <div class="page__box" *ngIf="applicationHasSharedKey()">
+      <div class="page__box-title">
+        <h3 class="title">
+          {{ 'application.shared-key.title' | translate }}
+        </h3>
+      </div>
+      <div class="page__box-content page__box-content_shared-key">
+        <div class="application-subscriptions__shared-key-info">
+          <div class="application-subscriptions__shared-key-info__row">
+            <div class="application-subscriptions__shared-key-info__row__cell">
+              {{ 'application.shared-key.message' | translate }}
+            </div>
+          </div>
+          <div class="application-subscriptions__shared-key-info__row" *ngIf="sharedAPIKeyLoaded && !sharedAPIKey">
+            <div class="application-subscriptions__shared-key-info__row__cell">
+              {{ 'application.shared-key.no-key.message' | translate }}
+            </div>
+          </div>
+          <div class="application-subscriptions__shared-key-info__row" *ngIf="sharedAPIKeyLoaded && !sharedAPIKey">
+            <div class="application-subscriptions__shared-key-info__row__cell" *ngIf="canRenewSharedApiKey()">
+              {{ 'application.shared-key.no-key.create' | translate }}
+            </div>
+            <div class="application-subscriptions__shared-key-info__row__cell" *ngIf="!canRenewSharedApiKey()">
+              {{ 'application.shared-key.no-key.recommendation' | translate }}
+            </div>
+          </div>
+        </div>
+
+        <div class="application-subscriptions__shared-key-info" *ngIf="sharedAPIKey">
+          <div class="application-subscriptions__shared-key-info__row">
+            <div class="application-subscriptions__shared-key-info__row__cell">
+              <h4 class="title">{{ 'application.shared-key.info.title' | translate }}</h4>
+              <gv-input readonly clipboard [value]="sharedAPIKey.key"></gv-input>
+            </div>
+          </div>
+          <div class="application-subscriptions__shared-key-info__row">
+            <div class="application-subscriptions__shared-key-info__row__cell">
+              <h5 class="title">{{ 'application.shared-key.info.created_at' | translate }}</h5>
+              {{ sharedAPIKey.created_at | localizedDate: 'shortDate':'--' }}
+            </div>
+            <div class="application-subscriptions__shared-key-info__row__cell" *ngIf="sharedAPIKey.expire_at">
+              <h5 class="title">{{ 'application.shared-key.info.end_at' | translate }}</h5>
+              <gv-relative-time [datetime]="sharedAPIKey.expire_at"></gv-relative-time>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="application-subscriptions__shared-key-actions"
+          *ngIf="canRenewSharedApiKey() || (canRevokeSharedApiKey && sharedAPIKey)"
+        >
+          <gv-confirm
+            *ngIf="canRenewSharedApiKey()"
+            [message]="'application.shared-key.renew.message' | translate"
+            (:gv-confirm:ok)="renewSharedApiKey()"
+            [cancelLabel]="'common.cancel' | translate"
+            [okLabel]="'common.ok' | translate"
+          >
+            <gv-button primary class="application-subscriptions__shared-key-actions__button">{{
+              'application.shared-key.renew.title' | translate
+            }}</gv-button>
+          </gv-confirm>
+
+          <gv-confirm
+            *ngIf="canRevokeSharedApiKey() && sharedAPIKey"
+            [message]="'application.shared-key.revoke.message' | translate"
+            danger
+            (:gv-confirm:ok)="revokeSharedApiKey()"
+            [cancelLabel]="'common.cancel' | translate"
+            [okLabel]="'common.ok' | translate"
+          >
+            <gv-button outlined class="application-subscriptions__shared-key-actions__button">
+              {{ 'application.shared-key.revoke.title' | translate }}</gv-button
+            >
+          </gv-confirm>
+        </div>
+      </div>
+    </div>
+
     <div class="page__box">
       <div class="page__box-title">
         <h3 class="title">{{ 'application.subscriptions.title' | translate }}</h3>
@@ -49,7 +128,13 @@
           </div>
 
           <div class="form__actions">
-            <gv-button type="submit" primary [loading]="isSearching" icon="general:search">
+            <gv-button
+              type="submit"
+              primary
+              [loading]="isSearching"
+              icon="general:search"
+              class="application-subscriptions__search__button"
+            >
               {{ 'common.search' | translate }}
             </gv-button>
           </div>
@@ -70,7 +155,7 @@
   </div>
 
   <aside class="aside form">
-    <div class="page__box" *ngIf="canRenew(selectedSubscription) || canRevoke(selectedSubscription)">
+    <div class="page__box" *ngIf="canCloseSubscription(selectedSubscription)">
       <div class="page__box-title">
         <h4 class="title">{{ 'application.subscriptions.selected.title' | translate }}</h4>
       </div>
@@ -90,14 +175,7 @@
       </div>
       <div class="page__box-footer form__actions">
         <gv-confirm
-          *ngIf="canRenew(selectedSubscription)"
-          [message]="'application.subscriptions.renew.message' | translate"
-          (:gv-confirm:ok)="renewSubscription(selectedSubscription.id)"
-        >
-          <gv-button primary>{{ 'application.subscriptions.renew.title' | translate }}</gv-button>
-        </gv-confirm>
-        <gv-confirm
-          *ngIf="canRevoke(selectedSubscription)"
+          *ngIf="canCloseSubscription(selectedSubscription)"
           [message]="'application.subscriptions.close.message' | translate"
           danger
           (:gv-confirm:ok)="closeSubscription(selectedSubscription.id)"
@@ -106,13 +184,13 @@
         </gv-confirm>
       </div>
     </div>
-    <div class="page__box" *ngIf="getValidApiKeys(selectedSubscription)">
+    <div class="page__box" *ngIf="getValidApiKeys(selectedSubscription) || getExpiredApiKeys(selectedSubscription)">
       <div class="page__box-title">
         <h4 class="title">{{ 'application.subscriptions.apiKey.title' | translate }}</h4>
       </div>
 
       <div class="page__box-content" *ngFor="let apiKey of getValidApiKeys(selectedSubscription)">
-        <gv-input clipboard [value]="apiKey.key"></gv-input>
+        <gv-input readonly clipboard [value]="apiKey.key"></gv-input>
 
         <div class="page__box-row">
           <span>{{ 'application.subscriptions.apiKey.created_at' | translate }}</span>
@@ -126,13 +204,22 @@
 
         <div class="confirm__right">
           <gv-confirm
+            *ngIf="canRenewApiKey(selectedSubscription) && !endAt(apiKey)"
+            [message]="'application.subscriptions.renew.message' | translate"
+            (:gv-confirm:ok)="renewApiKey(selectedSubscription.id)"
+          >
+            <gv-button primary>{{ 'application.subscriptions.renew.title' | translate }}</gv-button>
+          </gv-confirm>
+
+          <gv-confirm
+            *ngIf="canRevokeApiKey(selectedSubscription)"
             [message]="'application.subscriptions.apiKey.revoke.message' | translate"
             danger
             (:gv-confirm:ok)="revokeApiKey(selectedSubscription.id, apiKey.key)"
             [cancelLabel]="'common.cancel' | translate"
             [okLabel]="'common.ok' | translate"
           >
-            <gv-button *ngIf="canUpdate" link>
+            <gv-button outlined>
               {{ 'application.subscriptions.apiKey.revoke.label' | translate }}
             </gv-button>
           </gv-confirm>

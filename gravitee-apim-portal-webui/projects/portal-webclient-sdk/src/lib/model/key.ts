@@ -8,6 +8,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Subscription } from './subscription';
+import { Application } from './application';
 
 
 /**
@@ -16,9 +18,8 @@
 export interface Key { 
     id?: string;
     key?: string;
-    api?: string;
-    application?: string;
-    plan?: string;
+    application?: Application;
+    subscriptions?: Array<Subscription>;
     paused?: boolean;
     revoked?: boolean;
     expired?: boolean;

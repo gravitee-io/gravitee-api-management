@@ -110,13 +110,13 @@
   "application": {
     "alerts": {
       "add": {
+        "description": {
+          "label": "Description",
+          "placeholder": "Explain your alert..."
+        },
         "reset": "Reset",
         "success": "Alert created",
         "title": "Add an alert",
-        "description": {
-          "placeholder": "Explain your alert...",
-          "label": "Description"
-        },
         "type": {
           "placeholder": "Select a type",
           "status": {
@@ -140,9 +140,11 @@
       },
       "maximum": "You have reached the maximum of 10 alerts",
       "phrase": {
-        "on": "Alert on",
-        "when": "When",
+        "api": {
+          "all": "All APIs"
+        },
         "last": "during the last",
+        "on": "Alert on",
         "response_time": {
           "second": "is over",
           "third": "ms"
@@ -151,9 +153,7 @@
           "second": "is over",
           "third": "%"
         },
-        "api": {
-          "all": "All APIs"
-        }
+        "when": "When"
       },
       "timeUnits": {
         "hours": "hours",
@@ -168,18 +168,18 @@
         "success": "Alert updated"
       },
       "webhook": {
+        "method": {
+          "title": "Select ths HTTP method that will be used to invoke URL each time this alert his thrown"
+        },
+        "notifierWarning": "To use webhook notifications, ask your admin to install the webhook notifier plugin",
         "switch": {
           "label": "Webhook notification",
           "title": "Enable webhook notifications to invoke an HTTP call each time this alert his thrown"
         },
-        "method": {
-          "title": "Select ths HTTP method that will be used to invoke URL each time this alert his thrown"
-        },
         "url": {
           "placeholder": "https://my.domain/my/example/url",
           "title": "Enter the URL to call each time this alert his thrown"
-        },
-        "notifierWarning": "To use webhook notifications, ask your admin to install the webhook notifier plugin"
+        }
       }
     },
     "analytics": {
@@ -246,8 +246,8 @@
       "title": "Description"
     },
     "domain": {
-      "title": "Domain used by this application",
-      "label": "https://my-app.com"
+      "label": "https://my-app.com",
+      "title": "Domain used by this application"
     },
     "general": "General",
     "information": {
@@ -411,6 +411,28 @@
       "label": "Renew the secret",
       "message": "Are you sure you want to renew the secret of your application?<br/> By renewing the secret, you will no longer be able to generate new access tokens and call the API."
     },
+    "shared-key": {
+      "info": {
+        "created_at": "Created at",
+        "end_at": "Ends on",
+        "title": "API key"
+      },
+      "message": "Your application is configured to use the same API Key for all its subscriptions.",
+      "no-key": {
+        "create": "You can create a new one by clicking on \"Renew\".",
+        "message": "Unfortunately, no valid shared API key has been found.",
+        "recommendation": "Please contact the owner of the application."
+      },
+      "renew": {
+        "message": "Are you sure you want to renew this shared API key?",
+        "title": "Renew"
+      },
+      "revoke": {
+        "message": "Are you sure you want to revoke this shared API key?",
+        "title": "Revoke"
+      },
+      "title": "Application with a shared API Key"
+    },
     "subscriptions": {
       "api": "API",
       "apiKey": {
@@ -453,6 +475,7 @@
         "message": "Are you sure you want to renew this subscription?",
         "title": "Renew"
       },
+      "security_type": "Security type",
       "selected": {
         "title": "Subscription information"
       },
@@ -860,10 +883,8 @@
     }
   },
   "gv-pagination": {
-    "goTo": "Go to page",
     "next": "Next",
-    "previous": "Previous",
-    "results": "{count, plural, =0{No result} one{{count} result} other{{count} results}}"
+    "previous": "Previous"
   },
   "gv-plans": {
     "characteristics": {

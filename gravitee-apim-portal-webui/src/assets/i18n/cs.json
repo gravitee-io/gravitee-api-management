@@ -110,13 +110,13 @@
   "application": {
     "alerts": {
       "add": {
+        "description": {
+          "label": "Popis",
+          "placeholder": "Vysvětlete své upozornění..."
+        },
         "reset": "Resetovat",
         "success": "Výstraha vytvořena",
         "title": "Přidejte upozornění",
-        "description": {
-          "placeholder": "Vysvětlete své upozornění...",
-          "label": "Popis"
-        },
         "type": {
           "placeholder": "Vyberte typ",
           "status": {
@@ -140,9 +140,11 @@
       },
       "maximum": "Dosáhli jste maximálně 10 upozornění",
       "phrase": {
-        "on": "Upozornění, na",
-        "when": "Když",
+        "api": {
+          "all": "Všechny API"
+        },
         "last": "během posledního",
+        "on": "Upozornění, na",
         "response_time": {
           "second": "je konec",
           "third": "ms"
@@ -151,9 +153,7 @@
           "second": "je konec",
           "third": "%"
         },
-        "api": {
-          "all": "Všechny API"
-        }
+        "when": "Když"
       },
       "timeUnits": {
         "hours": "hodin",
@@ -168,18 +168,18 @@
         "success": "Upozornění aktualizováno"
       },
       "webhook": {
+        "method": {
+          "title": "Vyberte tuto metodu HTTP, která bude použita k vyvolání adresy URL pokaždé, když je tato výstraha vyvolána"
+        },
+        "notifierWarning": "Chcete-li používat oznámení webhooku, požádejte svého administrátora, aby nainstaloval plugin pro oznámení webhooku",
         "switch": {
           "label": "Oznámení webhooku",
           "title": "Povolit oznámení webhooku, aby vyvolalo volání HTTP pokaždé, když je toto upozornění vyvoláno"
         },
-        "method": {
-          "title": "Vyberte tuto metodu HTTP, která bude použita k vyvolání adresy URL pokaždé, když je tato výstraha vyvolána"
-        },
         "url": {
           "placeholder": "https://my.domain/my/example/url",
           "title": "Zadejte adresu URL, kterou chcete volat pokaždé, když je toto upozornění hozeno"
-        },
-        "notifierWarning": "Chcete-li používat oznámení webhooku, požádejte svého administrátora, aby nainstaloval plugin pro oznámení webhooku"
+        }
       }
     },
     "analytics": {
@@ -244,6 +244,10 @@
     "description": {
       "label": "Popište účel této aplikace",
       "title": "Description"
+    },
+    "domain": {
+      "label": "https://my-app.com",
+      "title": "Doména používaná touto aplikací"
     },
     "general": "General",
     "information": {
@@ -407,6 +411,28 @@
       "label": "Obnovte tajemství",
       "message": "Opravdu chcete obnovit tajemství své aplikace?<br/> Obnovením tajemství již nebudete moci generovat nové přístupové tokeny a volat API."
     },
+    "shared-key": {
+      "info": {
+        "created_at": "Vygenerováno dne",
+        "end_at": "Končí dál",
+        "title": "Klíče API"
+      },
+      "message": "Vaše aplikace je nakonfigurována tak, aby používala stejný klíč API pro všechna předplatná.",
+      "no-key": {
+        "create": "Nový můžete vytvořit kliknutím na \"Obnovte\".",
+        "message": "Bohužel nebyl nalezen žádný platný sdílený klíč API.",
+        "recommendation": "Kontaktujte prosím vlastníka aplikace."
+      },
+      "renew": {
+        "message": "Opravdu chcete obnovit tento sdíleným klíč API?",
+        "title": "Obnovte"
+      },
+      "revoke": {
+        "message": "Opravdu chcete zrušit tento sdíleným klíč API?",
+        "title": "Odvolat"
+      },
+      "title": "Aplikace se sdíleným klíč API"
+    },
     "subscriptions": {
       "api": "Api",
       "apiKey": {
@@ -449,6 +475,7 @@
         "message": "Opravdu chcete obnovit toto předplatné?",
         "title": "Obnovte"
       },
+      "security_type": "typ zabezpečení",
       "selected": {
         "title": "Informace o předplatném"
       },
@@ -478,6 +505,10 @@
       "description": {
         "label": "Popis",
         "placeholder": "Stačí popsat jeho účel"
+      },
+      "domain": {
+        "label": "Doména používaná touto aplikací",
+        "placeholder": "https://my-app.com"
       },
       "image": "Obrázek aplikace",
       "name": {
@@ -852,10 +883,8 @@
     }
   },
   "gv-pagination": {
-    "goTo": "Přejít na stránku",
     "next": "Další",
-    "previous": "Předchozí",
-    "results": "{count, plural, =0{žádné výsledky} one{{count} výsledky} other{{count} výsledky}}"
+    "previous": "Předchozí"
   },
   "gv-plans": {
     "characteristics": {
