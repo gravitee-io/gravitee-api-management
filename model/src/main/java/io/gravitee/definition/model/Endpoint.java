@@ -157,6 +157,10 @@ public class Endpoint implements Serializable {
         this.healthCheck = healthCheck;
     }
 
+    public Set<EndpointStatusListener> getEndpointAvailabilityListeners() {
+        return this.listeners;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
