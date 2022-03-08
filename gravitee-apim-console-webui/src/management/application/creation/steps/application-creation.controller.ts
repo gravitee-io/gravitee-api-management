@@ -169,7 +169,7 @@ class ApplicationCreationController {
   }
 
   getReadableApiSubscriptions(): string {
-    const plansByApi = _.groupBy(this.selectedPlans, 'apis');
+    const plansByApi = _.groupBy(this.selectedPlans, 'api');
     const multipleApis = _.keys(plansByApi).length > 1;
     return (
       `Subscribed to API${multipleApis ? 's:' : ''} ` +
