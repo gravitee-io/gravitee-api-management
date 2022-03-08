@@ -79,14 +79,14 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldRenewSubscription() {
-        when(apiKeyService.renew(any())).thenReturn(apiKeyEntity);
+        when(apiKeyService.renew(any(SubscriptionEntity.class))).thenReturn(apiKeyEntity);
         when(keyMapper.convert(any(ApiKeyEntity.class))).thenCallRealMethod();
 
         final Response response = target(SUBSCRIPTION).path("keys/_renew").request().post(null);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        Mockito.verify(apiKeyService).renew(any());
+        Mockito.verify(apiKeyService).renew(any(SubscriptionEntity.class));
 
         Key key = response.readEntity(Key.class);
         assertNotNull(key);
