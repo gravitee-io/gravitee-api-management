@@ -101,31 +101,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public ApiKeyEntity renew(SubscriptionEntity subscription, String customApiKey) {
         try {
-            LOGGER.debug("Renew API Key for subscription {}", subscription);
+            LOGGER.debug("Renew API Key for subscription {}", subscription.getId());
 
             ApiKey newApiKey = generateForSubscription(subscription, customApiKey);
             newApiKey = apiKeyRepository.create(newApiKey);
 
-            Instant expirationInst = newApiKey.getCreatedAt().toInstant().plus(Duration.ofHours(2));
-            Date expirationDate = Date.from(expirationInst);
-
-            // Previously generated keys should be set as revoked
-            // Get previously generated keys to set their expiration date
-            Set<ApiKey> oldKeys = apiKeyRepository.findBySubscription(subscription.getId());
-            for (ApiKey oldKey : oldKeys) {
-                ApiKeyEntity oldKeyEntity = convert(oldKey);
-                if (!oldKey.equals(newApiKey) && !oldKeyEntity.isExpired()) {
-                    setExpiration(expirationDate, oldKeyEntity, oldKey);
-                }
-            }
-
-            ApplicationEntity application = applicationService.findById(
-                GraviteeContext.getCurrentEnvironment(),
-                newApiKey.getApplication()
-            );
-            if (application.hasApiKeySharedMode()) {
-                addSharedSubscriptions(newApiKey, application.getId());
-            }
+            // Expire previously generated keys
+            expireApiKeys(apiKeyRepository.findBySubscription(subscription.getId()), newApiKey);
 
             ApiKeyEntity newApiKeyEntity = convert(newApiKey);
             // Audit
@@ -135,21 +117,60 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return newApiKeyEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to renew an API Key for {}", subscription, ex);
+            LOGGER.error("An error occurs while trying to renew an API Key for {}", subscription.getId(), ex);
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to renew an API Key for %s", subscription),
+                String.format("An error occurs while trying to renew an API Key for %s", subscription.getId()),
                 ex
             );
         }
     }
 
-    private void addSharedSubscriptions(ApiKey newApiKey, String applicationId) throws TechnicalException {
-        Set<String> subscriptions = new HashSet<>();
-        for (ApiKey apiKey : apiKeyRepository.findByApplication(applicationId)) {
-            subscriptions.addAll(apiKey.getSubscriptions());
+    @Override
+    public ApiKeyEntity renew(ApplicationEntity application) {
+        if (!application.hasApiKeySharedMode()) {
+            throw new InvalidApplicationApiKeyModeException("Can't renew an API key on application that doesn't use shared API key mode");
         }
-        newApiKey.setSubscriptions(new ArrayList<>(subscriptions));
-        apiKeyRepository.update(newApiKey);
+
+        try {
+            LOGGER.debug("Renew API Key for application {}", application.getId());
+
+            ApiKey newApiKey = generateForApplication(application.getId());
+            newApiKey = apiKeyRepository.create(newApiKey);
+
+            // Expire previously generated keys
+            Collection<ApiKey> allApiKeys = apiKeyRepository.findByApplication(application.getId());
+            expireApiKeys(allApiKeys, newApiKey);
+
+            // add all subscriptions to the new key
+            addSharedSubscriptions(allApiKeys, newApiKey);
+
+            return convert(newApiKey);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to renew an API Key for application {}", application.getId(), ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to renew an API Key for application %s", application.getId()),
+                ex
+            );
+        }
+    }
+
+    private void expireApiKeys(Collection<ApiKey> apiKeys, ApiKey activeApiKey) throws TechnicalException {
+        Instant expirationInst = activeApiKey.getCreatedAt().toInstant().plus(Duration.ofHours(2));
+        Date expirationDate = Date.from(expirationInst);
+
+        for (ApiKey apiKey : apiKeys) {
+            ApiKeyEntity apiKeyEntity = convert(apiKey);
+            if (!apiKey.equals(activeApiKey) && !apiKeyEntity.isExpired()) {
+                setExpiration(expirationDate, apiKeyEntity, apiKey);
+            }
+        }
+    }
+
+    private void addSharedSubscriptions(Collection<ApiKey> apiKeys, ApiKey activeApiKey) throws TechnicalException {
+        Set<String> subscriptions = new HashSet<>();
+        apiKeys.forEach(apiKey -> subscriptions.addAll(apiKey.getSubscriptions()));
+        activeApiKey.setSubscriptions(new ArrayList<>(subscriptions));
+        apiKeyRepository.update(activeApiKey);
     }
 
     private ApiKeyEntity findOrGenerate(ApplicationEntity application, SubscriptionEntity subscription, String customApiKey) {
@@ -206,17 +227,39 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             throw new SubscriptionClosedException(subscription.getId());
         }
 
-        ApiKey apiKey = new ApiKey();
-        apiKey.setId(UuidString.generateRandom());
+        ApiKey apiKey = generateForApplication(subscription.getApplication(), customApiKey);
         apiKey.setSubscriptions(List.of(subscription.getId()));
-        apiKey.setApplication(subscription.getApplication());
-        apiKey.setCreatedAt(new Date());
-        apiKey.setUpdatedAt(apiKey.getCreatedAt());
-        apiKey.setKey(isNotEmpty(customApiKey) ? customApiKey : apiKeyGenerator.generate());
 
         // By default, the API Key will expire when subscription is closed
         apiKey.setExpireAt(subscription.getEndingAt());
 
+        return apiKey;
+    }
+
+    /**
+     * Generate an {@link ApiKey} for an application. Generates a new random key value.
+     *
+     * @param application
+     * @return An Api Key
+     */
+    private ApiKey generateForApplication(String application) {
+        return generateForApplication(application, null);
+    }
+
+    /**
+     * Generate an {@link ApiKey} for an application. If no custom API key, then generate a new one.
+     *
+     * @param application
+     * @param customApiKey
+     * @return An Api Key
+     */
+    private ApiKey generateForApplication(String application, String customApiKey) {
+        ApiKey apiKey = new ApiKey();
+        apiKey.setId(UuidString.generateRandom());
+        apiKey.setApplication(application);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setUpdatedAt(apiKey.getCreatedAt());
+        apiKey.setKey(isNotEmpty(customApiKey) ? customApiKey : apiKeyGenerator.generate());
         return apiKey;
     }
 
@@ -487,7 +530,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         if (!key.isRevoked()) {
             // If API key is not shared
             // The expired date must be <= than the subscription end date
-            if (!apiKeyEntity.getApplication().hasApiKeySharedMode()) {
+            if (
+                apiKeyEntity.getApplication() != null &&
+                !apiKeyEntity.getApplication().hasApiKeySharedMode() &&
+                !key.getSubscriptions().isEmpty()
+            ) {
                 SubscriptionEntity subscription = subscriptionService.findById(key.getSubscriptions().get(0));
                 if (
                     subscription.getEndingAt() != null &&
@@ -548,7 +595,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     private void createAuditLog(ApiKeyEntity key, ApiKey previousApiKey, ApiKey.AuditEvent event, Date eventDate) {
-        if (!key.getApplication().hasApiKeySharedMode()) {
+        if (key.getApplication() != null && !key.getApplication().hasApiKeySharedMode()) {
             SubscriptionEntity subscription = key.getSubscriptions().iterator().next();
 
             Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
@@ -567,7 +614,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private void triggerNotifierService(ApiHook apiHook, ApiKey key, NotificationParamsBuilder paramsBuilder) {
         ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), key.getApplication());
 
-        if (!application.hasApiKeySharedMode()) {
+        if (application != null && !application.hasApiKeySharedMode()) {
             SubscriptionEntity subscription = subscriptionService.findById(key.getSubscriptions().get(0));
             PlanEntity plan = planService.findById(subscription.getPlan());
             ApiModelEntity api = apiService.findByIdForTemplates(subscription.getApi());

@@ -305,4 +305,9 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationMetadataResource getApplicationMetadataResource() {
         return resourceContext.getResource(ApplicationMetadataResource.class);
     }
+
+    @Path("apikeys")
+    public ApplicationApiKeysResource getApplicationApiKeysResource() {
+        return resourceContext.getResource(ApplicationApiKeysResource.class);
+    }
 }
