@@ -96,6 +96,13 @@
         </table>
       </md-table-container>
 
+      <div class="api-key-shared-mode-info-banner" ng-if="$ctrl.hasSharedApiKeyMode && $ctrl.subscription.status === 'PENDING'">
+        <ng-banner>
+          Application <code>{{ $ctrl.subscription.application.name }}</code> is using the shared API key mode. This means that API keys used
+          by this subscription may be shared with others API subscriptions.
+        </ng-banner>
+      </div>
+
       <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.subscription.status === 'PENDING'">
         <div permission permission-only="'api-subscription-u'">
           <md-button class="md-raised" ng-click="$ctrl.accept()">
