@@ -187,8 +187,9 @@ class ApplicationCreationController {
   }
 
   shouldPromptForKeyMode(): boolean {
-    const apiKeysPlansCount = this.selectedPlans.filter((plan) => plan.security === PlanSecurityType.API_KEY).length;
-    return this.allowsSharedApiKeys && apiKeysPlansCount > 1;
+    const apiKeyPlans = this.selectedPlans.filter((plan) => plan.security === PlanSecurityType.API_KEY);
+    const uniqueApiKeyPlans = _.uniqBy(apiKeyPlans, 'api');
+    return this.allowsSharedApiKeys && uniqueApiKeyPlans.length === apiKeyPlans.length && apiKeyPlans.length > 1;
   }
 
   selectKeyMode() {
