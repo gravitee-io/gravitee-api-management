@@ -576,6 +576,8 @@ import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
 import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
 import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
+import ApiKeysComponent from '../management/api-key/api-keys.component';
+import ApiKeysController from '../management/api-key/api-keys.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -928,6 +930,9 @@ graviteeManagementModule.component('planWizardRestrictions', ApiEditPlanWizardRe
 
 // API subscriptions
 graviteeManagementModule.component('apiKeyValidatedInput', ApiKeyValidatedInput);
+graviteeManagementModule.component('apiKeys', ApiKeysComponent);
+graviteeManagementModule.controller('ApiKeysController', ApiKeysController);
+
 graviteeManagementModule.component('apiSubscriptions', ApiSubscriptionsComponent);
 graviteeManagementModule.component('apiSubscription', ApiSubscriptionComponent);
 
