@@ -22,10 +22,12 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -47,7 +49,7 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
 
     @Before
     public void setUp() {
-        reset(apiKeyService);
+        reset(apiKeyService, applicationService);
     }
 
     @Test
@@ -65,6 +67,8 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
 
     @Test
     public void post_on_renew_should_return_renew_apikeys_and_return_http_201_with_location_header() {
+        mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+
         ApiKeyEntity renewedApiKey = new ApiKeyEntity();
         renewedApiKey.setId("test-id");
 
@@ -80,5 +84,29 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
         assertTrue(
             response.getLocation().toString().endsWith("/applications/my-application/subscriptions/my-subscription/apikeys/test-id")
         );
+    }
+
+    @Test
+    public void post_on_renew_should_return_http_404_if_application_not_found() {
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(null);
+
+        Response response = envTarget("/_renew").request().post(null);
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void post_on_renew_should_return_http_400_if_application_found_has_shared_apiKey_mode() {
+        mockExistingApplication(ApiKeyMode.SHARED);
+
+        Response response = envTarget("/_renew").request().post(null);
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    private void mockExistingApplication(ApiKeyMode apiKeyMode) {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setApiKeyMode(apiKeyMode);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
     }
 }

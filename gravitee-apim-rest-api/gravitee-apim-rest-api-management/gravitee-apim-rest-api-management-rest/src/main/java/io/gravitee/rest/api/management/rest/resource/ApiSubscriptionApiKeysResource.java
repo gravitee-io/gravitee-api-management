@@ -21,14 +21,20 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.annotations.*;
 import java.net.URI;
@@ -57,6 +63,9 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
 
     @Inject
     private SubscriptionService subscriptionService;
+
+    @Inject
+    private ApplicationService applicationService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
@@ -113,6 +122,10 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
         }
 
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+        if (subscriptionEntity == null) {
+            throw new SubscriptionNotFoundException(subscription);
+        }
+        checkApplicationApiKeyModeAllowed(subscriptionEntity.getApplication());
 
         ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscriptionEntity, customApiKey);
 
@@ -122,6 +135,21 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
 
     @Path("{apikey}")
     public ApiSubscriptionApiKeyResource getApiSubscriptionApiKeyResource() {
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+        if (subscriptionEntity == null) {
+            throw new SubscriptionNotFoundException(subscription);
+        }
+        checkApplicationApiKeyModeAllowed(subscriptionEntity.getApplication());
         return resourceContext.getResource(ApiSubscriptionApiKeyResource.class);
+    }
+
+    private void checkApplicationApiKeyModeAllowed(String applicationId) {
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        if (applicationEntity == null) {
+            throw new ApplicationNotFoundException(applicationId);
+        }
+        if (applicationEntity.hasApiKeySharedMode()) {
+            throw new InvalidApplicationApiKeyModeException("Can't access API key by API subscription cause it's a shared Api Key");
+        }
     }
 }
