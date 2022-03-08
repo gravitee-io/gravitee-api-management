@@ -949,4 +949,76 @@ public class ApiKeyServiceTest {
         assertNotNull(apiKeyEntity);
         assertEquals("api-key-1-id", apiKeyEntity.getId());
     }
+
+    @Test(expected = InvalidApplicationApiKeyModeException.class)
+    public void renew_for_application_should_throw_exception_if_not_shared_apikey_mode() {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+
+        apiKeyService.renew(application);
+    }
+
+    @Test
+    public void renew_for_application_should_expire_previous_keys() throws TechnicalException {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId("my-test-app");
+        application.setApiKeyMode(ApiKeyMode.SHARED);
+
+        ApiKey newApiKey = buildTestApiKey("apiKey-X");
+        List<ApiKey> allApiKeys = List.of(buildTestApiKey("apiKey-2"), newApiKey, buildTestApiKey("apiKey-3"), buildTestApiKey("apiKey-4"));
+        when(apiKeyRepository.findByApplication("my-test-app")).thenReturn(allApiKeys);
+        when(apiKeyRepository.create(any())).thenReturn(newApiKey);
+
+        apiKeyService.renew(application);
+
+        // 3 old keys have been expired, but not the new one
+        verify(apiKeyRepository, times(1)).update(argThat(apiKey -> apiKey.getId().equals("apiKey-2") && apiKey.getExpireAt() != null));
+        verify(apiKeyRepository, times(1)).update(argThat(apiKey -> apiKey.getId().equals("apiKey-3") && apiKey.getExpireAt() != null));
+        verify(apiKeyRepository, times(1)).update(argThat(apiKey -> apiKey.getId().equals("apiKey-4") && apiKey.getExpireAt() != null));
+        verify(apiKeyRepository, never()).update(argThat(apiKey -> apiKey.getId().equals("apiKey-X") && apiKey.getExpireAt() != null));
+    }
+
+    @Test
+    public void renew_for_application_should_copy_previous_keys_subscriptions() throws TechnicalException {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId("my-test-app");
+        application.setApiKeyMode(ApiKeyMode.SHARED);
+
+        ApiKey newApiKey = buildTestApiKey("apiKey-X");
+        ApiKey oldApiKey2 = buildTestApiKey("apiKey-2");
+        ApiKey oldApiKey4 = buildTestApiKey("apiKey-4");
+        List<ApiKey> allApiKeys = List.of(oldApiKey2, newApiKey, buildTestApiKey("apiKey-3"), oldApiKey4);
+        when(apiKeyRepository.findByApplication("my-test-app")).thenReturn(allApiKeys);
+        when(apiKeyRepository.create(any())).thenReturn(newApiKey);
+
+        oldApiKey2.setSubscriptions(List.of("sub1", "sub2"));
+        oldApiKey4.setSubscriptions(List.of("sub3"));
+
+        apiKeyService.renew(application);
+
+        // the new key has been updated with 3 subscriptions from expired keys
+        verify(apiKeyRepository, times(1))
+            .update(
+                argThat(
+                    apiKey ->
+                        apiKey.getId().equals("apiKey-X") &&
+                        apiKey.getSubscriptions().contains("sub1") &&
+                        apiKey.getSubscriptions().contains("sub2") &&
+                        apiKey.getSubscriptions().contains("sub3")
+                )
+            );
+    }
+
+    private ApiKey buildTestApiKey(String id) {
+        ApiKey newApiKey = new ApiKey();
+        newApiKey.setId(id);
+        newApiKey.setCreatedAt(new Date());
+        return newApiKey;
+    }
+
+    private SubscriptionEntity buildTestSubscription(String id) {
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(id);
+        return subscriptionEntity;
+    }
 }

@@ -29,6 +29,8 @@ import java.util.List;
 public interface ApiKeyService {
     ApiKeyEntity generate(ApplicationEntity application, SubscriptionEntity subscription, String customApiKey);
 
+    ApiKeyEntity renew(ApplicationEntity application);
+
     ApiKeyEntity renew(SubscriptionEntity subscription);
 
     ApiKeyEntity renew(SubscriptionEntity subscription, String customApiKey);
