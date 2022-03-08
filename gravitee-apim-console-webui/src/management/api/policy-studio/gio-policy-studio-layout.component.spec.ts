@@ -100,6 +100,7 @@ describe('GioPolicyStudioLayoutComponent', () => {
 
     it('should broadcast `apiChangeSuccess` with api updated', async () => {
       const updateApi = fakeUpdateApi();
+      const emitApiDefinitionSpy = jest.spyOn(component.policyStudioService, 'emitApiDefinition');
 
       component.onSubmit();
 
@@ -107,6 +108,8 @@ describe('GioPolicyStudioLayoutComponent', () => {
       httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` }).flush(updateApi);
 
       expect($broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api: updateApi });
+      expect(emitApiDefinitionSpy).toHaveBeenCalledTimes(1);
+      expect(component.isDirty).toBeFalsy();
     });
   });
 
