@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Date;
@@ -263,6 +264,7 @@ public class Subscription {
         private final String description;
         private final String domain;
         private final User owner;
+        private final ApiKeyMode apiKeyMode;
 
         public Application(
             final String id,
@@ -270,7 +272,8 @@ public class Subscription {
             final String type,
             final String description,
             final String domain,
-            final User owner
+            final User owner,
+            final ApiKeyMode apiKeyMode
         ) {
             this.id = id;
             this.name = name;
@@ -278,6 +281,7 @@ public class Subscription {
             this.description = description;
             this.domain = domain;
             this.owner = owner;
+            this.apiKeyMode = apiKeyMode;
         }
 
         public String getId() {
@@ -302,6 +306,10 @@ public class Subscription {
 
         public User getOwner() {
             return owner;
+        }
+
+        public ApiKeyMode getApiKeyMode() {
+            return apiKeyMode;
         }
     }
 
