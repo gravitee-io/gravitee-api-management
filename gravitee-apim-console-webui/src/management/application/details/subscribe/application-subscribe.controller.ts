@@ -164,9 +164,10 @@ class ApplicationSubscribeController {
   shouldPromptForKeyMode(plan: any): boolean {
     return (
       plan.security === PlanSecurityType.API_KEY &&
-      this.allowsSharedApiKeys &&
+      this.isSharedApiKeyEnabled &&
+      this.application.api_key_mode === ApiKeyMode.UNSPECIFIED &&
       this.apiKeySubscriptionsCount >= 1 &&
-      this.application.api_key_mode === ApiKeyMode.UNSPECIFIED
+      !this.hasAlreadySubscribedApiKeyPlanOnApi(plan)
     );
   }
 
@@ -174,8 +175,14 @@ class ApplicationSubscribeController {
     return this.subscriptions.data.filter((subscription) => subscription.security === PlanSecurityType.API_KEY).length;
   }
 
-  get allowsSharedApiKeys(): boolean {
+  get isSharedApiKeyEnabled(): boolean {
     return this.Constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
+  }
+
+  hasAlreadySubscribedApiKeyPlanOnApi(plan: any): boolean {
+    return this.subscriptions.data.some(
+      (subscription) => subscription.api === plan.api && subscription.security === PlanSecurityType.API_KEY,
+    );
   }
 }
 
