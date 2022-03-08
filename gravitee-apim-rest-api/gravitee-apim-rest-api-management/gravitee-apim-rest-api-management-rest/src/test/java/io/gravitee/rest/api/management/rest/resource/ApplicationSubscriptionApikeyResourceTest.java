@@ -21,7 +21,10 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Set;
 import javax.ws.rs.core.Response;
@@ -49,6 +52,8 @@ public class ApplicationSubscriptionApikeyResourceTest extends AbstractResourceT
 
     @Test
     public void delete_should_call_revoke_service_and_return_http_204() {
+        mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+
         ApiKeyEntity existingApiKey = new ApiKeyEntity();
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId(SUBSCRIPTION_ID);
@@ -63,6 +68,8 @@ public class ApplicationSubscriptionApikeyResourceTest extends AbstractResourceT
 
     @Test
     public void delete_should_return_http_400_when_apikey_on_another_subscription() {
+        mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+
         ApiKeyEntity existingApiKey = new ApiKeyEntity();
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId("another-subscription");
@@ -78,10 +85,35 @@ public class ApplicationSubscriptionApikeyResourceTest extends AbstractResourceT
 
     @Test
     public void delete_should_return_http_500_on_exception() {
+        mockExistingApplication(ApiKeyMode.EXCLUSIVE);
         doThrow(TechnicalManagementException.class).when(apiKeyService).revoke(any(String.class), any(Boolean.class));
 
         Response response = envTarget().request().delete();
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+    }
+
+    @Test
+    public void delete_should_return_http_404_if_application_not_found() {
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(null);
+
+        Response response = envTarget().request().delete();
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void delete_should_return_http_400_if_application_found_has_shared_apiKey_mode() {
+        mockExistingApplication(ApiKeyMode.SHARED);
+
+        Response response = envTarget().request().delete();
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    private void mockExistingApplication(ApiKeyMode apiKeyMode) {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setApiKeyMode(apiKeyMode);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
     }
 }
