@@ -45,15 +45,15 @@ class ApplicationService {
   }
 
   get(applicationId: string): ng.IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId);
+    return this.$http.get(`${this.applicationURL(applicationId)}`);
   }
 
   getApplicationType(applicationId: string): ng.IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId + '/configuration');
+    return this.$http.get(`${this.applicationURL(applicationId)}` + '/configuration');
   }
 
   getMembers(applicationId): ng.IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId + '/members');
+    return this.$http.get(`${this.applicationURL(applicationId)}` + '/members');
   }
 
   addOrUpdateMember(applicationId: string, membership: IMembership): ng.IHttpPromise<any> {
@@ -61,11 +61,11 @@ class ApplicationService {
   }
 
   deleteMember(applicationId: string, userId: string): ng.IHttpPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/applications/` + applicationId + '/members?user=' + userId);
+    return this.$http.delete(`${this.applicationURL(applicationId)}` + '/members?user=' + userId);
   }
 
   transferOwnership(applicationId: string, ownership: IMembership): ng.IHttpPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/applications/` + applicationId + '/members/transfer_ownership', ownership);
+    return this.$http.post(`${this.applicationURL(applicationId)}` + '/members/transfer_ownership', ownership);
   }
 
   list(status = 'active'): ng.IHttpPromise<any> {
@@ -96,7 +96,7 @@ class ApplicationService {
   }
 
   delete(applicationId: string): ng.IHttpPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/applications/` + applicationId);
+    return this.$http.delete(`${this.applicationURL(applicationId)}`);
   }
 
   search(query) {
@@ -126,7 +126,7 @@ class ApplicationService {
   }
 
   getSubscribedAPI(applicationId: string): ng.IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId + '/subscribed');
+    return this.$http.get(`${this.applicationURL(applicationId)}` + '/subscribed');
   }
 
   getSubscription(applicationId, subscriptionId) {
@@ -137,16 +137,28 @@ class ApplicationService {
     return this.$http.delete(this.subscriptionsURL(applicationId) + subscriptionId);
   }
 
-  listApiKeys(applicationId, subscriptionId): ng.IHttpPromise<any> {
-    return this.$http.get(this.subscriptionsURL(applicationId) + subscriptionId + '/apikeys');
+  listApiKeys(application, subscription): ng.IHttpPromise<any> {
+    if (subscription) {
+      return this.$http.get(this.subscriptionsURL(application.id) + subscription.id + '/apikeys');
+    } else {
+      return this.$http.get(this.applicationURL(application.id) + '/apikeys');
+    }
   }
 
-  renewApiKey(applicationId, subscriptionId) {
-    return this.$http.post(this.subscriptionsURL(applicationId) + subscriptionId + '/apikeys/_renew', '');
+  renewApiKey(application, subscription) {
+    if (subscription) {
+      return this.$http.post(this.subscriptionsURL(application.id) + subscription.id + '/apikeys/_renew', '');
+    } else {
+      return this.$http.post(this.applicationURL(application.id) + '/apikeys/_renew', '');
+    }
   }
 
-  revokeApiKey(applicationId, subscriptionId, apiKeyId) {
-    return this.$http.delete(this.subscriptionsURL(applicationId) + subscriptionId + '/apikeys/' + apiKeyId);
+  revokeApiKey(application, subscription, apiKeyId) {
+    if (subscription) {
+      return this.$http.delete(this.subscriptionsURL(application.id) + subscription.id + '/apikeys/' + apiKeyId);
+    } else {
+      return this.$http.delete(this.applicationURL(application.id) + '/apikeys/' + apiKeyId);
+    }
   }
 
   /*
@@ -227,23 +239,27 @@ class ApplicationService {
   }
 
   listMetadata(applicationId): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId + '/metadata');
+    return this.$http.get(`${this.applicationURL(applicationId)}` + '/metadata');
   }
 
   createMetadata(applicationId, metadata): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/applications/` + applicationId + '/metadata', metadata);
+    return this.$http.post(`${this.applicationURL(applicationId)}` + '/metadata', metadata);
   }
 
   updateMetadata(applicationId, metadata): ng.IPromise<any> {
-    return this.$http.put(`${this.Constants.env.baseURL}/applications/` + applicationId + '/metadata/' + metadata.key, metadata);
+    return this.$http.put(`${this.applicationURL(applicationId)}` + '/metadata/' + metadata.key, metadata);
   }
 
   deleteMetadata(applicationId, metadataId): ng.IPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/applications/` + applicationId + '/metadata/' + metadataId);
+    return this.$http.delete(`${this.applicationURL(applicationId)}` + '/metadata/' + metadataId);
+  }
+
+  private applicationURL(applicationId: string): string {
+    return `${this.Constants.env.baseURL}/applications/${applicationId}`;
   }
 
   private subscriptionsURL(applicationId: string): string {
-    return `${this.Constants.env.baseURL}/applications/${applicationId}/subscriptions/`;
+    return `${this.applicationURL(applicationId)}/subscriptions/`;
   }
 
   /*

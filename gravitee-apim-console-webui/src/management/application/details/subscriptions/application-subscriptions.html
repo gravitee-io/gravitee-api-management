@@ -81,4 +81,8 @@
       >Start playing with APIs</md-button
     >
   </div>
+
+  <div ng-if="$ctrl.sharedSubscriptions.data.length !== 0">
+    <api-keys list-label="'Shared API Key'" application="$ctrl.application" />
+  </div>
 </div>
