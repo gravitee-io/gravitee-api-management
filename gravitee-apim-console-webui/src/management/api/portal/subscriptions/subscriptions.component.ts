@@ -287,17 +287,19 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     $shouldPromptForKeyMode(application: any, plan: any): IPromise<boolean> {
       if (plan.security === PlanSecurityType.API_KEY && this.allowsSharedApiKeys && application.api_key_mode === ApiKeyMode.UNSPECIFIED) {
-        return this.$getApiKeySubscriptionsCount(application).then((count) => {
+        return this.$getApiKeySubscriptionsCount(application, plan).then((count) => {
           return count >= 1;
         });
       }
       return Promise.resolve(false);
     }
 
-    $getApiKeySubscriptionsCount(application: any): IPromise<number> {
+    $getApiKeySubscriptionsCount(application: any, plan: any): IPromise<number> {
       return this.ApplicationService.listSubscriptions(application.id, '?expand=security').then((response) => {
         const applicationSubscriptions = response.data as PagedResult;
-        return applicationSubscriptions.data.filter((subscription) => subscription.security === PlanSecurityType.API_KEY).length;
+        return applicationSubscriptions.data.filter(
+          (subscription) => subscription.security === PlanSecurityType.API_KEY && subscription.api !== plan.api,
+        ).length;
       });
     }
 
