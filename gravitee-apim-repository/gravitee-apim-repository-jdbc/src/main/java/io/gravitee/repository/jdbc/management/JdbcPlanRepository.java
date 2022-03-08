@@ -16,6 +16,7 @@
 package io.gravitee.repository.jdbc.management;
 
 import static java.lang.String.format;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -244,6 +245,9 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     @Override
     public List<Plan> findByApis(List<String> apiIds) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.findByApis({})", apiIds);
+        if (isEmpty(apiIds)) {
+            return Collections.emptyList();
+        }
         try {
             List<Plan> plans = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where api in (" + getOrm().buildInClause(apiIds) + ")",
@@ -281,8 +285,11 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
 
     @Override
     public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.findByIdIn({})", ids);
+        if (isEmpty(ids)) {
+            return Collections.emptySet();
+        }
         try {
-            LOGGER.debug("JdbcPlanRepository.findByIdIn({})", ids);
             List<Plan> plans = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where id in (" + getOrm().buildInClause(ids) + ")",
                 ps -> getOrm().setArguments(ps, ids, 1),

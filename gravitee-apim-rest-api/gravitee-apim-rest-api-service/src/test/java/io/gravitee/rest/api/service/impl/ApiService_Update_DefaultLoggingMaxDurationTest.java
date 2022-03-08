@@ -326,7 +326,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                             JsonNode mode = logging1.get("mode");
                             JsonNode condition = logging1.get("condition");
 
-                            return "CLIENT_PROXY".equals(mode.asText()) && "#request.timestamp <= 1l && true".equals(condition.asText());
+                            return "CLIENT_PROXY".equals(mode.asText()) && "{#request.timestamp <= 1l && true}".equals(condition.asText());
                         } catch (IOException e) {
                             e.printStackTrace();
                             return false;
@@ -341,7 +341,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     public void shouldOverrideTimestampCaseTimestampLessOrEqual() throws TechnicalException {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
-        logging.setCondition("#request.timestamp <= 2550166583090l");
+        logging.setCondition("{#request.timestamp <= 2550166583090l}");
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
             .thenReturn(singletonList(1L));
@@ -360,7 +360,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                             JsonNode mode = logging1.get("mode");
                             JsonNode condition = logging1.get("condition");
 
-                            return "CLIENT_PROXY".equals(mode.asText()) && "#request.timestamp <= 1l".equals(condition.asText());
+                            return "CLIENT_PROXY".equals(mode.asText()) && "{#request.timestamp <= 1l}".equals(condition.asText());
                         } catch (IOException e) {
                             e.printStackTrace();
                             return false;
@@ -375,7 +375,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     public void shouldOverrideTimestampCaseTimestampLess() throws TechnicalException {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
-        logging.setCondition("#request.timestamp < 2550166583090l");
+        logging.setCondition("{#request.timestamp < 2550166583090l}");
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
             .thenReturn(singletonList(1L));
@@ -394,7 +394,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                             JsonNode mode = logging1.get("mode");
                             JsonNode condition = logging1.get("condition");
 
-                            return "CLIENT_PROXY".equals(mode.asText()) && "#request.timestamp <= 1l".equals(condition.asText());
+                            return "CLIENT_PROXY".equals(mode.asText()) && "{#request.timestamp <= 1l}".equals(condition.asText());
                         } catch (IOException e) {
                             e.printStackTrace();
                             return false;
@@ -409,7 +409,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     public void shouldOverrideTimestampCaseTimestampAndAfter() throws TechnicalException {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
-        logging.setCondition("#request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2");
+        logging.setCondition("{#request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2}");
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
             .thenReturn(singletonList(1L));
@@ -430,7 +430,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "#request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2)".equals(
+                                "{#request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2)}".equals(
                                         condition.asText()
                                     )
                             );
@@ -448,7 +448,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     public void shouldOverrideTimestampCaseBeforeAndTimestamp() throws TechnicalException {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
-        logging.setCondition("#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l");
+        logging.setCondition("{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l}");
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
             .thenReturn(singletonList(1L));
@@ -469,7 +469,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l".equals(
+                                "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l}".equals(
                                         condition.asText()
                                     )
                             );
@@ -488,7 +488,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition(
-            "#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')"
+            "{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}"
         );
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
@@ -510,7 +510,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')".equals(
+                                "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}".equals(
                                         condition.asText()
                                     )
                             );
@@ -529,7 +529,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition(
-            "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')"
+            "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}"
         );
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
@@ -551,7 +551,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')".equals(
+                                "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}".equals(
                                         condition.asText()
                                     )
                             );
@@ -570,7 +570,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition(
-            "((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')"
+            "{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}"
         );
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
@@ -592,7 +592,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')".equals(
+                                "{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}".equals(
                                         condition.asText()
                                     )
                             );
@@ -611,7 +611,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition(
-            "#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2'"
+            "{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2'}"
         );
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
@@ -633,7 +633,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')".equals(
+                                "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}".equals(
                                         condition.asText()
                                     )
                             );
@@ -651,7 +651,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     public void shouldNotOverrideTimestampIfBeforeThreshold() throws TechnicalException {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
-        logging.setCondition("#request.timestamp <= 2l");
+        logging.setCondition("{#request.timestamp <= 2l}");
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
             .thenReturn(singletonList(3L));
@@ -670,7 +670,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                             JsonNode mode = logging1.get("mode");
                             JsonNode condition = logging1.get("condition");
 
-                            return "CLIENT_PROXY".equals(mode.asText()) && "#request.timestamp <= 2l".equals(condition.asText());
+                            return "CLIENT_PROXY".equals(mode.asText()) && "{#request.timestamp <= 2l}".equals(condition.asText());
                         } catch (IOException e) {
                             e.printStackTrace();
                             return false;
@@ -685,7 +685,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     public void shouldOverrideTimestampCaseGreaterOrEquals() throws TechnicalException {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
-        logging.setCondition("#request.timestamp >= 5l");
+        logging.setCondition("{#request.timestamp >= 5l}");
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
             .thenReturn(singletonList(1L));
@@ -706,7 +706,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "#request.timestamp <= 1l && #request.timestamp >= 5l".equals(condition.asText())
+                                "{#request.timestamp <= 1l && #request.timestamp >= 5l}".equals(condition.asText())
                             );
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -722,7 +722,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     public void shouldOverrideTimestampCaseGreater() throws TechnicalException {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
-        logging.setCondition("#request.timestamp > 5l");
+        logging.setCondition("{#request.timestamp > 5l}");
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
             .thenReturn(singletonList(1L));
@@ -743,7 +743,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "#request.timestamp <= 1l && #request.timestamp > 5l".equals(condition.asText())
+                                "{#request.timestamp <= 1l && #request.timestamp > 5l}".equals(condition.asText())
                             );
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -759,7 +759,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     public void shouldOverrideTimestampCaseGreaterOrEqualsInThePast() throws TechnicalException {
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
-        logging.setCondition("#request.timestamp >= 0l");
+        logging.setCondition("{#request.timestamp >= 0l}");
         existingApi.getProxy().setLogging(logging);
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
             .thenReturn(singletonList(1L));
@@ -780,7 +780,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "#request.timestamp <= 1l && #request.timestamp >= 0l".equals(condition.asText())
+                                "{#request.timestamp <= 1l && #request.timestamp >= 0l}".equals(condition.asText())
                             );
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -800,20 +800,20 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
             .thenReturn(singletonList(1L));
 
-        checkCondition(logging, "true || #request.timestamp <= 2l", "(true) && #request.timestamp <= 1l");
-        checkCondition(logging, "#request.timestamp <= 2l || true", "#request.timestamp <= 1l && (true)");
+        checkCondition(logging, "true || #request.timestamp <= 2l", "{(true) && #request.timestamp <= 1l}");
+        checkCondition(logging, "#request.timestamp <= 2l || true", "{#request.timestamp <= 1l && (true)}");
         checkCondition(
             logging,
-            "#request.timestamp <= 2l || #request.timestamp >= 1l",
-            "#request.timestamp <= 1l && (#request.timestamp >= 1l)"
+            "{#request.timestamp <= 2l || #request.timestamp >= 1l}",
+            "{#request.timestamp <= 1l && (#request.timestamp >= 1l)}"
         );
         checkCondition(
             logging,
-            "#request.timestamp <= 1234l  || #request.timestamp > 2l",
-            "#request.timestamp <= 1l && (#request.timestamp > 2l)"
+            "{#request.timestamp <= 1234l  || #request.timestamp > 2l}",
+            "{#request.timestamp <= 1l && (#request.timestamp > 2l)}"
         );
-        checkCondition(logging, "#request.timestamp <= 1l || true", "#request.timestamp <= 1l && (true)");
-        checkCondition(logging, "#request.timestamp <= 0l", "#request.timestamp <= 0l");
+        checkCondition(logging, "#request.timestamp <= 1l || true", "{#request.timestamp <= 1l && (true)}");
+        checkCondition(logging, "{#request.timestamp <= 0l}", "{#request.timestamp <= 0l}");
     }
 
     private void checkCondition(final Logging logging, final String condition, final String expectedCondition) throws TechnicalException {

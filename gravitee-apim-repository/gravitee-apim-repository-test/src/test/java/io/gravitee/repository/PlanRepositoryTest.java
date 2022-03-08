@@ -93,6 +93,13 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByIdIn_andReturnEmptyListIfInputIsEmpty() throws TechnicalException {
+        Set<Plan> plans = planRepository.findByIdIn(List.of());
+        assertNotNull(plans);
+        assertEquals(0, plans.size());
+    }
+
+    @Test
     public void shouldFindOAuth2PlanById() throws TechnicalException {
         final Optional<Plan> planOAuth2 = planRepository.findById("plan-oauth2");
 
@@ -147,6 +154,13 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals(3, plans.size());
         assertEquals(2, plans.stream().filter(plan -> plan.getApi().equals("api1")).count());
         assertEquals(1, plans.stream().filter(plan -> plan.getApi().equals("4e0db366-f772-4489-8db3-66f772b48989")).count());
+    }
+
+    @Test
+    public void shouldFindByApis_andReturnEmptyListIfInputIsEmpty() throws Exception {
+        final List<Plan> plans = planRepository.findByApis(Arrays.asList());
+        assertNotNull(plans);
+        assertEquals(0, plans.size());
     }
 
     @Test

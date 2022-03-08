@@ -96,8 +96,8 @@ public interface DefaultRoleEntityDefinition {
         false,
         Maps
             .<String, char[]>builder()
-            .put(ApiPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.GATEWAY_DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(ApiPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId() })
+            .put(ApiPermission.GATEWAY_DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId() })
             .put(ApiPermission.PLAN.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApiPermission.SUBSCRIPTION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApiPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })

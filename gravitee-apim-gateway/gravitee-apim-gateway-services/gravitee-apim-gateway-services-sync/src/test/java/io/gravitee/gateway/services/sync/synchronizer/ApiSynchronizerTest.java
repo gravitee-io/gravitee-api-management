@@ -184,6 +184,49 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
+    public void initialSynchronize_withEnvironmentAndOrganization_withoutHrId_shouldSetHrIdToNull() throws Exception {
+        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
+            .id(API_ID)
+            .updatedAt(new Date())
+            .definition("test")
+            .environment(ENVIRONMENT_ID)
+            .build();
+
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
+
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        when(
+            eventRepository.searchLatest(
+                argThat(
+                    criteria ->
+                        criteria != null &&
+                        criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
+                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                ),
+                eq(Event.EventProperties.API_ID),
+                anyLong(),
+                anyLong()
+            )
+        )
+            .thenReturn(singletonList(mockEvent));
+
+        mockEnvironmentAndOrganizationWithoutHrIds();
+
+        apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
+
+        ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+
+        verify(apiManager).register(apiCaptor.capture());
+
+        Api verifyApi = apiCaptor.getValue();
+        assertEquals(API_ID, verifyApi.getId());
+        assertEquals(ENVIRONMENT_ID, verifyApi.getEnvironmentId());
+        assertNull(verifyApi.getEnvironmentHrid());
+        assertEquals(ORGANIZATION_ID, verifyApi.getOrganizationId());
+        assertNull(verifyApi.getOrganizationHrid());
+    }
+
+    @Test
     public void initialSynchronizeWithNoOrganization() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
@@ -665,15 +708,24 @@ public class ApiSynchronizerTest extends TestCase {
         return event;
     }
 
+    private void mockEnvironmentAndOrganizationWithoutHrIds() throws io.gravitee.repository.exceptions.TechnicalException {
+        mockEnvironmentAndOrganization(asList(), asList());
+    }
+
     private void mockEnvironmentAndOrganization() throws io.gravitee.repository.exceptions.TechnicalException {
+        mockEnvironmentAndOrganization(asList(ENVIRONMENT_HRID), asList(ORGANIZATION_HRID));
+    }
+
+    private void mockEnvironmentAndOrganization(List<String> envHrIds, List<String> orgHrIds)
+        throws io.gravitee.repository.exceptions.TechnicalException {
         final Environment environment = new Environment();
         environment.setId(ENVIRONMENT_ID);
         environment.setOrganizationId(ORGANIZATION_ID);
-        environment.setHrids(asList(ENVIRONMENT_HRID));
+        environment.setHrids(envHrIds);
         when(environmentRepository.findById(ENVIRONMENT_ID)).thenReturn(Optional.of(environment));
         final Organization organization = new Organization();
         organization.setId(ORGANIZATION_ID);
-        organization.setHrids(asList(ORGANIZATION_HRID));
+        organization.setHrids(orgHrIds);
         when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.of(organization));
     }
 }

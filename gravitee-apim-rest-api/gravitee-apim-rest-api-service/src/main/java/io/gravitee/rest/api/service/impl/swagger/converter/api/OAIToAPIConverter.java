@@ -183,7 +183,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
             if (defaultEndpoint != null) {
                 contextPath = URI.create(defaultEndpoint).getPath();
             }
-            if (contextPath == null || contextPath.equals("/")) {
+            if (contextPath == null || contextPath.isEmpty() || contextPath.equals("/")) {
                 contextPath = apiEntity.getName().replaceAll("\\s+", "").toLowerCase();
             }
             proxy.setVirtualHosts(singletonList(new VirtualHost(contextPath)));

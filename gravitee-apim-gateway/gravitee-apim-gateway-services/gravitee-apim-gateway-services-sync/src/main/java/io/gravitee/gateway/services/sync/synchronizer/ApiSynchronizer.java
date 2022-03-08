@@ -84,6 +84,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 this.searchLatestEvents(
                         lastRefreshAt,
                         nextLastRefreshAt,
+                        true,
                         API_ID,
                         environments,
                         EventType.PUBLISH_API,
@@ -108,7 +109,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      */
     private long initialSynchronizeApis(long nextLastRefreshAt, List<String> environments) {
         final Long count =
-            this.searchLatestEvents(null, nextLastRefreshAt, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
+            this.searchLatestEvents(null, nextLastRefreshAt, true, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
                 .compose(this::processApiRegisterEvents)
                 .count()
                 .blockingGet();
@@ -176,7 +177,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                     try {
                         apiManager.register(api);
                     } catch (Exception e) {
-                        logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId());
+                        logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId(), e);
                     }
                 }
             )
@@ -194,7 +195,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                     try {
                         apiManager.unregister(apiId);
                     } catch (Exception e) {
-                        logger.error("An error occurred when trying to unregister api [{}].", apiId);
+                        logger.error("An error occurred when trying to unregister api [{}].", apiId, e);
                     }
                 }
             )
@@ -226,7 +227,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
             return Maybe.just(apiDefinition);
         } catch (Exception e) {
             // Log the error and ignore this event.
-            logger.error("Unable to extract api definition from event [{}].", apiEvent.getId());
+            logger.error("Unable to extract api definition from event [{}].", apiEvent.getId(), e);
             return Maybe.empty();
         }
     }
@@ -255,7 +256,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
                             return environment;
                         } catch (Exception e) {
-                            logger.warn("An error occurred fetching the environment {} and its organization.", envId);
+                            logger.warn("An error occurred fetching the environment {} and its organization.", envId, e);
                             return null;
                         }
                     }
@@ -264,13 +265,13 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
         if (apiEnv != null) {
             definition.setEnvironmentId(apiEnv.getId());
-            definition.setEnvironmentHrid(apiEnv.getHrids() != null ? apiEnv.getHrids().stream().findFirst().get() : null);
+            definition.setEnvironmentHrid(apiEnv.getHrids() != null ? apiEnv.getHrids().stream().findFirst().orElse(null) : null);
 
             final io.gravitee.repository.management.model.Organization apiOrg = organizationMap.get(apiEnv.getOrganizationId());
 
             if (apiOrg != null) {
                 definition.setOrganizationId(apiOrg.getId());
-                definition.setOrganizationHrid(apiOrg.getHrids() != null ? apiOrg.getHrids().stream().findFirst().get() : null);
+                definition.setOrganizationHrid(apiOrg.getHrids() != null ? apiOrg.getHrids().stream().findFirst().orElse(null) : null);
             }
         }
     }

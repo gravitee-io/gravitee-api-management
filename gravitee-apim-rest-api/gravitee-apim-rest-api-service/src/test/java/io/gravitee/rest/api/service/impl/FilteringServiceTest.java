@@ -16,10 +16,12 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -29,10 +31,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.RatingService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.filtering.FilteringServiceImpl;
@@ -66,6 +65,9 @@ public class FilteringServiceTest {
 
     @Mock
     TopApiService topApiService;
+
+    @Mock
+    ApiService apiService;
 
     @Mock
     ApplicationService applicationService;
@@ -278,5 +280,17 @@ public class FilteringServiceTest {
 
         assertEquals(3, filteredItems.size());
         assertEquals(Arrays.asList("1", "3", "4"), filteredItems);
+    }
+
+    @Test
+    public void shouldSearchApis() throws TechnicalException {
+        String aQuery = "a Query";
+
+        doReturn(Set.of("api-#1", "api-#2", "api-#3")).when(apiService).findPublishedIdsByUser(eq("user-#1"));
+        doReturn(List.of("api-#3")).when(apiService).searchIds(eq(aQuery), eq(Map.of("api", Set.of("api-#1", "api-#2", "api-#3"))));
+
+        Collection<String> searchItems = filteringService.searchApis("user-#1", aQuery);
+
+        assertThat(searchItems).singleElement().isEqualTo("api-#3");
     }
 }
