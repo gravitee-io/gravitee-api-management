@@ -23,27 +23,27 @@
         <div class="md-inline-form">
           <md-input-container>
             <label>Start date</label>
-            <md-datepicker ng-model="starting_at" md-min-date="now"></md-datepicker>
+            <md-datepicker ng-model="$ctrl.startingAt" md-min-date="$ctrl.now"></md-datepicker>
           </md-input-container>
           <md-input-container>
             <label>End date</label>
-            <md-datepicker ng-model="ending_at" md-min-date="starting_at"></md-datepicker>
+            <md-datepicker ng-model="$ctrl.endingAt" md-min-date="$ctrl.startingAt"></md-datepicker>
           </md-input-container>
         </div>
         <md-input-container>
           <div layout="column" ng-cloak class="md-inline-form">
             <h5>If needed, add a message:</h5>
-            <textarea ng-model="reason" aria-label="Reason"></textarea>
+            <textarea ng-model="$ctrl.reason" aria-label="Reason"></textarea>
           </div>
         </md-input-container>
-        <div ng-if="canUseCustomApiKey">
+        <div ng-if="$ctrl.canUseCustomApiKey">
           <h5 style="margin-bottom: 20px">This plan allows custom API keys. You can provide it here.</h5>
           <div>
             <api-key-validated-input
               form-reference="SubscriptionForm"
-              api-id="apiId"
-              application-id="applicationId"
-              on-change="dialogSubscriptionAcceptController.onApiKeyValueChange"
+              api-id="$ctrl.apiId"
+              application-id="$ctrl.applicationId"
+              on-change="$ctrl.onApiKeyValueChange"
             ></api-key-validated-input>
           </div>
         </div>
@@ -52,13 +52,11 @@
   </md-dialog-content>
 
   <md-dialog-actions layout="row">
-    <md-button ng-click="dialogSubscriptionAcceptController.hide()">Cancel</md-button>
+    <md-button ng-click="$ctrl.hide()">Cancel</md-button>
     <md-button
       class="md-raised md-primary"
-      ng-click="dialogSubscriptionAcceptController.save()"
-      ng-disabled="dialogSubscriptionAcceptController.customApiKeyInputState === 'invalid'
-                            || SubscriptionForm.$invalid"
-      >Accept</md-button
+      ng-click="$ctrl.save()"
+      ng-disabled="SubscriptionForm.$invalid">Accept</md-button
     >
   </md-dialog-actions>
 </md-dialog>
