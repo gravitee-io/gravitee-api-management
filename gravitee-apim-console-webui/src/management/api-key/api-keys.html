@@ -17,6 +17,11 @@
 -->
 <h2>{{ $ctrl.getTitle() }}</h2>
 <div id="api-keys" class="gv-form-content" layout="column">
+  <ng-banner ng-if="$ctrl.isSharedApiKey() && !$ctrl.areKeysEditable()">
+    This subscription uses a shared API key.<br />
+    You can renew or revoke the shared API key at the application level.
+  </ng-banner>
+
   <md-table-container>
     <table md-table>
       <thead md-head>
