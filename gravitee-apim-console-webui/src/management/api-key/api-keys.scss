@@ -1,0 +1,21 @@
+#api-keys {
+  .api-key-cell {
+    line-height: 20px;
+  }
+
+  .revoke-icon {
+    top: 0;
+  }
+
+  .renew-icon {
+    fill: white;
+  }
+
+  .revoked-icon {
+    fill: #be2628;
+  }
+
+  .active-icon {
+    fill: #107f20;
+  }
+}
