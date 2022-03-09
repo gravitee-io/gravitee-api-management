@@ -578,6 +578,7 @@ import ApplicationSubscriptionsListComponent from '../management/application/det
 import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
 import ApiKeysComponent from '../management/api-key/api-keys.component';
 import ApiKeysController from '../management/api-key/api-keys.controller';
+import { GioBannerComponent } from '@gravitee/ui-particles-angular';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -935,6 +936,7 @@ graviteeManagementModule.controller('ApiKeysController', ApiKeysController);
 
 graviteeManagementModule.component('apiSubscriptions', ApiSubscriptionsComponent);
 graviteeManagementModule.component('apiSubscription', ApiSubscriptionComponent);
+graviteeManagementModule.directive('ngBanner', downgradeComponent({ component: GioBannerComponent }));
 
 graviteeManagementModule.component('applications', ApplicationsComponent);
 graviteeManagementModule.component('application', ApplicationComponent);

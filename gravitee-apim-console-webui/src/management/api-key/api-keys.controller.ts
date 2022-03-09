@@ -77,9 +77,13 @@ class ApiKeysController {
     return !key.revoked && !key.expired;
   }
 
-  // keys are editable if subscription is accepted or if application uses shared API key mode
   areKeysEditable(): boolean {
-    return (this.subscription && this.subscription.status === 'ACCEPTED') || this.application.api_key_mode === 'SHARED';
+    // shared api keys are editable if this is not a subscription related screen
+    if (this.isSharedApiKey()) {
+      return !this.subscription;
+    }
+    // other keys are editable if subscription is accepted
+    return this.subscription && this.subscription.status === 'ACCEPTED';
   }
 
   isSharedApiKey(): boolean {
