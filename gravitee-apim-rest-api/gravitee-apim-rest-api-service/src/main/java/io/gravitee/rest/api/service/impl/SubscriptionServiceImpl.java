@@ -524,14 +524,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .orElseThrow(() -> new SubscriptionNotFoundException(processSubscription.getId()));
 
             Subscription previousSubscription = new Subscription(subscription);
+
             if (subscription.getStatus() != Subscription.Status.PENDING) {
                 throw new SubscriptionAlreadyProcessedException(subscription.getId());
             }
 
-            PlanEntity planEntity = planService.findById(subscription.getPlan());
+            PlanEntity plan = planService.findById(subscription.getPlan());
 
-            if (planEntity.getStatus() == PlanStatus.CLOSED) {
-                throw new PlanAlreadyClosedException(planEntity.getId());
+            if (plan.getStatus() == PlanStatus.CLOSED) {
+                throw new PlanAlreadyClosedException(plan.getId());
             }
 
             subscription.setProcessedBy(userId);
@@ -554,13 +555,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             subscription = subscriptionRepository.update(subscription);
 
-            final ApplicationEntity application = applicationService.findById(
+            final String apiId = plan.getApi();
+            final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
+
+            ApplicationEntity application = applicationService.findById(
                 GraviteeContext.getCurrentEnvironment(),
                 subscription.getApplication()
             );
-            final PlanEntity plan = planService.findById(subscription.getPlan());
-            final String apiId = plan.getApi();
-            final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
+
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             createAudit(
                 apiId,

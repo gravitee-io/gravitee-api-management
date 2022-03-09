@@ -180,7 +180,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
             apiId: this.api.id,
             applicationId: this.subscription.application.id,
             canUseCustomApiKey: this.canUseCustomApiKey,
-            sharedMode: this.hasSharedApiKeyMode,
+            sharedApiKeyMode: this.hasSharedApiKeyMode,
           },
         })
         .then((subscription) => {

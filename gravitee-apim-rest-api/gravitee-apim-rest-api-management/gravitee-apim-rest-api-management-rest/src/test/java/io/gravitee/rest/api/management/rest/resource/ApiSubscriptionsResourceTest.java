@@ -86,6 +86,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         fakeApplicationEntity.setType("applicationType");
         fakeApplicationEntity.setDescription("applicationDescription");
         fakeApplicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(fakeUserEntity));
+        fakeApplicationEntity.setApiKeyMode(ApiKeyMode.EXCLUSIVE);
 
         when(userService.findById(any())).thenReturn(fakeUserEntity);
         when(planService.findById(any())).thenReturn(fakePlanEntity);
