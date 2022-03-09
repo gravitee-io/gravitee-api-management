@@ -67,14 +67,14 @@
         <gravitee-policy-http-signature.version>1.4.0</gravitee-policy-http-signature.version>
         <gravitee-policy-ipfiltering.version>1.8.0</gravitee-policy-ipfiltering.version>
         <gravitee-policy-json-threat-protection.version>1.2.2</gravitee-policy-json-threat-protection.version>
-        <gravitee-policy-json-to-json.version>1.6.0</gravitee-policy-json-to-json.version>
+        <gravitee-policy-json-to-json.version>1.6.1</gravitee-policy-json-to-json.version>
         <gravitee-policy-json-validation.version>1.6.0</gravitee-policy-json-validation.version>
-        <gravitee-policy-json-xml.version>1.0.0</gravitee-policy-json-xml.version>
-        <gravitee-policy-jws.version>1.3.0</gravitee-policy-jws.version>
+        <gravitee-policy-json-xml.version>1.0.1</gravitee-policy-json-xml.version>
+        <gravitee-policy-jws.version>1.3.2</gravitee-policy-jws.version>
         <gravitee-policy-jwt.version>1.21.0</gravitee-policy-jwt.version>
         <gravitee-policy-keyless.version>1.4.0</gravitee-policy-keyless.version>
         <gravitee-policy-latency.version>1.4.0</gravitee-policy-latency.version>
-        <gravitee-policy-metrics-reporter.version>1.1.0</gravitee-policy-metrics-reporter.version>
+        <gravitee-policy-metrics-reporter.version>1.1.1</gravitee-policy-metrics-reporter.version>
         <gravitee-policy-mock.version>1.12.0</gravitee-policy-mock.version>
         <gravitee-policy-oauth2.version>1.18.0</gravitee-policy-oauth2.version>
         <gravitee-policy-openid-connect-userinfo.version>1.4.0</gravitee-policy-openid-connect-userinfo.version>
@@ -96,10 +96,10 @@
         <gravitee-policy-transformqueryparams.version>1.6.0</gravitee-policy-transformqueryparams.version>
         <gravitee-policy-url-rewriting.version>1.4.0</gravitee-policy-url-rewriting.version>
         <gravitee-policy-wssecurity-authentication.version>1.0.0</gravitee-policy-wssecurity-authentication.version>
-        <gravitee-policy-xml-json.version>1.7.0</gravitee-policy-xml-json.version>
+        <gravitee-policy-xml-json.version>1.7.1</gravitee-policy-xml-json.version>
         <gravitee-policy-xml-threat-protection.version>1.2.1</gravitee-policy-xml-threat-protection.version>
         <gravitee-policy-xml-validation.version>1.1.0</gravitee-policy-xml-validation.version>
-        <gravitee-policy-xslt.version>1.6.0</gravitee-policy-xslt.version>
+        <gravitee-policy-xslt.version>1.6.1</gravitee-policy-xslt.version>
         <gravitee-resource-auth-provider-http.version>1.1.0</gravitee-resource-auth-provider-http.version>
         <gravitee-resource-auth-provider-inline.version>1.1.0</gravitee-resource-auth-provider-inline.version>
         <gravitee-resource-auth-provider-ldap.version>1.1.0</gravitee-resource-auth-provider-ldap.version>
@@ -324,14 +324,14 @@
                                     </artifactItem>
                                     <artifactItem>
                                         <groupId>io.gravitee.policy</groupId>
-                                        <artifactId>gravitee-policy-generate-http-signature</artifactId>
-                                        <version>${gravitee-policy-generate-http-signature.version}</version>
+                                        <artifactId>gravitee-policy-generate-jwt</artifactId>
+                                        <version>${gravitee-policy-generate-jwt.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
                                         <groupId>io.gravitee.policy</groupId>
-                                        <artifactId>gravitee-policy-generate-jwt</artifactId>
-                                        <version>${gravitee-policy-generate-jwt.version}</version>
+                                        <artifactId>gravitee-policy-geoip-filtering</artifactId>
+                                        <version>${gravitee-policy-geoip-filtering.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>

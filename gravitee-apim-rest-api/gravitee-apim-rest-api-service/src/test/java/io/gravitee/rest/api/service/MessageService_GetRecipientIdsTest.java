@@ -24,8 +24,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
@@ -102,7 +104,7 @@ public class MessageService_GetRecipientIdsTest {
         try {
             Api api = new Api();
             api.setId(apiId);
-            messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, message);
+            messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, message);
             fail("should throw MessageRecipientFormatException");
         } catch (MessageRecipientFormatException ex) {
             // ok
@@ -124,9 +126,9 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_PUBLISHER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        messageService.getRecipientsId(messageEntity);
+        messageService.getRecipientsId(GraviteeContext.getExecutionContext(), messageEntity);
 
-        verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getExecutionContext().getEnvironmentId()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, never()).getMembershipsByReferencesAndRole(any(), any(), any());
         verify(mockRoleService, never()).findByScopeAndName(any(), any());
@@ -150,7 +152,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_PUBLISHER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getExecutionContext(), messageEntity);
 
         assertNotNull("not null", recipientIds);
         assertEquals("size=1", 1, recipientIds.size());
@@ -178,7 +180,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_PUBLISHER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
+        messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, messageEntity);
 
         verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
@@ -219,7 +221,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("OWNER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, messageEntity);
 
         // then
         assertNotNull("not null", recipientIds);
@@ -234,11 +236,20 @@ public class MessageService_GetRecipientIdsTest {
 
     @Test
     public void shouldGetApiConsumersWithGroups() throws TechnicalException {
+        Application app = new Application();
+        app.setId("app-id");
+        app.setGroups(new HashSet<>(Arrays.asList("group-id")));
+
         // given
         Subscription subscription = new Subscription();
-        subscription.setApplication("app-id");
+        subscription.setApplication(app.getId());
         when(mockSubscriptionRepository.search(any())).thenReturn(Collections.singletonList(subscription));
         when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER")).thenReturn(Optional.of(mock(RoleEntity.class)));
+
+        ApplicationListItem appListItem = new ApplicationListItem();
+        appListItem.setId(app.getId());
+        appListItem.setGroups(app.getGroups());
+        when(mockApplicationService.findByIds(GraviteeContext.getExecutionContext(), List.of(app.getId()))).thenReturn(Set.of(appListItem));
 
         MembershipEntity membershipGroup = new MembershipEntity();
         membershipGroup.setId("membership-group-id");
@@ -265,7 +276,7 @@ public class MessageService_GetRecipientIdsTest {
         // when
         Api api = new Api();
         api.setId("api-id");
-        api.setGroups(new HashSet<>(Arrays.asList("group-id")));
+
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setChannel(MessageChannel.MAIL);
         MessageRecipientEntity messageRecipientEntity = new MessageRecipientEntity();
@@ -273,7 +284,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("OWNER"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, messageEntity);
 
         // then
         assertNotNull("not null", recipientIds);
@@ -315,7 +326,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleValues(Collections.singletonList("API_SUBSCRIBERS"));
         messageEntity.setRecipient(messageRecipientEntity);
 
-        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getCurrentEnvironment(), api, messageEntity);
+        Set<String> recipientIds = messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, messageEntity);
 
         // then
         assertNotNull("not null", recipientIds);
