@@ -58,6 +58,6 @@ public class MessagesResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_MESSAGE, acls = RolePermissionAction.CREATE) })
     public Response createMessage(final MessageEntity message) {
-        return Response.ok(messageService.create(GraviteeContext.getCurrentEnvironment(), message)).build();
+        return Response.ok(messageService.create(GraviteeContext.getExecutionContext(), message)).build();
     }
 }

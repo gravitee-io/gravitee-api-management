@@ -105,6 +105,10 @@ public class GraviteeContext {
         return (ConcurrentMap) contextThread.get().get(USERS_METADATA_CONTEXT_CACHE_KEY);
     }
 
+    public static ExecutionContext getExecutionContext() {
+        return new ExecutionContext(getCurrentOrganization(), getCurrentEnvironment());
+    }
+
     public static ReferenceContext getCurrentContext() {
         if (getCurrentEnvironment() == null) {
             return new ReferenceContext(getCurrentOrganization(), ReferenceContextType.ORGANIZATION);
