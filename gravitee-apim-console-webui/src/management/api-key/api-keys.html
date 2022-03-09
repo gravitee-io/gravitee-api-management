@@ -28,7 +28,7 @@
         </tr>
       </thead>
       <tbody md-body>
-        <tr md-row ng-repeat="key in $ctrl.keys track by key.key">
+        <tr md-row ng-repeat="key in $ctrl.keys | orderBy:['-revoked_at','-expire_at','created_at'] track by key.key ">
           <td md-cell style="line-height: 30px">
             <ng-md-icon icon="{{key.revoked?'clear':'done'}}" ng-style="{'fill': key.revoked ? '#BE2628':'#107F20'}"></ng-md-icon>
             <code>{{key.key}}</code>
