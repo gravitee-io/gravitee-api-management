@@ -21,8 +21,8 @@ import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Sortable;
-import java.util.Collection;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
