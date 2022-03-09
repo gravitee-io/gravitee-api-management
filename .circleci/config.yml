@@ -619,7 +619,7 @@ jobs:
                         echo "Creating container $BRANCH_ID"
                         az storage container create -n $BRANCH_ID --public-access blob
                       fi             
-                      az storage blob upload-batch -s gravitee-apim-console-webui/dist -d $BRANCH_ID--overwrite
+                      az storage blob upload-batch -s gravitee-apim-console-webui/dist -d $BRANCH_ID --overwrite
             - notify-on-failure
 
     console-webui-comment-pr-after-deployment:
