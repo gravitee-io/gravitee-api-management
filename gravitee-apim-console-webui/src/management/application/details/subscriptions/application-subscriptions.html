@@ -82,7 +82,7 @@
     >
   </div>
 
-  <div ng-if="$ctrl.sharedSubscriptions.data.length !== 0">
+  <div ng-if="$ctrl.areSharedApiKeysDisplayed()">
     <api-keys list-label="'Shared API Key'" application="$ctrl.application" />
   </div>
 </div>

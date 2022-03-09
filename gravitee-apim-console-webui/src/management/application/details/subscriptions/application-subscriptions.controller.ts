@@ -79,6 +79,10 @@ class ApplicationSubscriptionsController {
     );
   }
 
+  areSharedApiKeysDisplayed(): boolean {
+    return this.sharedSubscriptions.data.filter((subscription) => subscription.processed_at).length !== 0;
+  }
+
   clearFilter(): void {
     this.filter = new SubscriptionFilter();
     this.doFilter();
