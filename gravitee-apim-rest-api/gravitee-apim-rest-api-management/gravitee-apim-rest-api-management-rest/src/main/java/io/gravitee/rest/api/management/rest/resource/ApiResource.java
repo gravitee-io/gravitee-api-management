@@ -598,7 +598,7 @@ public class ApiResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_MESSAGE, acls = RolePermissionAction.CREATE) })
     public Response createApiMessage(final MessageEntity message) {
-        return Response.ok(messageService.create(GraviteeContext.getCurrentEnvironment(), api, message)).build();
+        return Response.ok(messageService.create(GraviteeContext.getExecutionContext(), api, message)).build();
     }
 
     @GET
