@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 import { Api, ApiLifecycleState, ApiMember, UpdateApiEntity } from '@model/apis';
-import { ApiImport } from '@model/api-imports';
+import { ApiImport, ImportSwaggerDescriptorEntity } from '@model/api-imports';
 import { BasicAuthentication } from '@model/users';
 import { ProcessSubscriptionEntity } from '@model/api-subscriptions';
-import { API_PUBLISHER_USER } from '@fakers/users/users';
-import { ApiImportFakers } from '@fakers/api-imports';
-import { PolicyFakers } from '@fakers/policies';
-import { ResourceFakers } from '@fakers/resources';
-import { Step, PlanSecurityType } from '@model/plan';
+import { coerce } from 'semver';
 
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({
@@ -94,6 +90,21 @@ export function importCreateApi(auth: BasicAuthentication, body: ApiImport) {
     method: 'POST',
     url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/import`,
     body,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
+export function importSwaggerApi(auth: BasicAuthentication, swaggerImport: string, attributes?: Partial<ImportSwaggerDescriptorEntity>) {
+  const swaggerVersion = coerce(JSON.parse(swaggerImport).swagger).toString();
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/import/swagger`,
+    qs: { definitionVersion: swaggerVersion },
+    body: {
+      payload: swaggerImport,
+      ...attributes,
+    },
     auth,
     failOnStatusCode: false,
   });

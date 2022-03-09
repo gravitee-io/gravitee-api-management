@@ -16,8 +16,16 @@
 
 import { PlanSecurityType, PlanStatus, PlanType, PlanValidation } from '@model/plan';
 import { ApiImportFakers } from '@fakers/api-imports';
-import { ADMIN_USER, LOW_PERMISSION_USER } from '@fakers/users/users';
-import { deleteApi, getApiById, getApiMembers, getApiMetadata, importCreateApi } from '@commands/management/api-management-commands';
+import { ADMIN_USER, API_PUBLISHER_USER, LOW_PERMISSION_USER } from '@fakers/users/users';
+import {
+  deleteApi,
+  deployApi,
+  getApiById,
+  getApiMembers,
+  getApiMetadata,
+  importCreateApi,
+  importSwaggerApi,
+} from '@commands/management/api-management-commands';
 import { deletePage, getPage, getPages } from '@commands/management/api-pages-management-commands';
 import { getPlan } from '@commands/management/api-plans-management-commands';
 import { ApiMetadataFormat, ApiPageType, ApiPrimaryOwnerType } from '@model/apis';
@@ -26,6 +34,7 @@ import { createGroup, deleteGroup, getGroup } from '@commands/management/environ
 import { createUser, deleteUser, getCurrentUser } from '@commands/management/user-management-commands';
 import { createRole, deleteRole } from '@commands/management/organization-configuration-management-commands';
 import { ApiImport } from '@model/api-imports';
+import { requestGateway } from 'support/common/http.commands';
 
 context('API - Imports', () => {
   describe('Create API from import', () => {
@@ -800,6 +809,246 @@ context('API - Imports', () => {
 
       it('should delete the API', () => {
         deleteApi(ADMIN_USER, expectedApiId).noContent();
+      });
+    });
+  });
+
+  describe('API import via Swagger definition', () => {
+    let swaggerImport: any;
+    let apiId: string;
+
+    beforeEach(() => {
+      cy.fixture('json/petstore_swaggerv2.json').then((fileContent) => {
+        swaggerImport = JSON.stringify(fileContent);
+      });
+    });
+
+    afterEach(() => {
+      deleteApi(ADMIN_USER, apiId).noContent();
+    });
+
+    it('should import API without creating a documentation', () => {
+      importSwaggerApi(API_PUBLISHER_USER, swaggerImport)
+        .created()
+        .its('body')
+        .then((api) => {
+          apiId = api.id;
+          expect(api.id).to.be.a('string').and.not.to.be.empty;
+          expect(api.visibility).to.equal('PRIVATE');
+          expect(api.state).to.equal('STOPPED');
+          getPages(API_PUBLISHER_USER, apiId).ok().its('body').should('have.length', 1).should('not.have.a.property', 'SWAGGER');
+        });
+    });
+
+    it('should import API and create a swagger documentation', () => {
+      importSwaggerApi(API_PUBLISHER_USER, swaggerImport, { with_documentation: true })
+        .created()
+        .its('body')
+        .then((api) => {
+          apiId = api.id;
+          expect(api.id).to.be.a('string').and.not.to.be.empty;
+          expect(api.visibility).to.equal('PRIVATE');
+          expect(api.state).to.equal('STOPPED');
+          getPages(API_PUBLISHER_USER, apiId)
+            .ok()
+            .its('body')
+            .should('have.length', 2)
+            .its(1)
+            .should((swaggerEntry) => {
+              expect(swaggerEntry).to.have.property('id').and.not.to.be.empty;
+              expect(swaggerEntry).to.have.property('type', 'SWAGGER');
+              expect(swaggerEntry).to.have.property('content').and.contain(api.name);
+            });
+        });
+    });
+
+    it('should fail to import the same Swagger API again', () => {
+      importSwaggerApi(API_PUBLISHER_USER, swaggerImport)
+        .created()
+        .its('body')
+        .then((api) => {
+          apiId = api.id;
+          importSwaggerApi(API_PUBLISHER_USER, swaggerImport)
+            .badRequest()
+            .its('body.message')
+            .should('equal', `The path [${api.context_path}/] is already covered by an other API.`);
+        });
+    });
+
+    it('should import API and create a path (to add policies) for every declared Swagger path', () => {
+      importSwaggerApi(API_PUBLISHER_USER, swaggerImport, { with_policy_paths: true })
+        .created()
+        .its('body')
+        .then((api) => {
+          apiId = api.id;
+          deployApi(API_PUBLISHER_USER, apiId).its('body.flows').should('have.length', 20);
+        });
+    });
+  });
+
+  describe('Test API endpoints on Swagger import', () => {
+    let mockPolicyApi: ApiImport;
+    let jsonValidationPolicyApi: ApiImport;
+    let noExtrasApi: ApiImport;
+    let xmlValidationPolicyApi: ApiImport;
+
+    before(() => {
+      {
+        cy.log('-----  Import a swagger API without any extra options selected  -----');
+        cy.fixture('json/petstore_swaggerv2.json')
+          .then((swaggerFile) => cy.createAndStartApiFromSwagger(swaggerFile))
+          .then((api) => (noExtrasApi = api));
+      }
+
+      {
+        cy.log('-----  Import a swagger API with mock policies  -----');
+        const swaggerImportAttributes = {
+          with_policy_paths: true,
+          with_policies: ['mock'],
+        };
+        cy.fixture('json/petstore_swaggerv2.json')
+          .then((swaggerFile) => cy.createAndStartApiFromSwagger(swaggerFile, swaggerImportAttributes))
+          .then((api) => (mockPolicyApi = api));
+      }
+
+      {
+        cy.log('-----  Import a swagger API with JSON-Validation policies  -----');
+        const swaggerImportAttributes = {
+          with_policy_paths: true,
+          with_policies: ['json-validation'],
+        };
+        cy.fixture('json/petstore_swaggerv2.json')
+          .then((swaggerFile) => cy.createAndStartApiFromSwagger(swaggerFile, swaggerImportAttributes))
+          .then((api) => (jsonValidationPolicyApi = api));
+      }
+
+      {
+        cy.log('-----  Import a swagger API with XML-Validation policies  -----');
+        const swaggerImportAttributes = {
+          with_policy_paths: true,
+          with_policies: ['xml-validation'],
+        };
+        cy.fixture('json/petstore_swaggerv2.json')
+          .then((swaggerFile) => cy.createAndStartApiFromSwagger(swaggerFile, swaggerImportAttributes))
+          .then((api) => (xmlValidationPolicyApi = api));
+      }
+    });
+
+    describe('Test without any extra options selected', () => {
+      after(() => cy.teardownApi(noExtrasApi));
+
+      it('should successfully connect to API endpoint', () => {
+        requestGateway({ url: `${Cypress.env('gatewayServer')}${noExtrasApi.context_path}/pet/findByStatus?status=available` })
+          .its('body')
+          .should('have.length', 7)
+          .its('0.name')
+          .should('equal', 'Cat 1');
+      });
+    });
+
+    describe('Tests mock path policy', () => {
+      after(() => cy.teardownApi(mockPolicyApi));
+
+      it('should get a mocked response when trying to reach API endpoint', () => {
+        requestGateway({ url: `${Cypress.env('gatewayServer')}${mockPolicyApi.context_path}/pet/findByStatus?status=available` })
+          .its('body.category.name')
+          .should('equal', 'Mocked string');
+      });
+    });
+
+    describe('Tests JSON-Validation path policy', () => {
+      after(() => cy.teardownApi(jsonValidationPolicyApi));
+
+      it('should fail with BAD REQUEST (400) when sending data using an invalid JSON schema', () => {
+        requestGateway(
+          {
+            url: `${Cypress.env('gatewayServer')}${jsonValidationPolicyApi.context_path}/pet`,
+            method: 'PUT',
+            body: {
+              invalidProperty: 'invalid value',
+            },
+          },
+          {
+            validWhen: (response) => response.status === 400,
+          },
+        ).should((response) => {
+          expect(response.body.message).to.equal('Bad Request');
+        });
+      });
+
+      it('should successfully connect to API endpoint if JSON schema is valid', () => {
+        const body = {
+          id: 2,
+          category: {
+            id: 0,
+            name: 'string',
+          },
+          name: 'doggie',
+          photoUrls: ['string'],
+          tags: [
+            {
+              id: 0,
+              name: 'string',
+            },
+          ],
+          status: 'available',
+        };
+        requestGateway(
+          {
+            url: `${Cypress.env('gatewayServer')}${jsonValidationPolicyApi.context_path}/pet`,
+            method: 'PUT',
+            body,
+          },
+          {
+            validWhen: (response) => response.status === 200,
+          },
+        ).should((response) => {
+          expect(response.body.name).to.equal('doggie');
+        });
+      });
+    });
+
+    describe('Tests XML-Validation path policy', () => {
+      after(() => cy.teardownApi(xmlValidationPolicyApi));
+
+      it('should fail with BAD REQUEST (400) when sending data using an invalid XML schema', () => {
+        requestGateway(
+          {
+            url: `${Cypress.env('gatewayServer')}${xmlValidationPolicyApi.context_path}/pet`,
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/xml',
+            },
+            body: {
+              invalidProperty: 'invalid value',
+            },
+          },
+          {
+            validWhen: (response) => response.status === 400,
+          },
+        ).should((response) => {
+          expect(response.body.message).to.equal('Bad Request');
+        });
+      });
+
+      // test not working yet, needs investigation to figure out if there's an issue with the gateway
+      it.skip('should successfully connect to API endpoint if XML schema is valid', () => {
+        const body = `<?xml version="1.0" encoding="UTF-8"?><Pet><id>2</id><Category><id>0</id><name>string</name></Category><name>Cat 9</name><photoUrls><photoUrl>string</photoUrl></photoUrls><tags><Tag><id>0</id><name>string</name></Tag></tags><status>available</status></Pet>`;
+        requestGateway(
+          {
+            url: `${Cypress.env('gatewayServer')}${xmlValidationPolicyApi.context_path}/pet`,
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/xml',
+            },
+            body,
+          },
+          {
+            validWhen: (response) => response.status === 200,
+          },
+        ).should((response) => {
+          expect(response.body.name).to.equal('Cat 9');
+        });
       });
     });
   });
