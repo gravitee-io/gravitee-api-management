@@ -156,3 +156,23 @@ export interface ApiImportMetadata {
   defaultValue?: string;
   apiId?: string;
 }
+
+export enum ImportSwaggerDescriptorEntityFormat {
+  WSDL = 'WSDL',
+  API = 'API',
+}
+
+export enum ImportSwaggerDescriptorEntityType {
+  INLINE = 'INLINE',
+  URL = 'URL',
+}
+
+export interface ImportSwaggerDescriptorEntity {
+  format: ImportSwaggerDescriptorEntityFormat;
+  type: ImportSwaggerDescriptorEntityType;
+  payload: string;
+  with_documentation: boolean;
+  with_path_mapping: boolean;
+  with_policy_paths: boolean;
+  with_policies: string[];
+}
