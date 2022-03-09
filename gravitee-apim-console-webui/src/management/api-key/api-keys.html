@@ -16,7 +16,7 @@
 
 -->
 <h2>{{ $ctrl.getTitle() }}</h2>
-<div class="gv-form-content" layout="column">
+<div id="api-keys" class="gv-form-content" layout="column">
   <md-table-container>
     <table md-table>
       <thead md-head>
@@ -29,8 +29,8 @@
       </thead>
       <tbody md-body>
         <tr md-row ng-repeat="key in $ctrl.keys | orderBy:['-revoked_at','-expire_at','created_at'] track by key.key ">
-          <td md-cell style="line-height: 30px">
-            <ng-md-icon icon="{{key.revoked?'clear':'done'}}" ng-style="{'fill': key.revoked ? '#BE2628':'#107F20'}"></ng-md-icon>
+          <td md-cell class="api-key-cell">
+            <ng-md-icon icon="{{key.revoked?'clear':'done'}}" ng-class="key.revoked ? 'revoked-icon' : 'active-icon'"></ng-md-icon>
             <code>{{key.key}}</code>
             <span ng-if="!key.revoked && $ctrl.areKeysEditable()">
               <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
@@ -49,9 +49,9 @@
             <span ng-if="!key.revoked && $ctrl.areKeysEditable()">
               <md-tooltip md-direction="left">Revoke</md-tooltip>
               <ng-md-icon
+                class="revoke-icon"
                 permission
                 permission-only="'api-subscription-u'"
-                style="top: 0"
                 icon="not_interested"
                 ng-click="$ctrl.revokeApiKey(key)"
               ></ng-md-icon>
@@ -70,7 +70,7 @@
     ng-if="$ctrl.areKeysEditable()"
   >
     <md-button class="md-raised md-primary" ng-click="$ctrl.renewApiKey()">
-      <ng-md-icon icon="autorenew" style="fill: white"></ng-md-icon>
+      <ng-md-icon class="renew-icon" icon="autorenew"></ng-md-icon>
       Renew API Key
     </md-button>
   </div>
