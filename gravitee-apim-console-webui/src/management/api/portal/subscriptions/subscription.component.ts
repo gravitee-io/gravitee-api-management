@@ -173,13 +173,14 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       this.$mdDialog
         .show({
           controller: 'DialogSubscriptionAcceptController',
-          controllerAs: 'dialogSubscriptionAcceptController',
+          controllerAs: '$ctrl',
           template: require('./dialog/subscription.accept.dialog.html'),
           clickOutsideToClose: true,
           locals: {
             apiId: this.api.id,
             applicationId: this.subscription.application.id,
             canUseCustomApiKey: this.canUseCustomApiKey,
+            sharedMode: this.hasSharedApiKeyMode,
           },
         })
         .then((subscription) => {

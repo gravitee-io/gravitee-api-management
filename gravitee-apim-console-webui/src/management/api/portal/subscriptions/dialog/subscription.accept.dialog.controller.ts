@@ -14,33 +14,43 @@
  * limitations under the License.
  */
 import moment from 'moment';
+import * as angular from "angular";
 
-function DialogSubscriptionAcceptController($scope, $mdDialog, locals) {
-  'ngInject';
+class DialogSubscriptionAcceptController {
+  private now: Date;
+  private startingAt: Date;
+  private endingAt: Date;
+  private customApiKey: string;
+  private reason: string;
 
-  $scope.now = moment().toDate();
-  $scope.canUseCustomApiKey = locals.canUseCustomApiKey;
-  $scope.apiId = locals.apiId;
-  $scope.applicationId = locals.applicationId;
+  constructor(
+    private apiId: string,
+    private applicationId: string,
+    private canUseCustomApiKey: boolean,
+    private sharedMode: boolean,
+    private $mdDialog: angular.material.IDialogService
+  ) {
+    'ngInject';
+    this.now = moment().toDate();
+  }
 
-  this.customApiKey = null;
+  hide() {
+    this.$mdDialog.cancel();
+  }
 
-  this.hide = function () {
-    $mdDialog.cancel();
-  };
-
-  this.save = function () {
-    $mdDialog.hide({
-      starting_at: $scope.starting_at,
-      ending_at: $scope.ending_at,
-      reason: $scope.reason,
+  save() {
+    this.$mdDialog.hide({
+      starting_at: this.startingAt,
+      ending_at: this.endingAt,
+      reason: this.reason,
       customApiKey: this.customApiKey,
     });
-  };
+  }
 
-  this.onApiKeyValueChange = (customApiKey) => {
-    this.customApiKey = customApiKey;
-  };
+  onApiKeyValueChange(apiKeyValue: string) {
+    this.customApiKey = apiKeyValue;
+  }
+
 }
 
 export default DialogSubscriptionAcceptController;
