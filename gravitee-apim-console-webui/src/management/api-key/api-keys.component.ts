@@ -19,7 +19,6 @@ const ApiKeysComponent: ng.IComponentOptions = {
     application: '<',
     subscription: '<',
     api: '<',
-    listLabel: '<',
     listEvent: '<',
   },
   template: require('./api-keys.html'),

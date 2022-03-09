@@ -24,7 +24,6 @@ class ApiKeysController {
   private subscription: any;
   private keys: any[];
   private application: any;
-  private listLabel: string;
   private listEvent: Observable<void>;
   private backStateParams: StateParams;
 
@@ -83,6 +82,10 @@ class ApiKeysController {
     return (this.subscription && this.subscription.status === 'ACCEPTED') || this.application.api_key_mode === 'SHARED';
   }
 
+  isSharedApiKey(): boolean {
+    return this.application.api_key_mode === 'SHARED';
+  }
+
   revokeApiKey(apiKey): void {
     this.$mdDialog
       .show({
@@ -108,6 +111,10 @@ class ApiKeysController {
   onCopyApiKeySuccess(e): void {
     this.NotificationService.show('API Key has been copied to clipboard');
     e.clearSelection();
+  }
+
+  getTitle(): string {
+    return this.isSharedApiKey() ? 'Shared API Key' : 'API Keys';
   }
 }
 
