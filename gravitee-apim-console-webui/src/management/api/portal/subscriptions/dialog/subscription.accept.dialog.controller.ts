@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import moment from 'moment';
-import * as angular from "angular";
+import * as angular from 'angular';
 
 class DialogSubscriptionAcceptController {
   private now: Date;
@@ -27,8 +27,8 @@ class DialogSubscriptionAcceptController {
     private apiId: string,
     private applicationId: string,
     private canUseCustomApiKey: boolean,
-    private sharedMode: boolean,
-    private $mdDialog: angular.material.IDialogService
+    private sharedApiKeyMode: boolean,
+    private $mdDialog: angular.material.IDialogService,
   ) {
     'ngInject';
     this.now = moment().toDate();
@@ -50,7 +50,6 @@ class DialogSubscriptionAcceptController {
   onApiKeyValueChange(apiKeyValue: string) {
     this.customApiKey = apiKeyValue;
   }
-
 }
 
 export default DialogSubscriptionAcceptController;

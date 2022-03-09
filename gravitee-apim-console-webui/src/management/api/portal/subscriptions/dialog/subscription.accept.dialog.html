@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Define dates for the subscription">
+<md-dialog aria-label="Define dates for the subscription" class="accept-subscription-dialog">
   <md-dialog-content layout-padding>
     <form name="SubscriptionForm" ng-submit="$event.preventDefault()">
       <h4>Accept subscription</h4>
@@ -36,7 +36,7 @@
             <textarea ng-model="$ctrl.reason" aria-label="Reason"></textarea>
           </div>
         </md-input-container>
-        <div ng-if="$ctrl.canUseCustomApiKey">
+        <div ng-if="$ctrl.canUseCustomApiKey && !$ctrl.sharedApiKeyMode">
           <h5 style="margin-bottom: 20px">This plan allows custom API keys. You can provide it here.</h5>
           <div>
             <api-key-validated-input
@@ -53,10 +53,6 @@
 
   <md-dialog-actions layout="row">
     <md-button ng-click="$ctrl.hide()">Cancel</md-button>
-    <md-button
-      class="md-raised md-primary"
-      ng-click="$ctrl.save()"
-      ng-disabled="SubscriptionForm.$invalid">Accept</md-button
-    >
+    <md-button class="md-raised md-primary" ng-click="$ctrl.save()" ng-disabled="SubscriptionForm.$invalid">Accept</md-button>
   </md-dialog-actions>
 </md-dialog>
