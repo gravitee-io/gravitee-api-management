@@ -101,11 +101,6 @@
     ng-if="$ctrl.subscription.status === 'PENDING' && $ctrl.keys.length > 0
           || $ctrl.subscription.status !== 'PENDING' && $ctrl.subscription.status !== 'REJECTED' && $ctrl.subscription.plan.security === 'API_KEY'"
   >
-    <api-keys
-      list-label="'API Keys'"
-      list_event="$ctrl.$listApiKeysEvent"
-      application="$ctrl.application"
-      subscription="$ctrl.subscription"
-    />
+    <api-keys list_event="$ctrl.$listApiKeysEvent" application="$ctrl.application" subscription="$ctrl.subscription" />
   </div>
 </div>
