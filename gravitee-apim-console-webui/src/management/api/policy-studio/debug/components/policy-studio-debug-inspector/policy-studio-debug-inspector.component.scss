@@ -41,12 +41,13 @@ $typography: map.get(gio.$mat-theme, typography);
       &__title {
         display: flex;
         height: 50px;
-        padding: 16px;
+        padding: 16px 0;
 
         @include mat.typography-level($typography, 'body-2');
 
         > * {
           flex: 1;
+          padding: 0 8px;
         }
       }
 
