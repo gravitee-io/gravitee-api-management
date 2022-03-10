@@ -165,8 +165,13 @@
     ng-if="$ctrl.subscription.status === 'PENDING' && $ctrl.keys.length > 0
        || $ctrl.subscription.status !== 'PENDING' && $ctrl.subscription.status !== 'REJECTED' && $ctrl.subscription.plan.security === 'API_KEY'"
   >
-    <h2>Api Keys</h2>
+    <h2>{{$ctrl.apiKeysTitle}}</h2>
     <div class="gv-form-content" layout="column">
+      <ng-banner ng-if="$ctrl.hasSharedApiKeyMode">
+        This subscription uses a shared API key.<br />
+        You can renew or revoke the shared API key at the application level.
+      </ng-banner>
+
       <md-table-container>
         <table md-table>
           <thead md-head>
@@ -199,7 +204,7 @@
               <td md-cell>{{key.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
               <td md-cell>{{key.revoked_at || key.expire_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
               <td md-cell>
-                <span ng-if="$ctrl.isValid(key) && $ctrl.subscription.status === 'ACCEPTED'">
+                <span ng-if="!$ctrl.hasSharedApiKeyMode && $ctrl.isValid(key) && $ctrl.subscription.status === 'ACCEPTED'">
                   <md-tooltip md-direction="left">Revoke</md-tooltip>
                   <ng-md-icon
                     permission
@@ -209,7 +214,7 @@
                     ng-click="$ctrl.revokeApiKey(key)"
                   ></ng-md-icon>
                 </span>
-                <span ng-if="$ctrl.isValid(key) && $ctrl.subscription.status === 'ACCEPTED'">
+                <span ng-if="!$ctrl.hasSharedApiKeyMode && $ctrl.isValid(key) && $ctrl.subscription.status === 'ACCEPTED'">
                   <md-tooltip md-direction="left">Set expiration date</md-tooltip>
                   <ng-md-icon
                     permission
@@ -219,7 +224,9 @@
                     ng-click="$ctrl.expireApiKey(key)"
                   ></ng-md-icon>
                 </span>
-                <span ng-if="!$ctrl.isValid(key) && ($ctrl.subscription.status === 'ACCEPTED' || $ctrl.subscription.status === 'PAUSED')">
+                <span
+                  ng-if="!$ctrl.hasSharedApiKeyMode && !$ctrl.isValid(key) && ($ctrl.subscription.status === 'ACCEPTED' || $ctrl.subscription.status === 'PAUSED')"
+                >
                   <md-tooltip md-direction="left">Reactivate</md-tooltip>
                   <ng-md-icon
                     permission
@@ -240,7 +247,7 @@
         layout="row"
         permission
         permission-only="'api-subscription-u'"
-        ng-if="$ctrl.subscription.status === 'ACCEPTED'"
+        ng-if="!$ctrl.hasSharedApiKeyMode && $ctrl.subscription.status === 'ACCEPTED'"
       >
         <md-button class="md-raised md-primary" ng-click="$ctrl.renewApiKey()">
           <ng-md-icon icon="autorenew" style="fill: white"></ng-md-icon>

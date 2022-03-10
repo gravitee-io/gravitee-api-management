@@ -19,6 +19,7 @@ import * as _ from 'lodash';
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
+import { ApiKeyMode } from '../../../../entities/application/application';
 
 const ApiSubscriptionComponent: ng.IComponentOptions = {
   bindings: {
@@ -341,6 +342,14 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
 
     isValid(key) {
       return !key.revoked && !key.expired;
+    }
+
+    get hasSharedApiKeyMode(): boolean {
+      return this.subscription?.application?.apiKeyMode === ApiKeyMode.SHARED;
+    }
+
+    get apiKeysTitle(): string {
+      return this.hasSharedApiKeyMode ? 'Shared API Key' : 'API Keys';
     }
 
     private getApiPlans() {
