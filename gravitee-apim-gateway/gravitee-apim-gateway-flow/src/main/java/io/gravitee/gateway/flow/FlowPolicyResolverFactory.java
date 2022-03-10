@@ -15,7 +15,11 @@
  */
 package io.gravitee.gateway.flow;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.node.api.cache.Cache;
+import io.gravitee.node.api.cache.CacheConfiguration;
+import io.gravitee.node.cache.standalone.StandaloneCache;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -23,7 +27,26 @@ import io.gravitee.definition.model.flow.Flow;
  */
 public class FlowPolicyResolverFactory {
 
+    public static final long CACHE_MAX_SIZE = 15;
+    public static final long CACHE_TIME_TO_IDLE = 3600;
+
+    @VisibleForTesting
+    final Cache<Flow, FlowPolicyResolver> cache;
+
+    public FlowPolicyResolverFactory() {
+        final CacheConfiguration cacheConfiguration = new CacheConfiguration();
+        cacheConfiguration.setMaxSize(CACHE_MAX_SIZE);
+        cacheConfiguration.setTimeToIdleSeconds(CACHE_TIME_TO_IDLE);
+        cache = new StandaloneCache<>("flowPolicyResolverFactoryCache", cacheConfiguration);
+    }
+
     public FlowPolicyResolver create(Flow flow, FlowResolver flowResolver) {
-        return new FlowPolicyResolver(flow, flowResolver);
+        FlowPolicyResolver cachedFlow = cache.get(flow);
+        if (cachedFlow == null) {
+            final FlowPolicyResolver flowPolicyResolver = new FlowPolicyResolver(flow, flowResolver);
+            cache.put(flow, flowPolicyResolver);
+            cachedFlow = flowPolicyResolver;
+        }
+        return cachedFlow;
     }
 }

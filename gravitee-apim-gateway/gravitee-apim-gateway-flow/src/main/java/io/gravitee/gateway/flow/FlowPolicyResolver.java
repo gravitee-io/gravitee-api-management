@@ -15,12 +15,16 @@
  */
 package io.gravitee.gateway.flow;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.flow.policy.PolicyResolver;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.node.api.cache.Cache;
+import io.gravitee.node.api.cache.CacheConfiguration;
+import io.gravitee.node.cache.standalone.StandaloneCache;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,12 +35,23 @@ import java.util.stream.Collectors;
  */
 public class FlowPolicyResolver implements PolicyResolver {
 
+    public static final long CACHE_MAX_SIZE = 15;
+    public static final long CACHE_TIME_TO_IDLE = 3600;
+
     private final Flow flow;
     private final FlowResolver flowResolver;
+
+    @VisibleForTesting
+    final Cache<Step, PolicyMetadata> cache;
 
     public FlowPolicyResolver(Flow flow, FlowResolver flowResolver) {
         this.flow = flow;
         this.flowResolver = flowResolver;
+
+        final CacheConfiguration cacheConfiguration = new CacheConfiguration();
+        cacheConfiguration.setMaxSize(CACHE_MAX_SIZE);
+        cacheConfiguration.setTimeToIdleSeconds(CACHE_TIME_TO_IDLE);
+        cache = new StandaloneCache<>("flowPolicyResolverCache", cacheConfiguration);
     }
 
     @Override
@@ -51,20 +66,18 @@ public class FlowPolicyResolver implements PolicyResolver {
         // TODO: Used by some policies (ie. rate-limit / quota)
         context.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, flow.getPath());
 
-        return steps
-            .stream()
-            .filter(Step::isEnabled)
-            .map(
-                step -> {
-                    final PolicyMetadata policyMetadata = new PolicyMetadata(
-                        step.getPolicy(),
-                        step.getConfiguration(),
-                        step.getCondition()
-                    );
-                    policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, flowResolver.stage());
-                    return policyMetadata;
-                }
-            )
-            .collect(Collectors.toList());
+        return steps.stream().filter(Step::isEnabled).map(this::createOrGetCachePolicyMetadata).collect(Collectors.toList());
+    }
+
+    private PolicyMetadata createOrGetCachePolicyMetadata(Step step) {
+        PolicyMetadata cachedPolicyMetadata = cache.get(step);
+        if (cachedPolicyMetadata == null) {
+            final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
+            policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, flowResolver.stage());
+            cache.put(step, policyMetadata);
+            cachedPolicyMetadata = policyMetadata;
+        }
+
+        return cachedPolicyMetadata;
     }
 }
