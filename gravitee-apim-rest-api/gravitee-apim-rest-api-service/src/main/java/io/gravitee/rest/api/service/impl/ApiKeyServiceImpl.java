@@ -144,7 +144,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             // add all subscriptions to the new key
             addSharedSubscriptions(allApiKeys, newApiKey);
 
-            return convert(newApiKey);
+            ApiKeyEntity newApiKeyEntity = convert(newApiKey);
+            createAuditLog(newApiKeyEntity, null, APIKEY_RENEWED, newApiKey.getCreatedAt());
+            return newApiKeyEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to renew an API Key for application {}", application.getId(), ex);
             throw new TechnicalManagementException(
@@ -604,16 +606,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     private void createAuditLog(ApiKeyEntity key, ApiKey previousApiKey, ApiKey.AuditEvent event, Date eventDate) {
-        if (key.getApplication() != null && !key.getApplication().hasApiKeySharedMode()) {
-            SubscriptionEntity subscription = key.getSubscriptions().iterator().next();
-
-            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-            properties.put(API_KEY, key.getKey());
-            properties.put(API, subscription.getApi());
-            properties.put(APPLICATION, key.getApplication().getId());
-
-            auditService.createApiAuditLog(subscription.getApi(), properties, event, eventDate, previousApiKey, key);
-        }
+        key
+            .getSubscriptions()
+            .forEach(
+                subscription -> {
+                    Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+                    properties.put(API_KEY, key.getKey());
+                    properties.put(API, subscription.getApi());
+                    properties.put(APPLICATION, key.getApplication().getId());
+                    auditService.createApiAuditLog(subscription.getApi(), properties, event, eventDate, previousApiKey, key);
+                }
+            );
     }
 
     private void triggerNotifierService(ApiHook apiHook, ApiKey key) {
