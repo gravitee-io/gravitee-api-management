@@ -19,6 +19,7 @@ LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
 ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions
+ARG GRAVITEEIO_PACKAGE_NAME=graviteeio-full
 
 ENV CONFD_VERSION="0.16.0"
 ENV CONFD_URL="https://github.com/kelseyhightower/confd/releases/download"
@@ -28,8 +29,8 @@ ENV WWW_TARGET /usr/share/nginx/html
 RUN apk update \
   && apk add --update --no-cache zip unzip netcat-openbsd wget \
   && apk add --upgrade --no-cache libgcrypt \
-  && wget ${GRAVITEEIO_DOWNLOAD_URL}/graviteeio-full-${GRAVITEEIO_VERSION}.zip -P /tmp \
-  && unzip /tmp/graviteeio-full-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
+  && wget ${GRAVITEEIO_DOWNLOAD_URL}/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip -P /tmp \
+  && unzip /tmp/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
   && apk del zip unzip netcat-openbsd wget \
   && cp -fr /tmp/graviteeio-full-${GRAVITEEIO_VERSION}/graviteeio-apim-portal-ui-${GRAVITEEIO_VERSION}/* ${WWW_TARGET} \
   && rm -rf /tmp/* \
