@@ -52,7 +52,7 @@ public class DebugStepDeserializer extends StdScalarDeserializer<DebugStep> {
             Map<String, Object> result = resultNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, Object>>() {});
             debugStep.setResult(result);
         }
-
+        debugStep.setStage(readStringValue(node, "stage"));
         return debugStep;
     }
 

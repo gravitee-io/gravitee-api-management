@@ -76,6 +76,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(step1.getStatus(), DebugStepStatus.COMPLETED);
         assertEquals(step1.getScope(), PolicyScope.ON_REQUEST);
         assertEquals(step1.getResult().size(), 1);
+        assertEquals(step1.getStage(), "SECURITY");
 
         final Map<String, Object> attributes = (Map<String, Object>) step1.getResult().get("attributes");
         assertEquals(attributes.size(), 6);
@@ -94,6 +95,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(step2.getStatus(), DebugStepStatus.COMPLETED);
         assertEquals(step2.getScope(), PolicyScope.ON_REQUEST);
         assertEquals(step2.getResult().size(), 1);
+        assertEquals(step2.getStage(), "PLAN");
 
         final Map<String, String> headers = (Map<String, String>) step2.getResult().get("headers");
         assertEquals(headers.size(), 5);

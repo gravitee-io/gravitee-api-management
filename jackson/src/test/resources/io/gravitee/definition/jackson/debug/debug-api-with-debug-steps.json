@@ -79,7 +79,8 @@
           "gravitee.attribute.api": "62710ef2-83bc-4007-b10e-f283bce00763",
           "gravitee.attribute.gravitee.attribute.plan.selection.rule.based": "false"
         }
-      }
+      },
+      "stage": "SECURITY"
     },
     {
       "policyInstanceId": "23ab1ad0-bff0-43a4-ab1a-d0bff013a41e",
@@ -106,7 +107,8 @@
             "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
           ]
         }
-      }
+      },
+      "stage": "PLAN"
     },
     {
       "policyInstanceId": "6cc8867b-91da-49d0-8886-7b91da79d041",
@@ -135,7 +137,8 @@
             "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
           ]
         }
-      }
+      },
+      "stage": "API"
     },
     {
       "policyInstanceId": "f764a3c9-8dc1-4bfd-a4a3-c98dc19bfd82",
@@ -165,7 +168,8 @@
           ]
         },
         "body": "{\n\"requestbody\": \"my bodyyyyy\"\n}"
-      }
+      },
+      "stage": "API"
     },
     {
       "policyInstanceId": "66b3b532-a907-404f-b3b5-32a907204fae",
@@ -197,7 +201,8 @@
             "application/json"
           ]
         }
-      }
+      },
+      "stage": "PLAN"
     },
     {
       "policyInstanceId": "dbc5045e-dda1-4779-8504-5edda177798b",
@@ -205,7 +210,8 @@
       "scope": "ON_RESPONSE",
       "status": "COMPLETED",
       "duration": 45998,
-      "result": {}
+      "result": {},
+      "stage": "PLATFORM"
     },
     {
       "policyInstanceId": "810bd86e-b277-4871-8bd8-6eb27708716b",
@@ -238,7 +244,8 @@
           ]
         },
         "body": "{\"message\": \"first execution of assign content\"}"
-      }
+      },
+      "stage": "PLATFORM"
     },
     {
       "policyInstanceId": "e25cdb29-e580-4078-9cdb-29e58010783f",
@@ -271,7 +278,8 @@
           ]
         },
         "body": "{\n\"message\": \"new response\"\n}"
-      }
+      },
+      "stage": "PLATFORM"
     },
     {
       "policyInstanceId": "dbc5045e-dda1-4779-8504-5edda177798b",
@@ -290,7 +298,8 @@
           "gravitee.attribute.resolved-path": "/",
           "gravitee.attribute.gravitee.attribute.plan.selection.rule.based": "false"
         }
-      }
+      },
+      "stage": "PLATFORM"
     }
   ]
 }

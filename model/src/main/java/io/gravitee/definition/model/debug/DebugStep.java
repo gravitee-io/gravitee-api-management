@@ -52,6 +52,12 @@ public class DebugStep {
     private PolicyScope scope;
 
     /**
+     * Where the policy has been configured.
+     * SECURITY | PLATFORM | PLAN | FLOW
+     */
+    private String stage;
+
+    /**
      * A map containing only the headers, body, path, params, etc. that were modified during this step
      */
     private Map<String, Object> result = new HashMap<>();
@@ -102,5 +108,13 @@ public class DebugStep {
 
     public void setResult(Map<String, Object> result) {
         this.result = result;
+    }
+
+    public String getStage() {
+        return stage;
+    }
+
+    public void setStage(String stage) {
+        this.stage = stage;
     }
 }

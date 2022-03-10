@@ -63,6 +63,10 @@ public class DebugStepSerializer extends StdScalarSerializer<DebugStep> {
             }
             jgen.writeEndObject();
         }
+
+        if (debugStep.getStage() != null) {
+            jgen.writeStringField("stage", debugStep.getStage());
+        }
         jgen.writeEndObject();
     }
 }
