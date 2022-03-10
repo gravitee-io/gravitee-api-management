@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.cache.task;
 
+import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 import static java.util.stream.Collectors.*;
 
 import io.gravitee.gateway.handlers.api.definition.ApiKey;
@@ -27,7 +28,7 @@ import io.gravitee.repository.management.model.Subscription;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,7 @@ public abstract class ApiKeyRefresher implements Callable<Result<Boolean>> {
     }
 
     protected void saveOrUpdate(ApiKey apiKey) {
-        if (apiKey.isRevoked() || apiKey.isPaused()) {
+        if (apiKey.isRevoked() || apiKey.isPaused() || apiKey.getSubscriptionStatus() != ACCEPTED) {
             cache.remove(apiKey);
         } else {
             cache.put(apiKey);
@@ -80,18 +81,24 @@ public abstract class ApiKeyRefresher implements Callable<Result<Boolean>> {
         List<io.gravitee.repository.management.model.ApiKey> apiKeys = apiKeyRepository.findByCriteria(criteria);
         Map<String, Subscription> subscriptionsById = findSubscriptions(apiKeys);
 
-        return apiKeys
-            .stream()
-            .flatMap(
-                apiKey ->
-                    apiKey.getSubscriptions().stream().map(subscriptionId -> new ApiKey(apiKey, subscriptionsById.get(subscriptionId)))
-            )
-            .collect(Collectors.toList());
+        return apiKeys.stream().flatMap(apiKey -> this.getApiKeysDefinitionsFromModel(apiKey, subscriptionsById)).collect(toList());
     }
 
     private Map<String, Subscription> findSubscriptions(List<io.gravitee.repository.management.model.ApiKey> apiKeys)
         throws TechnicalException {
         Set<String> subscriptionIds = apiKeys.stream().flatMap(key -> key.getSubscriptions().stream()).collect(toSet());
         return subscriptionRepository.findByIdIn(subscriptionIds).stream().collect(toMap(Subscription::getId, Function.identity()));
+    }
+
+    private Stream<ApiKey> getApiKeysDefinitionsFromModel(
+        io.gravitee.repository.management.model.ApiKey apiKey,
+        Map<String, Subscription> subscriptionsById
+    ) {
+        return apiKey
+            .getSubscriptions()
+            .stream()
+            .map(subscriptionsById::get)
+            .filter(Objects::nonNull)
+            .map(subscription -> new ApiKey(apiKey, subscription));
     }
 }
