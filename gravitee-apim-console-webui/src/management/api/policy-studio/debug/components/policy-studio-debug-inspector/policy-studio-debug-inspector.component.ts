@@ -150,15 +150,10 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
-  private toErrorNode(key: string): Node {
-    const input = this.inputDebugStep.output[key];
-    const output = this.outputDebugStep.output[key];
-    const name = key.replace('error.', '');
+  private toErrorNode(errors: { key: string; value: any }[]): Node {
     return {
-      name,
       type: 'error',
-      input,
-      output,
+      input: errors,
     };
   }
 
@@ -203,13 +198,13 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     const errors = keys
       .filter((key) => key.startsWith('error.'))
       .sort(this.sort)
-      .map((key) => this.toErrorNode(key));
+      .map((key) => ({ key, value: this.inputDebugStep.output[key] ?? this.outputDebugStep.output[key] }));
     const errorTreeNodes = [];
     if (errors.length > 0) {
       errorTreeNodes.push({
         name: 'Errors',
         type: 'error',
-        children: errors,
+        children: [this.toErrorNode(errors)],
       });
     }
 
