@@ -23,6 +23,7 @@ import io.gravitee.gateway.debug.handlers.api.DebugApiContextHandlerFactory;
 import io.gravitee.gateway.debug.platform.manager.DebugOrganizationManager;
 import io.gravitee.gateway.debug.policy.impl.PolicyDebugDecoratorFactoryCreator;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
+import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -138,7 +139,7 @@ public class DebugConfiguration {
         @Qualifier("debugFlowResolver") FlowResolver flowResolver,
         @Qualifier("debugPlatformPolicyChainFactory") PolicyChainFactory policyChainFactory
     ) {
-        return new OnRequestPlatformPolicyChainProvider(flowResolver, policyChainFactory);
+        return new OnRequestPlatformPolicyChainProvider(flowResolver, policyChainFactory, new FlowPolicyResolverFactory());
     }
 
     @Bean
@@ -147,7 +148,7 @@ public class DebugConfiguration {
         @Qualifier("debugFlowResolver") FlowResolver flowResolver,
         @Qualifier("debugPlatformPolicyChainFactory") PolicyChainFactory policyChainFactory
     ) {
-        return new OnResponsePlatformPolicyChainProvider(flowResolver, policyChainFactory);
+        return new OnResponsePlatformPolicyChainProvider(flowResolver, policyChainFactory, new FlowPolicyResolverFactory());
     }
 
     @Bean

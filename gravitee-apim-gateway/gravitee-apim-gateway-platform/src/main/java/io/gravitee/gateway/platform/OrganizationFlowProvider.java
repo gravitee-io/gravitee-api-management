@@ -21,7 +21,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.EmptyStreamableProcessor;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
-import io.gravitee.gateway.flow.FlowPolicyResolver;
+import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.FlowProvider;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
@@ -39,17 +39,19 @@ public class OrganizationFlowProvider implements FlowProvider {
     private final StreamType streamType;
 
     private final FlowResolver flowResolver;
-
-    private PolicyChainFactory policyChainFactory;
+    private final FlowPolicyResolverFactory flowPolicyResolverFactory;
+    private final PolicyChainFactory policyChainFactory;
 
     public OrganizationFlowProvider(
         final StreamType streamType,
         final FlowResolver flowResolver,
-        final PolicyChainFactory policyChainFactory
+        final PolicyChainFactory policyChainFactory,
+        FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
         this.streamType = streamType;
         this.flowResolver = flowResolver;
         this.policyChainFactory = policyChainFactory;
+        this.flowPolicyResolverFactory = flowPolicyResolverFactory;
     }
 
     @Override
@@ -62,7 +64,7 @@ public class OrganizationFlowProvider implements FlowProvider {
             for (Flow flow : flows) {
                 chain.add(
                     policyChainFactory.create(
-                        new FlowPolicyResolver(flow).resolve(streamType, context),
+                        flowPolicyResolverFactory.create(flow, flowResolver).resolve(streamType, context),
                         streamType,
                         context,
                         policies ->

@@ -24,6 +24,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStepFactory;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.ConditionalExecutablePolicy;
 import io.gravitee.policy.api.PolicyChain;
@@ -36,11 +37,13 @@ public class PolicyDebugDecorator implements Policy {
 
     private final StreamType streamType;
     private final Policy policy;
+    private PolicyMetadata policyMetadata;
     private final String uuid;
 
-    public PolicyDebugDecorator(StreamType streamType, Policy policy) {
+    public PolicyDebugDecorator(StreamType streamType, Policy policy, PolicyMetadata policyMetadata) {
         this.streamType = streamType;
         this.policy = policy;
+        this.policyMetadata = policyMetadata;
         this.uuid = new UUID().randomString();
     }
 
@@ -53,7 +56,7 @@ public class PolicyDebugDecorator implements Policy {
     public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
         DebugExecutionContext debugContext = (DebugExecutionContext) context;
 
-        DebugStep<?> debugStep = DebugStepFactory.createExecuteDebugStep(policy.id(), streamType, uuid);
+        DebugStep<?> debugStep = DebugStepFactory.createExecuteDebugStep(policy.id(), streamType, uuid, policyMetadata);
         final DebugPolicyChain debugPolicyChain = new DebugPolicyChain(chain, debugStep, debugContext);
 
         final Policy policy = computeConditionalPolicy(debugStep);
@@ -70,7 +73,7 @@ public class PolicyDebugDecorator implements Policy {
     @Override
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
         DebugExecutionContext debugContext = (DebugExecutionContext) context;
-        DebugStep<?> debugStep = DebugStepFactory.createStreamDebugStep(policy.id(), streamType, uuid);
+        DebugStep<?> debugStep = DebugStepFactory.createStreamDebugStep(policy.id(), streamType, uuid, policyMetadata);
 
         final Policy policy = computeConditionalPolicy(debugStep);
 

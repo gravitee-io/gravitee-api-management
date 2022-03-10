@@ -78,13 +78,12 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
                                 logger.error("Unexpected error while loading authentication policy", ex);
                             }
                         } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
-                            return create(
-                                StreamType.ON_REQUEST,
-                                new PolicyMetadata(
-                                    ((PluginAuthenticationPolicy) securityPolicy).name(),
-                                    ((PluginAuthenticationPolicy) securityPolicy).configuration()
-                                )
+                            final PolicyMetadata policyMetadata = new PolicyMetadata(
+                                ((PluginAuthenticationPolicy) securityPolicy).name(),
+                                ((PluginAuthenticationPolicy) securityPolicy).configuration()
                             );
+                            policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, "SECURITY");
+                            return create(StreamType.ON_REQUEST, policyMetadata);
                         }
 
                         return null;

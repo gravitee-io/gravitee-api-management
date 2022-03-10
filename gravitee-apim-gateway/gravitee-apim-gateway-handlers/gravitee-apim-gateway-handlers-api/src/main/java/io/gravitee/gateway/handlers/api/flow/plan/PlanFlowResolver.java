@@ -19,6 +19,7 @@ import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
+import io.gravitee.gateway.flow.FlowStage;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import java.util.List;
@@ -41,5 +42,10 @@ public class PlanFlowResolver extends ConditionalFlowResolver {
         Plan plan = api.getPlan(context.request().metrics().getPlan());
 
         return (plan != null) ? plan.getFlows() : null;
+    }
+
+    @Override
+    public FlowStage stage() {
+        return FlowStage.PLAN;
     }
 }

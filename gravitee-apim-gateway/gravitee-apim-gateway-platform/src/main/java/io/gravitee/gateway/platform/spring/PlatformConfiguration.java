@@ -18,7 +18,7 @@ package io.gravitee.gateway.platform.spring;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.flow.FlowResolver;
+import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.platform.OrganizationFlowResolver;
 import io.gravitee.gateway.platform.PlatformPolicyManager;
@@ -64,7 +64,7 @@ public class PlatformConfiguration {
     }
 
     @Bean
-    public FlowResolver flowResolver(OrganizationManager organizationManager) {
+    public OrganizationFlowResolver flowResolver(OrganizationManager organizationManager) {
         return new OrganizationFlowResolver(organizationManager);
     }
 
@@ -75,18 +75,18 @@ public class PlatformConfiguration {
 
     @Bean
     public OnRequestPlatformPolicyChainProvider onRequestPlatformPolicyChainProvider(
-        FlowResolver flowResolver,
+        OrganizationFlowResolver organizationFlowResolver,
         PolicyChainFactory policyChainFactory
     ) {
-        return new OnRequestPlatformPolicyChainProvider(flowResolver, policyChainFactory);
+        return new OnRequestPlatformPolicyChainProvider(organizationFlowResolver, policyChainFactory, new FlowPolicyResolverFactory());
     }
 
     @Bean
     public OnResponsePlatformPolicyChainProvider onResponsePlatformPolicyChainProvider(
-        FlowResolver flowResolver,
+        OrganizationFlowResolver organizationFlowResolver,
         PolicyChainFactory policyChainFactory
     ) {
-        return new OnResponsePlatformPolicyChainProvider(flowResolver, policyChainFactory);
+        return new OnResponsePlatformPolicyChainProvider(organizationFlowResolver, policyChainFactory, new FlowPolicyResolverFactory());
     }
 
     @Bean

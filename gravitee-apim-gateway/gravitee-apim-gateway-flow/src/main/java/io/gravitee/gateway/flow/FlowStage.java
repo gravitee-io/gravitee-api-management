@@ -15,23 +15,14 @@
  */
 package io.gravitee.gateway.flow;
 
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.api.ExecutionContext;
-import java.util.List;
-
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * In which stage the flow is configured
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface FlowResolver {
-    List<Flow> resolve(ExecutionContext context);
-
-    /**
-     * In which stage the flow is configured.
-     * This data is useful to debug or improve logging.
-     * @return the stage of the Flow, see {@link FlowStage}.
-     */
-    default FlowStage stage() {
-        return FlowStage.UNDEFINED;
-    }
+public enum FlowStage {
+    PLATFORM,
+    PLAN,
+    API,
+    UNDEFINED,
 }

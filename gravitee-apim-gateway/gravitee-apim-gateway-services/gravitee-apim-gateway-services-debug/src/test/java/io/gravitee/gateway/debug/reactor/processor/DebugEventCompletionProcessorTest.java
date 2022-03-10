@@ -34,6 +34,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerResponseDebugDecorator;
 import io.gravitee.gateway.http.vertx.VertxHttpServerResponse;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
@@ -73,6 +74,9 @@ public class DebugEventCompletionProcessorTest {
     @Mock
     private Request request;
 
+    @Mock
+    private PolicyMetadata policyMetadata;
+
     private DebugEventCompletionProcessor cut;
 
     @Before
@@ -91,14 +95,16 @@ public class DebugEventCompletionProcessorTest {
             "policy-id",
             StreamType.ON_REQUEST,
             "16415346-a549-4673-871c-3f8227e9bcfa",
-            PolicyScope.ON_REQUEST
+            PolicyScope.ON_REQUEST,
+            policyMetadata
         );
 
         DebugRequestStep step2 = new DebugRequestStep(
             "policy-id-2",
             StreamType.ON_RESPONSE,
             "bdcccd71-f7ef-436e-9ac1-4ab3bff45668",
-            PolicyScope.ON_RESPONSE_CONTENT
+            PolicyScope.ON_RESPONSE_CONTENT,
+            policyMetadata
         );
 
         when(debugExecutionContext.getDebugSteps()).thenReturn(List.of(step1, step2));
