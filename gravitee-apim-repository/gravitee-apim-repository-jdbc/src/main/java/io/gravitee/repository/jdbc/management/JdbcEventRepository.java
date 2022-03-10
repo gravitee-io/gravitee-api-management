@@ -232,8 +232,16 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         );
 
         builder.append(" inner join (select e.id from " + this.tableName + " e ");
-        appendCriteria(builder, criteria, args);
-        builder.append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE).append("e.id in(").append(joinLatest(group, args)).append(")");
+        if (criteria.isStrictMode()) {
+            appendCriteria(builder, criteria, args, "e");
+            builder
+                .append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE)
+                .append("e.id in(")
+                .append(joinLatest(group, criteria, args))
+                .append(")");
+        } else {
+            builder.append(" where e.id in(").append(joinLatest(group, criteria, args)).append(")");
+        }
         builder.append("    order by e.updated_at desc, e.id desc ");
 
         if (page != null && size != null && size > 0) {
@@ -265,7 +273,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
         final List<Object> args = new ArrayList<>();
         final StringBuilder builder = createSearchQueryBuilder();
-        appendCriteria(builder, filter, args);
+        appendCriteria(builder, filter, args, "e");
 
         builder.append(" order by updated_at desc, id desc ");
         return queryEvents(builder.toString(), args);
@@ -307,17 +315,17 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         return builder;
     }
 
-    private void appendCriteria(StringBuilder builder, EventCriteria filter, List<Object> args) {
-        boolean started = addPropertiesWhereClause(filter, args, builder);
+    private void appendCriteria(StringBuilder builder, EventCriteria filter, List<Object> args, String tableAlias) {
+        boolean started = addPropertiesWhereClause(filter, args, builder, tableAlias);
         if (filter.getFrom() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("e.updated_at >= ?");
+            builder.append(tableAlias + ".updated_at >= ?");
             args.add(new Date(filter.getFrom()));
             started = true;
         }
         if (filter.getTo() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("e.updated_at < ?");
+            builder.append(tableAlias + ".updated_at < ?");
             args.add(new Date(filter.getTo()));
             started = true;
         }
@@ -326,13 +334,13 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
         if (!isEmpty(filter.getTypes())) {
             final Collection<String> types = filter.getTypes().stream().map(Enum::name).collect(toList());
-            addStringsWhereClause(types, "e.type", args, builder, started);
+            addStringsWhereClause(types, tableAlias + ".type", args, builder, started);
         }
     }
 
-    private boolean addPropertiesWhereClause(EventCriteria filter, List<Object> args, StringBuilder builder) {
+    private boolean addPropertiesWhereClause(EventCriteria filter, List<Object> args, StringBuilder builder, String tableAlias) {
         if (!isEmpty(filter.getProperties())) {
-            builder.append(" left join " + EVENT_PROPERTIES + " prop on prop.event_id = e.id ");
+            builder.append(" left join " + EVENT_PROPERTIES + " prop on prop.event_id = " + tableAlias + ".id ");
             builder.append(WHERE_CLAUSE);
             builder.append("(");
             boolean first = true;
@@ -354,33 +362,39 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     /**
      * Create a select query that can be used in a join in order to select the latest event of each api or dictionary (eg: group).
      */
-    private StringBuilder joinLatest(Event.EventProperties group, List<Object> args) {
+    private StringBuilder joinLatest(Event.EventProperties group, EventCriteria criteria, List<Object> args) {
         // Add group argument twice as there are 2 inner selects to include.
         args.add(group.getValue());
+        StringBuilder innerSelect1 = innerSelectLatest(criteria, args);
         args.add(group.getValue());
+        StringBuilder innerSelect2 = innerSelectLatest(criteria, args);
 
         return new StringBuilder()
             .append("select t1.event_id ")
             .append("from (")
-            .append(innerSelectLatest())
+            .append(innerSelect1)
             .append(") as t1 ")
             .append("where t1.event_date = ")
             .append("    (select max(event_date) from (")
-            .append(innerSelectLatest())
+            .append(innerSelect2)
             .append(") as t2 ")
             .append("     where t2.api_id = t1.api_id) ");
     }
 
-    private StringBuilder innerSelectLatest() {
-        return new StringBuilder()
+    private StringBuilder innerSelectLatest(EventCriteria criteria, List<Object> args) {
+        final StringBuilder innerSelectLatestQuery = new StringBuilder()
             .append("select ep1.property_value as api_id, ep1.event_id as event_id, max(e1.updated_at) as event_date ")
             .append("from " + this.tableName + " e1 ")
             .append(
                 "inner join " +
                 EVENT_PROPERTIES +
                 " ep1 on e1.id = ep1.event_id and ep1.property_key = ? and ep1.property_value is not null "
-            )
-            .append("group by ep1.property_value, ep1.event_id ");
+            );
+
+        if (!criteria.isStrictMode()) {
+            appendCriteria(innerSelectLatestQuery, criteria, args, "e1");
+        }
+        return innerSelectLatestQuery.append(" group by ep1.property_value, ep1.event_id ");
     }
 
     private String criteriaToString(EventCriteria filter) {

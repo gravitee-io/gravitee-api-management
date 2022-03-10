@@ -85,7 +85,8 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
         switchMap((api) => this.apiService.update({ ...api, ...this.apiDefinition })),
         tap((api) => {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
-          this.onReset();
+          this.policyStudioService.emitApiDefinition(this.toApiDefinition(api));
+          this.isDirty = false;
         }),
       )
       .subscribe();

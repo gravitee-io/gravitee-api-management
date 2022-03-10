@@ -26,10 +26,12 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
@@ -124,7 +126,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public int create(final String environmentId, String apiId, MessageEntity message) {
+    public int create(final ExecutionContext context, String apiId, MessageEntity message) {
         assertMessageNotEmpty(message);
         try {
             Optional<Api> optionalApi = apiRepository.findById(apiId);
@@ -133,7 +135,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             }
             Api api = optionalApi.get();
 
-            int msgSize = send(api, message, getRecipientsId(environmentId, api, message));
+            int msgSize = send(context, api, message, getRecipientsId(context, api, message));
 
             auditService.createApiAuditLog(apiId, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
             return msgSize;
@@ -144,16 +146,16 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public int create(final String environmentId, MessageEntity message) {
+    public int create(final ExecutionContext context, MessageEntity message) {
         assertMessageNotEmpty(message);
 
-        int msgSize = send(null, message, getRecipientsId(message));
+        int msgSize = send(context, null, message, getRecipientsId(context, message));
 
-        auditService.createEnvironmentAuditLog(environmentId, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
+        auditService.createEnvironmentAuditLog(context.getEnvironmentId(), Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
         return msgSize;
     }
 
-    private int send(Api api, MessageEntity message, Set<String> recipientsId) {
+    private int send(ExecutionContext context, Api api, MessageEntity message, Set<String> recipientsId) {
         switch (message.getChannel()) {
             case MAIL:
                 Set<String> mails = getRecipientsEmails(recipientsId);
@@ -166,8 +168,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                             .param("message", message.getText())
                             .param("messageSubject", message.getTitle())
                             .build(),
-                        // FIXME: Remove this context
-                        GraviteeContext.getCurrentContext()
+                        context.getReferenceContext()
                     );
                 }
                 return mails.size();
@@ -214,15 +215,15 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public Set<String> getRecipientsId(MessageEntity message) {
+    public Set<String> getRecipientsId(final ExecutionContext context, MessageEntity message) {
         if (MessageChannel.HTTP.equals(message.getChannel())) {
             return Collections.singleton(message.getRecipient().getUrl());
         }
-        return getRecipientsId(GraviteeContext.getCurrentEnvironment(), null, message);
+        return getRecipientsId(context, null, message);
     }
 
     @Override
-    public Set<String> getRecipientsId(final String environmentId, Api api, MessageEntity message) {
+    public Set<String> getRecipientsId(final ExecutionContext context, Api api, MessageEntity message) {
         if (message != null && MessageChannel.HTTP.equals(message.getChannel())) {
             return Collections.singleton(message.getRecipient().getUrl());
         }
@@ -245,7 +246,11 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                     if (optRole.isPresent()) {
                         recipientIds.addAll(
                             membershipService
-                                .getMembershipsByReferenceAndRole(MembershipReferenceType.ENVIRONMENT, environmentId, optRole.get().getId())
+                                .getMembershipsByReferenceAndRole(
+                                    MembershipReferenceType.ENVIRONMENT,
+                                    context.getEnvironmentId(),
+                                    optRole.get().getId()
+                                )
                                 .stream()
                                 .map(MembershipEntity::getMemberId)
                                 .collect(Collectors.toSet())
@@ -284,20 +289,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                                 .collect(Collectors.toSet())
                         );
 
-                        // get all indirect members
-                        if (api.getGroups() != null && !api.getGroups().isEmpty()) {
-                            recipientIds.addAll(
-                                membershipService
-                                    .getMembershipsByReferencesAndRole(
-                                        MembershipReferenceType.GROUP,
-                                        new ArrayList<>(api.getGroups()),
-                                        optRole.get().getId()
-                                    )
-                                    .stream()
-                                    .map(MembershipEntity::getMemberId)
-                                    .collect(Collectors.toSet())
-                            );
-                        }
+                        recipientIds.addAll(this.getIndirectMemberIds(context, applicationIds, optRole.get()));
                     } else if (roleName.equals(API_SUBSCRIBERS)) {
                         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(api.getId());
                         List<String> subscribersId = subscriptions
@@ -315,6 +307,30 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             LOGGER.error("An error occurs while trying to get recipients", ex);
             throw new TechnicalManagementException("An error occurs while trying to get recipients", ex);
         }
+    }
+
+    private Set<String> getIndirectMemberIds(ExecutionContext context, List<String> applicationIds, RoleEntity roleEntity) {
+        if (applicationIds.isEmpty() || SystemRole.PRIMARY_OWNER.name().equals(roleEntity.getName())) {
+            return Collections.emptySet();
+        }
+
+        // get all indirect members
+        List<String> applicationsGroups = applicationService
+            .findByIds(context, applicationIds)
+            .stream()
+            .flatMap((ApplicationListItem applicationListItem) -> applicationListItem.getGroups().stream())
+            .distinct()
+            .collect(Collectors.toList());
+
+        if (applicationsGroups.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return membershipService
+            .getMembershipsByReferencesAndRole(MembershipReferenceType.GROUP, applicationsGroups, roleEntity.getId())
+            .stream()
+            .map(MembershipEntity::getMemberId)
+            .collect(Collectors.toSet());
     }
 
     private Set<String> getRecipientsEmails(Set<String> recipientsId) {

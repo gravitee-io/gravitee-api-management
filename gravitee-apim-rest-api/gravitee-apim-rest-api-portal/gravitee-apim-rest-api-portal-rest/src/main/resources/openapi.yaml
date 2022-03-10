@@ -4840,7 +4840,7 @@ components:
           type: string
           description: Base URL used to try the API.
         show_url:
-          type: string
+          type: boolean
           description: Show the URL to download the content.
         display_operation_id:
           type: boolean

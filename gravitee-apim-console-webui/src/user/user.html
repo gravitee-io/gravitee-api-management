@@ -23,9 +23,9 @@
       <form name="formUser" ng-submit="$ctrl.save()">
         <div layout="row">
           <div flex="80">
-            <div layout="row" layout-align="start center">
-              <ng-md-icon flex="10" icon="person"></ng-md-icon>
-              <md-input-container>
+            <div class="gravitee-user-container__info-row">
+              <ng-md-icon class="gravitee-user-container__editable-info-row__icon" icon="person"></ng-md-icon>
+              <md-input-container class="gravitee-user-container__editable-info-row__label">
                 <label>Firstname</label>
                 <input
                   ng-model="$ctrl.user.firstname"
@@ -34,10 +34,7 @@
                   ng-disabled="!$ctrl.isInternalUser()"
                 />
               </md-input-container>
-            </div>
-            <div layout="row" layout-align="start center">
-              <ng-md-icon flex="10" icon="person"></ng-md-icon>
-              <md-input-container>
+              <md-input-container class="gravitee-user-container__editable-info-row__label">
                 <label>Lastname</label>
                 <input
                   ng-model="$ctrl.user.lastname"
@@ -47,15 +44,16 @@
                 />
               </md-input-container>
             </div>
-            <div layout="row" layout-align="start center">
-              <ng-md-icon flex="10" icon="contact_mail"></ng-md-icon>
-              <md-input-container>
+            <div class="gravitee-user-container__editable-info-row">
+              <ng-md-icon class="gravitee-user-container__editable-info-row__icon" icon="contact_mail"></ng-md-icon>
+              <md-input-container class="gravitee-user-container__editable-info-row__label">
                 <label>Email</label>
                 <input ng-model="$ctrl.user.email" type="text" ng-required="$ctrl.isInternalUser()" ng-disabled="!$ctrl.isInternalUser()" />
               </md-input-container>
             </div>
-            <div layout="row" layout-align="start center">
-              <ng-md-icon flex="10" icon="lock">
+
+            <div class="gravitee-user-container__info-row">
+              <ng-md-icon class="gravitee-user-container__info-row__icon" icon="lock">
                 <md-tooltip>
                   <span ng-repeat="auth in $ctrl.user.authorities">{{auth.authority}}{{$last ? '' : ',&nbsp'}}</span>
                 </md-tooltip>
@@ -64,13 +62,17 @@
                 >{{"[" + role.scope + "]&nbsp;" + role.name}}{{$last ? '' : '&nbsp;-&nbsp;'}}</label
               >
             </div>
-            <div layout="row" layout-align="start center">
-              <ng-md-icon flex="10" icon="group"></ng-md-icon>
+            <div class="gravitee-user-container__info-row">
+              <ng-md-icon class="gravitee-user-container__info-row__icon" icon="group"></ng-md-icon>
               <label>{{$ctrl.groups}}</label>
             </div>
-            <div layout="row" ng-if="$ctrl.fields && $ctrl.fields.length > 0" ng-repeat="field in $ctrl.fields">
-              <label flex="10" class="field-label">{{field.label}}</label>
-              <md-input-container class="field-input-container">
+            <div
+              class="gravitee-user-container__info-row"
+              ng-if="$ctrl.fields && $ctrl.fields.length > 0"
+              ng-repeat="field in $ctrl.fields"
+            >
+              <label class="gravitee-user-container__info-row__icon">{{field.label}}</label>
+              <md-input-container class="gravitee-user-container__editable-info-row__label">
                 <input
                   ng-if="!field.values || field.values.length == 0"
                   ng-model="$ctrl.user.customFields[field.key]"

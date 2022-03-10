@@ -268,7 +268,7 @@ export class ApiService {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/verify`, criteria, config);
   }
 
-  importPathMappings(apiId: any, page: any, definitionVersion?: string): IHttpPromise<any> {
+  importPathMappings(apiId: string, page: any, definitionVersion?: string): IHttpPromise<any> {
     let params = `?page=${page}`;
 
     if (definitionVersion) {
@@ -334,6 +334,13 @@ export class ApiService {
 
   transferOwnership(api: string, ownership: IMembership): IHttpPromise<any> {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/${api}/members/transfer_ownership`, ownership);
+  }
+
+  /*
+   * Groups
+   */
+  getGroupsWithMembers(api: string): ng.IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${api}/groups`);
   }
 
   /*

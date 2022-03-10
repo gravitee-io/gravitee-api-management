@@ -29,7 +29,7 @@ export interface PageConfiguration {
     /**
      * Show the URL to download the content.
      */
-    show_url?: string;
+    show_url?: boolean;
     /**
      * Display the operationId in the operations list.
      */

@@ -20,6 +20,11 @@ export enum ApiPrimaryOwnerMode {
   GROUP = 'GROUP',
 }
 
+export enum ApiPrimaryOwnerType {
+  USER = 'USER',
+  GROUP = 'GROUP',
+}
+
 class ApiPrimaryOwnerModeService {
   constructor(private Constants) {
     'ngInject';

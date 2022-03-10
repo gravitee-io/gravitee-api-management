@@ -19,6 +19,19 @@ executors:
             - image: cimg/node:14.18
         resource_class: << parameters.class >>
 
+    azure-cli:
+        parameters:
+            resource_class:
+                description: The resource class
+                type: enum
+                enum: ["small", "medium", "large", "xlarge"]
+                default: "medium"
+        docker:
+            # Version can be found here https://docs.microsoft.com/en-us/cli/azure/release-notes-azure-cli
+            # be careful when updating the version as it looks it is not following semver
+            - image: mcr.microsoft.com/azure-cli:2.34.1
+        resource_class: <<parameters.resource_class>>
+
 commands:
     prepare-env-var:
         description: Prepare env variables used in [version.properties] files
@@ -599,9 +612,9 @@ jobs:
             - notify-on-failure
 
     console-webui-deploy-on-azure-storage:
-        docker:
-            - image: mcr.microsoft.com/azure-cli:latest
-        resource_class: small
+        executor:
+            name: azure-cli
+            resource_class: small
         steps:
             - attach_workspace:
                   at: .
@@ -612,8 +625,12 @@ jobs:
                   command: |
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-                      az storage container create -n $BRANCH_ID --public-access blob
-                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d $BRANCH_ID
+                      CONTAINER_EXISTS=$(az storage container exists -n $BRANCH_ID | jq .exists)
+                      if [ "$CONTAINER_EXISTS" = false ] ; then
+                        echo "Creating container $BRANCH_ID"
+                        az storage container create -n $BRANCH_ID --public-access blob
+                      fi             
+                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d $BRANCH_ID --overwrite
             - notify-on-failure
 
     console-webui-comment-pr-after-deployment:
@@ -639,7 +656,6 @@ jobs:
                         echo "PR is not opened, stopping the job here."
                         exit 0
                       fi
-
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       export PR_BODY_UI_SECTION="
                       <!-- UI placeholder -->
@@ -655,9 +671,9 @@ jobs:
             - notify-on-failure
 
     purge-master-azure-registry:
-        docker:
-            - image: mcr.microsoft.com/azure-cli:latest
-        resource_class: small
+        executor:
+            name: azure-cli
+            resource_class: small
         steps:
             - run:
                   name: 🗑 Let's purge all master Apim images older than 1d
@@ -669,9 +685,9 @@ jobs:
             - notify-on-failure
 
     deploy-on-azure-cluster:
-        docker:
-            - image: mcr.microsoft.com/azure-cli:latest
-        resource_class: small
+        executor:
+            name: azure-cli
+            resource_class: small
         steps:
             - attach_workspace:
                   at: .
@@ -684,7 +700,7 @@ jobs:
                       mv ./kubectl /usr/local/bin/kubectl
                       kubectl version --client=true
             - run:
-                  name: 🚀 to APIM cluster
+                  name: Restart APIM cluster pods
                   command: |
                       export K8S_NAME=apim-${CIRCLE_BRANCH//\./-}
                       export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
@@ -779,7 +795,7 @@ jobs:
                   name: Update maven dependencies versions from properties and remove `-SNAPSHOT` from versions
                   command: |
                       # Update maven dependencies versions from properties
-                      mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee-releases -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false
+                      mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee-releases -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C
 
                       # Remove `-SNAPSHOT` from versions
                       mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
