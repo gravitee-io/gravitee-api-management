@@ -17,12 +17,19 @@ package io.gravitee.gateway.debug.handlers.api;
 
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFactory;
+import io.gravitee.gateway.debug.security.core.DebugSecurityPolicyResolver;
+import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
+import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.ApiContextHandlerFactory;
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
+import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
+import io.gravitee.gateway.security.core.SecurityPolicyResolver;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import org.springframework.context.ApplicationContext;
@@ -46,6 +53,29 @@ public class DebugApiContextHandlerFactory extends ApiContextHandlerFactory {
     @Override
     protected ApiReactorHandler getApiReactorHandler(Api api) {
         return new DebugApiReactorHandler(api);
+    }
+
+    @Override
+    protected RequestProcessorChainFactory getRequestProcessorChainFactory(
+        Api api,
+        PolicyChainFactory policyChainFactory,
+        PolicyManager policyManager,
+        PolicyChainProviderLoader policyChainProviderLoader,
+        AuthenticationHandlerSelector authenticationHandlerSelector,
+        FlowPolicyResolverFactory flowPolicyResolverFactory,
+        RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options,
+        SecurityPolicyResolver securityPolicyResolver
+    ) {
+        return super.getRequestProcessorChainFactory(
+            api,
+            policyChainFactory,
+            policyManager,
+            policyChainProviderLoader,
+            authenticationHandlerSelector,
+            flowPolicyResolverFactory,
+            options,
+            new DebugSecurityPolicyResolver(policyManager, authenticationHandlerSelector)
+        );
     }
 
     @Override

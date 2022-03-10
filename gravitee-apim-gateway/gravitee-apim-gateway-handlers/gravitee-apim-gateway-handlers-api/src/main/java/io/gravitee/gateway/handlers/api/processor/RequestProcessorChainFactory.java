@@ -27,7 +27,6 @@ import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
 import io.gravitee.gateway.flow.BestMatchPolicyResolver;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
-import io.gravitee.gateway.flow.SimpleFlowProvider;
 import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
@@ -66,6 +65,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
     private final AuthenticationHandlerSelector authenticationHandlerSelector;
     private final PolicyManager policyManager;
     private final FlowPolicyResolverFactory flowPolicyResolverFactory;
+    private final SecurityPolicyResolver securityPolicyResolver;
 
     public RequestProcessorChainFactory(
         final Api api,
@@ -74,7 +74,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         final RequestProcessorChainFactoryOptions requestProcessorChainFactoryOptions,
         final PolicyChainProviderLoader policyChainProviderLoader,
         final AuthenticationHandlerSelector authenticationHandlerSelector,
-        final FlowPolicyResolverFactory flowPolicyResolverFactory
+        final FlowPolicyResolverFactory flowPolicyResolverFactory,
+        SecurityPolicyResolver securityPolicyResolver
     ) {
         super(api, policyChainFactory);
         this.policyManager = policyManager;
@@ -82,6 +83,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         this.policyChainProviderLoader = policyChainProviderLoader;
         this.authenticationHandlerSelector = authenticationHandlerSelector;
         this.flowPolicyResolverFactory = flowPolicyResolverFactory;
+        this.securityPolicyResolver = securityPolicyResolver;
 
         this.initialize();
     }
@@ -110,7 +112,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         }
 
         // Prepare security policy chain
-        add(new SecurityPolicyChainProvider(new SecurityPolicyResolver(policyManager, authenticationHandlerSelector)));
+        add(new SecurityPolicyChainProvider(securityPolicyResolver));
 
         final ConditionEvaluator<Flow> evaluator = new CompositeConditionEvaluator<>(
             new HttpMethodConditionEvaluator(),
