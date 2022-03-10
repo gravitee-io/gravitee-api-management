@@ -1,0 +1,17 @@
+[
+   {
+      "id":"upgrader#1",
+      "version":"1.2.3",
+      "status": 1,
+      "startedAt": 1486773200000,
+      "stoppedAt": 1486773200000
+   },
+   {
+      "id":"upgrader#2",
+      "version":"1.2.4",
+      "status": 1,
+      "startedAt": 1486773200000,
+      "stoppedAt": 1486773200000,
+      "message": "my-message"
+   }
+]

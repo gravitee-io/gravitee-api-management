@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import static java.util.stream.Collectors.toList;
 
+import io.gravitee.node.api.initializer.Initializer;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -31,7 +32,6 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -46,7 +46,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,9 +54,9 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class SearchIndexUpgrader implements Upgrader, Ordered {
+public class SearchIndexInitializer implements Initializer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SearchIndexUpgrader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SearchIndexInitializer.class);
 
     private final ApiRepository apiRepository;
 
@@ -76,7 +75,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     private final Map<String, String> organizationIdByEnvironmentIdMap = new ConcurrentHashMap<>();
 
     @Autowired
-    public SearchIndexUpgrader(
+    public SearchIndexInitializer(
         ApiRepository apiRepository,
         PageService pageService,
         UserRepository userRepository,
@@ -95,7 +94,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     }
 
     @Override
-    public boolean upgrade() {
+    public boolean initialize() {
         ExecutorService executorService = Executors.newFixedThreadPool(
             Runtime.getRuntime().availableProcessors() * 2,
             new ThreadFactory() {

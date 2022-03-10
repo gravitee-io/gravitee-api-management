@@ -16,13 +16,10 @@
 package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.rest.api.service.ApiHeaderService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,7 +47,7 @@ public class DefaultApiHeaderUpgrader extends EnvironmentUpgrader {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 300;
     }
 }

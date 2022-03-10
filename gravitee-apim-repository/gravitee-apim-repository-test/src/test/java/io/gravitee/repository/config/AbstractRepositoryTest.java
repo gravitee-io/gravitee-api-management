@@ -21,6 +21,8 @@ import static org.springframework.util.StringUtils.capitalize;
 
 import io.gravitee.node.api.Monitoring;
 import io.gravitee.node.api.NodeMonitoringRepository;
+import io.gravitee.node.api.upgrader.UpgradeRecord;
+import io.gravitee.node.api.upgrader.UpgraderRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.model.*;
@@ -206,6 +208,9 @@ public abstract class AbstractRepositoryTest {
     @Inject
     protected PromotionRepository promotionRepository;
 
+    @Inject
+    protected UpgraderRepository upgraderRepository;
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     protected abstract String getTestCasesPath();
@@ -333,6 +338,8 @@ public abstract class AbstractRepositoryTest {
             flowRepository.create((Flow) object);
         } else if (object instanceof Promotion) {
             promotionRepository.create((Promotion) object);
+        } else if (object instanceof UpgradeRecord) {
+            upgraderRepository.create((UpgradeRecord) object);
         }
     }
 

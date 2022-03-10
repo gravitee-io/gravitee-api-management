@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.reactivex.observers.TestObserver;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,78 +68,30 @@ public class PlansDataFixUpgraderTest {
     private EmailService emailService;
 
     @Test
-    public void upgrade_should_not_run_cause_not_enabled() {
-        ReflectionTestUtils.setField(upgrader, "enabled", false);
-
-        boolean success = upgrader.upgrade();
-
-        assertFalse(success);
-        verifyNoInteractions(installationService);
-    }
-
-    @Test
     public void upgrade_should_not_run_cause_already_executed_successfull() {
-        ReflectionTestUtils.setField(upgrader, "enabled", true);
         mockInstallationWithExecutionStatus("SUCCESS");
 
-        boolean success = upgrader.upgrade();
+        final TestObserver testObserver = new TestObserver<>();
+        upgrader.upgrade().subscribe(testObserver);
 
-        assertFalse(success);
-        verify(installationService, never()).setAdditionalInformation(any());
-    }
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
 
-    @Test
-    public void upgrade_should_not_run_cause_already_running() {
-        ReflectionTestUtils.setField(upgrader, "enabled", true);
-        mockInstallationWithExecutionStatus("RUNNING");
-
-        boolean success = upgrader.upgrade();
-
-        assertFalse(success);
         verify(installationService, never()).setAdditionalInformation(any());
     }
 
     @Test
     public void upgrade_should_run_and_set_failure_status_on_exception() throws Exception {
-        ReflectionTestUtils.setField(upgrader, "enabled", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
         doThrow(new Exception("test exception")).when(upgrader).processOneShotUpgrade();
 
-        boolean success = upgrader.upgrade();
+        final TestObserver testObserver = new TestObserver<>();
+        upgrader.upgrade().subscribe(testObserver);
 
-        assertFalse(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "FAILURE");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
-    }
-
-    @Test
-    public void upgrade_should_run_and_set_success_status() throws Exception {
-        ReflectionTestUtils.setField(upgrader, "enabled", true);
-        InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).processOneShotUpgrade();
-
-        boolean success = upgrader.upgrade();
-
-        assertTrue(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "SUCCESS");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
-    }
-
-    @Test
-    public void upgrade_should_run_and_set_dry_success_status() throws Exception {
-        ReflectionTestUtils.setField(upgrader, "enabled", true);
-        ReflectionTestUtils.setField(upgrader, "dryRun", true);
-        InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).processOneShotUpgrade();
-
-        boolean success = upgrader.upgrade();
-
-        assertTrue(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "DRY_SUCCESS");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
+        testObserver.awaitTerminalEvent();
+        testObserver.assertNotComplete();
+        testObserver.assertError(Exception.class);
     }
 
     @Test

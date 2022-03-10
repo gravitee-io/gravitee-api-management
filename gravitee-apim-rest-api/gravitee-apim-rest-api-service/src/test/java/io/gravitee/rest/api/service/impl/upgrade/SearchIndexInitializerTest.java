@@ -43,10 +43,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SearchIndexUpgraderTest {
+public class SearchIndexInitializerTest {
 
     @InjectMocks
-    private SearchIndexUpgrader upgrader;
+    private SearchIndexInitializer upgrader;
 
     @Mock
     private ApiRepository apiRepository;
@@ -81,7 +81,7 @@ public class SearchIndexUpgraderTest {
         mockTestApis();
         mockTestUsers();
 
-        upgrader.upgrade();
+        upgrader.initialize();
 
         verify(environmentRepository, times(1)).findById("env1");
         verify(environmentRepository, times(1)).findById("env2");
@@ -94,7 +94,7 @@ public class SearchIndexUpgraderTest {
         mockTestApis();
         mockTestUsers();
 
-        upgrader.upgrade();
+        upgrader.initialize();
 
         verify(searchEngineService, times(1))
             .index(
@@ -131,7 +131,7 @@ public class SearchIndexUpgraderTest {
         mockTestApis();
         mockTestUsers();
 
-        upgrader.upgrade();
+        upgrader.initialize();
 
         verify(searchEngineService, times(1))
             .index(

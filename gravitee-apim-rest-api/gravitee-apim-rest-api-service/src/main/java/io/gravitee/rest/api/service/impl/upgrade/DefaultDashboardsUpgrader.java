@@ -19,19 +19,19 @@ import static io.gravitee.repository.management.model.DashboardReferenceType.*;
 import static java.lang.String.format;
 import static java.nio.charset.Charset.defaultCharset;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.model.DashboardReferenceType;
 import io.gravitee.rest.api.model.DashboardEntity;
 import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.service.DashboardService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.reactivex.Completable;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultDashboardsUpgrader implements Upgrader, Ordered {
+public class DefaultDashboardsUpgrader implements Upgrader {
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultDashboardsUpgrader.class);
 
@@ -47,17 +47,23 @@ public class DefaultDashboardsUpgrader implements Upgrader, Ordered {
     private DashboardService dashboardService;
 
     @Override
-    public boolean upgrade() {
-        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+    public Completable upgrade() {
+        return Completable.fromRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
+                    ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        final List<DashboardEntity> dashboards = dashboardService.findAll();
-        if (dashboards == null || dashboards.isEmpty()) {
-            checkAndCreateDashboard(executionContext, PLATFORM);
-            checkAndCreateDashboard(executionContext, API);
-            checkAndCreateDashboard(executionContext, APPLICATION);
-        }
-        return true;
+                    final List<DashboardEntity> dashboards = dashboardService.findAll();
+                    if (dashboards == null || dashboards.isEmpty()) {
+                        checkAndCreateDashboard(executionContext, PLATFORM);
+                        checkAndCreateDashboard(executionContext, API);
+                        checkAndCreateDashboard(executionContext, APPLICATION);
+                    }
+                }
+            }
+        );
     }
 
     private void checkAndCreateDashboard(ExecutionContext executionContext, final DashboardReferenceType referenceType) {
@@ -84,7 +90,7 @@ public class DefaultDashboardsUpgrader implements Upgrader, Ordered {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 100;
     }
 }

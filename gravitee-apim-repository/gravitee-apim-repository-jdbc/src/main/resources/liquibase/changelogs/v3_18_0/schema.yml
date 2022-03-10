@@ -164,3 +164,20 @@ databaseChangeLog:
                   - column:
                         name: environment_id
                         type: nvarchar(64)
+        # ################
+        # Upgrader Changes
+        # ################
+        - createTable:
+            tableName: ${gravitee_prefix}upgraders
+            columns:
+              - column: { name: id, type: nvarchar(1024), constraints: { nullable: false } }
+              - column: { name: version, type: nvarchar(32), constraints: { nullable: false } }
+              - column: { name: status, type: int, constraints: { nullable: false } }
+              - column: { name: started_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: { name: stopped_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: { name: message, type: nclob, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}upgraders
+            columnNames: id
+            tableName: ${gravitee_prefix}upgraders

@@ -16,18 +16,20 @@
 package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
-import io.gravitee.rest.api.service.Upgrader;
+import io.reactivex.Completable;
+import io.reactivex.CompletableEmitter;
+import io.reactivex.CompletableOnSubscribe;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,7 +38,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultCategoryUpgrader implements Upgrader, Ordered {
+public class DefaultCategoryUpgrader implements Upgrader {
 
     /**
      * Logger.
@@ -46,54 +48,62 @@ public class DefaultCategoryUpgrader implements Upgrader, Ordered {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @Autowired
-    private ApiRepository apiRepository;
-
     @Override
-    public boolean upgrade() {
-        // Initialize default category
-        final Set<Category> categories;
-        try {
-            categories = categoryRepository.findAll();
+    public Completable upgrade() {
+        return Completable.create(
+            new CompletableOnSubscribe() {
+                @Override
+                public void subscribe(@NotNull CompletableEmitter emitter) throws Exception {
+                    // Initialize default category
+                    final Set<Category> categories;
+                    try {
+                        categories = categoryRepository.findAll();
 
-            Optional<Category> optionalKeyLessCategory = categories
-                .stream()
-                .filter(c -> c.getKey() == null || c.getKey().isEmpty())
-                .findFirst();
-            Optional<Category> optionalCategoryWithoutCreationDate = categories.stream().filter(c -> c.getCreatedAt() == null).findFirst();
+                        Optional<Category> optionalKeyLessCategory = categories
+                            .stream()
+                            .filter(c -> c.getKey() == null || c.getKey().isEmpty())
+                            .findFirst();
+                        Optional<Category> optionalCategoryWithoutCreationDate = categories
+                            .stream()
+                            .filter(c -> c.getCreatedAt() == null)
+                            .findFirst();
 
-            final boolean keyLessCategoriesExist = optionalKeyLessCategory.isPresent();
-            final boolean categoriesWithoutCreationDateExist = optionalCategoryWithoutCreationDate.isPresent();
+                        final boolean keyLessCategoriesExist = optionalKeyLessCategory.isPresent();
+                        final boolean categoriesWithoutCreationDateExist = optionalCategoryWithoutCreationDate.isPresent();
 
-            if (keyLessCategoriesExist || categoriesWithoutCreationDateExist) {
-                if (keyLessCategoriesExist) {
-                    logger.info("Update categories to add field key");
-                }
-                if (categoriesWithoutCreationDateExist) {
-                    logger.info("Update categories to add createdAt");
-                }
-                for (final Category category : categories) {
-                    if (keyLessCategoriesExist) {
-                        // add a key for keyless categories
-                        category.setKey(IdGenerator.generate(category.getName()));
+                        if (keyLessCategoriesExist || categoriesWithoutCreationDateExist) {
+                            if (keyLessCategoriesExist) {
+                                logger.info("Update categories to add field key");
+                            }
+                            if (categoriesWithoutCreationDateExist) {
+                                logger.info("Update categories to add createdAt");
+                            }
+                            for (final Category category : categories) {
+                                if (keyLessCategoriesExist) {
+                                    // add a key for keyless categories
+                                    category.setKey(IdGenerator.generate(category.getName()));
+                                }
+                                if (categoriesWithoutCreationDateExist) {
+                                    // add createdAt if not exist (https://github.com/gravitee-io/issues/issues/5275)
+                                    final Date createdAt = new Date();
+                                    category.setCreatedAt(createdAt);
+                                    category.setUpdatedAt(createdAt);
+                                }
+                                categoryRepository.update(category);
+                            }
+                        }
+                        emitter.onComplete();
+                    } catch (TechnicalException e) {
+                        logger.error("Error while upgrading categories : {}", e);
+                        emitter.onError(e);
                     }
-                    if (categoriesWithoutCreationDateExist) {
-                        // add createdAt if not exist (https://github.com/gravitee-io/issues/issues/5275)
-                        final Date createdAt = new Date();
-                        category.setCreatedAt(createdAt);
-                        category.setUpdatedAt(createdAt);
-                    }
-                    categoryRepository.update(category);
                 }
             }
-        } catch (TechnicalException e) {
-            logger.error("Error while upgrading categories : {}", e);
-        }
-        return true;
+        );
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 200;
     }
 }

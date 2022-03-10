@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.configuration.identity.*;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.OrganizationService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
@@ -30,17 +30,17 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderServi
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProviderNotFoundException;
+import io.reactivex.Completable;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
 @Component
-public class IdentityProviderUpgrader implements Upgrader, Ordered {
+public class IdentityProviderUpgrader implements Upgrader {
 
     private static final String description =
         "Configuration provided by the system. Every modifications will be overridden at the next startup.";
@@ -67,40 +67,46 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
     private IdentityProviderActivationService identityProviderActivationService;
 
     @Override
-    public boolean upgrade() {
-        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+    public Completable upgrade() {
+        return Completable.fromRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
+                    ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        boolean found = true;
-        int idx = 0;
+                    boolean found = true;
+                    int idx = 0;
 
-        while (found) {
-            String type = environment.getProperty("security.providers[" + idx + "].type");
-            found = (type != null);
-            if (found && !notStorableIDPs.contains(type)) {
-                if (idpTypeNames.contains(type.toUpperCase())) {
-                    logger.info("Upsert identity provider config [{}]", type);
-                    String id = environment.getProperty("security.providers[" + idx + "].id");
-                    if (id == null) {
-                        id = type;
+                    while (found) {
+                        String type = environment.getProperty("security.providers[" + idx + "].type");
+                        found = (type != null);
+                        if (found && !notStorableIDPs.contains(type)) {
+                            if (idpTypeNames.contains(type.toUpperCase())) {
+                                logger.info("Upsert identity provider config [{}]", type);
+                                String id = environment.getProperty("security.providers[" + idx + "].id");
+                                if (id == null) {
+                                    id = type;
+                                }
+                                try {
+                                    identityProviderService.findById(id);
+                                } catch (IdentityProviderNotFoundException e) {
+                                    id = createIdp(executionContext, id, IdentityProviderType.valueOf(type.toUpperCase()), idx);
+                                }
+                                // always update
+                                updateIdp(executionContext, id, idx);
+
+                                // update idp activations
+                                updateIdpActivations(executionContext, id, idx);
+                            } else {
+                                logger.info("Unknown identity provider [{}]", type);
+                            }
+                        }
+                        idx++;
                     }
-                    try {
-                        identityProviderService.findById(id);
-                    } catch (IdentityProviderNotFoundException e) {
-                        id = createIdp(executionContext, id, IdentityProviderType.valueOf(type.toUpperCase()), idx);
-                    }
-                    // always update
-                    updateIdp(executionContext, id, idx);
-
-                    // update idp activations
-                    updateIdpActivations(executionContext, id, idx);
-                } else {
-                    logger.info("Unknown identity provider [{}]", type);
                 }
             }
-            idx++;
-        }
-        return true;
+        );
     }
 
     private String createIdp(ExecutionContext executionContext, String id, IdentityProviderType type, int providerIndex) {
@@ -306,7 +312,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 350;
     }
 }

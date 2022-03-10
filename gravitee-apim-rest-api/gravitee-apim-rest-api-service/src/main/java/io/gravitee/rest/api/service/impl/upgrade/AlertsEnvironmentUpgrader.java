@@ -78,7 +78,7 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 500;
     }
 

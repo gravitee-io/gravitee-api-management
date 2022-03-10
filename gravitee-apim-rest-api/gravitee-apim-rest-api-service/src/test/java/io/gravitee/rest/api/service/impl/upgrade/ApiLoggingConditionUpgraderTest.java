@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl.upgrade;
 
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -34,7 +33,10 @@ import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.*;
+import io.reactivex.observers.TestObserver;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -82,46 +84,38 @@ public class ApiLoggingConditionUpgraderTest {
     public void upgrade_should_not_run_cause_already_executed_successfull() {
         mockInstallationWithExecutionStatus("SUCCESS");
 
-        boolean success = upgrader.upgrade();
+        final TestObserver testObserver = new TestObserver<>();
+        upgrader.upgrade().subscribe(testObserver);
 
-        assertFalse(success);
-        verify(installationService, never()).setAdditionalInformation(any());
-    }
-
-    @Test
-    public void upgrade_should_not_run_cause_already_running() {
-        mockInstallationWithExecutionStatus("RUNNING");
-
-        boolean success = upgrader.upgrade();
-
-        assertFalse(success);
-        verify(installationService, never()).setAdditionalInformation(any());
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
     }
 
     @Test
     public void upgrade_should_run_and_set_failure_status_on_exception() throws Exception {
-        InstallationEntity installation = mockInstallationWithExecutionStatus(null);
+        mockInstallationWithExecutionStatus(null);
         doThrow(new Exception("test exception")).when(upgrader).fixApis(any());
 
-        boolean success = upgrader.upgrade();
+        final TestObserver testObserver = new TestObserver<>();
+        upgrader.upgrade().subscribe(testObserver);
 
-        assertFalse(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "FAILURE");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
+        testObserver.awaitTerminalEvent();
+        testObserver.assertNotComplete();
+        testObserver.assertError(Exception.class);
     }
 
     @Test
     public void upgrade_should_run_and_set_success_status() throws Exception {
-        InstallationEntity installation = mockInstallationWithExecutionStatus(null);
+        mockInstallationWithExecutionStatus(null);
         doNothing().when(upgrader).fixApis(any());
 
-        boolean success = upgrader.upgrade();
+        final TestObserver testObserver = new TestObserver<>();
+        upgrader.upgrade().subscribe(testObserver);
 
-        assertTrue(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "SUCCESS");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
     }
 
     @Test

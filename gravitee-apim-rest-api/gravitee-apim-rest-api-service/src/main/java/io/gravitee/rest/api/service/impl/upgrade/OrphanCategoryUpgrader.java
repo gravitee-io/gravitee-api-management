@@ -46,7 +46,7 @@ public class OrphanCategoryUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 100;
     }
 

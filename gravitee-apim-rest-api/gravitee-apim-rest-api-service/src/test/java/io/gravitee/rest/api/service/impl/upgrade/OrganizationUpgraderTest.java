@@ -23,6 +23,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.reactivex.observers.TestObserver;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +40,7 @@ public class OrganizationUpgraderTest {
     private OrganizationUpgrader upgrader = new OrganizationUpgrader() {
         protected void upgradeOrganization(ExecutionContext executionContext) {}
 
-        public int getOrder() {
+        public int order() {
             return 0;
         }
     };
@@ -49,7 +50,9 @@ public class OrganizationUpgraderTest {
 
     @Test
     public void upgrade_should_read_all_organizations() throws Exception {
-        upgrader.upgrade();
+        TestObserver<Void> testObserver = upgrader.upgrade().test();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
 
         verify(organizationRepository, times(1)).findAll();
     }
@@ -59,7 +62,9 @@ public class OrganizationUpgraderTest {
         when(organizationRepository.findAll())
             .thenReturn(Set.of(buildTestOrganization("org1"), buildTestOrganization("org2"), buildTestOrganization("org3")));
 
-        upgrader.upgrade();
+        TestObserver<Void> testObserver = upgrader.upgrade().test();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
 
         verify(upgrader, times(1)).upgradeOrganization(argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")));
         verify(upgrader, times(1)).upgradeOrganization(argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org2")));
@@ -69,18 +74,24 @@ public class OrganizationUpgraderTest {
 
     @Test
     public void upgrade_should_return_true_when_no_technicalException() throws Exception {
-        boolean result = upgrader.upgrade();
+        final TestObserver testObserver = new TestObserver<>();
+        upgrader.upgrade().subscribe(testObserver);
 
-        assertTrue(result);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
     }
 
     @Test
     public void upgrade_should_return_false_when_technicalException() throws Exception {
         when(organizationRepository.findAll()).thenThrow(new TechnicalException("this is a test exception"));
 
-        boolean result = upgrader.upgrade();
+        final TestObserver testObserver = new TestObserver<>();
+        upgrader.upgrade().subscribe(testObserver);
 
-        assertFalse(result);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertNotComplete();
+        testObserver.assertError(TechnicalException.class);
     }
 
     private Organization buildTestOrganization(String organizationId) {

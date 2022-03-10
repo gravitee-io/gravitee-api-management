@@ -88,7 +88,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 500;
     }
 
@@ -298,12 +298,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    protected boolean isDryRun() {
-        return dryRun;
-    }
-
-    @Override
-    protected boolean isEnabled() {
+    public boolean enabled() {
         return enabled;
     }
 }

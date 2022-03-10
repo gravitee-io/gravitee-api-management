@@ -125,7 +125,7 @@ public class DocumentationSystemFolderUpgrader extends EnvironmentUpgrader {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 100;
     }
 }

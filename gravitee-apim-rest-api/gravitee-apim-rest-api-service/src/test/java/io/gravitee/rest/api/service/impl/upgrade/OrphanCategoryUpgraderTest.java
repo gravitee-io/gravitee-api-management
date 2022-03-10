@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.reactivex.observers.TestObserver;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -56,22 +57,12 @@ public class OrphanCategoryUpgraderTest {
     @Test
     public void upgrade_should_not_run_cause_already_executed_with_success() {
         setUpgradeStatus(UpgradeStatus.SUCCESS);
-        assertFalse(upgrader.upgrade());
-        verify(installationService, never()).setAdditionalInformation(any());
-    }
+        final TestObserver testObserver = new TestObserver();
+        upgrader.upgrade().subscribe(testObserver);
 
-    @Test
-    public void upgrade_should_not_run_because_already_running() {
-        setUpgradeStatus(UpgradeStatus.RUNNING);
-        assertFalse(upgrader.upgrade());
-        verify(installationService, never()).setAdditionalInformation(any());
-    }
-
-    @Test
-    public void upgrade_should_run_because_already_executed_but_failed() {
-        setUpgradeStatus(UpgradeStatus.FAILURE);
-        assertTrue(upgrader.upgrade());
-        verify(installationService, times(2)).setAdditionalInformation(any());
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
     }
 
     @Test
@@ -87,13 +78,17 @@ public class OrphanCategoryUpgraderTest {
         when(apiRepository.findAll()).thenReturn(Set.of(apiWithOrphanCategory));
 
         setUpgradeStatus(null);
-        assertTrue(upgrader.upgrade());
+
+        final TestObserver testObserver = new TestObserver();
+        upgrader.upgrade().subscribe(testObserver);
+
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
 
         assertEquals(1, apiWithOrphanCategory.getCategories().size());
         assertFalse(apiWithOrphanCategory.getCategories().contains(orphanCategoryId));
         assertTrue(apiWithOrphanCategory.getCategories().contains(existingCategory.getId()));
-
-        verify(installationService, times(2)).setAdditionalInformation(any());
     }
 
     private void setUpgradeStatus(UpgradeStatus status) {

@@ -15,17 +15,17 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.model.MetadataEntity;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewMetadataEntity;
 import io.gravitee.rest.api.service.MetadataService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.reactivex.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultMetadataUpgrader implements Upgrader, Ordered {
+public class DefaultMetadataUpgrader implements Upgrader {
 
     /**
      * Logger.
@@ -48,28 +48,33 @@ public class DefaultMetadataUpgrader implements Upgrader, Ordered {
     private MetadataService metadataService;
 
     @Override
-    public boolean upgrade() {
-        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+    public Completable upgrade() {
+        return Completable.fromRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
+                    ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        // initialize default metadata
-        final MetadataEntity defaultEmailSupportMetadata = metadataService.findDefaultByKey(METADATA_EMAIL_SUPPORT_KEY);
+                    // initialize default metadata
+                    final MetadataEntity defaultEmailSupportMetadata = metadataService.findDefaultByKey(METADATA_EMAIL_SUPPORT_KEY);
 
-        if (defaultEmailSupportMetadata == null) {
-            logger.info("    No default metadata for email support found. Add default one.");
-            final NewMetadataEntity metadata = new NewMetadataEntity();
-            metadata.setFormat(MetadataFormat.MAIL);
-            metadata.setName("Email support");
-            metadata.setValue(DEFAULT_METADATA_EMAIL_SUPPORT);
-            final MetadataEntity metadataEntity = metadataService.create(executionContext, metadata);
-            logger.info("    Added default metadata for email support with success: {}", metadataEntity);
-        }
-
-        return true;
+                    if (defaultEmailSupportMetadata == null) {
+                        logger.info("    No default metadata for email support found. Add default one.");
+                        final NewMetadataEntity metadata = new NewMetadataEntity();
+                        metadata.setFormat(MetadataFormat.MAIL);
+                        metadata.setName("Email support");
+                        metadata.setValue(DEFAULT_METADATA_EMAIL_SUPPORT);
+                        final MetadataEntity metadataEntity = metadataService.create(executionContext, metadata);
+                        logger.info("    Added default metadata for email support with success: {}", metadataEntity);
+                    }
+                }
+            }
+        );
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 100;
     }
 }

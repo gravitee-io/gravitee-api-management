@@ -17,13 +17,16 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import static io.gravitee.rest.api.service.impl.upgrade.UpgradeStatus.*;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.Upgrader;
+import io.reactivex.Completable;
+import io.reactivex.CompletableEmitter;
+import io.reactivex.CompletableOnSubscribe;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 
 /**
  * An upgrader that will run at APIM startup, only once.
@@ -37,14 +40,14 @@ import org.springframework.core.Ordered;
  *
  * @author GraviteeSource Team
  */
-public abstract class OneShotUpgrader implements Upgrader, Ordered {
+public abstract class OneShotUpgrader implements Upgrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OneShotUpgrader.class);
 
     @Autowired
     private InstallationService installationService;
 
-    private String installationStatusKey;
+    private final String installationStatusKey;
 
     protected abstract void processOneShotUpgrade() throws Exception;
 
@@ -54,57 +57,37 @@ public abstract class OneShotUpgrader implements Upgrader, Ordered {
     }
 
     @Override
-    public final boolean upgrade() {
-        if (!isEnabled()) {
-            LOGGER.info("Skipping {} execution cause it's not enabled in configuration", this.getClass().getSimpleName());
-            return false;
-        }
-
+    public final Completable upgrade() {
         InstallationEntity installation = installationService.getOrInitialize();
-        if (isDryRun() && isStatus(installation, DRY_SUCCESS)) {
-            LOGGER.info(
-                "Skipping {} execution cause it has already been successfully executed in dry mode",
-                this.getClass().getSimpleName()
-            );
-            return false;
-        }
+
         if (isStatus(installation, SUCCESS)) {
-            LOGGER.info("Skipping {} execution cause it has already been successfully executed", this.getClass().getSimpleName());
-            return false;
-        }
-        if (isStatus(installation, RUNNING)) {
-            LOGGER.warn("Skipping {} execution cause it's already running", this.getClass().getSimpleName());
-            return false;
+            // This upgrader has already been executed successfully in the past.
+            // Register the state so that after next restart, this one will not be considered anymore
+            LOGGER.debug("Skipping {} execution cause it has already been successfully executed", this.getClass().getSimpleName());
+
+            return Completable.complete();
         }
 
-        try {
-            LOGGER.info("Starting {} execution with dry-run {}", this.getClass().getSimpleName(), isDryRun() ? "enabled" : "disabled");
-            setExecutionStatus(installation, RUNNING);
-            processOneShotUpgrade();
-            setExecutionStatus(installation, isDryRun() ? DRY_SUCCESS : SUCCESS);
-        } catch (Throwable e) {
-            LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
-            setExecutionStatus(installation, FAILURE);
-            return false;
-        }
-        LOGGER.info("Finishing {} execution", this.getClass().getSimpleName());
-        return true;
-    }
-
-    private void setExecutionStatus(InstallationEntity installation, UpgradeStatus status) {
-        installation.getAdditionalInformation().put(installationStatusKey, status.toString());
-        installationService.setAdditionalInformation(installation.getAdditionalInformation());
+        // We are assuming that the Management API has been upgraded and so restarted. So there should be no more
+        // upgraders in running state at this stage.
+        return Completable.create(
+            new CompletableOnSubscribe() {
+                @Override
+                public void subscribe(@NotNull CompletableEmitter emitter) throws Exception {
+                    try {
+                        LOGGER.info("Starting {} execution", this.getClass().getSimpleName());
+                        processOneShotUpgrade();
+                        emitter.onComplete();
+                    } catch (Throwable e) {
+                        LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
+                        emitter.onError(e);
+                    }
+                }
+            }
+        );
     }
 
     private boolean isStatus(InstallationEntity installation, UpgradeStatus status) {
         return status.toString().equals(installation.getAdditionalInformation().get(installationStatusKey));
-    }
-
-    protected boolean isDryRun() {
-        return false;
-    }
-
-    protected boolean isEnabled() {
-        return true;
     }
 }

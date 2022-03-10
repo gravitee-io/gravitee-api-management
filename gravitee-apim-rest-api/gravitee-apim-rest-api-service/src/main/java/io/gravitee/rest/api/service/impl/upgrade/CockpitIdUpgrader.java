@@ -15,21 +15,21 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.reactivex.Completable;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CockpitIdUpgrader implements Upgrader, Ordered {
+public class CockpitIdUpgrader implements Upgrader {
 
     @Autowired
     private OrganizationService organizationService;
@@ -38,43 +38,45 @@ public class CockpitIdUpgrader implements Upgrader, Ordered {
     private EnvironmentService environmentService;
 
     @Override
-    public boolean upgrade() {
-        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+    public Completable upgrade() {
+        return Completable.fromRunnable(
+            () -> {
+                // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
+                ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        Collection<OrganizationEntity> organizations = organizationService.findAll();
+                Collection<OrganizationEntity> organizations = organizationService.findAll();
 
-        organizations
-            .stream()
-            .filter(org -> !org.getId().equals(GraviteeContext.getDefaultOrganization()) && org.getCockpitId() == null)
-            .forEach(
-                org -> {
-                    UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
-                    newOrganization.setCockpitId(org.getId());
-                    organizationService.update(executionContext, org.getId(), newOrganization);
-                }
-            );
-
-        organizations.forEach(
-            org ->
-                environmentService
-                    .findByOrganization(org.getId())
+                organizations
                     .stream()
-                    .filter(env -> !env.getId().equals(GraviteeContext.getDefaultEnvironment()) && env.getCockpitId() == null)
+                    .filter(org -> !org.getId().equals(GraviteeContext.getDefaultOrganization()) && org.getCockpitId() == null)
                     .forEach(
-                        env -> {
-                            UpdateEnvironmentEntity updateEnv = new UpdateEnvironmentEntity(env);
-                            updateEnv.setCockpitId(env.getId());
-                            environmentService.createOrUpdate(org.getId(), env.getId(), updateEnv);
+                        org -> {
+                            UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
+                            newOrganization.setCockpitId(org.getId());
+                            organizationService.update(executionContext, org.getId(), newOrganization);
                         }
-                    )
-        );
+                    );
 
-        return true;
+                organizations.forEach(
+                    org ->
+                        environmentService
+                            .findByOrganization(org.getId())
+                            .stream()
+                            .filter(env -> !env.getId().equals(GraviteeContext.getDefaultEnvironment()) && env.getCockpitId() == null)
+                            .forEach(
+                                env -> {
+                                    UpdateEnvironmentEntity updateEnv = new UpdateEnvironmentEntity(env);
+                                    updateEnv.setCockpitId(env.getId());
+                                    environmentService.createOrUpdate(org.getId(), env.getId(), updateEnv);
+                                }
+                            )
+                );
+            }
+        );
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 200;
     }
 }

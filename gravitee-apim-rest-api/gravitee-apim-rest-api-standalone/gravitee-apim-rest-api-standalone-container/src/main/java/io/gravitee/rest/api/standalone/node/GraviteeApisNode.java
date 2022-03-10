@@ -18,9 +18,10 @@ package io.gravitee.rest.api.standalone.node;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.container.AbstractNode;
+import io.gravitee.node.services.initializer.spring.InitializerConfiguration;
+import io.gravitee.node.services.upgrader.spring.UpgraderConfiguration;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
-import io.gravitee.rest.api.service.InitializerService;
 import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 import java.util.List;
 import java.util.Map;
@@ -60,10 +61,13 @@ public class GraviteeApisNode extends AbstractNode {
     @Override
     public List<Class<? extends LifecycleComponent>> components() {
         final List<Class<? extends LifecycleComponent>> components = super.components();
-        components.add(InitializerService.class);
         components.add(JettyEmbeddedContainer.class);
         components.add(AlertTriggerProviderManager.class);
         components.add(AlertEventProducerManager.class);
+
+        // Keep it at the end
+        components.addAll(InitializerConfiguration.getComponents());
+        components.addAll(UpgraderConfiguration.getComponents());
         return components;
     }
 }

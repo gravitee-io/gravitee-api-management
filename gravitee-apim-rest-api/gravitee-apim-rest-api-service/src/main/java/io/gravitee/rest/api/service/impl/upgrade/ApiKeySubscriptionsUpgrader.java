@@ -43,7 +43,7 @@ public class ApiKeySubscriptionsUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 501;
     }
 

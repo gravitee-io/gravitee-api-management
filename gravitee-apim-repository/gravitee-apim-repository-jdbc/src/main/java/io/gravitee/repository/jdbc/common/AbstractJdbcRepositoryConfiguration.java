@@ -153,6 +153,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
         final DataSource dataSource = new HikariDataSource(dsConfig);
 
+        // Upgrader framework may also set this value
         Boolean liquibase = readPropertyValue("jdbc.liquibase", Boolean.class, LIQUIBASE_ENABLED);
         if (liquibase) {
             runLiquibase(dataSource);

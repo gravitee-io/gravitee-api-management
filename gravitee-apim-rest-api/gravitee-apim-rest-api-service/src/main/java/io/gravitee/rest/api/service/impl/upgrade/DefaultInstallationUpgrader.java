@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.Upgrader;
+import io.reactivex.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultInstallationUpgrader implements Upgrader, Ordered {
+public class DefaultInstallationUpgrader implements Upgrader {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultInstallationUpgrader.class);
 
@@ -37,14 +37,20 @@ public class DefaultInstallationUpgrader implements Upgrader, Ordered {
     private InstallationService installationService;
 
     @Override
-    public boolean upgrade() {
-        final InstallationEntity installation = installationService.getOrInitialize();
-        logger.info("Current installation id is [{}]", installation.getId());
-        return true;
+    public Completable upgrade() {
+        return Completable.fromRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    final InstallationEntity installation = installationService.getOrInitialize();
+                    logger.info("Current installation id is [{}]", installation.getId());
+                }
+            }
+        );
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 0;
     }
 }

@@ -133,7 +133,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "flows",
         "flow_steps",
         "flow_methods",
-        "flow_consumers"
+        "flow_consumers",
+        "upgraders"
     );
 
     private static final List<String> tablesToDrop = concatenate(

@@ -271,4 +271,9 @@ public class MockTestRepositoryConfiguration {
     public PromotionRepositoryMock promotionRepository() {
         return new PromotionRepositoryMock();
     }
+
+    @Bean
+    public UpgraderRepositoryMock upgraderRepository() {
+        return new UpgraderRepositoryMock();
+    }
 }

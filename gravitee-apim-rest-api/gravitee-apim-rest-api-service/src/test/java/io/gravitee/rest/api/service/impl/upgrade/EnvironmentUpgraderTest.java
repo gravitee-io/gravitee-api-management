@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.reactivex.Completable;
+import io.reactivex.observers.TestObserver;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +39,7 @@ public class EnvironmentUpgraderTest {
     private EnvironmentUpgrader upgrader = new EnvironmentUpgrader() {
         protected void upgradeEnvironment(ExecutionContext executionContext) {}
 
-        public int getOrder() {
+        public int order() {
             return 0;
         }
     };
@@ -49,7 +49,9 @@ public class EnvironmentUpgraderTest {
 
     @Test
     public void upgrade_should_read_all_environments() throws Exception {
-        upgrader.upgrade();
+        TestObserver<Void> testObserver = upgrader.upgrade().test();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
 
         verify(environmentRepository, times(1)).findAll();
     }
@@ -66,7 +68,9 @@ public class EnvironmentUpgraderTest {
                 )
             );
 
-        upgrader.upgrade();
+        TestObserver<Void> testObserver = upgrader.upgrade().test();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
 
         verify(upgrader, times(1))
             .upgradeEnvironment(argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")));
@@ -80,18 +84,26 @@ public class EnvironmentUpgraderTest {
 
     @Test
     public void upgrade_should_return_true_when_no_technicalException() throws Exception {
-        boolean result = upgrader.upgrade();
+        final TestObserver testObserver = new TestObserver<>();
 
-        assertTrue(result);
+        upgrader.upgrade().subscribe(testObserver);
+
+        testObserver.awaitTerminalEvent();
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
     }
 
     @Test
     public void upgrade_should_return_false_when_technicalException() throws Exception {
+        final TestObserver testObserver = new TestObserver<>();
+
         when(environmentRepository.findAll()).thenThrow(new TechnicalException("this is a test exception"));
 
-        boolean result = upgrader.upgrade();
+        upgrader.upgrade().subscribe(testObserver);
 
-        assertFalse(result);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertNotComplete();
+        testObserver.assertError(TechnicalException.class);
     }
 
     private Environment buildTestEnvironment(String environmentId, String organizationId) {

@@ -62,7 +62,7 @@ public class ApplicationApiKeyModeUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 500;
     }
 

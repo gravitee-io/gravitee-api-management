@@ -16,17 +16,17 @@
 package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.Upgrader;
+import io.reactivex.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultPageRevisionUpgrader implements Upgrader, Ordered {
+public class DefaultPageRevisionUpgrader implements Upgrader {
 
     /**
      * Logger.
@@ -48,26 +48,32 @@ public class DefaultPageRevisionUpgrader implements Upgrader, Ordered {
     private PageRevisionService pageRevisionService;
 
     @Override
-    public boolean upgrade() {
-        if (hasNoRevisions()) {
-            logger.info("No page revisions found. Create a default revision based on pages.");
-            final int pageSize = 100;
-            int pageNumber = 0;
-            Page<PageEntity> pagesSubSet = null;
-            do {
-                Pageable pageable = new PageableImpl(pageNumber, pageSize);
-                pagesSubSet = pageService.findAll(pageable);
-                if (!pagesSubSet.getContent().isEmpty()) {
-                    pagesSubSet
-                        .getContent()
-                        .stream()
-                        .filter(entity -> pageService.shouldHaveRevision(entity.getType()))
-                        .forEach(entity -> pageRevisionService.create(convert(entity)));
-                    ++pageNumber;
+    public Completable upgrade() {
+        return Completable.fromRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    if (hasNoRevisions()) {
+                        logger.info("No page revisions found. Create a default revision based on pages.");
+                        final int pageSize = 100;
+                        int pageNumber = 0;
+                        Page<PageEntity> pagesSubSet = null;
+                        do {
+                            Pageable pageable = new PageableImpl(pageNumber, pageSize);
+                            pagesSubSet = pageService.findAll(pageable);
+                            if (!pagesSubSet.getContent().isEmpty()) {
+                                pagesSubSet
+                                    .getContent()
+                                    .stream()
+                                    .filter(entity -> pageService.shouldHaveRevision(entity.getType()))
+                                    .forEach(entity -> pageRevisionService.create(convert(entity)));
+                                ++pageNumber;
+                            }
+                        } while (!pagesSubSet.getContent().isEmpty());
+                    }
                 }
-            } while (!pagesSubSet.getContent().isEmpty());
-        }
-        return true;
+            }
+        );
     }
 
     private boolean hasNoRevisions() {
@@ -90,7 +96,7 @@ public class DefaultPageRevisionUpgrader implements Upgrader, Ordered {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 200;
     }
 }

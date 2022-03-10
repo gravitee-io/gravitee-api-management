@@ -15,15 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import static io.gravitee.rest.api.model.permissions.RoleScope.*;
-import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.*;
+import static io.gravitee.rest.api.model.permissions.RoleScope.API;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_REVIEWER;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +76,7 @@ public class DefaultRolesUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 150;
     }
 }

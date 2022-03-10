@@ -13,30 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl.upgrade;
+package io.gravitee.rest.api.repository.proxy;
 
-import io.gravitee.rest.api.service.ThemeService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.gravitee.node.api.upgrader.UpgradeRecord;
+import io.gravitee.node.api.upgrader.UpgraderRepository;
+import io.reactivex.Maybe;
+import io.reactivex.Single;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultThemeUpgrader extends EnvironmentUpgrader {
-
-    @Autowired
-    private ThemeService themeService;
+public class UpgraderRepositoryProxy extends AbstractProxy<UpgraderRepository> implements UpgraderRepository {
 
     @Override
-    public void upgradeEnvironment(ExecutionContext executionContext) {
-        themeService.updateDefaultTheme(executionContext);
+    public Maybe<UpgradeRecord> findById(String id) {
+        return target.findById(id);
     }
 
     @Override
-    public int order() {
-        return 400;
+    public Single<UpgradeRecord> create(UpgradeRecord upgradeRecord) {
+        return target.create(upgradeRecord);
+    }
+
+    @Override
+    public Single<UpgradeRecord> update(UpgradeRecord upgradeRecord) {
+        return target.update(upgradeRecord);
     }
 }

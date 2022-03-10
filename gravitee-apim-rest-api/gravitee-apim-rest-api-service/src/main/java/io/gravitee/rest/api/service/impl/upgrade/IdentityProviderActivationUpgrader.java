@@ -15,21 +15,21 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
+import io.reactivex.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 @Component
-public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
+public class IdentityProviderActivationUpgrader implements Upgrader {
 
     private final Logger logger = LoggerFactory.getLogger(IdentityProviderActivationUpgrader.class);
 
@@ -40,44 +40,51 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
     private IdentityProviderActivationService identityProviderActivationService;
 
     @Override
-    public boolean upgrade() {
-        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+    public Completable upgrade() {
+        return Completable.fromRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
+                    ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        // initialize roles.
-        final ActivationTarget defaultEnvTarget = new ActivationTarget(
-            GraviteeContext.getDefaultEnvironment(),
-            IdentityProviderActivationReferenceType.ENVIRONMENT
-        );
-        final ActivationTarget defaultOrgTarget = new ActivationTarget(
-            GraviteeContext.getDefaultOrganization(),
-            IdentityProviderActivationReferenceType.ORGANIZATION
-        );
+                    // initialize roles.
+                    final ActivationTarget defaultEnvTarget = new ActivationTarget(
+                        GraviteeContext.getDefaultEnvironment(),
+                        IdentityProviderActivationReferenceType.ENVIRONMENT
+                    );
+                    final ActivationTarget defaultOrgTarget = new ActivationTarget(
+                        GraviteeContext.getDefaultOrganization(),
+                        IdentityProviderActivationReferenceType.ORGANIZATION
+                    );
 
-        if (
-            this.identityProviderActivationService.findAllByTarget(defaultOrgTarget).isEmpty() &&
-            this.identityProviderActivationService.findAllByTarget(defaultEnvTarget).isEmpty()
-        ) {
-            logger.info("    No activation found. Active all idp on all target by default if enabled.");
-            this.identityProviderService.findAll(executionContext)
-                .forEach(
-                    idp -> {
-                        if (idp.isEnabled()) {
-                            this.identityProviderActivationService.activateIdpOnTargets(
-                                    executionContext,
-                                    idp.getId(),
-                                    defaultOrgTarget,
-                                    defaultEnvTarget
-                                );
-                        }
+                    if (
+                        identityProviderActivationService.findAllByTarget(defaultOrgTarget).isEmpty() &&
+                        identityProviderActivationService.findAllByTarget(defaultEnvTarget).isEmpty()
+                    ) {
+                        logger.info("    No activation found. Active all idp on all target by default if enabled.");
+                        identityProviderService
+                            .findAll(executionContext)
+                            .forEach(
+                                idp -> {
+                                    if (idp.isEnabled()) {
+                                        identityProviderActivationService.activateIdpOnTargets(
+                                            executionContext,
+                                            idp.getId(),
+                                            defaultOrgTarget,
+                                            defaultEnvTarget
+                                        );
+                                    }
+                                }
+                            );
                     }
-                );
-        }
-        return true;
+                }
+            }
+        );
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 400;
     }
 }

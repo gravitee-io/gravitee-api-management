@@ -19,13 +19,9 @@ import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,7 +52,7 @@ public class DefaultUserStatusUpgrader extends OrganizationUpgrader {
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 200;
     }
 }

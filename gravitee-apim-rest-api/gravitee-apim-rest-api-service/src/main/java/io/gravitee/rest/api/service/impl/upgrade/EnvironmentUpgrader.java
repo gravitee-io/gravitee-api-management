@@ -15,21 +15,24 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.reactivex.Completable;
+import io.reactivex.CompletableEmitter;
+import io.reactivex.CompletableOnSubscribe;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 
 /**
  * An upgrader that run for each environment.
  *
  * @author GraviteeSource Team
  */
-public abstract class EnvironmentUpgrader implements Upgrader, Ordered {
+public abstract class EnvironmentUpgrader implements Upgrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EnvironmentUpgrader.class);
 
@@ -40,21 +43,28 @@ public abstract class EnvironmentUpgrader implements Upgrader, Ordered {
     protected abstract void upgradeEnvironment(ExecutionContext executionContext);
 
     @Override
-    public final boolean upgrade() {
-        try {
-            environmentRepository
-                .findAll()
-                .forEach(
-                    environment -> {
-                        ExecutionContext executionContext = new ExecutionContext(environment);
-                        LOGGER.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
-                        upgradeEnvironment(executionContext);
+    public final Completable upgrade() {
+        return Completable.create(
+            new CompletableOnSubscribe() {
+                @Override
+                public void subscribe(@NotNull CompletableEmitter emitter) throws Exception {
+                    try {
+                        environmentRepository
+                            .findAll()
+                            .forEach(
+                                environment -> {
+                                    ExecutionContext executionContext = new ExecutionContext(environment);
+                                    LOGGER.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
+                                    upgradeEnvironment(executionContext);
+                                }
+                            );
+                        emitter.onComplete();
+                    } catch (TechnicalException e) {
+                        LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
+                        emitter.onError(e);
                     }
-                );
-        } catch (TechnicalException e) {
-            LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
-            return false;
-        }
-        return true;
+                }
+            }
+        );
     }
 }

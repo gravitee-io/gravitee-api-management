@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.reactivex.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultEnvironmentUpgrader implements Upgrader, Ordered {
+public class DefaultEnvironmentUpgrader implements Upgrader {
 
     /**
      * Logger.
@@ -40,17 +40,23 @@ public class DefaultEnvironmentUpgrader implements Upgrader, Ordered {
     private EnvironmentService environmentService;
 
     @Override
-    public boolean upgrade() {
-        // initialize roles.
-        if (environmentService.findByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
-            logger.info("    No environment found. Add default one.");
-            environmentService.initialize();
-        }
-        return true;
+    public Completable upgrade() {
+        return Completable.fromRunnable(
+            new Runnable() {
+                @Override
+                public void run() {
+                    // initialize roles.
+                    if (environmentService.findByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
+                        logger.info("    No environment found. Add default one.");
+                        environmentService.initialize();
+                    }
+                }
+            }
+        );
     }
 
     @Override
-    public int getOrder() {
+    public int order() {
         return 100;
     }
 }
