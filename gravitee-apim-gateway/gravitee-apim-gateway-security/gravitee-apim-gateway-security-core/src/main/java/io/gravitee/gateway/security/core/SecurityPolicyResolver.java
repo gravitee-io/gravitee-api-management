@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
  */
 public class SecurityPolicyResolver extends AbstractPolicyResolver {
 
+    protected static final String SECURITY_POLICY_STAGE = "SECURITY";
     private final AuthenticationHandlerSelector authenticationHandlerSelector;
 
     public SecurityPolicyResolver(final PolicyManager policyManager, final AuthenticationHandlerSelector authenticationHandlerSelector) {
@@ -73,7 +74,7 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
                     public Policy apply(AuthenticationPolicy securityPolicy) {
                         if (securityPolicy instanceof HookAuthenticationPolicy) {
                             try {
-                                return (Policy) ((HookAuthenticationPolicy) securityPolicy).clazz().newInstance();
+                                return createHookAuthenticationPolicy((HookAuthenticationPolicy) securityPolicy);
                             } catch (Exception ex) {
                                 logger.error("Unexpected error while loading authentication policy", ex);
                             }
@@ -82,7 +83,7 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
                                 ((PluginAuthenticationPolicy) securityPolicy).name(),
                                 ((PluginAuthenticationPolicy) securityPolicy).configuration()
                             );
-                            policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, "SECURITY");
+                            policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, SECURITY_POLICY_STAGE);
                             return create(StreamType.ON_REQUEST, policyMetadata);
                         }
 
@@ -92,5 +93,10 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
             )
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
+    }
+
+    protected Policy createHookAuthenticationPolicy(HookAuthenticationPolicy securityPolicy)
+        throws InstantiationException, IllegalAccessException {
+        return (Policy) securityPolicy.clazz().newInstance();
     }
 }

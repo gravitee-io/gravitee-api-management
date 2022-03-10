@@ -350,6 +350,28 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         );
         options.setExcludedResponseTypes(configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null));
 
+        return getRequestProcessorChainFactory(
+            api,
+            policyChainFactory,
+            policyManager,
+            policyChainProviderLoader,
+            authenticationHandlerSelector,
+            flowPolicyResolverFactory,
+            options,
+            new SecurityPolicyResolver(policyManager, authenticationHandlerSelector)
+        );
+    }
+
+    protected RequestProcessorChainFactory getRequestProcessorChainFactory(
+        Api api,
+        PolicyChainFactory policyChainFactory,
+        PolicyManager policyManager,
+        PolicyChainProviderLoader policyChainProviderLoader,
+        AuthenticationHandlerSelector authenticationHandlerSelector,
+        FlowPolicyResolverFactory flowPolicyResolverFactory,
+        RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options,
+        SecurityPolicyResolver securityPolicyResolver
+    ) {
         return new RequestProcessorChainFactory(
             api,
             policyChainFactory,
@@ -357,7 +379,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
             options,
             policyChainProviderLoader,
             authenticationHandlerSelector,
-            flowPolicyResolverFactory
+            flowPolicyResolverFactory,
+            securityPolicyResolver
         );
     }
 
