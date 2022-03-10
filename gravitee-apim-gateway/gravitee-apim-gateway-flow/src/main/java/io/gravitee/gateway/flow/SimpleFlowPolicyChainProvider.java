@@ -18,7 +18,9 @@ package io.gravitee.gateway.flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
+import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.policy.AbstractPolicyChainProvider;
+import io.gravitee.gateway.policy.StreamType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,8 +30,13 @@ public class SimpleFlowPolicyChainProvider extends AbstractPolicyChainProvider {
 
     private final FlowProvider flowProvider;
 
-    public SimpleFlowPolicyChainProvider(final FlowProvider flowProvider) {
-        this.flowProvider = flowProvider;
+    public SimpleFlowPolicyChainProvider(
+        final StreamType streamType,
+        final FlowResolver flowResolver,
+        final PolicyChainFactory policyChainFactory,
+        final FlowPolicyResolverFactory flowPolicyResolverFactory
+    ) {
+        this.flowProvider = new SimpleFlowProvider(streamType, flowResolver, policyChainFactory, flowPolicyResolverFactory);
     }
 
     @Override

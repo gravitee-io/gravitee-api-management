@@ -86,43 +86,35 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new SimpleFlowPolicyChainProvider(
-                        new SimpleFlowProvider(
-                            StreamType.ON_RESPONSE,
-                            new ApiFlowResolver(api, evaluator),
-                            policyChainFactory,
-                            flowPolicyResolverFactory
-                        )
+                        StreamType.ON_RESPONSE,
+                        new ApiFlowResolver(api, evaluator),
+                        policyChainFactory,
+                        flowPolicyResolverFactory
                     )
                 );
                 add(
                     new PlanFlowPolicyChainProvider(
-                        new SimpleFlowProvider(
-                            StreamType.ON_RESPONSE,
-                            new PlanFlowResolver(api, evaluator),
-                            policyChainFactory,
-                            flowPolicyResolverFactory
-                        )
+                        StreamType.ON_RESPONSE,
+                        new PlanFlowResolver(api, evaluator),
+                        policyChainFactory,
+                        flowPolicyResolverFactory
                     )
                 );
             } else {
                 add(
                     new SimpleFlowPolicyChainProvider(
-                        new SimpleFlowProvider(
-                            StreamType.ON_RESPONSE,
-                            new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
-                            policyChainFactory,
-                            flowPolicyResolverFactory
-                        )
+                        StreamType.ON_RESPONSE,
+                        new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
+                        policyChainFactory,
+                        flowPolicyResolverFactory
                     )
                 );
                 add(
                     new PlanFlowPolicyChainProvider(
-                        new SimpleFlowProvider(
-                            StreamType.ON_RESPONSE,
-                            new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
-                            policyChainFactory,
-                            flowPolicyResolverFactory
-                        )
+                        StreamType.ON_RESPONSE,
+                        new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
+                        policyChainFactory,
+                        flowPolicyResolverFactory
                     )
                 );
             }

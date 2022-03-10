@@ -18,8 +18,13 @@ package io.gravitee.gateway.handlers.api.flow.plan;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
+import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.FlowProvider;
+import io.gravitee.gateway.flow.FlowResolver;
+import io.gravitee.gateway.flow.SimpleFlowProvider;
+import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.processor.policy.plan.PlanProcessorProvider;
+import io.gravitee.gateway.policy.StreamType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,8 +34,13 @@ public class PlanFlowPolicyChainProvider extends PlanProcessorProvider {
 
     private final FlowProvider flowProvider;
 
-    public PlanFlowPolicyChainProvider(final FlowProvider flowProvider) {
-        this.flowProvider = flowProvider;
+    public PlanFlowPolicyChainProvider(
+        final StreamType streamType,
+        final FlowResolver flowResolver,
+        final PolicyChainFactory policyChainFactory,
+        final FlowPolicyResolverFactory flowPolicyResolverFactory
+    ) {
+        this.flowProvider = new SimpleFlowProvider(streamType, flowResolver, policyChainFactory, flowPolicyResolverFactory);
     }
 
     @Override
