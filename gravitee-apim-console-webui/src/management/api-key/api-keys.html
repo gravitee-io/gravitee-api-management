@@ -56,7 +56,7 @@
               <ng-md-icon
                 class="revoke-icon"
                 permission
-                permission-only="'api-subscription-u'"
+                permission-only="'application-subscription-u'"
                 icon="not_interested"
                 ng-click="$ctrl.revokeApiKey(key)"
               ></ng-md-icon>
@@ -71,7 +71,7 @@
     class="md-actions gravitee-api-save-button"
     layout="row"
     permission
-    permission-only="'api-subscription-u'"
+    permission-only="'application-subscription-u'"
     ng-if="$ctrl.areKeysEditable()"
   >
     <md-button class="md-raised md-primary" ng-click="$ctrl.renewApiKey()">
