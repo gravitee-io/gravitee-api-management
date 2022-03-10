@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import java.io.IOException;
@@ -35,10 +36,11 @@ import java.util.*;
  */
 public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
 
-    ObjectMapper mapper = new ObjectMapper();
+    private final GraviteeMapper mapper;
 
-    public EndpointDeserializer(Class<Endpoint> vc) {
+    public EndpointDeserializer(Class<Endpoint> vc, GraviteeMapper mapper) {
         super(vc);
+        this.mapper = mapper;
     }
 
     @Override

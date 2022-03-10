@@ -37,7 +37,7 @@ public class GraviteeMapper extends ObjectMapper {
     private static final long serialVersionUID = 1L;
 
     public GraviteeMapper() {
-        registerModule(new ApiModule());
+        registerModule(new ApiModule(this));
         registerModule(new ServiceModule());
         registerModule(new HealthCheckModule());
         registerModule(new DynamicPropertyModule());

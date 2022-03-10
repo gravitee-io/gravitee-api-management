@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson.datatype.api;
 
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeModule;
 import io.gravitee.definition.jackson.datatype.api.deser.*;
 import io.gravitee.definition.jackson.datatype.api.deser.ssl.*;
@@ -40,7 +41,7 @@ public class ApiModule extends GraviteeModule {
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("unchecked")
-    public ApiModule() {
+    public ApiModule(GraviteeMapper graviteeMapper) {
         super("api");
         // first deserializers
         addDeserializer(Api.class, new ApiDeserializer(Api.class));
@@ -52,7 +53,7 @@ public class ApiModule extends GraviteeModule {
         addDeserializer(HttpProxy.class, new HttpProxyDeserializer(HttpProxy.class));
         addDeserializer(HttpClientOptions.class, new HttpClientOptionsDeserializer(HttpClientOptions.class));
         addDeserializer(HttpClientSslOptions.class, new HttpClientSslOptionsDeserializer(HttpClientSslOptions.class));
-        addDeserializer(Endpoint.class, new EndpointDeserializer(Endpoint.class));
+        addDeserializer(Endpoint.class, new EndpointDeserializer(Endpoint.class, graviteeMapper));
         addDeserializer(Properties.class, new PropertiesDeserializer(Properties.class));
         addDeserializer(Property.class, new PropertyDeserializer(Property.class));
         addDeserializer(Cors.class, new CorsDeserializer(Cors.class));
@@ -84,7 +85,7 @@ public class ApiModule extends GraviteeModule {
         addSerializer(Properties.class, new PropertiesSerializer(Properties.class));
         addSerializer(Property.class, new PropertySerializer(Property.class));
         addSerializer(Cors.class, new CorsSerializer(Cors.class));
-        addSerializer(EndpointGroup.class, new EndpointGroupSerializer(EndpointGroup.class));
+        addSerializer(EndpointGroup.class, new EndpointGroupSerializer(EndpointGroup.class, graviteeMapper));
         addSerializer(Logging.class, new LoggingSerializer(Logging.class));
         addSerializer(JKSKeyStore.class, new JKSKeyStoreSerializer(JKSKeyStore.class));
         addSerializer(PEMKeyStore.class, new PEMKeyStoreSerializer(PEMKeyStore.class));
