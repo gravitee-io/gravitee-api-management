@@ -67,7 +67,7 @@ commands:
 parameters:
     gio_action:
         type: enum
-        enum: [release, standalone_release, standalone_release_replay, nexus_staging, vm_nexus_staging, pull_requests]
+        enum: [release, standalone_release, standalone_release_replay, nexus_staging, vm_nexus_staging, pull_requests, build_docker_images]
         default: pull_requests
     dry_run:
         type: boolean
@@ -93,6 +93,14 @@ parameters:
         type: string
         default: ""
         description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
+    docker_tag_as_latest:
+        default: false
+        type: boolean
+        description: "Is this version the latest version available ?"
+    graviteeio_version:
+        default: ""
+        type: string
+        description: "Version of APIM to be used in docker images"
 
 jobs:
     compute-apim-tag:
@@ -598,6 +606,92 @@ jobs:
 
             - notify-on-failure
 
+    publish_prod_docker_images:
+        parameters:
+            dry_run:
+                default: true
+                type: boolean
+            docker_tag_as_latest:
+                default: false
+                type: boolean
+            enterprise_edition:
+                default: false
+                type: boolean
+            graviteeio_version:
+                default: ""
+                type: string
+        docker:
+            - image: cimg/base:stable
+        environment:
+            GRAVITEEIO_VERSION: << parameters.graviteeio_version >>
+        steps:
+            - setup_remote_docker
+            - checkout
+            - secrethub/install
+            - run:
+                  name: "Parse GRAVITEEIO_VERSION to extract major, minor and patch version"
+                  command: |
+                      export GRAVITEEIO_VERSION_MAJOR=$(echo "${GRAVITEEIO_VERSION}" | awk -F '.' '{print $1}')
+                      echo "export GRAVITEEIO_VERSION_MAJOR=${GRAVITEEIO_VERSION_MAJOR}" >> $BASH_ENV
+
+                      export GRAVITEEIO_VERSION_MINOR=$(echo "${GRAVITEEIO_VERSION}" | awk -F '.' '{print $2}')
+                      echo "export GRAVITEEIO_VERSION_MINOR=${GRAVITEEIO_VERSION_MINOR}" >> $BASH_ENV
+
+                      export GRAVITEEIO_VERSION_PATCH=$(echo "${GRAVITEEIO_VERSION}" | awk -F '.' '{print $3}')
+                      echo "export GRAVITEEIO_VERSION_PATCH=${GRAVITEEIO_VERSION_PATCH}" >> $BASH_ENV
+            - run:
+                  name: "Build & Publish Gravitee.io APIM Docker images <<# parameters.enterprise_edition >>- Enterprise Edition<</ parameters.enterprise_edition >>"
+                  command: |
+                      if [ "<< parameters.enterprise_edition >>" == "false" ]; then
+                        export DOCKER_TAG_SUFFIX=""
+                        export DOCKER_BUILD_ARGS="--build-arg GRAVITEEIO_VERSION=${GRAVITEEIO_VERSION} --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions"
+                      else
+                        export DOCKER_TAG_SUFFIX="-ee"
+                        export DOCKER_BUILD_ARGS="--build-arg GRAVITEEIO_VERSION=${GRAVITEEIO_VERSION} --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-ee/apim/distributions --build-arg GRAVITEEIO_PACKAGE_NAME=graviteeio-ee-full"
+                      fi
+
+                      # always create x.y(-ee)?, x.y.z(-ee)? tags
+                      export DOCKER_BUILD_GATEWAY_TAG="       -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}${DOCKER_TAG_SUFFIX}        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION}${DOCKER_TAG_SUFFIX}"
+                      export DOCKER_BUILD_MANAGEMENT_API_TAG="-t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}${DOCKER_TAG_SUFFIX} -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION}${DOCKER_TAG_SUFFIX}"
+                      export DOCKER_BUILD_MANAGEMENT_UI_TAG=" -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}${DOCKER_TAG_SUFFIX}  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION}${DOCKER_TAG_SUFFIX}"
+                      export DOCKER_BUILD_PORTAL_UI_TAG="     -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}${DOCKER_TAG_SUFFIX}      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}${DOCKER_TAG_SUFFIX}"
+
+                      # only create x(-ee)? tag if it's the latest version
+                      if [ "<< parameters.docker_tag_as_latest >>" == "true" ]; then
+                        DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}${DOCKER_TAG_SUFFIX}"
+                        DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}${DOCKER_TAG_SUFFIX}"
+                        DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}${DOCKER_TAG_SUFFIX}"
+                        DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}${DOCKER_TAG_SUFFIX}"
+
+                        # only create "latest" tag for Community Edition and if it's the latest version (obviously)
+                        if [ "<< parameters.enterprise_edition >>" == "false" ]; then
+                          DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:latest"
+                          DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:latest"
+                          DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:latest"
+                          DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:latest"
+                        fi
+                      fi
+
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG} ./gravitee-apim-gateway/docker
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG} ./gravitee-apim-rest-api/docker
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG} ./gravitee-apim-console-webui/docker        
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG} ./gravitee-apim-portal-webui/docker
+
+                      docker image ls
+
+                      # Login to DockerHub
+                      docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
+
+                      # Push all tags if not dry-run mode
+                      if [ "<< parameters.dry_run >>" == "false" ]; then                    
+                        docker push --all-tags graviteeio/apim-management-api
+                        docker push --all-tags graviteeio/apim-gateway
+                        docker push --all-tags graviteeio/apim-management-ui
+                        docker push --all-tags graviteeio/apim-portal-ui
+                      fi
+
+                      # Docker logout
+                      docker logout
 workflows:
     pull_requests:
         when:
@@ -774,9 +868,38 @@ workflows:
                               - /^\d+\.\d+\.x$/
                               - implement-continuous-deployment-to-azure
 
-    # ---
-    # The 2 Workflows Below are there for the CICD Orchestrator to be able to
-    # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
+    build_docker_images:
+        when:
+            equal: [build_docker_images, << pipeline.parameters.gio_action >>]
+        jobs:
+            - publish_prod_docker_images:
+                  graviteeio_version: << pipeline.parameters.graviteeio_version >>
+                  docker_tag_as_latest: << pipeline.parameters.docker_tag_as_latest >>
+                  dry_run: << pipeline.parameters.dry_run >>
+                  enterprise_edition: false
+                  context: cicd-orchestrator
+                  name: Build and push docker images for APIM CE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+                  pre-steps:
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                            var-name: DOCKERHUB_BOT_USER_NAME
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                            var-name: DOCKERHUB_BOT_USER_TOKEN
+            - publish_prod_docker_images:
+                  graviteeio_version: << pipeline.parameters.graviteeio_version >>
+                  docker_tag_as_latest: << pipeline.parameters.docker_tag_as_latest >>
+                  dry_run: << pipeline.parameters.dry_run >>
+                  enterprise_edition: true
+                  context: cicd-orchestrator
+                  name: Build and push docker images for APIM EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+                  pre-steps:
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                            var-name: DOCKERHUB_BOT_USER_NAME
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                            var-name: DOCKERHUB_BOT_USER_TOKEN
     release:
         when:
             and:
