@@ -44,7 +44,7 @@ public class SimpleFlowProvider implements FlowProvider {
         final StreamType streamType,
         final FlowResolver flowResolver,
         final PolicyChainFactory policyChainFactory,
-        FlowPolicyResolverFactory flowPolicyResolverFactory
+        final FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
         this.streamType = streamType;
         this.flowResolver = flowResolver;

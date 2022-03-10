@@ -134,43 +134,35 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new PlanFlowPolicyChainProvider(
-                        new SimpleFlowProvider(
-                            StreamType.ON_REQUEST,
-                            new PlanFlowResolver(api, evaluator),
-                            policyChainFactory,
-                            flowPolicyResolverFactory
-                        )
+                        StreamType.ON_REQUEST,
+                        new PlanFlowResolver(api, evaluator),
+                        policyChainFactory,
+                        flowPolicyResolverFactory
                     )
                 );
                 add(
                     new SimpleFlowPolicyChainProvider(
-                        new SimpleFlowProvider(
-                            StreamType.ON_REQUEST,
-                            new ApiFlowResolver(api, evaluator),
-                            policyChainFactory,
-                            flowPolicyResolverFactory
-                        )
+                        StreamType.ON_REQUEST,
+                        new ApiFlowResolver(api, evaluator),
+                        policyChainFactory,
+                        flowPolicyResolverFactory
                     )
                 );
             } else {
                 add(
                     new PlanFlowPolicyChainProvider(
-                        new SimpleFlowProvider(
-                            StreamType.ON_REQUEST,
-                            new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
-                            policyChainFactory,
-                            flowPolicyResolverFactory
-                        )
+                        StreamType.ON_REQUEST,
+                        new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
+                        policyChainFactory,
+                        flowPolicyResolverFactory
                     )
                 );
                 add(
                     new SimpleFlowPolicyChainProvider(
-                        new SimpleFlowProvider(
-                            StreamType.ON_REQUEST,
-                            new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
-                            policyChainFactory,
-                            flowPolicyResolverFactory
-                        )
+                        StreamType.ON_REQUEST,
+                        new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
+                        policyChainFactory,
+                        flowPolicyResolverFactory
                     )
                 );
             }
