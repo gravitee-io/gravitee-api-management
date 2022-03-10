@@ -16,8 +16,6 @@
 package io.gravitee.gateway.handlers.api.definition;
 
 import io.gravitee.repository.management.model.Subscription;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author GraviteeSource Team
@@ -27,12 +25,14 @@ public class ApiKey extends io.gravitee.repository.management.model.ApiKey {
     private final String plan;
     private final String api;
     private final String subscription;
+    private final Subscription.Status subscriptionStatus;
 
     public ApiKey(io.gravitee.repository.management.model.ApiKey key, Subscription subscription) {
         super(key);
         this.plan = subscription.getPlan();
         this.api = subscription.getApi();
         this.subscription = subscription.getId();
+        this.subscriptionStatus = subscription.getStatus();
     }
 
     @SuppressWarnings("removal")
@@ -48,5 +48,9 @@ public class ApiKey extends io.gravitee.repository.management.model.ApiKey {
     @SuppressWarnings("removal")
     public String getSubscription() {
         return subscription;
+    }
+
+    public Subscription.Status getSubscriptionStatus() {
+        return subscriptionStatus;
     }
 }
