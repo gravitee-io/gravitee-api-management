@@ -36,6 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest {
 
+    @Override
     protected DefinitionVersion getDefinitionVersion() {
         return DefinitionVersion.V2;
     }
@@ -45,13 +46,8 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
     }
 
     @Override
-    protected void validate(SwaggerApiEntity api) {
-        assertEquals("1.2.3", api.getVersion());
-        assertEquals("Gravitee.io Swagger API", api.getName());
-        assertEquals(
-            "https://demo.gravitee.io/gateway/echo",
-            api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget()
-        );
+    protected void validate(SwaggerApiEntity api, String expectedEndpoint, String expectedContextPath) {
+        validateApi(api, expectedEndpoint, expectedContextPath);
         validatePolicies(api, 2, 4, asList("/pets", "/pets/:petId"));
     }
 

@@ -17,7 +17,10 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -32,6 +35,10 @@ public class GroupMemberEntity {
         this.displayName = memberEntity.getDisplayName();
         this.createdAt = memberEntity.getCreatedAt();
         this.updatedAt = memberEntity.getUpdatedAt();
+        this.roles = new HashMap<>();
+        for (RoleEntity role : memberEntity.getRoles()) {
+            this.roles.put(role.getScope().name(), role.getName());
+        }
     }
 
     private String id;

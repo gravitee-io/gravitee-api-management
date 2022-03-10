@@ -35,13 +35,6 @@ docker/quick-setup/**/.plugins
 docker/quick-setup/**/.license
 docker/quick-setup/**/.driver
 
-# -- Cicd : Git ignore the [.circleci/**/*] which contains
-# files which do not need to be commited (password to artifactory)
-.circleci/**/*
-# -- Cicd : Do not git ignore the [!./.circleci/config.yml] which contains
-# the pipeline definition
-!./.circleci/config.yml
-# -- Cicd : Git ignore the [gpg.script.snippet.sh] which contains
 # secrets (password to artifactory)
 gpg.script.snippet.sh
 # -- Cicd : The [graviteebot.gpg.priv.key] file contains secrets
@@ -57,4 +50,6 @@ graviteebot.gpg.pub.key
 # Cypress
 gravitee-apim-cypress/cypress/videos/
 gravitee-apim-cypress/cypress/screenshots/
-.dccache
+
+# Deepcode (Snyk Code) cache
+**/.dccache

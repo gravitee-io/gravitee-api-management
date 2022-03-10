@@ -141,7 +141,7 @@ public class SwaggerService_CreateAPITest {
             true,
             true
         );
-        validate(swaggerApiEntity);
+        validate(swaggerApiEntity, "myPath");
         validateExtensions(swaggerApiEntity);
     }
 
@@ -162,7 +162,7 @@ public class SwaggerService_CreateAPITest {
             true,
             true
         );
-        validate(swaggerApiEntity);
+        validate(swaggerApiEntity, "myPath");
         validateExtensions(swaggerApiEntity);
     }
 
@@ -170,6 +170,16 @@ public class SwaggerService_CreateAPITest {
     @Test
     public void shouldPrepareAPIFromSwaggerV3_URL_json() throws IOException {
         validate(prepareUrl("io/gravitee/rest/api/management/service/openapi.json", true, true));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3WithoutBasePath_URL_json() throws IOException {
+        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
+            "io/gravitee/rest/api/management/service/openapi-no-basepath.json",
+            true,
+            true
+        );
+        validate(swaggerApiEntity, "https://demo.gravitee.io", "gravitee.ioswaggerapi");
     }
 
     @Test
@@ -184,7 +194,7 @@ public class SwaggerService_CreateAPITest {
             true,
             true
         );
-        validate(swaggerApiEntity);
+        validate(swaggerApiEntity, "myPath");
         validateExtensions(swaggerApiEntity);
     }
 
@@ -205,7 +215,7 @@ public class SwaggerService_CreateAPITest {
             true,
             true
         );
-        validate(swaggerApiEntity);
+        validate(swaggerApiEntity, "myPath");
         validateExtensions(swaggerApiEntity);
     }
 
@@ -251,13 +261,23 @@ public class SwaggerService_CreateAPITest {
     }
 
     protected void validate(SwaggerApiEntity api) {
+        validate(api, "https://demo.gravitee.io/gateway/echo", "/gateway/echo");
+    }
+
+    protected void validate(SwaggerApiEntity api, String expectedContextPath) {
+        validate(api, "https://demo.gravitee.io/gateway/echo", expectedContextPath);
+    }
+
+    protected void validate(SwaggerApiEntity api, String expectedEndpoint, String expectedContextPath) {
+        validateApi(api, expectedEndpoint, expectedContextPath);
+        validatePolicies(api, 2, 0, asList("/pets", "/pets/:petId"));
+    }
+
+    protected void validateApi(SwaggerApiEntity api, String expectedEndpoint, String expectedContextPath) {
         assertEquals("1.2.3", api.getVersion());
         assertEquals("Gravitee.io Swagger API", api.getName());
-        assertEquals(
-            "https://demo.gravitee.io/gateway/echo",
-            api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget()
-        );
-        validatePolicies(api, 2, 0, asList("/pets", "/pets/:petId"));
+        assertEquals(expectedEndpoint, api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
+        assertEquals(expectedContextPath, api.getProxy().getVirtualHosts().iterator().next().getPath());
     }
 
     protected void validatePolicies(SwaggerApiEntity api, int expectedPathSize, int expectedOperationSize, List<String> expectedPaths) {

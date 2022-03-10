@@ -215,6 +215,11 @@ public class LoggableProxyConnection implements ProxyConnection {
         }
 
         @Override
+        public String reason() {
+            return proxyResponse.reason();
+        }
+
+        @Override
         public boolean connected() {
             return proxyResponse.connected();
         }
