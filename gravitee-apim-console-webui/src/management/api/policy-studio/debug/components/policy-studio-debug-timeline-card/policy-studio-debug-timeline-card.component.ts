@@ -124,7 +124,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
       case 'POLICY_REQUEST':
       case 'POLICY_RESPONSE':
         return {
-          iconUrl: this.sanitizer.bypassSecurityTrustUrl(timelineStep.icon),
+          iconUrl: timelineStep.icon ? this.sanitizer.bypassSecurityTrustUrl(timelineStep.icon) : undefined,
           headerLabel: timelineStep.flowName,
           title: timelineStep.policyName,
           color: 'default',

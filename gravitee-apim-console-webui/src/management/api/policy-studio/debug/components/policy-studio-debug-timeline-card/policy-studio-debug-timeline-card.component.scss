@@ -78,6 +78,11 @@ $cardIconWidth: 32px;
     white-space: nowrap;
     overflow: hidden;
 
+    &__stage {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     &__header-label {
       @include mat.typography-level($typography, caption);
       color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
