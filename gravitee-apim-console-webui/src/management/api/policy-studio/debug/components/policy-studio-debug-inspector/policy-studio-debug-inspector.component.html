@@ -25,11 +25,7 @@
       <!-- This is the tree node template for leaf nodes -->
       <mat-tree-node *matTreeNodeDef="let node" class="policy-studio-debug-inspector__tree-node-content">
         <container-element>
-          <policy-studio-debug-inspector-error
-            [name]="node.name"
-            [input]="node.input"
-            [output]="node.output"
-          ></policy-studio-debug-inspector-error>
+          <policy-studio-debug-inspector-error [input]="node.input"></policy-studio-debug-inspector-error>
         </container-element>
       </mat-tree-node>
       <!-- This is the tree node template for expandable nodes -->

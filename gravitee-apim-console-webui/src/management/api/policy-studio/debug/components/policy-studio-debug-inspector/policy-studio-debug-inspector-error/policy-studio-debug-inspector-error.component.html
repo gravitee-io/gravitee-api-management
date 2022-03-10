@@ -15,15 +15,11 @@
     limitations under the License.
 
 -->
-<table class="gio-table-light" attr.aria-label="Debug errors for {{ name }}">
-  <thead>
-    <tr>
-      <th>{{ name }}</th>
-    </tr>
-  </thead>
+<table class="gio-table-light" attr.aria-label="Debug errors">
   <tbody>
-    <tr>
-      <td>{{ output }}</td>
+    <tr *ngFor="let item of errors">
+      <td class="key">{{ item.key }}</td>
+      <td class="value">{{ item.value }}</td>
     </tr>
   </tbody>
 </table>
