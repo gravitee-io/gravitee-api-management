@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 
 import NotificationService from '../../services/notification.service';
 import ApplicationService from '../../services/application.service';
+import { ApiKeyMode } from '../../entities/application/application';
 
 class ApiKeysController {
   private subscription: any;
@@ -87,7 +88,7 @@ class ApiKeysController {
   }
 
   isSharedApiKey(): boolean {
-    return this.application.api_key_mode === 'SHARED';
+    return this.application.api_key_mode === ApiKeyMode.SHARED;
   }
 
   revokeApiKey(apiKey): void {
