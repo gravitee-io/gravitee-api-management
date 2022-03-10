@@ -38,11 +38,18 @@ public class SimpleFlowProvider implements FlowProvider {
     private final FlowResolver flowResolver;
 
     private final PolicyChainFactory policyChainFactory;
+    private final FlowPolicyResolverFactory flowPolicyResolverFactory;
 
-    public SimpleFlowProvider(final StreamType streamType, final FlowResolver flowResolver, final PolicyChainFactory policyChainFactory) {
+    public SimpleFlowProvider(
+        final StreamType streamType,
+        final FlowResolver flowResolver,
+        final PolicyChainFactory policyChainFactory,
+        FlowPolicyResolverFactory flowPolicyResolverFactory
+    ) {
         this.streamType = streamType;
         this.flowResolver = flowResolver;
         this.policyChainFactory = policyChainFactory;
+        this.flowPolicyResolverFactory = flowPolicyResolverFactory;
     }
 
     @Override
@@ -55,7 +62,7 @@ public class SimpleFlowProvider implements FlowProvider {
             for (Flow flow : flows) {
                 chain.add(
                     policyChainFactory.create(
-                        new FlowPolicyResolver(flow).resolve(streamType, context),
+                        flowPolicyResolverFactory.create(flow, flowResolver).resolve(streamType, context),
                         streamType,
                         context,
                         policies ->

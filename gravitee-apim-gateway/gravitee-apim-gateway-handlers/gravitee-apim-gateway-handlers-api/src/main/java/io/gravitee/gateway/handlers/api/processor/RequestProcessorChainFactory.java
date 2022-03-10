@@ -23,9 +23,9 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
-import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
 import io.gravitee.gateway.flow.BestMatchPolicyResolver;
+import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
 import io.gravitee.gateway.flow.SimpleFlowProvider;
 import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowConditionEvaluator;
@@ -65,6 +65,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
     private final PolicyChainProviderLoader policyChainProviderLoader;
     private final AuthenticationHandlerSelector authenticationHandlerSelector;
     private final PolicyManager policyManager;
+    private final FlowPolicyResolverFactory flowPolicyResolverFactory;
 
     public RequestProcessorChainFactory(
         final Api api,
@@ -72,13 +73,15 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         final PolicyManager policyManager,
         final RequestProcessorChainFactoryOptions requestProcessorChainFactoryOptions,
         final PolicyChainProviderLoader policyChainProviderLoader,
-        final AuthenticationHandlerSelector authenticationHandlerSelector
+        final AuthenticationHandlerSelector authenticationHandlerSelector,
+        final FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
         super(api, policyChainFactory);
         this.policyManager = policyManager;
         this.requestProcessorChainFactoryOptions = requestProcessorChainFactoryOptions;
         this.policyChainProviderLoader = policyChainProviderLoader;
         this.authenticationHandlerSelector = authenticationHandlerSelector;
+        this.flowPolicyResolverFactory = flowPolicyResolverFactory;
 
         this.initialize();
     }
@@ -131,12 +134,22 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new PlanFlowPolicyChainProvider(
-                        new SimpleFlowProvider(StreamType.ON_REQUEST, new PlanFlowResolver(api, evaluator), policyChainFactory)
+                        new SimpleFlowProvider(
+                            StreamType.ON_REQUEST,
+                            new PlanFlowResolver(api, evaluator),
+                            policyChainFactory,
+                            flowPolicyResolverFactory
+                        )
                     )
                 );
                 add(
                     new SimpleFlowPolicyChainProvider(
-                        new SimpleFlowProvider(StreamType.ON_REQUEST, new ApiFlowResolver(api, evaluator), policyChainFactory)
+                        new SimpleFlowProvider(
+                            StreamType.ON_REQUEST,
+                            new ApiFlowResolver(api, evaluator),
+                            policyChainFactory,
+                            flowPolicyResolverFactory
+                        )
                     )
                 );
             } else {
@@ -145,7 +158,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                         new SimpleFlowProvider(
                             StreamType.ON_REQUEST,
                             new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
-                            policyChainFactory
+                            policyChainFactory,
+                            flowPolicyResolverFactory
                         )
                     )
                 );
@@ -154,7 +168,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                         new SimpleFlowProvider(
                             StreamType.ON_REQUEST,
                             new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
-                            policyChainFactory
+                            policyChainFactory,
+                            flowPolicyResolverFactory
                         )
                     )
                 );

@@ -19,6 +19,7 @@ import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -30,8 +31,8 @@ import java.util.Map;
  */
 public class DebugResponseStep extends DebugStep<Response> {
 
-    public DebugResponseStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope) {
-        super(policyId, streamType, uuid, policyScope);
+    public DebugResponseStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope, PolicyMetadata policyMetadata) {
+        super(policyId, streamType, uuid, policyScope, policyMetadata);
     }
 
     @Override

@@ -20,6 +20,7 @@ import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.definition.model.debug.DebugStepStatus;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.debug.reactor.handler.context.AttributeHelper;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyResult;
 import java.io.Serializable;
@@ -59,14 +60,16 @@ public abstract class DebugStep<T> {
     protected final Stopwatch stopwatch;
     protected DebugStepStatus status;
     protected boolean ended = false;
+    private final PolicyMetadata policyMetadata;
 
     protected DebugStepContent policyInputContent;
 
-    public DebugStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope) {
+    public DebugStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope, PolicyMetadata policyMetadata) {
         this.policyId = policyId;
         this.streamType = streamType;
         this.policyInstanceId = uuid;
         this.policyScope = policyScope;
+        this.policyMetadata = policyMetadata;
         this.stopwatch = Stopwatch.createUnstarted();
         this.policyInputContent = new DebugStepContent();
     }
@@ -156,6 +159,10 @@ public abstract class DebugStep<T> {
 
     public void ended() {
         this.ended = true;
+    }
+
+    public PolicyMetadata policyMetadata() {
+        return policyMetadata;
     }
 
     @Override

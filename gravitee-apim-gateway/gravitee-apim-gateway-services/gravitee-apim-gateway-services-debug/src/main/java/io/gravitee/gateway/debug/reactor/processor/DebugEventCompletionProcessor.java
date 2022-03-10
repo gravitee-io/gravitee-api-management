@@ -29,6 +29,7 @@ import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerResponseDebugDecorator;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
@@ -189,6 +190,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugStep.setDuration(ds.elapsedTime().toNanos());
         debugStep.setStatus(ds.getStatus());
         debugStep.setScope(ds.getPolicyScope());
+        debugStep.setStage(ds.policyMetadata().metadata().getOrDefault(PolicyMetadata.MetadataKeys.STAGE, "UNDEFINED").toString());
 
         Map<String, Object> result = new HashMap<>();
         ds

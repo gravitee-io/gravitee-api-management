@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import com.google.common.base.Stopwatch;
 import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import java.io.Serializable;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class DebugStepTest {
 
     @Before
     public void setUp() {
-        cut = new DebugTestingStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST);
+        cut = new DebugTestingStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST, new PolicyMetadata("policy", "{}"));
     }
 
     @Test
@@ -77,8 +78,14 @@ public class DebugStepTest {
 
     static class DebugTestingStep extends DebugStep<Object> {
 
-        public DebugTestingStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope) {
-            super(policyId, streamType, uuid, policyScope);
+        public DebugTestingStep(
+            String policyId,
+            StreamType streamType,
+            String uuid,
+            PolicyScope policyScope,
+            PolicyMetadata policyMetadata
+        ) {
+            super(policyId, streamType, uuid, policyScope, policyMetadata);
         }
 
         @Override

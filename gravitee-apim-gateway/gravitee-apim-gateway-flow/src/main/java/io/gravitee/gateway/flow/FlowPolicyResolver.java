@@ -32,9 +32,11 @@ import java.util.stream.Collectors;
 public class FlowPolicyResolver implements PolicyResolver {
 
     private final Flow flow;
+    private final FlowResolver flowResolver;
 
-    public FlowPolicyResolver(Flow flow) {
+    public FlowPolicyResolver(Flow flow, FlowResolver flowResolver) {
         this.flow = flow;
+        this.flowResolver = flowResolver;
     }
 
     @Override
@@ -52,7 +54,17 @@ public class FlowPolicyResolver implements PolicyResolver {
         return steps
             .stream()
             .filter(Step::isEnabled)
-            .map(step -> new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition()))
+            .map(
+                step -> {
+                    final PolicyMetadata policyMetadata = new PolicyMetadata(
+                        step.getPolicy(),
+                        step.getConfiguration(),
+                        step.getCondition()
+                    );
+                    policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, flowResolver.stage());
+                    return policyMetadata;
+                }
+            )
             .collect(Collectors.toList());
     }
 }

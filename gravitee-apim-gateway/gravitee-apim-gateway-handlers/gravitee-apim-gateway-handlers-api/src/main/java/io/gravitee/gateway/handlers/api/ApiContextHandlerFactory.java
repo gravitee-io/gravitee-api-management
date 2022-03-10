@@ -32,6 +32,7 @@ import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.ProxyEndpointResolver;
 import io.gravitee.gateway.core.invoker.InvokerFactory;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -137,6 +138,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                     apiComponentProvider
                 );
 
+                final FlowPolicyResolverFactory flowPolicyResolverFactory = new FlowPolicyResolverFactory();
+
                 final PolicyChainFactory policyChainFactory = policyChainFactory(policyManager);
                 final RequestProcessorChainFactory requestProcessorChainFactory = requestProcessorChainFactory(
                     api,
@@ -145,13 +148,16 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                     policyChainProviderLoader,
                     authenticationHandlerSelector(
                         authenticationHandlerManager(securityProviderLoader(), authenticationHandlerEnhancer(api), apiComponentProvider)
-                    )
+                    ),
+                    flowPolicyResolverFactory
                 );
 
                 final DefaultReferenceRegister referenceRegister = referenceRegister();
 
                 handler.setRequestProcessorChain(requestProcessorChainFactory);
-                handler.setResponseProcessorChain(responseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader));
+                handler.setResponseProcessorChain(
+                    responseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader, flowPolicyResolverFactory)
+                );
                 handler.setErrorProcessorChain(errorProcessorChainFactory(api, policyChainFactory));
 
                 final GroupLifecycleManager groupLifecycleManager = groupLifecyleManager(
@@ -334,7 +340,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         PolicyChainFactory policyChainFactory,
         PolicyManager policyManager,
         PolicyChainProviderLoader policyChainProviderLoader,
-        AuthenticationHandlerSelector authenticationHandlerSelector
+        AuthenticationHandlerSelector authenticationHandlerSelector,
+        FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
         RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options = new RequestProcessorChainFactory.RequestProcessorChainFactoryOptions();
         options.setMaxSizeLogMessage(configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, Integer.class, -1));
@@ -349,16 +356,18 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
             policyManager,
             options,
             policyChainProviderLoader,
-            authenticationHandlerSelector
+            authenticationHandlerSelector,
+            flowPolicyResolverFactory
         );
     }
 
     public ResponseProcessorChainFactory responseProcessorChainFactory(
         Api api,
         PolicyChainFactory policyChainFactory,
-        PolicyChainProviderLoader policyChainProviderLoader
+        PolicyChainProviderLoader policyChainProviderLoader,
+        FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
-        return new ResponseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader, node);
+        return new ResponseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader, node, flowPolicyResolverFactory);
     }
 
     public OnErrorProcessorChainFactory errorProcessorChainFactory(Api api, PolicyChainFactory policyChainFactory) {

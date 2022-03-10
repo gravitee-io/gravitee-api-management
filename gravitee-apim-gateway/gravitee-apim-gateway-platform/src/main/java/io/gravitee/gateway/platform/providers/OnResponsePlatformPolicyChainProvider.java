@@ -18,6 +18,7 @@ package io.gravitee.gateway.platform.providers;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
+import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.FlowProvider;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
@@ -25,7 +26,6 @@ import io.gravitee.gateway.platform.OrganizationFlowProvider;
 import io.gravitee.gateway.policy.ConfigurablePolicyChainProvider;
 import io.gravitee.gateway.policy.PolicyChainOrder;
 import io.gravitee.gateway.policy.StreamType;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -35,19 +35,25 @@ public class OnResponsePlatformPolicyChainProvider extends ConfigurablePolicyCha
 
     private final StreamType streamType = StreamType.ON_RESPONSE;
 
-    private FlowResolver flowResolver;
-    private PolicyChainFactory policyChainFactory;
+    private final FlowResolver flowResolver;
+    private final PolicyChainFactory policyChainFactory;
+    private final FlowPolicyResolverFactory flowPolicyResolverFactory;
 
     private FlowProvider flowProvider;
 
-    public OnResponsePlatformPolicyChainProvider(FlowResolver flowResolver, PolicyChainFactory policyChainFactory) {
+    public OnResponsePlatformPolicyChainProvider(
+        FlowResolver flowResolver,
+        PolicyChainFactory policyChainFactory,
+        FlowPolicyResolverFactory flowPolicyResolverFactory
+    ) {
         this.flowResolver = flowResolver;
         this.policyChainFactory = policyChainFactory;
+        this.flowPolicyResolverFactory = flowPolicyResolverFactory;
     }
 
     private FlowProvider getFlowProvider() {
         if (this.flowProvider == null) {
-            flowProvider = new OrganizationFlowProvider(streamType, flowResolver, policyChainFactory);
+            flowProvider = new OrganizationFlowProvider(streamType, flowResolver, policyChainFactory, flowPolicyResolverFactory);
         }
         return flowProvider;
     }

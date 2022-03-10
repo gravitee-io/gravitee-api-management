@@ -39,6 +39,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.ConditionalExecutablePolicy;
 import io.gravitee.policy.api.PolicyChain;
@@ -67,6 +68,9 @@ public class DebugConditionalExecutablePolicyTest {
     @Mock
     private Policy policy;
 
+    @Mock
+    private PolicyMetadata policyMetadata;
+
     private ConditionEvaluator<String> conditionEvaluator;
     private DebugStep<?> debugStep;
 
@@ -75,7 +79,7 @@ public class DebugConditionalExecutablePolicyTest {
         when(executionContext.request()).thenReturn(mock(Request.class));
         when(executionContext.response()).thenReturn(mock(Response.class));
         conditionEvaluator = new ExpressionLanguageStringConditionEvaluator();
-        debugStep = new DebugRequestStep("id", StreamType.ON_REQUEST, "uuid", PolicyScope.ON_REQUEST);
+        debugStep = new DebugRequestStep("id", StreamType.ON_REQUEST, "uuid", PolicyScope.ON_REQUEST, policyMetadata);
     }
 
     @Test

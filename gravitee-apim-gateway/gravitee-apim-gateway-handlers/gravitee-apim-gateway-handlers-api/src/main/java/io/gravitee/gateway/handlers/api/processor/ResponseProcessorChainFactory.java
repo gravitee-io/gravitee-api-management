@@ -21,6 +21,7 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.BestMatchPolicyResolver;
+import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
 import io.gravitee.gateway.flow.SimpleFlowProvider;
 import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowConditionEvaluator;
@@ -50,6 +51,7 @@ import io.gravitee.node.api.Node;
 public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
 
     private final PolicyChainProviderLoader policyChainProviderLoader;
+    private final FlowPolicyResolverFactory flowPolicyResolverFactory;
 
     private Node node;
 
@@ -57,11 +59,13 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
         final Api api,
         final PolicyChainFactory policyChainFactory,
         final PolicyChainProviderLoader policyChainProviderLoader,
-        final Node node
+        final Node node,
+        FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
         super(api, policyChainFactory);
         this.policyChainProviderLoader = policyChainProviderLoader;
         this.node = node;
+        this.flowPolicyResolverFactory = flowPolicyResolverFactory;
 
         this.initialize();
     }
@@ -82,12 +86,22 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new SimpleFlowPolicyChainProvider(
-                        new SimpleFlowProvider(StreamType.ON_RESPONSE, new ApiFlowResolver(api, evaluator), policyChainFactory)
+                        new SimpleFlowProvider(
+                            StreamType.ON_RESPONSE,
+                            new ApiFlowResolver(api, evaluator),
+                            policyChainFactory,
+                            flowPolicyResolverFactory
+                        )
                     )
                 );
                 add(
                     new PlanFlowPolicyChainProvider(
-                        new SimpleFlowProvider(StreamType.ON_RESPONSE, new PlanFlowResolver(api, evaluator), policyChainFactory)
+                        new SimpleFlowProvider(
+                            StreamType.ON_RESPONSE,
+                            new PlanFlowResolver(api, evaluator),
+                            policyChainFactory,
+                            flowPolicyResolverFactory
+                        )
                     )
                 );
             } else {
@@ -96,7 +110,8 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
                         new SimpleFlowProvider(
                             StreamType.ON_RESPONSE,
                             new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
-                            policyChainFactory
+                            policyChainFactory,
+                            flowPolicyResolverFactory
                         )
                     )
                 );
@@ -105,7 +120,8 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
                         new SimpleFlowProvider(
                             StreamType.ON_RESPONSE,
                             new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
-                            policyChainFactory
+                            policyChainFactory,
+                            flowPolicyResolverFactory
                         )
                     )
                 );

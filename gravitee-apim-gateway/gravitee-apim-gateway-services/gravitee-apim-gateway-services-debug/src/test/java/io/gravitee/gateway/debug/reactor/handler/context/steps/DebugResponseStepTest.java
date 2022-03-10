@@ -22,6 +22,7 @@ import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.HashMap;
 import java.util.List;
@@ -45,11 +46,14 @@ public class DebugResponseStepTest {
     @Mock
     private Response afterResponse;
 
+    @Mock
+    private PolicyMetadata policyMetadata;
+
     private DebugResponseStep cut;
 
     @Before
     public void setUp() {
-        cut = new DebugResponseStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST);
+        cut = new DebugResponseStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST, policyMetadata);
         when(beforeResponse.headers()).thenReturn(HttpHeaders.create().add("Header", "header-value"));
 
         when(beforeResponse.status()).thenReturn(200);

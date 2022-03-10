@@ -16,6 +16,7 @@
 package io.gravitee.gateway.debug.reactor.handler.context.steps;
 
 import io.gravitee.definition.model.PolicyScope;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 
 /**
@@ -24,19 +25,19 @@ import io.gravitee.gateway.policy.StreamType;
  */
 public class DebugStepFactory {
 
-    public static DebugStep<?> createExecuteDebugStep(String policyId, StreamType streamType, String uuid) {
+    public static DebugStep<?> createExecuteDebugStep(String policyId, StreamType streamType, String uuid, PolicyMetadata policyMetadata) {
         if (StreamType.ON_REQUEST.equals(streamType)) {
-            return new DebugRequestStep(policyId, streamType, uuid, PolicyScope.ON_REQUEST);
+            return new DebugRequestStep(policyId, streamType, uuid, PolicyScope.ON_REQUEST, policyMetadata);
         } else {
-            return new DebugResponseStep(policyId, streamType, uuid, PolicyScope.ON_RESPONSE);
+            return new DebugResponseStep(policyId, streamType, uuid, PolicyScope.ON_RESPONSE, policyMetadata);
         }
     }
 
-    public static DebugStep<?> createStreamDebugStep(String policyId, StreamType streamType, String uuid) {
+    public static DebugStep<?> createStreamDebugStep(String policyId, StreamType streamType, String uuid, PolicyMetadata policyMetadata) {
         if (StreamType.ON_REQUEST.equals(streamType)) {
-            return new DebugRequestStep(policyId, streamType, uuid, PolicyScope.ON_REQUEST_CONTENT);
+            return new DebugRequestStep(policyId, streamType, uuid, PolicyScope.ON_REQUEST_CONTENT, policyMetadata);
         } else {
-            return new DebugResponseStep(policyId, streamType, uuid, PolicyScope.ON_RESPONSE_CONTENT);
+            return new DebugResponseStep(policyId, streamType, uuid, PolicyScope.ON_RESPONSE_CONTENT, policyMetadata);
         }
     }
 }
