@@ -40,7 +40,25 @@ describe('PolicyStudioDebugComponent', () => {
   let policyStudioService: PolicyStudioService;
   let loader: HarnessLoader;
 
-  const policies = [fakePolicyListItem()];
+  const policies = [
+    fakePolicyListItem(),
+    fakePolicyListItem({
+      id: 'key-less',
+      name: 'Keyless',
+    }),
+    fakePolicyListItem({
+      id: 'policy-assign-attributes',
+      name: 'Assign Attributes',
+    }),
+    fakePolicyListItem({
+      id: 'policy-override-request-method',
+      name: undefined,
+    }),
+    fakePolicyListItem({
+      id: 'transform-headers',
+      name: 'Transform Headers',
+    }),
+  ];
   const api = fakeApi();
 
   beforeEach(() => {
@@ -125,19 +143,19 @@ describe('PolicyStudioDebugComponent', () => {
           content: ' Request Input ',
         },
         {
-          content: ' Header  key-less ',
+          content: ' Plan > Header  Keyless ',
         },
         {
-          content: ' Header  policy-assign-attributes ',
+          content: ' Api > Header  Assign Attributes ',
         },
         {
-          content: ' Header  policy-override-request-method ',
+          content: ' Api > Header  Policy Override Request Method ',
         },
         {
-          content: ' Header  transform-headers ',
+          content: ' Api > Header  Transform Headers ',
         },
         {
-          content: ' Header  transform-headers ',
+          content: ' Api > Header  Transform Headers ',
           state: 'ERROR',
         },
         {
@@ -150,10 +168,10 @@ describe('PolicyStudioDebugComponent', () => {
           content: ' Response Input ',
         },
         {
-          content: ' Header  transform-headers ',
+          content: ' Api > Header  Transform Headers ',
         },
         {
-          content: ' Body  policy-assign-content ',
+          content: ' Api > Body  policy-assign-content ',
         },
         {
           content: ' Response Output ',
@@ -166,7 +184,7 @@ describe('PolicyStudioDebugComponent', () => {
 
     it('should display inspector content for selected policy', () => {
       [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
-        .find((card) => card.textContent.includes('Header  policy-assign-attributes'))
+        .find((card) => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
 
@@ -195,7 +213,7 @@ describe('PolicyStudioDebugComponent', () => {
 
       // Select card and expect inspector content
       [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
-        .find((card) => card.textContent.includes('Header  policy-assign-attributes'))
+        .find((card) => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
       expect(getInspectorContent()).not.toEqual(null);

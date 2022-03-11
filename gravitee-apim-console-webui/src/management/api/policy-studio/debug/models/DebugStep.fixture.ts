@@ -26,6 +26,7 @@ export function fakeRequestDebugStep(attributes?: Partial<RequestPolicyDebugStep
     scope: 'ON_REQUEST',
     status: 'COMPLETED',
     duration: 46143,
+    stage: 'PLAN',
     output: {
       headers: {
         'content-length': ['246'],
@@ -58,6 +59,7 @@ export function fakeErrorRequestDebugStep(attributes?: Partial<RequestPolicyDebu
     scope: 'ON_REQUEST',
     status: 'COMPLETED',
     duration: 46143,
+    stage: 'PLAN',
     output: {
       body: '{}',
       'error.contentType': 'application/json',

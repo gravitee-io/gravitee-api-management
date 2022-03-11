@@ -45,6 +45,7 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           scope: 'ON_REQUEST',
           status: 'COMPLETED',
           duration: 46143,
+          stage: 'PLAN',
           result: {
             attributes: {
               'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
@@ -64,6 +65,7 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           scope: 'ON_REQUEST',
           status: 'COMPLETED',
           duration: 36091,
+          stage: 'API',
           result: {
             attributes: {
               'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
@@ -84,6 +86,7 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           scope: 'ON_REQUEST',
           status: 'COMPLETED',
           duration: 17968,
+          stage: 'API',
           result: {
             attributes: {
               'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
@@ -105,6 +108,7 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           scope: 'ON_REQUEST',
           status: 'SKIPPED',
           duration: 30985,
+          stage: 'API',
           result: {
             headers: {
               'dev-header': ['gmaisse'],
@@ -122,6 +126,7 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           scope: 'ON_REQUEST',
           status: 'ERROR',
           duration: 17968,
+          stage: 'API',
           result: {
             'error.message': 'Error message',
             'error.key': 'POLICY_ERROR',
@@ -135,6 +140,7 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           scope: 'ON_RESPONSE',
           status: 'COMPLETED',
           duration: 34524,
+          stage: 'API',
           result: {
             headers: {
               'content-length': ['0'],
@@ -152,6 +158,7 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           scope: 'ON_RESPONSE_CONTENT',
           status: 'COMPLETED',
           duration: 1255578,
+          stage: 'API',
           result: {
             headers: {
               'Cache-Control': ['no-cache'],

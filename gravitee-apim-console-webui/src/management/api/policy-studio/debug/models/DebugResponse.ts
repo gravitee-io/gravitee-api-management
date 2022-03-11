@@ -75,6 +75,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
       ...event.payload.request,
       ...event.payload.preprocessorStep,
     },
+    stage: undefined,
   };
 
   const requestOutputDebugStep = requestPolicyDebugSteps.reduce(
@@ -121,6 +122,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
       attributes: requestOutputDebugStep.output.attributes,
       ...(event.payload.backendResponse ?? {}),
     },
+    stage: undefined,
   };
 
   const responseOutputDebugStep = responsePolicyDebugSteps.reduce(
@@ -177,6 +179,7 @@ const convertRequestDebugSteps = (
     policyInstanceId: firstStep.policyInstanceId,
     scope: firstStep.scope,
     duration: firstStep.duration,
+    stage: firstStep.stage,
     output: {
       ...initialRequest,
       ...preprocessorStep,
@@ -201,6 +204,7 @@ const convertRequestDebugSteps = (
             ...previousStep.output,
             ...currentValue.result,
           },
+          stage: currentValue.stage,
         },
       ];
     },
@@ -231,6 +235,7 @@ const convertResponseDebugSteps = (
       ...preprocessorStep,
       ...firstStep.result,
     },
+    stage: firstStep.stage,
   };
 
   return others.reduce(
@@ -250,6 +255,7 @@ const convertResponseDebugSteps = (
             ...previousStep.output,
             ...currentValue.result,
           },
+          stage: currentValue.stage,
         },
       ];
     },
