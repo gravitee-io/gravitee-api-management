@@ -17,15 +17,18 @@
 -->
 <md-dialog class="api-key-mode-choice-dialog">
   <md-dialog-title class="api-key-mode-choice-dialog__title">
-    <h4>Select Key Type:</h4>
+    <h4>Application API key type</h4>
   </md-dialog-title>
   <md-dialog-content class="api-key-mode-choice-dialog__content">
     <div class="api-key-mode-choice-dialog__content__details">
-      <p>API key is unique to each subscription.</p>
-      <p>Shared API key is shared across subscriptions.</p>
+      <p>You have to choose between two modes for your application :</p>
+      <ul>
+        <li><b>API key</b> - a new API key will be generated for each subscription</li>
+        <li><b>Shared API key</b> - each subscription will use the same API key</li>
+      </ul>
     </div>
     <div class="api-key-mode-choice-dialog__content__warning">
-      <p>Please note that this action is irreversible.</p>
+      <p>Please note that this choice is permanent.</p>
     </div>
   </md-dialog-content>
   <md-dialog-actions>
