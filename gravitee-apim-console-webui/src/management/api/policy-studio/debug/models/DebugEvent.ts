@@ -55,6 +55,7 @@ interface DebugEventDebugStep {
   status: 'COMPLETED' | 'ERROR' | 'SKIPPED';
   duration: number;
   result: Record<string, unknown>;
+  stage: 'SECURITY' | 'PLATFORM' | 'PLAN' | 'API' | 'UNDEFINED';
 }
 
 export interface DebugEventMetrics {

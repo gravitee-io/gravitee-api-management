@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
+import { CommonModule, TitleCasePipe } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -79,5 +79,6 @@ import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.m
   ],
   exports: [PolicyStudioDebugComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  providers: [TitleCasePipe],
 })
 export class PolicyStudioDebugModule {}

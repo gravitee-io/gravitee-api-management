@@ -18,6 +18,7 @@ export interface DebugStep<T> {
   status: 'COMPLETED' | 'ERROR' | 'SKIPPED';
   duration: number;
   output: T;
+  stage: 'SECURITY' | 'PLATFORM' | 'PLAN' | 'API' | 'UNDEFINED';
 }
 
 interface PolicyDebugStep<T> extends DebugStep<T> {

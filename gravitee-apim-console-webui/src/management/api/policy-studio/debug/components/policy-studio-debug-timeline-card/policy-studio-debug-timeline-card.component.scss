@@ -17,7 +17,7 @@ $cardIconWidth: 32px;
   @include mat.elevation(1);
 
   width: $cardWidth;
-  height: 76px;
+  height: 88px;
   position: relative;
 
   display: flex;
@@ -78,16 +78,12 @@ $cardIconWidth: 32px;
     white-space: nowrap;
     overflow: hidden;
 
-    &__stage {
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
     &__header-label {
       @include mat.typography-level($typography, caption);
       color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
       overflow: hidden;
       text-overflow: ellipsis;
+      margin: 4px 0;
     }
 
     &__title {
@@ -111,6 +107,7 @@ $cardIconWidth: 32px;
 
   &__time-label {
     @include mat.typography-level($typography, caption);
+    color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
     position: absolute;
     bottom: 8px;
     right: 8px;

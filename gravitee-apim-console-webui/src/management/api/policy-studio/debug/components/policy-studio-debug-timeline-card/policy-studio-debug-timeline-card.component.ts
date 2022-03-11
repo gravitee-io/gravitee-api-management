@@ -16,6 +16,7 @@
 
 import { Component, Input, OnChanges } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { TitleCasePipe } from '@angular/common';
 
 export type TimelineStep = (
   | {
@@ -38,6 +39,7 @@ export type TimelineStep = (
       executionTime: number;
       executionStatus: 'ERROR' | 'SKIPPED' | 'COMPLETED';
       id: string;
+      stage: string;
     }
   | {
       mode: 'RESPONSE_INPUT';
@@ -54,6 +56,7 @@ interface TimelineCardVM {
   icon?: string;
   iconUrl?: SafeUrl;
   headerLabel?: string;
+  stage?: string;
   title?: string;
   color?: 'green' | 'blue' | 'default';
   executionTime?: number;
@@ -77,7 +80,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
     selection: 'none',
   };
 
-  constructor(private readonly sanitizer: DomSanitizer) {}
+  constructor(private readonly sanitizer: DomSanitizer, private titleCasePipe: TitleCasePipe) {}
 
   ngOnChanges(): void {
     if (!this.timelineStep) {
@@ -125,10 +128,11 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
       case 'POLICY_RESPONSE':
         return {
           iconUrl: timelineStep.icon ? this.sanitizer.bypassSecurityTrustUrl(timelineStep.icon) : undefined,
-          headerLabel: timelineStep.flowName,
+          headerLabel: `${this.titleCasePipe.transform(timelineStep.stage)} > ${timelineStep.flowName}`,
           title: timelineStep.policyName,
           color: 'default',
           executionTime: timelineStep.executionTime / 1_000_000,
+          stage: timelineStep.stage,
           rightIcon:
             timelineStep.executionStatus === 'ERROR'
               ? 'gio:warning-circled-outline'

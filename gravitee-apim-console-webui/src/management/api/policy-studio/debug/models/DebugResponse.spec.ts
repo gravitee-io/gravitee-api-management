@@ -27,6 +27,7 @@ describe('convertDebugEventToDebugResponse', () => {
       scope: 'ON_REQUEST',
       status: 'COMPLETED',
       duration: 46143,
+      stage: 'PLAN',
       output: {
         path: '/',
         method: 'GET',
@@ -54,6 +55,7 @@ describe('convertDebugEventToDebugResponse', () => {
       scope: 'ON_REQUEST',
       status: 'COMPLETED',
       duration: 36091,
+      stage: 'API',
       output: {
         path: '/',
         method: 'GET',
@@ -82,6 +84,7 @@ describe('convertDebugEventToDebugResponse', () => {
       scope: 'ON_REQUEST',
       status: 'COMPLETED',
       duration: 17968,
+      stage: 'API',
       output: {
         path: '/',
         method: 'GET',
@@ -111,6 +114,7 @@ describe('convertDebugEventToDebugResponse', () => {
       scope: 'ON_REQUEST',
       status: 'SKIPPED',
       duration: 30985,
+      stage: 'API',
       output: {
         path: '/',
         method: 'GET',
@@ -142,6 +146,7 @@ describe('convertDebugEventToDebugResponse', () => {
       id: expect.any(String),
       policyId: 'transform-headers',
       policyInstanceId: 'b3cb3acc-79ea-48ea-8b3a-cc79ea48e666',
+      stage: 'API',
       output: {
         attributes: {
           dev: 'gmaisse',
@@ -184,6 +189,7 @@ describe('convertDebugEventToDebugResponse', () => {
       scope: 'ON_RESPONSE',
       status: 'COMPLETED',
       duration: 34524,
+      stage: 'API',
       output: {
         body: '{"headers":{"X-Gravitee-Transaction-Id":"b39875e9-7fc7-4980-9875-e97fc7b980b7","X-Gravitee-Request-Id":"303247f6-5811-4a90-b247-f658115a9033","a-header-platform":"WOW","Host":"api.gravitee.io","accept-encoding":"deflate, gzip"},"query_params":{}}',
         statusCode: 200,
@@ -216,6 +222,7 @@ describe('convertDebugEventToDebugResponse', () => {
       scope: 'ON_RESPONSE_CONTENT',
       status: 'COMPLETED',
       duration: 1255578,
+      stage: 'API',
       output: {
         statusCode: 200,
         headers: {
@@ -247,6 +254,7 @@ describe('convertDebugEventToDebugResponse', () => {
     id: 'request-input',
     duration: 0,
     status: undefined,
+    stage: undefined,
     output: {
       attributes: {
         'gravitee.attribute.context-path': '/09770e92ee2112001ade3747-echo/',
@@ -294,6 +302,7 @@ describe('convertDebugEventToDebugResponse', () => {
       path: '/',
     },
     status: 'ERROR',
+    stage: undefined,
   };
 
   const expectedResponseInputDebugStep = {
@@ -323,6 +332,7 @@ describe('convertDebugEventToDebugResponse', () => {
       },
       statusCode: 200,
     },
+    stage: undefined,
   };
 
   const expectedResponseOutputDebugStep = {
@@ -353,6 +363,7 @@ describe('convertDebugEventToDebugResponse', () => {
       statusCode: 200,
     },
     status: 'COMPLETED',
+    stage: undefined,
   };
 
   it('should convert request and response debug step', () => {

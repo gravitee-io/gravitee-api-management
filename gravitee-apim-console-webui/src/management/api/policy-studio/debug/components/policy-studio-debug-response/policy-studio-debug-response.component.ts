@@ -15,6 +15,7 @@
  */
 
 import { Component, Input, OnChanges } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
 
 import { PolicyListItem } from '../../../../../../entities/policy';
 import { DebugResponse } from '../../models/DebugResponse';
@@ -49,6 +50,8 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
     input?: RequestDebugStep | ResponseDebugStep;
     output?: RequestDebugStep | ResponseDebugStep;
   };
+
+  constructor(private titleCasePipe: TitleCasePipe) {}
 
   ngOnChanges(): void {
     this.responseDisplayableVM = undefined;
@@ -120,12 +123,13 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         return {
           executionTime: debugStep.duration,
           executionStatus: debugStep.status,
-          policyName: policy?.name ?? debugStep.policyId,
+          policyName: policy?.name ?? this.titleCasePipe.transform(debugStep.policyId.replace(/[_-]/g, ' ')),
           mode: 'POLICY_REQUEST' as const,
           icon: policy?.icon,
           flowName: policyScopeToDisplayableLabel(debugStep.scope),
           id: debugStep.id,
           selection: 'none' as const,
+          stage: debugStep.stage,
         };
       }),
       {
@@ -155,6 +159,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
           flowName: policyScopeToDisplayableLabel(debugStep.scope),
           id: debugStep.id,
           selection: 'none' as const,
+          stage: debugStep.stage,
         };
       }),
       {
