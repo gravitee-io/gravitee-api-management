@@ -165,15 +165,6 @@ public class ApiKeyEntity {
         return getSubscriptionIds().stream().anyMatch(subscriptionId::equals);
     }
 
-    public void addSubscription(SubscriptionEntity subscription) {
-        Set<SubscriptionEntity> updatedSubscriptions = new HashSet<>();
-        updatedSubscriptions.add(subscription);
-        if (subscriptions != null) {
-            updatedSubscriptions.addAll(subscriptions);
-        }
-        setSubscriptions(updatedSubscriptions);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
