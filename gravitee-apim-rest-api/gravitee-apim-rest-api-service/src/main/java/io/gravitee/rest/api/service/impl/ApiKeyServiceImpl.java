@@ -170,21 +170,30 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         Set<String> subscriptions = new HashSet<>();
         apiKeys.forEach(apiKey -> subscriptions.addAll(apiKey.getSubscriptions()));
         activeApiKey.setSubscriptions(new ArrayList<>(subscriptions));
+        activeApiKey.setUpdatedAt(new Date());
         apiKeyRepository.update(activeApiKey);
     }
 
     private ApiKeyEntity findOrGenerate(ApplicationEntity application, SubscriptionEntity subscription, String customApiKey) {
         return findByApplication(application.getId())
             .stream()
-            .findFirst()
-            .map(
-                apiKey -> {
-                    apiKey.addSubscription(subscription);
-                    update(apiKey);
-                    return apiKey;
-                }
-            )
+            .peek(apiKey -> addSubscription(apiKey, subscription))
+            .max(comparing(ApiKeyEntity::isRevoked, reverseOrder()).thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())))
             .orElseGet(() -> generate(subscription, customApiKey));
+    }
+
+    private void addSubscription(ApiKeyEntity apiKeyEntity, SubscriptionEntity subscription) {
+        try {
+            ApiKey apiKey = apiKeyRepository.findById(apiKeyEntity.getId()).orElseThrow(ApiKeyNotFoundException::new);
+            ArrayList<String> subscriptions = new ArrayList<>(apiKey.getSubscriptions());
+            subscriptions.add(subscription.getId());
+            apiKey.setSubscriptions(subscriptions);
+            apiKey.setUpdatedAt(new Date());
+            apiKeyRepository.update(apiKey);
+        } catch (TechnicalException e) {
+            LOGGER.error("An error occurred while trying to add subscription to API Key", e);
+            throw new TechnicalManagementException("An error occurred while trying to a add subscription to API Key");
+        }
     }
 
     private ApiKeyEntity generate(SubscriptionEntity subscription, String customApiKey) {

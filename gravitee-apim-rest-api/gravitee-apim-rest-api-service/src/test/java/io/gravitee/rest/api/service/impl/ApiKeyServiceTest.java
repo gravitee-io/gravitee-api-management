@@ -148,7 +148,7 @@ public class ApiKeyServiceTest {
         when(apiKeyRepository.findById(sharedApiKeyId)).thenReturn(Optional.of(sharedKey));
         when(apiKeyRepository.findByApplication(APPLICATION_ID)).thenReturn(List.of(sharedKey));
         when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(firstSubscription, subscription));
-
+        when(apiKeyRepository.update(any())).then(returnsFirstArg());
         ApiKeyEntity newKey = apiKeyService.generate(application, subscription, null);
         assertEquals(sharedApiKeyValue, newKey.getKey());
         assertEquals(sharedApiKeyId, newKey.getId());
@@ -677,7 +677,7 @@ public class ApiKeyServiceTest {
         apiKeyEntity.setApplication(application);
         apiKeyEntity.setKey("ABC");
         apiKeyEntity.setPaused(true);
-        apiKeyEntity.addSubscription(subscription);
+        apiKeyEntity.setSubscriptions(Set.of(subscription));
         apiKeyEntity.setApplication(application);
         apiKeyEntity.setExpireAt(new Date());
 
