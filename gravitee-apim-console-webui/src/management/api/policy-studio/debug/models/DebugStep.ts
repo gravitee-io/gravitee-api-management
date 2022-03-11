@@ -36,6 +36,7 @@ interface RequestOutput {
   contextPath?: string;
   attributes?: Record<string, boolean | number | string>;
   body?: string;
+  condition?: string;
   'error.contentType'?: string;
   'error.key'?: string;
   'error.message'?: string;
@@ -48,6 +49,7 @@ interface ResponseOutput {
   reason?: string;
   attributes?: Record<string, boolean | number | string>;
   body?: string;
+  condition?: string;
   'error.contentType'?: string;
   'error.key'?: string;
   'error.message'?: string;

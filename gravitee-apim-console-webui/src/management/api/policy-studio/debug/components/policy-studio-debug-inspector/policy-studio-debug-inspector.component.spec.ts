@@ -85,17 +85,50 @@ describe('PolicyStudioDebugInspectorComponent', () => {
 
     fixture.detectChanges();
 
-    const { treeNodes, errorTreeNodes } = component.buildTreeNodes();
+    const { treeNodes, errorTreeNodes, conditionNode } = component.buildTreeNodes();
 
     expect(errorTreeNodes.length).toEqual(1);
-    expect(errorTreeNodes[0].children.length).toEqual(4);
-    expect(errorTreeNodes[0].children[0].name).toEqual('contentType');
-    expect(errorTreeNodes[0].children[1].name).toEqual('key');
-    expect(errorTreeNodes[0].children[2].name).toEqual('message');
-    expect(errorTreeNodes[0].children[3].name).toEqual('status');
+    expect(errorTreeNodes[0].children.length).toEqual(1);
+    expect(errorTreeNodes[0].children[0].input.length).toEqual(4);
+    expect(errorTreeNodes[0].children[0].input.map((a) => a.key)).toEqual([
+      'error.contentType',
+      'error.key',
+      'error.message',
+      'error.status',
+    ]);
 
     expect(treeNodes).not.toBeNull();
     expect(treeNodes.length).toBeGreaterThanOrEqual(3);
+
+    expect(conditionNode).toBeUndefined();
+  });
+
+  it('should build tree nodes with condition', () => {
+    const condition = '{#request.headers.foo == "bar"}';
+    component.executionStatus = 'SKIPPED';
+
+    component.outputDebugStep = {
+      ...outputDebugStep,
+      output: {
+        ...outputDebugStep.output,
+        condition,
+      },
+    };
+
+    fixture.detectChanges();
+
+    const { treeNodes, errorTreeNodes, conditionNode } = component.buildTreeNodes();
+
+    expect(errorTreeNodes).not.toBeNull();
+    expect(errorTreeNodes.length).toEqual(0);
+
+    expect(treeNodes).not.toBeNull();
+    expect(treeNodes.length).toBeGreaterThanOrEqual(3);
+
+    expect(conditionNode).not.toBeNull();
+    expect(conditionNode.children.length).toEqual(1);
+    expect(conditionNode.children[0].input).toEqual(condition);
+    expect(conditionNode.children[0].output).toEqual(component.executionStatus);
   });
 
   it('should get diff state between 2 params', () => {

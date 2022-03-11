@@ -33,10 +33,13 @@ export class PolicyStudioDebugInspectorTextComponent implements OnChanges {
   @Input()
   output: string;
 
+  @Input()
+  noDiff = false;
+
   diffClass: 'added' | 'deleted' | 'updated';
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['input'] || changes['output']) {
+    if (!this.noDiff && (changes['input'] || changes['output'])) {
       this.diffClass = getDiffState(this.input, this.output);
     }
   }

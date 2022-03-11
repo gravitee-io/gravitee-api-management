@@ -49,6 +49,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   public inspectorVM: {
     input?: RequestDebugStep | ResponseDebugStep;
     output?: RequestDebugStep | ResponseDebugStep;
+    executionStatus?: string;
   };
 
   constructor(private titleCasePipe: TitleCasePipe) {}
@@ -177,21 +178,18 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
   }
 
   private onSelectPolicy(timelineStep: TimelineStep) {
-    if (isPolicySkippedStep(timelineStep)) {
-      return;
-    }
     if (timelineStep.mode === 'POLICY_REQUEST') {
       const steps = this.debugResponse.requestPolicyDebugSteps;
       const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
       const output = steps[outputIndex];
       const input = outputIndex > 0 ? steps[outputIndex - 1] : this.debugResponse.requestDebugSteps.input;
-      this.inspectorVM = { input, output };
+      this.inspectorVM = { input, output, executionStatus: timelineStep.executionStatus };
     } else if (timelineStep.mode === 'POLICY_RESPONSE') {
       const steps = this.debugResponse.responsePolicyDebugSteps;
       const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
       const output = steps[outputIndex];
       const input = outputIndex > 0 ? steps[outputIndex - 1] : this.debugResponse.responseDebugSteps.input;
-      this.inspectorVM = { input, output };
+      this.inspectorVM = { input, output, executionStatus: timelineStep.executionStatus };
     }
 
     this.responseDisplayableVM = {

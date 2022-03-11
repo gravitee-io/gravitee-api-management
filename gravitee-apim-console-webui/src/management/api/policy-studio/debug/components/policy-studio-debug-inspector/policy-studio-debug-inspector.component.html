@@ -40,6 +40,33 @@
       </mat-tree-node>
     </mat-tree>
 
+    <mat-tree [dataSource]="conditionDataSource" [treeControl]="conditionTreeControl">
+      <!-- This is the tree node template for leaf nodes -->
+      <mat-tree-node *matTreeNodeDef="let node" class="policy-studio-debug-inspector__tree-node-content">
+        <container-element>
+          <policy-studio-debug-inspector-text
+            [input]="node.input"
+            [output]="node.output"
+            [noDiff]="true"
+          ></policy-studio-debug-inspector-text>
+        </container-element>
+      </mat-tree-node>
+      <!-- This is the tree node template for expandable nodes -->
+      <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding class="policy-studio-debug-inspector__tree-node">
+        <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle condition'">
+          <mat-icon class="mat-icon-rtl-mirror">
+            {{ conditionTreeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
+          </mat-icon>
+        </button>
+        <gv-icon
+          title="Conditional policy"
+          class="policy-studio-debug-inspector__tree-node__condition-icon"
+          shape="design:conditional"
+        ></gv-icon>
+        {{ node.name }}
+      </mat-tree-node>
+    </mat-tree>
+
     <div class="policy-studio-debug-inspector__content__wrapper__title">
       <div>Input</div>
       <div>Output</div>
