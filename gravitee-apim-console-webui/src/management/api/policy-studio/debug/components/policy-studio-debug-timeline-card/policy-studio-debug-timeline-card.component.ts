@@ -140,7 +140,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
               ? 'gio:prohibition'
               : undefined,
           id: timelineStep.id,
-          clickable: timelineStep.executionStatus !== 'SKIPPED',
+          clickable: true,
           selection: timelineStep.selection,
         };
       case 'RESPONSE_INPUT':

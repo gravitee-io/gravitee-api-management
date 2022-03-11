@@ -103,6 +103,9 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
   @Input()
   outputDebugStep: RequestDebugStep | ResponseDebugStep;
 
+  @Input()
+  executionStatus: string | undefined;
+
   private transformer = (node: Node, level: number) => {
     return {
       ...node,
@@ -121,6 +124,11 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     (node) => node.expandable,
   );
 
+  conditionTreeControl = new FlatTreeControl<FlatNode>(
+    (node) => node.level,
+    (node) => node.expandable,
+  );
+
   treeFlattener = new MatTreeFlattener(
     this.transformer,
     (node) => node.level,
@@ -133,17 +141,25 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
 
   errorsDataSource = new MatTreeFlatDataSource(this.errorsTreeControl, this.treeFlattener as any);
 
+  conditionDataSource = new MatTreeFlatDataSource(this.conditionTreeControl, this.treeFlattener as any);
+
   errorNodes: Node[];
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['inputDebugStep'] || changes['outputDebugStep']) {
-      const { treeNodes, errorTreeNodes } = this.buildTreeNodes();
+      const { treeNodes, errorTreeNodes, conditionNode } = this.buildTreeNodes();
       this.dataSource.data = treeNodes;
       this.errorsDataSource.data = errorTreeNodes;
+
+      this.conditionDataSource.data = conditionNode ? [conditionNode] : [];
+      this.conditionTreeControl.expandAll();
+
       if (errorTreeNodes.length > 0) {
         this.errorsTreeControl.expandAll();
       } else {
-        this.treeControl.expandAll();
+        if (this.executionStatus !== 'SKIPPED') {
+          this.treeControl.expandAll();
+        }
       }
     }
   }
@@ -154,6 +170,21 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     return {
       type: 'error',
       input: errors,
+    };
+  }
+
+  private toConditionNode(key: string): Node {
+    const condition = this.outputDebugStep.output[key];
+    return {
+      id: key,
+      name: 'Condition',
+      type: undefined,
+      children: [
+        {
+          input: condition,
+          output: this.executionStatus,
+        },
+      ],
     };
   }
 
@@ -176,7 +207,7 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     };
   }
 
-  buildTreeNodes(): { treeNodes: Node[]; errorTreeNodes: Node[] } {
+  buildTreeNodes(): { treeNodes: Node[]; errorTreeNodes: Node[]; conditionNode: Node | undefined } {
     const keys = [...new Set(Object.keys(this.inputDebugStep.output).concat(Object.keys(this.outputDebugStep.output)))];
 
     const httpPropertiesTreeNodes: Node[] = keys
@@ -208,7 +239,10 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
       });
     }
 
-    return { treeNodes: treeNodes.sort((a, b) => NODES_SORT.indexOf(a.id) - NODES_SORT.indexOf(b.id)), errorTreeNodes };
+    const condition = keys.find((key) => key === 'condition');
+    const conditionNode = condition ? this.toConditionNode('condition') : undefined;
+
+    return { treeNodes: treeNodes.sort((a, b) => NODES_SORT.indexOf(a.id) - NODES_SORT.indexOf(b.id)), errorTreeNodes, conditionNode };
   }
 
   private sort(a: string, b: string) {
