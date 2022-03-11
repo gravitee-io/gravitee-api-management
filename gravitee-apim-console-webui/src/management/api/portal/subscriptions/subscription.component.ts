@@ -74,7 +74,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     close() {
       let msg =
         '<code>' + this.subscription.application.name + '</code> will not be able to consume <code>' + this.api.name + '</code> anymore.';
-      if (this.subscription.plan.security === PlanSecurityType.API_KEY) {
+      if (this.subscription.plan.security === PlanSecurityType.API_KEY && !this.hasSharedApiKeyMode) {
         msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
       }
 
@@ -103,7 +103,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
 
     pause() {
       let msg = 'The application will not be able to consume this API anymore.';
-      if (this.subscription.plan.security === PlanSecurityType.API_KEY) {
+      if (this.subscription.plan.security === PlanSecurityType.API_KEY && !this.hasSharedApiKeyMode) {
         msg += '<br/>All Api-keys associated to this subscription will be paused and could not be used.';
       }
 

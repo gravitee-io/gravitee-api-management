@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Subscription.Status.*;
 import static io.gravitee.rest.api.service.impl.AbstractService.ENVIRONMENT_ADMIN;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -52,7 +53,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -111,9 +111,6 @@ public class SubscriptionServiceTest {
     private ApiModelEntity apiModelEntity;
 
     @Mock
-    private ApiKeyEntity apiKeyEntity;
-
-    @Mock
     private AuditService auditService;
 
     @Mock
@@ -152,7 +149,7 @@ public class SubscriptionServiceTest {
 
     @Test
     public void shouldFindById() throws TechnicalException {
-        when(subscription.getStatus()).thenReturn(Subscription.Status.ACCEPTED);
+        when(subscription.getStatus()).thenReturn(ACCEPTED);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
 
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(SUBSCRIPTION_ID);
@@ -177,12 +174,12 @@ public class SubscriptionServiceTest {
     public void shouldFindByApplication() throws TechnicalException {
         Subscription sub1 = new Subscription();
         sub1.setId("subscription-1");
-        sub1.setStatus(Subscription.Status.ACCEPTED);
+        sub1.setStatus(ACCEPTED);
         sub1.setApplication(APPLICATION_ID);
 
         Subscription sub2 = new Subscription();
         sub2.setId("subscription-2");
-        sub2.setStatus(Subscription.Status.REJECTED);
+        sub2.setStatus(REJECTED);
         sub2.setApplication(APPLICATION_ID);
 
         when(subscriptionRepository.search(new SubscriptionCriteria.Builder().applications(singleton(APPLICATION_ID)).build()))
@@ -197,12 +194,12 @@ public class SubscriptionServiceTest {
     public void shouldFindByApi() throws TechnicalException {
         Subscription sub1 = new Subscription();
         sub1.setId("subscription-1");
-        sub1.setStatus(Subscription.Status.ACCEPTED);
+        sub1.setStatus(ACCEPTED);
         sub1.setApi(API_ID);
 
         Subscription sub2 = new Subscription();
         sub2.setId("subscription-2");
-        sub2.setStatus(Subscription.Status.REJECTED);
+        sub2.setStatus(REJECTED);
         sub2.setApi(API_ID);
 
         when(subscriptionRepository.search(new SubscriptionCriteria.Builder().apis(singleton(API_ID)).applications(null).build()))
@@ -224,11 +221,11 @@ public class SubscriptionServiceTest {
     public void shouldFindByPlan() throws TechnicalException {
         Subscription sub1 = new Subscription();
         sub1.setId("subscription-1");
-        sub1.setStatus(Subscription.Status.ACCEPTED);
+        sub1.setStatus(ACCEPTED);
 
         Subscription sub2 = new Subscription();
         sub2.setId("subscription-2");
-        sub2.setStatus(Subscription.Status.REJECTED);
+        sub2.setStatus(REJECTED);
 
         when(subscriptionRepository.search(new SubscriptionCriteria.Builder().plans(singleton(PLAN_ID)).build()))
             .thenReturn(asList(sub1, sub2));
@@ -246,7 +243,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanNotYetPublishedException.class)
-    public void shouldNotCreateBecausePlanNotPublished() throws Exception {
+    public void shouldNotCreateBecausePlanNotPublished() {
         // Stub
         when(plan.getStatus()).thenReturn(PlanStatus.STAGING);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -256,7 +253,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
-    public void shouldNotCreateBecausePlanAlreadyClosed() throws Exception {
+    public void shouldNotCreateBecausePlanAlreadyClosed() {
         // Stub
         when(plan.getStatus()).thenReturn(PlanStatus.CLOSED);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -266,7 +263,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanNotSubscribableException.class)
-    public void shouldNotCreateBecausePlanAlreadyDeprecated() throws Exception {
+    public void shouldNotCreateBecausePlanAlreadyDeprecated() {
         // Stub
         when(plan.getStatus()).thenReturn(PlanStatus.DEPRECATED);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -276,7 +273,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanNotSubscribableException.class)
-    public void shouldNotCreateBecausePlanKeyless() throws Exception {
+    public void shouldNotCreateBecausePlanKeyless() {
         // Stub
         when(plan.getSecurity()).thenReturn(PlanSecurityType.KEY_LESS);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -300,10 +297,7 @@ public class SubscriptionServiceTest {
         existingApiKeyPlan.setId(existingApiKeyPlanId);
         existingApiKeyPlan.setSecurity(PlanSecurityType.API_KEY);
 
-        Subscription existingSubscription = new Subscription();
-        existingSubscription.setPlan(existingApiKeyPlanId);
-        existingSubscription.setApi(API_ID);
-        existingSubscription.setApplication(APPLICATION_ID);
+        Subscription existingSubscription = buildTestSubscription("sub-1", API_ID, ACCEPTED, existingApiKeyPlanId, APPLICATION_ID, null);
 
         when(planService.findById(existingApiKeyPlanId)).thenReturn(existingApiKeyPlan);
 
@@ -392,7 +386,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanGeneralConditionRevisionException.class)
-    public void shouldNotCreateWithoutProcess_AcceptedOutdatedGCU() throws Exception {
+    public void shouldNotCreateWithoutProcess_AcceptedOutdatedGCU() {
         // Prepare data
         when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
         PageEntity.PageRevisionId pageRevisionId = new PageEntity.PageRevisionId(PAGE_ID, 2);
@@ -411,7 +405,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanGeneralConditionAcceptedException.class)
-    public void shouldNotCreateWithoutProcess_NotAcceptedGCU() throws Exception {
+    public void shouldNotCreateWithoutProcess_NotAcceptedGCU() {
         // Prepare data
         when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
 
@@ -428,7 +422,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanGeneralConditionAcceptedException.class)
-    public void shouldNotCreateWithoutProcess_AcceptedGCU_WithoutGCUContent() throws Exception {
+    public void shouldNotCreateWithoutProcess_AcceptedGCU_WithoutGCUContent() {
         // Prepare data
         when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
 
@@ -451,13 +445,7 @@ public class SubscriptionServiceTest {
         when(plan.getValidation()).thenReturn(PlanValidationType.AUTO);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
 
-        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
-        Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
-        subscription.setSubscribedBy(SUBSCRIBER_ID);
+        Subscription subscription = buildTestSubscription(PENDING);
 
         final UserEntity subscriberUser = new UserEntity();
         subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
@@ -472,24 +460,18 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
         when(subscriptionRepository.create(any()))
             .thenAnswer(
-                new Answer<Subscription>() {
-                    @Override
-                    public Subscription answer(InvocationOnMock invocation) throws Throwable {
-                        Subscription subscription = (Subscription) invocation.getArguments()[0];
-                        subscription.setId(SUBSCRIPTION_ID);
-                        return subscription;
-                    }
+                (Answer<Subscription>) invocation -> {
+                    Subscription subscription1 = (Subscription) invocation.getArguments()[0];
+                    subscription1.setId(SUBSCRIPTION_ID);
+                    return subscription1;
                 }
             );
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID))
             .thenAnswer(
-                new Answer<Optional<Subscription>>() {
-                    @Override
-                    public Optional<Subscription> answer(InvocationOnMock invocation) throws Throwable {
-                        subscription.setCreatedAt(new Date());
-                        return Optional.of(subscription);
-                    }
+                (Answer<Optional<Subscription>>) invocation -> {
+                    subscription.setCreatedAt(new Date());
+                    return Optional.of(subscription);
                 }
             );
 
@@ -518,13 +500,7 @@ public class SubscriptionServiceTest {
         settings.setoAuthClient(clientSettings);
         when(application.getSettings()).thenReturn(settings);
 
-        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
-        Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
-        subscription.setSubscribedBy(SUBSCRIBER_ID);
+        Subscription subscription = buildTestSubscription(PENDING);
 
         final UserEntity subscriberUser = new UserEntity();
         subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
@@ -539,24 +515,18 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
         when(subscriptionRepository.create(any()))
             .thenAnswer(
-                new Answer<Subscription>() {
-                    @Override
-                    public Subscription answer(InvocationOnMock invocation) throws Throwable {
-                        Subscription subscription = (Subscription) invocation.getArguments()[0];
-                        subscription.setId(SUBSCRIPTION_ID);
-                        return subscription;
-                    }
+                (Answer<Subscription>) invocation -> {
+                    Subscription subscription1 = (Subscription) invocation.getArguments()[0];
+                    subscription1.setId(SUBSCRIPTION_ID);
+                    return subscription1;
                 }
             );
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID))
             .thenAnswer(
-                new Answer<Optional<Subscription>>() {
-                    @Override
-                    public Optional<Subscription> answer(InvocationOnMock invocation) throws Throwable {
-                        subscription.setCreatedAt(new Date());
-                        return Optional.of(subscription);
-                    }
+                (Answer<Optional<Subscription>>) invocation -> {
+                    subscription.setCreatedAt(new Date());
+                    return Optional.of(subscription);
                 }
             );
 
@@ -618,17 +588,10 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanNotSubscribableException.class)
-    public void shouldNotSubscribe_applicationWithoutClientId() throws Exception {
+    public void shouldNotSubscribe_applicationWithoutClientId() {
         // Prepare data
         when(plan.getApi()).thenReturn(API_ID);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
-
-        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
-        Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
 
         SecurityContextHolder.setContext(generateSecurityContext());
 
@@ -656,12 +619,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
 
-        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
-        Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
+        Subscription subscription = buildTestSubscription(PENDING);
 
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
@@ -675,12 +633,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
 
-        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
-        Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.ACCEPTED);
+        Subscription subscription = buildTestSubscription(ACCEPTED);
 
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
@@ -696,105 +649,6 @@ public class SubscriptionServiceTest {
         verify(apiKeyService, never()).findBySubscription(SUBSCRIPTION_ID);
     }
 
-    @Test
-    public void shouldUpdateSubscriptionWithEndingDate() throws Exception {
-        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
-        updatedSubscription.setId(SUBSCRIPTION_ID);
-        updatedSubscription.setEndingAt(new Date());
-
-        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
-        Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.ACCEPTED);
-        subscription.setEndingAt(updatedSubscription.getEndingAt());
-
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
-        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKeyEntity));
-        when(apiKeyEntity.isRevoked()).thenReturn(false);
-        when(apiKeyEntity.getExpireAt()).thenReturn(null);
-        when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(plan.getApi()).thenReturn(API_ID);
-        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
-
-        // Run
-        subscriptionService.update(updatedSubscription);
-
-        // Verify
-        verify(subscriptionRepository, times(1)).update(subscription);
-        verify(apiKeyService, times(1)).findBySubscription(SUBSCRIPTION_ID);
-        verify(apiKeyService, times(1)).update(apiKeyEntity);
-    }
-
-    @Test
-    public void shouldUpdateSubscriptionWithEndingDateButRevokedApiKey() throws Exception {
-        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
-        updatedSubscription.setId(SUBSCRIPTION_ID);
-        updatedSubscription.setEndingAt(new Date());
-
-        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
-        Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.ACCEPTED);
-        subscription.setEndingAt(updatedSubscription.getEndingAt());
-
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(subscriptionRepository.update(subscription)).thenAnswer(returnsFirstArg());
-        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKeyEntity));
-        when(apiKeyEntity.isRevoked()).thenReturn(true);
-        when(apiKeyEntity.getExpireAt()).thenReturn(null);
-        when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(plan.getApi()).thenReturn(API_ID);
-        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
-
-        // Run
-        subscriptionService.update(updatedSubscription);
-
-        // Verify
-        verify(subscriptionRepository, times(1)).update(subscription);
-        verify(apiKeyService, times(1)).findBySubscription(SUBSCRIPTION_ID);
-        verify(apiKeyService, never()).update(apiKeyEntity);
-    }
-
-    @Test
-    public void shouldUpdateSubscriptionWithEndingDateButExpiredApiKey() throws Exception {
-        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
-        updatedSubscription.setId(SUBSCRIPTION_ID);
-        updatedSubscription.setEndingAt(new Date());
-
-        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
-        Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.ACCEPTED);
-        subscription.setEndingAt(updatedSubscription.getEndingAt());
-
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(subscriptionRepository.update(subscription)).thenAnswer(returnsFirstArg());
-        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKeyEntity));
-        when(apiKeyEntity.isRevoked()).thenReturn(false);
-        when(apiKeyEntity.getExpireAt()).thenReturn(new Date(updatedSubscription.getEndingAt().getTime() + 10000));
-        when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(plan.getApi()).thenReturn(API_ID);
-        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
-
-        // Run
-        subscriptionService.update(updatedSubscription);
-
-        // Verify
-        verify(subscriptionRepository, times(1)).update(subscription);
-        verify(apiKeyService, times(1)).findBySubscription(SUBSCRIPTION_ID);
-        verify(apiKeyService, times(1)).update(apiKeyEntity);
-    }
-
     @Test(expected = SubscriptionNotFoundException.class)
     public void shouldNotCloseSubscriptionBecauseDoesNoExist() throws Exception {
         // Stub
@@ -805,14 +659,8 @@ public class SubscriptionServiceTest {
 
     @Test
     public void shouldCloseSubscription() throws Exception {
-        final Date now = new Date();
-
-        final Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setStatus(Subscription.Status.ACCEPTED);
-        subscription.setEndingAt(now);
-        subscription.setPlan(PLAN_ID);
-        subscription.setApplication(APPLICATION_ID);
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setEndingAt(new Date());
 
         final ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setKey("api-key");
@@ -844,14 +692,8 @@ public class SubscriptionServiceTest {
 
     @Test
     public void shouldPauseSubscription() throws Exception {
-        final Date now = new Date();
-
-        final Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setStatus(Subscription.Status.ACCEPTED);
-        subscription.setEndingAt(now);
-        subscription.setPlan(PLAN_ID);
-        subscription.setApplication(APPLICATION_ID);
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setEndingAt(new Date());
 
         final ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setKey("api-key");
@@ -880,11 +722,7 @@ public class SubscriptionServiceTest {
         processSubscription.setId(SUBSCRIPTION_ID);
         processSubscription.setAccepted(false);
 
-        Subscription subscription = new Subscription();
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
-        subscription.setSubscribedBy(SUBSCRIBER_ID);
+        Subscription subscription = buildTestSubscription(PENDING);
 
         final UserEntity subscriberUser = new UserEntity();
         subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
@@ -919,11 +757,7 @@ public class SubscriptionServiceTest {
         processSubscription.setId(SUBSCRIPTION_ID);
         processSubscription.setAccepted(false);
 
-        Subscription subscription = new Subscription();
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
-        subscription.setSubscribedBy(SUBSCRIBER_ID);
+        Subscription subscription = buildTestSubscription(PENDING);
 
         final UserEntity subscriberUser = new UserEntity();
         subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
@@ -960,11 +794,7 @@ public class SubscriptionServiceTest {
         processSubscription.setAccepted(true);
         processSubscription.setCustomApiKey(customApiKey);
 
-        Subscription subscription = new Subscription();
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
-        subscription.setSubscribedBy(SUBSCRIBER_ID);
+        Subscription subscription = buildTestSubscription(PENDING);
 
         when(plan.getApi()).thenReturn(API_ID);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
@@ -995,10 +825,7 @@ public class SubscriptionServiceTest {
         processSubscription.setId(SUBSCRIPTION_ID);
         processSubscription.setAccepted(false);
 
-        Subscription subscription = new Subscription();
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
+        Subscription subscription = buildTestSubscription(PENDING);
 
         when(plan.getStatus()).thenReturn(PlanStatus.CLOSED);
 
@@ -1011,7 +838,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanNotSubscribableException.class)
-    public void shouldNotCreateBecauseNoClientId_oauth2() throws Exception {
+    public void shouldNotCreateBecauseNoClientId_oauth2() {
         // Stub
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -1022,7 +849,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanNotSubscribableException.class)
-    public void shouldNotCreateBecauseNoClientId_jwt() throws Exception {
+    public void shouldNotCreateBecauseNoClientId_jwt() {
         // Stub
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -1033,7 +860,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanNotSubscribableException.class)
-    public void shouldNotCreateBecauseExistingSubscription_oauth2() throws Exception {
+    public void shouldNotCreateBecauseExistingSubscription_oauth2() {
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
         when(plan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
 
@@ -1052,7 +879,7 @@ public class SubscriptionServiceTest {
 
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(subscription.getStatus()).thenReturn(Subscription.Status.ACCEPTED);
+        when(subscription.getStatus()).thenReturn(ACCEPTED);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenReturn(subscription);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -1109,14 +936,6 @@ public class SubscriptionServiceTest {
         when(plan.getApi()).thenReturn("api1");
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
-        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
-        Subscription subscription = new Subscription();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
-        subscription.setSubscribedBy(SUBSCRIBER_ID);
-
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
@@ -1124,13 +943,10 @@ public class SubscriptionServiceTest {
 
         when(subscriptionRepository.create(any()))
             .thenAnswer(
-                new Answer<Subscription>() {
-                    @Override
-                    public Subscription answer(InvocationOnMock invocation) throws Throwable {
-                        Subscription subscription = (Subscription) invocation.getArguments()[0];
-                        subscription.setId(SUBSCRIPTION_ID);
-                        return subscription;
-                    }
+                (Answer<Subscription>) invocation -> {
+                    Subscription subscription = (Subscription) invocation.getArguments()[0];
+                    subscription.setId(SUBSCRIPTION_ID);
+                    return subscription;
                 }
             );
 
@@ -1168,19 +984,19 @@ public class SubscriptionServiceTest {
             );
 
         // subscription1 should be returned cause matches api and status query
-        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", Subscription.Status.ACCEPTED);
+        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", ACCEPTED);
         when(subscriptionRepository.findByIdIn(List.of("subscription-1"))).thenReturn(List.of(subscription1));
 
         // subscription2 should be filtered cause API id doesn't match
-        Subscription subscription2 = buildTestSubscription("sub2", "api-id-2", Subscription.Status.PENDING);
+        Subscription subscription2 = buildTestSubscription("sub2", "api-id-2", PENDING);
         when(subscriptionRepository.findByIdIn(List.of("subscription-2"))).thenReturn(List.of(subscription2));
 
         // subscription3 should be returned cause matches api and status query
-        Subscription subscription3 = buildTestSubscription("sub3", "api-id-3", Subscription.Status.PENDING);
+        Subscription subscription3 = buildTestSubscription("sub3", "api-id-3", PENDING);
         when(subscriptionRepository.findByIdIn(List.of("subscription-3"))).thenReturn(List.of(subscription3));
 
         // subscription4 should be filtered cause status doesn't match
-        Subscription subscription4 = buildTestSubscription("sub4", "api-id-4", Subscription.Status.PAUSED);
+        Subscription subscription4 = buildTestSubscription("sub4", "api-id-4", PAUSED);
         when(subscriptionRepository.findByIdIn(List.of("subscription-4"))).thenReturn(List.of(subscription4));
 
         Page<SubscriptionEntity> page = subscriptionService.search(query, Mockito.mock(Pageable.class));
@@ -1199,7 +1015,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void shouldGetAllMetadataWithSubscriptions() throws TechnicalException {
+    public void shouldGetAllMetadataWithSubscriptions() {
         when(apiEntity.getId()).thenReturn(API_ID);
         when(apiService.findByEnvironmentAndIdIn("DEFAULT", Set.of(API_ID))).thenReturn(Set.of(apiEntity));
         final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
@@ -1233,7 +1049,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void shouldGetEmptyMetadataWithSubscriptions() throws TechnicalException {
+    public void shouldGetEmptyMetadataWithSubscriptions() {
         final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId(SUBSCRIPTION_ID);
         subscriptionEntity.setApplication(APPLICATION_ID);
@@ -1264,7 +1080,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void shouldFillApiMetadataAfterService() throws TechnicalException {
+    public void shouldFillApiMetadataAfterService() {
         when(apiEntity.getId()).thenReturn(API_ID);
         when(apiService.findByEnvironmentAndIdIn("DEFAULT", Set.of(API_ID))).thenReturn(Set.of(apiEntity));
         final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
@@ -1301,7 +1117,7 @@ public class SubscriptionServiceTest {
         SubscriptionQuery query = new SubscriptionQuery();
         query.setApis(List.of("api-id-1"));
 
-        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", Subscription.Status.ACCEPTED, "plan-id");
+        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", ACCEPTED, "plan-id", null, null);
         when(subscriptionRepository.search(any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
 
         Page<SubscriptionEntity> page = subscriptionService.search(query, Mockito.mock(Pageable.class), false, false);
@@ -1318,7 +1134,7 @@ public class SubscriptionServiceTest {
         SubscriptionQuery query = new SubscriptionQuery();
         query.setApis(List.of("api-id-1"));
 
-        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", Subscription.Status.ACCEPTED, "plan-id");
+        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", ACCEPTED, "plan-id", null, null);
         when(subscriptionRepository.search(any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
 
         PlanEntity foundPlan = new PlanEntity();
@@ -1339,7 +1155,7 @@ public class SubscriptionServiceTest {
         SubscriptionQuery query = new SubscriptionQuery();
         query.setApis(List.of("api-id-1"));
 
-        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", Subscription.Status.ACCEPTED, "plan-id");
+        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", ACCEPTED, "plan-id", null, null);
         when(subscriptionRepository.search(any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
@@ -1354,24 +1170,179 @@ public class SubscriptionServiceTest {
         verifyNoInteractions(planService);
     }
 
+    @Test
+    public void close_should_revoke_apikeys_if_not_shared_mode() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setEndingAt(new Date());
+
+        when(application.hasApiKeySharedMode()).thenReturn(false);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+
+        List<ApiKeyEntity> apiKeys = List.of(
+            buildTestApiKey("apikey-1", false, false),
+            buildTestApiKey("apikey-2", true, false),
+            buildTestApiKey("apikey-3", false, false),
+            buildTestApiKey("apikey-4", false, true)
+        );
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(apiKeys);
+
+        subscriptionService.close(SUBSCRIPTION_ID);
+
+        // assert api keys 1 and 3 have been revoked, but not 2 and 4 because it's already revoked or expired
+        verify(apiKeyService, times(1)).findBySubscription(SUBSCRIPTION_ID);
+        verify(apiKeyService, times(1)).revoke(apiKeys.get(0), false);
+        verify(apiKeyService, times(1)).revoke(apiKeys.get(2), false);
+        verifyNoMoreInteractions(apiKeyService);
+    }
+
+    @Test
+    public void close_should_not_revoke_apikeys_if_shared_mode() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setEndingAt(new Date());
+
+        when(application.hasApiKeySharedMode()).thenReturn(true);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+
+        List<ApiKeyEntity> apiKeys = List.of(
+            buildTestApiKey("apikey-1", false, false),
+            buildTestApiKey("apikey-2", true, false),
+            buildTestApiKey("apikey-3", false, false),
+            buildTestApiKey("apikey-4", false, true)
+        );
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(apiKeys);
+
+        subscriptionService.close(SUBSCRIPTION_ID);
+
+        // no key has been revoked, as their application use shared api key mode
+        // but non revoked keys have been updated to ensure cache refresh
+        verify(apiKeyService, times(1)).findBySubscription(SUBSCRIPTION_ID);
+        verify(apiKeyService, times(1)).update(apiKeys.get(0));
+        verify(apiKeyService, times(1)).update(apiKeys.get(2));
+        verifyNoMoreInteractions(apiKeyService);
+    }
+
+    @Test
+    public void update_should_update_subscription_with_endingDate_and_set_apiKey_expiration_if_not_shared_apikey() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+        updatedSubscription.setEndingAt(new Date());
+
+        when(application.hasApiKeySharedMode()).thenReturn(false);
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setEndingAt(updatedSubscription.getEndingAt());
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
+
+        List<ApiKeyEntity> apiKeys = List.of(
+            buildTestApiKey("apikey-1", false, false),
+            buildTestApiKey("apikey-2", true, false),
+            buildTestApiKey("apikey-3", false, false),
+            buildTestApiKey("apikey-4", false, true)
+        );
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(apiKeys);
+
+        // Run
+        subscriptionService.update(updatedSubscription);
+
+        // verify apikey 1 and 3 expiration date has been updated as they are not revoked nor expired
+        verify(subscriptionRepository, times(1)).update(subscription);
+        verify(apiKeyService, times(1)).findBySubscription(SUBSCRIPTION_ID);
+        verify(apiKeyService, times(1))
+            .update(argThat(apiKey -> apiKey.getId().equals("apikey-1") && apiKey.getExpireAt().equals(updatedSubscription.getEndingAt())));
+        verify(apiKeyService, times(1))
+            .update(argThat(apiKey -> apiKey.getId().equals("apikey-3") && apiKey.getExpireAt().equals(updatedSubscription.getEndingAt())));
+        verifyNoMoreInteractions(apiKeyService);
+    }
+
+    @Test
+    public void update_should_update_subscription_with_endingDate_and_dont_set_apiKey_expiration_if_shared_apikey() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+        updatedSubscription.setEndingAt(new Date());
+
+        when(application.hasApiKeySharedMode()).thenReturn(true);
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setEndingAt(updatedSubscription.getEndingAt());
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
+
+        List<ApiKeyEntity> apiKeys = List.of(
+            buildTestApiKey("apikey-1", false, false),
+            buildTestApiKey("apikey-2", true, false),
+            buildTestApiKey("apikey-3", false, false),
+            buildTestApiKey("apikey-4", false, true)
+        );
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(apiKeys);
+
+        // Run
+        subscriptionService.update(updatedSubscription);
+
+        // subscription has been updated, but no api key has been updated cause they are shared with other subscriptions
+        verify(subscriptionRepository, times(1)).update(subscription);
+        verify(apiKeyService, times(1)).findBySubscription(SUBSCRIPTION_ID);
+        verifyNoMoreInteractions(apiKeyService);
+    }
+
+    private ApiKeyEntity buildTestApiKey(String id, boolean revoked, boolean expired) {
+        ApiKeyEntity apikey = buildTestApiKeyForSubscription(SUBSCRIPTION_ID);
+        apikey.setId(id);
+        apikey.setRevoked(revoked);
+        apikey.setExpired(expired);
+        return apikey;
+    }
+
     private ApiKeyEntity buildTestApiKeyForSubscription(String subscriptionId) {
         ApiKeyEntity apikey = new ApiKeyEntity();
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(subscriptionId);
         apikey.setSubscriptions(Set.of(subscription));
+        apikey.setApplication(application);
         return apikey;
     }
 
-    private Subscription buildTestSubscription(String id, String api, Subscription.Status status) {
-        return buildTestSubscription(id, api, status, null);
+    private Subscription buildTestSubscription(Subscription.Status status) {
+        return buildTestSubscription(SUBSCRIPTION_ID, null, status, PLAN_ID, APPLICATION_ID, SUBSCRIBER_ID);
     }
 
-    private Subscription buildTestSubscription(String id, String api, Subscription.Status status, String plan) {
+    private Subscription buildTestSubscription(String id, String api, Subscription.Status status) {
+        return buildTestSubscription(id, api, status, null, null, null);
+    }
+
+    private Subscription buildTestSubscription(
+        String id,
+        String api,
+        Subscription.Status status,
+        String plan,
+        String application,
+        String subscribedBy
+    ) {
         Subscription subscription = new Subscription();
         subscription.setId(id);
         subscription.setApi(api);
         subscription.setStatus(status);
         subscription.setPlan(plan);
+        subscription.setApplication(application);
+        subscription.setSubscribedBy(subscribedBy);
         return subscription;
     }
 }
