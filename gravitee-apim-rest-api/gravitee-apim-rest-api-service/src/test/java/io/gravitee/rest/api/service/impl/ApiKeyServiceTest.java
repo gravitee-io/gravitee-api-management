@@ -255,7 +255,6 @@ public class ApiKeyServiceTest {
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
         when(apiService.findByIdForTemplates(any())).thenReturn(api);
         when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(subscriptions);
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
 
         // Run
         apiKeyService.revoke(API_KEY, true);
@@ -588,7 +587,6 @@ public class ApiKeyServiceTest {
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
-        when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(subscriptions);
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
@@ -857,7 +855,6 @@ public class ApiKeyServiceTest {
         when(applicationService.findById(anyString(), any())).thenReturn(application);
         when(apiService.findByIdForTemplates(any())).thenReturn(new ApiModelEntity());
         when(subscriptionService.findByIdIn(List.of(SUBSCRIPTION_ID))).thenReturn(Set.of(subscription));
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(new SubscriptionEntity());
 
         apiKeyService.revoke("apiKeyId", true);
 

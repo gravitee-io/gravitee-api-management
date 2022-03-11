@@ -113,7 +113,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             // Audit
             createAuditLog(newApiKeyEntity, null, APIKEY_RENEWED, newApiKey.getCreatedAt());
             // Notification
-            triggerNotifierService(ApiHook.APIKEY_RENEWED, newApiKey);
+            triggerNotifierService(ApiHook.APIKEY_RENEWED, newApiKey, newApiKeyEntity.getApplication(), newApiKeyEntity.getSubscriptions());
 
             return newApiKeyEntity;
         } catch (TechnicalException ex) {
@@ -145,7 +145,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             addSharedSubscriptions(allApiKeys, newApiKey);
 
             ApiKeyEntity newApiKeyEntity = convert(newApiKey);
+
             createAuditLog(newApiKeyEntity, null, APIKEY_RENEWED, newApiKey.getCreatedAt());
+
+            triggerNotifierService(ApiHook.APIKEY_RENEWED, newApiKey, newApiKeyEntity.getApplication(), newApiKeyEntity.getSubscriptions());
+
             return newApiKeyEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to renew an API Key for application {}", application.getId(), ex);
@@ -308,7 +312,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
         // notify
         if (notify) {
-            triggerNotifierService(ApiHook.APIKEY_REVOKED, key);
+            triggerNotifierService(ApiHook.APIKEY_REVOKED, key, new NotificationParamsBuilder());
         }
     }
 
@@ -619,20 +623,31 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             );
     }
 
-    private void triggerNotifierService(ApiHook apiHook, ApiKey key) {
-        triggerNotifierService(apiHook, key, new NotificationParamsBuilder());
-    }
-
     private void triggerNotifierService(ApiHook apiHook, ApiKey key, NotificationParamsBuilder paramsBuilder) {
         ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), key.getApplication());
+        Set<SubscriptionEntity> subscriptions = subscriptionService.findByIdIn(key.getSubscriptions());
+        triggerNotifierService(apiHook, key, application, subscriptions, paramsBuilder);
+    }
 
-        if (application != null && !application.hasApiKeySharedMode()) {
-            SubscriptionEntity subscription = subscriptionService.findById(key.getSubscriptions().get(0));
-            PlanEntity plan = planService.findById(subscription.getPlan());
-            ApiModelEntity api = apiService.findByIdForTemplates(subscription.getApi());
-            PrimaryOwnerEntity owner = application.getPrimaryOwner();
-            Map<String, Object> params = paramsBuilder.application(application).plan(plan).api(api).owner(owner).apikey(key).build();
-            notifierService.trigger(apiHook, api.getId(), params);
-        }
+    private void triggerNotifierService(ApiHook apiHook, ApiKey key, ApplicationEntity application, Set<SubscriptionEntity> subscriptions) {
+        triggerNotifierService(apiHook, key, application, subscriptions, new NotificationParamsBuilder());
+    }
+
+    private void triggerNotifierService(
+        ApiHook apiHook,
+        ApiKey key,
+        ApplicationEntity application,
+        Set<SubscriptionEntity> subscriptions,
+        NotificationParamsBuilder paramsBuilder
+    ) {
+        subscriptions.forEach(
+            subscription -> {
+                PlanEntity plan = planService.findById(subscription.getPlan());
+                ApiModelEntity api = apiService.findByIdForTemplates(subscription.getApi());
+                PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                Map<String, Object> params = paramsBuilder.application(application).plan(plan).api(api).owner(owner).apikey(key).build();
+                notifierService.trigger(apiHook, api.getId(), params);
+            }
+        );
     }
 }

@@ -123,15 +123,27 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
                     apiKey.getDaysToExpirationOnLastNotification() == null ||
                     apiKey.getDaysToExpirationOnLastNotification() > daysToExpiration
             )
-            .filter(
-                apiKey -> {
-                    // Notify only if one of the subscriptions attached to this key did not receive a notification yet.
-                    Set<String> subscriptionIds = new HashSet<>(apiKey.getSubscriptionIds());
-                    subscriptionIds.removeAll(notifiedSubscriptionIds);
-                    return !subscriptionIds.isEmpty();
+            .forEach(apiKey -> notifyApiKeyExpiration(daysToExpiration, apiKey, notifiedSubscriptionIds));
+    }
+
+    private void notifyApiKeyExpiration(Integer daysToExpiration, ApiKeyEntity apiKey, Set<String> notifiedSubscriptionIds) {
+        ApplicationEntity application = apiKey.getApplication();
+
+        apiKey
+            .getSubscriptions()
+            .stream()
+            .filter(subscription -> !notifiedSubscriptionIds.contains(subscription.getId()))
+            .forEach(
+                subscription -> {
+                    ApiEntity api = apiService.findById(subscription.getApi());
+                    PlanEntity plan = planService.findById(subscription.getPlan());
+
+                    findEmailsToNotify(subscription, application)
+                        .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, apiKey));
                 }
-            )
-            .forEach(apiKey -> notifyApiKeyExpiration(daysToExpiration, apiKey));
+            );
+
+        apiKeyService.updateDaysToExpirationOnLastNotification(apiKey, daysToExpiration);
     }
 
     private Set<String> notifySubscriptionsExpirations(Instant now, Integer daysToExpiration) {
@@ -148,26 +160,6 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
             .forEach(subscription -> notifySubscriptionExpiration(daysToExpiration, subscription));
 
         return subscriptionExpirationsToNotify.stream().map(SubscriptionEntity::getId).collect(Collectors.toSet());
-    }
-
-    private void notifyApiKeyExpiration(Integer daysToExpiration, ApiKeyEntity apiKey) {
-        ApplicationEntity application = apiKey.getApplication();
-
-        apiKey
-            .getSubscriptions()
-            .stream()
-            .findFirst()
-            .ifPresent(
-                subscription -> {
-                    ApiEntity api = apiService.findById(subscription.getApi());
-                    PlanEntity plan = planService.findById(subscription.getPlan());
-
-                    findEmailsToNotify(subscription, application)
-                        .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, apiKey));
-                }
-            );
-
-        apiKeyService.updateDaysToExpirationOnLastNotification(apiKey, daysToExpiration);
     }
 
     private void notifySubscriptionExpiration(Integer daysToExpiration, SubscriptionEntity subscription) {
