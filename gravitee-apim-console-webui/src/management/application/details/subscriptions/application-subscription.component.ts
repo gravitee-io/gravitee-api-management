@@ -19,6 +19,7 @@ import { Subject } from 'rxjs';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
+import { ApiKeyMode } from '../../../../entities/application/application';
 
 const ApplicationSubscriptionComponent: ng.IComponentOptions = {
   bindings: {
@@ -45,7 +46,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
 
     close() {
       let msg = 'The application will not be able to consume this API anymore.';
-      if (this.subscription.plan.security === PlanSecurityType.API_KEY) {
+      if (this.subscription.plan.security === PlanSecurityType.API_KEY && this.application.api_key_mode !== ApiKeyMode.SHARED) {
         msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
       }
 

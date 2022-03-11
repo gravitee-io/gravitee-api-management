@@ -18,12 +18,11 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.*;
-import static io.gravitee.rest.api.model.ApiKeyMode.*;
+import static io.gravitee.rest.api.model.ApiKeyMode.EXCLUSIVE;
+import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
 import static io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.*;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -33,7 +32,6 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -53,7 +51,6 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -488,17 +485,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription
                 );
 
-                // Update the expiration date for not yet revoked api-keys relative to this subscription
+                // Update the expiration date for not yet revoked api-keys relative to this subscription (except for shared API keys)
                 Date endingAt = subscription.getEndingAt();
                 if (plan.getSecurity() == API_KEY && endingAt != null) {
-                    List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-                    for (ApiKeyEntity apiKey : apiKeys) {
-                        Date expireAt = apiKey.getExpireAt();
-                        if (!apiKey.isRevoked() && (expireAt == null || expireAt.compareTo(endingAt) > 0)) {
-                            apiKey.setExpireAt(endingAt);
-                            apiKeyService.update(apiKey);
-                        }
-                    }
+                    streamActiveApiKeys(subscription.getId())
+                        .filter(apiKey -> !apiKey.getApplication().hasApiKeySharedMode())
+                        .forEach(
+                            apiKey -> {
+                                apiKey.setExpireAt(endingAt);
+                                apiKeyService.update(apiKey);
+                            }
+                        );
                 }
 
                 return convert(subscription);
@@ -692,16 +689,19 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         subscription
                     );
 
-                    // API Keys are automatically revoked
-                    List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-                    for (ApiKeyEntity apiKey : apiKeys) {
-                        if (!apiKey.isRevoked()) {
-                            apiKey.setExpireAt(now);
-                            apiKey.setRevokedAt(now);
-                            apiKey.setRevoked(true);
-                            apiKeyService.revoke(apiKey, false);
-                        }
-                    }
+                    // handle associated active API Keys
+                    streamActiveApiKeys(subscription.getId())
+                        .forEach(
+                            apiKey -> {
+                                if (!application.hasApiKeySharedMode()) {
+                                    apiKeyService.revoke(apiKey, false);
+                                } else {
+                                    // don't revoke shared api keys as they are used by other subscriptions
+                                    // but update them to ensure they will trigger the IncrementalApiKeyRefresher
+                                    apiKeyService.update(apiKey);
+                                }
+                            }
+                        );
 
                     return convert(subscription);
                 case PENDING:
@@ -767,16 +767,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription
                 );
 
-                // API Keys are automatically paused
-                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-                for (ApiKeyEntity apiKey : apiKeys) {
-                    Date expireAt = apiKey.getExpireAt();
-                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.after(now))) {
-                        apiKey.setPaused(true);
-                        apiKey.setUpdatedAt(now);
-                        apiKeyService.update(apiKey);
-                    }
-                }
+                // active API Keys are automatically paused (except shared ones)
+                streamActiveApiKeys(subscription.getId())
+                    .forEach(
+                        apiKey -> {
+                            // don't pause shared api keys as they are used by other subscriptions
+                            // but update them to ensure they will trigger the IncrementalApiKeyRefresher
+                            if (!application.hasApiKeySharedMode()) {
+                                apiKey.setPaused(true);
+                            }
+                            apiKeyService.update(apiKey);
+                        }
+                    );
 
                 return convert(subscription);
             }
@@ -836,16 +838,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription
                 );
 
-                // API Keys are automatically revoked
-                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-                for (ApiKeyEntity apiKey : apiKeys) {
-                    Date expireAt = apiKey.getExpireAt();
-                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.after(now))) {
-                        apiKey.setPaused(false);
-                        apiKey.setUpdatedAt(now);
-                        apiKeyService.update(apiKey);
-                    }
-                }
+                // active API Keys are automatically unpause
+                streamActiveApiKeys(subscription.getId())
+                    .forEach(
+                        apiKey -> {
+                            apiKey.setPaused(false);
+                            apiKeyService.update(apiKey);
+                        }
+                    );
 
                 return convert(subscription);
             }
@@ -890,16 +890,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription
                 );
 
-                //                // API Keys are automatically revoked
-                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-                for (ApiKeyEntity apiKey : apiKeys) {
-                    Date expireAt = apiKey.getExpireAt();
-                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.after(now))) {
-                        apiKey.setPaused(false);
-                        apiKey.setUpdatedAt(now);
-                        apiKeyService.update(apiKey);
-                    }
-                }
+                // active API Keys are automatically unpause
+                streamActiveApiKeys(subscription.getId())
+                    .forEach(
+                        apiKey -> {
+                            apiKey.setPaused(false);
+                            apiKeyService.update(apiKey);
+                        }
+                    );
 
                 return convert(subscription);
             }
@@ -1046,12 +1044,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private void fillApiKeys(List<SubscriptionEntity> subscriptions) {
         subscriptions.forEach(
             subscriptionEntity -> {
-                final List<String> keys = apiKeyService
-                    .findBySubscription(subscriptionEntity.getId())
-                    .stream()
-                    .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
-                    .map(ApiKeyEntity::getKey)
-                    .collect(toList());
+                final List<String> keys = streamActiveApiKeys(subscriptionEntity.getId()).map(ApiKeyEntity::getKey).collect(toList());
                 subscriptionEntity.setKeys(keys);
             }
         );
@@ -1373,5 +1366,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .stream()
             .filter(subscription -> planService.findById(subscription.getPlan()).getSecurity() == API_KEY)
             .count();
+    }
+
+    private Stream<ApiKeyEntity> streamActiveApiKeys(String subscriptionId) {
+        return apiKeyService.findBySubscription(subscriptionId).stream().filter(apiKey -> !apiKey.isRevoked() && !apiKey.isExpired());
     }
 }
