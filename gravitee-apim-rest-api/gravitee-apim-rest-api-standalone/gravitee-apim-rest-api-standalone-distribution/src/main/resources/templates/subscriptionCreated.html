@@ -7,7 +7,14 @@
 			<h3>Hi,</h3>
 			<p>Application <b>${application.name}</b> has just asked for subscription to the API <b>${api.name}</b> with plan <b>${plan.name}</b>.</p>
 			<#if plan.validation == 'MANUAL'>
-				<p>This subscription need to be approved.</p>
+				<p>This subscription needs to be approved.</p>
+			</#if>
+
+			<#if application.apiKeyMode == 'SHARED'>
+				<p>
+					Application <b>${application.name}</b> is using the shared API key mode.
+					This means that API keys used by this subscription may be shared with others API subscriptions.
+				</p>
 			</#if>
 
 			<#if subscription.request??>
