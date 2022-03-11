@@ -25,6 +25,7 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.DebugStep;
 import io.gravitee.definition.model.debug.PreprocessorStep;
 import java.io.IOException;
@@ -73,6 +74,11 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApi> {
         JsonNode backendResponseNode = node.get("backendResponse");
         if (backendResponseNode != null) {
             debugApi.setBackendResponse(backendResponseNode.traverse(jp.getCodec()).readValueAs(HttpResponse.class));
+        }
+
+        JsonNode metricsNode = node.get("metrics");
+        if (metricsNode != null) {
+            debugApi.setMetrics(metricsNode.traverse(jp.getCodec()).readValueAs(DebugMetrics.class));
         }
 
         return debugApi;

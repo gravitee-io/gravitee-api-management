@@ -39,6 +39,9 @@ public class DebugApi extends Api implements Serializable {
     @JsonProperty("backendResponse")
     private HttpResponse backendResponse;
 
+    @JsonProperty("metrics")
+    private DebugMetrics metrics;
+
     public HttpRequest getRequest() {
         return request;
     }
@@ -77,5 +80,13 @@ public class DebugApi extends Api implements Serializable {
 
     public void setPreprocessorStep(PreprocessorStep preprocessorStep) {
         this.preprocessorStep = preprocessorStep;
+    }
+
+    public DebugMetrics getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(DebugMetrics metrics) {
+        this.metrics = metrics;
     }
 }

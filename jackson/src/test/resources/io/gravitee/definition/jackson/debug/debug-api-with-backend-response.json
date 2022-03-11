@@ -312,5 +312,10 @@
         }
       }
     }
-  ]
+  ],
+  "metrics": {
+    "proxyLatencyMs": 152,
+    "apiResponseTimeMs": 83,
+    "proxyResponseTimeMs": 77
+  }
 }
