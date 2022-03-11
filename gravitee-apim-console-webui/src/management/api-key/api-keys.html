@@ -21,7 +21,6 @@
     This subscription uses a shared API key.<br />
     You can renew or revoke the shared API key at the application level.
   </ng-banner>
-
   <md-table-container>
     <table md-table>
       <thead md-head>
@@ -35,7 +34,10 @@
       <tbody md-body>
         <tr md-row ng-repeat="key in $ctrl.keys | orderBy:['-revoked_at','-expire_at','created_at'] track by key.key ">
           <td md-cell class="api-key-cell">
-            <ng-md-icon icon="{{key.revoked?'clear':'done'}}" ng-class="key.revoked ? 'revoked-icon' : 'active-icon'"></ng-md-icon>
+            <ng-md-icon
+              icon="{{$ctrl.isValid(key)?'done':'clear'}}"
+              ng-class="$ctrl.isValid(key)? 'active-icon' : 'revoked-icon'"
+            ></ng-md-icon>
             <code>{{key.key}}</code>
             <span ng-if="!key.revoked && $ctrl.areKeysEditable()">
               <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
