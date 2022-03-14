@@ -108,17 +108,13 @@ class ApplicationCreationController {
     }
   }
 
-  createApplication() {
-    this.ApplicationService.create(this.application).then((response) => {
-      const application = response.data;
-      const promises = _.map(this.selectedPlans, (plan) =>
-        this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]),
-      );
-      this.$q.all(promises).then(() => {
-        this.NotificationService.show('Application ' + this.application.name + ' has been created');
-        this.$state.go('management.applications.application.general', { applicationId: application.id }, { reload: true });
-      });
-    });
+  async createApplication() {
+    const { data: application } = await this.ApplicationService.create(this.application);
+    for (const plan of this.selectedPlans) {
+      await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]);
+    }
+    this.NotificationService.show('Application ' + this.application.name + ' has been created');
+    this.$state.go('management.applications.application.general', { applicationId: application.id }, { reload: true });
   }
 
   clientRegistrationEnabled() {
