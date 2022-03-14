@@ -425,6 +425,7 @@
       },
       "renew": {
         "message": "Opravdu chcete obnovit tento sdíleným klíč API?",
+        "success": "Sdílený klíč API byl úspěšně obnoven",
         "title": "Obnovte"
       },
       "revoke": {

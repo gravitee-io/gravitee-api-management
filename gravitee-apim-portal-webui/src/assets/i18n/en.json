@@ -425,6 +425,7 @@
       },
       "renew": {
         "message": "Are you sure you want to renew this shared API key?",
+        "success": "The shared API key has been successfully renewed",
         "title": "Renew"
       },
       "revoke": {

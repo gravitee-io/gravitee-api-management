@@ -425,6 +425,7 @@
       },
       "renew": {
         "message": "Êtes-vous sûr de vouloir renouveler cette clé d'API partagée?",
+        "success": "La clé d'API partagée a été renouvelée avec succès",
         "title": "Renouveler"
       },
       "revoke": {

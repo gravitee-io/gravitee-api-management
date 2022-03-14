@@ -309,7 +309,14 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   }
 
   renewSharedApiKey() {
-    // FIXME: to implement
+    this.applicationService
+      .renewSharedKey({ applicationId: this.application.id })
+      .toPromise()
+      .then((newKey) => {
+        this.notificationService.success(i18n('application.shared-key.renew.success'));
+        this.sharedAPIKey = newKey;
+        this.search(true);
+      });
   }
 
   revokeSharedApiKey() {

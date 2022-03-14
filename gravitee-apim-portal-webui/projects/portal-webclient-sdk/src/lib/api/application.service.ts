@@ -27,6 +27,7 @@ import { ApplicationsResponse } from '../model/models';
 import { CountAnalytics, DateHistoAnalytics, GroupByAnalytics } from '../model/models';
 import { ErrorResponse } from '../model/models';
 import { Hook } from '../model/models';
+import { Key } from '../model/models';
 import { Log } from '../model/models';
 import { LogsResponse } from '../model/models';
 import { Member } from '../model/models';
@@ -258,6 +259,11 @@ export interface GetSubscriberApisByApplicationIdRequestParams {
 }
 
 export interface RenewApplicationSecretRequestParams {
+    /** Id of an application. */
+    applicationId: string;
+}
+
+export interface RenewSharedKeyRequestParams {
     /** Id of an application. */
     applicationId: string;
 }
@@ -2155,6 +2161,65 @@ export class ApplicationService {
         }
 
         return this.httpClient.post<Application>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/_renew_secret`,
+            null,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Renew the shared api key of on application.
+     * Renew the shared api key of on application. The application must have the ApiKeyMode set to SHARED User must have APPLICATION_SUBSCRIPTION[UPDATE] permission. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public renewSharedKey(requestParameters: RenewSharedKeyRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Key>;
+    public renewSharedKey(requestParameters: RenewSharedKeyRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Key>>;
+    public renewSharedKey(requestParameters: RenewSharedKeyRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Key>>;
+    public renewSharedKey(requestParameters: RenewSharedKeyRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const applicationId = requestParameters.applicationId;
+        if (applicationId === null || applicationId === undefined) {
+            throw new Error('Required parameter applicationId was null or undefined when calling renewSharedKey.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.post<Key>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/keys/_renew`,
             null,
             {
                 responseType: <any>responseType,
