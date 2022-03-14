@@ -95,7 +95,7 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
             TABLE_NAME +
             " where " +
             escapeReservedWord("key") +
-            " = ?"
+            " = ? for update"
         );
     }
 
