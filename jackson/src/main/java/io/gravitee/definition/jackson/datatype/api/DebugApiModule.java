@@ -23,6 +23,7 @@ import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.DebugStep;
+import io.gravitee.definition.model.debug.DebugStepError;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -36,12 +37,14 @@ public class DebugApiModule extends GraviteeModule {
         addDeserializer(HttpRequest.class, new HttpRequestDeserializer(HttpRequest.class));
         addDeserializer(HttpResponse.class, new HttpResponseDeserializer(HttpResponse.class));
         addDeserializer(DebugStep.class, new DebugStepDeserializer(DebugStep.class));
+        addDeserializer(DebugStepError.class, new DebugStepErrorDeserializer(DebugStepError.class));
         addDeserializer(DebugMetrics.class, new DebugMetricsDeserializer(DebugMetrics.class));
 
         addSerializer(DebugApi.class, new DebugApiSerializer(DebugApi.class));
         addSerializer(HttpRequest.class, new HttpRequestSerializer(HttpRequest.class));
         addSerializer(HttpResponse.class, new HttpResponseSerializer(HttpResponse.class));
         addSerializer(DebugStep.class, new DebugStepSerializer(DebugStep.class));
+        addSerializer(DebugStepError.class, new DebugStepErrorSerializer(DebugStepError.class));
         addSerializer(DebugMetrics.class, new DebugMetricsSerializer(DebugMetrics.class));
     }
 }

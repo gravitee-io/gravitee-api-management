@@ -52,6 +52,11 @@ public class DebugStep {
     private String condition;
 
     /**
+     * The error details when status is "ERROR"
+     */
+    private DebugStepError error;
+
+    /**
      * "ON_REQUEST" | "ON_REQUEST_CONTENT" | "ON_RESPONSE" | "ON_RESPONSE_CONTENT"
      */
     private PolicyScope scope;
@@ -129,5 +134,13 @@ public class DebugStep {
 
     public void setStage(String stage) {
         this.stage = stage;
+    }
+
+    public DebugStepError getError() {
+        return error;
+    }
+
+    public void setError(DebugStepError error) {
+        this.error = error;
     }
 }

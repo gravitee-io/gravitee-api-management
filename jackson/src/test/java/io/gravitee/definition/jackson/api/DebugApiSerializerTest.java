@@ -60,6 +60,23 @@ public class DebugApiSerializerTest extends AbstractTest {
     }
 
     @Test
+    public void debugApi_withDebugStepsError() throws Exception {
+        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error.json", DebugApi.class);
+
+        String expectedDefinition = "/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error-expected.json";
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(debugApi);
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
+
+        assertNotNull(generatedJsonDefinition);
+
+        assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
+    }
+
+    @Test
     public void debugApi_withRequestResponse() throws Exception {
         DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-response.json", DebugApi.class);
 

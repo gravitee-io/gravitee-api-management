@@ -1,0 +1,112 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "version": "1",
+  "gravitee": "1.0.0",
+  "flow_mode": "DEFAULT",
+  "proxy": {
+    "virtual_hosts": [
+      {
+        "path": "/my-api"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": true,
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://localhost:1234",
+            "weight": 1,
+            "backup": false,
+            "type": "http"
+          }
+        ],
+        "load_balancing": {
+          "type": "ROUND_ROBIN"
+        },
+        "http": {
+          "connectTimeout": 5000,
+          "idleTimeout": 60000,
+          "keepAlive": true,
+          "readTimeout": 10000,
+          "pipelining": false,
+          "maxConcurrentConnections": 100,
+          "useCompression": true,
+          "followRedirects": false
+        }
+      }
+    ]
+  },
+  "properties": [],
+  "request": {
+    "path": "/",
+    "method": "GET",
+    "body": "request-body",
+    "headers" : {
+      "X-Gravitee-Transaction-Id" : ["transaction-id"],
+      "content-type" : ["application/json"],
+      "X-Gravitee-Request-Id" : ["request-id"],
+      "accept-encoding" : ["deflate", "gzip", "compress"]
+    }
+  },
+  "response": {
+    "body": "response-body",
+    "statusCode" : 200,
+    "headers" : {
+      "transfer-encoding" : ["chunked"],
+      "accept-encoding" : ["deflate", "gzip", "compress"]
+    }
+  },
+  "preprocessorStep": {
+    "attributes": {
+      "gravitee.attribute.application": "1",
+      "gravitee.attribute.user-id": "127.0.0.1"
+    },
+    "headers": {
+      "X-Gravitee-Transaction-Id": [
+        "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+      ],
+      "X-Gravitee-Request-Id": [
+        "e467b739-f921-4b9e-a7b7-39f921fb9ee9"
+      ]
+    }
+  },
+  "debugSteps": [
+    {
+      "policyInstanceId": "24b22176-e4fd-488e-b221-76e4fd388e30",
+      "policyId": "key-less",
+      "scope": "ON_REQUEST",
+      "status": "COMPLETED",
+      "duration": 1102529,
+      "result": {
+        "attributes": {
+          "gravitee.attribute.application": "1",
+          "gravitee.attribute.api.deployed-at": "1644242411908",
+          "gravitee.attribute.user-id": "127.0.0.1",
+          "gravitee.attribute.plan": "7bc7c418-056b-4876-87c4-18056b08763d",
+          "gravitee.attribute.api": "62710ef2-83bc-4007-b10e-f283bce00763",
+          "gravitee.attribute.gravitee.attribute.plan.selection.rule.based": "false"
+        }
+      },
+      "stage": "SECURITY"
+    },
+    {
+      "policyInstanceId": "b3cb3acc-79ea-48ea-8b3a-cc79ea48e666",
+      "policyId": "transform-headers",
+      "scope": "ON_REQUEST",
+      "status": "ERROR",
+      "error": {
+        "contentType": "aplication/json",
+        "key": "POLICY_ERROR",
+        "message": "Error message",
+        "status": 400
+      },
+      "duration": 17968,
+      "result": {
+      }
+    }
+  ]
+}

@@ -56,6 +56,10 @@ public class DebugStepSerializer extends StdScalarSerializer<DebugStep> {
             jgen.writeStringField("condition", debugStep.getCondition());
         }
 
+        if (debugStep.getError() != null) {
+            jgen.writeObjectField("error", debugStep.getError());
+        }
+
         if (debugStep.getDuration() != null) {
             jgen.writeNumberField("duration", debugStep.getDuration());
         }

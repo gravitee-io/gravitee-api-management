@@ -114,6 +114,19 @@ public class DebugApiDeserializerTest extends AbstractTest {
     }
 
     @Test
+    public void debugApi_withDebugStepsError() throws Exception {
+        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error.json", DebugApi.class);
+
+        assertEquals(debugApi.getDebugSteps().size(), 2);
+        DebugStep errorStep = debugApi.getDebugSteps().get(1);
+        assertEquals(errorStep.getStatus(), DebugStepStatus.ERROR);
+        assertEquals(errorStep.getError().getMessage(), "Error message");
+        assertEquals(errorStep.getError().getStatus(), 400);
+        assertEquals(errorStep.getError().getKey(), "POLICY_ERROR");
+        assertEquals(errorStep.getError().getContentType(), "aplication/json");
+    }
+
+    @Test
     public void debugApi_withBackendResponse() throws Exception {
         DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response.json", DebugApi.class);
 
