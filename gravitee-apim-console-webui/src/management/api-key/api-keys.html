@@ -39,7 +39,7 @@
               ng-class="$ctrl.isValid(key)? 'active-icon' : 'revoked-icon'"
             ></ng-md-icon>
             <code>{{key.key}}</code>
-            <span ng-if="!key.revoked && $ctrl.areKeysEditable()">
+            <span ng-if="$ctrl.isValid(key) && $ctrl.areKeysEditable()">
               <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
               <ng-md-icon
                 icon="content_copy"
@@ -53,7 +53,7 @@
           <td md-cell>{{key.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td md-cell>{{key.revoked_at || key.expire_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td md-cell>
-            <span ng-if="!key.revoked && $ctrl.areKeysEditable()">
+            <span ng-if="$ctrl.isValid(key) && $ctrl.areKeysEditable()">
               <md-tooltip md-direction="left">Revoke</md-tooltip>
               <ng-md-icon
                 class="revoke-icon"
