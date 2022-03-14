@@ -268,6 +268,12 @@ export interface RenewSharedKeyRequestParams {
     applicationId: string;
 }
 
+export interface RevokeSharedKeyRequestParams {
+    /** Id of an application. */
+    applicationId: string;
+    apiKey: string;
+}
+
 export interface TransferMemberOwnershipRequestParams {
     /** Id of an application. */
     applicationId: string;
@@ -2220,6 +2226,69 @@ export class ApplicationService {
         }
 
         return this.httpClient.post<Key>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/keys/_renew`,
+            null,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Revoke the shared api key of on application.
+     * Revoke the shared api key of on application. The application must have the ApiKeyMode set to SHARED User must have APPLICATION_SUBSCRIPTION[UPDATE] permission. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public revokeSharedKey(requestParameters: RevokeSharedKeyRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<any>;
+    public revokeSharedKey(requestParameters: RevokeSharedKeyRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<any>>;
+    public revokeSharedKey(requestParameters: RevokeSharedKeyRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<any>>;
+    public revokeSharedKey(requestParameters: RevokeSharedKeyRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const applicationId = requestParameters.applicationId;
+        if (applicationId === null || applicationId === undefined) {
+            throw new Error('Required parameter applicationId was null or undefined when calling revokeSharedKey.');
+        }
+        const apiKey = requestParameters.apiKey;
+        if (apiKey === null || apiKey === undefined) {
+            throw new Error('Required parameter apiKey was null or undefined when calling revokeSharedKey.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.post<any>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/keys/${encodeURIComponent(String(apiKey))}/_revoke`,
             null,
             {
                 responseType: <any>responseType,

@@ -16,7 +16,10 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
@@ -26,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.ApiParam;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -64,5 +68,20 @@ public class ApplicationKeysResource extends AbstractResource {
         ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
         final Key createdKey = keyMapper.convert(apiKeyService.renew(applicationEntity));
         return Response.status(Response.Status.CREATED).entity(createdKey).build();
+    }
+
+    @POST
+    @Path("/{apiKey}/_revoke")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    public Response revokeKeySubscription(@PathParam("apiKey") String apiKey) {
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        ApiKeyEntity apiKeyEntity = apiKeyService.findById(apiKey);
+        if (!apiKeyEntity.getApplication().equals(applicationEntity)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("'keyId' parameter does not correspond to the application").build();
+        }
+        apiKeyService.revoke(apiKeyEntity, true);
+
+        return Response.noContent().build();
     }
 }
