@@ -136,6 +136,52 @@ describe('ApplicationSubscriptionsComponent', () => {
       expect(component.sharedAPIKey).toEqual(sharedApiKey);
       expect(component.subscriptions[0].keys).toContain(sharedApiKey);
     }));
+
+    it('should renew sharedApiKey', fakeAsync(() => {
+      const subscription: Subscription = {
+        id: 'subscription1',
+        api: 'api1',
+        application: 'application1',
+        plan: 'plan1',
+        status: 'ACCEPTED',
+      };
+
+      const sharedApiKey: Key = { key: 'my-api-key', created_at: new Date('2022-02-22T22:22:22Z') };
+
+      httpTestingController.expectOne('http://localhost:8083/portal/environments/DEFAULT/applications/application1/subscribers?size=-1');
+
+      httpTestingController
+        .expectOne(
+          'http://localhost:8083/portal/environments/DEFAULT/subscriptions?applicationId=application1&statuses=ACCEPTED&statuses=PAUSED&statuses=PENDING',
+        )
+        .flush({
+          data: [subscription],
+          metadata: {
+            plan1: {
+              securityType: SecurityEnum.APIKEY as unknown as object,
+            },
+          },
+        });
+      tick();
+
+      httpTestingController
+        .expectOne('http://localhost:8083/portal/environments/DEFAULT/subscriptions/subscription1?include=keys')
+        .flush({ ...subscription, keys: [sharedApiKey] });
+      tick();
+
+      const newSharedApiKey: Key = { key: 'my-new-api-key', created_at: new Date('2022-02-23T22:22:22Z') };
+
+      component.renewSharedApiKey();
+      httpTestingController
+        .expectOne('http://localhost:8083/portal/environments/DEFAULT/applications/application1/keys/_renew')
+        .flush(newSharedApiKey);
+      tick();
+      expect(component.sharedAPIKey).toEqual(newSharedApiKey);
+
+      httpTestingController.expectOne(
+        'http://localhost:8083/portal/environments/DEFAULT/subscriptions?applicationId=application1&statuses=ACCEPTED&statuses=PAUSED&statuses=PENDING',
+      );
+    }));
   });
 
   describe('Non shared key app', () => {

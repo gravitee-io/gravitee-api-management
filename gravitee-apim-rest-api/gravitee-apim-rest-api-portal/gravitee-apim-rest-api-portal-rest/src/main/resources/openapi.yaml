@@ -1545,6 +1545,41 @@ paths:
           $ref: '#/components/responses/ApplicationNotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /applications/{applicationId}/keys/_renew:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    post:
+      tags:
+        - Application
+      summary: Renew the shared api key of on application.
+      description: |
+        Renew the shared api key of on application.
+        The application must have the ApiKeyMode set to SHARED
+        User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
+      operationId: renewSharedKey
+      responses:
+        201:
+          description: Renewed Key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Key'
+        400:
+          description: Application does not use shared API key mode
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
 
   /groups:
     get:

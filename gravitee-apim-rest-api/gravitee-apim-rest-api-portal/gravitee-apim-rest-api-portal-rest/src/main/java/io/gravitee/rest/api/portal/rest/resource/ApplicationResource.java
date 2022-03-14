@@ -228,4 +228,9 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationAlertsResource getApplicationAlertsResource() {
         return resourceContext.getResource(ApplicationAlertsResource.class);
     }
+
+    @Path("keys")
+    public ApplicationKeysResource getApplicationKeysResource() {
+        return resourceContext.getResource(ApplicationKeysResource.class);
+    }
 }
