@@ -186,21 +186,33 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           });
           this.form.patchValue({ status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING] });
         })
-        .then(() => this.search(true))
-        .then(() => {
-          // FIXME: what if there are shared apikeys among not shared apikeys ?
-          if (this.applicationHasSharedKey()) {
-            return this.subscriptions?.find((subscription) => this.isAPIKeySubscription(subscription.plan));
-          }
-          return null;
-        })
-        .then((sharedAPIKeySub) => (sharedAPIKeySub ? this.loadSubscriptionKeys(sharedAPIKeySub.id) : null))
-        .then((keys) => {
-          if (keys) {
-            this.sharedAPIKey = keys.find((key) => this.isApiKeyValid(key));
-          }
-        })
-        .finally(() => (this.sharedAPIKeyLoaded = true));
+        .then(() => this.search(true));
+    }
+  }
+
+  computeSharedApiKey() {
+    // FIXME: what if there are shared apikeys among not shared apikeys ?
+    if (this.applicationHasSharedKey()) {
+      this.sharedAPIKeyLoaded = false;
+      delete this.sharedAPIKey;
+      const sharedAPIKeySub = this.subscriptions?.find((subscription) => {
+        return (
+          this.isAPIKeySubscription(subscription.plan) &&
+          [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.CLOSED].includes(subscription.status)
+        );
+      });
+      if (sharedAPIKeySub) {
+        this.loadSubscriptionKeys(sharedAPIKeySub.id)
+          .then((keys) => {
+            // First find sharedKey without end date.
+            this.sharedAPIKey = keys.find((key) => !this.endAt(key));
+            if (!this.sharedAPIKey) {
+              // If none exist, find a valid one with an end date.
+              this.sharedAPIKey = keys.find((key) => this.isApiKeyValid(key));
+            }
+          })
+          .finally(() => (this.sharedAPIKeyLoaded = true));
+      }
     }
   }
 
@@ -269,6 +281,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           this.onSelectSubscription(null);
         }
       })
+      .then(() => this.computeSharedApiKey())
       .finally(() => (this.isSearching = false));
   }
 
@@ -314,13 +327,18 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       .toPromise()
       .then((newKey) => {
         this.notificationService.success(i18n('application.shared-key.renew.success'));
-        this.sharedAPIKey = newKey;
         this.search(true);
       });
   }
 
   revokeSharedApiKey() {
-    // FIXME: to implement
+    this.applicationService
+      .revokeSharedKey({ applicationId: this.application.id, apiKey: this.sharedAPIKey.id })
+      .toPromise()
+      .then(() => {
+        this.notificationService.success(i18n('application.shared-key.revoke.success'));
+        this.search(true);
+      });
   }
 
   onSelectSubscription(subscription: Subscription) {

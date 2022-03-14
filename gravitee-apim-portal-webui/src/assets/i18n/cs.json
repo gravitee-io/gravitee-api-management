@@ -430,6 +430,7 @@
       },
       "revoke": {
         "message": "Opravdu chcete zrušit tento sdíleným klíč API?",
+        "success": "Sdílené klíč API byl úspěšně odvolání",
         "title": "Odvolat"
       },
       "title": "Aplikace se sdíleným klíč API"

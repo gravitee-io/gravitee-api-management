@@ -1551,7 +1551,7 @@ paths:
     post:
       tags:
         - Application
-      summary: Renew the shared api key of on application.
+      summary: Renew the shared api key of an application.
       description: |
         Renew the shared api key of on application.
         The application must have the ApiKeyMode set to SHARED
@@ -1574,6 +1574,42 @@ paths:
           $ref: '#/components/responses/PermissionError'
         404:
           description: Application not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{applicationId}/keys/{apiKey}/_revoke:
+    parameters:
+      -   $ref: '#/components/parameters/applicationIdParam'
+      -   name: apiKey
+          in: path
+          required: true
+          schema:
+            type: string
+    post:
+      tags:
+        - Application
+      summary: Revoke the shared api key of an application.
+      description: |
+        Revoke the shared api key of on application.
+        The application must have the ApiKeyMode set to SHARED
+        User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
+      operationId: revokeSharedKey
+      responses:
+        204:
+          description: No-Content
+        400:
+          description: ApiKey parameter does not correspond to the application
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or key not found
           content:
             application/json:
               schema:

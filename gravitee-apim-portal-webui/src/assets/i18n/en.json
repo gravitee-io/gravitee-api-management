@@ -430,6 +430,7 @@
       },
       "revoke": {
         "message": "Are you sure you want to revoke this shared API key?",
+        "success": "The shared API key has been successfully revoked",
         "title": "Revoke"
       },
       "title": "Application with a shared API Key"

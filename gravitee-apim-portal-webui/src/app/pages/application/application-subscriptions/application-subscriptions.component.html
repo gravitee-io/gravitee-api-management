@@ -17,7 +17,7 @@
 -->
 <div class="page__content page__content-with-aside application-subscriptions">
   <div class="main">
-    <div class="page__box" *ngIf="applicationHasSharedKey()">
+    <div class="page__box" *ngIf="applicationHasSharedKey() && sharedAPIKeyLoaded">
       <div class="page__box-title">
         <h3 class="title">
           {{ 'application.shared-key.title' | translate }}
@@ -30,12 +30,12 @@
               {{ 'application.shared-key.message' | translate }}
             </div>
           </div>
-          <div class="application-subscriptions__shared-key-info__row" *ngIf="sharedAPIKeyLoaded && !sharedAPIKey">
+          <div class="application-subscriptions__shared-key-info__row" *ngIf="!sharedAPIKey">
             <div class="application-subscriptions__shared-key-info__row__cell">
               {{ 'application.shared-key.no-key.message' | translate }}
             </div>
           </div>
-          <div class="application-subscriptions__shared-key-info__row" *ngIf="sharedAPIKeyLoaded && !sharedAPIKey">
+          <div class="application-subscriptions__shared-key-info__row" *ngIf="!sharedAPIKey">
             <div class="application-subscriptions__shared-key-info__row__cell" *ngIf="canRenewSharedApiKey()">
               {{ 'application.shared-key.no-key.create' | translate }}
             </div>
