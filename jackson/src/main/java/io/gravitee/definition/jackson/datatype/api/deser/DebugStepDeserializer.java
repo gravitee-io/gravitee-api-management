@@ -46,6 +46,7 @@ public class DebugStepDeserializer extends StdScalarDeserializer<DebugStep> {
         debugStep.setPolicyId(readStringValue(node, "policyId"));
         debugStep.setScope(PolicyScope.valueOf(readStringValue(node, "scope")));
         debugStep.setStatus(DebugStepStatus.valueOf(readStringValue(node, "status")));
+        debugStep.setCondition(readStringValue(node, "condition"));
         debugStep.setDuration(node.get("duration").asLong());
         JsonNode resultNode = node.get("result");
         if (resultNode != null && !resultNode.isEmpty(null)) {

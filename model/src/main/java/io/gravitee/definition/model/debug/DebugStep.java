@@ -47,6 +47,11 @@ public class DebugStep {
     private DebugStepStatus status;
 
     /**
+     * The condition value when it is filled
+     */
+    private String condition;
+
+    /**
      * "ON_REQUEST" | "ON_REQUEST_CONTENT" | "ON_RESPONSE" | "ON_RESPONSE_CONTENT"
      */
     private PolicyScope scope;
@@ -92,6 +97,14 @@ public class DebugStep {
 
     public void setStatus(DebugStepStatus status) {
         this.status = status;
+    }
+
+    public String getCondition() {
+        return condition;
+    }
+
+    public void setCondition(String condition) {
+        this.condition = condition;
     }
 
     public PolicyScope getScope() {

@@ -141,6 +141,16 @@
       "stage": "API"
     },
     {
+      "policyInstanceId": "c96188c0-c57a-4726-a188-c0c57a172604",
+      "policyId": "transform-headers",
+      "scope": "ON_REQUEST",
+      "status": "SKIPPED",
+      "condition": "{#request.headers.name == \"joe\"}",
+      "duration": 46143,
+      "result": {
+      }
+    },
+    {
       "policyInstanceId": "f764a3c9-8dc1-4bfd-a4a3-c98dc19bfd82",
       "policyId": "policy-assign-content",
       "scope": "ON_REQUEST_CONTENT",

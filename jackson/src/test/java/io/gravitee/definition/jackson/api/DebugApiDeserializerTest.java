@@ -58,7 +58,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
     public void debugApi_withDebugSteps() throws Exception {
         DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps.json", DebugApi.class);
 
-        assertEquals(debugApi.getDebugSteps().size(), 9);
+        assertEquals(debugApi.getDebugSteps().size(), 10);
         assertEquals(
             debugApi.getPreprocessorStep().getAttributes(),
             Map.of("gravitee.attribute.application", "1", "gravitee.attribute.user-id", "127.0.0.1")
@@ -74,6 +74,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(step1.getPolicyId(), "key-less");
         assertEquals(step1.getDuration().longValue(), 1102529);
         assertEquals(step1.getStatus(), DebugStepStatus.COMPLETED);
+        assertEquals(step1.getCondition(), null);
         assertEquals(step1.getScope(), PolicyScope.ON_REQUEST);
         assertEquals(step1.getResult().size(), 1);
         assertEquals(step1.getStage(), "SECURITY");
@@ -93,6 +94,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(step2.getPolicyId(), "transform-headers");
         assertEquals(step2.getDuration().longValue(), 3123247);
         assertEquals(step2.getStatus(), DebugStepStatus.COMPLETED);
+        assertEquals(step2.getCondition(), null);
         assertEquals(step2.getScope(), PolicyScope.ON_REQUEST);
         assertEquals(step2.getResult().size(), 1);
         assertEquals(step2.getStage(), "PLAN");
@@ -105,6 +107,10 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(headers.get("X-Gravitee-Transaction-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
         assertEquals(headers.get("firstpolicy"), List.of("firstvalue", "secondvalue"));
         assertEquals(headers.get("X-Gravitee-Request-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
+
+        DebugStep skippedStep = debugApi.getDebugSteps().get(3);
+        assertEquals(skippedStep.getStatus(), DebugStepStatus.SKIPPED);
+        assertEquals(skippedStep.getCondition(), "{#request.headers.name == \"joe\"}");
     }
 
     @Test
