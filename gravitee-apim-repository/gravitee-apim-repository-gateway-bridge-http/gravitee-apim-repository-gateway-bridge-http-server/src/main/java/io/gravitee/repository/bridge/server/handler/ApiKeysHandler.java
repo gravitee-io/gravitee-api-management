@@ -15,20 +15,22 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
+import static java.util.stream.Collectors.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -39,6 +41,9 @@ public class ApiKeysHandler extends AbstractHandler {
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
+
+    @Autowired
+    private SubscriptionRepository subscriptionRepository;
 
     public void findByCriteria(RoutingContext ctx) {
         final JsonObject searchPayload = ctx.getBodyAsJson();
@@ -51,7 +56,14 @@ public class ApiKeysHandler extends AbstractHandler {
             .executeBlocking(
                 promise -> {
                     try {
-                        promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
+                        List<io.gravitee.repository.management.model.ApiKey> apiKeys = apiKeyRepository.findByCriteria(apiKeyCriteria);
+                        Map<String, Subscription> subscriptionsById = findSubscriptions(apiKeys);
+                        promise.complete(
+                            apiKeys
+                                .stream()
+                                .flatMap(apiKey -> this.getApiKeysDefinitionsFromModel(apiKey, subscriptionsById))
+                                .collect(toList())
+                        );
                     } catch (TechnicalException te) {
                         LOGGER.error("Unable to search for API Keys", te);
                         promise.fail(te);
@@ -61,6 +73,12 @@ public class ApiKeysHandler extends AbstractHandler {
             );
     }
 
+    /**
+     * Bridge clients rely on their own ApiKeyWrapper cached method
+     * for this call and there is no need to expose this endpoint
+     * @deprecated
+     */
+    @Deprecated(since = "3.17.0", forRemoval = true)
     public void findByKeyAndApi(RoutingContext ctx) {
         final String apiId = ctx.request().getParam("apiId");
         final String key = ctx.request().getParam("key");
@@ -76,7 +94,7 @@ public class ApiKeysHandler extends AbstractHandler {
                         promise.fail(te);
                     }
                 },
-                (Handler<AsyncResult<Optional<ApiKey>>>) result -> handleResponse(ctx, result)
+                (Handler<AsyncResult<Optional<io.gravitee.repository.management.model.ApiKey>>>) result -> handleResponse(ctx, result)
             );
     }
 
@@ -103,5 +121,52 @@ public class ApiKeysHandler extends AbstractHandler {
         }
 
         return builder.build();
+    }
+
+    private Map<String, Subscription> findSubscriptions(List<io.gravitee.repository.management.model.ApiKey> apiKeys)
+        throws TechnicalException {
+        Set<String> subscriptionIds = apiKeys.stream().flatMap(key -> key.getSubscriptions().stream()).collect(toSet());
+        return subscriptionRepository.findByIdIn(subscriptionIds).stream().collect(toMap(Subscription::getId, Function.identity()));
+    }
+
+    private Stream<ApiKey> getApiKeysDefinitionsFromModel(
+        io.gravitee.repository.management.model.ApiKey apiKey,
+        Map<String, Subscription> subscriptionsById
+    ) {
+        return apiKey
+            .getSubscriptions()
+            .stream()
+            .map(subscriptionsById::get)
+            .filter(Objects::nonNull)
+            .map(subscription -> new ApiKey(apiKey, subscription));
+    }
+
+    static class ApiKey extends io.gravitee.repository.management.model.ApiKey {
+
+        private final String plan;
+        private final String api;
+        private final String subscription;
+
+        public ApiKey(io.gravitee.repository.management.model.ApiKey key, Subscription subscription) {
+            super(key);
+            this.plan = subscription.getPlan();
+            this.api = subscription.getApi();
+            this.subscription = subscription.getId();
+        }
+
+        @SuppressWarnings("removal")
+        public String getPlan() {
+            return this.plan;
+        }
+
+        @SuppressWarnings("removal")
+        public String getApi() {
+            return this.api;
+        }
+
+        @SuppressWarnings("removal")
+        public String getSubscription() {
+            return subscription;
+        }
     }
 }
