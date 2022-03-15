@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.PolicyScope;
+import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
@@ -69,6 +70,9 @@ public class DebugEventCompletionProcessorTest {
     @Mock
     private DebugApi debugApi;
 
+    @Mock
+    private Request request;
+
     private DebugEventCompletionProcessor cut;
 
     @Before
@@ -81,6 +85,7 @@ public class DebugEventCompletionProcessorTest {
     public void shouldUpdateEventWithData() throws TechnicalException, JsonProcessingException {
         when(debugApi.getEventId()).thenReturn("event-id");
         when(debugExecutionContext.getComponent(Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.request()).thenReturn(request);
 
         DebugRequestStep step1 = new DebugRequestStep(
             "policy-id",
@@ -123,6 +128,7 @@ public class DebugEventCompletionProcessorTest {
     public void shouldSetEventInErrorWhenEventUpdateThrows() throws TechnicalException, JsonProcessingException {
         when(debugApi.getEventId()).thenReturn("event-id");
         when(debugExecutionContext.getComponent(Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.request()).thenReturn(request);
         VertxHttpServerResponse debugResponse = getDebugResponse();
         when(debugExecutionContext.response()).thenReturn(debugResponse);
         when(debugExecutionContext.getInvokerResponse()).thenReturn(getInvokerResponse());
@@ -149,6 +155,7 @@ public class DebugEventCompletionProcessorTest {
     public void shouldSetEventInErrorWhenWriteValueAsStringThrows() throws TechnicalException, JsonProcessingException {
         when(debugApi.getEventId()).thenReturn("event-id");
         when(debugExecutionContext.getComponent(Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.request()).thenReturn(request);
         VertxHttpServerResponse debugResponse = getDebugResponse();
         when(debugExecutionContext.response()).thenReturn(debugResponse);
         when(debugExecutionContext.getInvokerResponse()).thenReturn(getInvokerResponse());
