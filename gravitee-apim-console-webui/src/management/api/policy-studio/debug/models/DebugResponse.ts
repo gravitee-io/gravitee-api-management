@@ -180,6 +180,7 @@ const convertRequestDebugSteps = (
     scope: firstStep.scope,
     duration: firstStep.duration,
     stage: firstStep.stage,
+    ...(firstStep.condition ? { condition: firstStep.condition } : {}),
     output: {
       ...initialRequest,
       ...preprocessorStep,
@@ -200,6 +201,7 @@ const convertRequestDebugSteps = (
           policyInstanceId: currentValue.policyInstanceId,
           scope: currentValue.scope,
           duration: currentValue.duration,
+          ...(currentValue.condition ? { condition: currentValue.condition } : {}),
           output: {
             ...previousStep.output,
             ...currentValue.result,
@@ -230,6 +232,7 @@ const convertResponseDebugSteps = (
     policyInstanceId: firstStep.policyInstanceId,
     scope: firstStep.scope,
     duration: firstStep.duration,
+    ...(firstStep.condition ? { condition: firstStep.condition } : {}),
     output: {
       ...backendResponse,
       ...preprocessorStep,
@@ -251,6 +254,7 @@ const convertResponseDebugSteps = (
           policyInstanceId: currentValue.policyInstanceId,
           scope: currentValue.scope,
           duration: currentValue.duration,
+          ...(currentValue.condition ? { condition: currentValue.condition } : {}),
           output: {
             ...previousStep.output,
             ...currentValue.result,

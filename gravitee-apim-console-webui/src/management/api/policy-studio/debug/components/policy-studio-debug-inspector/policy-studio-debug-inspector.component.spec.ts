@@ -109,9 +109,9 @@ describe('PolicyStudioDebugInspectorComponent', () => {
 
     component.outputDebugStep = {
       ...outputDebugStep,
+      condition,
       output: {
         ...outputDebugStep.output,
-        condition,
       },
     };
 

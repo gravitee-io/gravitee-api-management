@@ -173,10 +173,10 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
     };
   }
 
-  private toConditionNode(key: string): Node {
-    const condition = this.outputDebugStep.output[key];
+  private toConditionNode(): Node {
+    const condition = this.outputDebugStep.condition;
     return {
-      id: key,
+      id: 'condition',
       name: 'Condition',
       type: undefined,
       children: [
@@ -239,8 +239,7 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
       });
     }
 
-    const condition = keys.find((key) => key === 'condition');
-    const conditionNode = condition ? this.toConditionNode('condition') : undefined;
+    const conditionNode = this.outputDebugStep.condition ? this.toConditionNode() : undefined;
 
     return { treeNodes: treeNodes.sort((a, b) => NODES_SORT.indexOf(a.id) - NODES_SORT.indexOf(b.id)), errorTreeNodes, conditionNode };
   }

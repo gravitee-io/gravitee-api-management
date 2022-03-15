@@ -92,7 +92,7 @@ public class DebugConditionalExecutablePolicyTest {
         final ConditionalExecutablePolicy toDebug = new DebugConditionalExecutablePolicy(delegatePolicy, debugStep);
         toDebug.execute(policyChain, executionContext);
         verify(policyChain, never()).doNext(any(), any());
-        assertThat(debugStep.getDebugDiffContent()).containsEntry(DebugStep.DIFF_KEY_CONDITION, "condition");
+        assertThat(debugStep.getCondition()).isEqualTo("condition");
     }
 
     @Test
@@ -104,7 +104,7 @@ public class DebugConditionalExecutablePolicyTest {
         final ConditionalExecutablePolicy toDebug = new DebugConditionalExecutablePolicy(delegatePolicy, debugStep);
         toDebug.execute(policyChain, executionContext);
         verify(policyChain, times(1)).doNext(any(), any());
-        assertThat(debugStep.getDebugDiffContent()).containsEntry(DebugStep.DIFF_KEY_CONDITION, "condition");
+        assertThat(debugStep.getCondition()).isEqualTo("condition");
         assertThat(debugStep.getStatus()).isEqualTo(DebugStepStatus.SKIPPED);
     }
 
@@ -130,7 +130,7 @@ public class DebugConditionalExecutablePolicyTest {
 
         conditionedStream.write(Buffer.buffer("Test")).end();
         verify(policyChain, never()).doNext(any(), any());
-        assertThat(debugStep.getDebugDiffContent()).containsEntry(DebugStep.DIFF_KEY_CONDITION, "condition");
+        assertThat(debugStep.getCondition()).isEqualTo("condition");
     }
 
     @Test
@@ -144,7 +144,7 @@ public class DebugConditionalExecutablePolicyTest {
         final ReadWriteStream<Buffer> conditionedStream = toDebug.stream(policyChain, executionContext);
         conditionedStream.write(Buffer.buffer("Test")).end();
         verify(executionContext, never()).setAttribute("stream", "On Response Content Dummy Streamable Policy");
-        assertThat(debugStep.getDebugDiffContent()).containsEntry(DebugStep.DIFF_KEY_CONDITION, "condition");
+        assertThat(debugStep.getCondition()).isEqualTo("condition");
         assertThat(debugStep.getStatus()).isEqualTo(DebugStepStatus.SKIPPED);
     }
 
@@ -159,7 +159,7 @@ public class DebugConditionalExecutablePolicyTest {
         final ReadWriteStream<Buffer> conditionedStream = toDebug.stream(policyChain, executionContext);
         conditionedStream.write(Buffer.buffer("Test")).end();
         verify(policyChain, times(1)).streamFailWith(any());
-        assertThat(debugStep.getDebugDiffContent()).containsEntry(DebugStep.DIFF_KEY_CONDITION, "condition");
+        assertThat(debugStep.getCondition()).isEqualTo("condition");
         assertThat(debugStep.getStatus()).isNull();
     }
 }
