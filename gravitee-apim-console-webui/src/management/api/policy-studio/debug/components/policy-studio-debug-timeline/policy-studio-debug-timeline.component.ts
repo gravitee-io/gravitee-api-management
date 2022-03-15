@@ -16,6 +16,8 @@
 
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
 
+import { DebugEventMetrics } from '../../models/DebugEvent';
+
 @Component({
   selector: 'policy-studio-debug-timeline',
   template: require('./policy-studio-debug-timeline.component.html'),
@@ -27,6 +29,9 @@ export class PolicyStudioDebugTimelineComponent implements AfterViewInit, OnDest
 
   @Input()
   nbPoliciesResponse: number;
+
+  @Input()
+  metrics: DebugEventMetrics;
 
   @ViewChild('horizontalScroll', { static: false }) horizontalScroll: ElementRef<HTMLDivElement>;
 

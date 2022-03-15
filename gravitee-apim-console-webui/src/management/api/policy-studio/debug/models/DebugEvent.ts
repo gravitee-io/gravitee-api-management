@@ -45,6 +45,7 @@ interface DebugEventPayload {
     headers?: Record<string, string[]>;
     body?: string;
   };
+  metrics?: DebugEventMetrics;
 }
 
 interface DebugEventDebugStep {
@@ -54,4 +55,10 @@ interface DebugEventDebugStep {
   status: 'COMPLETED' | 'ERROR' | 'SKIPPED';
   duration: number;
   result: Record<string, unknown>;
+}
+
+export interface DebugEventMetrics {
+  apiResponseTimeMs?: number;
+  proxyLatencyMs?: number;
+  proxyResponseTimeMs?: number;
 }

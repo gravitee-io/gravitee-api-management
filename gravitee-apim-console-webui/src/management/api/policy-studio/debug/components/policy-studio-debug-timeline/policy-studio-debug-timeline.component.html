@@ -20,8 +20,23 @@
   <div class="policy-studio-debug-timeline__header">
     <span class="policy-studio-debug-timeline__header__title">Timeline</span>
     <span class="policy-studio-debug-timeline__header__counter">
-      Policies: <span class="gio-badge-primary">{{ nbPoliciesRequest }} Request</span> /
+      <span class="policy-studio-debug-timeline__header__counter__title">Policies:</span>
+      <span class="gio-badge-primary">{{ nbPoliciesRequest }} Request</span> /
       <span class="gio-badge-primary">{{ nbPoliciesResponse }} Response</span>
+    </span>
+    <span class="policy-studio-debug-timeline__header__metrics" *ngIf="metrics">
+      <span class="policy-studio-debug-timeline__header__metrics__title" *ngIf="metrics.apiResponseTimeMs != null">Api response:</span>
+      <span class="policy-studio-debug-timeline__header__metrics__api-response" *ngIf="metrics.apiResponseTimeMs != null"
+        >{{ metrics.apiResponseTimeMs }}ms</span
+      >
+      <span class="policy-studio-debug-timeline__header__metrics__title" *ngIf="metrics.proxyResponseTimeMs != null">Proxy response:</span>
+      <span class="policy-studio-debug-timeline__header__metrics__proxy-response" *ngIf="metrics.proxyResponseTimeMs != null"
+        >{{ metrics.proxyResponseTimeMs }}ms</span
+      >
+      <span class="policy-studio-debug-timeline__header__metrics__title" *ngIf="metrics.proxyLatencyMs != null">Proxy latency:</span>
+      <span class="policy-studio-debug-timeline__header__metrics__proxy-latency" *ngIf="metrics.proxyLatencyMs != null"
+        >{{ metrics.proxyLatencyMs }}ms</span
+      >
     </span>
   </div>
   <div class="policy-studio-debug-timeline__background"></div>

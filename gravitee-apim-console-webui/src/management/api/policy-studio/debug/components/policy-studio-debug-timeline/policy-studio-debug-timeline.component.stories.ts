@@ -43,14 +43,20 @@ export default {
         type: 'object',
       },
     },
+    metrics: {
+      control: {
+        type: 'object',
+      },
+    },
   },
   args: {
     timelineSteps: null,
+    metrics: null,
   },
-  render: ({ timelineSteps }) => ({
-    props: { timelineSteps },
+  render: ({ timelineSteps, metrics }) => ({
+    props: { timelineSteps, metrics },
     template: `
-    <policy-studio-debug-timeline nbPoliciesRequest="3" nbPoliciesResponse="4">
+    <policy-studio-debug-timeline nbPoliciesRequest="3" nbPoliciesResponse="4" [metrics]="metrics">
       <policy-studio-debug-timeline-card *ngFor="let timelineStep of timelineSteps" [timelineStep]="timelineStep"></policy-studio-debug-timeline-card>
     </policy-studio-debug-timeline>
     `,
@@ -107,5 +113,10 @@ export const ClientApp: Story = {
         mode: 'CLIENT_APP_RESPONSE',
       },
     ] as TimelineStep[],
+    metrics: {
+      apiResponseTimeMs: 152,
+      proxyResponseTimeMs: 85,
+      proxyLatencyMs: 0,
+    },
   },
 };

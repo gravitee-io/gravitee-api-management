@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.HttpResponse;
+import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.PreprocessorStep;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -99,7 +100,19 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         );
         debugApi.setBackendResponse(invokerResponse);
 
+        debugApi.setMetrics(createMetrics(debugContext.request().metrics()));
+
         return debugApi;
+    }
+
+    private DebugMetrics createMetrics(io.gravitee.reporter.api.http.Metrics requestMetrics) {
+        final DebugMetrics metrics = new DebugMetrics();
+        if (requestMetrics != null) {
+            metrics.setApiResponseTimeMs(requestMetrics.getApiResponseTimeMs());
+            metrics.setProxyLatencyMs(requestMetrics.getProxyLatencyMs());
+            metrics.setProxyResponseTimeMs(requestMetrics.getProxyResponseTimeMs());
+        }
+        return metrics;
     }
 
     private PreprocessorStep createPreprocessorStep(DebugExecutionContext debugContext) {

@@ -77,6 +77,7 @@
     <policy-studio-debug-timeline
       [nbPoliciesRequest]="debugResponse.requestPolicyDebugSteps.length"
       [nbPoliciesResponse]="debugResponse.responsePolicyDebugSteps.length"
+      [metrics]="debugResponse.metrics"
     >
       <policy-studio-debug-timeline-card
         *ngFor="let timelineStep of responseDisplayableVM.timelineSteps"

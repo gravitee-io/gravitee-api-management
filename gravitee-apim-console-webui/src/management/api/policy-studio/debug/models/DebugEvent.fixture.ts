@@ -185,7 +185,13 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
         },
         statusCode: 200,
       },
+      metrics: {
+        apiResponseTimeMs: 169,
+        proxyLatencyMs: 82,
+        proxyResponseTimeMs: 83,
+      },
     },
+
     status: 'SUCCESS',
   };
 
