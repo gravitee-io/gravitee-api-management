@@ -189,6 +189,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugStep.setPolicyId(ds.getPolicyId());
         debugStep.setDuration(ds.elapsedTime().toNanos());
         debugStep.setStatus(ds.getStatus());
+        debugStep.setCondition(ds.getCondition());
         debugStep.setScope(ds.getPolicyScope());
         debugStep.setStage(ds.policyMetadata().metadata().getOrDefault(PolicyMetadata.MetadataKeys.STAGE, "UNDEFINED").toString());
 

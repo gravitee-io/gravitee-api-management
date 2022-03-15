@@ -19,6 +19,7 @@ export interface DebugStep<T> {
   duration: number;
   output: T;
   stage: 'SECURITY' | 'PLATFORM' | 'PLAN' | 'API' | 'UNDEFINED';
+  condition?: string;
 }
 
 interface PolicyDebugStep<T> extends DebugStep<T> {
@@ -36,7 +37,6 @@ interface RequestOutput {
   contextPath?: string;
   attributes?: Record<string, boolean | number | string>;
   body?: string;
-  condition?: string;
   'error.contentType'?: string;
   'error.key'?: string;
   'error.message'?: string;
@@ -49,7 +49,6 @@ interface ResponseOutput {
   reason?: string;
   attributes?: Record<string, boolean | number | string>;
   body?: string;
-  condition?: string;
   'error.contentType'?: string;
   'error.key'?: string;
   'error.message'?: string;

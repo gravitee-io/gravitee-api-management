@@ -50,7 +50,6 @@ public abstract class DebugStep<T> {
     public static final String DIFF_KEY_ERROR_KEY = "error.key";
     public static final String DIFF_KEY_ERROR_STATUS = "error.status";
     public static final String DIFF_KEY_ERROR_CONTENT_TYPE = "error.contentType";
-    public static final String DIFF_KEY_CONDITION = "condition";
 
     protected final String policyId;
     protected final StreamType streamType;
@@ -59,6 +58,7 @@ public abstract class DebugStep<T> {
     protected final Map<String, Object> diffMap = new HashMap<>();
     protected final Stopwatch stopwatch;
     protected DebugStepStatus status;
+    protected String condition;
     protected boolean ended = false;
     private final PolicyMetadata policyMetadata;
 
@@ -123,7 +123,7 @@ public abstract class DebugStep<T> {
     }
 
     public void onConditionEvaluation(String condition, Boolean isConditionTruthy) {
-        this.diffMap.put(DIFF_KEY_CONDITION, condition);
+        this.condition = condition;
         if (isConditionTruthy != null && !isConditionTruthy) {
             this.status = DebugStepStatus.SKIPPED;
         }
@@ -151,6 +151,10 @@ public abstract class DebugStep<T> {
 
     public DebugStepStatus getStatus() {
         return status;
+    }
+
+    public String getCondition() {
+        return condition;
     }
 
     public boolean isEnded() {
