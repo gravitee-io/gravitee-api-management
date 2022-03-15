@@ -32,6 +32,7 @@ class DialogSubscriptionAcceptController {
   ) {
     'ngInject';
     this.now = moment().toDate();
+    this.onApiKeyValueChange = this.onApiKeyValueChange.bind(this);
   }
 
   hide() {
