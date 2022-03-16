@@ -24,7 +24,7 @@
     <mat-tree #errors [dataSource]="errorsDataSource" [treeControl]="errorsTreeControl">
       <!-- This is the tree node template for leaf nodes -->
       <mat-tree-node *matTreeNodeDef="let node" class="policy-studio-debug-inspector__tree-node-content">
-        <policy-studio-debug-inspector-error [input]="node.input"></policy-studio-debug-inspector-error>
+        <policy-studio-debug-inspector-error [error]="node.input"></policy-studio-debug-inspector-error>
       </mat-tree-node>
       <!-- This is the tree node template for expandable nodes -->
       <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding class="policy-studio-debug-inspector__tree-node">
@@ -84,13 +84,6 @@
             [input]="node.input"
             [output]="node.output"
           ></policy-studio-debug-inspector-body>
-
-          <policy-studio-debug-inspector-error
-            *ngSwitchCase="'error'"
-            [name]="node.name"
-            [input]="node.input"
-            [output]="node.output"
-          ></policy-studio-debug-inspector-error>
 
           <policy-studio-debug-inspector-text
             *ngSwitchDefault

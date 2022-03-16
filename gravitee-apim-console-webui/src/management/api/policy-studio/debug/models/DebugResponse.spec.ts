@@ -161,10 +161,6 @@ describe('convertDebugEventToDebugResponse', () => {
           'gravitee.attribute.user-id': '127.0.0.1',
         },
         body: '{}',
-        'error.contentType': 'application/json',
-        'error.key': 'POLICY_ERROR',
-        'error.message': 'Error message',
-        'error.status': '400',
         headers: {
           'X-Gravitee-Request-Id': ['8a0b25f7-bb56-4a0b-8b25-f7bb564a0b99'],
           'X-Gravitee-Transaction-Id': ['8a0b25f7-bb56-4a0b-8b25-f7bb564a0b99'],
@@ -178,6 +174,12 @@ describe('convertDebugEventToDebugResponse', () => {
       },
       scope: 'ON_REQUEST',
       status: 'ERROR',
+      error: {
+        contentType: 'application/json',
+        key: 'POLICY_ERROR',
+        message: 'Error message',
+        status: 400,
+      },
     },
   ];
 
@@ -286,10 +288,6 @@ describe('convertDebugEventToDebugResponse', () => {
         'gravitee.attribute.user-id': '127.0.0.1',
       },
       body: '{}',
-      'error.contentType': 'application/json',
-      'error.key': 'POLICY_ERROR',
-      'error.message': 'Error message',
-      'error.status': '400',
       headers: {
         'X-Gravitee-Request-Id': ['8a0b25f7-bb56-4a0b-8b25-f7bb564a0b99'],
         'X-Gravitee-Transaction-Id': ['8a0b25f7-bb56-4a0b-8b25-f7bb564a0b99'],

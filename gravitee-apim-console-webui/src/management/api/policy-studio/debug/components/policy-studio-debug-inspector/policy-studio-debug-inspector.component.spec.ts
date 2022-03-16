@@ -74,12 +74,11 @@ describe('PolicyStudioDebugInspectorComponent', () => {
   it('should build tree nodes with errors', () => {
     component.outputDebugStep = {
       ...outputDebugStep,
-      output: {
-        ...outputDebugStep.output,
-        'error.key': 'error-key',
-        'error.status': 'failed',
-        'error.contentType': 'application/json',
-        'error.message': 'Error message',
+      error: {
+        key: 'error-key',
+        status: 400,
+        contentType: 'application/json',
+        message: 'Error message',
       },
     };
 
@@ -89,13 +88,12 @@ describe('PolicyStudioDebugInspectorComponent', () => {
 
     expect(errorTreeNodes.length).toEqual(1);
     expect(errorTreeNodes[0].children.length).toEqual(1);
-    expect(errorTreeNodes[0].children[0].input.length).toEqual(4);
-    expect(errorTreeNodes[0].children[0].input.map((a) => a.key)).toEqual([
-      'error.contentType',
-      'error.key',
-      'error.message',
-      'error.status',
-    ]);
+    expect(errorTreeNodes[0].children[0].input).toEqual({
+      key: 'error-key',
+      status: 400,
+      contentType: 'application/json',
+      message: 'Error message',
+    });
 
     expect(treeNodes).not.toBeNull();
     expect(treeNodes.length).toBeGreaterThanOrEqual(3);

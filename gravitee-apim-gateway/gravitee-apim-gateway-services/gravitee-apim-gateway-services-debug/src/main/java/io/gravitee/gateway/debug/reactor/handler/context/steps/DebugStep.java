@@ -17,6 +17,7 @@ package io.gravitee.gateway.debug.reactor.handler.context.steps;
 
 import com.google.common.base.Stopwatch;
 import io.gravitee.definition.model.PolicyScope;
+import io.gravitee.definition.model.debug.DebugStepError;
 import io.gravitee.definition.model.debug.DebugStepStatus;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.debug.reactor.handler.context.AttributeHelper;
@@ -46,10 +47,6 @@ public abstract class DebugStep<T> {
     public static final String DIFF_KEY_BODY = "body";
     public static final String DIFF_KEY_STATUS_CODE = "statusCode";
     public static final String DIFF_KEY_REASON = "reason";
-    public static final String DIFF_KEY_ERROR_MESSAGE = "error.message";
-    public static final String DIFF_KEY_ERROR_KEY = "error.key";
-    public static final String DIFF_KEY_ERROR_STATUS = "error.status";
-    public static final String DIFF_KEY_ERROR_CONTENT_TYPE = "error.contentType";
 
     protected final String policyId;
     protected final StreamType streamType;
@@ -59,6 +56,7 @@ public abstract class DebugStep<T> {
     protected final Stopwatch stopwatch;
     protected DebugStepStatus status;
     protected String condition;
+    protected DebugStepError error;
     protected boolean ended = false;
     private final PolicyMetadata policyMetadata;
 
@@ -110,16 +108,18 @@ public abstract class DebugStep<T> {
     public void error(Throwable ex) {
         this.stop();
         this.status = DebugStepStatus.ERROR;
-        this.diffMap.put(DIFF_KEY_ERROR_MESSAGE, ex.getMessage());
+        this.error = new DebugStepError();
+        this.error.setMessage(ex.getMessage());
     }
 
     public void error(PolicyResult policyResult) {
         this.stop();
         this.status = DebugStepStatus.ERROR;
-        this.diffMap.put(DIFF_KEY_ERROR_MESSAGE, policyResult.message());
-        this.diffMap.put(DIFF_KEY_ERROR_KEY, policyResult.key());
-        this.diffMap.put(DIFF_KEY_ERROR_STATUS, policyResult.statusCode());
-        this.diffMap.put(DIFF_KEY_ERROR_CONTENT_TYPE, policyResult.contentType());
+        this.error = new DebugStepError();
+        this.error.setMessage(policyResult.message());
+        this.error.setKey(policyResult.key());
+        this.error.setStatus(policyResult.statusCode());
+        this.error.setContentType(policyResult.contentType());
     }
 
     public void onConditionEvaluation(String condition, Boolean isConditionTruthy) {
@@ -155,6 +155,10 @@ public abstract class DebugStep<T> {
 
     public String getCondition() {
         return condition;
+    }
+
+    public DebugStepError getError() {
+        return error;
     }
 
     public boolean isEnded() {

@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input } from '@angular/core';
+
+import { DebugStepError } from '../../../models/DebugStep';
 
 @Component({
   selector: 'policy-studio-debug-inspector-error',
   template: require('./policy-studio-debug-inspector-error.component.html'),
   styles: [require('./policy-studio-debug-inspector-error.component.scss')],
 })
-export class PolicyStudioDebugInspectorErrorComponent implements OnChanges {
+export class PolicyStudioDebugInspectorErrorComponent {
   @Input()
-  private input: { key: string; value: any }[];
-
-  errors: { key: string; value: any }[];
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['input']) {
-      this.errors = this.input?.map((error) => ({ ...error, key: error.key.replace('error.', '') }));
-    }
-  }
+  private error: DebugStepError;
 }

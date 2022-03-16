@@ -20,6 +20,7 @@ export interface DebugStep<T> {
   output: T;
   stage: 'SECURITY' | 'PLATFORM' | 'PLAN' | 'API' | 'UNDEFINED';
   condition?: string;
+  error?: DebugStepError;
 }
 
 interface PolicyDebugStep<T> extends DebugStep<T> {
@@ -37,10 +38,6 @@ interface RequestOutput {
   contextPath?: string;
   attributes?: Record<string, boolean | number | string>;
   body?: string;
-  'error.contentType'?: string;
-  'error.key'?: string;
-  'error.message'?: string;
-  'error.status'?: string;
 }
 
 interface ResponseOutput {
@@ -49,10 +46,6 @@ interface ResponseOutput {
   reason?: string;
   attributes?: Record<string, boolean | number | string>;
   body?: string;
-  'error.contentType'?: string;
-  'error.key'?: string;
-  'error.message'?: string;
-  'error.status'?: string;
 }
 
 export type PolicyScope = 'ON_REQUEST' | 'ON_REQUEST_CONTENT' | 'ON_RESPONSE' | 'ON_RESPONSE_CONTENT';
@@ -68,4 +61,11 @@ export type ResponseDebugStep = DebugStep<ResponseOutput>;
 export interface DebugSteps<T> {
   input?: T;
   output?: T;
+}
+
+export interface DebugStepError {
+  contentType?: string;
+  key?: string;
+  message?: string;
+  status?: number;
 }

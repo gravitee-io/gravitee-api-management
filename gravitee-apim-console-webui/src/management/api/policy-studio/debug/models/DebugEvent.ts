@@ -54,6 +54,12 @@ interface DebugEventDebugStep {
   scope: 'ON_REQUEST' | 'ON_REQUEST_CONTENT' | 'ON_RESPONSE' | 'ON_RESPONSE_CONTENT';
   status: 'COMPLETED' | 'ERROR' | 'SKIPPED';
   condition?: string;
+  error?: {
+    contentType?: string;
+    key?: string;
+    message?: string;
+    status?: number;
+  };
   duration: number;
   result: Record<string, unknown>;
   stage: 'SECURITY' | 'PLATFORM' | 'PLAN' | 'API' | 'UNDEFINED';

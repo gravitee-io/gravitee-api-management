@@ -62,10 +62,12 @@ export function fakeErrorRequestDebugStep(attributes?: Partial<RequestPolicyDebu
     stage: 'PLAN',
     output: {
       body: '{}',
-      'error.contentType': 'application/json',
-      'error.key': 'POLICY_ERROR',
-      'error.message': 'The policy was not executed because of a bad configuration',
-      'error.status': '400',
+    },
+    error: {
+      contentType: 'application/json',
+      key: 'POLICY_ERROR',
+      message: 'The policy was not executed because of a bad configuration',
+      status: 400,
     },
   };
 
