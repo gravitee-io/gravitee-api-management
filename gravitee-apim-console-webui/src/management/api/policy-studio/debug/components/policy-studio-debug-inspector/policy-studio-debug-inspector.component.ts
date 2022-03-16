@@ -18,7 +18,7 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 
-import { RequestDebugStep, ResponseDebugStep } from '../../models/DebugStep';
+import { DebugStepError, RequestDebugStep, ResponseDebugStep } from '../../models/DebugStep';
 
 interface Node {
   id?: string;
@@ -143,8 +143,6 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
 
   conditionDataSource = new MatTreeFlatDataSource(this.conditionTreeControl, this.treeFlattener as any);
 
-  errorNodes: Node[];
-
   ngOnChanges(changes: SimpleChanges) {
     if (changes['inputDebugStep'] || changes['outputDebugStep']) {
       const { treeNodes, errorTreeNodes, conditionNode } = this.buildTreeNodes();
@@ -166,10 +164,10 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
-  private toErrorNode(errors: { key: string; value: any }[]): Node {
+  private toErrorNode(error: DebugStepError): Node {
     return {
       type: 'error',
-      input: errors,
+      input: error,
     };
   }
 
@@ -226,16 +224,13 @@ export class PolicyStudioDebugInspectorComponent implements OnChanges {
       });
     }
 
-    const errors = keys
-      .filter((key) => key.startsWith('error.'))
-      .sort(this.sort)
-      .map((key) => ({ key, value: this.inputDebugStep.output[key] ?? this.outputDebugStep.output[key] }));
+    const error = this.outputDebugStep.error;
     const errorTreeNodes = [];
-    if (errors.length > 0) {
+    if (error) {
       errorTreeNodes.push({
         name: 'Errors',
         type: 'error',
-        children: [this.toErrorNode(errors)],
+        children: [this.toErrorNode(error)],
       });
     }
 

@@ -17,9 +17,21 @@
 -->
 <table class="gio-table-light" attr.aria-label="Debug errors">
   <tbody>
-    <tr *ngFor="let item of errors">
-      <td class="key">{{ item.key }}</td>
-      <td class="value">{{ item.value }}</td>
+    <tr *ngIf="error.status">
+      <td class="key">Status</td>
+      <td class="value">{{ error.status }}</td>
+    </tr>
+    <tr *ngIf="error.message">
+      <td class="key">Message</td>
+      <td class="value">{{ error.message }}</td>
+    </tr>
+    <tr *ngIf="error.contentType">
+      <td class="key">Content Type</td>
+      <td class="value">{{ error.contentType }}</td>
+    </tr>
+    <tr *ngIf="error.key">
+      <td class="key">Key</td>
+      <td class="value">{{ error.key }}</td>
     </tr>
   </tbody>
 </table>

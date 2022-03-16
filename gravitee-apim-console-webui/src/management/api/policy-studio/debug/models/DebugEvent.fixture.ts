@@ -127,11 +127,12 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
           status: 'ERROR',
           duration: 17968,
           stage: 'API',
-          result: {
-            'error.message': 'Error message',
-            'error.key': 'POLICY_ERROR',
-            'error.status': '400',
-            'error.contentType': 'application/json',
+          result: {},
+          error: {
+            contentType: 'application/json',
+            key: 'POLICY_ERROR',
+            message: 'Error message',
+            status: 400,
           },
         },
         {

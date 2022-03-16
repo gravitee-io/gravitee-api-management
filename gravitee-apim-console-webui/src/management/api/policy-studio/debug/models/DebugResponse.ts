@@ -184,6 +184,7 @@ const convertRequestDebugSteps = (
     duration: firstStep.duration,
     stage: firstStep.stage,
     ...(firstStep.condition ? { condition: firstStep.condition } : {}),
+    ...(firstStep.error ? { error: firstStep.error } : {}),
     output: {
       ...initialRequest,
       ...preprocessorStep,
@@ -205,6 +206,7 @@ const convertRequestDebugSteps = (
           scope: currentValue.scope,
           duration: currentValue.duration,
           ...(currentValue.condition ? { condition: currentValue.condition } : {}),
+          ...(currentValue.error ? { error: currentValue.error } : {}),
           output: {
             ...previousStep.output,
             ...currentValue.result,
@@ -236,6 +238,7 @@ const convertResponseDebugSteps = (
     scope: firstStep.scope,
     duration: firstStep.duration,
     ...(firstStep.condition ? { condition: firstStep.condition } : {}),
+    ...(firstStep.error ? { error: firstStep.error } : {}),
     output: {
       ...backendResponse,
       ...preprocessorStep,
@@ -258,6 +261,7 @@ const convertResponseDebugSteps = (
           scope: currentValue.scope,
           duration: currentValue.duration,
           ...(currentValue.condition ? { condition: currentValue.condition } : {}),
+          ...(currentValue.error ? { error: currentValue.error } : {}),
           output: {
             ...previousStep.output,
             ...currentValue.result,
