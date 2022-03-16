@@ -18,7 +18,7 @@
     "@gravitee/ui-components": "3.31.0",
     "@gravitee/ui-particles-angular": "3.0.0",
     "@gravitee/ui-policy-studio-angular": "3.0.0",
-    "@highcharts/map-collection": "1.1.3",
+    "@highcharts/map-collection": "1.1.4",
     "@toast-ui/editor": "2.5.2",
     "@toast-ui/editor-plugin-code-syntax-highlight": "1.0.0",
     "@uirouter/angular": "9.1.0",
