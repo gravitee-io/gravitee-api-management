@@ -39,7 +39,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSortModule } from '@angular/material/sort';
-import { GioBannerModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
@@ -73,7 +73,6 @@ import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-c
 import { GioFormSlideToggleModule } from '../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { GioFormCardGroupModule } from '../../shared/components/gio-form-card-group/gio-form-card-group.module';
-import { GioFormTagsInputModule } from '../../shared/components/gio-form-tags-input/gio-form-tags-input.module';
 import { GioFormColorInputModule } from '../../shared/components/gio-form-color-input/gio-form-color-input.module';
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioFormFocusInvalidModule } from '../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';

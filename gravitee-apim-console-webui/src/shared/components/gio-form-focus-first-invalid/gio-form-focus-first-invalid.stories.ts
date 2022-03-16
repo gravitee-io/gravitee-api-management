@@ -20,12 +20,11 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { GioFormFocusInvalidDirective } from './gio-form-focus-first-invalid.directive';
 import { GioFormFocusInvalidModule } from './gio-form-focus-first-invalid.module';
 
-import { GioFormTagsInputModule } from '../gio-form-tags-input/gio-form-tags-input.module';
 import { GioFormColorInputModule } from '../gio-form-color-input/gio-form-color-input.module';
 
 export default {
