@@ -6,6 +6,6 @@ exclude:
     - "**/src/test/**"
     - "**/*.spec.ts"
     - "**/*.stories.ts"
-    - "gravitee-apim-portal-webui/scripts/**/*"
-    - "gravitee-apim-console-webui/scripts/**/*"
+    - "**/gravitee-apim-portal-webui/scripts/**/*.*"
+    - "**/gravitee-apim-console-webui/scripts/**/*.*"
 
