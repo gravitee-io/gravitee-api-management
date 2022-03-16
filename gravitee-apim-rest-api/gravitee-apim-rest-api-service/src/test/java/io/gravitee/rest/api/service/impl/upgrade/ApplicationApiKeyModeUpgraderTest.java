@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import static io.gravitee.repository.management.model.ApiKeyMode.EXCLUSIVE;
-import static io.gravitee.repository.management.model.ApiKeyMode.UNSPECIFIED;
+import static io.gravitee.repository.management.model.ApiKeyMode.*;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
 import static org.mockito.Mockito.*;
 
@@ -77,7 +76,10 @@ public class ApplicationApiKeyModeUpgraderTest {
                     buildTestSubscription("plan-2", "application-3"),
                     // application-4 has 2 subscription to api key plans
                     buildTestSubscription("plan-1", "application-4"),
-                    buildTestSubscription("plan-4", "application-4")
+                    buildTestSubscription("plan-4", "application-4"),
+                    // application-4 has 2 subscription to api key plans
+                    buildTestSubscription("plan-1", "application-6"),
+                    buildTestSubscription("plan-4", "application-6")
                 )
             );
 
@@ -88,7 +90,8 @@ public class ApplicationApiKeyModeUpgraderTest {
                     buildTestApplication("application-2"),
                     buildTestApplication("application-3"),
                     buildTestApplication("application-4"),
-                    buildTestApplication("application-5")
+                    buildTestApplication("application-5"),
+                    buildTestApplication("application-6", SHARED) // application-6 won't be updated as its api key mode is already defined
                 )
             );
 
@@ -123,8 +126,13 @@ public class ApplicationApiKeyModeUpgraderTest {
     }
 
     private Application buildTestApplication(String id) {
+        return buildTestApplication(id, null);
+    }
+
+    private Application buildTestApplication(String id, ApiKeyMode apiKeyMode) {
         Application application = new Application();
         application.setId(id);
+        application.setApiKeyMode(apiKeyMode);
         return application;
     }
 }

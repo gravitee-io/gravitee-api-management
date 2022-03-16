@@ -75,8 +75,10 @@ public class ApplicationApiKeyModeUpgrader extends OneShotUpgrader {
             .findAll()
             .forEach(
                 application -> {
-                    Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
-                    updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
+                    if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
+                        Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
+                        updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
+                    }
                 }
             );
     }
