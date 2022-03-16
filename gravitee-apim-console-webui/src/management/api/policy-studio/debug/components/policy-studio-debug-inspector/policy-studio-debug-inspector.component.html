@@ -24,9 +24,7 @@
     <mat-tree #errors [dataSource]="errorsDataSource" [treeControl]="errorsTreeControl">
       <!-- This is the tree node template for leaf nodes -->
       <mat-tree-node *matTreeNodeDef="let node" class="policy-studio-debug-inspector__tree-node-content">
-        <container-element>
-          <policy-studio-debug-inspector-error [input]="node.input"></policy-studio-debug-inspector-error>
-        </container-element>
+        <policy-studio-debug-inspector-error [input]="node.input"></policy-studio-debug-inspector-error>
       </mat-tree-node>
       <!-- This is the tree node template for expandable nodes -->
       <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding class="policy-studio-debug-inspector__tree-node">
@@ -43,13 +41,11 @@
     <mat-tree [dataSource]="conditionDataSource" [treeControl]="conditionTreeControl">
       <!-- This is the tree node template for leaf nodes -->
       <mat-tree-node *matTreeNodeDef="let node" class="policy-studio-debug-inspector__tree-node-content">
-        <container-element>
-          <policy-studio-debug-inspector-text
-            [input]="node.input"
-            [output]="node.output"
-            [noDiff]="true"
-          ></policy-studio-debug-inspector-text>
-        </container-element>
+        <policy-studio-debug-inspector-text
+          [input]="node.input"
+          [output]="node.output"
+          [noDiff]="true"
+        ></policy-studio-debug-inspector-text>
       </mat-tree-node>
       <!-- This is the tree node template for expandable nodes -->
       <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding class="policy-studio-debug-inspector__tree-node">
@@ -75,7 +71,7 @@
     <mat-tree #tree [dataSource]="dataSource" [treeControl]="treeControl">
       <!-- This is the tree node template for leaf nodes -->
       <mat-tree-node *matTreeNodeDef="let node" class="policy-studio-debug-inspector__tree-node-content">
-        <container-element [ngSwitch]="node.type">
+        <ng-container [ngSwitch]="node.type">
           <policy-studio-debug-inspector-table
             *ngSwitchCase="'table'"
             [name]="node.name"
@@ -102,7 +98,7 @@
             [input]="node.input"
             [output]="node.output"
           ></policy-studio-debug-inspector-text>
-        </container-element>
+        </ng-container>
       </mat-tree-node>
       <!-- This is the tree node template for expandable nodes -->
       <mat-tree-node
