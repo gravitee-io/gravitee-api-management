@@ -19,7 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.service.InstallationService;
-import java.util.List;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +55,11 @@ public class ApiKeySubscriptionsUpgrader extends OneShotUpgrader {
     private void updateApiKeySubscriptions(ApiKey apiKey) {
         try {
             LOGGER.debug("Updating subscriptions for API key [{}]", apiKey);
-            apiKey.setSubscriptions(List.of(apiKey.getSubscription()));
+            List<String> allSubscriptions = apiKey.getSubscriptions() != null ? apiKey.getSubscriptions() : new ArrayList<>();
+            if (apiKey.getSubscription() != null && !allSubscriptions.contains(apiKey.getSubscription())) {
+                allSubscriptions.add(apiKey.getSubscription());
+            }
+            apiKey.setSubscriptions(allSubscriptions);
             apiKeyRepository.update(apiKey);
         } catch (TechnicalException e) {
             LOGGER.error("Failed to update subscriptions for API key [{}]", apiKey, e);

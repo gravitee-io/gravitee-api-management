@@ -22,6 +22,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -47,19 +48,29 @@ public class ApiKeySubscriptionsUpgraderTest {
         ApiKey key1 = apiKeyWithSubscription("subscription-1");
         ApiKey key2 = apiKeyWithSubscription("subscription-2");
         ApiKey key3 = apiKeyWithSubscription("subscription-3");
+        ApiKey key4 = apiKeyWithSubscription(null);
+        ApiKey key5 = apiKeyWithSubscription(null, null);
+        ApiKey key6 = apiKeyWithSubscription(null, new ArrayList<>(List.of("subscription-2", "subscription-3")));
+        ApiKey key7 = apiKeyWithSubscription("subscription-4", new ArrayList<>(List.of("subscription-2", "subscription-3")));
+        ApiKey key8 = apiKeyWithSubscription("subscription-3", new ArrayList<>(List.of("subscription-2", "subscription-3")));
 
-        Set<ApiKey> keys = Set.of(key1, key2, key3);
+        Set<ApiKey> keys = Set.of(key1, key2, key3, key4, key5, key6, key7, key8);
 
         when(apiKeyRepository.findAll()).thenReturn(keys);
 
         upgrader.processOneShotUpgrade();
 
         verify(apiKeyRepository, times(1)).findAll();
-        verify(apiKeyRepository, times(3)).update(argThat(keys::contains));
+        verify(apiKeyRepository, times(8)).update(argThat(keys::contains));
 
-        assertEquals(expectedApiKey(key1).getSubscriptions(), key1.getSubscriptions());
-        assertEquals(expectedApiKey(key2).getSubscriptions(), key2.getSubscriptions());
-        assertEquals(expectedApiKey(key3).getSubscriptions(), key3.getSubscriptions());
+        assertEquals(List.of("subscription-1"), key1.getSubscriptions());
+        assertEquals(List.of("subscription-2"), key2.getSubscriptions());
+        assertEquals(List.of("subscription-3"), key3.getSubscriptions());
+        assertEquals(List.of(), key4.getSubscriptions());
+        assertEquals(List.of(), key5.getSubscriptions());
+        assertEquals(List.of("subscription-2", "subscription-3"), key6.getSubscriptions());
+        assertEquals(List.of("subscription-2", "subscription-3", "subscription-4"), key7.getSubscriptions());
+        assertEquals(List.of("subscription-2", "subscription-3"), key8.getSubscriptions());
     }
 
     @SuppressWarnings("removal")
@@ -70,12 +81,11 @@ public class ApiKeySubscriptionsUpgraderTest {
         return key;
     }
 
-    @SuppressWarnings("removal")
-    private static ApiKey expectedApiKey(ApiKey apikey) {
+    private static ApiKey apiKeyWithSubscription(String subscription, List<String> subscriptions) {
         ApiKey key = new ApiKey();
-        key.setId(apikey.getId());
-        key.setSubscription(apikey.getSubscription());
-        key.setSubscriptions(List.of(apikey.getSubscription()));
+        key.setId(UuidString.generateRandom());
+        key.setSubscription(subscription);
+        key.setSubscriptions(subscriptions);
         return key;
     }
 }
