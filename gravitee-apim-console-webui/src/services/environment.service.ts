@@ -73,7 +73,7 @@ class EnvironmentService {
   }
 
   getEnvironmentFromHridOrId(environments, id) {
-    return environments.find((environment) => environment.id === id || (environment.hrids && environment.hrids.includes(id)));
+    return environments?.find((environment) => environment.id === id || (environment.hrids && environment.hrids.includes(id)));
   }
 }
 
