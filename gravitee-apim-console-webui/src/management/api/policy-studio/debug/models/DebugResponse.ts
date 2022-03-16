@@ -16,7 +16,7 @@
 import { uniqueId } from 'lodash';
 
 import { RequestDebugStep, DebugSteps, RequestPolicyDebugStep, ResponsePolicyDebugStep, ResponseDebugStep } from './DebugStep';
-import { DebugEvent } from './DebugEvent';
+import { DebugEvent, DebugEventMetrics } from './DebugEvent';
 
 export type DebugResponse = {
   isLoading: boolean;
@@ -54,6 +54,8 @@ export type DebugResponse = {
     headers?: Record<string, string[]>;
     body?: string;
   };
+
+  metrics?: DebugEventMetrics;
 };
 
 export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugResponse => {
@@ -158,6 +160,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
       input: responseInputDebugStep,
       output: responseOutputDebugStep,
     },
+    metrics: event.payload.metrics,
   };
 };
 
