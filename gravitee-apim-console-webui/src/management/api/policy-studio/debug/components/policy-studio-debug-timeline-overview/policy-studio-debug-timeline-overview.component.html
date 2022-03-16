@@ -93,7 +93,7 @@
         [timelineHover]="timelineStep.id"
         [matTooltip]="timelineStep.policyName"
         [class.disabled]="timelineStep.executionStatus === 'SKIPPED'"
-        (click)="timelineStep.executionStatus !== 'SKIPPED' && selected.emit(timelineStep)"
+        (click)="selected.emit(timelineStep)"
       >
         <div
           class="policy-studio-debug-timeline-overview__step__line"
