@@ -26,14 +26,13 @@ import { omit } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioFormCardGroupHarness } from '../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
-import { GioFormTagsInputHarness } from '../../../shared/components/gio-form-tags-input/gio-form-tags-input.harness';
 import { GioFormColorInputHarness } from '../../../shared/components/gio-form-color-input/gio-form-color-input.harness';
 import { NewIdentityProvider } from '../../../entities/identity-provider/newIdentityProvider';
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';

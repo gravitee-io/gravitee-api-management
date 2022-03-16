@@ -27,14 +27,13 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsGeneralComponent } from './org-settings-general.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
-import { GioFormTagsInputHarness } from '../../../shared/components/gio-form-tags-input/gio-form-tags-input.harness';
 
 describe('ConsoleSettingsComponent', () => {
   let fixture: ComponentFixture<OrgSettingsGeneralComponent>;
