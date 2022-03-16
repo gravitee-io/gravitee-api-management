@@ -302,6 +302,7 @@ jobs:
                       find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
                   when: always
             - notify-on-failure
+            - save-maven-cache
             - store_test_results:
                   path: ~/test-results
 
