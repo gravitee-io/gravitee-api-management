@@ -133,18 +133,15 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         try {
             List<Object> args = new ArrayList<>();
 
-            StringBuilder query = new StringBuilder(getOrm().getSelectAllSql()).append(" k ");
+            StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
+                .append(" k left join ")
+                .append(KEY_SUBSCRIPTIONS)
+                .append(" ks on ks.key_id = k.id");
 
             boolean first = true;
 
             if (!isEmpty(criteria.getPlans())) {
-                query
-                    .append("join ")
-                    .append(KEY_SUBSCRIPTIONS)
-                    .append(" ks on ks.key_id = k.id")
-                    .append(" join ")
-                    .append(SUBSCRIPTION)
-                    .append(" s on ks.subscription_id = s.id");
+                query.append(" join ").append(SUBSCRIPTION).append(" s on ks.subscription_id = s.id");
 
                 first = getOrm().buildInCondition(first, query, "s." + escapeReservedWord("plan"), criteria.getPlans());
                 args.addAll(criteria.getPlans());
@@ -182,8 +179,10 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             query.append(" order by k.updated_at desc ");
 
-            LOGGER.info(query.toString());
-            return jdbcTemplate.query(query.toString(), getOrm().getRowMapper(), args.toArray());
+            CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(query.toString(), rowMapper, args.toArray());
+
+            return rowMapper.getRows();
         } catch (final Exception ex) {
             LOGGER.error("Failed to find api keys by criteria:", ex);
             throw new TechnicalException("Failed to find api keys by criteria", ex);

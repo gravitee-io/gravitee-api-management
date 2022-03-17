@@ -234,6 +234,16 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void findByCriteria_should_read_subscriptions_list() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().expireAfter(30019401755L).build());
+
+        assertEquals(2, apiKeys.get(0).getSubscriptions().size());
+        assertTrue(apiKeys.get(0).getSubscriptions().containsAll(Set.of("subscription2", "subscriptionX")));
+        assertEquals(1, apiKeys.get(1).getSubscriptions().size());
+        assertEquals("subscription1", apiKeys.get(1).getSubscriptions().get(0));
+    }
+
+    @Test
     public void findByApplication_should_find_api_keys() throws TechnicalException {
         List<ApiKey> apiKeys = apiKeyRepository.findByApplication("app1");
         assertEquals(2, apiKeys.size());
