@@ -291,7 +291,6 @@ jobs:
                       find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
                   when: always
             - notify-on-failure
-            - save-maven-cache
             - store_test_results:
                   path: ~/test-results
 
@@ -628,7 +627,7 @@ jobs:
                         echo "Creating container $BRANCH_ID"
                         az storage container create -n $BRANCH_ID --public-access blob
                       fi             
-                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d $BRANCH_ID --overwrite
+                      az storage blob upload-batch -s gravitee-apim-console-webui/dist -d $BRANCH_ID --overwrite
             - notify-on-failure
 
     console-webui-comment-pr-after-deployment:
