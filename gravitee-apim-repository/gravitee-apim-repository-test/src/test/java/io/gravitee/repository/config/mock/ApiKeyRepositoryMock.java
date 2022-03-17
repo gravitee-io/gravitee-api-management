@@ -44,6 +44,7 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
 
     @Override
     void prepare(ApiKeyRepository apiKeyRepository) throws Exception {
+        final ApiKey apiKey0 = mockApiKey0();
         final ApiKey apiKey1 = mockApiKey1();
         final ApiKey apiKey2 = mockApiKey2();
         final ApiKey apiKey3 = mockApiKey3();
@@ -51,6 +52,7 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         final ApiKey apiKey5 = mockApiKey5();
         final ApiKey apiKey6 = mockApiKey6();
         final ApiKey apiKey7 = mockApiKey7();
+        final ApiKey apiKey8 = mockApiKey8();
 
         when(apiKey1.getDaysToExpirationOnLastNotification()).thenReturn(30);
         when(apiKeyRepository.findById(anyString())).thenReturn(empty());
@@ -88,6 +90,18 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
 
         when(apiKeyRepository.findByApplication("app1")).thenReturn(List.of(apiKey5, apiKey4));
         when(apiKeyRepository.findByKeyAndApi("findByCriteria2", "api2")).thenReturn(Optional.of(apiKey6));
+
+        when(apiKeyRepository.findAll())
+            .thenReturn(Set.of(apiKey0, apiKey1, apiKey2, apiKey3, apiKey4, apiKey5, apiKey6, apiKey7, apiKey8));
+    }
+
+    private ApiKey mockApiKey0() {
+        ApiKey apiKey = mock(ApiKey.class);
+        when(apiKey.getId()).thenReturn("id-of-apikey-0");
+        when(apiKey.getKey()).thenReturn("d449098d-8c31-4275-ad59-8dd707865999");
+        when(apiKey.isRevoked()).thenReturn(true);
+        when(apiKey.getSubscriptions()).thenReturn(List.of("subscription2"));
+        return apiKey;
     }
 
     private ApiKey mockApiKey1() {
@@ -116,6 +130,7 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
 
     private ApiKey mockApiKey3() {
         ApiKey apiKey = mock(ApiKey.class);
+        when(apiKey.getId()).thenReturn("id-of-apikey-3");
         when(apiKey.getKey()).thenReturn("d449098d-8c31-4275-ad59-8dd707865a35");
         when(apiKey.getSubscriptions()).thenReturn(List.of("subscription1"));
         return apiKey;
@@ -152,6 +167,15 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         when(apiKey.getApplication()).thenReturn("app4");
         when(apiKey.getKey()).thenReturn("the-key-of-api-key-7");
         when(apiKey.getSubscriptions()).thenReturn(List.of("sub4", "sub5", "sub6"));
+        return apiKey;
+    }
+
+    private ApiKey mockApiKey8() {
+        ApiKey apiKey = mock(ApiKey.class);
+        when(apiKey.getId()).thenReturn("id-of-apikey-8");
+        when(apiKey.getApplication()).thenReturn("app4");
+        when(apiKey.getKey()).thenReturn("the-key-of-api-key-8");
+        when(apiKey.getSubscriptions()).thenReturn(List.of());
         return apiKey;
     }
 }

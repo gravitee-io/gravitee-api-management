@@ -72,6 +72,12 @@
 		"key": "the-key-of-api-key-7",
 		"subscriptions": ["sub4", "sub5", "sub6"],
 		"application": "app4"
+	},
+	{
+		"id": "id-of-apikey-8",
+		"key": "the-key-of-api-key-8",
+		"subscriptions": [],
+		"application": "app4"
 	}
 ]
 

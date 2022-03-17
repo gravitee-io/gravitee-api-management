@@ -272,4 +272,19 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         assertEquals(3, apiKey.getSubscriptions().size());
         assertTrue(apiKey.getSubscriptions().containsAll(Set.of("sub4", "sub5", "sub6")));
     }
+
+    @Test
+    public void findAll_should_find_all_api_keys_even_with_no_subscription() throws TechnicalException {
+        Set<ApiKey> apiKeys = apiKeyRepository.findAll();
+
+        assertEquals(9, apiKeys.size());
+        assertTrue(
+            apiKeys
+                .stream()
+                .anyMatch(
+                    apiKey ->
+                        apiKey.getId().equals("id-of-apikey-8") && apiKey.getSubscriptions() != null && apiKey.getSubscriptions().isEmpty()
+                )
+        );
+    }
 }
