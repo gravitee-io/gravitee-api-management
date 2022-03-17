@@ -253,7 +253,6 @@ jobs:
             - attach_workspace:
                   at: .
             - restore-maven-cache
-            - prepare-env-var
             - run:
                   name: "Build project"
                   command: |
@@ -493,7 +492,7 @@ jobs:
                   command: npm run build:prod
                   environment:
                       NODE_OPTIONS: --max_old_space_size=4086
-                      BACKEND_ENV: apim-master
+                      BACKEND_ENV: element-zero
                   working_directory: << parameters.apim-ui-project >>
             - run:
                   name: Zip dist folder
@@ -657,7 +656,7 @@ jobs:
                       export PR_BODY_UI_SECTION="
                       <!-- UI placeholder -->
                       🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.blob.core.windows.net/${BRANCH_ID}/index.html)
-                      _Notes_: The deployed app is linked to the management API of APIM master. (Same login and password as APIM master)
+                      _Notes_: The deployed app is linked to the management API of the Element Zero team's environment.
                       <!-- UI placeholder end -->
                       "
 
@@ -797,9 +796,8 @@ jobs:
                       # Remove `-SNAPSHOT` from versions
                       mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
             - prepare-gpg
-            - prepare-env-var
             - run:
-                  name: Maven deploy to Gravitee's private Artifactory"
+                  name: Prepare env variables used in [version.properties] files and Maven deploy to Gravitee's private Artifactory"
                   command: |
                       echo "  MAVEN_PROFILE_ID=[${MAVEN_PROFILE_ID}]  "
                       mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation
