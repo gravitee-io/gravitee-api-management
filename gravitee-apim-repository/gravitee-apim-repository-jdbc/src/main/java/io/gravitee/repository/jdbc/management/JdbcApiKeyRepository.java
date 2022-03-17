@@ -348,7 +348,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             String query =
                 getOrm().getSelectAllSql() +
                 " k" +
-                " join " +
+                " left join " +
                 KEY_SUBSCRIPTIONS +
                 " ks on ks.key_id = k.id" +
                 " order by k.updated_at desc ";
