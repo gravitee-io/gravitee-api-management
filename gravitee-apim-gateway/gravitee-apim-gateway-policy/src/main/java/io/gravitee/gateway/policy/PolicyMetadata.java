@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,14 +39,14 @@ public class PolicyMetadata {
         this.name = name;
         this.configuration = configuration;
         this.condition = null;
-        this.metadata = new HashMap<>();
+        this.metadata = new EnumMap<>(MetadataKeys.class);
     }
 
     public PolicyMetadata(String name, String configuration, String condition) {
         this.name = name;
         this.configuration = configuration;
         this.condition = condition;
-        this.metadata = new HashMap<>();
+        this.metadata = new EnumMap<>(MetadataKeys.class);
     }
 
     public String getName() {
