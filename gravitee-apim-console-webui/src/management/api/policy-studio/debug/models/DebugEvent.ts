@@ -56,7 +56,7 @@ interface DebugEventDebugStep {
   condition?: string;
   duration: number;
   result: Record<string, unknown>;
-  stage: 'SECURITY' | 'PLATFORM' | 'PLAN' | 'API' | 'UNDEFINED';
+  stage: 'SECURITY' | 'PLATFORM' | 'PLAN' | 'API';
 }
 
 export interface DebugEventMetrics {

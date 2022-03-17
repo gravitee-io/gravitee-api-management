@@ -18,7 +18,6 @@ package io.gravitee.gateway.platform;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
-import io.gravitee.gateway.flow.FlowStage;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
@@ -33,7 +32,7 @@ import java.util.List;
  */
 public class OrganizationFlowResolver extends ConditionalFlowResolver {
 
-    private OrganizationManager organizationManager;
+    private final OrganizationManager organizationManager;
 
     public OrganizationFlowResolver(OrganizationManager organizationManager) {
         super(
@@ -53,10 +52,5 @@ public class OrganizationFlowResolver extends ConditionalFlowResolver {
             return currentOrganization.getFlows() != null ? currentOrganization.getFlows() : Collections.emptyList();
         }
         return Collections.emptyList();
-    }
-
-    @Override
-    public FlowStage stage() {
-        return FlowStage.PLATFORM;
     }
 }

@@ -40,10 +40,10 @@ public class FlowPolicyResolverFactory {
         cache = new StandaloneCache<>("flowPolicyResolverFactoryCache", cacheConfiguration);
     }
 
-    public FlowPolicyResolver create(Flow flow, FlowResolver flowResolver) {
+    public FlowPolicyResolver create(Flow flow) {
         FlowPolicyResolver cachedFlow = cache.get(flow);
         if (cachedFlow == null) {
-            final FlowPolicyResolver flowPolicyResolver = new FlowPolicyResolver(flow, flowResolver);
+            final FlowPolicyResolver flowPolicyResolver = new FlowPolicyResolver(flow);
             cache.put(flow, flowPolicyResolver);
             cachedFlow = flowPolicyResolver;
         }

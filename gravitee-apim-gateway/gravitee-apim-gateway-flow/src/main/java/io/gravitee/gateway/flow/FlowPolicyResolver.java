@@ -39,14 +39,12 @@ public class FlowPolicyResolver implements PolicyResolver {
     public static final long CACHE_TIME_TO_IDLE = 3600;
 
     private final Flow flow;
-    private final FlowResolver flowResolver;
 
     @VisibleForTesting
     final Cache<Step, PolicyMetadata> cache;
 
-    public FlowPolicyResolver(Flow flow, FlowResolver flowResolver) {
+    public FlowPolicyResolver(Flow flow) {
         this.flow = flow;
-        this.flowResolver = flowResolver;
 
         final CacheConfiguration cacheConfiguration = new CacheConfiguration();
         cacheConfiguration.setMaxSize(CACHE_MAX_SIZE);
@@ -73,7 +71,7 @@ public class FlowPolicyResolver implements PolicyResolver {
         PolicyMetadata cachedPolicyMetadata = cache.get(step);
         if (cachedPolicyMetadata == null) {
             final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
-            policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, flowResolver.stage());
+            policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, flow.getStage());
             cache.put(step, policyMetadata);
             cachedPolicyMetadata = policyMetadata;
         }

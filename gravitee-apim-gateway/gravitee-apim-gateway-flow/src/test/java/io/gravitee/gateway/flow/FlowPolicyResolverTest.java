@@ -49,7 +49,7 @@ public class FlowPolicyResolverTest {
         step = new Step();
         step.setEnabled(true);
         flow.setPre(List.of(step));
-        cut = new FlowPolicyResolver(flow, new MockFlowResolver());
+        cut = new FlowPolicyResolver(flow);
     }
 
     @Test
@@ -69,13 +69,5 @@ public class FlowPolicyResolverTest {
         final List<PolicyMetadata> result = cut.resolve(StreamType.ON_REQUEST, executionContext);
         assertThat(cut.cache.size()).isEqualTo(1);
         assertThat(result.get(0)).isEqualTo(cachedPolicyMetadata);
-    }
-
-    private static class MockFlowResolver implements FlowResolver {
-
-        @Override
-        public List<Flow> resolve(ExecutionContext context) {
-            return null;
-        }
     }
 }

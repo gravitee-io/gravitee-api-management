@@ -39,31 +39,22 @@ public class FlowPolicyResolverFactoryTest {
     @Test
     public void shouldCreateNewFlowResolverIfNotInCache() {
         assertThat(cut.cache.size()).isEqualTo(0);
-        cut.create(new Flow(), new MockFlowResolver());
+        cut.create(new Flow());
         assertThat(cut.cache.size()).isEqualTo(1);
     }
 
     @Test
     public void shouldNotCreateNewFlowResolverIfInCache() {
         final Flow cachedFlow = new Flow();
-        final MockFlowResolver flowResolver = new MockFlowResolver();
-        final FlowPolicyResolver cachedFlowPolicyResolver = new FlowPolicyResolver(cachedFlow, flowResolver);
+        final FlowPolicyResolver cachedFlowPolicyResolver = new FlowPolicyResolver(cachedFlow);
         cut.cache.put(cachedFlow, cachedFlowPolicyResolver);
 
         assertThat(cut.cache.size()).isEqualTo(1);
-        FlowPolicyResolver result = cut.create(cachedFlow, flowResolver);
+        FlowPolicyResolver result = cut.create(cachedFlow);
         assertThat(cut.cache.size()).isEqualTo(1);
         assertThat(result).isEqualTo(cachedFlowPolicyResolver);
-        result = cut.create(cachedFlow, flowResolver);
+        result = cut.create(cachedFlow);
         assertThat(cut.cache.size()).isEqualTo(1);
         assertThat(result).isEqualTo(cachedFlowPolicyResolver);
-    }
-
-    private static class MockFlowResolver implements FlowResolver {
-
-        @Override
-        public List<Flow> resolve(ExecutionContext context) {
-            return null;
-        }
     }
 }
