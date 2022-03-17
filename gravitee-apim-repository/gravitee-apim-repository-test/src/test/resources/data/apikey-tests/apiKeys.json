@@ -24,7 +24,7 @@
 		"key": "d449098d-8c31-4275-ad59-8dd707865a34",
 		"revoked": false,
 		"expireAt": 1439022010883,
-		"subscriptions": ["subscription2"],
+		"subscriptions": ["subscription2", "subscriptionX"],
 		"createdAt": 1439022010883,
 		"updatedAt": 1439022010000
 	},
