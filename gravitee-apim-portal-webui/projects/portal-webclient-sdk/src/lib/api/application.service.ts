@@ -2179,7 +2179,7 @@ export class ApplicationService {
     }
 
     /**
-     * Renew the shared api key of on application.
+     * Renew the shared api key of an application.
      * Renew the shared api key of on application. The application must have the ApiKeyMode set to SHARED User must have APPLICATION_SUBSCRIPTION[UPDATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -2238,7 +2238,7 @@ export class ApplicationService {
     }
 
     /**
-     * Revoke the shared api key of on application.
+     * Revoke the shared api key of an application.
      * Revoke the shared api key of on application. The application must have the ApiKeyMode set to SHARED User must have APPLICATION_SUBSCRIPTION[UPDATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

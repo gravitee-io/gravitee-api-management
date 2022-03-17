@@ -29,10 +29,10 @@
     <div
       [ngClass]="{
         'step-content': true,
-        one: currentStep === 1,
-        two: currentStep === 2,
-        three: currentStep === 3,
-        four: currentStep === 4
+        one: this.currentStep === 1,
+        two: this.currentStep === 2,
+        three: this.canConfigureSharedApiKey() && this.currentStep === 3,
+        four: (this.canConfigureSharedApiKey() && this.currentStep === 4) || (!this.canConfigureSharedApiKey() && this.currentStep === 3)
       }"
     >
       <form [formGroup]="subscribeForm">
@@ -87,6 +87,13 @@
         </div>
 
         <div class="step step-3">
+          <h2>{{ 'apiKeyMode.title' | translate }}</h2>
+          <p>{{ 'apiKeyMode.description' | translate }}</p>
+
+          <gv-option [options]="apiKeyModeOptions" formControlName="apiKeyMode" name="apiKeyMode" ngDefaultControl></gv-option>
+        </div>
+
+        <div class="step step-4">
           <div *ngIf="displayGeneralConditions()">
             <h3>{{ 'common.general_conditions.title' | translate }}</h3>
 

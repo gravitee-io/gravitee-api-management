@@ -37,7 +37,7 @@ describe('ApiGeneralComponent', () => {
     spectator = createComponent();
     component = spectator.component;
     component.apiHomepage = null;
-    router = TestBed.get(Router);
+    router = TestBed.inject(Router);
   });
 
   it('should create', () => {

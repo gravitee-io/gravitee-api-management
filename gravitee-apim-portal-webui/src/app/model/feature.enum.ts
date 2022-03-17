@@ -25,4 +25,5 @@ export enum FeatureEnum {
   categoryMode = 'portal.apis.categoryMode.enabled',
   promotedApiMode = 'portal.apis.promotedApiMode.enabled',
   alert = 'alert.enabled',
+  sharedApiKey = 'plan.security.sharedApiKey.enabled',
 }

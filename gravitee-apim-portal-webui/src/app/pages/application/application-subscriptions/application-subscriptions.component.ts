@@ -19,6 +19,7 @@ import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import {
+  ApiKeyModeEnum,
   ApiService,
   Application,
   ApplicationService,
@@ -38,7 +39,6 @@ import { NotificationService } from '../../../services/notification.service';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import StatusEnum = Subscription.StatusEnum;
 import SecurityEnum = Plan.SecurityEnum;
-import ApiKeyModeEnum = Application.ApiKeyModeEnum;
 
 @Component({
   selector: 'app-application-subscriptions',

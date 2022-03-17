@@ -56,7 +56,8 @@
 app-application-creation-step1,
 app-application-creation-step2,
 app-application-creation-step3,
-app-application-creation-step4 {
+app-application-creation-step4,
+app-application-creation-step5 {
   display: none;
   opacity: 0;
 }
@@ -64,7 +65,8 @@ app-application-creation-step4 {
 .one app-application-creation-step1,
 .two app-application-creation-step2,
 .three app-application-creation-step3,
-.four app-application-creation-step4 {
+.four app-application-creation-step4,
+.five app-application-creation-step5 {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -74,7 +76,8 @@ app-application-creation-step4 {
 
 .one .application-creation__form,
 .two .application-creation__form,
-.three .application-creation__subscription-form {
+.three .application-creation__subscription-form,
+.four .application-creation__api-key-form {
   display: flex;
   opacity: 1;
   flex-direction: column;
@@ -112,6 +115,12 @@ app-application-creation-step4 {
   height: 320px;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.application-creation__api-key-form gv-option {
+  display: block;
+  margin: 0 auto;
+  width: 50%;
 }
 
 .form-control {

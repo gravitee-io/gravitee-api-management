@@ -72,7 +72,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ApiServiceImpl.class)
-@PowerMockIgnore("javax.security.*")
+@PowerMockIgnore({ "javax.security.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*" })
 public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     private static final String API_ID = "id-api";

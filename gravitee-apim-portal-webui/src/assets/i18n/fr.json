@@ -58,6 +58,18 @@
     "showMore": "Voir plus",
     "userRatings": "Retours utilisateurs"
   },
+  "apiKeyMode": {
+    "description": "Attention, ce choix sera définitif pour votre application",
+    "exclusive": {
+      "description": "une nouvelle clé d'API sera générée pour toute future souscription",
+      "title": "Clé d'API générée"
+    },
+    "shared": {
+      "description": "la même clé d'API sera utilisée pour toute future souscription",
+      "title": "Clé d'API partagée"
+    },
+    "title": "Mode de gestion des clés d'API"
+  },
   "apiSubscribe": {
     "apps": {
       "chooseApp": "Sélectionner une application",
@@ -70,6 +82,9 @@
     },
     "chooseApp": {
       "title": "Choix de l'application"
+    },
+    "chooseKeyMode": {
+      "title": "Choix du type de clés d'API"
     },
     "choosePlan": {
       "title": "Choix du plan"
@@ -502,6 +517,9 @@
     "types": "{type, select, BACKEND_TO_BACKEND{Serveur à serveur} NATIVE{Native} WEB{Web} BROWSER{Navigateur} SIMPLE{Simple} other{Simple}}"
   },
   "applicationCreation": {
+    "apiKeyMode": {
+      "title": "Mode"
+    },
     "exit": "Quitter",
     "general": {
       "description": {
@@ -523,6 +541,7 @@
       "label": "Types de droits autorisés pour le client."
     },
     "step": {
+      "apiKeyMode": "Clé d'API",
       "createApp": "Créer l'application",
       "general": "Général",
       "next": "Suivant",
@@ -766,6 +785,7 @@
       "general_conditions_revision": "Les conditions générales d'utilisation du plan {plan} ont changées. ",
       "general_conditions_status": "Le plan {plan} référence une page de conditions générales d'utilisation non publiée.",
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
+      "notSubscribableWithSharedApiKey": "Vous ne pouvez pas souscrire un second plan API key sur la même API avec une clé d'API partagée.",
       "otherOAuth2OrJWTSubscribed": "Un autre plan OAuth2 ou JWT est déjà souscrit par la même application",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
     },

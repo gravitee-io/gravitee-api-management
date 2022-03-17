@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static io.gravitee.rest.api.portal.rest.model.Application.*;
 import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersURL;
 
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -24,10 +23,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.portal.rest.model.Application;
-import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
-import io.gravitee.rest.api.portal.rest.model.Group;
-import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;

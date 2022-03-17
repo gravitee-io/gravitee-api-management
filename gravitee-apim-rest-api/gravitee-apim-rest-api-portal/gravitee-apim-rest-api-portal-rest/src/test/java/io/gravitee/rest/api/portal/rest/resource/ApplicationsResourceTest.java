@@ -22,10 +22,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.api.search.Order;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.NewApplicationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -311,6 +308,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertNotNull(settings);
         assertNull(settings.getApp());
         assertNull(settings.getoAuthClient());
+        assertEquals(ApiKeyMode.UNSPECIFIED, value.getApiKeyMode());
 
         Application createdApp = response.readEntity(Application.class);
         assertNotNull(createdApp);
@@ -323,7 +321,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             .description(APPLICATION)
             .groups(Arrays.asList(APPLICATION))
             .name(APPLICATION)
-            .settings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings());
+            .settings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings())
+            .apiKeyMode(ApiKeyModeEnum.SHARED);
 
         final Response response = target().request().post(Entity.json(input));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
@@ -347,6 +346,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertNotNull(settings);
         assertNull(settings.getApp());
         assertNull(settings.getoAuthClient());
+        assertEquals(ApiKeyMode.SHARED, value.getApiKeyMode());
 
         Application createdApp = response.readEntity(Application.class);
         assertNotNull(createdApp);

@@ -3852,17 +3852,7 @@ components:
           type: string
           writeOnly: true
         api_key_mode:
-          description: |
-            The API key mode to use for this application.
-              - The `SHARED` API key mode allows consumer to use the same API key across all the subscriptions
-              - The `EXCLUSIVE` API key mode will result to a new API key being generated for each subscription
-              - The `UNSPECIFIED` API key mode is a marker value informing that no choice as been made yet regarding
-                the API key mode to use for the application.
-          type: string
-          enum:
-            - SHARED
-            - EXCLUSIVE
-            - UNSPECIFIED
+          $ref: '#/components/schemas/ApiKeyModeEnum'
         settings:
           $ref: '#/components/schemas/ApplicationSettings'
         _links:
@@ -4596,6 +4586,8 @@ components:
           $ref: '#/components/schemas/ApplicationSettings'
         background:
           type: string
+        api_key_mode:
+          $ref: '#/components/schemas/ApiKeyModeEnum'
     MemberInput:
       properties:
         user:
@@ -5008,6 +5000,18 @@ components:
         - MINUTES
         - HOURS
       default: MINUTES
+    ApiKeyModeEnum:
+      description: |
+        The API key mode to use for this application.
+          - The `SHARED` API key mode allows consumer to use the same API key across all the subscriptions
+          - The `EXCLUSIVE` API key mode will result to a new API key being generated for each subscription
+          - The `UNSPECIFIED` API key mode is a marker value informing that no choice as been made yet regarding
+            the API key mode to use for the application.
+      type: string
+      enum:
+        - SHARED
+        - EXCLUSIVE
+        - UNSPECIFIED
     HttpMethod:
       type: string
       enum:

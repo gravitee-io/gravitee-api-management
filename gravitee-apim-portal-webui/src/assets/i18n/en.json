@@ -58,6 +58,18 @@
     "showMore": "Show more",
     "userRatings": "User ratings"
   },
+  "apiKeyMode": {
+    "description": "Please not that this choice is permanent",
+    "exclusive": {
+      "description": "a new API key will be generated for every new subscription",
+      "title": "Generated API Key"
+    },
+    "shared": {
+      "description": "the same API key will be used for every new subscription",
+      "title": "Shared API key"
+    },
+    "title": "API key management mode"
+  },
   "apiSubscribe": {
     "apps": {
       "chooseApp": "Choose an application",
@@ -70,6 +82,9 @@
     },
     "chooseApp": {
       "title": "Choice of application"
+    },
+    "chooseKeyMode": {
+      "title": "Choice of API key mode"
     },
     "choosePlan": {
       "title": "Choice of plan"
@@ -502,6 +517,9 @@
     "types": "{type, select, BACKEND_TO_BACKEND{Backend to backend} NATIVE{Native} WEB{Web} BROWSER{Browser} SIMPLE{Simple} other{Simple}}"
   },
   "applicationCreation": {
+    "apiKeyMode": {
+      "title": "Mode"
+    },
     "exit": "Exit",
     "general": {
       "description": {
@@ -523,6 +541,7 @@
       "label": "Types of rights authorized for the client."
     },
     "step": {
+      "apiKeyMode": "API key",
       "createApp": "Create the app",
       "general": "General",
       "next": "Next",
@@ -766,6 +785,7 @@
       "general_conditions_revision": "The terms of use of plan {plan} have changed.",
       "general_conditions_status": "Plan {plan} references an unpublished terms of use page.",
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
+      "notSubscribableWithSharedApiKey": "You can not subscribe to a second API key plan on the same API in shared API key mode.",
       "otherOAuth2OrJWTSubscribed": "An other OAuth2 or JWT plan is already subscribed by the same application",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
     },
