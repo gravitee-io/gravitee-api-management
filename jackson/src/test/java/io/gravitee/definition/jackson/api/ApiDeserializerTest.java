@@ -30,6 +30,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowStage;
 import io.gravitee.definition.model.flow.Step;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -584,6 +585,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertNotNull(consumer2);
         assertEquals("PRIVATE", consumer2.getConsumerId());
         assertEquals(ConsumerType.TAG, consumer2.getConsumerType());
+        assertEquals(FlowStage.API, flow.getStage());
 
         Step rule = flow.getPre().get(0);
         Assert.assertNotNull(rule);
@@ -618,6 +620,7 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals("OAUTH2", api.getPlan("plan-1").getSecurity());
         assertEquals(2, api.getPlan("plan-1").getTags().size());
         assertEquals("PUBLISHED", api.getPlan("plan-1").getStatus());
+        assertEquals(FlowStage.PLAN, api.getPlan("plan-1").getFlows().get(0).getStage());
 
         assertEquals(FlowMode.DEFAULT, api.getFlowMode());
     }

@@ -52,6 +52,15 @@ public class Flow implements Serializable {
     @JsonProperty("consumers")
     private List<Consumer> consumers;
 
+    /**
+     * In which stage the flow is configured.
+     * This data is useful to debug or improve logging.
+     * Ignored because only used internally.
+     * @return the stage of the Flow, see {@link FlowStage}.
+     */
+    @JsonIgnore
+    private FlowStage stage;
+
     public String getName() {
         return name;
     }
@@ -98,6 +107,14 @@ public class Flow implements Serializable {
 
     public void setMethods(Set<HttpMethod> methods) {
         this.methods = methods;
+    }
+
+    public FlowStage getStage() {
+        return stage;
+    }
+
+    public void setStage(FlowStage stage) {
+        this.stage = stage;
     }
 
     @JsonIgnore

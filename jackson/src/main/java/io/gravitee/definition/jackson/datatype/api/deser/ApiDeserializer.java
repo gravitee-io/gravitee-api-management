@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowStage;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
@@ -170,6 +171,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
                         jsonNode -> {
                             try {
                                 Flow flow = jsonNode.traverse(jp.getCodec()).readValueAs(Flow.class);
+                                flow.setStage(FlowStage.API);
                                 flows.add(flow);
                             } catch (IOException e) {
                                 logger.error("Flow {} can not be de-serialized", jsonNode.asText());
@@ -188,6 +190,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
                         jsonNode -> {
                             try {
                                 Plan plan = jsonNode.traverse(jp.getCodec()).readValueAs(Plan.class);
+                                plan.getFlows().forEach(flow -> flow.setStage(FlowStage.PLAN));
                                 plans.add(plan);
                             } catch (IOException e) {
                                 logger.error("Plan {} can not be de-serialized", jsonNode.asText());
