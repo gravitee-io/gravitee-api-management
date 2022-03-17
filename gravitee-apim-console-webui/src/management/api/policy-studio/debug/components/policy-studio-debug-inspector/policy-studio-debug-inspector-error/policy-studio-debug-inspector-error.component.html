@@ -19,19 +19,27 @@
   <tbody>
     <tr *ngIf="error.status">
       <td class="key">Status</td>
-      <td class="value">{{ error.status }}</td>
+      <td class="value">
+        <span gioClipboardCopyWrapper [contentToCopy]="error.status">{{ error.status }}</span>
+      </td>
     </tr>
     <tr *ngIf="error.message">
       <td class="key">Message</td>
-      <td class="value">{{ error.message }}</td>
+      <td class="value">
+        <span gioClipboardCopyWrapper [contentToCopy]="error.message">{{ error.message }}</span>
+      </td>
     </tr>
     <tr *ngIf="error.contentType">
       <td class="key">Content Type</td>
-      <td class="value">{{ error.contentType }}</td>
+      <td class="value">
+        <span gioClipboardCopyWrapper [contentToCopy]="error.contentType">{{ error.contentType }}</span>
+      </td>
     </tr>
     <tr *ngIf="error.key">
       <td class="key">Key</td>
-      <td class="value">{{ error.key }}</td>
+      <td class="value">
+        <span gioClipboardCopyWrapper [contentToCopy]="error.key">{{ error.key }}</span>
+      </td>
     </tr>
   </tbody>
 </table>

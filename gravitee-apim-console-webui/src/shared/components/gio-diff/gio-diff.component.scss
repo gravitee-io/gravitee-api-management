@@ -36,9 +36,16 @@ gio-diff {
           flex: 1 1 50%;
           max-height: 300px;
           overflow: auto;
+          position: relative;
 
           &.single {
             flex: 1 1 auto;
+          }
+
+          &__copy-icon {
+            position: absolute;
+            right: 8px;
+            top: 8px;
           }
         }
       }

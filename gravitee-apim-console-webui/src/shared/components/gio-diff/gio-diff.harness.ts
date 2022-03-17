@@ -32,7 +32,7 @@ export class GioDiffHarness extends MatFormFieldControlHarness {
     return new HarnessPredicate(GioDiffHarness, options);
   }
 
-  protected getContentGvCodeElements = this.locatorForAll('gv-code.gio-diff__content__row__gv-code');
+  protected getContentGvCodeElements = this.locatorForAll('.gio-diff__content__row__gv-code');
   protected getContentDiff2htmlElement = this.locatorForOptional('.gio-diff__content .d2h-wrapper');
   protected getD2hSideBySideDisplayElement = this.locatorForOptional('.gio-diff__content .d2h-wrapper .d2h-file-side-diff');
 
