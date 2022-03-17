@@ -3,9 +3,10 @@ version: 2.1
 orbs:
     slack: circleci/slack@4.4.4
     gravitee: gravitee-io/gravitee@1.0.44
-    secrethub: secrethub/cli@1.1.0
+    #secrethub: secrethub/cli@1.1.0
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
+    apim: gravitee-io/gravitee-apim@1.0
 
 executors:
     node-lts:
@@ -96,13 +97,13 @@ commands:
     prepare-gpg:
         description: Prepare GPG command
         steps:
-            - secrethub/install
+            - apim/keeper_cli
             - run:
                   command: |
-                      secrethub read graviteeio/cicd/graviteebot/gpg/armor_format_pub_key -o pub.key
+                      ksm secret notation keeper://u2dz7IP-w9E0NKsUeyCAYA/custom_field/public_key -o pub.key
                       gpg --import pub.key
 
-                      secrethub read graviteeio/cicd/graviteebot/gpg/armor_format_private_key -o private.key
+                      ksm secret notation keeper://u2dz7IP-w9E0NKsUeyCAYA/custom_field/private_key -o private.key
                       # Need --batch to be able to import private key
                       gpg --import --batch private.key
     prepare-tar-for-s3-glacier:
@@ -159,19 +160,6 @@ parameters:
         description: "Version of APIM to be used in docker images"
 
 jobs:
-    load-snapshot-configuration:
-        docker:
-            - image: cimg/base:stable
-        environment:
-            MAVEN_SETTINGS: "secrethub://graviteeio/cicd/graviteebot/infra/maven/gravitee-snapshot.settings.xml"
-        steps:
-            - secrethub/exec:
-                  command: echo $MAVEN_SETTINGS > /tmp/.gravitee-snapshot.settings.xml
-            - persist_to_workspace:
-                  root: /tmp
-                  paths:
-                      - .gravitee-snapshot.settings.xml
-
     compute-apim-tag:
         docker:
             - image: cimg/openjdk:11.0
@@ -228,10 +216,11 @@ jobs:
                   command: apk add --no-cache openssh
             - checkout
             - attach_workspace:
-                  at: .
-            - secrethub/env-export:
-                  secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
-                  var-name: SONAR_TOKEN
+                at: .
+           # - run:
+            #    name: sonar_token
+             #   command: |
+              #    echo "export SONAR_TOKEN=$(cat /tmp/gravit33bot/.secrets/sonarcloud_token)" >> $BASH_ENV
             - run:
                   name: Run Sonarcloud Analysis
                   command: sonar-scanner
@@ -581,7 +570,7 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - secrethub/exec:
+        #    - secrethub/exec:
                   step-name: Running Chromatic
                   # TODO:
                   #  - Handle npx chromatic command failure, make the job fails
@@ -917,7 +906,7 @@ jobs:
         steps:
             - setup_remote_docker
             - checkout
-            - secrethub/install
+          #  - secrethub/install
             - run:
                   name: "Parse GRAVITEEIO_VERSION to extract major, minor and patch version"
                   command: |
@@ -989,11 +978,13 @@ workflows:
             and:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
         jobs:
-            - load-snapshot-configuration:
+
+            - apim/keeper_secrets:
+                  name: fetching secrets
                   context: cicd-orchestrator
             - compute-apim-tag:
                   requires:
-                      - load-snapshot-configuration
+                      - fetching secrets
             - validate:
                   context: gravitee-qa
                   requires:
@@ -1039,12 +1030,14 @@ workflows:
                   requires:
                       - test
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+                    - attach_workspace:
+                        at: /tmp
+                    - run:
+                        name: azure env variables
+                        command: |
+                            echo "export AZURE_DOCKER_REGISTRY_USERNAME=$(cat /tmp/gravit33bot/.secrets/azure_registry_username)" >> $BASH_ENV
+                            echo "export AZURE_DOCKER_REGISTRY_PASSWORD=$(cat /tmp/gravit33bot/.secrets/azure_registry_pwd)" >> $BASH_ENV
+
                   filters:
                       branches:
                           only:
@@ -1054,7 +1047,7 @@ workflows:
                   name: Install APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
-                      - load-snapshot-configuration
+                      - fetching secrets
             - webui-lint-test:
                   name: Lint & test APIM Console
                   apim-ui-project: gravitee-apim-console-webui
@@ -1068,9 +1061,12 @@ workflows:
                   requires:
                       - console-webui-build-storybook
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
-                            var-name: GITHUB_TOKEN
+                      - attach_workspace:
+                            at: /tmp
+                      - run:
+                            name: github token env
+                            command: |
+                                echo "export GITHUB_TOKEN=$(cat /tmp/gravit33bot/.secrets/github-personal-token)" >> $BASH_ENV
             - webui-build:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
@@ -1079,23 +1075,25 @@ workflows:
             - console-webui-deploy-on-azure-storage:
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-id
-                            var-name: AZURE_APPLICATION_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/tenant
-                            var-name: AZURE_TENANT
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-secret
-                            var-name: AZURE_APPLICATION_SECRET
+                    - attach_workspace:
+                        at: /tmp
+                    - run:
+                        name: azure app env
+                        command: |
+                            echo "export AZURE_APPLICATION_ID=$(cat /tmp/gravit33bot/.secrets/azure_application_id)" >> $BASH_ENV
+                            echo "export AZURE_TENANT=$(cat /tmp/gravit33bot/.secrets/azure_tenant_id)" >> $BASH_ENV
+                            echo "export AZURE_APPLICATION_SECRET=$(cat /tmp/gravit33bot/.secrets/azure_application_pwd)" >> $BASH_ENV
                   requires:
                       - Build APIM Console
             - console-webui-comment-pr-after-deployment:
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
-                            var-name: GITHUB_TOKEN
+                    - attach_workspace:
+                        at: /tmp
+                    - run:
+                        name: github token env
+                        command: |
+                            echo "export GITHUB_TOKEN=$(cat /tmp/gravit33bot/.secrets/github-personal-token)" >> $BASH_ENV
                   requires:
                       - console-webui-deploy-on-azure-storage
             - webui-publish-images-azure-registry:
@@ -1104,12 +1102,13 @@ workflows:
                   docker-image-name: apim-management-ui
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+                    - attach_workspace:
+                        at: /tmp
+                    - run:
+                        name: azure env variables
+                        command: |
+                            echo "export AZURE_DOCKER_REGISTRY_USERNAME=$(cat /tmp/gravit33bot/.secrets/azure_registry_username)" >> $BASH_ENV
+                            echo "export AZURE_DOCKER_REGISTRY_PASSWORD=$(cat /tmp/gravit33bot/.secrets/azure_registry_pwd)" >> $BASH_ENV
                   requires:
                       - Build APIM Console
                       - compute-apim-tag
@@ -1122,7 +1121,7 @@ workflows:
                   name: Install APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
-                      - load-snapshot-configuration
+                      - fetching secrets
             - webui-lint-test:
                   name: Lint & test APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
@@ -1151,12 +1150,13 @@ workflows:
                   docker-image-name: apim-portal-ui
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+                    - attach_workspace:
+                        at: /tmp
+                    - run:
+                        name: azure env variables
+                        command: |
+                            echo "export AZURE_DOCKER_REGISTRY_USERNAME=$(cat /tmp/gravit33bot/.secrets/azure_registry_username)" >> $BASH_ENV
+                            echo "export AZURE_DOCKER_REGISTRY_PASSWORD=$(cat /tmp/gravit33bot/.secrets/azure_registry_pwd)" >> $BASH_ENV
                   requires:
                       - Build APIM Portal
                       - compute-apim-tag
@@ -1168,15 +1168,14 @@ workflows:
             - deploy-on-azure-cluster:
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-id
-                            var-name: AZURE_APPLICATION_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/tenant
-                            var-name: AZURE_TENANT
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-secret
-                            var-name: AZURE_APPLICATION_SECRET
+                    - attach_workspace:
+                            at: /tmp
+                    - run:
+                        name: azure app env
+                        command: |
+                            echo "export AZURE_APPLICATION_ID=$(cat /tmp/gravit33bot/.secrets/azure_application_id)" >> $BASH_ENV
+                            echo "export AZURE_TENANT=$(cat /tmp/gravit33bot/.secrets/azure_tenant_id)" >> $BASH_ENV
+                            echo "export AZURE_APPLICATION_SECRET=$(cat /tmp/gravit33bot/.secrets/azure_application_pwd)" >> $BASH_ENV
                   requires:
                       - publish-images-azure-registry
                       - Build and publish APIM Console docker image
@@ -1198,6 +1197,10 @@ workflows:
         when:
             equal: [build_docker_images, << pipeline.parameters.gio_action >>]
         jobs:
+
+            - apim/keeper_secrets:
+                  name: fetching secrets
+                  context: cicd-orchestrator
             - publish_prod_docker_images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
                   docker_tag_as_latest: << pipeline.parameters.docker_tag_as_latest >>
@@ -1206,12 +1209,13 @@ workflows:
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM CE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
-                            var-name: DOCKERHUB_BOT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
-                            var-name: DOCKERHUB_BOT_USER_TOKEN
+                    - attach_workspace:
+                            at: /tmp
+                    - run:
+                        name: dockerhub credentials
+                        command: |
+                            echo "export DOCKERHUB_BOT_USER_NAME=$(cat /tmp/gravit33bot/.secrets/dockerhub/user_name)" >> $BASH_ENV
+                            echo "export DOCKERHUB_BOT_USER_TOKEN=$(cat /tmp/gravit33bot/.secrets/dockerhub/user_token)" >> $BASH_ENV
             - publish_prod_docker_images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
                   docker_tag_as_latest: << pipeline.parameters.docker_tag_as_latest >>
@@ -1220,12 +1224,13 @@ workflows:
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
-                            var-name: DOCKERHUB_BOT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
-                            var-name: DOCKERHUB_BOT_USER_TOKEN
+                    - attach_workspace:
+                            at: /tmp
+                    - run:
+                        name: dockerhub credentials
+                        command: |
+                            echo "export DOCKERHUB_BOT_USER_NAME=$(cat /tmp/gravit33bot/.secrets/dockerhub/user_name)" >> $BASH_ENV
+                            echo "export DOCKERHUB_BOT_USER_TOKEN=$(cat /tmp/gravit33bot/.secrets/dockerhub/user_token)" >> $BASH_ENV
     release:
         when:
             equal: [release, << pipeline.parameters.gio_action >>]
@@ -1241,23 +1246,25 @@ workflows:
                       - prepare-settings
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/git/user/name
-                            var-name: GIT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/git/user/email
-                            var-name: GIT_USER_EMAIL
+                    - attach_workspace:
+                            at: /tmp
+                    - run:
+                        name: dockerhub credentials
+                        command: |
+                            echo "export GIT_USER_NAME=$(cat /tmp/gravit33bot/.secrets/git_user_name)" >> $BASH_ENV
+                            echo "export GIT_USER_EMAIL=$(cat /tmp/gravit33bot/.secrets/git_user_email)" >> $BASH_ENV
             - nexus-staging-prepare-component:
                   requires:
                       - release
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/zip-bundle-server/clever-cloud-s3/s3cmd/aws_access_key
-                            var-name: AWS_ACCESS_KEY_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/zip-bundle-server/clever-cloud-s3/s3cmd/aws_secret_key
-                            var-name: AWS_SECRET_ACCESS_KEY
+                    - attach_workspace:
+                            at: /tmp
+                    - run:
+                        name: AWS keys
+                        command: |
+                            echo "export AWS_ACCESS_KEY_ID=$(cat /tmp/gravit33bot/.secrets/.s3cmd/aws_access_key)" >> $BASH_ENV
+                            echo "export AWS_SECRET_ACCESS_KEY=$(cat /tmp/gravit33bot/.secrets/.s3cmd/aws_secret_key)" >> $BASH_ENV
     # ---
     # CICD Workflow For APIM Orchestrated Nexus Staging, Container-based : Circle CI Docker Executor
     nexus_staging:
