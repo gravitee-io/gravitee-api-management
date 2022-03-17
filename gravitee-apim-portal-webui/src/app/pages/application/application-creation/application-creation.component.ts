@@ -27,6 +27,7 @@ import { ConfigurationService } from '../../../services/configuration.service';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import {
   Api,
+  ApiKeyModeEnum,
   ApiService,
   Application,
   ApplicationInput,
@@ -37,6 +38,8 @@ import {
   SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../../services/notification.service';
+import { FeatureEnum } from '../../../model/feature.enum';
+import SecurityEnum = Plan.SecurityEnum;
 
 export interface ApplicationTypeOption extends ApplicationType {
   icon: string;
@@ -62,7 +65,16 @@ export class ApplicationCreationComponent implements OnInit {
   applicationForm: FormGroup;
   allowedTypes: Array<ApplicationTypeOption>;
   plans: Array<Plan>;
-  subscribeList: any[];
+  subscribeList: {
+    api: Api;
+    plan: Plan;
+    requiredComment: boolean;
+    request: string;
+    general_conditions_accepted?: boolean;
+    general_conditions_content_revision?: string;
+  }[];
+  apiKeyMode: ApiKeyModeEnum = ApiKeyModeEnum.UNSPECIFIED;
+  apiKeyModeTitle: string;
 
   private readSteps: number[];
 
@@ -73,6 +85,7 @@ export class ApplicationCreationComponent implements OnInit {
   applicationType: ApplicationTypeOption;
   private stepOneForm: FormGroup;
   private stepTwoForm: FormGroup;
+
   subscriptionErrors: { api: Api; message: string }[];
 
   constructor(
@@ -95,13 +108,18 @@ export class ApplicationCreationComponent implements OnInit {
   }
 
   async ngOnInit() {
+    const stepsTitle: any[] = [
+      i18n('applicationCreation.step.general'),
+      i18n('applicationCreation.step.security'),
+      i18n('applicationCreation.step.subscription'),
+      i18n('applicationCreation.step.validate'),
+    ];
+    if (this.canConfigureSharedApiKey()) {
+      stepsTitle.splice(3, 0, i18n('applicationCreation.step.apiKeyMode'));
+    }
+
     this._allSteps = await Promise.all(
-      [
-        i18n('applicationCreation.step.general'),
-        i18n('applicationCreation.step.security'),
-        i18n('applicationCreation.step.subscription'),
-        i18n('applicationCreation.step.validate'),
-      ].map((_title) =>
+      stepsTitle.map((_title) =>
         this.translateService
           .get(_title)
           .toPromise()
@@ -150,6 +168,9 @@ export class ApplicationCreationComponent implements OnInit {
   }
 
   onChangeStep({ detail: { current } }) {
+    if (!this.canDisplayApiKeyModeStep() && current === 4) {
+      current += 1;
+    }
     this.notificationService.reset();
     this.creationError = false;
     this.setCurrentStep(current);
@@ -238,29 +259,56 @@ export class ApplicationCreationComponent implements OnInit {
     return { description: '', valid: false, invalid: false };
   }
 
+  onStepFourUpdated(apiKeyMode: ApiKeyModeEnum) {
+    this.apiKeyMode = apiKeyMode;
+    this.updateSteps();
+  }
+
+  async stepFourState(): Promise<StepState> {
+    if (this.apiKeyMode !== ApiKeyModeEnum.UNSPECIFIED) {
+      this.apiKeyModeTitle = await this.translateService.get(i18n(`apiKeyMode.${this.apiKeyMode.toLowerCase()}.title`)).toPromise();
+      const valid = [ApiKeyModeEnum.SHARED, ApiKeyModeEnum.EXCLUSIVE].includes(this.apiKeyMode);
+      return { description: this.apiKeyModeTitle, valid, invalid: !valid };
+    }
+    return { description: '', valid: false, invalid: false };
+  }
+
   private async updateSteps() {
     const createdAt = this.createdApplication
       ? new Date(this.createdApplication.created_at).toLocaleString(this.translateService.currentLang)
       : '';
 
     const stepThreeStep = await this.stepThreeState();
-    this.steps = [
+    const stepsStates = [
       this.stepOneState,
       this.stepTwoState,
       stepThreeStep,
       { description: createdAt, valid: this.creationSuccess, invalid: false },
-    ].map(({ description, valid, invalid }, index) => {
+    ];
+    if (this.canConfigureSharedApiKey()) {
+      const stepFourStep = await this.stepFourState();
+      stepsStates.splice(3, 0, stepFourStep);
+    }
+
+    this.steps = stepsStates.map(({ description, valid, invalid }, index) => {
       const step = this._allSteps[index];
       step.description = description;
       step.valid = this.readSteps.includes(index + 1) && valid;
       step.invalid = this.readSteps.includes(index + 1) && invalid;
       return step;
     });
+    if (!this.canDisplayApiKeyModeStep()) {
+      this.steps.splice(3, 1);
+    }
   }
 
   onNext() {
     if (this.canNext()) {
-      this.setCurrentStep(this.currentStep + 1);
+      let nextStep = this.currentStep + 1;
+      if (!this.canDisplayApiKeyModeStep() && nextStep === 4) {
+        nextStep += 1;
+      }
+      this.setCurrentStep(nextStep);
     }
   }
 
@@ -274,7 +322,11 @@ export class ApplicationCreationComponent implements OnInit {
 
   onPrevious() {
     if (this.canPrevious()) {
-      this.setCurrentStep(this.currentStep - 1);
+      let previousStep = this.currentStep - 1;
+      if (!this.canDisplayApiKeyModeStep() && previousStep === 4) {
+        previousStep -= 1;
+      }
+      this.setCurrentStep(previousStep);
     }
   }
 
@@ -284,8 +336,9 @@ export class ApplicationCreationComponent implements OnInit {
 
   canValidate() {
     if (this.steps && !this.creationSuccess) {
-      const firstThree = this.steps.filter((step, index) => index <= 2 && step.valid);
-      if (firstThree.length === 3) {
+      const indexMax = this.canDisplayApiKeyModeStep() ? 3 : 2;
+      const firstSteps = this.steps.filter((step, index) => index <= indexMax && step.valid);
+      if (firstSteps.length === indexMax + 1) {
         return this.applicationForm.valid && this.hasValidSubscriptions();
       }
     }
@@ -293,11 +346,11 @@ export class ApplicationCreationComponent implements OnInit {
   }
 
   hasNext() {
-    return this.currentStep <= 3;
+    return this.currentStep <= 4;
   }
 
   hasCreate() {
-    return this.currentStep === 4 && !this.creationSuccess;
+    return this.currentStep === 5 && !this.creationSuccess;
   }
 
   createApp() {
@@ -306,13 +359,15 @@ export class ApplicationCreationComponent implements OnInit {
     this.creationInProgress = true;
     this.subscriptionErrors = [];
     const applicationInput = this.applicationForm.getRawValue() as ApplicationInput;
+    applicationInput.api_key_mode = this.apiKeyMode;
 
     this.applicationService
       .createApplication({ applicationInput })
       .toPromise()
-      .then((application) => {
+      .then(async (application) => {
         this.createdApplication = application;
-        this.subscribeList.forEach(async (subscription) => {
+
+        for (const subscription of this.subscribeList) {
           const subscriptionInput: any = {
             application: application.id,
             plan: subscription.plan.id,
@@ -334,7 +389,7 @@ export class ApplicationCreationComponent implements OnInit {
             }
             this.subscriptionErrors.push({ api: subscription.api, message });
           }
-        });
+        }
         this.creationSuccess = true;
         this.creationInProgress = false;
         setTimeout(this.updateSteps.bind(this), 200);
@@ -366,5 +421,30 @@ export class ApplicationCreationComponent implements OnInit {
         }
       });
     }
+  }
+
+  canConfigureSharedApiKey() {
+    return this.configurationService.hasFeature(FeatureEnum.sharedApiKey);
+  }
+
+  canDisplayApiKeyModeStep() {
+    return this.canConfigureSharedApiKey() && this.hasAtLeastTwoApiKeySubscriptionsNotOnSameApi();
+  }
+
+  hasAtLeastTwoApiKeySubscriptionsNotOnSameApi() {
+    const subscriptionsApi = [];
+
+    const apiKeySubscriptionList = this.subscribeList?.filter((sub) => sub.plan.security === SecurityEnum.APIKEY);
+    if (!apiKeySubscriptionList || apiKeySubscriptionList.length < 2) {
+      return false;
+    }
+
+    for (const subscription of apiKeySubscriptionList) {
+      if (subscriptionsApi.includes(subscription.api.id)) {
+        return false;
+      }
+      subscriptionsApi.push(subscription.api.id);
+    }
+    return true;
   }
 }

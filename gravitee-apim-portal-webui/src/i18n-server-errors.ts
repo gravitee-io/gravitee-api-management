@@ -22,6 +22,7 @@ i18n([
   'errors.metadata.exists',
   'errors.passwordFormat.invalid',
   'errors.plan.notSubscribable',
+  'errors.plan.notSubscribableWithSharedApiKey',
   'errors.plan.subscribed',
   'errors.plan.general_conditions_accept',
   'errors.plan.general_conditions_revision',

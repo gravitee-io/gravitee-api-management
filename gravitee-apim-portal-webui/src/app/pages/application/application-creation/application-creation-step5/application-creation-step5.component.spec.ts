@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { ApplicationCreationStep5Component } from './application-creation-step5.component';
 
-import { ApplicationCreationStep4Component } from './application-creation-step4.component';
-
-describe('ApplicationCreationStep4Component', () => {
+describe('ApplicationCreationStep5Component', () => {
   const createComponent = createComponentFactory({
-    component: ApplicationCreationStep4Component,
+    component: ApplicationCreationStep5Component,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
   });
 
-  let spectator: Spectator<ApplicationCreationStep4Component>;
+  let spectator: Spectator<ApplicationCreationStep5Component>;
   let component;
 
   beforeEach(() => {

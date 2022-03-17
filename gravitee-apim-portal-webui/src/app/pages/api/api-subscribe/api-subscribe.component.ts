@@ -17,10 +17,12 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import '@gravitee/ui-components/wc/gv-stepper';
 import '@gravitee/ui-components/wc/gv-plans';
+import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-code';
 import '@gravitee/ui-components/wc/gv-list';
 import {
   Api,
+  ApiKeyModeEnum,
   ApiService,
   Application,
   ApplicationService,
@@ -28,6 +30,7 @@ import {
   Page,
   Subscription,
   SubscriptionService,
+  SubscriptionsResponse,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -39,6 +42,7 @@ import { FeatureEnum } from 'src/app/model/feature.enum';
 import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import StatusEnum = Subscription.StatusEnum;
 import { formatCurlCommandLine } from '../../../utils/utils';
+import SecurityEnum = Plan.SecurityEnum;
 
 @Component({
   selector: 'app-api-subscribe',
@@ -52,18 +56,22 @@ export class ApiSubscribeComponent implements OnInit {
   private _commentLabel: any;
   private _planLabel: any;
   private _missingClientIdLabel: any;
-  private _allSubscriptions: Array<Subscription>;
+  private _allApiSubscriptions: Array<Subscription>;
+  private _allApplicationSubscriptionsWithMetadata: Array<{ applicationId: string; subscriptionsResponse: SubscriptionsResponse }> = [];
+  private _selectedApplicationSubscriptionsWithMetadata: SubscriptionsResponse;
   private _subscription: Subscription;
   private _currentGeneralConditions: Page;
   private _generalConditions: Map<string, Page>;
 
   steps: any;
   currentStep: number;
+  stepperContentClass: any;
   api: Api;
   plans: any;
   application: any;
   subscribeForm: FormGroup;
   availableApplications: { label: string; value: string }[];
+  apiKeyModeOptions: { id: string; title: string; description: string }[];
   connectedApps: any[];
   apiId: any;
   skeleton: boolean;
@@ -73,6 +81,7 @@ export class ApiSubscribeComponent implements OnInit {
   showValidateLoader: boolean;
   hasSubscriptionError: boolean;
   subscriptionError: string;
+
   private _canSubscribe: boolean;
 
   constructor(
@@ -95,8 +104,10 @@ export class ApiSubscribeComponent implements OnInit {
     this._generalConditions = new Map<string, Page>();
     this._currentGeneralConditions = null;
     this.connectedApps = [];
+
     this.subscribeForm = this.formBuilder.group({
       application: new FormControl(null, [Validators.required]),
+      apiKeyMode: new FormControl(null),
       plan: new FormControl(null, [Validators.required]),
       request: new FormControl(''),
       general_conditions_accepted: new FormControl(null),
@@ -117,6 +128,32 @@ export class ApiSubscribeComponent implements OnInit {
     this.apiSample = formatCurlCommandLine(this.api.entrypoints[0]);
     this.apiName = this.api.name;
 
+    if (this.canConfigureSharedApiKey()) {
+      this.translateService
+        .get([
+          i18n('apiKeyMode.exclusive.title'),
+          i18n('apiKeyMode.exclusive.description'),
+          i18n('apiKeyMode.shared.title'),
+          i18n('apiKeyMode.shared.description'),
+        ])
+        .toPromise()
+        .then((_translations) => {
+          const translations: string[] = Object.values(_translations);
+          this.apiKeyModeOptions = [
+            {
+              id: ApiKeyModeEnum.EXCLUSIVE,
+              title: translations[0],
+              description: translations[1],
+            },
+            {
+              id: ApiKeyModeEnum.SHARED,
+              title: translations[2],
+              description: translations[3],
+            },
+          ];
+        });
+    }
+
     Promise.all([
       this.applicationService.getApplications({ size: -1, forSubscription: true }).toPromise(),
       this.apiService.getApiPlansByApiId({ apiId: this.apiId, size: -1 }).toPromise(),
@@ -129,6 +166,23 @@ export class ApiSubscribeComponent implements OnInit {
         this.subscribeForm.valueChanges
           .pipe(distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)))
           .subscribe(() => this.updateSteps());
+
+        this.subscribeForm.valueChanges.pipe(distinctUntilChanged((prev, curr) => prev.application === curr.application)).subscribe(() => {
+          if (this.canConfigureSharedApiKey()) {
+            this.updateSelectedAppSubscriptions().then(() => {
+              this.updateSteps();
+              if (this.canDisplayApiKeyModeStep()) {
+                this.subscribeForm.get('apiKeyMode').setValidators(Validators.required);
+              } else {
+                this.subscribeForm.get('apiKeyMode').clearValidators();
+              }
+              this.subscribeForm.get('apiKeyMode').setValue(null);
+              this.subscribeForm.get('apiKeyMode').updateValueAndValidity();
+            });
+          } else {
+            this.updateSteps();
+          }
+        });
 
         this.subscribeForm.valueChanges.pipe(distinctUntilChanged((prev, curr) => prev.plan === curr.plan)).subscribe(() => {
           this.subscribeForm.controls.application.setValue(null);
@@ -159,8 +213,17 @@ export class ApiSubscribeComponent implements OnInit {
       })
       .catch(() => (this.connectedApps = []));
 
+    const stepsTitle: any[] = [
+      i18n('apiSubscribe.choosePlan.title'),
+      i18n('apiSubscribe.chooseApp.title'),
+      i18n('apiSubscribe.validate.title'),
+    ];
+    if (this.canConfigureSharedApiKey()) {
+      stepsTitle.splice(2, 0, i18n('apiSubscribe.chooseKeyMode.title'));
+    }
+
     this._allSteps = await Promise.all(
-      [i18n('apiSubscribe.choosePlan.title'), i18n('apiSubscribe.chooseApp.title'), i18n('apiSubscribe.validate.title')].map((title) => {
+      stepsTitle.map((title) => {
         return this.translateService
           .get(title)
           .toPromise()
@@ -173,12 +236,19 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   private updateSteps() {
-    const isValid = this.subscribeForm.get('application').errors == null && this.subscribeForm.get('request').errors == null;
-    this.steps = [
+    const isAppValid = this.subscribeForm.get('application').errors == null && this.subscribeForm.get('request').errors == null;
+    const isKeyModeValid = this.subscribeForm.get('apiKeyMode').errors == null;
+
+    const stepsItems: any[] = [
       { description: this.getPlanName() },
-      { description: this.getApplicationName(), valid: isValid },
+      { description: this.getApplicationName(), valid: isAppValid },
       { description: this.getCreatedAt(), valid: this._subscription != null },
-    ]
+    ];
+
+    if (this.canConfigureSharedApiKey()) {
+      stepsItems.splice(2, 0, { description: this.getApplicationKeyMode(), valid: isKeyModeValid });
+    }
+    this.steps = stepsItems
       .map(({ description, valid }, index) => {
         const step = this._allSteps[index];
         step.description = description;
@@ -186,10 +256,18 @@ export class ApiSubscribeComponent implements OnInit {
         return step;
       })
       .slice(0, this.isKeyLess() ? 1 : this._allSteps.length);
+
+    if (!this.canDisplayApiKeyModeStep()) {
+      this.steps.splice(2, 1);
+    }
   }
 
   onChangeStep({ detail: { current } }) {
-    if (!this.isKeyLess()) {
+    if (this.isKeyLess()) {
+      return;
+    } else if (!this.canDisplayApiKeyModeStep() && current === 3) {
+      this.currentStep = 4;
+    } else {
       this.currentStep = current;
     }
   }
@@ -244,17 +322,33 @@ export class ApiSubscribeComponent implements OnInit {
     return this.getPlanValidation() === Plan.ValidationEnum.AUTO;
   }
 
-  getApplicationName() {
+  getSelectedApplication() {
     const applicationId = this.subscribeForm.value.application;
     if (applicationId) {
-      const app = this._applications.find((application) => application.id === applicationId);
-      return app ? app.name : '';
+      return this._applications.find((application) => application.id === applicationId);
+    }
+    return undefined;
+  }
+
+  getApplicationName() {
+    const app = this.getSelectedApplication();
+    return app ? app.name : '';
+  }
+
+  getApplicationKeyMode() {
+    const apiKeyMode = this.subscribeForm.value.apiKeyMode;
+    if (apiKeyMode) {
+      const keyMode = this.apiKeyModeOptions.find((option) => option.id === apiKeyMode);
+      return keyMode ? keyMode.title : '';
     }
     return '';
   }
 
   onNext() {
     if (this.canNext()) {
+      this.currentStep += 1;
+    }
+    if (!this.canDisplayApiKeyModeStep() && this.currentStep === 3) {
       this.currentStep += 1;
     }
   }
@@ -270,6 +364,9 @@ export class ApiSubscribeComponent implements OnInit {
   onPrevious() {
     this.hasSubscriptionError = false;
     this.currentStep -= 1;
+    if (!this.canDisplayApiKeyModeStep() && this.currentStep === 3) {
+      this.currentStep -= 1;
+    }
   }
 
   hasPlans() {
@@ -286,6 +383,14 @@ export class ApiSubscribeComponent implements OnInit {
 
   hasStepper() {
     return this.hasPlans() && this.plans.filter((plan) => plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS).length > 0;
+  }
+
+  isApiKey() {
+    const currentPlan = this.getCurrentPlan();
+    if (currentPlan && currentPlan.security.toUpperCase() === Plan.SecurityEnum.APIKEY) {
+      return true;
+    }
+    return false;
   }
 
   isKeyLess() {
@@ -338,9 +443,28 @@ export class ApiSubscribeComponent implements OnInit {
     if (this.subscribeForm.valid) {
       try {
         this.showValidateLoader = true;
+
+        const apiKeyMode = this.subscribeForm.value.apiKeyMode;
+        if (apiKeyMode) {
+          const selectedApp = this.getSelectedApplication();
+          if (selectedApp.api_key_mode === ApiKeyModeEnum.UNSPECIFIED) {
+            const appToUpdate = await this.applicationService.getApplicationByApplicationId({ applicationId: selectedApp.id }).toPromise();
+            appToUpdate.api_key_mode = apiKeyMode;
+            await this.applicationService
+              .updateApplicationByApplicationId({ application: appToUpdate, applicationId: appToUpdate.id })
+              .toPromise();
+          }
+        }
+
         let subscription = await this.subscriptionService
           .createSubscription({
-            subscriptionInput: this.subscribeForm.value,
+            subscriptionInput: {
+              application: this.subscribeForm.value.application,
+              plan: this.subscribeForm.value.plan,
+              request: this.subscribeForm.value.request,
+              general_conditions_accepted: this.subscribeForm.value.general_conditions_accepted,
+              general_conditions_content_revision: this.subscribeForm.value.general_conditions_content_revision,
+            },
           })
           .toPromise();
 
@@ -443,10 +567,10 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   private updateApplications() {
-    if (this._allSubscriptions) {
+    if (this._allApiSubscriptions) {
       const subscribedApps = [];
       if (this._subscription) {
-        this._allSubscriptions = [this._subscription].concat(this._allSubscriptions);
+        this._allApiSubscriptions = [this._subscription].concat(this._allApiSubscriptions);
       }
       const plan = this.getCurrentPlan();
       if (plan) {
@@ -457,7 +581,7 @@ export class ApiSubscribeComponent implements OnInit {
             disabled = false;
             title = undefined;
             const label = `${application.name} (${application.owner.display_name})`;
-            const appSubscriptions = this._allSubscriptions.filter((sub) => sub.application === application.id);
+            const appSubscriptions = this._allApiSubscriptions.filter((sub) => sub.application === application.id);
             if (appSubscriptions.length > 0) {
               const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
               if (appPlansSubscriptions.length > 0) {
@@ -522,7 +646,7 @@ export class ApiSubscribeComponent implements OnInit {
       })
       .toPromise()
       .then((response) => {
-        this._allSubscriptions = response.data;
+        this._allApiSubscriptions = response.data;
       })
       .catch((err) => {
         if (err.status === 403) {
@@ -533,6 +657,50 @@ export class ApiSubscribeComponent implements OnInit {
 
   canCreateApp() {
     return this.configurationService.hasFeature(FeatureEnum.applicationCreation);
+  }
+
+  canConfigureSharedApiKey() {
+    return this.configurationService.hasFeature(FeatureEnum.sharedApiKey);
+  }
+
+  canDisplayApiKeyModeStep() {
+    return (
+      this.canConfigureSharedApiKey() &&
+      this.isApiKey() &&
+      this.getSelectedApplication()?.api_key_mode === ApiKeyModeEnum.UNSPECIFIED &&
+      this.hasAtLeastOneApiKeySubscription()
+    );
+  }
+
+  async updateSelectedAppSubscriptions() {
+    const selectedApplication = this.getSelectedApplication();
+    if (selectedApplication) {
+      this._selectedApplicationSubscriptionsWithMetadata = this._allApplicationSubscriptionsWithMetadata?.find(
+        (item) => item.applicationId === selectedApplication.id,
+      )?.subscriptionsResponse;
+      if (!this._selectedApplicationSubscriptionsWithMetadata) {
+        const subscriptionsResponse = await this.subscriptionService
+          .getSubscriptions({
+            applicationId: selectedApplication.id,
+            size: -1,
+          })
+          .toPromise();
+        this._allApplicationSubscriptionsWithMetadata.push({ applicationId: selectedApplication.id, subscriptionsResponse });
+        this._selectedApplicationSubscriptionsWithMetadata = subscriptionsResponse;
+      }
+    }
+  }
+
+  hasAtLeastOneApiKeySubscription() {
+    if (this._selectedApplicationSubscriptionsWithMetadata) {
+      const appSubscriptions: Subscription[] = this._selectedApplicationSubscriptionsWithMetadata.data;
+      const appSubscriptionsMetadata: any = this._selectedApplicationSubscriptionsWithMetadata.metadata;
+      const nbSubsOnApiKeyPlans = appSubscriptions.filter(
+        (sub) => sub.api !== this.apiId && appSubscriptionsMetadata[sub.plan]?.securityType === SecurityEnum.APIKEY,
+      ).length;
+      return nbSubsOnApiKeyPlans >= 1;
+    }
+    return false;
   }
 
   get displayName() {

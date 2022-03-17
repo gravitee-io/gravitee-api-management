@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.portal.rest.model.ApiKeyModeEnum;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
@@ -60,7 +61,7 @@ public class KeyMapper {
         application.setId(applicationEntity.getId());
         application.setName(applicationEntity.getName());
         if (application.getApiKeyMode() != null) {
-            application.setApiKeyMode(Application.ApiKeyModeEnum.valueOf(applicationEntity.getApiKeyMode().name()));
+            application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationEntity.getApiKeyMode().name()));
         }
         return application;
     }

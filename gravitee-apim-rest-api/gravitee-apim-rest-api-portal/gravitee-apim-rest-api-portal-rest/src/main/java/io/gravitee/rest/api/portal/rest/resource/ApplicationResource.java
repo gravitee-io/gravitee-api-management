@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
@@ -113,6 +114,9 @@ public class ApplicationResource extends AbstractResource {
         checkImageFormat(application.getBackground());
         updateApplicationEntity.setBackground(application.getBackground());
         updateApplicationEntity.setGroups(appEntity.getGroups());
+        if (application.getApiKeyMode() != null) {
+            updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(application.getApiKeyMode().name()));
+        }
 
         if (application.getSettings() != null) {
             ApplicationSettings settings = new ApplicationSettings();

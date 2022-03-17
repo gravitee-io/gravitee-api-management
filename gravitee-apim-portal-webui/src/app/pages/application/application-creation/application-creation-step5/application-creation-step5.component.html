@@ -1,0 +1,109 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="step">
+  <div class="step-grid-content" *ngIf="canValidate && !this.creationError">
+    <div class="step-grid-column">
+      <div class="validation-summary" [ngClass]="{ 'no-subscription': this.subscribeList.length === 0 }">
+        <h2>{{ 'applicationCreation.step.general' | translate }}</h2>
+        <div class="general-summary form-control">
+          <div *ngIf="pictureSrc">
+            <gv-image class="application-creation__picture" [src]="pictureSrc"></gv-image>
+          </div>
+          <div class="form-control">
+            <span>{{ 'applicationCreation.general.name.label' | translate }}</span> {{ appName }}
+          </div>
+          <div class="form-control">
+            <span>{{ 'applicationCreation.general.description.label' | translate }}</span>
+            {{ appDescription }}
+          </div>
+        </div>
+        <div style="clear: both" class="form-control"></div>
+        <h2>{{ 'applicationCreation.step.security' | translate }}</h2>
+        <div class="security-summary">
+          <div class="form-control">
+            <span>{{ 'applicationType.security.simple.title' | translate }}</span> {{ applicationType.name }}
+          </div>
+          <div *ngIf="isSimpleApp">
+            <div class="form-control" *ngIf="appClientId">
+              <div>
+                <span>{{ 'applicationType.security.clientId.label' | translate }}</span> {{ appClientId }}
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!isSimpleApp">
+            <div class="form-control">
+              <div>{{ 'applicationCreation.security.label' | translate }}</div>
+
+              <span *ngFor="let grantTypeName of grantTypeNames">
+                <gv-tag major>{{ grantTypeName }}</gv-tag>
+              </span>
+            </div>
+            <div *ngIf="requiresRedirectUris" class="form-control">
+              <div>{{ 'applicationType.security.redirectUris.label' | translate }}</div>
+              <gv-tag *ngFor="let uri of redirectURIs" minor>{{ uri }}</gv-tag>
+            </div>
+          </div>
+        </div>
+
+        <h2 *ngIf="this.apiKeyModeTitle">{{ 'applicationCreation.step.apiKeyMode' | translate }}</h2>
+        <div *ngIf="this.apiKeyModeTitle" class="form-control">
+          <span>{{ 'applicationCreation.apiKeyMode.title' | translate }}</span> {{ this.apiKeyModeTitle }}
+        </div>
+      </div>
+    </div>
+    <div class="step-grid-column" *ngIf="currentStep === 5 && this.subscribeList.length > 0">
+      <gv-table
+        [items]="this.subscribeList"
+        title="{{ 'applicationCreation.validation.subscriptionTitle' | translate: { count: this.subscribeList.length } }}"
+        [options]="validationListOptions"
+      ></gv-table>
+    </div>
+  </div>
+
+  <div class="message message-full message-pending" *ngIf="!canValidate && !creationSuccess && !creationError">
+    <gv-icon shape="general:smile"></gv-icon>
+    <h2>{{ 'applicationCreation.validation.pending.title' | translate }}</h2>
+    <p [innerHTML]="'applicationCreation.validation.pending.description' | translate"></p>
+  </div>
+  <div class="message message-full message-confirm" *ngIf="creationSuccess">
+    <gv-icon shape="general:smile"></gv-icon>
+    <h2>{{ 'apiSubscribe.success.congratulations' | translate }}</h2>
+    <div *ngIf="this.subscriptionErrors && this.subscriptionErrors.length > 0" class="application-creation__subscription-errors">
+      <ul>
+        <li *ngFor="let subscriptionError of this.subscriptionErrors">
+          <span>{{ subscriptionError.message }}</span>
+          <gv-button link outlined [routerLink]="['/catalog/api/', subscriptionError.api.id, 'subscribe']">{{
+            'applicationCreation.subscription.resubscribe' | translate
+          }}</gv-button>
+        </li>
+      </ul>
+    </div>
+    <gv-button
+      link
+      outlined
+      [routerLink]="['/applications/', createdApplication.id]"
+      [innerHTML]="'applicationCreation.validation.confirm' | translate: { name: createdApplication.name }"
+    ></gv-button>
+  </div>
+
+  <div class="message message-full message-error" *ngIf="creationError">
+    <gv-icon shape="general:smile"></gv-icon>
+    <h2>{{ 'applicationCreation.validation.error.title' | translate }}</h2>
+    <div [innerHTML]="'applicationCreation.validation.error.description' | translate"></div>
+  </div>
+</div>

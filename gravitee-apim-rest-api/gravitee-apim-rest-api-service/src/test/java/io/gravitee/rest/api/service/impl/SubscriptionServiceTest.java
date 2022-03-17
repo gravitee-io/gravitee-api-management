@@ -282,7 +282,7 @@ public class SubscriptionServiceTest {
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
-    @Test(expected = PlanNotSubscribableException.class)
+    @Test(expected = PlanNotSubscribableWithSharedApiKeyException.class)
     public void shouldNotCreateBecauseSharedModeAndExistingApiKeyPlanSubscription() throws Exception {
         final String existingApiKeyPlanId = "existing-api-key-plan";
 

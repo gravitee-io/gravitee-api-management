@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -24,6 +24,10 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.util.List;

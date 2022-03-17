@@ -58,6 +58,18 @@
     "showMore": "Zobrazit více",
     "userRatings": "Zpětná vazba uživatele"
   },
+  "apiKeyMode": {
+    "description": "Upozorňujeme, že tato volba je trvalá",
+    "exclusive": {
+      "description": "pro každé nové předplatné bude vygenerován nový klíč API",
+      "title": "Vygenerovaný klíč API"
+    },
+    "shared": {
+      "description": "stejný klíč API bude použit pro každé nové předplatné",
+      "title": "Sdílený klíč API"
+    },
+    "title": "Režim správy klíče API"
+  },
   "apiSubscribe": {
     "apps": {
       "chooseApp": "Vyberte aplikaci",
@@ -70,6 +82,9 @@
     },
     "chooseApp": {
       "title": "Volba aplikace"
+    },
+    "chooseKeyMode": {
+      "title": "Volba režimu klíče API"
     },
     "choosePlan": {
       "title": "Volba plánu"
@@ -502,6 +517,9 @@
     "types": "{type, select, BACKEND_TO_BACKEND {Server to server} NATIVE {Native} WEB {Web} BROWSER {Browser} SIMPLE {Simple} other {Simple}}"
   },
   "applicationCreation": {
+    "apiKeyMode": {
+      "title": "Režim"
+    },
     "exit": "Výstup",
     "general": {
       "description": {
@@ -523,6 +541,7 @@
       "label": "Typy práv autorizovaných pro klienta."
     },
     "step": {
+      "apiKeyMode": "API klíč",
       "createApp": "Vytvořte aplikaci",
       "general": "Generále",
       "next": "Další",
@@ -766,6 +785,7 @@
       "general_conditions_revision": "Obecné podmínky používání plánu {plan} se změnily.",
       "general_conditions_status": "Odkazy na plán {plan} na nepublikovanou stránku podmínek použití.",
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
+      "notSubscribableWithSharedApiKey": "Nemůžete se přihlásit k odběru druhého plánu klíčů API na stejném rozhraní API v režimu sdíleného klíče API.",
       "otherOAuth2OrJWTSubscribed": "Další plán OAuth2 nebo JWT je již předplacen stejnou aplikací",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
     },

@@ -9,6 +9,7 @@
  * Do not edit the class manually.
  */
 import { ApplicationSettings } from './applicationSettings';
+import { ApiKeyModeEnum } from './apiKeyModeEnum';
 
 
 export interface ApplicationInput { 
@@ -19,5 +20,6 @@ export interface ApplicationInput {
     groups?: Array<string>;
     settings?: ApplicationSettings;
     background?: string;
+    api_key_mode?: ApiKeyModeEnum;
 }
 

@@ -45,7 +45,8 @@
 
 .one .step-1,
 .two .step-2,
-.three .step-3 {
+.three .step-3,
+.four .step-4 {
   display: block;
   opacity: 1;
   animation: fade-in 0.2s ease-in;
@@ -103,15 +104,15 @@
   --gv-icon--c: var(--gv-theme-font--c);
 }
 
-.step-3 .subscription-accepted a {
+.step-4 .subscription-accepted a {
   color: var(--gv-theme-font-color-light);
 }
 
-.step-3 .success-icon {
+.step-4 .success-icon {
   --gv-icon--s: 128px;
 }
 
-.step-3 a {
+.step-4 a {
   color: var(--gv-theme-font--c);
   text-decoration: none;
   --gv-icon--s: 24px;
@@ -130,6 +131,12 @@
 .step-2 gv-select,
 .step-2 gv-text {
   width: 100%;
+}
+
+.step-3 gv-option {
+  display: block;
+  margin: 0 auto;
+  width: 50%;
 }
 
 .api-subscribe__stepper {

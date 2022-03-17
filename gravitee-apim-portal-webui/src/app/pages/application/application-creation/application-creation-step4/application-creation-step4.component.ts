@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { Api, Application, Plan } from '../../../../../../projects/portal-webclient-sdk/src/lib';
 import { TranslateService } from '@ngx-translate/core';
-import { ApplicationTypeOption } from '../application-creation.component';
+import { ApiKeyModeEnum } from '../../../../../../projects/portal-webclient-sdk/src/lib';
+import '@gravitee/ui-components/wc/gv-option';
 
 @Component({
   selector: 'app-application-creation-step4',
@@ -26,93 +25,40 @@ import { ApplicationTypeOption } from '../application-creation.component';
   styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep4Component implements OnInit {
-  @Input() canValidate: boolean;
-  @Input() creationError: boolean;
-  @Input() creationSuccess: boolean;
-  @Input() applicationForm: FormGroup;
-  @Input() subscribeList: any[];
-  @Input() subscriptionErrors: { message: string; api: Api }[];
-  @Input() applicationType: ApplicationTypeOption;
-  @Input() createdApplication: Application;
-  @Input() currentStep: number;
+  @Input() apiKeyMode: ApiKeyModeEnum;
+  @Output() updated = new EventEmitter<ApiKeyModeEnum>();
 
-  validationListOptions: any;
+  apiKeyModeOptions: { id: string; title: string; description: string }[];
 
   constructor(private translateService: TranslateService) {}
-
-  get grantTypeNames() {
-    if (!this.isSimpleApp && this.applicationForm.contains('settings')) {
-      const { settings } = this.applicationForm.getRawValue();
-      const types = this.applicationType.allowed_grant_types;
-      return settings.oauth.grant_types.map((type) => {
-        return types.find((a) => a.type === type).name;
-      });
-    }
-    return [];
-  }
-
-  get pictureSrc() {
-    return this.applicationForm.get('picture').value;
-  }
-
-  get appName() {
-    return this.applicationForm.get('name').value;
-  }
-
-  get appDescription() {
-    return this.applicationForm.get('description').value;
-  }
-
-  get appClientId() {
-    if (this.isSimpleApp && this.applicationForm.contains('settings')) {
-      const { settings } = this.applicationForm.getRawValue();
-      return settings.app.client_id;
-    }
-    return null;
-  }
-
-  get redirectURIs() {
-    if (!this.isSimpleApp && this.applicationForm.contains('settings')) {
-      const { settings } = this.applicationForm.getRawValue();
-      return settings.oauth.redirect_uris;
-    }
-    return [];
-  }
-
-  get requiresRedirectUris() {
-    return this.applicationType.requires_redirect_uris;
-  }
-
-  get isSimpleApp() {
-    return this.applicationType.id.toLowerCase() === 'simple';
-  }
 
   ngOnInit(): void {
     this.translateService
       .get([
-        i18n('applicationCreation.subscription.comment'),
-        i18n('applicationCreation.subscription.validation.type'),
-        i18n('applicationCreation.subscription.validation.auto'),
-        i18n('applicationCreation.subscription.validation.manual'),
+        i18n('apiKeyMode.exclusive.title'),
+        i18n('apiKeyMode.exclusive.description'),
+        i18n('apiKeyMode.shared.title'),
+        i18n('apiKeyMode.shared.description'),
       ])
       .toPromise()
-      .then((translations) => {
-        const values = Object.values(translations);
-
-        this.validationListOptions = {
-          data: [
-            { field: 'api.name', label: 'Api' },
-            { field: 'plan.name', label: 'Plan' },
-            {
-              field: 'request',
-              label: values[0],
-            },
-            {
-              field: (item) => (item.plan.validation.toUpperCase() === Plan.ValidationEnum.AUTO ? values[2] : values[3]),
-              label: values[1],
-            },
-          ],
-        };
+      .then((_translations) => {
+        const translations: string[] = Object.values(_translations);
+        this.apiKeyModeOptions = [
+          {
+            id: ApiKeyModeEnum.EXCLUSIVE,
+            title: translations[0],
+            description: translations[1],
+          },
+          {
+            id: ApiKeyModeEnum.SHARED,
+            title: translations[2],
+            description: translations[3],
+          },
+        ];
       });
+  }
+
+  onModeChange({ detail }) {
+    this.updated.emit(detail.id);
   }
 }

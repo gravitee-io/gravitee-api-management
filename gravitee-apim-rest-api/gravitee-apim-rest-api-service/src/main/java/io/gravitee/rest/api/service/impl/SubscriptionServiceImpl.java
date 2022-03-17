@@ -304,9 +304,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .count();
 
                     if (count > 0) {
-                        throw new PlanNotSubscribableException(
-                            "You can not subscribe to a second API key plan on the same API in shared mode"
-                        );
+                        throw new PlanNotSubscribableWithSharedApiKeyException();
                     }
                 }
             }

@@ -23,8 +23,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { fakeAsync, async, ComponentFixture, TestBed, tick } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
-import { Application, Key, Plan, Subscription } from '../../../../../projects/portal-webclient-sdk/src/lib';
-import ApiKeyModeEnum = Application.ApiKeyModeEnum;
+import { ApiKeyModeEnum, Application, Key, Plan, Subscription } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import SecurityEnum = Plan.SecurityEnum;
 
 describe('ApplicationSubscriptionsComponent', () => {

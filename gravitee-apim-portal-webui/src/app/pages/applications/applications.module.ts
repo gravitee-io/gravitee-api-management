@@ -29,6 +29,7 @@ import { ApplicationCreationStep1Component } from '../application/application-cr
 import { ApplicationCreationStep2Component } from '../application/application-creation/application-creation-step2/application-creation-step2.component';
 import { ApplicationCreationStep3Component } from '../application/application-creation/application-creation-step3/application-creation-step3.component';
 import { ApplicationCreationStep4Component } from '../application/application-creation/application-creation-step4/application-creation-step4.component';
+import { ApplicationCreationStep5Component } from '../application/application-creation/application-creation-step5/application-creation-step5.component';
 import { ApplicationCreationComponent } from '../application/application-creation/application-creation.component';
 import { ApplicationGeneralComponent } from '../application/application-general/application-general.component';
 import { ApplicationLogsComponent } from '../application/application-logs/application-logs.component';
@@ -58,6 +59,7 @@ import { GvAlertComponent } from '../../components/gv-alert/gv-alert.component';
     ApplicationCreationStep2Component,
     ApplicationCreationStep3Component,
     ApplicationCreationStep4Component,
+    ApplicationCreationStep5Component,
     GvButtonCreateApplicationComponent,
     GvAnalyticsDashboardComponent,
     GvAnalyticsFiltersComponent,

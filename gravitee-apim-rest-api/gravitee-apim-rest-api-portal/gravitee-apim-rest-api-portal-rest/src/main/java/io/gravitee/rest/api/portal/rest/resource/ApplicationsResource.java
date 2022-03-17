@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -121,6 +122,11 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
             }
         }
         newApplicationEntity.setSettings(newApplicationEntitySettings);
+        if (applicationInput.getApiKeyMode() != null) {
+            newApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(applicationInput.getApiKeyMode().name()));
+        } else {
+            newApplicationEntity.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+        }
 
         ApplicationEntity createdApplicationEntity = applicationService.create(
             GraviteeContext.getCurrentEnvironment(),
