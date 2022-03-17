@@ -524,8 +524,6 @@ require('../libraries/angular-schema-form/boostrap-decorator');
 require('../libraries/angular-schema-form/codemirror-decorator');
 require('../libraries/angular-ui-codemirror/ui-codemirror');
 
-require('../libraries/showdown-extension/DocHelper-extension.js');
-
 require('ngclipboard');
 require('angular-ui-validate');
 require('read-more/js/directives/readmore.js');
@@ -535,9 +533,11 @@ require('ng-file-upload');
 require('md-steppers');
 require('angular-ui-tree');
 require('angular-jwt');
+
 require('ng-showdown');
-require('showdown-prettify');
 require('showdown-highlightjs-extension');
+require('showdown-prettify');
+require('../libraries/showdown-extension/DocHelper-extension.js');
 
 require('angular-gridster');
 require('angular-scroll');
@@ -702,9 +702,6 @@ graviteeManagementModule.config(($mdThemingProvider: angular.material.IThemingPr
 });
 graviteeManagementModule.config(($showdownProvider) => {
   $showdownProvider.setOption('tables', true);
-  $showdownProvider.loadExtension('highlightjs');
-  $showdownProvider.loadExtension('prettify');
-  $showdownProvider.loadExtension('docHelper');
 });
 graviteeManagementModule.run(runBlock);
 graviteeManagementModule.controller('ApisController', ApisController);
