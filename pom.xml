@@ -205,6 +205,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.graviteesource.license</groupId>
+                <artifactId>gravitee-license-node</artifactId>
+                <version>${gravitee-license-node.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.node</groupId>
                 <artifactId>gravitee-node-api</artifactId>
                 <version>${gravitee-node.version}</version>
