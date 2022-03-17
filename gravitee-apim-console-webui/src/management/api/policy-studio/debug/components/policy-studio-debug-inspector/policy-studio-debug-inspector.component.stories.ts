@@ -30,6 +30,7 @@ import { PolicyStudioDebugInspectorTextComponent } from './policy-studio-debug-i
 
 import { fakeErrorRequestDebugStep, fakeRequestDebugStep } from '../../models/DebugStep.fixture';
 import { GioDiffModule } from '../../../../../../shared/components/gio-diff/gio-diff.module';
+import { GioClipboardModule } from '../../../../../../shared/components/gio-clipboard/gio-clipboard.module';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Inspector ',
@@ -42,7 +43,16 @@ export default {
         PolicyStudioDebugInspectorTableComponent,
         PolicyStudioDebugInspectorTextComponent,
       ],
-      imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule, MatTreeModule, MatButtonModule, GioDiffModule],
+      imports: [
+        CommonModule,
+        BrowserAnimationsModule,
+        MatIconModule,
+        GioIconsModule,
+        MatTreeModule,
+        MatButtonModule,
+        GioDiffModule,
+        GioClipboardModule,
+      ],
     }),
   ],
   parameters: {

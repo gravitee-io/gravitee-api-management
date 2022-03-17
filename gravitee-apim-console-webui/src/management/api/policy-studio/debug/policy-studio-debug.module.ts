@@ -42,6 +42,7 @@ import { PolicyStudioDebugTimelineOverviewComponent } from './components/policy-
 import { PolicyStudioDebugTimelineHoverComponent } from './components/policy-studio-debug-timeline-hover/policy-studio-debug-timeline-hover.directive';
 
 import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.module';
+import { GioClipboardModule } from '../../../../shared/components/gio-clipboard/gio-clipboard.module';
 
 @NgModule({
   imports: [
@@ -61,6 +62,7 @@ import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.m
     GioIconsModule,
     GioDiffModule,
     GioFormHeadersModule,
+    GioClipboardModule,
   ],
   declarations: [
     PolicyStudioDebugComponent,

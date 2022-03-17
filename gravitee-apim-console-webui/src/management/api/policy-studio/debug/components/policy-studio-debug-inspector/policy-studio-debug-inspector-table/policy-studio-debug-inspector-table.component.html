@@ -26,10 +26,18 @@
   </thead>
   <tbody>
     <tr *ngFor="let rowItem of rowItems" [ngClass]="rowItem.diffClass">
-      <td class="input">{{ rowItem.key }}</td>
-      <td class="input">{{ rowItem.inputValue }}</td>
-      <td class="output">{{ rowItem.key }}</td>
-      <td class="output">{{ rowItem.outputValue }}</td>
+      <td class="input">
+        <span gioClipboardCopyWrapper [contentToCopy]="rowItem.key">{{ rowItem.key }}</span>
+      </td>
+      <td class="input">
+        <span gioClipboardCopyWrapper [contentToCopy]="rowItem.inputValue">{{ rowItem.inputValue }}</span>
+      </td>
+      <td class="output">
+        <span gioClipboardCopyWrapper [contentToCopy]="rowItem.key">{{ rowItem.key }}</span>
+      </td>
+      <td class="output">
+        <span gioClipboardCopyWrapper [contentToCopy]="rowItem.outputValue">{{ rowItem.outputValue }}</span>
+      </td>
     </tr>
   </tbody>
 </table>

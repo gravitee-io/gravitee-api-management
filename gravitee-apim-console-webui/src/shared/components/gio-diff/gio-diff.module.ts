@@ -20,8 +20,10 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { GioDiffComponent } from './gio-diff.component';
 
+import { GioClipboardModule } from '../gio-clipboard/gio-clipboard.module';
+
 @NgModule({
-  imports: [CommonModule, FormsModule, MatButtonToggleModule],
+  imports: [CommonModule, FormsModule, MatButtonToggleModule, GioClipboardModule],
   declarations: [GioDiffComponent],
   exports: [GioDiffComponent],
   entryComponents: [GioDiffComponent],

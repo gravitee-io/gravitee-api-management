@@ -18,8 +18,12 @@
 <table class="gio-table-light" attr.aria-label="Debug informations for {{ name }}">
   <tbody>
     <tr [ngClass]="this.diffClass">
-      <td class="input">{{ input }}</td>
-      <td class="output">{{ output }}</td>
+      <td class="input">
+        <span gioClipboardCopyWrapper [contentToCopy]="input">{{ input }}</span>
+      </td>
+      <td class="output">
+        <span gioClipboardCopyWrapper [contentToCopy]="output">{{ output }}</span>
+      </td>
     </tr>
   </tbody>
 </table>
