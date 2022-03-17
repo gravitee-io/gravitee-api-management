@@ -25,13 +25,4 @@ import java.util.List;
  */
 public interface FlowResolver {
     List<Flow> resolve(ExecutionContext context);
-
-    /**
-     * In which stage the flow is configured.
-     * This data is useful to debug or improve logging.
-     * @return the stage of the Flow, see {@link FlowStage}.
-     */
-    default FlowStage stage() {
-        return FlowStage.UNDEFINED;
-    }
 }

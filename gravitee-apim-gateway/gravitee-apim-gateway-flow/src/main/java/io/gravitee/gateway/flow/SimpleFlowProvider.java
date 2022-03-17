@@ -62,7 +62,7 @@ public class SimpleFlowProvider implements FlowProvider {
             for (Flow flow : flows) {
                 chain.add(
                     policyChainFactory.create(
-                        flowPolicyResolverFactory.create(flow, flowResolver).resolve(streamType, context),
+                        flowPolicyResolverFactory.create(flow).resolve(streamType, context),
                         streamType,
                         context,
                         policies ->
