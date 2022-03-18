@@ -153,9 +153,10 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         ApiEntityResult createApiResult = createApiEntity(apiId, userId, swaggerDescriptor, labels);
 
         if (createApiResult.isSuccess()) {
-            this.planService.create(createKeylessPlan(apiId, environmentId));
+            String createdApiId = createApiResult.getApi().getId();
+            this.planService.create(createKeylessPlan(createdApiId, environmentId));
 
-            return ApiEntityResult.success(this.apiService.start(apiId, userId));
+            return ApiEntityResult.success(this.apiService.start(createdApiId, userId));
         }
         return createApiResult;
     }
@@ -197,15 +198,16 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         ApiEntityResult createApiResult = createApiEntity(apiId, userId, swaggerDescriptor, labels);
 
         if (createApiResult.isSuccess()) {
-            this.planService.create(createKeylessPlan(apiId, environmentId));
-            ApiEntity apiEntity = this.apiService.start(apiId, userId);
+            String createdApiId = createApiResult.getApi().getId();
+            this.planService.create(createKeylessPlan(createdApiId, environmentId));
+            ApiEntity apiEntity = this.apiService.start(createdApiId, userId);
 
-            publishSwaggerDocumentation(apiId);
+            publishSwaggerDocumentation(createdApiId);
 
             UpdateApiEntity updateEntity = apiConverter.toUpdateApiEntity(apiEntity);
             updateEntity.setVisibility(Visibility.PUBLIC);
             updateEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
-            return ApiEntityResult.success(this.apiService.update(apiId, updateEntity));
+            return ApiEntityResult.success(this.apiService.update(createdApiId, updateEntity));
         }
 
         return createApiResult;
@@ -254,12 +256,13 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         final Optional<String> result = checkContextPath(api);
         if (result.isEmpty()) {
             final ObjectNode apiDefinition = objectMapper.valueToTree(api);
-            apiDefinition.put("id", apiId);
+            apiDefinition.put("crossId", apiId);
+            api.setCrossId(apiId);
 
             final ApiEntity createdApi = apiService.createWithApiDefinition(api, userId, apiDefinition);
 
-            pageService.createAsideFolder(apiId, GraviteeContext.getCurrentEnvironment());
-            pageService.createOrUpdateSwaggerPage(apiId, swaggerDescriptor, true);
+            pageService.createAsideFolder(createdApi.getId(), GraviteeContext.getCurrentEnvironment());
+            pageService.createOrUpdateSwaggerPage(createdApi.getId(), swaggerDescriptor, true);
             apiMetadataService.create(api.getMetadata(), createdApi.getId());
             return ApiEntityResult.success(createdApi);
         }
