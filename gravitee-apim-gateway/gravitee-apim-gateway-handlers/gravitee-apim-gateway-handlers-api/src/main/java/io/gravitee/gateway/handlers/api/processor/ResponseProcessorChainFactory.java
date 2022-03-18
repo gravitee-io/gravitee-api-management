@@ -18,7 +18,7 @@ package io.gravitee.gateway.handlers.api.processor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.flow.BestMatchPolicyResolver;
+import io.gravitee.gateway.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
 import io.gravitee.gateway.flow.SimpleFlowProvider;
 import io.gravitee.gateway.flow.condition.CompositeConditionEvaluator;
@@ -87,7 +87,7 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
                     new SimpleFlowPolicyChainProvider(
                         new SimpleFlowProvider(
                             StreamType.ON_RESPONSE,
-                            new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
+                            new BestMatchFlowResolver(new ApiFlowResolver(api, evaluator)),
                             chainFactory
                         )
                     )
@@ -96,7 +96,7 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
                     new PlanFlowPolicyChainProvider(
                         new SimpleFlowProvider(
                             StreamType.ON_RESPONSE,
-                            new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
+                            new BestMatchFlowResolver(new PlanFlowResolver(api, evaluator)),
                             chainFactory
                         )
                     )
