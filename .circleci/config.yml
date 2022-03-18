@@ -221,7 +221,7 @@ jobs:
                 type: string
         docker:
             - image: sonarsource/sonar-scanner-cli
-        resource_class: medium
+        resource_class: large
         steps:
             - run:
                   name: Add SSH tool
@@ -293,8 +293,9 @@ jobs:
             - run:
                   name: Run tests
                   command: |
-                      # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml package --no-transfer-progress -Dskip.validation=true -T 2C
+                      # Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos 
+                      # and then collect and merge all coverage reports
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -305,6 +306,12 @@ jobs:
             - save-maven-cache
             - store_test_results:
                   path: ~/test-results
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                      - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
+                      - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
+                      - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
 
     publish-on-artifactory:
         docker:
