@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { SinglePageComponent } from './single-page.component';
 import { GvPageComponent } from 'src/app/components/gv-page/gv-page.component';
@@ -25,13 +25,15 @@ describe('SinglePageComponent', () => {
   let component: SinglePageComponent;
   let fixture: ComponentFixture<SinglePageComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [SinglePageComponent, GvPageComponent],
-      imports: [HttpClientTestingModule, RouterTestingModule],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [SinglePageComponent, GvPageComponent],
+        imports: [HttpClientTestingModule, RouterTestingModule],
+        schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(SinglePageComponent);

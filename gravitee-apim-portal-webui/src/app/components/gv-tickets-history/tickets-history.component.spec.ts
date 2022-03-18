@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, fakeAsync, tick } from '@angular/core/testing';
+import { fakeAsync, tick, waitForAsync } from '@angular/core/testing';
 
 import { TicketsHistoryComponent } from './tickets-history.component';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -63,36 +63,38 @@ describe('GvTicketsHistoryComponent', () => {
     component = spectator.component;
   });
 
-  beforeEach(async(() => {
-    route = spectator.inject(ActivatedRoute);
-    portalService = spectator.inject(PortalService);
-    routerSpy = spectator.inject(Router);
+  beforeEach(
+    waitForAsync(() => {
+      route = spectator.inject(ActivatedRoute);
+      portalService = spectator.inject(PortalService);
+      routerSpy = spectator.inject(Router);
 
-    spyOn(ConfigurationService.prototype, 'get').and.callFake((arg) => {
-      if (arg === 'pagination.size.values') {
-        return PAGE_SIZES;
-      } else if (arg === 'pagination.size.values') {
-        return PAGE_SIZE_DEFAULT;
-      }
-    });
+      spyOn(ConfigurationService.prototype, 'get').and.callFake((arg) => {
+        if (arg === 'pagination.size.values') {
+          return PAGE_SIZES;
+        } else if (arg === 'pagination.size.values') {
+          return PAGE_SIZE_DEFAULT;
+        }
+      });
 
-    route.queryParams = of({
-      skipRefresh: false,
-      size: 10,
-      page: 1,
-      field: 'subject',
-      order: 'ASC',
-    });
-
-    route.snapshot = {
-      queryParams: {
+      route.queryParams = of({
+        skipRefresh: false,
         size: 10,
-      },
-      data: {
-        api: { id: 'apiId' },
-      },
-    };
-  }));
+        page: 1,
+        field: 'subject',
+        order: 'ASC',
+      });
+
+      route.snapshot = {
+        queryParams: {
+          size: 10,
+        },
+        data: {
+          api: { id: 'apiId' },
+        },
+      };
+    }),
+  );
 
   afterEach(() => {
     if (component.queryParamSubscription) {

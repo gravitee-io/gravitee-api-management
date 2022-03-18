@@ -21,7 +21,7 @@ import { TranslateTestingModule } from '../../../test/translate-testing-module';
 import { ApplicationSubscriptionsComponent } from './application-subscriptions.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { fakeAsync, async, ComponentFixture, TestBed, tick } from '@angular/core/testing';
+import { fakeAsync, ComponentFixture, TestBed, tick, waitForAsync } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { ApiKeyModeEnum, Application, Key, Plan, Subscription } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import SecurityEnum = Plan.SecurityEnum;
@@ -42,22 +42,24 @@ describe('ApplicationSubscriptionsComponent', () => {
   }
 
   describe('empty app', () => {
-    beforeEach(async(() => {
-      TestBed.configureTestingModule({
-        ...defaultConf,
-        providers: [
-          {
-            provide: ActivatedRoute,
-            useValue: {
-              snapshot: {
-                data: {},
+    beforeEach(
+      waitForAsync(() => {
+        TestBed.configureTestingModule({
+          ...defaultConf,
+          providers: [
+            {
+              provide: ActivatedRoute,
+              useValue: {
+                snapshot: {
+                  data: {},
+                },
               },
             },
-          },
-        ],
-      }).compileComponents();
-      initFixture();
-    }));
+          ],
+        }).compileComponents();
+        initFixture();
+      }),
+    );
 
     it('should create', () => {
       expect(component).toBeTruthy();
@@ -121,29 +123,31 @@ describe('ApplicationSubscriptionsComponent', () => {
       httpTestingController.verify();
     });
 
-    beforeEach(async(() => {
-      TestBed.configureTestingModule({
-        ...defaultConf,
-        providers: [
-          {
-            provide: ActivatedRoute,
-            useValue: {
-              snapshot: {
-                data: {
-                  application,
+    beforeEach(
+      waitForAsync(() => {
+        TestBed.configureTestingModule({
+          ...defaultConf,
+          providers: [
+            {
+              provide: ActivatedRoute,
+              useValue: {
+                snapshot: {
+                  data: {
+                    application,
+                  },
+                  params: {
+                    applicationId: application.id,
+                  },
+                  queryParams: {},
                 },
-                params: {
-                  applicationId: application.id,
-                },
-                queryParams: {},
               },
             },
-          },
-        ],
-      }).compileComponents();
-      httpTestingController = TestBed.inject(HttpTestingController);
-      initFixture();
-    }));
+          ],
+        }).compileComponents();
+        httpTestingController = TestBed.inject(HttpTestingController);
+        initFixture();
+      }),
+    );
 
     it('should init sharedApiKey', fakeAsync(() => {
       initSharedKey();
@@ -241,34 +245,36 @@ describe('ApplicationSubscriptionsComponent', () => {
       httpTestingController.verify();
     });
 
-    beforeEach(async(() => {
-      TestBed.configureTestingModule({
-        ...defaultConf,
-        providers: [
-          {
-            provide: ActivatedRoute,
-            useValue: {
-              snapshot: {
-                data: {
-                  application: {
-                    id: 'application1',
-                    name: 'applicationWithSharedKey',
-                    api_key_mode: ApiKeyModeEnum.EXCLUSIVE,
+    beforeEach(
+      waitForAsync(() => {
+        TestBed.configureTestingModule({
+          ...defaultConf,
+          providers: [
+            {
+              provide: ActivatedRoute,
+              useValue: {
+                snapshot: {
+                  data: {
+                    application: {
+                      id: 'application1',
+                      name: 'applicationWithSharedKey',
+                      api_key_mode: ApiKeyModeEnum.EXCLUSIVE,
+                    },
                   },
+                  params: {
+                    applicationId: 'application1',
+                  },
+                  queryParams: {},
                 },
-                params: {
-                  applicationId: 'application1',
-                },
-                queryParams: {},
               },
             },
-          },
-        ],
-      }).compileComponents();
-      httpTestingController = TestBed.inject(HttpTestingController);
+          ],
+        }).compileComponents();
+        httpTestingController = TestBed.inject(HttpTestingController);
 
-      initFixture();
-    }));
+        initFixture();
+      }),
+    );
 
     it('should not init sharedApiKey', fakeAsync(() => {
       const subscription: Subscription = {

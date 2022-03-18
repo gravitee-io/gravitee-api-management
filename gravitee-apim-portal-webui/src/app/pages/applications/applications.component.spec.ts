@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { ApplicationsComponent } from './applications.component';
@@ -31,23 +31,25 @@ describe('ApplicationsComponent', () => {
   let fixture: ComponentFixture<ApplicationsComponent>;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ApplicationsComponent],
-      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParamMap: mockActivatedRouteQueryParamMap$,
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [ApplicationsComponent],
+        imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
+        schemas: [CUSTOM_ELEMENTS_SCHEMA],
+        providers: [
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              queryParamMap: mockActivatedRouteQueryParamMap$,
+            },
           },
-        },
-      ],
-    }).compileComponents();
+        ],
+      }).compileComponents();
 
-    httpTestingController = TestBed.inject(HttpTestingController);
-  }));
+      httpTestingController = TestBed.inject(HttpTestingController);
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ApplicationsComponent);
