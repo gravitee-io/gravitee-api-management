@@ -51,7 +51,7 @@
     "marked": "1.2.9",
     "messageformat": "2.3.0",
     "ngx-cookie-service": "12.0.3",
-    "ngx-translate-messageformat-compiler": "4.8.0",
+    "ngx-translate-messageformat-compiler": "4.10.0",
     "redoc": "2.0.0-rc.53",
     "resize-observer-polyfill": "1.5.1",
     "rxjs": "6.5.5",
