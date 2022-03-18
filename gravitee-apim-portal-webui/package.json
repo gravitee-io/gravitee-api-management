@@ -68,7 +68,7 @@
     "@angular/compiler-cli": "9.1.1",
     "@angular/language-service": "9.1.1",
     "@babel/preset-env": "7.16.11",
-    "@biesbjerg/ngx-translate-extract": "6.1.0",
+    "@biesbjerg/ngx-translate-extract": "7.0.4",
     "@biesbjerg/ngx-translate-extract-marker": "1.0.0",
     "@ngneat/spectator": "5.13.4",
     "@openapitools/openapi-generator-cli": "1.0.12-4.3.0",
