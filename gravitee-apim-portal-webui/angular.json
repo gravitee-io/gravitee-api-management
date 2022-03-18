@@ -19,7 +19,6 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "aot": true,
-            "extractCss": true,
             "assets": [
               "src/favicon.ico",
               "src/favicon.png",
@@ -60,7 +59,7 @@
               "node_modules/highlight.js/styles/a11y-light.css",
               {
                 "input": "node_modules/swagger-ui-dist/swagger-ui.css",
-                "inject": false,
+                "inject": true,
                 "bundleName": "swagger-ui"
               }
             ],
@@ -68,7 +67,7 @@
               "node_modules/marked/lib/marked.js",
               {
                 "input": "node_modules/redoc/bundles/redoc.standalone.js",
-                "inject": false,
+                "inject": true,
                 "bundleName": "redoc"
               }
             ]
@@ -84,7 +83,6 @@
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
-              "extractCss": true,
               "namedChunks": false,
               "extractLicenses": true,
               "vendorChunk": false,
@@ -161,7 +159,7 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
             "tsConfig": "projects/portal-webclient-sdk/tsconfig.lib.json",
             "project": "projects/portal-webclient-sdk/ng-package.json"

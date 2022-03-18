@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
