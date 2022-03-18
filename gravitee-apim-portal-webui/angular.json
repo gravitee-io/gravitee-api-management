@@ -60,7 +60,7 @@
               "node_modules/highlight.js/styles/a11y-light.css",
               {
                 "input": "node_modules/swagger-ui-dist/swagger-ui.css",
-                "lazy": true,
+                "inject": false,
                 "bundleName": "swagger-ui"
               }
             ],
@@ -68,7 +68,7 @@
               "node_modules/marked/lib/marked.js",
               {
                 "input": "node_modules/redoc/bundles/redoc.standalone.js",
-                "lazy": true,
+                "inject": false,
                 "bundleName": "redoc"
               }
             ]

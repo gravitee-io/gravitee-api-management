@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewChecked, Directive, ElementRef, Input, NgModule, Pipe, PipeTransform } from '@angular/core';
+import { AfterViewChecked, Directive, ElementRef, Input, NgModule, Pipe, PipeTransform, Injectable } from '@angular/core';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 
 export const TRANSLATED_STRING = 'i18n';
 
+@Injectable()
 export class TranslateServiceMock {
   onLangChangeSubject: Subject<LangChangeEvent> = new Subject();
   onTranslationChangeSubject: Subject<string> = new Subject();
