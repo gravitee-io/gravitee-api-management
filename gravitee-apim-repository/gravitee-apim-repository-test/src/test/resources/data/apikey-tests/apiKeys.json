@@ -71,11 +71,15 @@
 		"id": "id-of-apikey-7",
 		"key": "the-key-of-api-key-7",
 		"subscriptions": ["sub4", "sub5", "sub6"],
+		"createdAt": 1486771200000,
+		"updatedAt": 1486771600000,
 		"application": "app4"
 	},
 	{
 		"id": "id-of-apikey-8",
 		"key": "the-key-of-api-key-8",
+		"createdAt": 1486771200000,
+		"updatedAt": 1486771600000,
 		"subscriptions": [],
 		"application": "app4"
 	}

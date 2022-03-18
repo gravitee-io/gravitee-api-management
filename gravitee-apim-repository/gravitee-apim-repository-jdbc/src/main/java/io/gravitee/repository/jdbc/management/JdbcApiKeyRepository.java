@@ -141,9 +141,13 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             boolean first = true;
 
             if (!isEmpty(criteria.getPlans())) {
-                query.append(" join ").append(SUBSCRIPTION).append(" s on ks.subscription_id = s.id");
-
-                first = getOrm().buildInCondition(first, query, "s." + escapeReservedWord("plan"), criteria.getPlans());
+                first = addClause(first, query);
+                query
+                    .append(" k.id in (")
+                    .append("   select key_id from " + KEY_SUBSCRIPTIONS + " ks")
+                    .append("   join " + SUBSCRIPTION + " s on s.id = ks.subscription_id")
+                    .append("   where s." + escapeReservedWord("plan") + " in (" + getOrm().buildInClause(criteria.getPlans()) + ")")
+                    .append(")");
                 args.addAll(criteria.getPlans());
             }
 
@@ -202,8 +206,12 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
         LOGGER.debug("JdbcApiKeyRepository.findBySubscription({})", subscription);
         try {
-            String query =
-                getOrm().getSelectAllSql() + " k" + " join " + KEY_SUBSCRIPTIONS + " ks on ks.key_id = k.id and ks.subscription_id = ?";
+            String query = String.format(
+                "%s k join %s ks on ks.key_id = k.id where k.id in ( select key_id from %s where subscription_id = ?)",
+                getOrm().getSelectAllSql(),
+                KEY_SUBSCRIPTIONS,
+                KEY_SUBSCRIPTIONS
+            );
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 

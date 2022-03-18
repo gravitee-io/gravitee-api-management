@@ -151,6 +151,16 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Api found on subscription with no api", apiKeys.isEmpty());
     }
 
+    @Test
+    public void findBySubscription_should_read_all_subscriptions() throws Exception {
+        Set<ApiKey> apiKeys = apiKeyRepository.findBySubscription("subscriptionX");
+
+        assertEquals(1, apiKeys.size());
+
+        ApiKey apiKey = apiKeys.iterator().next();
+        assertTrue(apiKey.getSubscriptions().containsAll(Set.of("subscription2", "subscriptionX")));
+    }
+
     @Test(expected = IllegalStateException.class)
     public void update_should_throw_exception_when_updating_unknown_key() throws Exception {
         ApiKey unknownApiKey = new ApiKey();
@@ -180,6 +190,13 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void findByCriteria_should_find_by_plan_and_read_subscriptions() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().includeRevoked(false).plans(singleton("plan5")).build());
+        assertEquals(1, apiKeys.size());
+        assertTrue(apiKeys.get(0).getSubscriptions().containsAll(Set.of("sub4", "sub5", "sub6")));
+    }
+
+    @Test
     public void findByCriteria_should_find_by_criteria_with_time_range() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
             new Builder().includeRevoked(false).from(1486771200000L).to(1486771400000L).plans(singleton("plan1")).build()
@@ -189,6 +206,22 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         assertFalse("found api key", apiKeys.isEmpty());
         assertEquals("found 1 api key " + apiKeys.stream().map(ApiKey::getKey).collect(Collectors.toList()), 1, apiKeys.size());
         assertEquals("findByCriteria1", apiKeys.get(0).getKey());
+    }
+
+    @Test
+    public void findByCriteria_should_find_multiple_by_plan_criteria_with_time_range() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            new Builder().from(1486771200000L).to(1486771900000L).plans(Set.of("plan1", "plan5")).build()
+        );
+
+        assertEquals(3, apiKeys.size());
+        assertTrue(
+            apiKeys
+                .stream()
+                .map(ApiKey::getId)
+                .collect(Collectors.toList())
+                .containsAll(Set.of("id-of-apikey-4", "id-of-apikey-6", "id-of-apikey-7"))
+        );
     }
 
     @Test

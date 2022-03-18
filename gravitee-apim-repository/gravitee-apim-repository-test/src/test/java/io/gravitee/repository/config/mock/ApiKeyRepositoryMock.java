@@ -61,6 +61,7 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         when(apiKeyRepository.findById("id-of-new-apikey")).thenReturn(of(apiKey1));
         when(apiKeyRepository.findByKey("d449098d-8c31-4275-ad59-8dd707865a34")).thenReturn(List.of(apiKey1, apiKey2));
         when(apiKeyRepository.findBySubscription("subscription1")).thenReturn(newSet(apiKey1, mock(ApiKey.class)));
+        when(apiKeyRepository.findBySubscription("subscriptionX")).thenReturn(newSet(apiKey2));
         when(apiKeyRepository.findByKeyAndApi("d449098d-8c31-4275-ad59-8dd707865a34", "api2")).thenReturn(of(apiKey2));
 
         when(apiKeyRepository.update(argThat(o -> o == null || o.getId().equals("unknown_key_id")))).thenThrow(new IllegalStateException());
@@ -71,7 +72,10 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         when(mockCriteria1.getKey()).thenReturn("findByCriteria1");
         when(mockCriteria1Revoked.getKey()).thenReturn("findByCriteria1Revoked");
         when(mockCriteria2.getKey()).thenReturn("findByCriteria2");
-        when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.getFrom() == 0))).thenReturn(asList(mockCriteria1, mockCriteria2));
+
+        when(apiKeyRepository.findByCriteria(argThat(o -> o != null && o.getPlans() != null && o.getPlans().equals(Set.of("plan1")))))
+            .thenReturn(asList(mockCriteria1, mockCriteria2));
+
         when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.getTo() == 1486771400000L)))
             .thenReturn(singletonList(mockCriteria1));
         when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.isIncludeRevoked())))
@@ -87,6 +91,23 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
             )
         )
             .thenReturn(asList(apiKey2, apiKey3));
+
+        when(apiKeyRepository.findByCriteria(argThat(o -> o != null && o.getPlans() != null && o.getPlans().equals(Set.of("plan5")))))
+            .thenReturn(List.of(apiKey7));
+
+        when(
+            apiKeyRepository.findByCriteria(
+                argThat(
+                    o ->
+                        o != null &&
+                        o.getFrom() == 1486771200000L &&
+                        o.getTo() == 1486771900000L &&
+                        o.getPlans() != null &&
+                        o.getPlans().containsAll(Set.of("plan1", "plan5"))
+                )
+            )
+        )
+            .thenReturn(List.of(apiKey4, apiKey6, apiKey7));
 
         when(apiKeyRepository.findByApplication("app1")).thenReturn(List.of(apiKey5, apiKey4));
         when(apiKeyRepository.findByKeyAndApi("findByCriteria2", "api2")).thenReturn(Optional.of(apiKey6));
