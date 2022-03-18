@@ -243,31 +243,32 @@ public class DeployModelCommandHandlerTest {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
+        payload.setEnvironmentId("env#id");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        when(apiService.exists(payload.getModelId())).thenReturn(true);
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("env#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("api#id");
+        when(apiService.findByEnvironmentIdAndCrossId(payload.getEnvironmentId(), payload.getModelId())).thenReturn(Optional.of(apiEntity));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), payload.getModelId(), DeploymentMode.API_DOCUMENTED)
-        )
+        when(permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), apiEntity.getId(), DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.updateApi(
-                payload.getModelId(),
+                apiEntity.getId(),
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
@@ -277,9 +278,9 @@ public class DeployModelCommandHandlerTest {
         )
             .thenAnswer(
                 i -> {
-                    ApiEntity apiEntity = new ApiEntity();
-                    apiEntity.setId(i.getArgument(0));
-                    return ApiEntityResult.success(apiEntity);
+                    ApiEntity result = new ApiEntity();
+                    result.setId(i.getArgument(0));
+                    return ApiEntityResult.success(result);
                 }
             );
 
@@ -294,29 +295,32 @@ public class DeployModelCommandHandlerTest {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
+        payload.setEnvironmentId("env#id");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_MOCKED);
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        when(apiService.exists(payload.getModelId())).thenReturn(true);
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("env#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("api#id");
+        when(apiService.findByEnvironmentIdAndCrossId(payload.getEnvironmentId(), payload.getModelId())).thenReturn(Optional.of(apiEntity));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), payload.getModelId(), DeploymentMode.API_MOCKED))
+        when(permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), apiEntity.getId(), DeploymentMode.API_MOCKED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.updateApi(
-                payload.getModelId(),
+                apiEntity.getId(),
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
@@ -326,9 +330,9 @@ public class DeployModelCommandHandlerTest {
         )
             .thenAnswer(
                 i -> {
-                    ApiEntity apiEntity = new ApiEntity();
-                    apiEntity.setId(i.getArgument(0));
-                    return ApiEntityResult.success(apiEntity);
+                    ApiEntity result = new ApiEntity();
+                    result.setId(i.getArgument(0));
+                    return ApiEntityResult.success(result);
                 }
             );
 
@@ -343,29 +347,32 @@ public class DeployModelCommandHandlerTest {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
+        payload.setEnvironmentId("env#id");
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_PUBLISHED);
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        when(apiService.exists(payload.getModelId())).thenReturn(true);
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("env#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("api#id");
+        when(apiService.findByEnvironmentIdAndCrossId(payload.getEnvironmentId(), payload.getModelId())).thenReturn(Optional.of(apiEntity));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), payload.getModelId(), DeploymentMode.API_PUBLISHED))
+        when(permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), apiEntity.getId(), DeploymentMode.API_PUBLISHED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.updateApi(
-                payload.getModelId(),
+                apiEntity.getId(),
                 user.getId(),
                 payload.getSwaggerDefinition(),
                 environment.getId(),
@@ -375,9 +382,9 @@ public class DeployModelCommandHandlerTest {
         )
             .thenAnswer(
                 i -> {
-                    ApiEntity apiEntity = new ApiEntity();
-                    apiEntity.setId(i.getArgument(0));
-                    return ApiEntityResult.success(apiEntity);
+                    ApiEntity result = new ApiEntity();
+                    result.setId(i.getArgument(0));
+                    return ApiEntityResult.success(result);
                 }
             );
 
@@ -525,26 +532,27 @@ public class DeployModelCommandHandlerTest {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
+        payload.setEnvironmentId("env#id");
         payload.setUserId("user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        when(apiService.exists(payload.getModelId())).thenReturn(true);
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("env#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("api#id");
+        when(apiService.findByEnvironmentIdAndCrossId(payload.getEnvironmentId(), payload.getModelId())).thenReturn(Optional.of(apiEntity));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), payload.getModelId(), DeploymentMode.API_DOCUMENTED)
-        )
+        when(permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), apiEntity.getId(), DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();

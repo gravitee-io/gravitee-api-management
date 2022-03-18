@@ -23,6 +23,7 @@ import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
 import io.gravitee.cockpit.api.command.designer.DeployModelReply;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntityResult;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.Single;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -75,7 +77,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
     public Single<DeployModelReply> handle(DeployModelCommand command) {
         DeployModelPayload payload = command.getPayload();
 
-        String apiId = payload.getModelId();
+        String apiCrossId = payload.getModelId();
         String userId = payload.getUserId();
         String swaggerDefinition = payload.getSwaggerDefinition();
         String environmentId = payload.getEnvironmentId();
@@ -90,8 +92,10 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
             ApiEntityResult result;
 
-            if (apiService.exists(apiId)) {
-                var message = permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), apiId, mode);
+            final Optional<ApiEntity> optApi = apiService.findByEnvironmentIdAndCrossId(environment.getId(), apiCrossId);
+            if (optApi.isPresent()) {
+                final ApiEntity api = optApi.get();
+                var message = permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), api.getId(), mode);
 
                 if (message.isPresent()) {
                     var reply = new DeployModelReply(command.getId(), CommandStatus.FAILED);
@@ -99,7 +103,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                     return Single.just(reply);
                 }
 
-                result = cockpitApiService.updateApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode, labels);
+                result = cockpitApiService.updateApi(api.getId(), user.getId(), swaggerDefinition, environment.getId(), mode, labels);
             } else {
                 var message = permissionChecker.checkCreatePermission(user.getId(), environment.getId(), mode);
 
@@ -109,7 +113,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                     return Single.just(reply);
                 }
 
-                result = cockpitApiService.createApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode, labels);
+                result = cockpitApiService.createApi(apiCrossId, user.getId(), swaggerDefinition, environment.getId(), mode, labels);
             }
 
             if (result.isSuccess()) {
