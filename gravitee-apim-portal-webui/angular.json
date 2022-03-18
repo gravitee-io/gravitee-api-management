@@ -177,6 +177,7 @@
   },
   "defaultProject": "gravitee-portal-webui",
   "cli": {
-    "analytics": false
+    "analytics": false,
+    "packageManager": "npm"
   }
 }
