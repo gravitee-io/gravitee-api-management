@@ -50,7 +50,7 @@
     "js-yaml": "3.13.1",
     "marked": "1.2.9",
     "messageformat": "2.3.0",
-    "ngx-cookie-service": "3.0.4",
+    "ngx-cookie-service": "10.1.1",
     "ngx-translate-messageformat-compiler": "4.6.0",
     "redoc": "2.0.0-rc.53",
     "resize-observer-polyfill": "1.5.1",
