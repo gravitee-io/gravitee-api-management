@@ -52,7 +52,7 @@
     "use-lifecycle-interface": true,
     "use-pipe-transform-interface": true
   },
-  "rulesDirectory": ["codelyzer", "node_modules/tslint-eslint-rules/dist/rules"],
+  "rulesDirectory": ["codelyzer"],
   "variable-name": ["allow-leading-underscore"],
   "linterOptions": {
     "exclude": ["projects/**"]
