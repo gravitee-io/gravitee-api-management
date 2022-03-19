@@ -92,6 +92,9 @@ public class JdbcTestRepositoryConfiguration {
         hikariConfig.setUsername(container.getUsername());
         hikariConfig.setPassword(container.getPassword());
         hikariConfig.setDriverClassName(container.getDriverClassName());
+        Properties properties = new Properties();
+        properties.setProperty("useSSL", "false");
+        hikariConfig.setDataSourceProperties(properties);
         return hikariConfig;
     }
 
