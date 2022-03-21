@@ -321,7 +321,7 @@ public class LogsServiceImpl implements LogsService {
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+                    ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), application);
                     metadata.put(METADATA_NAME, applicationEntity.getName());
                     if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
                         metadata.put(METADATA_DELETED, Boolean.TRUE.toString());

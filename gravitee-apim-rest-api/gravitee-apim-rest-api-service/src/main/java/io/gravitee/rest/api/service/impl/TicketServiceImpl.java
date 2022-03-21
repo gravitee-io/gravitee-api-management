@@ -143,7 +143,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             }
 
             if (ticketEntity.getApplication() != null && !ticketEntity.getApplication().isEmpty()) {
-                applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), ticketEntity.getApplication());
+                applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), ticketEntity.getApplication());
                 parameters.put("application", applicationEntity);
             } else {
                 applicationEntity = null;
@@ -278,7 +278,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     private Ticket getApiNameAndApplicationName(Ticket ticket) {
         //Retrieve application name
         if (StringUtils.isNotEmpty(ticket.getApplication())) {
-            ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), ticket.getApplication());
+            ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), ticket.getApplication());
             ticket.setApplication(application.getName());
         }
 

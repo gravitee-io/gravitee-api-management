@@ -91,7 +91,7 @@ public class ApplicationService_ArchiveTest {
         when(apiKeyService.findBySubscription("sub")).thenReturn(Collections.singletonList(apiKeyEntity));
         when(apiKeyEntity.getKey()).thenReturn("key");
 
-        applicationService.archive(APPLICATION_ID);
+        applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         verify(apiKeyService, times(1)).delete("key");
         verify(membershipService, times(1))
@@ -110,7 +110,7 @@ public class ApplicationService_ArchiveTest {
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotArchiveUnknownApp() throws Exception {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
-        applicationService.archive(APPLICATION_ID);
+        applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         Assert.fail("should not archive unknown app");
     }
 }

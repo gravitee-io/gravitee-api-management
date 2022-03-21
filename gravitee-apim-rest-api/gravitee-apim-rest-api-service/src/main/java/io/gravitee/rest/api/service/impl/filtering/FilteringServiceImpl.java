@@ -260,11 +260,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     private FilteredEntities<ApiEntity> getCurrentUserSubscribedApis(Collection<ApiEntity> apis, boolean excluded) {
         //get Current user applications
         List<String> currentUserApplicationsId = applicationService
-            .findByUser(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                getAuthenticatedUser().getUsername()
-            )
+            .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser().getUsername())
             .stream()
             .map(ApplicationListItem::getId)
             .collect(Collectors.toList());

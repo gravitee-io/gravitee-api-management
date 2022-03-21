@@ -66,8 +66,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
     ) {
         String currentUser = getAuthenticatedUserOrNull();
         Collection<ApplicationListItem> userApplications = applicationService.findByUser(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             currentUser
         );
         Optional<ApplicationListItem> optionalApplication = userApplications

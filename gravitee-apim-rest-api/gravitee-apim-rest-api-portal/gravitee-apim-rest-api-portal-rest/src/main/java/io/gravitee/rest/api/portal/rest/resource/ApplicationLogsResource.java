@@ -66,7 +66,7 @@ public class ApplicationLogsResource extends AbstractResource {
         @BeanParam LogsParam logsParam
     ) {
         //Does application exists ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
 
@@ -114,7 +114,7 @@ public class ApplicationLogsResource extends AbstractResource {
         @QueryParam("timestamp") Long timestamp
     ) {
         //Does application exists ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         ApplicationRequest applicationLogs = logsService.findApplicationLog(logId, timestamp);
 
@@ -130,7 +130,7 @@ public class ApplicationLogsResource extends AbstractResource {
         @BeanParam LogsParam logsParam
     ) {
         //Does application exists ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
         return Response
             .ok(logsService.exportAsCsv(searchLogResponse))

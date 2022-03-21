@@ -60,6 +60,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
@@ -245,7 +246,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     try {
                         environmentService
                             .findByUser(GraviteeContext.getCurrentOrganization(), userId)
-                            .forEach(env -> applicationService.create(env.getId(), defaultApp, userId));
+                            .forEach(
+                                env ->
+                                    applicationService.create(
+                                        new ExecutionContext(GraviteeContext.getCurrentOrganization(), env.getId()),
+                                        defaultApp,
+                                        userId
+                                    )
+                            );
                     } catch (IllegalStateException ex) {
                         //do not fail to create a user even if we are not able to create its default app
                         LOGGER.warn("Not able to create default app for user {}", userId);
@@ -1200,7 +1208,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .filter(entity -> entity.getPrimaryOwner().getId().equals(id))
                 .count();
             long applicationCount = applicationService
-                .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), id)
+                .findByUser(GraviteeContext.getExecutionContext(), id)
                 .stream()
                 .filter(app -> app.getPrimaryOwner() != null)
                 .filter(app -> app.getPrimaryOwner().getId().equals(id))

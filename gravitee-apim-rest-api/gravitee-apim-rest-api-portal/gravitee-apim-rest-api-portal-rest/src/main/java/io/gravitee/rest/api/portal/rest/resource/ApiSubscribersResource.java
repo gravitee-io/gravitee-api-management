@@ -79,11 +79,7 @@ public class ApiSubscribersResource extends AbstractResource {
             ApiEntity api = optionalApi.get();
             if (!api.getPrimaryOwner().getId().equals(currentUser)) {
                 Set<ApplicationListItem> userApplications =
-                    this.applicationService.findByUser(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
-                            currentUser
-                        );
+                    this.applicationService.findByUser(GraviteeContext.getExecutionContext(), currentUser);
                 if (userApplications == null || userApplications.isEmpty()) {
                     return createListResponse(Collections.emptyList(), paginationParam);
                 }
@@ -97,7 +93,7 @@ public class ApiSubscribersResource extends AbstractResource {
                 .stream()
                 .map(SubscriptionEntity::getApplication)
                 .distinct()
-                .map(application -> applicationService.findById(GraviteeContext.getCurrentEnvironment(), application))
+                .map(application -> applicationService.findById(GraviteeContext.getExecutionContext(), application))
                 .map(application -> applicationMapper.convert(application, uriInfo))
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());

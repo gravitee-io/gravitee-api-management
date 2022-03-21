@@ -290,7 +290,7 @@ public class SubscriptionServiceTest {
 
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
 
@@ -318,7 +318,7 @@ public class SubscriptionServiceTest {
         when(generalConditionPage.getContentRevisionId()).thenReturn(pageRevisionId);
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
         when(pageService.findById(PAGE_ID)).thenReturn(generalConditionPage);
@@ -432,7 +432,7 @@ public class SubscriptionServiceTest {
 
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
         when(subscriptionRepository.create(any()))
@@ -499,7 +499,7 @@ public class SubscriptionServiceTest {
 
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
         when(subscriptionRepository.create(any()))
@@ -599,7 +599,7 @@ public class SubscriptionServiceTest {
 
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
         // Run
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
@@ -789,7 +789,7 @@ public class SubscriptionServiceTest {
         when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKey));
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(application.getPrimaryOwner()).thenReturn(mock(PrimaryOwnerEntity.class));
 
         subscriptionService.close(SUBSCRIPTION_ID);
@@ -828,7 +828,7 @@ public class SubscriptionServiceTest {
         when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKey));
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(application.getPrimaryOwner()).thenReturn(mock(PrimaryOwnerEntity.class));
 
         subscriptionService.pause(SUBSCRIPTION_ID);
@@ -861,7 +861,7 @@ public class SubscriptionServiceTest {
         when(notifierService.hasEmailNotificationFor(any(), any(), anyMap(), anyString())).thenReturn(false);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
 
         // Run
@@ -899,7 +899,7 @@ public class SubscriptionServiceTest {
         when(notifierService.hasEmailNotificationFor(any(), any(), anyMap(), anyString())).thenReturn(true);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
 
         // Run
@@ -939,7 +939,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
         final UserEntity subscriberUser = new UserEntity();
         subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
@@ -979,7 +979,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
         final UserEntity subscriberUser = new UserEntity();
         subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
@@ -1016,7 +1016,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
         // Run
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
@@ -1027,7 +1027,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
         // Run
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
@@ -1038,7 +1038,7 @@ public class SubscriptionServiceTest {
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
         when(plan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
 
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
         // Run
@@ -1060,7 +1060,7 @@ public class SubscriptionServiceTest {
         when(plan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
         when(plan.getApi()).thenReturn(API_ID);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
         subscriptionService.transfer(transferSubscription, USER_ID);
 
@@ -1123,7 +1123,7 @@ public class SubscriptionServiceTest {
 
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(apiService.findByIdForTemplates("api1")).thenReturn(apiModelEntity);
 
         when(subscriptionRepository.create(any()))

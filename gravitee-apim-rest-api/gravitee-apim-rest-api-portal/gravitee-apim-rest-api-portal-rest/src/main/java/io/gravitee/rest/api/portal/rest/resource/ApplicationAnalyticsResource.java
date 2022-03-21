@@ -65,7 +65,7 @@ public class ApplicationAnalyticsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ) })
     public Response hits(@PathParam("applicationId") String applicationId, @BeanParam AnalyticsParam analyticsParam) {
         //Does application exists ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         analyticsParam.validate();
 

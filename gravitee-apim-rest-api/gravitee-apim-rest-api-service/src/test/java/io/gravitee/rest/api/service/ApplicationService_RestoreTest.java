@@ -79,7 +79,7 @@ public class ApplicationService_RestoreTest {
     public void shouldNotRestoreApp_NotExist() throws TechnicalException {
         when(applicationRepository.findById(APP)).thenReturn(Optional.empty());
 
-        applicationService.restore(APP);
+        applicationService.restore(GraviteeContext.getExecutionContext(), APP);
     }
 
     @Test(expected = ApplicationActiveException.class)
@@ -89,7 +89,7 @@ public class ApplicationService_RestoreTest {
 
         when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
 
-        applicationService.restore(APP);
+        applicationService.restore(GraviteeContext.getExecutionContext(), APP);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class ApplicationService_RestoreTest {
         when(subscriptionService.findByApplicationAndPlan(any(), any())).thenReturn(Collections.emptyList());
         when(userService.findById(any())).thenReturn(new UserEntity());
 
-        ApplicationEntity result = applicationService.restore(APP);
+        ApplicationEntity result = applicationService.restore(GraviteeContext.getExecutionContext(), APP);
 
         verify(membershipService, times(1))
             .deleteReference(

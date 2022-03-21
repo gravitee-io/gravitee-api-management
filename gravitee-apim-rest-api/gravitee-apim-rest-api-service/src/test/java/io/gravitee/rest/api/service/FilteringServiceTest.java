@@ -148,7 +148,7 @@ public class FilteringServiceTest {
         appC.setId("C");
         doReturn(new HashSet<ApplicationListItem>(Arrays.asList(appC, appB, appA)))
             .when(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+            .findByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");

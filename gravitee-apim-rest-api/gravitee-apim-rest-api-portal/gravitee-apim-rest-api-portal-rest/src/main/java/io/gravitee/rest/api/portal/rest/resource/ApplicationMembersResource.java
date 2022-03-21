@@ -74,7 +74,7 @@ public class ApplicationMembersResource extends AbstractResource {
         @BeanParam PaginationParam paginationParam
     ) {
         //Does application exist ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         List<Member> membersList = membershipService
             .getMembersByReference(MembershipReferenceType.APPLICATION, applicationId)
@@ -94,7 +94,7 @@ public class ApplicationMembersResource extends AbstractResource {
         @Valid @NotNull(message = "Input must not be null.") MemberInput memberInput
     ) {
         //Does application exist ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         //There can be only one
         if (SystemRole.PRIMARY_OWNER.name().equals(memberInput.getRole())) {
@@ -121,7 +121,7 @@ public class ApplicationMembersResource extends AbstractResource {
         @PathParam("memberId") String memberId
     ) {
         //Does application exist ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         //Does user exist ?
         userService.findById(memberId);
@@ -144,7 +144,7 @@ public class ApplicationMembersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationMember(@PathParam("applicationId") String applicationId, @PathParam("memberId") String memberId) {
         //Does application exist ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         //Does user exist ?
         userService.findById(memberId);
@@ -171,7 +171,7 @@ public class ApplicationMembersResource extends AbstractResource {
         @Valid @NotNull(message = "Input must not be null.") MemberInput memberInput
     ) {
         //Does application exist ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         //Does user exist ?
         userService.findById(memberId);
@@ -206,7 +206,7 @@ public class ApplicationMembersResource extends AbstractResource {
         @NotNull(message = "Input must not be null.") TransferOwnershipInput transferOwnershipInput
     ) {
         //Does application exist ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         //There can be only one
         if (SystemRole.PRIMARY_OWNER.name().equals(transferOwnershipInput.getPrimaryOwnerNewrole())) {

@@ -86,11 +86,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
                 fieldName = "application";
                 ids =
                     applicationService
-                        .findByUser(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
-                            getAuthenticatedUser()
-                        )
+                        .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
                         .stream()
                         .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
                         .map(ApplicationListItem::getId)

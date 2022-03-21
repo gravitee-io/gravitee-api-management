@@ -102,11 +102,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 fieldName = APPLICATION_FIELD;
                 ids =
                     applicationService
-                        .findByUser(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
-                            getAuthenticatedUser()
-                        )
+                        .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
                         .stream()
                         .map(ApplicationListItem::getId)
                         .filter(appId -> permissionService.hasPermission(APPLICATION_ANALYTICS, appId, READ))
@@ -175,18 +171,10 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 }
             case APPLICATION_FIELD:
                 if (isAdmin()) {
-                    return buildCountStat(
-                        applicationService.findAll(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment()).size()
-                    );
+                    return buildCountStat(applicationService.findAll(GraviteeContext.getExecutionContext()).size());
                 } else {
                     return buildCountStat(
-                        applicationService
-                            .findByUser(
-                                GraviteeContext.getCurrentOrganization(),
-                                GraviteeContext.getCurrentEnvironment(),
-                                getAuthenticatedUser()
-                            )
-                            .size()
+                        applicationService.findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser()).size()
                     );
                 }
             default:

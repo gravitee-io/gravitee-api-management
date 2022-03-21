@@ -83,7 +83,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         doThrow(ApplicationNotFoundException.class)
             .when(applicationService)
-            .findById(GraviteeContext.getCurrentEnvironment(), UNKNOWN_APPLICATION);
+            .findById(GraviteeContext.getExecutionContext(), UNKNOWN_APPLICATION);
         doThrow(UserNotFoundException.class).when(userService).findById(UNKNOWN_MEMBER);
     }
 

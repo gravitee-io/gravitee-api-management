@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.ReferenceMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -81,7 +82,7 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
         String referenceId,
         final String environmentId
     ) {
-        final ApplicationEntity applicationEntity = applicationService.findById(environmentId, referenceId);
+        final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), referenceId);
         metadataService.checkMetadataFormat(format, value, referenceType, applicationEntity);
     }
 

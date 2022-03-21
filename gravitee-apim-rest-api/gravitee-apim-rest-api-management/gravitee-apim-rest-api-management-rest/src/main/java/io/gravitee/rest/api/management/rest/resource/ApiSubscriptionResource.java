@@ -327,7 +327,7 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.getPlan().setSecurity(plan.getSecurity());
 
         ApplicationEntity application = applicationService.findById(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             subscriptionEntity.getApplication()
         );
         subscription.setApplication(

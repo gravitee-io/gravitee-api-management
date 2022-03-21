@@ -1123,7 +1123,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
             if (portal) {
                 final Set<String> applications = applicationService
-                    .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId)
+                    .findByUser(GraviteeContext.getExecutionContext(), userId)
                     .stream()
                     .map(ApplicationListItem::getId)
                     .collect(toSet());

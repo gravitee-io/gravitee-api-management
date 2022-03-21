@@ -255,7 +255,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                             final ApiEntity api = apiService.findById(reference.getId());
                             shouldNotify = !api.isDisableMembershipNotifications();
                         } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
-                            final ApplicationEntity application = applicationService.findById(environmentId, reference.getId());
+                            final ApplicationEntity application = applicationService.findById(
+                                GraviteeContext.getExecutionContext(),
+                                reference.getId()
+                            );
                             shouldNotify = !application.isDisableMembershipNotifications();
                         }
                     }
@@ -355,7 +358,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder();
         switch (referenceType) {
             case APPLICATION:
-                ApplicationEntity applicationEntity = applicationService.findById(environmentId, referenceId);
+                ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), referenceId);
                 template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_APPLICATION_MEMBER_SUBSCRIPTION;
                 params = paramsBuilder.application(applicationEntity).user(user).build();
                 break;
@@ -1225,7 +1228,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     entityGroups = apiService.findById(referenceId).getGroups();
                     break;
                 case APPLICATION:
-                    entityGroups = applicationService.findById(environmentId, referenceId).getGroups();
+                    entityGroups = applicationService.findById(GraviteeContext.getExecutionContext(), referenceId).getGroups();
                     break;
                 default:
                     break;

@@ -144,8 +144,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             query.setApplication(application);
         } else if (isAuthenticated()) {
             Set<ApplicationListItem> applications = applicationService.findByUser(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 getAuthenticatedUsername()
             );
             query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toList()));
@@ -231,7 +230,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             }
 
-            ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+            ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), application);
             if (ApplicationStatus.ARCHIVED.name().equals(applicationEntity.getStatus())) {
                 throw new ApplicationArchivedException(applicationEntity.getName());
             }
@@ -512,7 +511,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription = subscriptionRepository.update(subscription);
 
             final ApplicationEntity application = applicationService.findById(
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 subscription.getApplication()
             );
             final PlanEntity plan = planService.findById(subscription.getPlan());
@@ -632,7 +631,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                     // Send an email to subscriber
                     final ApplicationEntity application = applicationService.findById(
-                        GraviteeContext.getCurrentEnvironment(),
+                        GraviteeContext.getExecutionContext(),
                         subscription.getApplication()
                     );
                     final PlanEntity plan = planService.findById(subscription.getPlan());
@@ -711,7 +710,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 // Send an email to subscriber
                 final ApplicationEntity application = applicationService.findById(
-                    GraviteeContext.getCurrentEnvironment(),
+                    GraviteeContext.getExecutionContext(),
                     subscription.getApplication()
                 );
                 final PlanEntity plan = planService.findById(subscription.getPlan());
@@ -783,7 +782,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 // Send an email to subscriber
                 final ApplicationEntity application = applicationService.findById(
-                    GraviteeContext.getCurrentEnvironment(),
+                    GraviteeContext.getExecutionContext(),
                     subscription.getApplication()
                 );
                 final PlanEntity plan = planService.findById(subscription.getPlan());
@@ -1054,7 +1053,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             final ApplicationEntity application = applicationService.findById(
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 subscription.getApplication()
             );
             final PlanEntity plan = planService.findById(subscription.getPlan());
@@ -1160,7 +1159,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription -> {
                 if (!metadata.containsKey(subscription.getApplication())) {
                     ApplicationEntity applicationEntity = applicationService.findById(
-                        GraviteeContext.getCurrentEnvironment(),
+                        GraviteeContext.getExecutionContext(),
                         subscription.getApplication()
                     );
                     metadata.put(subscription.getApplication(), "name", applicationEntity.getName());

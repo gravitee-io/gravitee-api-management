@@ -78,7 +78,7 @@ public class SubscriptionsResource {
         subscription.setStatus(subscriptionEntity.getStatus());
 
         ApplicationEntity application = applicationService.findById(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             subscriptionEntity.getApplication()
         );
         subscription.setApplication(

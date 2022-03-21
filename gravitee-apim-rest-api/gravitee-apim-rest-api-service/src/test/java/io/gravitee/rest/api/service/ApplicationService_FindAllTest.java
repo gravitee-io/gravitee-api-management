@@ -74,20 +74,14 @@ public class ApplicationService_FindAllTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
             .thenReturn(new HashSet<>(Collections.singletonList(new MembershipEntity())));
 
-        Set<ApplicationListItem> set = applicationService.findAll(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        Set<ApplicationListItem> set = applicationService.findAll(GraviteeContext.getExecutionContext());
         assertThat(set).hasSize(1);
         verify(applicationRepository, times(1)).findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE);
     }
 
     @Test
     public void shouldTryFindAll_noResult() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findAll(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        Set<ApplicationListItem> set = applicationService.findAll(GraviteeContext.getExecutionContext());
         assertThat(set).isEmpty();
         verify(applicationRepository, times(1)).findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE);
     }
@@ -95,9 +89,6 @@ public class ApplicationService_FindAllTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldTryFindAll_exception() throws Exception {
         when(applicationRepository.findAllByEnvironment(eq("DEFAULT"), eq(ApplicationStatus.ACTIVE))).thenThrow(TechnicalException.class);
-        Set<ApplicationListItem> set = applicationService.findAll(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        Set<ApplicationListItem> set = applicationService.findAll(GraviteeContext.getExecutionContext());
     }
 }

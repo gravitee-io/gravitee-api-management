@@ -120,8 +120,7 @@ public class ApplicationService_UpdateTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         final ApplicationEntity applicationEntity = applicationService.update(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             APPLICATION_ID,
             existingApplication
         );
@@ -137,12 +136,7 @@ public class ApplicationService_UpdateTest {
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
 
-        applicationService.update(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            APPLICATION_ID,
-            existingApplication
-        );
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, existingApplication);
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -159,12 +153,7 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getDescription()).thenReturn("My description");
 
-        applicationService.update(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            APPLICATION_ID,
-            existingApplication
-        );
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, existingApplication);
     }
 
     @Test
@@ -200,8 +189,7 @@ public class ApplicationService_UpdateTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         final ApplicationEntity applicationEntity = applicationService.update(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             APPLICATION_ID,
             existingApplication
         );
@@ -235,11 +223,6 @@ public class ApplicationService_UpdateTest {
 
         when(existingApplication.getSettings()).thenReturn(settings);
 
-        applicationService.update(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            APPLICATION_ID,
-            existingApplication
-        );
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, existingApplication);
     }
 }

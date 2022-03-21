@@ -95,9 +95,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     public void shouldGetSubscriptionsForApi() {
         final ApplicationListItem application = new ApplicationListItem();
         application.setId(APPLICATION);
-        doReturn(newSet(application))
-            .when(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(newSet(application)).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

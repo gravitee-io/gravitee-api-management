@@ -191,7 +191,7 @@ public class ApiKeyServiceTest {
 
         // Stub
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication())).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), subscription.getApplication())).thenReturn(application);
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
         when(apiService.findByIdForTemplates(any())).thenReturn(api);
 
@@ -383,7 +383,7 @@ public class ApiKeyServiceTest {
         when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication())).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), subscription.getApplication())).thenReturn(application);
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
         when(apiService.findByIdForTemplates(any())).thenReturn(api);
 
@@ -434,7 +434,7 @@ public class ApiKeyServiceTest {
         when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication())).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), subscription.getApplication())).thenReturn(application);
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
         when(apiService.findByIdForTemplates(any())).thenReturn(api);
 
@@ -488,7 +488,7 @@ public class ApiKeyServiceTest {
         subscriptionEntity.setEndingAt(new Date());
         when(subscriptionService.findById(any())).thenReturn(subscriptionEntity);
         //notification mocks
-        when(applicationService.findById(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(mock(ApplicationEntity.class));
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(ApplicationEntity.class));
         PlanEntity mockedPlan = mock(PlanEntity.class);
         when(mockedPlan.getApi()).thenReturn("api");
         when(planService.findById(any())).thenReturn(mockedPlan);

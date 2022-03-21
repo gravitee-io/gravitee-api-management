@@ -531,8 +531,8 @@ public class UserServiceTest {
 
         userService.connect(USER_NAME);
 
-        verify(applicationService, times(1)).create(eq("envId2"), any(), eq(USER_NAME));
-        verify(applicationService, times(1)).create(eq("envId3"), any(), eq(USER_NAME));
+        verify(applicationService, times(1)).create(argThat(context -> context.getEnvironmentId().equals("envId2")), any(), eq(USER_NAME));
+        verify(applicationService, times(1)).create(argThat(context -> context.getEnvironmentId().equals("envId3")), any(), eq(USER_NAME));
     }
 
     @Test
@@ -543,7 +543,7 @@ public class UserServiceTest {
 
         userService.connect(USER_NAME);
 
-        verify(applicationService, never()).create(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(USER_NAME));
+        verify(applicationService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), eq(USER_NAME));
     }
 
     @Test
@@ -553,7 +553,7 @@ public class UserServiceTest {
 
         userService.connect(USER_NAME);
 
-        verify(applicationService, never()).create(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(USER_NAME));
+        verify(applicationService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), eq(USER_NAME));
     }
 
     @Test(expected = UserRegistrationUnavailableException.class)
@@ -925,7 +925,7 @@ public class UserServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = mock(PrimaryOwnerEntity.class);
         when(applicationListItem.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
         when(primaryOwnerEntity.getId()).thenReturn(USER_NAME);
-        when(applicationService.findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), USER_NAME))
+        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), eq(USER_NAME)))
             .thenReturn(Collections.singleton(applicationListItem));
 
         try {
@@ -946,8 +946,7 @@ public class UserServiceTest {
         String lastName = "last";
         String email = "email";
         when(apiService.findByUser(userId, null, false)).thenReturn(Collections.emptySet());
-        when(applicationService.findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId))
-            .thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId))).thenReturn(Collections.emptySet());
         User user = new User();
         user.setId(userId);
         user.setSourceId("sourceId");
@@ -961,8 +960,7 @@ public class UserServiceTest {
         userService.delete(userId);
 
         verify(apiService, times(1)).findByUser(userId, null, false);
-        verify(applicationService, times(1))
-            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId);
+        verify(applicationService, times(1)).findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId));
         verify(membershipService, times(1)).removeMemberMemberships(MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(
@@ -999,8 +997,7 @@ public class UserServiceTest {
         String lastName = "last";
         String email = "email";
         when(apiService.findByUser(userId, null, false)).thenReturn(Collections.emptySet());
-        when(applicationService.findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId))
-            .thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId))).thenReturn(Collections.emptySet());
         User user = new User();
         user.setId(userId);
         user.setSourceId("sourceId");
@@ -1015,8 +1012,7 @@ public class UserServiceTest {
         userService.delete(userId);
 
         verify(apiService, times(1)).findByUser(userId, null, false);
-        verify(applicationService, times(1))
-            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), userId);
+        verify(applicationService, times(1)).findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId));
         verify(membershipService, times(1)).removeMemberMemberships(MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(

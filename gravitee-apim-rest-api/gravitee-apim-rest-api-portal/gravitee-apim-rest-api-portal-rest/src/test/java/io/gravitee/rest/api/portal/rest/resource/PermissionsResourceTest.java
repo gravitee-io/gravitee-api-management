@@ -58,14 +58,12 @@ public class PermissionsResourceTest extends AbstractResourceTest {
         ApplicationListItem mockAppListItem = new ApplicationListItem();
         mockAppListItem.setId(APPLICATION);
         Set<ApplicationListItem> mockApps = new HashSet<>(Arrays.asList(mockAppListItem));
-        doReturn(mockApps)
-            .when(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(mockApps).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         ApplicationEntity mockAppEntity = new ApplicationEntity();
         mockAppEntity.setId(APPLICATION);
 
-        doReturn(mockAppEntity).when(applicationService).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(mockAppEntity).when(applicationService).findById(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test

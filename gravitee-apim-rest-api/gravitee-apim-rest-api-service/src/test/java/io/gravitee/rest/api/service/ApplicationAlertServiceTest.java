@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -126,7 +127,7 @@ public class ApplicationAlertServiceTest {
         ApplicationEntity application = getApplication();
         prepareForCreation(newAlert);
 
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         cut.create(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, newAlert);
 
         verify(alertService, times(1)).create(newAlert);
@@ -143,7 +144,7 @@ public class ApplicationAlertServiceTest {
         ApplicationEntity application = getApplication();
         prepareForCreation(newAlert);
 
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         cut.create(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, newAlert);
 
         verify(alertService, times(1)).create(newAlert);
@@ -160,7 +161,7 @@ public class ApplicationAlertServiceTest {
         ApplicationEntity application = getApplication();
         prepareForCreation(newAlert);
 
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
         when(mapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
 
         cut.create(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, newAlert);
@@ -226,7 +227,7 @@ public class ApplicationAlertServiceTest {
         triggers.add(trigger1);
 
         when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(getApplication());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(getApplication());
 
         cut.addMemberToApplication(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID, "add@mail.gio");
 

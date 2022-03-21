@@ -133,8 +133,7 @@ public class SubscriptionsResource extends AbstractResource {
         final Map<String, Map<String, Object>> metadata = new HashMap<>();
         if (applicationId == null) {
             final Set<ApplicationListItem> applications = applicationService.findByUser(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 getAuthenticatedUser()
             );
             if (applications == null || applications.isEmpty()) {

@@ -85,7 +85,7 @@ public class ApplicationMembersResource extends AbstractResource {
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String username = getAuthenticatedUser();
-            final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+            final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), application);
             if (isAdmin()) {
                 final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() };
                 for (ApplicationPermission perm : ApplicationPermission.values()) {
@@ -115,7 +115,7 @@ public class ApplicationMembersResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
     public List<MembershipListItem> getApplicationMembers() {
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        applicationService.findById(GraviteeContext.getExecutionContext(), application);
         return membershipService
             .getMembersByReference(MembershipReferenceType.APPLICATION, application)
             .stream()
@@ -144,7 +144,7 @@ public class ApplicationMembersResource extends AbstractResource {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
 
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        applicationService.findById(GraviteeContext.getExecutionContext(), application);
 
         MembershipService.MembershipReference reference = new MembershipService.MembershipReference(
             MembershipReferenceType.APPLICATION,
@@ -203,7 +203,7 @@ public class ApplicationMembersResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationMember(@ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        applicationService.findById(GraviteeContext.getExecutionContext(), application);
         try {
             userService.findById(userId);
         } catch (UserNotFoundException unfe) {
@@ -243,7 +243,7 @@ public class ApplicationMembersResource extends AbstractResource {
             //it doesn't matter
         }
 
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        applicationService.findById(GraviteeContext.getExecutionContext(), application);
         membershipService.transferApplicationOwnership(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),

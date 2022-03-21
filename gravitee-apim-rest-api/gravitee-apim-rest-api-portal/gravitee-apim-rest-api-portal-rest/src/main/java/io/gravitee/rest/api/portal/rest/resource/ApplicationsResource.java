@@ -104,7 +104,7 @@ public class ApplicationsResource extends AbstractResource {
         newApplicationEntity.setSettings(newApplicationEntitySettings);
 
         ApplicationEntity createdApplicationEntity = applicationService.create(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             newApplicationEntity,
             getAuthenticatedUser()
         );
@@ -129,7 +129,7 @@ public class ApplicationsResource extends AbstractResource {
         @QueryParam("order") @DefaultValue("name") final String order
     ) {
         Stream<ApplicationListItem> applicationStream = applicationService
-            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), getAuthenticatedUser())
+            .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
             .stream();
 
         if (forSubscription) {

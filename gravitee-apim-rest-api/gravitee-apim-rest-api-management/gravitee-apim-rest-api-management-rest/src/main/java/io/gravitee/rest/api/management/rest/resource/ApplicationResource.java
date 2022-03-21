@@ -79,7 +79,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public ApplicationEntity getApplication() {
-        return applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        return applicationService.findById(GraviteeContext.getExecutionContext(), application);
     }
 
     @GET
@@ -97,7 +97,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationType() {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), application);
         ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
         return Response.ok(applicationType).build();
     }
@@ -131,12 +131,7 @@ public class ApplicationResource extends AbstractResource {
             updatedApplication.setSettings(settings);
         }
 
-        return applicationService.update(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            application,
-            updatedApplication
-        );
+        return applicationService.update(GraviteeContext.getExecutionContext(), application, updatedApplication);
     }
 
     @GET
@@ -147,7 +142,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationPicture(@Context Request request) throws ApplicationNotFoundException {
-        return getImageResponse(request, applicationService.getPicture(GraviteeContext.getCurrentEnvironment(), application));
+        return getImageResponse(request, applicationService.getPicture(GraviteeContext.getExecutionContext(), application));
     }
 
     @GET
@@ -158,7 +153,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationBackground(@Context Request request) throws ApplicationNotFoundException {
-        return getImageResponse(request, applicationService.getBackground(GraviteeContext.getCurrentEnvironment(), application));
+        return getImageResponse(request, applicationService.getBackground(GraviteeContext.getExecutionContext(), application));
     }
 
     private Response getImageResponse(final Request request, PictureEntity picture) {
@@ -206,11 +201,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public ApplicationEntity renewApplicationClientSecret() {
-        return applicationService.renewClientSecret(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            application
-        );
+        return applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), application);
     }
 
     @POST
@@ -231,7 +222,7 @@ public class ApplicationResource extends AbstractResource {
         if (!isAdmin()) {
             throw new ForbiddenAccessException();
         }
-        return applicationService.restore(application);
+        return applicationService.restore(GraviteeContext.getExecutionContext(), application);
     }
 
     @DELETE
@@ -244,7 +235,7 @@ public class ApplicationResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApplication() {
-        applicationService.archive(application);
+        applicationService.archive(GraviteeContext.getExecutionContext(), application);
         return Response.noContent().build();
     }
 

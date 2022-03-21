@@ -158,7 +158,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
         if (applicationId == null) {
             return null;
         }
-        return applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        return applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
     }
 
     private String getId(String key, ContainerRequestContext requestContext) {

@@ -86,7 +86,7 @@ public class ApiSubscribersResource extends AbstractResource {
             .stream()
             .map(SubscriptionEntity::getApplication)
             .distinct()
-            .map(application -> applicationService.findById(GraviteeContext.getCurrentEnvironment(), application))
+            .map(application -> applicationService.findById(GraviteeContext.getExecutionContext(), application))
             .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
             .collect(Collectors.toList());
     }

@@ -82,7 +82,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         when(userService.findById(any(), anyBoolean())).thenReturn(fakeUserEntity);
         when(planService.findById(any())).thenReturn(fakePlanEntity);
-        when(applicationService.findById(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(fakeApplicationEntity);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeApplicationEntity);
     }
 
     @Test

@@ -109,7 +109,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
     @Override
     public AlertTriggerEntity create(final String environmentId, String applicationId, NewAlertTriggerEntity alert) {
-        final ApplicationEntity application = applicationService.findById(environmentId, applicationId);
+        final ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         alert.setName(generateAlertName(application, alert));
         alert.setReferenceType(AlertReferenceType.APPLICATION);
@@ -188,7 +188,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         }
 
         // check existence of application
-        applicationService.findById(environmentId, applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         alertService
             .findByReference(AlertReferenceType.APPLICATION, applicationId)
@@ -235,7 +235,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         }
 
         // check existence of application
-        applicationService.findById(environmentId, applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         alertService
             .findByReference(AlertReferenceType.APPLICATION, applicationId)
@@ -338,7 +338,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
         // get recipients for each application
         final Map<String, List<String>> recipientsByApplicationId = applicationService
-            .findByIds(organizationId, environmentId, new ArrayList<>(applicationIds))
+            .findByIds(GraviteeContext.getExecutionContext(), new ArrayList<>(applicationIds))
             .stream()
             .collect(Collectors.toMap(ApplicationListItem::getId, app -> getNotificationRecipients(app.getId(), app.getGroups())));
 

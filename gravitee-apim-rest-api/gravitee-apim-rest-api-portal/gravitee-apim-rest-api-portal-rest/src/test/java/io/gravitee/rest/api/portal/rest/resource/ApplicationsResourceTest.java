@@ -63,16 +63,14 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         applicationListItem2.setName("B");
 
         Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2));
-        doReturn(mockApplications)
-            .when(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(mockApplications).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
         doReturn(new Application().id("B").name("B")).when(applicationMapper).convert(eq(applicationListItem2), any());
 
         ApplicationEntity createdEntity = mock(ApplicationEntity.class);
         doReturn("NEW").when(createdEntity).getId();
-        doReturn(createdEntity).when(applicationService).create(eq(GraviteeContext.getCurrentEnvironment()), any(), any());
+        doReturn(createdEntity).when(applicationService).create(eq(GraviteeContext.getExecutionContext()), any(), any());
         doReturn(new Application().id("NEW")).when(applicationMapper).convert(eq(createdEntity), any());
     }
 
@@ -81,9 +79,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito
-            .verify(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+        Mockito.verify(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
         Mockito.verify(applicationMapper, Mockito.times(2)).computeApplicationLinks(ac.capture(), eq(null));
@@ -123,9 +119,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         Set<ApplicationListItem> mockApplications = new HashSet<>(
             Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4)
         );
-        doReturn(mockApplications)
-            .when(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(mockApplications).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
         doReturn(new Application().id("B").name("b")).when(applicationMapper).convert(eq(applicationListItem2), any());
@@ -186,9 +180,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoApplicationAndNoLink() {
-        doReturn(new HashSet<>())
-            .when(applicationService)
-            .findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(new HashSet<>()).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         //Test with default limit
         final Response response = target().request().get();
@@ -220,7 +212,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(target().path("NEW").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         ArgumentCaptor<NewApplicationEntity> captor = ArgumentCaptor.forClass(NewApplicationEntity.class);
-        Mockito.verify(applicationService).create(eq(GraviteeContext.getCurrentEnvironment()), captor.capture(), any());
+        Mockito.verify(applicationService).create(eq(GraviteeContext.getExecutionContext()), captor.capture(), any());
 
         final NewApplicationEntity value = captor.getValue();
         assertNotNull(value);
@@ -256,7 +248,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
 
         ArgumentCaptor<NewApplicationEntity> captor = ArgumentCaptor.forClass(NewApplicationEntity.class);
-        Mockito.verify(applicationService).create(eq(GraviteeContext.getCurrentEnvironment()), captor.capture(), any());
+        Mockito.verify(applicationService).create(eq(GraviteeContext.getExecutionContext()), captor.capture(), any());
 
         final NewApplicationEntity value = captor.getValue();
         assertNotNull(value);
@@ -291,7 +283,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
 
         ArgumentCaptor<NewApplicationEntity> captor = ArgumentCaptor.forClass(NewApplicationEntity.class);
-        Mockito.verify(applicationService).create(eq(GraviteeContext.getCurrentEnvironment()), captor.capture(), any());
+        Mockito.verify(applicationService).create(eq(GraviteeContext.getExecutionContext()), captor.capture(), any());
 
         final NewApplicationEntity value = captor.getValue();
         assertNotNull(value);
@@ -338,7 +330,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
 
         ArgumentCaptor<NewApplicationEntity> captor = ArgumentCaptor.forClass(NewApplicationEntity.class);
-        Mockito.verify(applicationService).create(eq(GraviteeContext.getCurrentEnvironment()), captor.capture(), any());
+        Mockito.verify(applicationService).create(eq(GraviteeContext.getExecutionContext()), captor.capture(), any());
 
         final NewApplicationEntity value = captor.getValue();
         assertNotNull(value);

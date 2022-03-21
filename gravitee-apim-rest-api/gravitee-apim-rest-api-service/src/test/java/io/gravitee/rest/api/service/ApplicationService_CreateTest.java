@@ -116,7 +116,7 @@ public class ApplicationService_CreateTest {
         when(userService.findById(any())).thenReturn(mock(UserEntity.class));
 
         final ApplicationEntity applicationEntity = applicationService.create(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             newApplication,
             USER_NAME
         );
@@ -136,7 +136,7 @@ public class ApplicationService_CreateTest {
         when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.FALSE);
 
-        applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -148,7 +148,7 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
-        applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
 
     @Test(expected = ApplicationGrantTypesNotFoundException.class)
@@ -162,7 +162,7 @@ public class ApplicationService_CreateTest {
             .thenReturn(Boolean.TRUE);
         when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
-        applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
 
     @Test(expected = ApplicationGrantTypesNotAllowedException.class)
@@ -179,7 +179,7 @@ public class ApplicationService_CreateTest {
             .thenReturn(Boolean.TRUE);
         when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
-        applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
 
     @Test(expected = ApplicationRedirectUrisNotFound.class)
@@ -200,7 +200,7 @@ public class ApplicationService_CreateTest {
             .thenReturn(Boolean.TRUE);
         when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
-        applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
 
     @Test(expected = ClientIdAlreadyExistsException.class)
@@ -218,7 +218,7 @@ public class ApplicationService_CreateTest {
         when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE))
             .thenReturn(Collections.singleton(application));
 
-        applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -231,6 +231,6 @@ public class ApplicationService_CreateTest {
 
         when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenThrow(TechnicalException.class);
 
-        applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
 }

@@ -70,29 +70,31 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         ApplicationEntity applicationEntity = new ApplicationEntity();
         applicationEntity.setId(APPLICATION_ID);
 
-        doReturn(applicationEntity).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        doReturn(applicationEntity).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         doReturn(new Application().id(APPLICATION_ID)).when(applicationMapper).convert(eq(applicationEntity), any());
 
         mockImage = new InlinePictureEntity();
         applicationLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(applicationLogoContent);
         mockImage.setType("image/svg");
-        doReturn(mockImage).when(applicationService).getPicture(GraviteeContext.getCurrentEnvironment(), APPLICATION_PICTURE);
+        doReturn(mockImage).when(applicationService).getPicture(GraviteeContext.getExecutionContext(), APPLICATION_PICTURE);
     }
 
     @Test
     public void shouldDeleteApplication() {
-        doNothing().when(applicationService).archive(APPLICATION_ID);
+        doNothing().when(applicationService).archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         final Response response = target(APPLICATION_ID).request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
-        Mockito.verify(applicationService).archive(APPLICATION_ID);
+        Mockito.verify(applicationService).archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
     }
 
     @Test
     public void shouldHaveNotFoundWhileDeletingApplication() {
-        doThrow(ApplicationNotFoundException.class).when(applicationService).archive(UNKNOWN_APPLICATION_ID);
+        doThrow(ApplicationNotFoundException.class)
+            .when(applicationService)
+            .archive(GraviteeContext.getExecutionContext(), UNKNOWN_APPLICATION_ID);
 
         final Response response = target(UNKNOWN_APPLICATION_ID).request().delete();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
@@ -102,7 +104,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     public void shouldHaveNotFoundWhileGettingApplication() {
         doThrow(ApplicationNotFoundException.class)
             .when(applicationService)
-            .findById(GraviteeContext.getCurrentEnvironment(), UNKNOWN_APPLICATION_ID);
+            .findById(GraviteeContext.getExecutionContext(), UNKNOWN_APPLICATION_ID);
 
         final Response response = target(UNKNOWN_APPLICATION_ID).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
@@ -112,7 +114,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     public void shouldHaveNotFoundWhileUpdatingApplication() {
         doThrow(ApplicationNotFoundException.class)
             .when(applicationService)
-            .findById(GraviteeContext.getCurrentEnvironment(), UNKNOWN_APPLICATION_ID);
+            .findById(GraviteeContext.getExecutionContext(), UNKNOWN_APPLICATION_ID);
 
         final Response response = target(UNKNOWN_APPLICATION_ID).request().put(Entity.json(new Application().id(UNKNOWN_APPLICATION_ID)));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
@@ -133,13 +135,11 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         userEntity.setId(USER_NAME);
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
         appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         ApplicationEntity updatedEntity = new ApplicationEntity();
         updatedEntity.setId(APPLICATION_ID);
-        doReturn(updatedEntity)
-            .when(applicationService)
-            .update(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), eq(APPLICATION_ID), any());
+        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
 
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
@@ -161,17 +161,10 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito
-            .verify(applicationService)
-            .update(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                eq(APPLICATION_ID),
-                captor.capture()
-            );
+        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
         UpdateApplicationEntity updateAppEntity = captor.getValue();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
@@ -201,13 +194,11 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         userEntity.setId(USER_NAME);
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
         appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         ApplicationEntity updatedEntity = new ApplicationEntity();
         updatedEntity.setId(APPLICATION_ID);
-        doReturn(updatedEntity)
-            .when(applicationService)
-            .update(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), eq(APPLICATION_ID), any());
+        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
@@ -220,17 +211,10 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito
-            .verify(applicationService)
-            .update(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                eq(APPLICATION_ID),
-                captor.capture()
-            );
+        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
         UpdateApplicationEntity updateAppEntity = captor.getValue();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
@@ -257,13 +241,11 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         userEntity.setId(USER_NAME);
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
         appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         ApplicationEntity updatedEntity = new ApplicationEntity();
         updatedEntity.setId(APPLICATION_ID);
-        doReturn(updatedEntity)
-            .when(applicationService)
-            .update(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), eq(APPLICATION_ID), any());
+        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
@@ -279,17 +261,10 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito
-            .verify(applicationService)
-            .update(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                eq(APPLICATION_ID),
-                captor.capture()
-            );
+        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
         UpdateApplicationEntity updateAppEntity = captor.getValue();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
@@ -319,13 +294,11 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         userEntity.setId(USER_NAME);
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
         appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         ApplicationEntity updatedEntity = new ApplicationEntity();
         updatedEntity.setId(APPLICATION_ID);
-        doReturn(updatedEntity)
-            .when(applicationService)
-            .update(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), eq(APPLICATION_ID), any());
+        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
@@ -356,17 +329,10 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito
-            .verify(applicationService)
-            .update(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                eq(APPLICATION_ID),
-                captor.capture()
-            );
+        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
         UpdateApplicationEntity updateAppEntity = captor.getValue();
         assertEquals(APPLICATION_ID, updateAppEntity.getName());
         assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
@@ -397,7 +363,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION_ID).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(applicationService).findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, null);
@@ -412,14 +378,12 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         renewedApplicationEntity.setId(APPLICATION_ID);
         doReturn(renewedApplicationEntity)
             .when(applicationService)
-            .renewClientSecret(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+            .renewClientSecret(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         final Response response = target(APPLICATION_ID).path("_renew_secret").request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito
-            .verify(applicationService)
-            .renewClientSecret(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), APPLICATION_ID);
+        Mockito.verify(applicationService).renewClientSecret(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         Mockito.verify(applicationMapper).convert(eq(renewedApplicationEntity), any());
 
         String expectedBasePath = target(APPLICATION_ID).getUri().toString();

@@ -227,7 +227,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
                     if (!metadata.containsKey(subscription.getApplication())) {
                         ApplicationEntity applicationEntity = applicationService.findById(
-                            GraviteeContext.getCurrentEnvironment(),
+                            GraviteeContext.getExecutionContext(),
                             subscription.getApplication()
                         );
                         metadata.put(subscription.getApplication(), "name", applicationEntity.getName());

@@ -116,17 +116,17 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
 
         ApplicationEntity appA = new ApplicationEntity();
         appA.setId("A");
-        doReturn(appA).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "A");
+        doReturn(appA).when(applicationService).findById(GraviteeContext.getExecutionContext(), "A");
         doReturn(new Application().id("A")).when(applicationMapper).convert(eq(appA), any());
 
         ApplicationEntity appB = new ApplicationEntity();
         appB.setId("B");
-        doReturn(appB).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "B");
+        doReturn(appB).when(applicationService).findById(GraviteeContext.getExecutionContext(), "B");
         doReturn(new Application().id("B")).when(applicationMapper).convert(eq(appB), any());
 
         ApplicationEntity appC = new ApplicationEntity();
         appC.setId("C");
-        doReturn(appC).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "C");
+        doReturn(appC).when(applicationService).findById(GraviteeContext.getExecutionContext(), "C");
         doReturn(new Application().id("C")).when(applicationMapper).convert(eq(appC), any());
 
         final Response response = target(API).path("subscribers").request().get();
@@ -164,19 +164,19 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         ApplicationEntity appA = new ApplicationEntity();
         appA.setId("A");
         appA.setName("A");
-        doReturn(appA).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "A");
+        doReturn(appA).when(applicationService).findById(GraviteeContext.getExecutionContext(), "A");
         doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(appA), any());
 
         ApplicationEntity appB = new ApplicationEntity();
         appB.setId("B");
         appB.setName("B");
-        doReturn(appB).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "B");
+        doReturn(appB).when(applicationService).findById(GraviteeContext.getExecutionContext(), "B");
         doReturn(new Application().id("B").name("B")).when(applicationMapper).convert(eq(appB), any());
 
         ApplicationEntity appC = new ApplicationEntity();
         appC.setId("C");
         appC.setName("C");
-        doReturn(appC).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "C");
+        doReturn(appC).when(applicationService).findById(GraviteeContext.getExecutionContext(), "C");
         doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(eq(appC), any());
 
         final Response response = target(API).path("subscribers").request().get();
@@ -219,12 +219,12 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
 
         ApplicationEntity appA = new ApplicationEntity();
         appA.setId("A");
-        doReturn(appA).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "A");
+        doReturn(appA).when(applicationService).findById(GraviteeContext.getExecutionContext(), "A");
         doReturn(new Application().id("A")).when(applicationMapper).convert(eq(appA), any());
 
         ApplicationEntity appC = new ApplicationEntity();
         appC.setId("C");
-        doReturn(appC).when(applicationService).findById(GraviteeContext.getCurrentEnvironment(), "C");
+        doReturn(appC).when(applicationService).findById(GraviteeContext.getExecutionContext(), "C");
         doReturn(new Application().id("C")).when(applicationMapper).convert(eq(appC), any());
 
         ApplicationListItem appLIA = new ApplicationListItem();
@@ -233,7 +233,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         appLIC.setId("C");
         doReturn(new HashSet<>(Arrays.asList(appLIA, appLIC)))
             .when(applicationService)
-            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), USER_NAME);
+            .findByUser(GraviteeContext.getExecutionContext(), USER_NAME);
 
         final Response response = target(API).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());

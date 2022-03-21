@@ -70,16 +70,13 @@ public class PermissionsResource extends AbstractResource {
             return Response.ok(permissions).build();
         } else if (applicationId != null) {
             ApplicationListItem applicationListItem = applicationService
-                .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), getAuthenticatedUser())
+                .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
                 .stream()
                 .filter(a -> a.getId().equals(applicationId))
                 .findFirst()
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
-            ApplicationEntity application = applicationService.findById(
-                GraviteeContext.getCurrentEnvironment(),
-                applicationListItem.getId()
-            );
+            ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), applicationListItem.getId());
 
             Map<String, char[]> permissions;
             permissions = membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), application, userId);

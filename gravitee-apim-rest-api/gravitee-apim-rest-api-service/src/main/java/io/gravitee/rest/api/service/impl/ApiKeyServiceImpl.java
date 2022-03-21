@@ -147,7 +147,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             // Notification
             final ApplicationEntity application = applicationService.findById(
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 newApiKey.getApplication()
             );
             final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
@@ -243,7 +243,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             // notify
             if (notify) {
                 final ApplicationEntity application = applicationService.findById(
-                    GraviteeContext.getCurrentEnvironment(),
+                    GraviteeContext.getExecutionContext(),
                     key.getApplication()
                 );
                 final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
@@ -481,10 +481,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             apiKeyRepository.update(key);
 
             //notify
-            final ApplicationEntity application = applicationService.findById(
-                GraviteeContext.getCurrentEnvironment(),
-                key.getApplication()
-            );
+            final ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), key.getApplication());
             final PlanEntity plan = planService.findById(key.getPlan());
             final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
