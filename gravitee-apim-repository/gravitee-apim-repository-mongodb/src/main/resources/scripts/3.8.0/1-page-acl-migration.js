@@ -9,6 +9,6 @@ pages.find({ excluded_groups: { $exists: true, $not: { $size: 0 } } }).forEach((
     page.excludedAccessControls = true;
     page.accessControls = page.excluded_groups.map((referenceId) => ({ referenceId, referenceType: 'GROUP' }));
     delete page.excluded_groups;
-    pages.save(page);
+    pages.replaceOne({ _id: page._id }, page);
   }
 );

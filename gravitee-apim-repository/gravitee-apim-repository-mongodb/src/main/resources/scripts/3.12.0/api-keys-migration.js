@@ -10,7 +10,7 @@ keys.find({}).forEach((key) => {
     subscriptions.find({_id: key.subscription}).forEach((subscription) => {
         key.key = key._id;
         key.api = subscription.api;
-        keys.save(key);
+        keys.replaceOne({ _id: key._id }, key);
     });
 });
 

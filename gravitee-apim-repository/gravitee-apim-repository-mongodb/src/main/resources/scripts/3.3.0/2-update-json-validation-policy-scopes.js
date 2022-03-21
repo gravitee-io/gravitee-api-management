@@ -3,5 +3,5 @@ db.apis.find({ definition: /"json-validation" : {"scope":"REQUEST"|"json-validat
     api.definition = api.definition
         .replace(/"json-validation" : {"scope":"REQUEST"/, "\"json-validation\" : {\"scope\":\"REQUEST_CONTENT\"")
         .replace(/"json-validation" : {"scope":"RESPONSE"/, "\"json-validation\" : {\"scope\":\"RESPONSE_CONTENT\"");
-    db.apis.save(api);
+    db.apis.replaceOne({ _id: api._id }, api);
 });
