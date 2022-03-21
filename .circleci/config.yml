@@ -232,9 +232,10 @@ jobs:
             - secrethub/env-export:
                   secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
                   var-name: SONAR_TOKEN
+            - get-apim-version
             - run:
                   name: Run Sonarcloud Analysis
-                  command: sonar-scanner
+                  command: sonar-scanner -Dsonar.projectVersion=${APIM_VERSION}
                   working_directory: << parameters.working_directory >>
             - notify-on-failure
 
