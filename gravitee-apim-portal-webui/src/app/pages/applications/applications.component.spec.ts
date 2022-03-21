@@ -45,6 +45,7 @@ describe('ApplicationsComponent', () => {
             },
           },
         ],
+        teardown: { destroyAfterEach: false },
       }).compileComponents();
 
       httpTestingController = TestBed.inject(HttpTestingController);

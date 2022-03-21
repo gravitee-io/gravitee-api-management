@@ -23,6 +23,7 @@ describe('SubscribeGuardService', () => {
   beforeEach(() =>
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, RouterTestingModule],
+      teardown: { destroyAfterEach: false },
     }),
   );
 

@@ -56,6 +56,7 @@ describe('ApplicationSubscriptionsComponent', () => {
               },
             },
           ],
+          teardown: { destroyAfterEach: false },
         }).compileComponents();
         initFixture();
       }),
@@ -143,6 +144,7 @@ describe('ApplicationSubscriptionsComponent', () => {
               },
             },
           ],
+          teardown: { destroyAfterEach: false },
         }).compileComponents();
         httpTestingController = TestBed.inject(HttpTestingController);
         initFixture();
@@ -269,6 +271,7 @@ describe('ApplicationSubscriptionsComponent', () => {
               },
             },
           ],
+          teardown: { destroyAfterEach: false },
         }).compileComponents();
         httpTestingController = TestBed.inject(HttpTestingController);
 

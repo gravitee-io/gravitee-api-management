@@ -55,13 +55,6 @@ import { GvPageAsyncApiComponent } from '../components/gv-page-asyncapi/gv-page-
     GvPageSwaggerUIComponent,
     GvMarkdownTocComponent,
   ],
-  entryComponents: [
-    GvPageAsciiDocComponent,
-    GvPageAsyncApiComponent,
-    GvPageMarkdownComponent,
-    GvPageRedocComponent,
-    GvPageSwaggerUIComponent,
-  ],
   imports: [
     CommonModule,
     HttpClientModule,

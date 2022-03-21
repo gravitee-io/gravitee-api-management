@@ -23,6 +23,7 @@ describe('PermissionGuardService', () => {
   beforeEach(() =>
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, RouterTestingModule],
+      teardown: { destroyAfterEach: false },
     }),
   );
 

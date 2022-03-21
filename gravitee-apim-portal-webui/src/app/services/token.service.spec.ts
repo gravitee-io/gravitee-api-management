@@ -20,6 +20,7 @@ describe('TokenService', () => {
   beforeEach(() =>
     TestBed.configureTestingModule({
       imports: [],
+      teardown: { destroyAfterEach: false },
     }),
   );
 

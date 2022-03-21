@@ -104,7 +104,6 @@ import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets
     UserNotificationComponent,
     TicketsHistoryComponent,
   ],
-  entryComponents: [GvSearchApiComponent, GvHeaderItemComponent],
   imports: [
     ApiModule,
     AppRoutingModule,
