@@ -29,7 +29,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActivatedRoute, Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
-import { ConfigurationService } from 'src/app/services/configuration.service';
+import { ConfigurationService } from '../../services/configuration.service';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';

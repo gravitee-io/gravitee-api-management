@@ -46,10 +46,10 @@ describe('ApiGeneralComponent', () => {
 
   describe('goToSearch', () => {
     it('should navigateByUrl with built urlTree', () => {
-      const navigateByUrlSpy = spyOn(router, 'navigateByUrl');
+      const navigateByUrlSpy = jest.spyOn(router, 'navigateByUrl');
 
       const myTestUrlTree = {};
-      spyOn<any>(component, 'getSearchUrlTree').and.returnValue(myTestUrlTree);
+      jest.spyOn(component as any, 'getSearchUrlTree').mockReturnValue(myTestUrlTree);
 
       component.goToSearch('labels', 'TheLabel');
 

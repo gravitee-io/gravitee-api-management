@@ -69,7 +69,7 @@ describe('GvTicketsHistoryComponent', () => {
       portalService = spectator.inject(PortalService);
       routerSpy = spectator.inject(Router);
 
-      spyOn(ConfigurationService.prototype, 'get').and.callFake((arg) => {
+      jest.spyOn(ConfigurationService.prototype, 'get').mockImplementation((arg) => {
         if (arg === 'pagination.size.values') {
           return PAGE_SIZES;
         } else if (arg === 'pagination.size.values') {
@@ -103,7 +103,7 @@ describe('GvTicketsHistoryComponent', () => {
   });
 
   it('should init the component', () => {
-    spyOn(component, 'refresh');
+    jest.spyOn(component, 'refresh');
 
     component.ngOnInit();
 
@@ -116,7 +116,7 @@ describe('GvTicketsHistoryComponent', () => {
   });
 
   it('should get ticket data without api path param and without selected ticket', async () => {
-    spyOn(portalService, 'getTickets').and.returnValue(of(response));
+    jest.spyOn(portalService, 'getTickets').mockReturnValue(of(response));
     route.snapshot.data.api = null;
     route.queryParams.ticket = null;
 
@@ -129,8 +129,8 @@ describe('GvTicketsHistoryComponent', () => {
   });
 
   it('should get ticket data with api path param and with selected ticket', async () => {
-    spyOn(portalService, 'getTickets').and.returnValue(of(response));
-    const scrollServiceSpy = spyOn(ScrollService.prototype, 'scrollToAnchor');
+    jest.spyOn(portalService, 'getTickets').mockReturnValue(of(response));
+    const scrollServiceSpy = jest.spyOn(ScrollService.prototype, 'scrollToAnchor').mockResolvedValue();
     route.queryParams.ticket = 'ticket1';
 
     await component.refresh(route.queryParams);
@@ -153,7 +153,7 @@ describe('GvTicketsHistoryComponent', () => {
   });
 
   it('should navigate with new query params when selecting page size', fakeAsync(() => {
-    const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
+    const spy = jest.spyOn(routerSpy, 'navigate').mockReturnValue(Promise.resolve(true));
 
     component.onSelectSize(5);
 
@@ -171,7 +171,7 @@ describe('GvTicketsHistoryComponent', () => {
       current_page: 1,
     };
     component.size = 5;
-    const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
+    const spy = jest.spyOn(routerSpy, 'navigate').mockReturnValue(Promise.resolve(true));
 
     component._onPaginate({ page: 2 });
 
@@ -186,7 +186,7 @@ describe('GvTicketsHistoryComponent', () => {
   }));
 
   it('should navigate with new query params when sorting', fakeAsync(() => {
-    const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
+    const spy = jest.spyOn(routerSpy, 'navigate').mockReturnValue(Promise.resolve(true));
 
     component._onSort({ order: '-subject' });
 
@@ -200,7 +200,7 @@ describe('GvTicketsHistoryComponent', () => {
   }));
 
   it('should navigate with new query params when selecting a ticket', fakeAsync(() => {
-    const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
+    const spy = jest.spyOn(routerSpy, 'navigate').mockReturnValue(Promise.resolve(true));
 
     component.onSelectTicket(tickets[0]);
 
@@ -213,7 +213,7 @@ describe('GvTicketsHistoryComponent', () => {
   }));
 
   it('should not navigate with new query params when deselecting a ticket', fakeAsync(() => {
-    const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
+    const spy = jest.spyOn(routerSpy, 'navigate').mockReturnValue(Promise.resolve(true));
 
     component.onSelectTicket(undefined);
 

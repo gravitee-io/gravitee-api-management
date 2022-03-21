@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import 'jest-preset-angular';
 import './jest-global-mocks';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
-import { defineGlobalsInjections, mockProvider } from '@ngneat/spectator';
+import { defineGlobalsInjections } from '@ngneat/spectator';
+import { mockProvider } from '@ngneat/spectator/jest';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { TranslateTestingModule } from './app/test/translate-testing-module';
 

@@ -16,8 +16,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-message';
-import { CookieEnum } from 'src/app/model/cookie.enum';
-import { GoogleAnalyticsService } from 'src/app/services/google-analytics.service';
+import { CookieEnum } from '../../model/cookie.enum';
+import { GoogleAnalyticsService } from '../../services/google-analytics.service';
 import { CookieService } from 'ngx-cookie-service';
 
 @Component({

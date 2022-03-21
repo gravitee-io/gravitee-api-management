@@ -17,12 +17,12 @@ import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, View
 import * as marked from 'marked';
 import * as hljs from 'highlight.js';
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
-import { PageService } from 'src/app/services/page.service';
+import { PageService } from '../../services/page.service';
 import { Router } from '@angular/router';
-import { ScrollService } from 'src/app/services/scroll.service';
+import { ScrollService } from '../../services/scroll.service';
 import '@gravitee/ui-components/wc/gv-button';
 import { dispatchCustomEvent } from '@gravitee/ui-components/src/lib/events';
-import { ConfigurationService } from 'src/app/services/configuration.service';
+import { ConfigurationService } from '../../services/configuration.service';
 
 @Component({
   selector: 'app-gv-page-markdown',

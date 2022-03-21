@@ -42,7 +42,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { NotificationService } from '../../../services/notification.service';
-import { CurrentUserService } from 'src/app/services/current-user.service';
+import { CurrentUserService } from '../../../services/current-user.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import StatusEnum = Subscription.StatusEnum;
 
