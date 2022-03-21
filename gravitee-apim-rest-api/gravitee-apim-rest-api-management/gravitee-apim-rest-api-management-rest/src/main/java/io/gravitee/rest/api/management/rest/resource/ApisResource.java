@@ -293,7 +293,10 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
         // TODO : create verify service to query repository with criteria
-        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())));
+        virtualHostService.sanitizeAndValidate(
+            GraviteeContext.getExecutionContext(),
+            Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath()))
+        );
         return Response.ok().entity("API context [" + verifyApiParam.getContextPath() + "] is available").build();
     }
 

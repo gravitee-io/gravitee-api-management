@@ -396,7 +396,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             checkShardingTags(api, null);
 
             // format context-path and check if context path is unique
-            final Collection<VirtualHost> sanitizedVirtualHosts = virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts());
+            final Collection<VirtualHost> sanitizedVirtualHosts = virtualHostService.sanitizeAndValidate(
+                GraviteeContext.getExecutionContext(),
+                api.getProxy().getVirtualHosts()
+            );
             api.getProxy().setVirtualHosts(new ArrayList<>(sanitizedVirtualHosts));
 
             // check endpoints name
@@ -1483,6 +1486,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // check if entrypoints are unique
             final Collection<VirtualHost> sanitizedVirtualHosts = virtualHostService.sanitizeAndValidate(
+                GraviteeContext.getExecutionContext(),
                 updateApiEntity.getProxy().getVirtualHosts(),
                 apiId
             );
