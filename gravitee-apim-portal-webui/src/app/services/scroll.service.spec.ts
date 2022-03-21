@@ -21,7 +21,7 @@ describe('ScrollServiceService', () => {
   let service: ScrollService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ teardown: { destroyAfterEach: false } });
     service = TestBed.inject(ScrollService);
   });
 

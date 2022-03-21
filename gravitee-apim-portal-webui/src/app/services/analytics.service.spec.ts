@@ -23,6 +23,7 @@ describe('AnalyticsService', () => {
   beforeEach(() =>
     TestBed.configureTestingModule({
       imports: [TranslateTestingModule, RouterTestingModule],
+      teardown: { destroyAfterEach: false },
     }),
   );
 

@@ -31,6 +31,7 @@ describe('SinglePageComponent', () => {
         declarations: [SinglePageComponent, GvPageComponent],
         imports: [HttpClientTestingModule, RouterTestingModule],
         schemas: [CUSTOM_ELEMENTS_SCHEMA],
+        teardown: { destroyAfterEach: false },
       }).compileComponents();
     }),
   );

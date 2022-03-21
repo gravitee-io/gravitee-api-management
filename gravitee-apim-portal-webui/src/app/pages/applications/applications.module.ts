@@ -68,7 +68,6 @@ import { GvAlertComponent } from '../../components/gv-alert/gv-alert.component';
     GvAlertComponent,
     GvSelectDashboardComponent,
   ],
-  entryComponents: [GvButtonCreateApplicationComponent, GvSelectDashboardComponent],
   imports: [
     ApplicationsRoutingModule,
     CommonModule,

@@ -26,6 +26,7 @@ describe('AuthGuardService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, RouterTestingModule],
       providers: [mockProvider(OAuthService)],
+      teardown: { destroyAfterEach: false },
     }),
   );
 
