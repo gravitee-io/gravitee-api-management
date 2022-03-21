@@ -37,7 +37,7 @@ import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { FeatureEnum } from '../../../model/feature.enum';
-import { createPromiseList } from 'src/app/utils/utils';
+import { createPromiseList } from '../../../utils/utils';
 
 @Component({
   selector: 'app-all',

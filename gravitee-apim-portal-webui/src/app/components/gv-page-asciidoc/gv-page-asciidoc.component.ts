@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
-import { PageService } from 'src/app/services/page.service';
+import { PageService } from '../../services/page.service';
 import { toDom } from '@gravitee/ui-components/src/lib/text-format';
 
 @Component({

@@ -23,7 +23,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { GvPageRedocComponent } from '../gv-page-redoc/gv-page-redoc.component';
 import { GvPageSwaggerUIComponent } from '../gv-page-swaggerui/gv-page-swaggerui.component';
 import { BrowserDynamicTestingModule } from '@angular/platform-browser-dynamic/testing';
-import { GvPageContentSlotDirective } from 'src/app/directives/gv-page-content-slot.directive';
+import { GvPageContentSlotDirective } from '../../directives/gv-page-content-slot.directive';
 import { GvPageMarkdownComponent } from '../gv-page-markdown/gv-page-markdown.component';
 
 describe('GvPageComponent', () => {

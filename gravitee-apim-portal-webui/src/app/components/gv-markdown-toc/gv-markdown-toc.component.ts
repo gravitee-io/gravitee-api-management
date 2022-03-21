@@ -16,9 +16,9 @@
 import { Component, OnInit, OnDestroy, HostListener, ElementRef, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as marked from 'marked';
-import { PageService } from 'src/app/services/page.service';
+import { PageService } from '../../services/page.service';
 import { Subscription } from 'rxjs';
-import { ScrollService } from 'src/app/services/scroll.service';
+import { ScrollService } from '../../services/scroll.service';
 import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.component';
 
 @Component({

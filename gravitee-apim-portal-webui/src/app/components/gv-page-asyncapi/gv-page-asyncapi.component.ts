@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
-import { PageService } from 'src/app/services/page.service';
+import { PageService } from '../../services/page.service';
 
 import '@asyncapi/web-component/lib/asyncapi-web-component';
 

@@ -19,7 +19,7 @@ import { NotificationService } from '../../services/notification.service';
 import { getCssVar } from '@gravitee/ui-components/src/lib/style';
 import { ScrollService } from '../../services/scroll.service';
 import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.component';
-import { PageService } from 'src/app/services/page.service';
+import { PageService } from '../../services/page.service';
 import { readYaml } from '../../utils/yaml-parser';
 
 declare let Redoc: any;

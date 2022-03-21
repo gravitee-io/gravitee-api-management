@@ -132,7 +132,7 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.spec.json",
             "testMatch": ["**/__tests__/**/*.[t]s?(x)", "**/?(*.)+(spec).[t]s?(x)"]
           }
