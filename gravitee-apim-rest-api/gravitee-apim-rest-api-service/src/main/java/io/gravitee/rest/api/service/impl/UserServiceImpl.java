@@ -505,6 +505,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     .forEach(
                         invitation -> {
                             invitationService.addMember(
+                                GraviteeContext.getExecutionContext(),
                                 invitation.getReferenceType().name(),
                                 invitation.getReferenceId(),
                                 userId,

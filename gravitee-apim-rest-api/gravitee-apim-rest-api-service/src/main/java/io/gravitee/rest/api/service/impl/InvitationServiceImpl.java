@@ -30,7 +30,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.MembershipService.MembershipReference;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvitationEmailAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvitationNotFoundException;
@@ -77,7 +77,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
     PermissionService permissionService;
 
     @Override
-    public InvitationEntity create(final NewInvitationEntity invitation) {
+    public InvitationEntity create(final ExecutionContext executionContext, final NewInvitationEntity invitation) {
         final List<InvitationEntity> invitations = findByReference(invitation.getReferenceType(), invitation.getReferenceId());
         if (invitations.stream().map(InvitationEntity::getEmail).anyMatch(invitation.getEmail()::equals)) {
             throw new InvitationEmailAlreadyExistsException(invitation.getEmail());
@@ -93,7 +93,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                     .stream()
                     .map(MembershipEntity::getMemberId)
                     .collect(Collectors.toSet());
-                final GroupEntity group = groupService.findById(GraviteeContext.getCurrentEnvironment(), invitation.getReferenceId());
+                final GroupEntity group = groupService.findById(executionContext.getEnvironmentId(), invitation.getReferenceId());
                 if (groupUsers.contains(user.getId())) {
                     throw new MemberEmailAlreadyExistsException(invitation.getEmail());
                 }
@@ -101,7 +101,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                 // override permission if not allowed
                 final boolean hasPermission = permissionService.hasPermission(
                     RolePermission.ENVIRONMENT_GROUP,
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext.getEnvironmentId(),
                     CREATE,
                     UPDATE,
                     DELETE
@@ -114,6 +114,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                 }
 
                 addMember(
+                    executionContext,
                     invitation.getReferenceType().name(),
                     invitation.getReferenceId(),
                     user.getId(),
@@ -122,7 +123,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                 );
                 return null;
             } else {
-                sendGroupInvitationEmail(invitation);
+                sendGroupInvitationEmail(executionContext, invitation);
                 final Invitation createdInvitation = invitationRepository.create(convert(invitation));
                 return convert(createdInvitation);
             }
@@ -159,18 +160,20 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
 
     @Override
     public void addMember(
+        final ExecutionContext executionContext,
         final String referenceType,
         final String referenceId,
         final String userId,
         final String apiRole,
         final String applicationRole
     ) {
-        addOrUpdateMemberByScope(referenceType, referenceId, userId, RoleScope.API, apiRole);
-        addOrUpdateMemberByScope(referenceType, referenceId, userId, RoleScope.APPLICATION, applicationRole);
-        addOrUpdateMemberByScope(referenceType, referenceId, userId, RoleScope.GROUP, null);
+        addOrUpdateMemberByScope(executionContext, referenceType, referenceId, userId, RoleScope.API, apiRole);
+        addOrUpdateMemberByScope(executionContext, referenceType, referenceId, userId, RoleScope.APPLICATION, applicationRole);
+        addOrUpdateMemberByScope(executionContext, referenceType, referenceId, userId, RoleScope.GROUP, null);
     }
 
     private void addOrUpdateMemberByScope(
+        final ExecutionContext executionContext,
         final String referenceType,
         final String referenceId,
         final String userId,
@@ -188,8 +191,8 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         }
         if (defaultRoleName != null) {
             membershipService.addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
                 new MembershipReference(MembershipReferenceType.valueOf(referenceType), referenceId),
                 new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(roleScope, defaultRoleName)
@@ -197,10 +200,10 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         }
     }
 
-    private void sendGroupInvitationEmail(NewInvitationEntity invitation) {
+    private void sendGroupInvitationEmail(final ExecutionContext executionContext, NewInvitationEntity invitation) {
         final UserEntity userEntity = new UserEntity();
         userEntity.setEmail(invitation.getEmail());
-        final GroupEntity group = groupService.findById(GraviteeContext.getCurrentEnvironment(), invitation.getReferenceId());
+        final GroupEntity group = groupService.findById(executionContext.getEnvironmentId(), invitation.getReferenceId());
         emailService.sendEmailNotification(
             new EmailNotificationBuilder()
                 .to(invitation.getEmail())

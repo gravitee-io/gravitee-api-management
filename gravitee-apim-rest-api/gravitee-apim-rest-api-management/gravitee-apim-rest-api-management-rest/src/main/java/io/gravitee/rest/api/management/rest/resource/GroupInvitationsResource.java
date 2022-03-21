@@ -113,7 +113,7 @@ public class GroupInvitationsResource extends AbstractResource {
 
         invitationEntity.setReferenceType(GROUP);
         invitationEntity.setReferenceId(group);
-        return invitationService.create(invitationEntity);
+        return invitationService.create(GraviteeContext.getExecutionContext(), invitationEntity);
     }
 
     @Path("{invitation}")
