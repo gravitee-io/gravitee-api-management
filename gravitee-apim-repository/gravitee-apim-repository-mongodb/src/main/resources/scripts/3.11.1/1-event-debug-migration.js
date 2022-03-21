@@ -7,7 +7,7 @@ const events = db.getCollection(`${prefix}events`);
 events.find({type: "DEBUG_API"}).forEach((event) => {
   if(event.properties.api_id) {
     delete event.properties.api_id;
-    events.save(event);
+    events.replaceOne({ _id: event.id }, event);
   }
 });
 

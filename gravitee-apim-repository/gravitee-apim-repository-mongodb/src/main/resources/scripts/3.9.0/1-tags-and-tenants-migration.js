@@ -7,7 +7,7 @@ const tags = db.getCollection(`${prefix}tags`);
 tags.find({referenceId: {$exists: false}}).forEach((tag) => {
         tag.referenceId = 'DEFAULT';
         tag.referenceType = 'ORGANIZATION';
-        tags.save(tag);
+        tags.replaceOne({ _id: tag._id }, tag);
     }
 );
 
@@ -16,7 +16,7 @@ const tenants = db.getCollection(`${prefix}tenants`);
 tenants.find({referenceId: {$exists: false}}).forEach((tenant) => {
         tenant.referenceId = 'DEFAULT';
         tenant.referenceType = 'ORGANIZATION';
-        tenants.save(tenant);
+        tenants.replaceOne({ _id: tenant._id }, tenant);
     }
 );
 
@@ -27,7 +27,7 @@ entrypoints.find({}).forEach(entrypoint => {
         entrypoint.referenceId = env.organizationId;
         entrypoint.referenceType = 'ORGANIZATION';
         delete entrypoint.environmentId;
-        entrypoints.save(entrypoint);
+        entrypoints.replaceOne({ _id: entrypoint._id }, entrypoint);
     });
 
 })

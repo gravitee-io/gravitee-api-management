@@ -26,7 +26,7 @@ db.parameters.find({ referenceId: { $exists: true }}).forEach(parameter => {
             },
             value: parameter.value
         }
-        db.parameters.save(consoleParameter);
+        db.parameters.insertOne(consoleParameter);
         print('Console parameter created: ' + consoleParameterKey);
     }
 
@@ -51,7 +51,7 @@ db.parameters.find({ referenceId: { $exists: true }}).forEach(parameter => {
             value: parameter.value
         }
     }
-    db.parameters.save(portalParameter);
+    db.parameters.insertOne(portalParameter);
     db.parameters.remove(parameter);
 
     print('Portal parameter key updated: ' + portalParameter._id.key);

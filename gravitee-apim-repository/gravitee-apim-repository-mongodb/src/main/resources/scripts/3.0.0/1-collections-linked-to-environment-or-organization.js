@@ -5,7 +5,7 @@ db.apiheaders.find().forEach(
             let existingApiHeaderCursor = db.apiheaders.find({'_id': apiHeader._id, environmentId: 'DEFAULT'});
             if(!existingApiHeaderCursor.hasNext()) {
                 apiHeader.environmentId = 'DEFAULT';
-                db.apiheaders.save(apiHeader);
+                db.apiheaders.replaceOne({ _id: apiHeader._id }, apiHeader);
             }
         }
     }
@@ -36,7 +36,7 @@ db.views.find().forEach(
             let existingViewCursor = db.views.find({'_id': view._id, environmentId: 'DEFAULT'});
             if(!existingViewCursor.hasNext()) {
                 view.environmentId = 'DEFAULT';
-                db.views.save(view);
+                db.views.replaceOne({ _id: view._id }, view);
             }
         }
     }
@@ -50,7 +50,7 @@ db.identity_providers.find().forEach(
             if(!existingIDPCursor.hasNext()) {
                 idp.referenceId = 'DEFAULT';
                 idp.referenceType = 'ENVIRONMENT';
-                db.identity_providers.save(idp);
+                db.identity_providers.replaceOne({ _id: idp._id }, idp);
             }
         }
     }

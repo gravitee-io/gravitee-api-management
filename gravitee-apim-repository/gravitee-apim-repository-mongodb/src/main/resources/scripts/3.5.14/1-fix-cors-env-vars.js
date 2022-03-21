@@ -24,7 +24,7 @@ db.parameters.find({ '_id.referenceId': { $exists: true }}).forEach(parameter =>
             },
             value: parameter.value
         }
-        db.parameters.save(parameterUpdated);
+        db.parameters.insertOne(parameterUpdated);
         print('Parameter created: ' + parameterKey);
         db.parameters.remove(parameter);
     }

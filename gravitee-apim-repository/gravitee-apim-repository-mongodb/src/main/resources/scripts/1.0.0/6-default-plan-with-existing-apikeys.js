@@ -26,7 +26,7 @@ db.apis.find().forEach(
             updatedAt: new Date(),
         };
         
-        db.plans.save(plan);
+        db.plans.insertOne(plan);
     }
 );
 
@@ -61,7 +61,7 @@ db.keys.group(
             'updatedAt' : new Date()
        };
        
-       db.subscriptions.save(subscription);
+       db.subscriptions.insertOne(subscription);
    }
 );
    
@@ -88,7 +88,7 @@ db.keys.find().forEach(
         } 
         
         db.keys.remove(apikey);
-        db.keys.save(apikey2);
+        db.keys.insertOne(apikey2);
     }
 );
     
