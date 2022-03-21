@@ -40,7 +40,7 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
     @Rule
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
-    @Test
+    @Test(timeout = 10000)
     public void websocket_accepted_request() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
 
@@ -52,34 +52,44 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
                     event.writeTextMessage("PING");
                 }
             )
-            .listen(16664);
+            .listen(16664)
+            .onComplete(
+                server -> {
+                    // Wait for result
+                    final CountDownLatch latch = new CountDownLatch(1);
 
-        // Wait for result
-        final CountDownLatch latch = new CountDownLatch(1);
+                    HttpClient httpClient = vertx.createHttpClient(
+                        new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost")
+                    );
 
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
-
-        httpClient.webSocket(
-            "/test",
-            event -> {
-                if (event.failed()) {
-                    logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
-                } else {
-                    final WebSocket webSocket = event.result();
-                    webSocket.frameHandler(
-                        frame -> {
-                            if (frame.isText()) {
-                                Assert.assertEquals("PING", frame.textData());
-                                latch.countDown();
+                    httpClient.webSocket(
+                        "/test",
+                        event -> {
+                            if (event.failed()) {
+                                logger.error("An error occurred during websocket call", event.cause());
+                                Assert.fail();
+                            } else {
+                                final WebSocket webSocket = event.result();
+                                webSocket.frameHandler(
+                                    frame -> {
+                                        if (frame.isText()) {
+                                            Assert.assertEquals("PING", frame.textData());
+                                            latch.countDown();
+                                        }
+                                    }
+                                );
                             }
                         }
                     );
-                }
-            }
-        );
 
-        Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
+                    try {
+                        Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
+                    } catch (InterruptedException e) {
+                        Assert.fail();
+                    }
+                }
+            );
+
         httpServer.close();
     }
 }
