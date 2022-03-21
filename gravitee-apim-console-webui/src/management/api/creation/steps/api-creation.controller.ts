@@ -238,20 +238,6 @@ class ApiCreationController {
    API creation
    */
   createAPI(deployAndStart, readyForReview?: boolean) {
-    const alert = this.$mdDialog.confirm({
-      title: 'Create API?',
-      content:
-        'The API ' + this.api.name + ' in version ' + this.api.version + ' will be created' + (deployAndStart ? ' and deployed.' : '.'),
-      ok: 'CREATE' + (readyForReview ? ' AND ASK FOR REVIEW' : ''),
-      cancel: 'CANCEL',
-    });
-
-    this.$mdDialog.show(alert).then(() => {
-      this._createAPI(deployAndStart, readyForReview);
-    });
-  }
-
-  _createAPI(deployAndStart, readyForReview?: boolean) {
     // clear API pages json format
     _.forEach(this.api.pages, (page) => {
       if (!page.name) {
