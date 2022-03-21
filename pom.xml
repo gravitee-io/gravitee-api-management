@@ -61,7 +61,7 @@
         <gravitee-alert-api.version>1.9.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.7.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.20.5</gravitee-common.version>
-        <gravitee-definition.version>1.28.2</gravitee-definition.version>
+        <gravitee-definition.version>1.30.0</gravitee-definition.version>
         <gravitee-expression-language.version>1.6.3</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.27.3</gravitee-gateway-api.version>
@@ -94,7 +94,7 @@
         <httpclient.version>4.5.12</httpclient.version>
         <imageio.version>3.7.0</imageio.version>
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
-        <java-jwt.version>3.10.2</java-jwt.version>
+        <java-jwt.version>3.19.0</java-jwt.version>
         <javassist.version>3.28.0-GA</javassist.version>
         <javax.activation-api.version>1.2.0</javax.activation-api.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
