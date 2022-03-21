@@ -125,6 +125,28 @@ commands:
                   paths:
                       - ./*.tar.bz2
 
+    webui-install:
+        parameters:
+            apim-ui-project:
+                type: string
+                default: ""
+                description: the name of the UI project to build
+        steps:
+            - restore_cache:
+                  name: Restore NPM cache
+                  keys:
+                      - << parameters.apim-ui-project >>-cache-v1-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
+                      - << parameters.apim-ui-project >>-cache-v1
+            - run:
+                  name: Install dependencies
+                  command: npm install
+                  working_directory: << parameters.apim-ui-project >>
+            - save_cache:
+                  name: Save NPM cache
+                  key: << parameters.apim-ui-project >>-cache-v1-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
+                  paths:
+                      - ./<< parameters.apim-ui-project >>/node_modules
+
 parameters:
     gio_action:
         type: enum
@@ -434,36 +456,6 @@ jobs:
                   working_directory: gravitee-apim-cypress
             - notify-on-failure
 
-    webui-install:
-        parameters:
-            apim-ui-project:
-                type: string
-                default: ""
-                description: the name of the UI project to build
-        executor:
-            name: node-lts
-            class: small
-        steps:
-            - checkout
-            - restore_cache:
-                  name: Restore NPM cache
-                  keys:
-                      - << parameters.apim-ui-project >>-cache-v1-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
-            - run:
-                  name: Install dependencies
-                  command: npm install
-                  working_directory: << parameters.apim-ui-project >>
-            - notify-on-failure
-            - save_cache:
-                  name: Save NPM cache
-                  key: << parameters.apim-ui-project >>-cache-v1-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
-                  paths:
-                      - ./<< parameters.apim-ui-project >>/node_modules
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - << parameters.apim-ui-project >>/node_modules
-
     webui-lint-test:
         parameters:
             apim-ui-project:
@@ -478,6 +470,8 @@ jobs:
             class: << parameters.resource-class>>
         steps:
             - checkout
+            - webui-install:
+                  apim-ui-project: << parameters.apim-ui-project >>
             - attach_workspace:
                   at: .
             - run:
@@ -511,8 +505,8 @@ jobs:
             class: large
         steps:
             - checkout
-            - attach_workspace:
-                  at: .
+            - webui-install:
+                  apim-ui-project: << parameters.apim-ui-project >>
             - run:
                   name: Build
                   command: npm run build:prod
@@ -572,8 +566,8 @@ jobs:
             class: large
         steps:
             - checkout
-            - attach_workspace:
-                  at: .
+            - webui-install:
+                  apim-ui-project: gravitee-apim-console-webui
             - run:
                   name: Build
                   command: npm run build-storybook
@@ -594,6 +588,8 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
+            - webui-install:
+                  apim-ui-project: gravitee-apim-console-webui
             - secrethub/exec:
                   step-name: Running Chromatic
                   # TODO:
@@ -1063,23 +1059,19 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-            - webui-install:
-                  name: Install APIM Console
-                  apim-ui-project: gravitee-apim-console-webui
-                  requires:
-                      - load-snapshot-configuration
             - webui-lint-test:
-                  name: Lint & test APIM Console
+                  name: Lint & Test APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
-                      - Install APIM Console
+                      - compute-apim-tag
             - console-webui-build-storybook:
+                  name: Build Console Storybook
                   requires:
-                      - Install APIM Console
+                      - compute-apim-tag
             - console-webui-chromatic-deployment:
                   context: cicd-orchestrator
                   requires:
-                      - console-webui-build-storybook
+                      - Build Console Storybook
                   pre-steps:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
@@ -1088,7 +1080,7 @@ workflows:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
-                      - Install APIM Console
+                      - compute-apim-tag
             - console-webui-deploy-on-azure-storage:
                   context: cicd-orchestrator
                   pre-steps:
@@ -1131,17 +1123,12 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-            - webui-install:
-                  name: Install APIM Portal
-                  apim-ui-project: gravitee-apim-portal-webui
-                  requires:
-                      - load-snapshot-configuration
             - webui-lint-test:
-                  name: Lint & test APIM Portal
+                  name: Lint & Test APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
                   requires:
-                      - Install APIM Portal
+                      - compute-apim-tag
             - sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
@@ -1151,13 +1138,13 @@ workflows:
                               - gravitee-apim-portal-webui
                   context: cicd-orchestrator
                   requires:
-                      - Lint & test APIM Console
-                      - Lint & test APIM Portal
+                      - Lint & Test APIM Console
+                      - Lint & Test APIM Portal
             - webui-build:
                   name: Build APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
-                      - Install APIM Portal
+                      - compute-apim-tag
             - webui-publish-images-azure-registry:
                   name: Build and publish APIM Portal docker image
                   apim-ui-project: gravitee-apim-portal-webui
