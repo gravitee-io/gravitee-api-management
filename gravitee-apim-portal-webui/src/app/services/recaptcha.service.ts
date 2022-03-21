@@ -55,7 +55,7 @@ export class ReCaptchaService {
           script.async = true;
           script.onload = () =>
             grecaptcha.ready(() => {
-              resolve();
+              resolve({});
               self.loaded = true;
               self.displayOrHideBadge();
             });
@@ -63,7 +63,7 @@ export class ReCaptchaService {
           document.head.appendChild(script);
         }
       } else {
-        resolve();
+        resolve({});
       }
     });
   }
