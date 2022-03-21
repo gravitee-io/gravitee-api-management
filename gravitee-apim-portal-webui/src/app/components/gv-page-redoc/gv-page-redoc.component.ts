@@ -62,7 +62,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
         scriptElement.id = scriptId;
         document.body.appendChild(scriptElement);
       } else {
-        resolve();
+        resolve({});
       }
     });
   }
