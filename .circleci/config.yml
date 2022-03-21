@@ -43,6 +43,11 @@ commands:
                       export BUILD_NUMBER=${CIRCLE_BUILD_NUM}
                       export GIT_COMMIT=$(git rev-parse --short HEAD)
 
+                      # Workaround for sharing this variable to the next steps
+                      echo "export BUILD_ID=$BUILD_ID" >> $BASH_ENV
+                      echo "export BUILD_NUMBER=$BUILD_NUMBER" >> $BASH_ENV
+                      echo "export GIT_COMMIT=$GIT_COMMIT" >> $BASH_ENV
+
     restore-maven-cache:
         description: Restore Maven cache
         steps:
