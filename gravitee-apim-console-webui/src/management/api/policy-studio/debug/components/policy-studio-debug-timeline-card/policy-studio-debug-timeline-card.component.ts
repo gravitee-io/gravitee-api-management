@@ -40,6 +40,7 @@ export type TimelineStep = (
       executionStatus: 'ERROR' | 'SKIPPED' | 'COMPLETED';
       id: string;
       stage: string;
+      condition?: string;
     }
   | {
       mode: 'RESPONSE_INPUT';
@@ -64,6 +65,7 @@ interface TimelineCardVM {
   id?: string;
   clickable: boolean;
   selection: 'start' | 'content' | 'end' | 'single' | 'none';
+  condition?: string;
 }
 
 @Component({
@@ -142,6 +144,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           id: timelineStep.id,
           clickable: true,
           selection: timelineStep.selection,
+          condition: timelineStep.condition,
         };
       case 'RESPONSE_INPUT':
         return {
