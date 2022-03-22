@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import './jest-global-mocks';
+import 'jest-preset-angular/setup-jest';
+
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 import { defineGlobalsInjections } from '@ngneat/spectator';
