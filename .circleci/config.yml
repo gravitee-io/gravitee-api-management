@@ -186,27 +186,16 @@ parameters:
         description: "Version of APIM to be used in docker images"
 
 jobs:
-    load-snapshot-configuration:
-        docker:
-            - image: cimg/base:stable
-        environment:
-            MAVEN_SETTINGS: "secrethub://graviteeio/cicd/graviteebot/infra/maven/gravitee-snapshot.settings.xml"
-        steps:
-            - secrethub/exec:
-                  command: echo $MAVEN_SETTINGS > /tmp/.gravitee-snapshot.settings.xml
-            - persist_to_workspace:
-                  root: /tmp
-                  paths:
-                      - .gravitee-snapshot.settings.xml
-
-    compute-apim-tag:
+    setup:
         docker:
             - image: cimg/openjdk:11.0
         resource_class: small
+        environment:
+            MAVEN_SETTINGS: "secrethub://graviteeio/cicd/graviteebot/infra/maven/gravitee-snapshot.settings.xml"
         steps:
             - checkout
-            - attach_workspace:
-                  at: .
+            - secrethub/exec:
+                  command: echo $MAVEN_SETTINGS > .gravitee-snapshot.settings.xml
             - restore_cache:
                   name: Restore Maven cache for compute-tag job
                   keys:
@@ -236,6 +225,7 @@ jobs:
             - persist_to_workspace:
                   root: .
                   paths:
+                      - .gravitee-snapshot.settings.xml
                       - .docker-tag.txt
                       - .apim-version.txt
 
@@ -998,15 +988,12 @@ workflows:
             and:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
         jobs:
-            - load-snapshot-configuration:
+            - setup:
                   context: cicd-orchestrator
-            - compute-apim-tag:
-                  requires:
-                      - load-snapshot-configuration
             - validate:
                   context: gravitee-qa
                   requires:
-                      - compute-apim-tag
+                      - setup
             - build:
                   context: gravitee-qa
                   requires:
@@ -1063,11 +1050,11 @@ workflows:
                   name: Lint & Test APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
-                      - compute-apim-tag
+                      - setup
             - console-webui-build-storybook:
                   name: Build Console Storybook
                   requires:
-                      - compute-apim-tag
+                      - setup
             - console-webui-chromatic-deployment:
                   context: cicd-orchestrator
                   requires:
@@ -1080,7 +1067,7 @@ workflows:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
-                      - compute-apim-tag
+                      - setup
             - console-webui-deploy-on-azure-storage:
                   context: cicd-orchestrator
                   pre-steps:
@@ -1117,7 +1104,7 @@ workflows:
                             var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   requires:
                       - Build APIM Console
-                      - compute-apim-tag
+                      - setup
                   filters:
                       branches:
                           only:
@@ -1128,7 +1115,7 @@ workflows:
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
                   requires:
-                      - compute-apim-tag
+                      - setup
             - sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
@@ -1144,7 +1131,7 @@ workflows:
                   name: Build APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
-                      - compute-apim-tag
+                      - setup
             - webui-publish-images-azure-registry:
                   name: Build and publish APIM Portal docker image
                   apim-ui-project: gravitee-apim-portal-webui
@@ -1159,7 +1146,7 @@ workflows:
                             var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   requires:
                       - Build APIM Portal
-                      - compute-apim-tag
+                      - setup
                   filters:
                       branches:
                           only:
