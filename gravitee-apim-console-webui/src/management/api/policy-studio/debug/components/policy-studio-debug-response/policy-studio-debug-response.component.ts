@@ -131,6 +131,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
           id: debugStep.id,
           selection: 'none' as const,
           stage: debugStep.stage,
+          condition: debugStep.condition,
         };
       }),
       {
@@ -161,6 +162,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
           id: debugStep.id,
           selection: 'none' as const,
           stage: debugStep.stage,
+          condition: debugStep.condition,
         };
       }),
       {
