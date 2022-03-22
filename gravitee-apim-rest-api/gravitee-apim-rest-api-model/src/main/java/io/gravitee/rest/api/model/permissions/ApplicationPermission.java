@@ -15,11 +15,14 @@
  */
 package io.gravitee.rest.api.model.permissions;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum ApplicationPermission implements Permission {
     DEFINITION("DEFINITION", 1000),
     MEMBER("MEMBER", 1100),

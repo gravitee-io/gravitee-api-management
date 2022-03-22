@@ -27,7 +27,12 @@ import io.gravitee.rest.api.model.settings.PortalConfigEntity;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -41,7 +46,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Portal" })
+@Tag(name = "Portal")
 public class PortalResource {
 
     @Inject
@@ -52,13 +57,13 @@ public class PortalResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get the portal configuration", notes = "Every users can use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Portal configuration", response = PortalConfigEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get the portal configuration", description = "Every users can use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Portal configuration",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalConfigEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public PortalConfigEntity getPortalConfig() {
         return configService.getPortalConfig(GraviteeContext.getCurrentEnvironment());
     }
@@ -66,16 +71,16 @@ public class PortalResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Save the portal configuration")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Updated portal configuration", response = PortalSettingsEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Save the portal configuration")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Updated portal configuration",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalSettingsEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
     @Deprecated
-    public Response savePortalConfig(@ApiParam(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
+    public Response savePortalConfig(@Parameter(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
         configService.save(GraviteeContext.getCurrentEnvironment(), portalSettingsEntity);
         return Response.ok().entity(portalSettingsEntity).build();
     }

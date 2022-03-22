@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model.alert;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum AlertReferenceType {
     API,
     APPLICATION,

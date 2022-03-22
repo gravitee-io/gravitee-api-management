@@ -21,12 +21,14 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ResourceListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.ServiceDiscoveryService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -46,7 +48,7 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Plugins" })
+@Tag(name = "Plugins")
 public class ServicesDiscoveryResource {
 
     @Context
@@ -57,21 +59,19 @@ public class ServicesDiscoveryResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "List service discovery plugins",
-        notes = "User must have the MANAGEMENT_API[READ] permission to use this service"
+    @Operation(
+        summary = "List service discovery plugins",
+        description = "User must have the MANAGEMENT_API[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "List of service discovery plugins",
-                response = ResourceListItem.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of service discovery plugins",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = ResourceListItem.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public Collection<ResourceListItem> getServicesDiscoverResources(@QueryParam("expand") List<String> expand) {
         Stream<ResourceListItem> stream = serviceDiscoveryService.findAll().stream().map(this::convert);
@@ -102,7 +102,7 @@ public class ServicesDiscoveryResource {
         return resourceContext.getResource(ServiceDiscoveryResource.class);
     }
 
-    private ResourceListItem convert(PluginEntity pluginEntity) {
+    private ResourceListItem convert(PlatformPluginEntity pluginEntity) {
         ResourceListItem item = new ResourceListItem();
 
         item.setId(pluginEntity.getId());

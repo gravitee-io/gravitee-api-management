@@ -17,7 +17,7 @@
 
 POSTMAN_DIR=../postman
 POSTMAN_ENV=localhost
-POSTMAN_HEALTH_URL=localhost:8083/management/swagger.json
+POSTMAN_HEALTH_URL=localhost:8083/management/openapi.yaml
 
 echoerr() { echo "\033[0;31m $@ \033[0m"; }
 echosuccess() { echo "\033[0;32m $@ \033[0m"; }

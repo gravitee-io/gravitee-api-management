@@ -27,8 +27,8 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +46,7 @@ import javax.ws.rs.core.Context;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Categories" })
+@Tag(name = "Categories")
 public class CategoriesResource extends AbstractCategoryResource {
 
     @Context
@@ -57,7 +57,7 @@ public class CategoriesResource extends AbstractCategoryResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Retrieve list of categories")
+    @Operation(summary = "Retrieve list of categories")
     public List<CategoryEntity> getCategories() {
         //TODO: Total APIs is not required when loading categories for editing an API from the console.
         // But this service is also used to managed Categories from Settings.
@@ -97,7 +97,7 @@ public class CategoriesResource extends AbstractCategoryResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create a category", notes = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
+    @Operation(summary = "Create a category", description = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE) })
     public CategoryEntity createCategory(@Valid @NotNull final NewCategoryEntity category) {
         return categoryService.create(GraviteeContext.getCurrentEnvironment(), category);
@@ -106,9 +106,9 @@ public class CategoriesResource extends AbstractCategoryResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Update an existing category",
-        notes = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service"
+    @Operation(
+        summary = "Update an existing category",
+        description = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service"
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE) })
     public List<CategoryEntity> updateCategories(@Valid @NotNull final List<UpdateCategoryEntity> categories) {

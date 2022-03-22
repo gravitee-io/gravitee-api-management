@@ -21,7 +21,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PathParam;
@@ -33,7 +38,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Group Memberships" })
+@Tag(name = "Group Memberships")
 public class GroupMemberResource extends AbstractResource {
 
     @Context
@@ -44,18 +49,14 @@ public class GroupMemberResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("group")
-    @ApiParam(name = "group", hidden = true)
+    @Parameter(name = "group", hidden = true)
     private String group;
 
     @DELETE
-    @ApiOperation(value = "Remove a group member")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Member has been removed successfully"),
-            @ApiResponse(code = 400, message = "User does not exist"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @Operation(summary = "Remove a group member")
+    @ApiResponse(responseCode = "200", description = "Member has been removed successfully")
+    @ApiResponse(responseCode = "400", description = "User does not exist")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE),

@@ -19,12 +19,13 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PathParam;
@@ -34,7 +35,7 @@ import javax.ws.rs.core.Response;
 /**
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Keys" })
+@Tag(name = "API Keys")
 public class ApplicationSubscriptionApiKeyResource extends AbstractResource {
 
     @Inject
@@ -42,29 +43,24 @@ public class ApplicationSubscriptionApiKeyResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
-    @ApiParam(name = "application", hidden = true)
+    @Parameter(name = "application", hidden = true)
     private String application;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("subscription")
-    @ApiParam(name = "subscription", hidden = true)
+    @Parameter(name = "subscription", hidden = true)
     private String subscription;
 
-    @SuppressWarnings("UnresolvedRestParam")
     @PathParam("apikey")
-    @ApiParam(name = "apikey", hidden = true)
+    @Parameter(name = "apikey")
     private String apikey;
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke an API key", notes = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "API key successfully revoked"),
-            @ApiResponse(code = 400, message = "API Key does not correspond to the subscription"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @Operation(summary = "Revoke an API key", description = "User must have the MANAGE_API_KEYS permission to use this service")
+    @ApiResponse(responseCode = "204", description = "API key successfully revoked")
+    @ApiResponse(responseCode = "400", description = "API Key does not correspond to the subscription")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApplicationSubscription() {
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(apikey);

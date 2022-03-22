@@ -25,7 +25,13 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -39,7 +45,7 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Application Subscriptions" })
+@Tag(name = "Application Subscriptions")
 public class ApplicationSubscribedResource extends AbstractResource {
 
     @Inject
@@ -53,26 +59,24 @@ public class ApplicationSubscribedResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
-    @ApiParam(name = "application", hidden = true)
+    @Parameter(name = "application", hidden = true)
     private String application;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "List APIs subscribed by the application",
-        notes = "User must have the APPLICATION_SUBSCRIPTION permission to use this service"
+    @Operation(
+        summary = "List APIs subscribed by the application",
+        description = "User must have the APPLICATION_SUBSCRIPTION permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "Paged result of subscribed APIs",
-                response = ApplicationEntity.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Paged result of subscribed APIs",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = ApplicationEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public Collection<SubscribedApi> getApiSubscribed() {
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();

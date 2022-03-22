@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model.configuration.dictionary;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum DictionaryType {
     MANUAL,
     DYNAMIC,

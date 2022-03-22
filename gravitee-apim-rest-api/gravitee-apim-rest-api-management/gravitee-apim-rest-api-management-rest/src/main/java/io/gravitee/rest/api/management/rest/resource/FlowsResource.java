@@ -19,7 +19,12 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.OrganizationFlowConfiguration;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,7 +36,7 @@ import javax.ws.rs.core.Response;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Flows" })
+@Tag(name = "Flows")
 public class FlowsResource extends AbstractResource {
 
     @Inject
@@ -42,18 +47,18 @@ public class FlowsResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("orgId")
-    @ApiParam(name = "orgId", hidden = true)
+    @Parameter(name = "orgId", hidden = true)
     private String orgId;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get the global flow configuration of the organization")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Platform flows configuration", response = OrganizationFlowConfiguration.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get the global flow configuration of the organization")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Platform flows configuration",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = OrganizationFlowConfiguration.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response hasPolicies() {
         boolean hasPlatformPolicies = !organizationService.findById(orgId).getFlows().isEmpty();
 

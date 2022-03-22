@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.model.settings;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(enumAsRef = true)
 public enum ApiPrimaryOwnerMode {
     HYBRID,
     USER,

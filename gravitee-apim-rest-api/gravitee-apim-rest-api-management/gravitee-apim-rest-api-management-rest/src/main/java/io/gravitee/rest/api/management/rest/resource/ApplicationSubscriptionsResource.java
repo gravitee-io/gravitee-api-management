@@ -18,8 +18,8 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Pageable;
-import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.model.Subscription;
+import io.gravitee.rest.api.management.rest.model.wrapper.SubscriptionEntityPageResult;
 import io.gravitee.rest.api.management.rest.resource.param.ListStringParam;
 import io.gravitee.rest.api.management.rest.resource.param.ListSubscriptionStatusParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
@@ -37,7 +37,14 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -52,7 +59,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Application Subscriptions" })
+@Tag(name = "Application Subscriptions")
 public class ApplicationSubscriptionsResource extends AbstractResource {
 
     @Context
@@ -72,21 +79,21 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
-    @ApiParam(name = "application", hidden = true)
+    @Parameter(name = "application", hidden = true)
     private String application;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Subscribe to a plan", notes = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Subscription successfully created", response = Subscription.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Subscribe to a plan", description = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
+    @ApiResponse(
+        responseCode = "201",
+        description = "Subscription successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.CREATE) })
     public Response createSubscriptionWithApplication(
-        @ApiParam(name = "plan", required = true) @NotNull @QueryParam("plan") String plan,
+        @Parameter(name = "plan", required = true) @NotNull @QueryParam("plan") String plan,
         NewSubscriptionEntity newSubscriptionEntity
     ) {
         // If no request message has been passed, the entity is not created
@@ -113,23 +120,24 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "List subscriptions for the application",
-        notes = "User must have the READ_SUBSCRIPTION permission to use this service"
+    @Operation(
+        summary = "List subscriptions for the application",
+        description = "User must have the READ_SUBSCRIPTION permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Paged result of application's subscriptions", response = PagedResult.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Paged result of application's subscriptions",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = SubscriptionEntityPageResult.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
-    public PagedResult<SubscriptionEntity> getApplicationSubscriptions(
+    public SubscriptionEntityPageResult getApplicationSubscriptions(
         @BeanParam SubscriptionParam subscriptionParam,
         @Valid @BeanParam Pageable pageable,
-        @ApiParam(allowableValues = "keys, security", value = "Expansion of data to return in subscriptions") @QueryParam(
-            "expand"
-        ) List<String> expand
+        @Parameter(
+            description = "Expansion of data to return in subscriptions",
+            array = @ArraySchema(schema = @Schema(allowableValues = { "keys", "security" }))
+        ) @QueryParam("expand") List<String> expand
     ) {
         // Transform query parameters to a subscription query
         SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
@@ -144,7 +152,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             expandPlanSecurity
         );
 
-        PagedResult<SubscriptionEntity> result = new PagedResult<>(subscriptions, pageable.getSize());
+        SubscriptionEntityPageResult result = new SubscriptionEntityPageResult(subscriptions, pageable.getSize());
         SubscriptionMetadataQuery subscriptionMetadataQuery = new SubscriptionMetadataQuery(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
@@ -205,16 +213,19 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
     private static class SubscriptionParam {
 
         @QueryParam("plan")
-        @ApiParam(value = "plan")
+        @Parameter(description = "plan", explode = Explode.FALSE, schema = @Schema(type = "array"))
         private ListStringParam plans;
 
         @QueryParam("api")
-        @ApiParam(value = "api")
+        @Parameter(description = "api", explode = Explode.FALSE, schema = @Schema(type = "array"))
         private ListStringParam apis;
 
         @QueryParam("status")
-        @DefaultValue("accepted,pending,paused")
-        @ApiModelProperty(dataType = "string", allowableValues = "accepted, pending, rejected, closed", value = "Subscription status")
+        @Parameter(
+            description = "Subscription status",
+            explode = Explode.FALSE,
+            schema = @Schema(type = "array", defaultValue = "[\"ACCEPTED\"]")
+        )
         private ListSubscriptionStatusParam status;
 
         @QueryParam("api_key")
@@ -265,26 +276,11 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
         private SubscriptionQuery toQuery() {
             SubscriptionQuery query = new SubscriptionQuery();
-
-            if (apis != null && apis.getValue() != null) {
-                query.setApis(apis.getValue());
-            }
-
-            if (plans != null && plans.getValue() != null) {
-                query.setPlans(plans.getValue());
-            }
-
-            if (status != null) {
-                query.setStatuses(status.getStatus());
-            }
-
-            if (apiKey != null) {
-                query.setApiKey(apiKey);
-            }
-
-            if (securityTypes != null && securityTypes.getValue() != null) {
-                query.setPlanSecurityTypes(securityTypes.getValue());
-            }
+            query.setApis(apis);
+            query.setPlans(plans);
+            query.setStatuses(status);
+            query.setApiKey(apiKey);
+            query.setPlanSecurityTypes(securityTypes);
             return query;
         }
     }

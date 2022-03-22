@@ -24,7 +24,12 @@ import io.gravitee.rest.api.model.configuration.application.registration.UpdateC
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -35,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Client Registration Providers" })
+@Tag(name = "Client Registration Providers")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class ClientRegistrationProviderResource extends AbstractResource {
@@ -45,16 +50,19 @@ public class ClientRegistrationProviderResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Get a client registration provider",
-        notes = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service"
+    @Operation(
+        summary = "Get a client registration provider",
+        description = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "A client registration provider"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "A client registration provider",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = ClientRegistrationProviderEntity.class)
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.READ))
     public ClientRegistrationProviderEntity getClientRegistrationProvider(
         @PathParam("clientRegistrationProvider") String clientRegistrationProvider
@@ -65,20 +73,23 @@ public class ClientRegistrationProviderResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Update a client registration provider",
-        notes = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[UPDATE] permission to use this service"
+    @Operation(
+        summary = "Update a client registration provider",
+        description = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[UPDATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Updated client registration provider", response = ClientRegistrationProviderEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Updated client registration provider",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = ClientRegistrationProviderEntity.class)
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.UPDATE))
     public ClientRegistrationProviderEntity updateClientRegistrationProvider(
         @PathParam("clientRegistrationProvider") String clientRegistrationProvider,
-        @ApiParam(
+        @Parameter(
             name = "clientRegistrationProvider",
             required = true
         ) @Valid @NotNull final UpdateClientRegistrationProviderEntity updatedClientRegistrationProvider
@@ -87,16 +98,12 @@ public class ClientRegistrationProviderResource extends AbstractResource {
     }
 
     @DELETE
-    @ApiOperation(
-        value = "Delete a client registration provider",
-        notes = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[DELETE] permission to use this service"
+    @Operation(
+        summary = "Delete a client registration provider",
+        description = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[DELETE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "Client registration provider successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @ApiResponse(responseCode = "204", description = "Client registration provider successfully deleted")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.DELETE) })
     public Response deleteClientRegistrationProvider(@PathParam("clientRegistrationProvider") String clientRegistrationProvider) {
         clientRegistrationService.delete(clientRegistrationProvider);

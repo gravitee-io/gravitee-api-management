@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model.analytics.query;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum AggregationType {
     FIELD,
     AVG,

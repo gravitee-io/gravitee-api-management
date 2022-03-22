@@ -16,38 +16,22 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.gravitee.rest.api.model.SubscriptionStatus;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ListSubscriptionStatusParam {
-
-    private static final String SEPARATOR = ",";
-    private static final List<SubscriptionStatus> DEFAULT = Collections.singletonList(SubscriptionStatus.ACCEPTED);
-
-    private List<SubscriptionStatus> statuses;
+public class ListSubscriptionStatusParam extends AbstractListParam<SubscriptionStatus> {
 
     public ListSubscriptionStatusParam(String param) {
-        if (param != null) {
-            try {
-                statuses = new ArrayList<>();
-                String[] params = param.replaceAll("\\s", "").split(SEPARATOR);
-                for (String _param : params) {
-                    statuses.add(SubscriptionStatus.valueOf(_param.toUpperCase()));
-                }
-            } catch (IllegalArgumentException ise) {
-                statuses = DEFAULT;
-            }
-        } else {
-            statuses = DEFAULT;
+        super(param);
+        if (isEmpty()) {
+            add(SubscriptionStatus.ACCEPTED);
         }
     }
 
-    public List<SubscriptionStatus> getStatus() {
-        return statuses;
+    @Override
+    protected SubscriptionStatus parseValue(String param) {
+        return SubscriptionStatus.valueOf(param.toUpperCase());
     }
 }

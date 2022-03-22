@@ -24,10 +24,12 @@ import io.gravitee.rest.api.model.UpdateMetadataEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MetadataService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -39,7 +41,7 @@ import javax.ws.rs.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Metadata" })
+@Tag(name = "Metadata")
 public class MetadataResource extends AbstractResource {
 
     @Inject
@@ -47,16 +49,19 @@ public class MetadataResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Retrieve the list of platform metadata",
-        notes = "User must have the PORTAL_METADATA[READ] permission to use this service"
+    @Operation(
+        summary = "Retrieve the list of platform metadata",
+        description = "User must have the PORTAL_METADATA[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of platform metadata", response = MetadataEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of platform metadata",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = MetadataEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.READ) })
     public List<MetadataEntity> getMetadatas() {
         return metadataService.findAllDefault();
@@ -65,13 +70,16 @@ public class MetadataResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create a platform metadata", notes = "User must have the PORTAL_METADATA[CREATE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Metadata successfully created", response = MetadataEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(
+        summary = "Create a platform metadata",
+        description = "User must have the PORTAL_METADATA[CREATE] permission to use this service"
     )
+    @ApiResponse(
+        responseCode = "201",
+        description = "Metadata successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MetadataEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.CREATE) })
     public MetadataEntity createMetadata(@Valid @NotNull final NewMetadataEntity metadata) {
         return metadataService.create(metadata);
@@ -80,13 +88,16 @@ public class MetadataResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a platform metadata", notes = "User must have the PORTAL_METADATA[UPDATE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Updated metadata", response = MetadataEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(
+        summary = "Update a platform metadata",
+        description = "User must have the PORTAL_METADATA[UPDATE] permission to use this service"
     )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Updated metadata",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MetadataEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.UPDATE) })
     public MetadataEntity updateMetadata(@Valid @NotNull final UpdateMetadataEntity metadata) {
         return metadataService.update(metadata);
@@ -95,10 +106,12 @@ public class MetadataResource extends AbstractResource {
     @Path("{metadata}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete a platform metadata", notes = "User must have the PORTAL_METADATA[DELETE] permission to use this service")
-    @ApiResponses(
-        { @ApiResponse(code = 204, message = "Metadata successfully deleted"), @ApiResponse(code = 500, message = "Internal server error") }
+    @Operation(
+        summary = "Delete a platform metadata",
+        description = "User must have the PORTAL_METADATA[DELETE] permission to use this service"
     )
+    @ApiResponse(responseCode = "204", description = "Metadata successfully deleted")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.DELETE) })
     public void deleteMetadata(@PathParam("metadata") String metadata) {
         metadataService.delete(metadata);

@@ -36,7 +36,13 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.validator.CustomApiKey;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.util.List;
 import javax.inject.Inject;
@@ -49,7 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Keys" })
+@Tag(name = "API Keys")
 public class ApiSubscriptionApiKeysResource extends AbstractResource {
 
     @Context
@@ -69,31 +75,29 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String api;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("subscription")
-    @ApiParam(name = "subscription", hidden = true)
+    @Parameter(name = "subscription")
     private String subscription;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "List all API Keys for a subscription",
-        notes = "User must have the MANAGE_API_KEYS permission to use this service"
+    @Operation(
+        summary = "List all API Keys for a subscription",
+        description = "User must have the MANAGE_API_KEYS permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "List of API Keys for a subscription",
-                response = ApiKeyEntity.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of API Keys for a subscription",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = ApiKeyEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public List<ApiKeyEntity> getApiKeysForApiSubscription() {
         return apiKeyService.findBySubscription(subscription);
@@ -102,17 +106,17 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
     @POST
     @Path("/_renew")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Renew an API key", notes = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "A new API Key", response = ApiKeyEntity.class),
-            @ApiResponse(code = 400, message = "Bad custom API Key format or custom API Key definition disabled"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Renew an API key", description = "User must have the MANAGE_API_KEYS permission to use this service")
+    @ApiResponse(
+        responseCode = "201",
+        description = "A new API Key",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiKeyEntity.class))
     )
+    @ApiResponse(responseCode = "400", description = "Bad custom API Key format or custom API Key definition disabled")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response renewSubscriptionApiKeysForApiSubscription(
-        @ApiParam(name = "customApiKey") @CustomApiKey @QueryParam("customApiKey") String customApiKey
+        @Parameter(name = "customApiKey") @CustomApiKey @QueryParam("customApiKey") String customApiKey
     ) {
         if (
             StringUtils.isNotEmpty(customApiKey) &&

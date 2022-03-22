@@ -20,12 +20,13 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.ServiceDiscoveryService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -38,7 +39,7 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Plugins" })
+@Tag(name = "Plugins")
 public class ServiceDiscoveryResource {
 
     @Context
@@ -49,33 +50,33 @@ public class ServiceDiscoveryResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a service discovery", notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Service discovery plugin", response = PluginEntity.class),
-            @ApiResponse(code = 404, message = "Resource not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get a service discovery", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Service discovery plugin",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlatformPluginEntity.class))
     )
+    @ApiResponse(responseCode = "404", description = "Resource not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public PluginEntity getServiceDiscovery(@PathParam("plugin") String pluginId) {
+    public PlatformPluginEntity getServiceDiscovery(@PathParam("plugin") String pluginId) {
         return serviceDiscoveryService.findById(pluginId);
     }
 
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Get a service discovery's schema",
-        notes = "User must have the MANAGEMENT_API[READ] permission to use this service"
+    @Operation(
+        summary = "Get a service discovery's schema",
+        description = "User must have the MANAGEMENT_API[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Service discovery plugin's schema"),
-            @ApiResponse(code = 404, message = "Service discovery not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Service discovery plugin's schema",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = "string"))
     )
+    @ApiResponse(responseCode = "404", description = "Service discovery not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public String getServiceDiscoverySchema(@PathParam("plugin") String pluginId) {
         // Check that the service discovery exists

@@ -18,7 +18,13 @@ package io.gravitee.rest.api.management.rest.resource.search;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.service.IdentityService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -33,7 +39,7 @@ import javax.ws.rs.QueryParam;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Users" })
+@Tag(name = "Users")
 public class SearchUsersResource {
 
     @Inject
@@ -42,15 +48,18 @@ public class SearchUsersResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Search for users")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of users", response = SearchableUser.class, responseContainer = "List"),
-            @ApiResponse(code = 400, message = "Bad query parameter"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Search for users")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of users",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = SearchableUser.class))
+        )
     )
-    public Collection<SearchableUser> searchUsers(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
+    @ApiResponse(responseCode = "400", description = "Bad query parameter")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public Collection<SearchableUser> searchUsers(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         return identityService
             .search(query)
             .stream()

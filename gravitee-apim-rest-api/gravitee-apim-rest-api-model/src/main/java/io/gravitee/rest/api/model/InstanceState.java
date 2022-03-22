@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum InstanceState {
     STARTED,
     UNKNOWN,

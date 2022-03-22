@@ -16,35 +16,20 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.gravitee.rest.api.model.PlanSecurityType;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlanSecurityParam {
+public class PlanSecurityParam extends AbstractListParam<PlanSecurityType> {
 
-    private static final String SEPARATOR = ",";
-    private List<PlanSecurityType> securities;
-
-    public PlanSecurityParam(List<PlanSecurityType> securities) {
-        this.securities = Collections.unmodifiableList(securities);
+    public PlanSecurityParam(String param) throws WebApplicationException {
+        super(param);
     }
 
-    public PlanSecurityParam(String param) {
-        this.securities = new ArrayList<>();
-
-        if (param != null) {
-            String[] params = param.replaceAll("\\s", "").split(SEPARATOR);
-            for (String _param : params) {
-                this.securities.add(PlanSecurityType.valueOf(_param.toUpperCase()));
-            }
-        }
-    }
-
-    public List<PlanSecurityType> getSecurities() {
-        return this.securities;
+    @Override
+    protected PlanSecurityType parseValue(String param) {
+        return PlanSecurityType.valueOf(param.toUpperCase());
     }
 }

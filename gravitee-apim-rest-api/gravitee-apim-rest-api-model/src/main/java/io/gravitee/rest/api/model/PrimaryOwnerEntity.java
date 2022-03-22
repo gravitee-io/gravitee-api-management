@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -23,16 +23,16 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public class PrimaryOwnerEntity {
 
-    @ApiModelProperty(value = "The user or group id.", example = "005197cc-cc84-86a6-a75a-88f9772c67db")
+    @Schema(description = "The user or group id.", example = "005197cc-cc84-86a6-a75a-88f9772c67db")
     private String id;
 
-    @ApiModelProperty(value = "The user or group email.", example = "contact@gravitee.io")
+    @Schema(description = "The user or group email.", example = "contact@gravitee.io")
     private String email;
 
-    @ApiModelProperty(value = "The user or group display name.", example = "John Doe")
+    @Schema(description = "The user or group display name.", example = "John Doe")
     private String displayName;
 
-    @ApiModelProperty(value = "The primary owner type", example = "USER")
+    @Schema(description = "The primary owner type", example = "USER")
     private String type;
 
     public PrimaryOwnerEntity() {}

@@ -24,10 +24,12 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -39,7 +41,7 @@ import javax.ws.rs.QueryParam;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Subscription" })
+@Tag(name = "Subscription")
 public class SubscriptionsResource {
 
     @Inject
@@ -53,13 +55,16 @@ public class SubscriptionsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List subscriptions for authenticated user")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of subscriptions", response = Subscription.class, responseContainer = "Set"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "List subscriptions for authenticated user")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of subscriptions",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = Subscription.class), uniqueItems = true)
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Set<Subscription> getUserSubscriptions(@QueryParam("application") String application, @QueryParam("plan") String plan) {
         return subscriptionService.findByApplicationAndPlan(application, plan).stream().map(this::convert).collect(Collectors.toSet());
     }

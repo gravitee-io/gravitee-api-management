@@ -124,9 +124,8 @@
         <powermock.version>2.0.9</powermock.version>
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
         <snakeyaml.version>1.30</snakeyaml.version>
-        <swagger-jersey2-jaxrs.version>1.6.4</swagger-jersey2-jaxrs.version>
-        <swagger-annotations.version>1.6.4</swagger-annotations.version>
-        <swagger-core.version>2.1.12</swagger-core.version>
+        <swagger-jaxrs2.version>2.1.13</swagger-jaxrs2.version>
+        <swagger-core.version>2.1.13</swagger-core.version>
         <swagger-parser.version>2.0.30</swagger-parser.version>
         <swagger-models.version>1.6.4</swagger-models.version>
         <testcontainers.version>1.16.3</testcontainers.version>
@@ -496,27 +495,15 @@
             </dependency>
 
             <dependency>
-                <groupId>io.swagger</groupId>
-                <artifactId>swagger-jersey2-jaxrs</artifactId>
-                <version>${swagger-jersey2-jaxrs.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.validation</groupId>
-                        <artifactId>validation-api</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-jaxrs2</artifactId>
+                <version>${swagger-jaxrs2.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>io.swagger</groupId>
+                <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-annotations</artifactId>
-                <version>${swagger-annotations.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.validation</groupId>
-                        <artifactId>validation-api</artifactId>
-                    </exclusion>
-                </exclusions>
+                <version>${swagger-core.version}</version>
             </dependency>
 
             <dependency>

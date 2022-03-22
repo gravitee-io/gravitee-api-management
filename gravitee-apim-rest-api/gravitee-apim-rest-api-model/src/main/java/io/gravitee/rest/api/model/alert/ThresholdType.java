@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.model.alert;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(enumAsRef = true)
 public enum ThresholdType {
     COUNT("Count"),
     PERCENT_RATE("Percent rate");

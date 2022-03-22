@@ -15,30 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class LifecycleActionParam {
+import io.swagger.v3.oas.annotations.media.Schema;
 
-    public enum LifecycleAction {
-        START,
-        STOP,
-    }
-
-    private LifecycleAction action;
-
-    public LifecycleActionParam(String input) {
-        try {
-            if (input != null) {
-                action = LifecycleAction.valueOf(input.toUpperCase());
-            }
-        } catch (IllegalArgumentException iae) {
-            // Nothing to do here
-        }
-    }
-
-    public LifecycleAction getAction() {
-        return this.action;
-    }
+@Schema(enumAsRef = true)
+public enum AnalyticsType {
+    GROUP_BY,
+    DATE_HISTO,
+    COUNT,
+    STATS,
 }

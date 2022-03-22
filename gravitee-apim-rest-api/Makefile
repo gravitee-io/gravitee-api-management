@@ -140,18 +140,18 @@ endif
 ifeq ($(env), nightly)
 	$(eval POSTMAN_ENV = $(env))
 	$(eval POSTMAN_URL = $(env).gravitee.io:443)
-	$(eval POSTMAN_HEALTH_URL = $(env).gravitee.io/api/management/swagger.json)
+	$(eval POSTMAN_HEALTH_URL = $(env).gravitee.io/api/management/openapi.yaml)
 endif
 ifeq ($(env), demo)
 	$(eval POSTMAN_ENV = $(env))
 	$(eval POSTMAN_URL = $(env).gravitee.io:443)
-	$(eval POSTMAN_HEALTH_URL = $(env).gravitee.io/management/swagger.json)
+	$(eval POSTMAN_HEALTH_URL = $(env).gravitee.io/management/openapi.yaml)
 endif
 ifeq ($(env),) # If no environment is provided, use localhost.
 	@echo "No environment provided. Choosing localhost by default"
 	$(eval POSTMAN_ENV = localhost)
 	$(eval POSTMAN_URL = localhost:8083)
-	$(eval POSTMAN_HEALTH_URL = localhost:8083/management/swagger.json)
+	$(eval POSTMAN_HEALTH_URL = localhost:8083/management/openapi.yaml)
 endif
 	@echo "\033[0;32m Waiting for $(POSTMAN_ENV) to be ready on $(POSTMAN_URL) \033[0m"
 	sh ./postman/scripts/wait-for.sh $(POSTMAN_URL) --timeout=30 -- \

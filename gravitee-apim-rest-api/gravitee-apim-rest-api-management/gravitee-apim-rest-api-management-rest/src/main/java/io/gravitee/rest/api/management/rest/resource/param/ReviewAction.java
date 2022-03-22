@@ -15,34 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import javax.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class ReviewActionParam {
-
-    public enum ReviewAction {
-        ASK,
-        ACCEPT,
-        REJECT,
-    }
-
-    @NotNull
-    private ReviewAction action;
-
-    public ReviewActionParam(String input) {
-        try {
-            if (input != null) {
-                action = ReviewAction.valueOf(input.toUpperCase());
-            }
-        } catch (IllegalArgumentException iae) {
-            // Nothing to do here
-        }
-    }
-
-    public ReviewAction getAction() {
-        return this.action;
-    }
+@Schema(enumAsRef = true)
+public enum ReviewAction {
+    ASK,
+    ACCEPT,
+    REJECT,
 }

@@ -22,10 +22,12 @@ import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderE
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -39,7 +41,9 @@ import javax.ws.rs.Produces;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Portal", "Authentication", "Identity Providers" })
+@Tag(name = "Portal")
+@Tag(name = "Authentication")
+@Tag(name = "Identity Providers")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class SocialIdentityProvidersResource extends AbstractResource {
@@ -51,18 +55,16 @@ public class SocialIdentityProvidersResource extends AbstractResource {
     private IdentityProviderActivationService identityProviderActivationService;
 
     @GET
-    @ApiOperation(value = "Get the list of social identity providers")
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "List social identity providers",
-                response = SocialIdentityProviderEntity.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get the list of social identity providers")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List social identity providers",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = SocialIdentityProviderEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<SocialIdentityProviderEntity> getSocialIdentityProviders() {
         return socialIdentityProviderService
             .findAll(

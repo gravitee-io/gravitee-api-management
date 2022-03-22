@@ -24,7 +24,7 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.search.Indexable;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.*;
 import javax.validation.constraints.NotNull;
 
@@ -44,127 +44,123 @@ import javax.validation.constraints.NotNull;
 @JsonFilter("apiMembershipTypeFilter")
 public class ApiEntity implements Indexable {
 
-    @ApiModelProperty(value = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
 
-    @ApiModelProperty(value = "API's crossId. Identifies API across environments.", example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
+    @Schema(description = "API's crossId. Identifies API across environments.", example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
     private String crossId;
 
-    @ApiModelProperty(value = "API's name. Duplicate names can exists.", example = "My Api")
+    @Schema(description = "API's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
-    @ApiModelProperty(value = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
+    @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
     private String version;
 
-    @ApiModelProperty(
-        value = "API's description. A short description of your API.",
+    @Schema(
+        description = "API's description. A short description of your API.",
         example = "I can use a hundred characters to describe this API."
     )
     private String description;
 
-    @ApiModelProperty(value = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @Schema(description = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     @JsonProperty(value = "context_path")
-    @ApiModelProperty(value = "API's context path.", example = "/my-awesome-api")
+    @Schema(description = "API's context path.", example = "/my-awesome-api")
     private String contextPath;
 
     @NotNull
     @DeploymentRequired
     @JsonProperty(value = "proxy", required = true)
-    @ApiModelProperty(value = "API's definition.")
+    @Schema(description = "API's definition.")
     private Proxy proxy;
 
     @DeploymentRequired
     @JsonProperty(value = "flow_mode")
-    @ApiModelProperty(value = "API's flow mode.", example = "BEST_MATCH")
+    @Schema(description = "API's flow mode.", example = "BEST_MATCH")
     private FlowMode flowMode;
 
     @DeploymentRequired
     @JsonProperty(value = "paths", required = true)
-    @ApiModelProperty(value = "a map where you can associate a path to a configuration (the policies configuration)")
+    @Schema(description = "a map where you can associate a path to a configuration (the policies configuration)")
     private Map<String, List<Rule>> paths = new HashMap<>();
 
     @DeploymentRequired
     @JsonProperty(value = "flows", required = true)
-    @ApiModelProperty(value = "a list of flows (the policies configuration)")
+    @Schema(description = "a list of flows (the policies configuration)")
     private List<Flow> flows = new ArrayList<>();
 
     @DeploymentRequired
     @JsonProperty(value = "plans", required = true)
-    @ApiModelProperty(value = "a list of plans with flows (the policies configuration)")
+    @Schema(description = "a list of plans with flows (the policies configuration)")
     private List<Plan> plans = new ArrayList<>();
 
     @DeploymentRequired
     @JsonProperty(value = "gravitee", required = false)
-    @ApiModelProperty(value = "API's gravitee definition version")
+    @Schema(description = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
 
     @JsonProperty("deployed_at")
-    @ApiModelProperty(value = "The last date (as timestamp) when the API was deployed.", example = "1581256457163")
+    @Schema(description = "The last date (as timestamp) when the API was deployed.", example = "1581256457163")
     private Date deployedAt;
 
     @JsonProperty("created_at")
-    @ApiModelProperty(value = "The date (as a timestamp) when the API was created.", example = "1581256457163")
+    @Schema(description = "The date (as a timestamp) when the API was created.", example = "1581256457163")
     private Date createdAt;
 
     @JsonProperty("updated_at")
-    @ApiModelProperty(value = "The last date (as a timestamp) when the API was updated.", example = "1581256457163")
+    @Schema(description = "The last date (as a timestamp) when the API was updated.", example = "1581256457163")
     private Date updatedAt;
 
-    @ApiModelProperty(value = "The visibility of the API regarding the portal.", example = "PUBLIC", allowableValues = "PUBLIC, PRIVATE")
+    @Schema(description = "The visibility of the API regarding the portal.", example = "PUBLIC")
     private Visibility visibility;
 
-    @ApiModelProperty(
-        value = "The status of the API regarding the gateway.",
-        example = "STARTED",
-        allowableValues = "INITIALIZED, STOPPED, STARTED, CLOSED"
-    )
+    @Schema(description = "The status of the API regarding the gateway.", example = "STARTED")
     private Lifecycle.State state;
 
     @JsonProperty("owner")
-    @ApiModelProperty(value = "The user with role PRIMARY_OWNER on this API.")
+    @Schema(description = "The user with role PRIMARY_OWNER on this API.")
     private PrimaryOwnerEntity primaryOwner;
 
     @DeploymentRequired
     @JsonProperty(value = "properties")
-    @ApiModelProperty(value = "A dictionary (could be dynamic) of properties available in the API context.")
+    @Schema(description = "A dictionary (could be dynamic) of properties available in the API context.")
     private io.gravitee.definition.model.Properties properties;
 
     @DeploymentRequired
     @JsonProperty(value = "services")
-    @ApiModelProperty(value = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
+    @Schema(description = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
 
     @DeploymentRequired
-    @ApiModelProperty(value = "the list of sharding tags associated with this API.", example = "public, private")
+    @Schema(description = "the list of sharding tags associated with this API.", example = "public, private")
     private Set<String> tags;
 
-    @ApiModelProperty(value = "the API logo encoded in base64")
+    @Schema(description = "the API logo encoded in base64")
     private String picture;
 
     @JsonProperty(value = "picture_url")
-    @ApiModelProperty(
-        value = "the API logo url.",
+    @Schema(
+        description = "the API logo url.",
         example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture"
     )
     private String pictureUrl;
 
     @DeploymentRequired
     @JsonProperty(value = "resources")
-    @ApiModelProperty(value = "The list of API resources used by policies like cache resources or oauth2")
+    @Schema(description = "The list of API resources used by policies like cache resources or oauth2")
     private List<Resource> resources = new ArrayList<>();
 
-    @ApiModelProperty(value = "the list of categories associated with this API", example = "Product, Customer, Misc")
+    @Schema(description = "the list of categories associated with this API", example = "Product, Customer, Misc")
     private Set<String> categories;
 
-    @ApiModelProperty(value = "the free list of labels associated with this API", example = "json, read_only, awesome")
+    @Schema(description = "the free list of labels associated with this API", example = "json, read_only, awesome")
     private List<String> labels;
 
     @DeploymentRequired
     @JsonProperty(value = "path_mappings")
-    @ApiModelProperty(
-        value = "A list of paths used to aggregate data in analytics",
+    @Schema(
+        description = "A list of paths used to aggregate data in analytics",
         example = "/products/:productId, /products/:productId/media"
     )
     private Set<String> pathMappings = new HashSet<>();
@@ -174,8 +170,8 @@ public class ApiEntity implements Indexable {
 
     @DeploymentRequired
     @JsonProperty(value = "response_templates")
-    @ApiModelProperty(
-        value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
+    @Schema(
+        description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
     )
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
@@ -190,12 +186,12 @@ public class ApiEntity implements Indexable {
 
     private List<ApiEntrypointEntity> entrypoints;
 
-    @ApiModelProperty(value = "the API background encoded in base64")
+    @Schema(description = "the API background encoded in base64")
     private String background;
 
     @JsonProperty(value = "background_url")
-    @ApiModelProperty(
-        value = "the API background url.",
+    @Schema(
+        description = "the API background url.",
         example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background"
     )
     private String backgroundUrl;

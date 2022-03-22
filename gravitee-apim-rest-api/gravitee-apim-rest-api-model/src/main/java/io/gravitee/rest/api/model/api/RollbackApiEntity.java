@@ -28,7 +28,7 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.Visibility;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -40,95 +40,95 @@ public class RollbackApiEntity {
 
     @NotNull
     @NotEmpty(message = "Api's id must not be empty")
-    @ApiModelProperty(value = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
 
     @NotNull
     @NotEmpty(message = "Api's name must not be empty")
-    @ApiModelProperty(value = "Api's name. Duplicate names can exists.", example = "My Api")
+    @Schema(description = "Api's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
     @NotNull
-    @ApiModelProperty(value = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
+    @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
     private String version;
 
     @NotNull
-    @ApiModelProperty(
-        value = "API's description. A short description of your API.",
+    @Schema(
+        description = "API's description. A short description of your API.",
         example = "I can use a hundred characters to describe this API."
     )
     private String description;
 
     @NotNull
     @JsonProperty(value = "proxy", required = true)
-    @ApiModelProperty(value = "API's definition.")
+    @Schema(description = "API's definition.")
     private Proxy proxy;
 
     @JsonProperty(value = "paths", required = true)
-    @ApiModelProperty(value = "a map where you can associate a path to a configuration (the policies configuration)")
+    @Schema(description = "a map where you can associate a path to a configuration (the policies configuration)")
     private Map<String, List<Rule>> paths = new HashMap<>();
 
     @JsonProperty(value = "flows", required = true)
-    @ApiModelProperty(value = "a list of flows (the policies configuration)")
+    @Schema(description = "a list of flows (the policies configuration)")
     private List<Flow> flows = new ArrayList<>();
 
     @JsonProperty(value = "plans", required = true)
-    @ApiModelProperty(value = "a list of plans with flows (the policies configuration)")
+    @Schema(description = "a list of plans with flows (the policies configuration)")
     private List<Plan> plans = new ArrayList<>();
 
-    @ApiModelProperty(value = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
+    @Schema(description = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
 
-    @ApiModelProperty(value = "The list of API resources used by policies like cache resources or oauth2")
+    @Schema(description = "The list of API resources used by policies like cache resources or oauth2")
     private List<Resource> resources = new ArrayList<>();
 
     @JsonProperty(value = "properties")
-    @ApiModelProperty(value = "A dictionary (could be dynamic) of properties available in the API context.")
+    @Schema(description = "A dictionary (could be dynamic) of properties available in the API context.")
     private Properties properties;
 
     @NotNull
-    @ApiModelProperty(value = "The visibility of the API regarding the portal.", example = "PUBLIC", allowableValues = "PUBLIC, PRIVATE")
+    @Schema(description = "The visibility of the API regarding the portal.", example = "PUBLIC")
     private Visibility visibility;
 
-    @ApiModelProperty(value = "the list of sharding tags associated with this API.", example = "public, private")
+    @Schema(description = "the list of sharding tags associated with this API.", example = "public, private")
     private Set<String> tags;
 
-    @ApiModelProperty(value = "the API logo encoded in base64")
+    @Schema(description = "the API logo encoded in base64")
     private String picture;
 
     @DeploymentRequired
     @JsonProperty(value = "gravitee", required = false)
-    @ApiModelProperty(value = "API's gravitee definition version")
+    @Schema(description = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
 
     @DeploymentRequired
     @JsonProperty(value = "flow_mode")
-    @ApiModelProperty(value = "API's flow mode.", example = "BEST_MATCH")
+    @Schema(description = "API's flow mode.", example = "BEST_MATCH")
     private FlowMode flowMode;
 
     @JsonProperty("picture_url")
-    @ApiModelProperty(value = "the API logo URL")
+    @Schema(description = "the API logo URL")
     private String pictureUrl;
 
-    @ApiModelProperty(value = "the list of categories associated with this API", example = "Product, Customer, Misc")
+    @Schema(description = "the list of categories associated with this API", example = "Product, Customer, Misc")
     private Set<String> categories;
 
-    @ApiModelProperty(value = "the free list of labels associated with this API", example = "json, read_only, awesome")
+    @Schema(description = "the free list of labels associated with this API", example = "json, read_only, awesome")
     private List<String> labels;
 
-    @ApiModelProperty(value = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @Schema(description = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     @JsonProperty(value = "path_mappings")
-    @ApiModelProperty(
-        value = "A list of paths used to aggregate data in analytics",
+    @Schema(
+        description = "A list of paths used to aggregate data in analytics",
         example = "/products/:productId, /products/:productId/media"
     )
     private Set<String> pathMappings;
 
     @JsonProperty(value = "response_templates")
-    @ApiModelProperty(
-        value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
+    @Schema(
+        description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
     )
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
@@ -140,11 +140,11 @@ public class RollbackApiEntity {
     @JsonProperty("disable_membership_notifications")
     private boolean disableMembershipNotifications;
 
-    @ApiModelProperty(value = "the API background encoded in base64")
+    @Schema(description = "the API background encoded in base64")
     private String background;
 
     @JsonProperty("background_url")
-    @ApiModelProperty(value = "the API background URL")
+    @Schema(description = "the API background URL")
     private String backgroundUrl;
 
     public Visibility getVisibility() {

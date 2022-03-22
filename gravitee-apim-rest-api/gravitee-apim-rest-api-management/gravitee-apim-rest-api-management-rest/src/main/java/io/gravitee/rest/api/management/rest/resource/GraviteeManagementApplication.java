@@ -16,23 +16,21 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import com.fasterxml.jackson.databind.JavaType;
-import io.gravitee.common.util.Version;
 import io.gravitee.rest.api.management.rest.filter.*;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.*;
 import io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.organization.OrganizationsResource;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
+import io.gravitee.rest.api.management.rest.resource.swagger.Swagger_3_17_Resource;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
 import io.swagger.converter.ModelConverters;
-import io.swagger.jaxrs.config.BeanConfig;
-import io.swagger.jaxrs.listing.ApiListingResource;
-import io.swagger.jaxrs.listing.SwaggerSerializers;
 import io.swagger.models.Model;
 import io.swagger.models.properties.LongProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
+import io.swagger.v3.jaxrs2.SwaggerSerializers;
+import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Date;
@@ -50,19 +48,8 @@ import org.glassfish.jersey.server.ServerProperties;
  */
 public class GraviteeManagementApplication extends ResourceConfig {
 
-    private final AuthenticationProviderManager authenticationProviderManager;
-
     @Inject
-    public GraviteeManagementApplication(AuthenticationProviderManager authenticationProviderManager) {
-        this.authenticationProviderManager = authenticationProviderManager;
-
-        BeanConfig beanConfig = new BeanConfig();
-        beanConfig.setVersion(Version.RUNTIME_VERSION.MAJOR_VERSION);
-        beanConfig.setResourcePackage("io.gravitee.rest.api.management.rest.resource");
-        beanConfig.setTitle("Gravitee.io - Management API");
-        beanConfig.setScan(true);
-        beanConfig.setBasePath("/management");
-
+    public GraviteeManagementApplication() {
         ModelConverters
             .getInstance()
             .addConverter(
@@ -107,6 +94,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(NotFoundExceptionMapper.class);
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
+        register(EnumParamConverterProvider.class);
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
@@ -117,8 +105,9 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);
 
-        register(ApiListingResource.class);
+        register(OpenApiResource.class);
         register(SwaggerSerializers.class);
+        register(Swagger_3_17_Resource.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
         property(ServerProperties.BV_DISABLE_VALIDATE_ON_EXECUTABLE_OVERRIDE_CHECK, true);

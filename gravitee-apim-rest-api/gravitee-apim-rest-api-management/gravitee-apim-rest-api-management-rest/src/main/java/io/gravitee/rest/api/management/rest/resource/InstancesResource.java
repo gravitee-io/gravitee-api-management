@@ -25,8 +25,8 @@ import io.gravitee.rest.api.model.InstanceQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.InstanceService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
@@ -40,7 +40,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Gateway" })
+@Tag(name = "Gateway")
 public class InstancesResource {
 
     @Context
@@ -51,7 +51,7 @@ public class InstancesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List gateway instances")
+    @Operation(summary = "List gateway instances")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ) })
     public Page<InstanceListItem> getInstances(@BeanParam InstanceSearchParam param) {
         InstanceQuery query = new InstanceQuery();

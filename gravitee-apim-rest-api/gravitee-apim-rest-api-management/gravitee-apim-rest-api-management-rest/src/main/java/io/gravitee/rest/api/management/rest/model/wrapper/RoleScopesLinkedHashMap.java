@@ -13,28 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource.param;
+package io.gravitee.rest.api.management.rest.model.wrapper;
 
-/**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class AnalyticsAverageTypeParam extends AbstractParam<AnalyticsAverageTypeParam.AnalyticsAverageType> {
+import io.swagger.v3.oas.annotations.Hidden;
+import java.util.LinkedHashMap;
+import java.util.List;
 
-    public enum AnalyticsAverageType {
-        AVAILABILITY,
-        RESPONSE_TIME,
+public class RoleScopesLinkedHashMap extends LinkedHashMap<String, List<String>> {
+
+    public RoleScopesLinkedHashMap(int initialCapacity) {
+        super(initialCapacity);
     }
 
-    public AnalyticsAverageTypeParam(String param) {
-        super(param);
-    }
-
-    @Override
-    protected AnalyticsAverageType parse(String param) {
-        if (param != null) {
-            return AnalyticsAverageType.valueOf(param.toUpperCase());
-        }
-        return null;
+    @Hidden
+    public boolean isEmpty() {
+        return super.isEmpty();
     }
 }

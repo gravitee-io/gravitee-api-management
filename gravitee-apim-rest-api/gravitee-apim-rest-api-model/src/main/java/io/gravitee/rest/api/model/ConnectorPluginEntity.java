@@ -16,13 +16,14 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import java.util.Collection;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ConnectorPluginEntity extends io.gravitee.rest.api.model.platform.plugin.PluginEntity {
+public class ConnectorPluginEntity extends PlatformPluginEntity {
 
     @JsonProperty("supported_types")
     private Collection<String> supportedTypes;

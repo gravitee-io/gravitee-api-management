@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 
@@ -26,14 +26,14 @@ import javax.ws.rs.QueryParam;
 public class AuditParam {
 
     @QueryParam("envLog")
-    @ApiParam(
-        value = "true if you only want logs from the current environment, false if you also want api, application and organization audit logs"
+    @Parameter(
+        description = "true if you only want logs from the current environment, false if you also want api, application and organization audit logs"
     )
     private boolean environmentLogsOnly;
 
     @QueryParam("orgLog")
-    @ApiParam(
-        value = "true if you only want logs from the current organization, false if you also want api, application and environment audit logs"
+    @Parameter(
+        description = "true if you only want logs from the current organization, false if you also want api, application and environment audit logs"
     )
     private boolean organizationLogsOnly;
 
@@ -44,19 +44,19 @@ public class AuditParam {
     private String applicationId;
 
     @QueryParam("event")
-    @ApiParam(value = "filter by the name of an event.", example = "APPLICATION_UPDATED, API_CREATED, METADATA_DELETED, ...")
+    @Parameter(description = "filter by the name of an event.", example = "APPLICATION_UPDATED, API_CREATED, METADATA_DELETED, ...")
     private String event;
 
     @QueryParam("from")
-    @ApiParam(value = "Timestamp used to define the start date of the time window to query")
+    @Parameter(description = "Timestamp used to define the start date of the time window to query")
     private long from;
 
     @QueryParam("to")
-    @ApiParam(value = "Timestamp used to define the end date of the time window to query")
+    @Parameter(description = "Timestamp used to define the end date of the time window to query")
     private long to;
 
     @QueryParam("size")
-    @ApiParam(value = "Number of elements per page")
+    @Parameter(description = "Number of elements per page")
     @DefaultValue("20")
     private int size;
 

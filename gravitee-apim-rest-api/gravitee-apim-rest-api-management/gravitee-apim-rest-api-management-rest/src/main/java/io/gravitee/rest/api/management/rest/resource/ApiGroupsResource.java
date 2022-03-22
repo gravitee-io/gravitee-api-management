@@ -16,21 +16,18 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.management.rest.model.wrapper.ApiGroupsWithMembersMap;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.GroupMemberEntity;
-import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import java.util.List;
-import java.util.Map;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -39,21 +36,28 @@ public class ApiGroupsResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String apiId;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get API groups mapped to members", notes = "User must have the MANAGE_MEMBERS permission to use this service")
+    @Operation(
+        summary = "Get API groups mapped to members",
+        description = "User must have the MANAGE_MEMBERS permission to use this service"
+    )
     @ApiResponses(
         {
-            @ApiResponse(code = 200, message = "API groups with members", response = MemberEntity.class, responseContainer = "Map"),
-            @ApiResponse(code = 403, message = "Forbidden"),
-            @ApiResponse(code = 500, message = "Internal Server Error"),
+            @ApiResponse(
+                responseCode = "200",
+                description = "API groups with members",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiGroupsWithMembersMap.class))
+            ),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error"),
         }
     )
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ) })
-    public Map<String, List<GroupMemberEntity>> getApiGroupsWithMembers() {
-        return apiService.getGroupsWithMembers(GraviteeContext.getCurrentEnvironment(), apiId);
+    public ApiGroupsWithMembersMap getApiGroupsWithMembers() {
+        return new ApiGroupsWithMembersMap(apiService.getGroupsWithMembers(GraviteeContext.getCurrentEnvironment(), apiId));
     }
 }

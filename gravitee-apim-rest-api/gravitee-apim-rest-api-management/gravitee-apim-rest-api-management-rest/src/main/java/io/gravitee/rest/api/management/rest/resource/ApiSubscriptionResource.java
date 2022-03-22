@@ -27,7 +27,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -40,7 +45,7 @@ import javax.ws.rs.core.Response;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Subscriptions" })
+@Tag(name = "API Subscriptions")
 public class ApiSubscriptionResource extends AbstractResource {
 
     @Context
@@ -66,19 +71,19 @@ public class ApiSubscriptionResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String api;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a subscription", notes = "User must have the MANAGE_PLANS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Get a subscription", response = Subscription.class),
-            @ApiResponse(code = 404, message = "Subscription does not exist"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get a subscription", description = "User must have the MANAGE_PLANS permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Get a subscription",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
     )
+    @ApiResponse(responseCode = "404", description = "Subscription does not exist")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public Subscription getApiSubscription(@PathParam("subscription") String subscription) {
         return convert(subscriptionService.findById(subscription));
@@ -87,18 +92,18 @@ public class ApiSubscriptionResource extends AbstractResource {
     @POST
     @Path("/_process")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a subscription", notes = "User must have the MANAGE_PLANS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Update a subscription", response = Subscription.class),
-            @ApiResponse(code = 400, message = "Bad subscription format"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Update a subscription", description = "User must have the MANAGE_PLANS permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Update a subscription",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
     )
+    @ApiResponse(responseCode = "400", description = "Bad subscription format")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = UPDATE) })
     public Response processApiSubscription(
         @PathParam("subscription") String subscription,
-        @ApiParam(name = "subscription", required = true) @Valid @NotNull ProcessSubscriptionEntity processSubscriptionEntity
+        @Parameter(name = "subscription", required = true) @Valid @NotNull ProcessSubscriptionEntity processSubscriptionEntity
     ) {
         if (processSubscriptionEntity.getId() != null && !subscription.equals(processSubscriptionEntity.getId())) {
             return Response
@@ -117,18 +122,18 @@ public class ApiSubscriptionResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a subscription", notes = "User must have the MANAGE_PLANS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Update a subscription", response = Subscription.class),
-            @ApiResponse(code = 400, message = "Bad subscription format"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Update a subscription", description = "User must have the MANAGE_PLANS permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Update a subscription",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
     )
+    @ApiResponse(responseCode = "400", description = "Bad subscription format")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = UPDATE) })
     public Response updateApiSubscription(
         @PathParam("subscription") String subscription,
-        @ApiParam(name = "subscription", required = true) @Valid @NotNull UpdateSubscriptionEntity updateSubscriptionEntity
+        @Parameter(name = "subscription", required = true) @Valid @NotNull UpdateSubscriptionEntity updateSubscriptionEntity
     ) {
         if (updateSubscriptionEntity.getId() != null && !subscription.equals(updateSubscriptionEntity.getId())) {
             return Response
@@ -147,19 +152,24 @@ public class ApiSubscriptionResource extends AbstractResource {
     @POST
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Change the status of a subscription", notes = "User must have the MANAGE_PLANS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Subscription status successfully updated", response = Subscription.class),
-            @ApiResponse(code = 400, message = "Status changes not authorized"),
-            @ApiResponse(code = 404, message = "API subscription does not exist"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(
+        summary = "Change the status of a subscription",
+        description = "User must have the MANAGE_PLANS permission to use this service"
     )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Subscription status successfully updated",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Status changes not authorized")
+    @ApiResponse(responseCode = "404", description = "API subscription does not exist")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response changeApiSubscriptionStatus(
         @PathParam("subscription") String subscription,
-        @ApiParam(required = true, allowableValues = "CLOSED, PAUSED, RESUMED") @QueryParam("status") SubscriptionStatus subscriptionStatus
+        @Parameter(required = true, schema = @Schema(allowableValues = { "CLOSED", "PAUSED", "RESUMED" })) @QueryParam(
+            "status"
+        ) SubscriptionStatus subscriptionStatus
     ) {
         if (CLOSED.equals(subscriptionStatus)) {
             SubscriptionEntity updatedSubscriptionEntity = subscriptionService.close(subscription);
@@ -178,18 +188,21 @@ public class ApiSubscriptionResource extends AbstractResource {
     @POST
     @Path("/_transfer")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Transfer a subscription", notes = "User must have the API_SUBSCRIPTION update permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Update a subscription", response = Subscription.class),
-            @ApiResponse(code = 400, message = "Bad subscription format"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(
+        summary = "Transfer a subscription",
+        description = "User must have the API_SUBSCRIPTION update permission to use this service"
     )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Update a subscription",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Bad subscription format")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = UPDATE) })
     public Response transferApiSubscription(
         @PathParam("subscription") String subscription,
-        @ApiParam(name = "subscription", required = true) @Valid @NotNull TransferSubscriptionEntity transferSubscriptionEntity
+        @Parameter(name = "subscription", required = true) @Valid @NotNull TransferSubscriptionEntity transferSubscriptionEntity
     ) {
         if (transferSubscriptionEntity.getId() != null && !subscription.equals(transferSubscriptionEntity.getId())) {
             return Response

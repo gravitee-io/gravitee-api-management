@@ -16,36 +16,20 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.gravitee.rest.api.model.PlanStatus;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlanStatusParam {
+public class PlanStatusParam extends AbstractListParam<PlanStatus> {
 
-    private static final String SEPARATOR = ",";
-    private List<PlanStatus> statuses;
-
-    public PlanStatusParam(List<PlanStatus> statuses) {
-        this.statuses = Collections.unmodifiableList(statuses);
+    public PlanStatusParam(String param) throws WebApplicationException {
+        super(param);
     }
 
-    public PlanStatusParam(String param) {
-        this.statuses = new ArrayList<>();
-
-        if (param != null) {
-            String[] params = param.replaceAll("\\s", "").split(SEPARATOR);
-            for (String _param : params) {
-                this.statuses.add(PlanStatus.valueOf(_param.toUpperCase()));
-            }
-        }
-    }
-
-    public List<PlanStatus> getStatuses() {
-        return this.statuses;
+    @Override
+    protected PlanStatus parseValue(String param) {
+        return PlanStatus.valueOf(param.toUpperCase());
     }
 }

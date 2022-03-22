@@ -15,53 +15,39 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import javax.ws.rs.WebApplicationException;
+public class Order {
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class OrderParam extends AbstractParam<OrderParam.Order> {
+    private String field;
 
-    public class Order {
+    private boolean order;
 
-        private String field;
+    private String type;
 
-        private boolean order;
-
-        private String type;
-
-        public String getField() {
-            return field;
-        }
-
-        public void setField(String field) {
-            this.field = field;
-        }
-
-        public boolean isOrder() {
-            return order;
-        }
-
-        public void setOrder(boolean order) {
-            this.order = order;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
+    public String getField() {
+        return field;
     }
 
-    public OrderParam(String param) throws WebApplicationException {
-        super(param);
+    public void setField(String field) {
+        this.field = field;
     }
 
-    @Override
-    protected Order parse(String param) throws Throwable {
+    public boolean isOrder() {
+        return order;
+    }
+
+    public void setOrder(boolean order) {
+        this.order = order;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public static Order parse(String param) {
         try {
             if (param != null) {
                 String[] parts = param.split(":");
@@ -78,7 +64,6 @@ public class OrderParam extends AbstractParam<OrderParam.Order> {
                 return order;
             }
         } catch (IllegalArgumentException iae) {}
-
         return null;
     }
 }

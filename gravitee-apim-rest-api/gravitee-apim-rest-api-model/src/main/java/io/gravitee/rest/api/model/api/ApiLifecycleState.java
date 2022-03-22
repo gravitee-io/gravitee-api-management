@@ -15,12 +15,15 @@
  */
 package io.gravitee.rest.api.model.api;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Api lifecycle states
  *
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum ApiLifecycleState {
     CREATED,
     PUBLISHED,

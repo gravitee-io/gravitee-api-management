@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.parameters.KeyScope.*;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Set;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum Key {
     COMPANY_NAME("company.name", "Gravitee.io", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 

@@ -24,7 +24,12 @@ import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderE
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -35,7 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Configuration", "Identity Providers" })
+@Tag(name = "Configuration")
+@Tag(name = "Identity Providers")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class IdentityProviderResource extends AbstractResource {
@@ -45,13 +51,16 @@ public class IdentityProviderResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Get an identity provider",
-        notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service"
+    @Operation(
+        summary = "Get an identity provider",
+        description = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service"
     )
-    @ApiResponses(
-        { @ApiResponse(code = 200, message = "An identity provider"), @ApiResponse(code = 500, message = "Internal server error") }
+    @ApiResponse(
+        responseCode = "200",
+        description = "An identity provider",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = IdentityProviderEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
     public IdentityProviderEntity getIdentityProvider(@PathParam("identityProvider") String identityProvider) {
         return identityProviderService.findById(identityProvider);
@@ -60,20 +69,20 @@ public class IdentityProviderResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Update an identity provider",
-        notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service"
+    @Operation(
+        summary = "Update an identity provider",
+        description = "User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Updated identity provider", response = IdentityProviderEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Updated identity provider",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = IdentityProviderEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.UPDATE))
     public IdentityProviderEntity updateIdentityProvider(
         @PathParam("identityProvider") String identityProvider,
-        @ApiParam(
+        @Parameter(
             name = "identityProviderEntity",
             required = true
         ) @Valid @NotNull final UpdateIdentityProviderEntity updatedIdentityProvider
@@ -82,16 +91,12 @@ public class IdentityProviderResource extends AbstractResource {
     }
 
     @DELETE
-    @ApiOperation(
-        value = "Delete an identity provider",
-        notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service"
+    @Operation(
+        summary = "Delete an identity provider",
+        description = "User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "Identity provider successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @ApiResponse(responseCode = "204", description = "Identity provider successfully deleted")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.DELETE) })
     public Response deleteIdentityProvider(@PathParam("identityProvider") String identityProvider) {
         identityProviderService.delete(identityProvider);

@@ -21,7 +21,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -34,45 +34,41 @@ import java.util.Set;
  */
 public class ApiListItem {
 
-    @ApiModelProperty(value = "Api's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    @Schema(description = "Api's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
 
-    @ApiModelProperty(value = "Api's name. Duplicate names can exists.", example = "My Api")
+    @Schema(description = "Api's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
-    @ApiModelProperty(value = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
+    @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
     private String version;
 
-    @ApiModelProperty(value = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
+    @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
     private String description;
 
     @JsonProperty("created_at")
-    @ApiModelProperty(value = "The date (as a timestamp) when the API was created.", example = "1581256457163")
+    @Schema(description = "The date (as a timestamp) when the API was created.", example = "1581256457163")
     private Date createdAt;
 
     @JsonProperty("updated_at")
-    @ApiModelProperty(value = "The last date (as a timestamp) when the API was updated.", example = "1581256457163")
+    @Schema(description = "The last date (as a timestamp) when the API was updated.", example = "1581256457163")
     private Date updatedAt;
 
-    @ApiModelProperty(value = "The visibility of the API regarding the portal.", example = "PUBLIC", allowableValues = "PUBLIC, PRIVATE")
+    @Schema(description = "The visibility of the API regarding the portal.", example = "PUBLIC")
     private Visibility visibility;
 
-    @ApiModelProperty(
-        value = "The status of the API regarding the gateway.",
-        example = "STARTED",
-        allowableValues = "INITIALIZED, STOPPED, STARTED, CLOSED"
-    )
+    @Schema(description = "The status of the API regarding the gateway.", example = "STARTED")
     private Lifecycle.State state;
 
     @JsonProperty("owner")
-    @ApiModelProperty(value = "The user with role PRIMARY_OWNER on this API.")
+    @Schema(description = "The user with role PRIMARY_OWNER on this API.")
     private PrimaryOwnerEntity primaryOwner;
 
     private String role;
 
     @JsonProperty(value = "picture_url")
-    @ApiModelProperty(
-        value = "the API logo url.",
+    @Schema(
+        description = "the API logo url.",
         example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture"
     )
     private String pictureUrl;
@@ -80,19 +76,19 @@ public class ApiListItem {
     @JsonProperty(value = "virtual_hosts")
     private List<VirtualHost> virtualHosts;
 
-    @ApiModelProperty(value = "the list of categories associated with this API", example = "Product, Customer, Misc")
+    @Schema(description = "the list of categories associated with this API", example = "Product, Customer, Misc")
     private Set<String> categories;
 
-    @ApiModelProperty(value = "the free list of labels associated with this API", example = "json, read_only, awesome")
+    @Schema(description = "the free list of labels associated with this API", example = "json, read_only, awesome")
     private List<String> labels;
 
-    @ApiModelProperty(value = "How consumers have evaluated the API (between 0 to 5)", example = "4")
+    @Schema(description = "How consumers have evaluated the API (between 0 to 5)", example = "4")
     private Double rate;
 
-    @ApiModelProperty(value = "How many consumers have evaluated the API", example = "4")
+    @Schema(description = "How many consumers have evaluated the API", example = "4")
     private int numberOfRatings;
 
-    @ApiModelProperty(value = "the list of sharding tags associated with this API.", example = "public, private")
+    @Schema(description = "the list of sharding tags associated with this API.", example = "public, private")
     private Set<String> tags;
 
     @JsonProperty(value = "lifecycle_state")
@@ -102,11 +98,11 @@ public class ApiListItem {
     private WorkflowState workflowState;
 
     @JsonProperty(value = "context_path")
-    @ApiModelProperty(value = "API's context path.", example = "/my-awesome-api")
+    @Schema(description = "API's context path.", example = "/my-awesome-api")
     private String contextPath;
 
     @JsonProperty(value = "healthcheck_enabled")
-    @ApiModelProperty(value = "true if HealthCheck is enabled globally or on one endpoint")
+    @Schema(description = "true if HealthCheck is enabled globally or on one endpoint")
     private boolean hasHealthCheckEnabled;
 
     public String getId() {

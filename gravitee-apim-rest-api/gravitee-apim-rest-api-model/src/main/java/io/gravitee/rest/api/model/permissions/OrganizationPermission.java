@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model.permissions;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum OrganizationPermission implements Permission {
     USER("USER", 1000),
     ENVIRONMENT("ENVIRONMENT", 1100),

@@ -43,7 +43,13 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -58,7 +64,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Group Memberships" })
+@Tag(name = "Group Memberships")
 public class GroupMembersResource extends AbstractResource {
 
     @Context
@@ -78,18 +84,21 @@ public class GroupMembersResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("group")
-    @ApiParam(name = "group", hidden = true)
+    @Parameter(name = "group", hidden = true)
     private String group;
 
     @GET
-    @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List group members")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of group's members", response = GroupMemberEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "List group members")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of group's members",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = GroupMemberEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
@@ -103,13 +112,16 @@ public class GroupMembersResource extends AbstractResource {
     @GET
     @Path("_paged")
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List group members with pagination")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of group's members", response = GroupMemberEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "List group members with pagination")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of group's members",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = GroupMemberEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
@@ -152,15 +164,11 @@ public class GroupMembersResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Add or update a group member")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Member has been added"),
-            @ApiResponse(code = 200, message = "Member has been updated"),
-            @ApiResponse(code = 400, message = "Membership is not valid"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @Operation(summary = "Add or update a group member")
+    @ApiResponse(responseCode = "201", description = "Member has been added")
+    @ApiResponse(responseCode = "200", description = "Member has been updated")
+    @ApiResponse(responseCode = "400", description = "Membership is not valid")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE),

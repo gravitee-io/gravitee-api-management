@@ -22,8 +22,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.alert.AlertMetric;
 import io.gravitee.rest.api.model.alert.AlertThreshold;
 import io.gravitee.rest.api.model.alert.MetricType;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -33,12 +33,12 @@ import javax.ws.rs.Produces;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Alerts" })
+@Tag(name = "Alerts")
 public class AlertsResource extends AbstractResource {
 
     @Path("metrics")
     @GET
-    @ApiOperation(value = "List alert metrics")
+    @Operation(summary = "List alert metrics")
     @Produces(MediaType.APPLICATION_JSON)
     public List<AlertMetric> getAlertMetrics() {
         return stream(MetricType.values())

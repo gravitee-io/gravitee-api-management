@@ -28,7 +28,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
+import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -122,7 +122,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setState(Lifecycle.State.STOPPED);
         doReturn(mockApi).when(apiService).start(eq(API), any());
 
-        final Response response = envTarget(API).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
+        final Response response = envTarget(API).queryParam("action", LifecycleAction.START).request().post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
 
@@ -133,10 +133,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     public void shouldNotStartApiBecauseNotFound() {
         mockApi.setState(Lifecycle.State.STOPPED);
         doReturn(mockApi).when(apiService).start(eq(API), any());
-        final Response response = envTarget(UNKNOWN_API)
-            .queryParam("action", LifecycleActionParam.LifecycleAction.START)
-            .request()
-            .post(null);
+        final Response response = envTarget(UNKNOWN_API).queryParam("action", LifecycleAction.START).request().post(null);
 
         assertEquals(NOT_FOUND_404, response.getStatus());
     }
@@ -146,17 +143,14 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setState(Lifecycle.State.STARTED);
         doReturn(mockApi).when(apiService).stop(eq(API), any());
 
-        final Response response = envTarget(API).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
+        final Response response = envTarget(API).queryParam("action", LifecycleAction.STOP).request().post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
     }
 
     @Test
     public void shouldNotStopApiBecauseNotFound() {
-        final Response response = envTarget(UNKNOWN_API)
-            .queryParam("action", LifecycleActionParam.LifecycleAction.STOP)
-            .request()
-            .post(null);
+        final Response response = envTarget(UNKNOWN_API).queryParam("action", LifecycleAction.STOP).request().post(null);
 
         assertEquals(NOT_FOUND_404, response.getStatus());
     }

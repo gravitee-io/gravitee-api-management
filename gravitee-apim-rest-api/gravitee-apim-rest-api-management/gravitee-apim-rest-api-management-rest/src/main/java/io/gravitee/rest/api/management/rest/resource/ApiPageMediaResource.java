@@ -26,7 +26,12 @@ import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -43,7 +48,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
-@Api(tags = { "API Media" })
+@Tag(name = "API Media")
 public class ApiPageMediaResource extends AbstractResource {
 
     @Inject
@@ -54,25 +59,25 @@ public class ApiPageMediaResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String api;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("page")
-    @ApiParam(name = "page", hidden = true)
+    @Parameter(name = "page", hidden = true)
     private String page;
 
     @POST
-    @ApiOperation(
-        value = "Attach a media to an API page ",
-        notes = "User must have the API_DOCUMENTATION[UPDATE] permission to use this service"
+    @Operation(
+        summary = "Attach a media to an API page ",
+        description = "User must have the API_DOCUMENTATION[UPDATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Media successfully added", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "201",
+        description = "Media successfully added",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -112,9 +117,9 @@ public class ApiPageMediaResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Retrieve all media for an API page",
-        notes = "User must have the API_DOCUMENTATION[READ] permission to use this service"
+    @Operation(
+        summary = "Retrieve all media for an API page",
+        description = "User must have the API_DOCUMENTATION[READ] permission to use this service"
     )
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public Response getApiPageMedia() {

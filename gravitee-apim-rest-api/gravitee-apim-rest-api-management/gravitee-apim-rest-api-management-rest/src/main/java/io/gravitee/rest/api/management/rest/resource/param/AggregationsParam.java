@@ -16,35 +16,21 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.gravitee.rest.api.model.analytics.query.AggregationType;
-import java.util.ArrayList;
-import java.util.List;
 import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AggregationsParam extends AbstractParam<List<Aggregation>> {
+public class AggregationsParam extends ParsedListStringParam<Aggregation> {
 
     public AggregationsParam(String param) throws WebApplicationException {
         super(param);
     }
 
     @Override
-    protected List<Aggregation> parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                String[] inputAggs = param.split(";");
-                List<Aggregation> aggregations = new ArrayList<>(inputAggs.length);
-                for (String inputAgg : inputAggs) {
-                    String[] inputRangeValues = inputAgg.trim().split(":");
-                    aggregations.add(new Aggregation(AggregationType.valueOf(inputRangeValues[0].toUpperCase()), inputRangeValues[1]));
-                }
-
-                return aggregations;
-            }
-        } catch (IllegalArgumentException iae) {}
-
-        return null;
+    protected Aggregation parseValue(String param) {
+        String[] inputRangeValues = param.trim().split(":");
+        return new Aggregation(AggregationType.valueOf(inputRangeValues[0].toUpperCase()), inputRangeValues[1]);
     }
 }

@@ -23,7 +23,13 @@ import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.model.promotion.PromotionQuery;
 import io.gravitee.rest.api.service.promotion.PromotionService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -41,7 +47,7 @@ import javax.ws.rs.core.Response;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Promotions" })
+@Tag(name = "Promotions")
 public class PromotionsResource extends AbstractResource {
 
     @Context
@@ -58,21 +64,19 @@ public class PromotionsResource extends AbstractResource {
     @POST
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Search for Promotion")
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "List promotions matching request parameters",
-                response = PromotionEntity.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Search for Promotion")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List promotions matching request parameters",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = PromotionEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response searchPromotions(
-        @ApiParam(name = "statuses", required = true) @NotNull @QueryParam("statuses") List<String> statuses,
-        @ApiParam(name = "apiId", required = true) @NotNull @QueryParam("apiId") String apiId
+        @Parameter(name = "statuses", required = true) @NotNull @QueryParam("statuses") List<String> statuses,
+        @Parameter(name = "apiId", required = true) @NotNull @QueryParam("apiId") String apiId
     ) {
         PromotionQuery promotionQuery = new PromotionQuery();
         promotionQuery.setStatuses(statuses.stream().map(PromotionEntityStatus::valueOf).collect(toList()));

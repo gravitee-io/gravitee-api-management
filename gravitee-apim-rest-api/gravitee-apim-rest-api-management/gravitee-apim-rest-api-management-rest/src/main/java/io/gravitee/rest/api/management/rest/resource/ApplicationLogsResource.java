@@ -18,16 +18,23 @@ package io.gravitee.rest.api.management.rest.resource;
 import static java.lang.String.format;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.model.wrapper.ApplicationRequestItemSearchLogResponse;
 import io.gravitee.rest.api.management.rest.resource.param.LogsParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
+import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.LogsService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.HttpHeaders;
@@ -38,7 +45,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Application Logs" })
+@Tag(name = "Application Logs")
 public class ApplicationLogsResource extends AbstractResource {
 
     @Inject
@@ -46,15 +53,23 @@ public class ApplicationLogsResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
-    @ApiParam(name = "application", hidden = true)
+    @Parameter(name = "application", hidden = true)
     private String application;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get application logs")
-    @ApiResponses({ @ApiResponse(code = 200, message = "Application logs"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Operation(summary = "Get application logs")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Application logs",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = ApplicationRequestItemSearchLogResponse.class)
+        )
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
-    public SearchLogResponse getApplicationLogs(@BeanParam LogsParam param) {
+    public SearchLogResponse<ApplicationRequestItem> getApplicationLogs(@BeanParam LogsParam param) {
         param.validate();
 
         LogQuery logQuery = new LogQuery();
@@ -72,8 +87,13 @@ public class ApplicationLogsResource extends AbstractResource {
     @GET
     @Path("/{log}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a specific log")
-    @ApiResponses({ @ApiResponse(code = 200, message = "Single log"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Operation(summary = "Get a specific log")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Single log",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationRequest.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public ApplicationRequest getApplicationLog(@PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
         return logsService.findApplicationLog(logId, timestamp);
@@ -81,14 +101,17 @@ public class ApplicationLogsResource extends AbstractResource {
 
     @GET
     @Path("export")
-    @Produces(MediaType.TEXT_PLAIN)
-    @ApiOperation(value = "Export application logs as CSV")
-    @ApiResponses(
-        { @ApiResponse(code = 200, message = "Application logs as CSV"), @ApiResponse(code = 500, message = "Internal server error") }
+    @Produces("text/csv")
+    @Operation(summary = "Export application logs as CSV")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Application logs as CSV",
+        content = @Content(mediaType = "text/csv", schema = @Schema(type = "string"))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response exportApplicationLogsAsCSV(@BeanParam LogsParam param) {
-        final SearchLogResponse searchLogResponse = getApplicationLogs(param);
+        final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getApplicationLogs(param);
         return Response
             .ok(logsService.exportAsCsv(searchLogResponse))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", application, System.currentTimeMillis()))

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model;
 
 import static java.util.Collections.emptyList;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -27,6 +28,7 @@ import java.util.stream.Stream;
  * Managed types for page documentation
  *
  */
+@Schema(enumAsRef = true)
 public enum PageType {
     ASCIIDOC(List.of("adoc"), 200, null),
     ASYNCAPI(List.of("json", "yaml", "yml"), 200, "(?s).*\\\"?asyncapi\\\"?: *['\\\"]?\\d.*"),

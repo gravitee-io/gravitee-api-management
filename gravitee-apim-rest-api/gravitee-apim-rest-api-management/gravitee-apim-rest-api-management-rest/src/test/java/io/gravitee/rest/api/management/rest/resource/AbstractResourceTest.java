@@ -60,26 +60,6 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class)
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
-    public AbstractResourceTest() {
-        super(
-            new AuthenticationProviderManager() {
-                @Override
-                public List<AuthenticationProvider> getIdentityProviders() {
-                    return Collections.emptyList();
-                }
-
-                @Override
-                public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
-                    return Optional.empty();
-                }
-            }
-        );
-    }
-
-    public AbstractResourceTest(AuthenticationProviderManager authenticationProviderManager) {
-        super(authenticationProviderManager);
-    }
-
     @Autowired
     protected ApiService apiService;
 
