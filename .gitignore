@@ -25,6 +25,7 @@ gravitee-**-webui/node/
 **/report.*.json
 **/.vscode
 **/storybook-static
+**/.angular
 
 # used in makefile as working directory
 .working/
