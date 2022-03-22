@@ -3,7 +3,6 @@ version: 2.1
 orbs:
     slack: circleci/slack@4.4.4
     gravitee: gravitee-io/gravitee@1.0.44
-    #secrethub: secrethub/cli@1.1.0
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
     keeper: gravitee-io/keeper@0.5.0
@@ -32,7 +31,6 @@ executors:
             # be careful when updating the version as it looks it is not following semver
             - image: mcr.microsoft.com/azure-cli:2.34.1
         resource_class: <<parameters.resource_class>>
-
 
 commands:
     prepare-env-var:
@@ -595,7 +593,6 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-          #  - secrethub/exec:
                   step-name: Running Chromatic
                   # TODO:
                   #  - Handle npx chromatic command failure, make the job fails
@@ -931,7 +928,6 @@ jobs:
         steps:
             - setup_remote_docker
             - checkout
-        #    - secrethub/install
             - run:
                   name: "Parse GRAVITEEIO_VERSION to extract major, minor and patch version"
                   command: |
@@ -1210,8 +1206,7 @@ workflows:
                       - build
             - cypress-lint-test:
                   requires:
-                      - cypress-install
-                                            
+                      - cypress-install             
     build_docker_images:
         when:
             equal: [build_docker_images, << pipeline.parameters.gio_action >>]
