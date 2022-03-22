@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum ApiKeyMode {
     /**
      * The `SHARED` API key mode allows consumer to use the same API key across all the subscriptions

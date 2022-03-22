@@ -19,15 +19,18 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
-import io.swagger.annotations.*;
-import java.util.List;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
@@ -37,7 +40,7 @@ import javax.ws.rs.core.Response;
 /**
  * @author GraviteeSource Team
  */
-@Api(tags = { "Application Subscriptions" })
+@Tag(name = "Application Subscriptions")
 public class ApplicationSubscriptionResource extends AbstractResource {
 
     @Context
@@ -50,9 +53,6 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     private PlanService planService;
 
     @Inject
-    private ApiKeyService apiKeyService;
-
-    @Inject
     private ApiService apiService;
 
     @Inject
@@ -60,23 +60,22 @@ public class ApplicationSubscriptionResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
-    @ApiParam(name = "application", hidden = true)
+    @Parameter(name = "application", hidden = true)
     private String application;
 
-    @SuppressWarnings("UnresolvedRestParam")
     @PathParam("subscription")
-    @ApiParam(name = "subscription", hidden = true)
+    @Parameter(name = "subscription")
     private String subscription;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get subscription information", notes = "User must have the READ permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Subscription information", response = Subscription.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get subscription information", description = "User must have the READ permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Subscription information",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public Subscription getApplicationSubscription() {
         return convert(subscriptionService.findById(subscription));
@@ -84,16 +83,16 @@ public class ApplicationSubscriptionResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Close the subscription",
-        notes = "User must have the APPLICATION_SUBSCRIPTION[DELETE] permission to use this service"
+    @Operation(
+        summary = "Close the subscription",
+        description = "User must have the APPLICATION_SUBSCRIPTION[DELETE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Subscription has been closed successfully", response = Subscription.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Subscription has been closed successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response closeApplicationSubscription() {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);

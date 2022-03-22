@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.EntrypointReferenceType;
 import io.gravitee.rest.api.service.EntrypointService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -32,7 +32,7 @@ import javax.ws.rs.Produces;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Portal entrypoints" })
+@Tag(name = "Portal entrypoints")
 public class PortalEntrypointsResource extends AbstractResource {
 
     @Inject

@@ -28,7 +28,12 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MaintenanceModeException;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -45,7 +50,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Settings" })
+@Tag(name = "Settings")
 public class ConsoleSettingsResource {
 
     @Inject
@@ -59,13 +64,13 @@ public class ConsoleSettingsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get the console settings")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Console configuration", response = ConsoleSettingsEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get the console settings")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Console configuration",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ConsoleSettingsEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = READ) })
     public ConsoleSettingsEntity getConsoleSettings() {
         return configService.getConsoleSettings(GraviteeContext.getCurrentOrganization());
@@ -74,15 +79,15 @@ public class ConsoleSettingsResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Save the console settings")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Updated console settings", response = ConsoleSettingsEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Save the console settings")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Updated console settings",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ConsoleSettingsEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
-    public Response saveConsoleSettings(@ApiParam(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
+    public Response saveConsoleSettings(@Parameter(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
         // reject settings update if maintenanceMode isn't disabled into the payload
         checkMaintenanceMode(consoleSettingsEntity);
 

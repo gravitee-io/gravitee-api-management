@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.model.configuration.application.registration;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(enumAsRef = true)
 public enum InitialAccessTokenType {
     INITIAL_ACCESS_TOKEN,
     CLIENT_CREDENTIALS,

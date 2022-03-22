@@ -25,7 +25,13 @@ import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEnti
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
@@ -40,7 +46,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Configuration", "Identity Providers" })
+@Tag(name = "Configuration")
+@Tag(name = "Identity Providers")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class IdentityProvidersResource extends AbstractResource {
@@ -53,21 +60,19 @@ public class IdentityProvidersResource extends AbstractResource {
 
     @GET
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
-    @ApiOperation(
-        value = "Get the list of identity providers",
-        notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service"
+    @Operation(
+        summary = "Get the list of identity providers",
+        description = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "List identity providers",
-                response = IdentityProviderListItem.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "List identity providers",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = IdentityProviderListItem.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<IdentityProviderListItem> getIdentityProviders() {
         return identityProviderService
             .findAll()
@@ -91,18 +96,18 @@ public class IdentityProvidersResource extends AbstractResource {
 
     @POST
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE) })
-    @ApiOperation(
-        value = "Create an identity provider",
-        notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service"
+    @Operation(
+        summary = "Create an identity provider",
+        description = "User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Identity provider successfully created", response = IdentityProviderEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "201",
+        description = "Identity provider successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = IdentityProviderEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createIdentityProvider(
-        @ApiParam(name = "identity-provider", required = true) @Valid @NotNull NewIdentityProviderEntity newIdentityProviderEntity
+        @Parameter(name = "identity-provider", required = true) @Valid @NotNull NewIdentityProviderEntity newIdentityProviderEntity
     ) {
         IdentityProviderEntity newIdentityProvider = identityProviderService.create(newIdentityProviderEntity);
 

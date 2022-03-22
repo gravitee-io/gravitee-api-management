@@ -22,34 +22,39 @@ import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EventService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
-@Api(tags = { "API Events" })
+@Tag(name = "API Events")
 public class ApiEventResource extends AbstractResource {
 
     @Inject
     private EventService eventService;
 
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String api;
 
     @PathParam("eventId")
-    @ApiParam(name = "eventId", hidden = true)
+    @Parameter(name = "eventId")
     private String eventId;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get an API event with its id", notes = "User must have the READ API_EVENT permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "API event", response = EventEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get an API event with its id", description = "User must have the READ API_EVENT permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "API event",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EventEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
     public Response getEvent() {
         return Response.ok(eventService.findById(eventId)).build();

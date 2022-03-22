@@ -20,7 +20,6 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -28,8 +27,14 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
-import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.util.List;
 import javax.inject.Inject;
@@ -41,7 +46,7 @@ import javax.ws.rs.core.Response;
 /**
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Keys" })
+@Tag(name = "API Keys")
 public class ApplicationApiKeysResource extends AbstractResource {
 
     @Context
@@ -55,21 +60,23 @@ public class ApplicationApiKeysResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
-    @ApiParam(name = "application", hidden = true)
+    @Parameter(name = "application", hidden = true)
     private String application;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List all API Keys for an application", notes = "User must have the READ permission to use this service")
+    @Operation(summary = "List all API Keys for an application", description = "User must have the READ permission to use this service")
     @ApiResponses(
         {
             @ApiResponse(
-                code = 200,
-                message = "List of API Keys for application",
-                response = ApiKeyEntity.class,
-                responseContainer = "Set"
+                responseCode = "200",
+                description = "List of API Keys for application",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    array = @ArraySchema(schema = @Schema(implementation = ApiKeyEntity.class))
+                )
             ),
-            @ApiResponse(code = 500, message = "Internal server error"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
         }
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
@@ -80,11 +87,15 @@ public class ApplicationApiKeysResource extends AbstractResource {
     @POST
     @Path("/_renew")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Renew an API key", notes = "User must have the MANAGE_API_KEYS permission to use this service")
+    @Operation(summary = "Renew an API key", description = "User must have the MANAGE_API_KEYS permission to use this service")
     @ApiResponses(
         {
-            @ApiResponse(code = 201, message = "A new API Key", response = ApiKeyEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
+            @ApiResponse(
+                responseCode = "201",
+                description = "A new API Key",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiKeyEntity.class))
+            ),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
         }
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })

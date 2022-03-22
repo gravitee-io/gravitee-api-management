@@ -21,7 +21,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.management.rest.model.Pageable;
-import io.gravitee.rest.api.management.rest.model.PagedResult;
+import io.gravitee.rest.api.management.rest.model.wrapper.UserPageResult;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -30,7 +30,12 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.validator.ValidNewPreRegisterUser;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -46,7 +51,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Users" })
+@Tag(name = "Users")
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
 public class UsersResource extends AbstractResource {
@@ -59,30 +64,30 @@ public class UsersResource extends AbstractResource {
 
     @GET
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ))
-    @ApiOperation(
-        value = "Search for users using the search engine",
-        notes = "User must have the ORGANIZATION_USERS[READ] permission to use this service"
+    @Operation(
+        summary = "Search for users using the search engine",
+        description = "User must have the ORGANIZATION_USERS[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List users matching the query criteria", response = PagedResult.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "List users matching the query criteria",
+        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserPageResult.class))
     )
-    public PagedResult<UserEntity> getAllUsers(@ApiParam(name = "q") @QueryParam("q") String query, @Valid @BeanParam Pageable pageable) {
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public UserPageResult getAllUsers(@Parameter(name = "q") @QueryParam("q") String query, @Valid @BeanParam Pageable pageable) {
         Page<UserEntity> users = userService.search(query, pageable.toPageable());
-        return new PagedResult<>(users, pageable.getSize());
+        return new UserPageResult(users, pageable.getSize());
     }
 
     @POST
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = CREATE))
-    @ApiOperation(value = "Create a user", notes = "User must have the ORGANIZATION_USERS[CREATE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List users matching the query criteria", response = UserEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Create a user", description = "User must have the ORGANIZATION_USERS[CREATE] permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List users matching the query criteria",
+        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createUser(@ValidNewPreRegisterUser NewPreRegisterUserEntity newPreRegisterUserEntity) {
         UserEntity newUser = userService.create(newPreRegisterUserEntity);
         if (newUser != null) {

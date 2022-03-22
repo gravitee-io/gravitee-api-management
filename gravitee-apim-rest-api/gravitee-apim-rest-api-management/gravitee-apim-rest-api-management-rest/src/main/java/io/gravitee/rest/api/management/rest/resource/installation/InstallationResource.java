@@ -23,10 +23,12 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.InstallationService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
@@ -38,7 +40,8 @@ import javax.ws.rs.core.Response;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Console" }, hidden = true)
+@Tag(name = "Console")
+@Hidden
 public class InstallationResource {
 
     @Inject
@@ -46,16 +49,16 @@ public class InstallationResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Get installation information",
-        notes = "User must have the ORGANIZATION_INSTALLATION[READ] permission on the platform"
+    @Operation(
+        summary = "Get installation information",
+        description = "User must have the ORGANIZATION_INSTALLATION[READ] permission on the platform"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Installation definition", response = InstallationEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Installation definition",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = InstallationEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_INSTALLATION, acls = { READ }) })
     public Response getInstallation() {
         return Response.ok(installationService.get()).build();

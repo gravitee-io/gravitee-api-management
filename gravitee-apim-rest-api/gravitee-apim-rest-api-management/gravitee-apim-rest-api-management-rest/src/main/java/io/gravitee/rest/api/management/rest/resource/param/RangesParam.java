@@ -15,35 +15,21 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RangesParam extends AbstractParam<List<Range>> {
+public class RangesParam extends ParsedListStringParam<Range> {
 
     public RangesParam(String param) throws WebApplicationException {
         super(param);
     }
 
     @Override
-    protected List<Range> parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                String[] inputRanges = param.split(";");
-                List<Range> ranges = new ArrayList<>(inputRanges.length);
-                for (String inputRange : inputRanges) {
-                    String[] inputRangeValues = inputRange.trim().split(":");
-                    ranges.add(new Range(Double.parseDouble(inputRangeValues[0]), Double.parseDouble(inputRangeValues[1])));
-                }
-
-                return ranges;
-            }
-        } catch (IllegalArgumentException iae) {}
-
-        return null;
+    protected Range parseValue(String param) {
+        String[] inputRangeValues = param.trim().split(":");
+        return new Range(Double.parseDouble(inputRangeValues[0]), Double.parseDouble(inputRangeValues[1]));
     }
 }

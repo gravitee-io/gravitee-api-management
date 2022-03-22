@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -28,16 +28,16 @@ import javax.ws.rs.core.Response;
 public class LogsParam {
 
     @QueryParam("from")
-    @ApiParam(value = "Timestamp used to define the start date of the time window to query")
+    @Parameter(description = "Timestamp used to define the start date of the time window to query")
     private long from;
 
     @QueryParam("to")
-    @ApiParam(value = "Timestamp used to define the end date of the time window to query")
+    @Parameter(description = "Timestamp used to define the end date of the time window to query")
     private long to;
 
-    @ApiParam(
+    @Parameter(
         name = "query",
-        value = "The expresion used to search for logs. It looks like 'transaction:123-456-789 AND uri=\\\\/path\\\\/to\\\\/resource* AND response-time:[100 TO 200]'." +
+        description = "The expresion used to search for logs. It looks like 'transaction:123-456-789 AND uri=\\\\/path\\\\/to\\\\/resource* AND response-time:[100 TO 200]'." +
         " Reserved characters that must be escaped + - = && || > < ! ( ) { } [ ] ^ \" ~ * ? : \\ /"
     )
     @QueryParam("query")
@@ -45,7 +45,7 @@ public class LogsParam {
 
     @QueryParam("size")
     @DefaultValue("20")
-    @ApiParam(value = "The number of data to retrieve")
+    @Parameter(description = "The number of data to retrieve")
     private int size;
 
     @QueryParam("page")
@@ -53,11 +53,11 @@ public class LogsParam {
     private int page;
 
     @QueryParam("field")
-    @ApiParam(value = "The field to query when doing `group_by` queries")
+    @Parameter(description = "The field to query when doing `group_by` queries")
     private String field;
 
     @QueryParam("order")
-    @ApiParam(value = "true means ASC order, false means DESC")
+    @Parameter(description = "true means ASC order, false means DESC")
     private boolean order;
 
     public long getFrom() {

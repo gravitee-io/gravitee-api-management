@@ -18,7 +18,7 @@ package io.gravitee.rest.api.model.application;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -30,40 +30,40 @@ import java.util.Set;
  */
 public class ApplicationListItem {
 
-    @ApiModelProperty(value = "Application's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    @Schema(description = "Application's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
 
-    @ApiModelProperty(value = "Application's name. Duplicate names can exists.", example = "My App")
+    @Schema(description = "Application's name. Duplicate names can exists.", example = "My App")
     private String name;
 
-    @ApiModelProperty(
-        value = "Application's description. A short description of your App.",
+    @Schema(
+        description = "Application's description. A short description of your App.",
         example = "I can use a hundred characters to describe this App."
     )
     private String description;
 
-    @ApiModelProperty(value = "Domain used by the application, if relevant", example = "https://my-app.com")
+    @Schema(description = "Domain used by the application, if relevant", example = "https://my-app.com")
     private String domain;
 
-    @ApiModelProperty(value = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @Schema(description = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
-    @ApiModelProperty(value = "if the app is ACTIVE or ARCHIVED.", example = "ACTIVE")
+    @Schema(description = "if the app is ACTIVE or ARCHIVED.", example = "ACTIVE")
     private String status;
 
-    @ApiModelProperty(value = "a string to describe the type of your app.", example = "iOS")
+    @Schema(description = "a string to describe the type of your app.", example = "iOS")
     private String type;
 
     @JsonProperty("created_at")
-    @ApiModelProperty(value = "The date (as a timestamp) when the application was created.", example = "1581256457163")
+    @Schema(description = "The date (as a timestamp) when the application was created.", example = "1581256457163")
     private Date createdAt;
 
     @JsonProperty("updated_at")
-    @ApiModelProperty(value = "The last date (as a timestamp) when the application was updated.", example = "1581256457163")
+    @Schema(description = "The last date (as a timestamp) when the application was updated.", example = "1581256457163")
     private Date updatedAt;
 
     @JsonProperty("owner")
-    @ApiModelProperty(value = "The user with role PRIMARY_OWNER on this API.")
+    @Schema(description = "The user with role PRIMARY_OWNER on this API.")
     private PrimaryOwnerEntity primaryOwner;
 
     @JsonProperty("settings")
@@ -80,7 +80,7 @@ public class ApplicationListItem {
     private String backgroundUrl;
 
     @JsonProperty("api_key_mode")
-    @ApiModelProperty(value = "The API key mode used for this application.", allowableValues = "SHARED, EXCLUSIVE, UNSPECIFIED")
+    @Schema(description = "The API key mode used for this application.")
     private ApiKeyMode apiKeyMode;
 
     public String getId() {

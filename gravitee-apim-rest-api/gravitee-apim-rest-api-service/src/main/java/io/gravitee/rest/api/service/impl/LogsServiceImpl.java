@@ -104,7 +104,7 @@ public class LogsServiceImpl implements LogsService {
     private ParameterService parameterService;
 
     @Override
-    public SearchLogResponse findByApi(String api, LogQuery query) {
+    public SearchLogResponse<ApiRequestItem> findByApi(String api, LogQuery query) {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
@@ -169,7 +169,7 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public SearchLogResponse findByApplication(String application, LogQuery query) {
+    public SearchLogResponse<ApplicationRequestItem> findByApplication(String application, LogQuery query) {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
@@ -220,7 +220,7 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public SearchLogResponse findPlatform(LogQuery query) {
+    public SearchLogResponse<PlatformRequestItem> findPlatform(LogQuery query) {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
@@ -406,7 +406,7 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public String exportAsCsv(final SearchLogResponse searchLogResponse) {
+    public String exportAsCsv(final SearchLogResponse<?> searchLogResponse) {
         if (searchLogResponse.getLogs() == null || searchLogResponse.getLogs().isEmpty()) {
             return "";
         }

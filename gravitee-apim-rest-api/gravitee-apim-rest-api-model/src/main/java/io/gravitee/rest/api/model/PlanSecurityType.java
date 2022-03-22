@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum PlanSecurityType {
     /**
      * Plan which is using a key_less (ie. public) security authentication type for incoming HTTP requests.

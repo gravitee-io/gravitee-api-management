@@ -27,9 +27,9 @@ import io.gravitee.rest.api.model.quality.ApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.NewApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateApiQualityRuleEntity;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -40,7 +40,7 @@ import javax.ws.rs.*;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Quality" })
+@Tag(name = "API Quality")
 public class ApiQualityRulesResource extends AbstractResource {
 
     @Inject
@@ -48,13 +48,13 @@ public class ApiQualityRulesResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String api;
 
     @GET
-    @ApiOperation(
-        value = "List quality rules for an API",
-        notes = "User must have the API_QUALITY_RULE[READ] permission to use this service"
+    @Operation(
+        summary = "List quality rules for an API",
+        description = "User must have the API_QUALITY_RULE[READ] permission to use this service"
     )
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = API_QUALITY_RULE, acls = READ) })
@@ -65,9 +65,9 @@ public class ApiQualityRulesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Create a new quality rules for an API",
-        notes = "User must have the API_QUALITY_RULE[CREATE] permission to use this service"
+    @Operation(
+        summary = "Create a new quality rules for an API",
+        description = "User must have the API_QUALITY_RULE[CREATE] permission to use this service"
     )
     @Permissions({ @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.CREATE) })
     public ApiQualityRuleEntity createApiQualityRule(@Valid @NotNull final NewApiQualityRuleEntity apiQualityRuleEntity) {
@@ -79,9 +79,9 @@ public class ApiQualityRulesResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Update an existing quality rules for an API",
-        notes = "User must have the API_QUALITY_RULE[UPDATE] permission to use this service"
+    @Operation(
+        summary = "Update an existing quality rules for an API",
+        description = "User must have the API_QUALITY_RULE[UPDATE] permission to use this service"
     )
     @Permissions({ @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.UPDATE) })
     public ApiQualityRuleEntity updateApiQualityRule(

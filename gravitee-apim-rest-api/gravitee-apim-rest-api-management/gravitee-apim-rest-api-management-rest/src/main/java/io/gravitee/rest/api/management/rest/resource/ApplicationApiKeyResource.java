@@ -22,7 +22,11 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PathParam;
@@ -32,7 +36,7 @@ import javax.ws.rs.core.Response;
 /**
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Keys" })
+@Tag(name = "API Keys")
 public class ApplicationApiKeyResource extends AbstractResource {
 
     @Inject
@@ -40,26 +44,21 @@ public class ApplicationApiKeyResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
-    @ApiParam(name = "application", hidden = true)
+    @Parameter(name = "application", hidden = true)
     private String application;
-
-    @SuppressWarnings("UnresolvedRestParam")
-    @PathParam("apikey")
-    @ApiParam(name = "apikey", hidden = true)
-    private String apikey;
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke an API key", notes = "User must have the MANAGE_API_KEYS permission to use this service")
+    @Operation(summary = "Revoke an API key", description = "User must have the MANAGE_API_KEYS permission to use this service")
     @ApiResponses(
         {
-            @ApiResponse(code = 204, message = "API key successfully revoked"),
-            @ApiResponse(code = 400, message = "API Key does not correspond to the application"),
-            @ApiResponse(code = 500, message = "Internal server error"),
+            @ApiResponse(responseCode = "204", description = "API key successfully revoked"),
+            @ApiResponse(responseCode = "400", description = "API Key does not correspond to the application"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
         }
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
-    public Response revokeApiKeyForApplication() {
+    public Response revokeApiKeyForApplication(@PathParam("apikey") String apikey) {
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(apikey);
 
         if (apiKeyEntity.getApplication() == null || !apiKeyEntity.getApplication().getId().equals(application)) {

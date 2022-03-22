@@ -23,7 +23,13 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -37,7 +43,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Groups" })
+@Tag(name = "Groups")
 public class GroupsResource extends AbstractResource {
 
     @Context
@@ -48,18 +54,21 @@ public class GroupsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Find groups",
-        notes = "Find all groups, or a specific type of groups." +
+    @Operation(
+        summary = "Find groups",
+        description = "Find all groups, or a specific type of groups." +
         "Only administrators could see all groups." +
         "Only users with MANAGE_API permissions could see API groups."
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of groups", response = GroupEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of groups",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = GroupEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroups() {
         return Response.ok(groupService.findAll(GraviteeContext.getCurrentEnvironment())).build();
@@ -68,12 +77,11 @@ public class GroupsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create group", notes = "Create a new group.")
-    @ApiResponses(
-        { @ApiResponse(code = 201, message = "Group successfully created"), @ApiResponse(code = 500, message = "Internal Server Error") }
-    )
+    @Operation(summary = "Create group", description = "Create a new group.")
+    @ApiResponse(responseCode = "201", description = "Group successfully created")
+    @ApiResponse(responseCode = "500", description = "Internal Server Error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE) })
-    public Response createGroup(@ApiParam(name = "group", required = true) @Valid @NotNull final NewGroupEntity newGroupEntity) {
+    public Response createGroup(@Parameter(name = "group", required = true) @Valid @NotNull final NewGroupEntity newGroupEntity) {
         GroupEntity groupEntity = groupService.create(GraviteeContext.getCurrentEnvironment(), newGroupEntity);
         if (groupEntity != null) {
             return Response.created(this.getLocationHeader(groupEntity.getId())).entity(groupEntity).build();

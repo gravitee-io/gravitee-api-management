@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model.alert;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum ApplicationAlertEventType {
     NOTIFICATION_TEMPLATE_UPDATE,
     APPLICATION_MEMBERSHIP_UPDATE,

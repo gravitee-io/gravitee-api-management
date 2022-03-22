@@ -31,7 +31,12 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayOutputStream;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -43,25 +48,25 @@ import javax.ws.rs.core.*;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Categories" })
+@Tag(name = "Categories")
 public class CategoryResource extends AbstractCategoryResource {
 
     @Inject
     private CategoryService categoryService;
 
     @PathParam("categoryId")
-    @ApiParam(name = "categoryId", required = true)
+    @Parameter(name = "categoryId", required = true)
     private String categoryId;
 
     @GET
     @Produces(APPLICATION_JSON)
-    @ApiOperation(value = "Get the category", notes = "User must have the PORTAL_CATEGORY[READ] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Category's definition", response = CategoryEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get the category", description = "User must have the PORTAL_CATEGORY[READ] permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Category's definition",
+        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = CategoryEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public CategoryEntity getCategory() {
         boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
         CategoryEntity category = categoryService.findById(categoryId, GraviteeContext.getCurrentEnvironment());
@@ -77,18 +82,29 @@ public class CategoryResource extends AbstractCategoryResource {
 
     @GET
     @Path("picture")
-    @ApiOperation(value = "Get the category's picture", notes = "User must have the PORTAL_CATEGORY[READ] permission to use this service")
-    @ApiResponses({ @ApiResponse(code = 200, message = "Category's picture"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Operation(
+        summary = "Get the category's picture",
+        description = "User must have the PORTAL_CATEGORY[READ] permission to use this service"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Category's picture",
+        content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCategoryPicture(@Context Request request) throws CategoryNotFoundException {
         return getImageResponse(request, categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), categoryId));
     }
 
     @GET
     @Path("background")
-    @ApiOperation(value = "Get the Category's background", notes = "User must have the READ permission to use this service")
-    @ApiResponses(
-        { @ApiResponse(code = 200, message = "Category's background"), @ApiResponse(code = 500, message = "Internal server error") }
+    @Operation(summary = "Get the Category's background", description = "User must have the READ permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Category's background",
+        content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCategoryBackground(@Context Request request) throws CategoryNotFoundException {
         return getImageResponse(request, categoryService.getBackground(GraviteeContext.getCurrentEnvironment(), categoryId));
     }
@@ -128,13 +144,13 @@ public class CategoryResource extends AbstractCategoryResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update the category", notes = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Category successfully updated", response = CategoryEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Update the category", description = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Category successfully updated",
+        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = CategoryEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE) })
     public Response updateCategory(@Valid @NotNull final UpdateCategoryEntity category) {
         try {
@@ -151,10 +167,9 @@ public class CategoryResource extends AbstractCategoryResource {
     }
 
     @DELETE
-    @ApiOperation(value = "Delete the category", notes = "User must have the PORTAL_CATEGORY[DELETE] permission to use this service")
-    @ApiResponses(
-        { @ApiResponse(code = 204, message = "Category successfully deleted"), @ApiResponse(code = 500, message = "Internal server error") }
-    )
+    @Operation(summary = "Delete the category", description = "User must have the PORTAL_CATEGORY[DELETE] permission to use this service")
+    @ApiResponse(responseCode = "204", description = "Category successfully deleted")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.DELETE) })
     public void deleteCategory() {
         categoryService.delete(categoryId);

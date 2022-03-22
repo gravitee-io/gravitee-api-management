@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author Ludovic Dussart (ludovic.dussart at gmail.com)
  * @author Guillaume GILLON
@@ -22,6 +24,7 @@ package io.gravitee.rest.api.model;
  *         for page documentation
  *
  */
+@Schema(enumAsRef = true)
 public enum SystemFolderType {
     HEADER("Header"),
     TOPFOOTER("TopFooter"),

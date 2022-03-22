@@ -21,10 +21,12 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InstallationNotAcceptedException;
 import io.gravitee.rest.api.service.promotion.PromotionService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -36,7 +38,7 @@ import javax.ws.rs.core.Response;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Promotion" })
+@Tag(name = "Promotion")
 public class PromotionTargetsResource extends AbstractResource {
 
     @Inject
@@ -47,19 +49,17 @@ public class PromotionTargetsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List available targets (environments) for a promotion")
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "List of promotion targets",
-                response = PromotionTargetEntity.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-            @ApiResponse(code = 503, message = "Installation not connected to cockpit"),
-        }
+    @Operation(summary = "List available targets (environments) for a promotion")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of promotion targets",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = PromotionTargetEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @ApiResponse(responseCode = "503", description = "Installation not connected to cockpit")
     public Response getPromotionTargets() {
         InstallationStatus status = this.installationService.getInstallationStatus();
         if (InstallationStatus.ACCEPTED == status) {

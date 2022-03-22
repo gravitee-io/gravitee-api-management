@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.alert;
+package io.gravitee.rest.api.management.rest.model.wrapper;
 
-/**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum AlertTriggerType {
-    HC_ENDPOINT_STATUS_CHANGED,
-    REQUEST_MAX_RESPONSE_TIME_THRESHOLD,
-    REQUEST_QUOTA_THRESHOLD,
-    REQUEST_AVG_RESPONSE_TIME_THRESHOLD,
-    NODE_METRICS_THRESHOLD,
+import io.gravitee.rest.api.management.rest.model.PagedResult;
+import io.gravitee.rest.api.model.TaskEntity;
+import java.util.Collection;
+
+public class TaskEntityPagedResult extends PagedResult<TaskEntity> {
+
+    public TaskEntityPagedResult(Collection<TaskEntity> data) {
+        super(data);
+    }
 }

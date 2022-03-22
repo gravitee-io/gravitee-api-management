@@ -21,7 +21,7 @@ import java.util.Objects;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PluginEntity {
+public class PlatformPluginEntity {
 
     /**
      * The plugin identifier
@@ -92,7 +92,7 @@ public class PluginEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PluginEntity that = (PluginEntity) o;
+        PlatformPluginEntity that = (PlatformPluginEntity) o;
         return Objects.equals(id, that.id);
     }
 

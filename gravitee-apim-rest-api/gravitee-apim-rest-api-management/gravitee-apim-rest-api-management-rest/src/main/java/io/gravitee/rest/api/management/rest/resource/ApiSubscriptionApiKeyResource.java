@@ -21,11 +21,15 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -35,7 +39,7 @@ import javax.ws.rs.core.Response;
 /**
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Keys" })
+@Tag(name = "API Keys")
 public class ApiSubscriptionApiKeyResource extends AbstractResource {
 
     @Inject
@@ -43,30 +47,25 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String api;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("subscription")
-    @ApiParam(name = "subscription", hidden = true)
+    @Parameter(name = "subscription", hidden = true)
     private String subscription;
 
-    @SuppressWarnings("UnresolvedRestParam")
     @PathParam("apikey")
-    @ApiParam(name = "apikey", hidden = true)
+    @Parameter(name = "apikey")
     private String apikey;
 
     @POST
     @Path("/_reactivate")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Reactivate an API key", notes = "User must have the API_SUBSCRIPTION permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "API key successfully reactivated"),
-            @ApiResponse(code = 400, message = "API Key does not correspond to the subscription"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @Operation(summary = "Reactivate an API key", description = "User must have the API_SUBSCRIPTION permission to use this service")
+    @ApiResponse(responseCode = "204", description = "API key successfully reactivated")
+    @ApiResponse(responseCode = "400", description = "API Key does not correspond to the subscription")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response reactivateApiKeyForApiSubscription() {
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(apikey);
@@ -81,7 +80,7 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke API key", notes = "User must have the API_SUBSCRIPTION:DELETE permission to use this service")
+    @Operation(summary = "Revoke API key", description = "User must have the API_SUBSCRIPTION:DELETE permission to use this service")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApiSubscription() {
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(apikey);
@@ -97,14 +96,14 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update API Key", notes = "User must have the API_SUBSCRIPTION:UPDATE permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "API Key successfully updated", response = ApiKeyEntity.class),
-            @ApiResponse(code = 400, message = "Bad API Key key format"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Update API Key", description = "User must have the API_SUBSCRIPTION:UPDATE permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "API Key successfully updated",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiKeyEntity.class))
     )
+    @ApiResponse(responseCode = "400", description = "Bad API Key key format")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response updateApiKeyForApiSubscription(@Valid @NotNull ApiKeyEntity apiKey) {
         if (!apikey.equals(apiKey.getId())) {

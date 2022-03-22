@@ -31,7 +31,13 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +56,7 @@ import javax.ws.rs.core.UriBuilder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Applications" })
+@Tag(name = "Applications")
 public class ApplicationsResource extends AbstractResource {
 
     @Context
@@ -61,16 +67,19 @@ public class ApplicationsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "List all the applications accessible to authenticated user",
-        notes = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications."
+    @Operation(
+        summary = "List all the applications accessible to authenticated user",
+        description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications."
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "User's applications", response = ApplicationEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "User's applications",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = ApplicationEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ) })
     public List<ApplicationListItem> getApplications(
         @QueryParam("group") final String group,
@@ -160,19 +169,19 @@ public class ApplicationsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Create an application",
-        notes = "User must have MANAGEMENT_APPLICATION[CREATE] permission to create an application."
+    @Operation(
+        summary = "Create an application",
+        description = "User must have MANAGEMENT_APPLICATION[CREATE] permission to create an application."
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Application successfully created", response = ApplicationEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "201",
+        description = "Application successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE) })
     public Response createApplication(
-        @ApiParam(name = "application", required = true) @Valid @NotNull(
+        @Parameter(name = "application", required = true) @Valid @NotNull(
             message = "An application must be provided"
         ) final NewApplicationEntity application
     ) {
@@ -203,8 +212,13 @@ public class ApplicationsResource extends AbstractResource {
 
     @GET
     @Path("/hooks")
-    @ApiOperation("Get the list of available hooks")
-    @ApiResponses({ @ApiResponse(code = 200, message = "List of hooks"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Operation(summary = "Get the list of available hooks")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of hooks",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = Hook.class)))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getApplicationHooks() {
         return ApplicationHook.values();

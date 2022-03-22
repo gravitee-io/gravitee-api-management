@@ -27,7 +27,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -44,7 +49,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Analytics" })
+@Tag(name = "API Analytics")
 public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
@@ -52,13 +57,18 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String api;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get API analytics", notes = "User must have the API_ANALYTICS[READ] permission to use this service")
-    @ApiResponses({ @ApiResponse(code = 200, message = "API analytics"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Operation(summary = "Get API analytics", description = "User must have the API_ANALYTICS[READ] permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "API analytics",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Analytics.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = RolePermissionAction.READ) })
     public Response getApiAnalyticsHits(@BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();

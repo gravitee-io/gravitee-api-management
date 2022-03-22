@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model.permissions;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum RolePermissionAction {
     CREATE('C', 8), // 1000
     READ('R', 4), // 0100

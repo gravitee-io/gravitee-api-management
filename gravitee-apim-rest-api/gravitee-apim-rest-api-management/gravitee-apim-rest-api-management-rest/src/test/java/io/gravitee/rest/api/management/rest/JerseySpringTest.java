@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.rest;
 
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import java.io.IOException;
 import java.security.Principal;
 import javax.annotation.Priority;
@@ -47,15 +46,10 @@ public abstract class JerseySpringTest {
 
     protected static final String USER_NAME = "UnitTests";
     protected static final Principal PRINCIPAL = () -> USER_NAME;
-    protected AuthenticationProviderManager authenticationProviderManager;
     private JerseyTest _jerseyTest;
 
     private String orgBaseURL = "/organizations/DEFAULT";
     private String envBaseURL = orgBaseURL + "/environments/DEFAULT";
-
-    protected JerseySpringTest(AuthenticationProviderManager authenticationProviderManager) {
-        this.authenticationProviderManager = authenticationProviderManager;
-    }
 
     protected abstract String contextPath();
 
@@ -102,7 +96,7 @@ public abstract class JerseySpringTest {
                     // Find first available port.
                     forceSet(TestProperties.CONTAINER_PORT, "0");
 
-                    ResourceConfig application = new GraviteeManagementApplication(authenticationProviderManager);
+                    ResourceConfig application = new GraviteeManagementApplication();
 
                     application.property("contextConfig", context);
                     decorate(application);

@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import io.swagger.annotations.ApiParam;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -28,53 +31,56 @@ import javax.ws.rs.core.Response;
 public class AnalyticsParam {
 
     @QueryParam("from")
-    @ApiParam(value = "Timestamp used to define the start date of the time window to query")
+    @Parameter(description = "Timestamp used to define the start date of the time window to query")
     private long from;
 
     @QueryParam("to")
-    @ApiParam(value = "Timestamp used to define the end date of the time window to query")
+    @Parameter(description = "Timestamp used to define the end date of the time window to query")
     private long to;
 
     @QueryParam("interval")
-    @ApiParam(value = "The time interval when getting histogram data (in milliseconds)", example = "600000")
+    @Parameter(description = "The time interval when getting histogram data (in milliseconds)", example = "600000")
     private long interval;
 
     @QueryParam("query")
-    @ApiParam(
-        value = "The Lucene query used to filter data",
+    @Parameter(
+        description = "The Lucene query used to filter data",
         example = "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy AND host:\"demo.gravitee.io\" AND path:/test"
     )
     private String query;
 
     @QueryParam("field")
-    @ApiParam(value = "The field to query when doing `group_by` queries")
+    @Parameter(description = "The field to query when doing `group_by` queries")
     private String field;
 
     @QueryParam("size")
-    @ApiParam(value = "The number of data to retrieve")
+    @Parameter(description = "The number of data to retrieve")
     private int size;
 
     @QueryParam("type")
-    @ApiParam(value = "The type of data to retrieve", required = true, allowableValues = "group_by,date_histo,count,stats")
-    private AnalyticsTypeParam type;
+    @Parameter(description = "The type of data to retrieve", required = true)
+    private AnalyticsType type;
 
     @QueryParam("ranges")
-    @ApiParam(
-        value = "Ranges allows you to group field's data. Mainly used to group HTTP statuses code with `group_by` queries",
-        example = "100:199;200:299;300:399;400:499;500:599"
+    @Parameter(
+        description = "Ranges allows you to group field's data. Mainly used to group HTTP statuses code with `group_by` queries",
+        explode = Explode.FALSE,
+        schema = @Schema(type = "array"),
+        example = "100:199,200:299,300:399,400:499,500:599"
     )
     private RangesParam ranges;
 
     @QueryParam("aggs")
-    @ApiParam(
-        value = "Aggregations are used when doing `date_histo` queries and allows you to group field's data. Mainly used to group HTTP statuses code",
-        example = "field:status or avg:response-time;avg:api-response-time"
+    @Parameter(
+        description = "Aggregations are used when doing `date_histo` queries and allows you to group field's data. Mainly used to group HTTP statuses code",
+        explode = Explode.FALSE,
+        schema = @Schema(type = "array"),
+        example = "avg:response-time,avg:api-response-time"
     )
-    private AggregationsParam aggs;
+    private AggregationsParam aggregations;
 
-    @QueryParam("order")
-    @ApiParam(value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "order:-response-time")
-    private OrderParam order;
+    @JsonIgnore
+    private Order order;
 
     public long getFrom() {
         return from;
@@ -124,32 +130,39 @@ public class AnalyticsParam {
         this.size = size;
     }
 
-    public AnalyticsTypeParam getTypeParam() {
+    public AnalyticsType getType() {
         return type;
     }
 
-    public void setTypeParam(AnalyticsTypeParam type) {
+    public void setType(AnalyticsType type) {
         this.type = type;
     }
 
-    public AnalyticsTypeParam.AnalyticsType getType() {
-        return type.getValue();
-    }
-
     public List<Range> getRanges() {
-        return (ranges == null) ? null : ranges.getValue();
+        return (ranges == null) ? null : ranges.getValues();
     }
 
     public List<Aggregation> getAggregations() {
-        return (aggs == null) ? null : aggs.getValue();
+        return (aggregations == null) ? null : aggregations.getValues();
     }
 
-    public OrderParam.Order getOrder() {
-        return (order == null) ? null : order.getValue();
+    @QueryParam("order")
+    @Parameter(
+        description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+        example = "order:-response-time"
+    )
+    public void setOrder(String param) {
+        if (param != null) {
+            order = Order.parse(param);
+        }
+    }
+
+    public Order getOrder() {
+        return order;
     }
 
     public void validate() throws WebApplicationException {
-        if (type.getValue() == null) {
+        if (type == null) {
             throw new WebApplicationException(
                 Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'type' is not valid").build()
             );
@@ -188,7 +201,7 @@ public class AnalyticsParam {
             );
         }
 
-        if (type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY) {
+        if (type == AnalyticsType.GROUP_BY) {
             // we need a field and, optionally, a list of ranges
             if (field == null || field.trim().isEmpty()) {
                 throw new WebApplicationException(

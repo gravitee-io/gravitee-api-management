@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(enumAsRef = true)
 public enum AccessControlReferenceType {
     ROLE,
     GROUP,

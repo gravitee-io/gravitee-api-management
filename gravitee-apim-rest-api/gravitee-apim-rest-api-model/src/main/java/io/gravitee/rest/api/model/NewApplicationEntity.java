@@ -17,7 +17,7 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -31,17 +31,17 @@ public class NewApplicationEntity {
 
     @NotNull(message = "Application's name must not be null")
     @NotEmpty(message = "Application's name must not be empty")
-    @ApiModelProperty(value = "Application's name. Duplicate names can exists.", example = "My App")
+    @Schema(description = "Application's name. Duplicate names can exists.", example = "My App")
     private String name;
 
     @NotNull(message = "Application's description must not be null")
-    @ApiModelProperty(
-        value = "Application's description. A short description of your App.",
+    @Schema(
+        description = "Application's description. A short description of your App.",
         example = "I can use a hundred characters to describe this App."
     )
     private String description;
 
-    @ApiModelProperty(value = "Domain used by the application, if relevant", example = "https://my-app.com")
+    @Schema(description = "Domain used by the application, if relevant", example = "https://my-app.com")
     private String domain;
 
     private ApplicationSettings settings;
@@ -51,7 +51,7 @@ public class NewApplicationEntity {
      *             Will be remove in a future version.
      */
     @Deprecated
-    @ApiModelProperty(value = "a string to describe the type of your app.", example = "iOS")
+    @Schema(description = "a string to describe the type of your app.", example = "iOS")
     private String type;
 
     /**
@@ -61,7 +61,7 @@ public class NewApplicationEntity {
     @Deprecated
     private String clientId;
 
-    @ApiModelProperty(value = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @Schema(description = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     private String picture;
@@ -69,7 +69,7 @@ public class NewApplicationEntity {
     private String background;
 
     @JsonProperty("api_key_mode")
-    @ApiModelProperty(value = "The API key mode used for this application.", allowableValues = "UNSPECIFIED, SHARED, EXCLUSIVE")
+    @Schema(description = "The API key mode used for this application.")
     private ApiKeyMode apiKeyMode;
 
     public String getDescription() {

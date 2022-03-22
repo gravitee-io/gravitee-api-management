@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import io.swagger.annotations.ApiParam;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.Parameter;
 import javax.ws.rs.QueryParam;
 
 /**
@@ -24,54 +25,53 @@ import javax.ws.rs.QueryParam;
  */
 public class ApisParam {
 
-    @ApiParam(value = "filter by category id")
+    @Parameter(description = "filter by category id")
     @QueryParam("category")
     private String category;
 
-    @ApiParam(value = "filter by group id")
+    @Parameter(description = "filter by group id")
     @QueryParam("group")
     private String group;
 
-    @ApiParam(value = "true if you only want Top APIs. default: false")
+    @Parameter(description = "true if you only want Top APIs. default: false")
     @QueryParam("top")
     private boolean top;
 
-    @ApiParam(value = "filter by context path")
+    @Parameter(description = "filter by context path")
     @QueryParam("context-path")
     private String contextPath;
 
-    @ApiParam(value = "filter by label")
+    @Parameter(description = "filter by label")
     @QueryParam("label")
     private String label;
 
-    @ApiParam(value = "filter by state: STARTED or STOPPED")
+    @Parameter(description = "filter by state: STARTED or STOPPED")
     @QueryParam("state")
     private String state;
 
-    @ApiParam(value = "filter by visibility: PUBLIC or PRIVATE")
+    @Parameter(description = "filter by visibility: PUBLIC or PRIVATE")
     @QueryParam("visibility")
     private String visibility;
 
-    @ApiParam(value = "filter by version")
+    @Parameter(description = "filter by version")
     @QueryParam("version")
     private String version;
 
-    @ApiParam(value = "filter by full API Name")
+    @Parameter(description = "filter by full API Name")
     @QueryParam("name")
     private String name;
 
-    @ApiParam(value = "filter by tag")
+    @Parameter(description = "filter by tag")
     @QueryParam("tag")
     private String tag;
 
     @QueryParam("portal")
     private boolean portal;
 
-    @QueryParam("order")
-    @ApiParam(value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-name")
-    private OrderParam order;
+    @JsonIgnore
+    private Order order;
 
-    @ApiParam(value = "filter by crossId")
+    @Parameter(description = "filter by crossId")
     @QueryParam("crossId")
     private String crossId;
 
@@ -163,8 +163,16 @@ public class ApisParam {
         this.portal = portal;
     }
 
-    public OrderParam.Order getOrder() {
-        return (order == null) ? null : order.getValue();
+    @QueryParam("order")
+    @Parameter(description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-name")
+    public void setOrder(String param) {
+        if (param != null) {
+            order = Order.parse(param);
+        }
+    }
+
+    public Order getOrder() {
+        return order;
     }
 
     public String getCrossId() {

@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FetcherEntity extends io.gravitee.rest.api.model.platform.plugin.PluginEntity {}
+public class FetcherEntity extends PlatformPluginEntity {}

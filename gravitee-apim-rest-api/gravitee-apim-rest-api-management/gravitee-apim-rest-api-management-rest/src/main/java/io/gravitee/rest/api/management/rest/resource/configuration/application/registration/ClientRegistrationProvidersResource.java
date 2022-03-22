@@ -26,7 +26,13 @@ import io.gravitee.rest.api.model.configuration.application.registration.NewClie
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
@@ -41,7 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Client Registration Providers" })
+@Tag(name = "Client Registration Providers")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class ClientRegistrationProvidersResource extends AbstractResource {
@@ -54,21 +60,19 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
 
     @GET
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.READ))
-    @ApiOperation(
-        value = "Get the list of client registration providers",
-        notes = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service"
+    @Operation(
+        summary = "Get the list of client registration providers",
+        description = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "List client registration providers",
-                response = ClientRegistrationProviderListItem.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "List client registration providers",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = ClientRegistrationProviderListItem.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<ClientRegistrationProviderListItem> getClientRegistrationProviders() {
         return clientRegistrationService
             .findAll()
@@ -89,22 +93,21 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
 
     @POST
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.CREATE) })
-    @ApiOperation(
-        value = "Create a client registration provider",
-        notes = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[CREATE] permission to use this service"
+    @Operation(
+        summary = "Create a client registration provider",
+        description = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[CREATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 201,
-                message = "Client registration provider provider successfully created",
-                response = ClientRegistrationProviderEntity.class
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "201",
+        description = "Client registration provider provider successfully created",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = ClientRegistrationProviderEntity.class)
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createClientRegistrationProvider(
-        @ApiParam(
+        @Parameter(
             name = "identity-provider",
             required = true
         ) @Valid @NotNull NewClientRegistrationProviderEntity newClientRegistrationProviderEntity

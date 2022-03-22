@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true)
 public enum EventType {
     PUBLISH_API,
     PUBLISH_API_RESULT,

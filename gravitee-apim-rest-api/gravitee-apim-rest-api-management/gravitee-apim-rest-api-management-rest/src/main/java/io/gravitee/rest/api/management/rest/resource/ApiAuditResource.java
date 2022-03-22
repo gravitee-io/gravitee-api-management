@@ -26,9 +26,9 @@ import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.*;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -39,7 +39,7 @@ import org.reflections.Reflections;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Audits" })
+@Tag(name = "API Audits")
 public class ApiAuditResource extends AbstractResource {
 
     private static final List<Audit.AuditEvent> events = new ArrayList<>();
@@ -49,11 +49,14 @@ public class ApiAuditResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String api;
 
     @GET
-    @ApiOperation(value = "Retrieve audit logs for the API", notes = "User must have the API_AUDIT[READ] permission to use this service")
+    @Operation(
+        summary = "Retrieve audit logs for the API",
+        description = "User must have the API_AUDIT[READ] permission to use this service"
+    )
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ) })
@@ -77,9 +80,9 @@ public class ApiAuditResource extends AbstractResource {
 
     @Path("/events")
     @GET
-    @ApiOperation(
-        value = "List available audit event type for API",
-        notes = "User must have the API_AUDIT[READ] permission to use this service"
+    @Operation(
+        summary = "List available audit event type for API",
+        description = "User must have the API_AUDIT[READ] permission to use this service"
     )
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ) })

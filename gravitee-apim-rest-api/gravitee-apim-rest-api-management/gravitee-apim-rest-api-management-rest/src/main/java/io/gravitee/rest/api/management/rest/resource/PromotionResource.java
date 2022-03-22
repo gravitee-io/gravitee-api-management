@@ -15,13 +15,16 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.promotion.PromotionService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -34,7 +37,7 @@ import javax.ws.rs.core.Response;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Promotion" })
+@Tag(name = "Promotion")
 public class PromotionResource extends AbstractResource {
 
     @Context
@@ -44,19 +47,19 @@ public class PromotionResource extends AbstractResource {
     private PromotionService promotionService;
 
     @PathParam("promotion")
-    @ApiParam(name = "promotion", required = true, value = "The ID of the promotion")
+    @Parameter(name = "promotion", required = true, description = "The ID of the promotion")
     private String promotion;
 
     @POST
     @Path("/_process")
-    @ApiOperation(value = "Process an API promotion by accepting or rejecting it")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Processed promotion"),
-            @ApiResponse(code = 404, message = "Promotion not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Process an API promotion by accepting or rejecting it")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Processed promotion",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PromotionEntity.class))
     )
+    @ApiResponse(responseCode = "404", description = "Promotion not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response processPromotion(boolean accepted) {
         return Response
             .ok(

@@ -41,10 +41,11 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Environment Analytics" })
+@Tag(name = "Environment Analytics")
 public class EnvironmentAnalyticsResource extends AbstractResource {
 
     public static final String API_FIELD = "api";
@@ -84,10 +85,13 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get environment analytics")
-    @ApiResponses(
-        { @ApiResponse(code = 200, message = "Environment analytics"), @ApiResponse(code = 500, message = "Internal server error") }
+    @Operation(summary = "Get environment analytics")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Environment analytics",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Analytics.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getPlatformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
 
@@ -129,7 +133,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
             analyticsParam.setQuery(analyticsParam.getQuery().replaceAll("\\?", "1"));
         }
 
-        switch (analyticsParam.getTypeParam().getValue()) {
+        switch (analyticsParam.getType()) {
             case DATE_HISTO:
                 analytics = !isAdmin() && extraFilter == null ? new HistogramAnalytics() : executeDateHisto(analyticsParam, extraFilter);
                 break;

@@ -20,12 +20,13 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.ConnectorService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -38,7 +39,7 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Plugins" })
+@Tag(name = "Plugins")
 public class ConnectorResource {
 
     @Context
@@ -49,30 +50,33 @@ public class ConnectorResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a connector", notes = "User must have the ENVIRONMENT_API[READ] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Connector plugin", response = PluginEntity.class),
-            @ApiResponse(code = 404, message = "Connector not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get a connector", description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Connector plugin",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlatformPluginEntity.class))
     )
+    @ApiResponse(responseCode = "404", description = "Connector not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public PluginEntity getConnector(@PathParam("connector") String connector) {
+    public PlatformPluginEntity getConnector(@PathParam("connector") String connector) {
         return connectorService.findById(connector);
     }
 
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a connector's schema", notes = "User must have the ENVIRONMENT_API[READ] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Connector schema", response = String.class),
-            @ApiResponse(code = 404, message = "Connector not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(
+        summary = "Get a connector's schema",
+        description = "User must have the ENVIRONMENT_API[READ] permission to use this service"
     )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Connector schema",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = String.class))
+    )
+    @ApiResponse(responseCode = "404", description = "Connector not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public String getConnectorSchema(@PathParam("connector") String connector) {
         // Check that the connector exists
@@ -84,17 +88,17 @@ public class ConnectorResource {
     @GET
     @Path("documentation")
     @Produces(MediaType.TEXT_PLAIN)
-    @ApiOperation(
-        value = "Get a connector's documentation",
-        notes = "User must have the ENVIRONMENT_API[READ] permission to use this service"
+    @Operation(
+        summary = "Get a connector's documentation",
+        description = "User must have the ENVIRONMENT_API[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Connector documentation", response = String.class),
-            @ApiResponse(code = 404, message = "Connector not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Connector documentation",
+        content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(implementation = String.class))
     )
+    @ApiResponse(responseCode = "404", description = "Connector not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public String getConnectorDoc(@PathParam("connector") String connector) {
         // Check that the connector exists

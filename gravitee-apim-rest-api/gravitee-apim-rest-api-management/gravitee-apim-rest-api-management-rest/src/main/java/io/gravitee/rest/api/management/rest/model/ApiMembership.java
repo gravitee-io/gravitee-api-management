@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.model;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -24,13 +24,13 @@ import javax.validation.constraints.NotNull;
  */
 public class ApiMembership {
 
-    @ApiModelProperty(name = "id", value = "User's technical identifier.")
+    @Schema(name = "id", description = "User's technical identifier.")
     private String id;
 
-    @ApiModelProperty(name = "reference", value = "User's reference for user providing from an identity provider.")
+    @Schema(name = "reference", description = "User's reference for user providing from an identity provider.")
     private String reference;
 
-    @ApiModelProperty(name = "role", value = "Role's name", required = true)
+    @Schema(name = "role", description = "Role's name", required = true)
     @NotNull
     private String role;
 

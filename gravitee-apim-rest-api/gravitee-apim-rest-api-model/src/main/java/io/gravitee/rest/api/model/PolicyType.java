@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@Schema(enumAsRef = true)
 public enum PolicyType {
     REQUEST,
     RESPONSE,

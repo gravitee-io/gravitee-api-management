@@ -23,10 +23,11 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MessageService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -37,7 +38,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Messages" })
+@Tag(name = "Messages")
 public class MessagesResource extends AbstractResource {
 
     @Inject
@@ -46,16 +47,16 @@ public class MessagesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Send a message to users depending on their profile",
-        notes = "User must have the MANAGEMENT_MESSAGE[CREATE] permission to use this service"
+    @Operation(
+        summary = "Send a message to users depending on their profile",
+        description = "User must have the MANAGEMENT_MESSAGE[CREATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Message successfully sent", response = MessageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Message successfully sent",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Integer.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_MESSAGE, acls = RolePermissionAction.CREATE) })
     public Response createMessage(final MessageEntity message) {
         return Response.ok(messageService.create(GraviteeContext.getExecutionContext(), message)).build();

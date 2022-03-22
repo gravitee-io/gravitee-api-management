@@ -26,10 +26,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -42,7 +44,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Configuration" })
+@Tag(name = "Configuration")
 public class ApiHeadersResource extends AbstractResource {
 
     @Context
@@ -53,13 +55,13 @@ public class ApiHeadersResource extends AbstractResource {
 
     @GET
     @Produces(APPLICATION_JSON)
-    @ApiOperation(value = "List API headers")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of API headers", response = ApiHeaderEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "List API headers")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of API headers",
+        content = @Content(mediaType = APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = ApiHeaderEntity.class)))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.READ) })
     public List<ApiHeaderEntity> getApiHeaders() {
         return apiHeaderService.findAll(GraviteeContext.getCurrentEnvironment());
@@ -68,13 +70,16 @@ public class ApiHeadersResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an API header", notes = "User must have the PORTAL_API_HEADER[CREATE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "API header successfully created", response = ApiHeaderEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(
+        summary = "Create an API header",
+        description = "User must have the PORTAL_API_HEADER[CREATE] permission to use this service"
     )
+    @ApiResponse(
+        responseCode = "200",
+        description = "API header successfully created",
+        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = ApiHeaderEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.CREATE) })
     public ApiHeaderEntity createApiHeader(@Valid @NotNull final NewApiHeaderEntity newApiHeaderEntity) {
         return apiHeaderService.create(GraviteeContext.getCurrentEnvironment(), newApiHeaderEntity);

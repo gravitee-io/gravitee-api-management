@@ -26,10 +26,11 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -42,7 +43,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Roles" })
+@Tag(name = "Roles")
 public class RoleResource extends AbstractResource {
 
     @Context
@@ -54,14 +55,14 @@ public class RoleResource extends AbstractResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a role", notes = "User must have the MANAGEMENT_ROLE[READ] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "A role", response = RoleEntity.class),
-            @ApiResponse(code = 404, message = "Role not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get a role", description = "User must have the MANAGEMENT_ROLE[READ] permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "A role",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RoleEntity.class))
     )
+    @ApiResponse(responseCode = "404", description = "Role not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ) })
     public RoleEntity getRole(@PathParam("scope") RoleScope scope, @PathParam("role") String role) {
         Optional<RoleEntity> optRole = roleService.findByScopeAndName(scope, role);
@@ -75,14 +76,14 @@ public class RoleResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a role", notes = "User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Role successfully updated", response = RoleEntity.class),
-            @ApiResponse(code = 404, message = "Role not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Update a role", description = "User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Role successfully updated",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RoleEntity.class))
     )
+    @ApiResponse(responseCode = "404", description = "Role not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.UPDATE) })
     public RoleEntity updateRole(
         @PathParam("scope") RoleScope scope,
@@ -94,14 +95,14 @@ public class RoleResource extends AbstractResource {
 
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete a role", notes = "User must have the MANAGEMENT_ROLE[DELETE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "Role successfully deleted", response = RoleEntity.class),
-            @ApiResponse(code = 404, message = "Role not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Delete a role", description = "User must have the MANAGEMENT_ROLE[DELETE] permission to use this service")
+    @ApiResponse(
+        responseCode = "204",
+        description = "Role successfully deleted",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RoleEntity.class))
     )
+    @ApiResponse(responseCode = "404", description = "Role not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.DELETE) })
     public void deleteRole(@PathParam("scope") RoleScope scope, @PathParam("role") String role) {
         roleService.findByScopeAndName(scope, role).ifPresent(roleToDelete -> roleService.delete(roleToDelete.getId()));

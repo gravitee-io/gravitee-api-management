@@ -19,15 +19,13 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EnvironmentPermissionsEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -43,7 +41,6 @@ import javax.ws.rs.core.MediaType;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api
 public class EnvironmentsResource extends AbstractResource {
 
     @Context
@@ -54,18 +51,18 @@ public class EnvironmentsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List available environments for current user organization")
+    @Operation(summary = "List available environments for current user organization")
     public Collection<EnvironmentEntity> getEnvironments() {
         return this.environmentService.findByUser(GraviteeContext.getCurrentOrganization(), getAuthenticatedUserOrNull());
     }
 
     @Path("{envId}")
     public EnvironmentResource getEnvironmentResource(
-        @PathParam("envId") @ApiParam(
+        @PathParam("envId") @Parameter(
             name = "envId",
             required = true,
-            defaultValue = "DEFAULT",
-            value = "The ID of the environment"
+            description = "The ID of the environment",
+            schema = @Schema(defaultValue = "DEFAULT")
         ) String envId
     ) {
         return resourceContext.getResource(EnvironmentResource.class);
@@ -74,20 +71,18 @@ public class EnvironmentsResource extends AbstractResource {
     @GET
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Path("/permissions")
-    @ApiOperation(value = "List available environments with their permissions for current user organization")
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "Current user permissions on its environments",
-                response = char[].class,
-                responseContainer = "Map"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "List available environments with their permissions for current user organization")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Current user permissions on its environments",
+        content = @Content(
+            mediaType = io.gravitee.common.http.MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = EnvironmentPermissionsEntity.class))
+        )
     )
-    public Collection<EnvironmentPermissionsEntity> getEnvironmentsPermissions(
-        @ApiParam("To filter on environment id or hrid") @QueryParam("idOrHrid") String id
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public List<EnvironmentPermissionsEntity> getEnvironmentsPermissions(
+        @Parameter(description = "To filter on environment id or hrid") @QueryParam("idOrHrid") String id
     ) {
         List<EnvironmentEntity> environments =
             this.environmentService.findByUserAndIdOrHrid(GraviteeContext.getCurrentOrganization(), getAuthenticatedUserOrNull(), id);

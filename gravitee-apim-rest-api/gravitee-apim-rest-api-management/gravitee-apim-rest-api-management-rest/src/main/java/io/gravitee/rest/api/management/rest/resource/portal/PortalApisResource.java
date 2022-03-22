@@ -34,7 +34,13 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,7 +62,7 @@ import javax.ws.rs.core.UriBuilder;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Portal APIs" })
+@Tag(name = "Portal APIs")
 public class PortalApisResource extends AbstractResource {
 
     @Inject
@@ -74,19 +80,17 @@ public class PortalApisResource extends AbstractResource {
     @POST
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Search for API using the search engine")
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "List accessible APIs for current user",
-                response = ApiListItem.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Search for API using the search engine")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List accessible APIs for current user",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = ApiListItem.class))
+        )
     )
-    public Response searchPortalApis(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public Response searchPortalApis(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
             final Collection<ApiEntity> apis;
             final ApiQuery apiQuery = new ApiQuery();

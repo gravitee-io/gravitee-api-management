@@ -27,7 +27,13 @@ import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -41,7 +47,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Configuration", "Dictionaries" })
+@Tag(name = "Configuration")
+@Tag(name = "Dictionaries")
 public class DictionariesResource extends AbstractResource {
 
     @Autowired
@@ -53,16 +60,19 @@ public class DictionariesResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.READ))
-    @ApiOperation(
-        value = "Get the list of global dictionaries",
-        notes = "User must have the DICTIONARY[READ] permission to use this service"
+    @Operation(
+        summary = "Get the list of global dictionaries",
+        description = "User must have the DICTIONARY[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List global dictionaries", response = DictionaryListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "List global dictionaries",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = DictionaryListItem.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<DictionaryListItem> getDictionaries() {
         return dictionaryService
             .findAll()
@@ -97,15 +107,15 @@ public class DictionariesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.CREATE) })
-    @ApiOperation(value = "Create a dictionary", notes = "User must have the DICTIONARY[CREATE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Dictionary successfully created", response = DictionaryEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Create a dictionary", description = "User must have the DICTIONARY[CREATE] permission to use this service")
+    @ApiResponse(
+        responseCode = "201",
+        description = "Dictionary successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DictionaryEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createDictionary(
-        @ApiParam(name = "dictionary", required = true) @Valid @NotNull NewDictionaryEntity newDictionaryEntity
+        @Parameter(name = "dictionary", required = true) @Valid @NotNull NewDictionaryEntity newDictionaryEntity
     ) {
         DictionaryEntity newDictionary = dictionaryService.create(newDictionaryEntity);
 

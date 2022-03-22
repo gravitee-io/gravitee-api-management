@@ -26,7 +26,13 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -41,7 +47,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Roles" })
+@Tag(name = "Roles")
 public class RoleUsersResource extends AbstractResource {
 
     @Context
@@ -52,21 +58,19 @@ public class RoleUsersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "List users with the given role",
-        notes = "User must have the MANAGEMENT_ROLE[READ] permission to use this service"
+    @Operation(
+        summary = "List users with the given role",
+        description = "User must have the MANAGEMENT_ROLE[READ] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 204,
-                message = "List of user's memberships",
-                response = MembershipListItem.class,
-                responseContainer = "List"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "204",
+        description = "List of user's memberships",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = MembershipListItem.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ) })
     public List<MembershipListItem> getUsersPerRole(@PathParam("scope") RoleScope scope, @PathParam("role") String role) {
         if (RoleScope.ORGANIZATION.equals(scope)) {
@@ -106,16 +110,12 @@ public class RoleUsersResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Add or update a role for a user",
-        notes = "User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service"
+    @Operation(
+        summary = "Add or update a role for a user",
+        description = "User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Membership successfully created / updated"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @ApiResponse(responseCode = "201", description = "Membership successfully created / updated")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE),
@@ -123,7 +123,9 @@ public class RoleUsersResource extends AbstractResource {
         }
     )
     public Response addRoleToUser(
-        @ApiParam(name = "scope", required = true, allowableValues = "ORGANIZATION,ENVIRONMENT") @PathParam("scope") RoleScope roleScope,
+        @Parameter(name = "scope", required = true, schema = @Schema(allowableValues = { "ORGANIZATION", "ENVIRONMENT" })) @PathParam(
+            "scope"
+        ) RoleScope roleScope,
         @PathParam("role") String roleName,
         @Valid @NotNull final RoleMembership roleMembership
     ) {

@@ -27,7 +27,12 @@ import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.inject.Inject;
@@ -41,27 +46,27 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 /**
  * @author Guillaume Gillon
  */
-@Api(tags = { "API Media" })
+@Tag(name = "API Media")
 public class ApiMediaResource extends AbstractResource {
 
     @Inject
     private MediaService mediaService;
 
     @PathParam("api")
-    @ApiParam(name = "api", required = true, value = "The ID of the API")
+    @Parameter(name = "api", required = true, description = "The ID of the API")
     private String api;
 
     @POST
-    @ApiOperation(
-        value = "Create a media for an API",
-        notes = "User must have the API_DOCUMENTATION[CREATE] permission to use this service"
+    @Operation(
+        summary = "Create a media for an API",
+        description = "User must have the API_DOCUMENTATION[CREATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Media successfully created", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "201",
+        description = "Media successfully created",
+        content = @Content(mediaType = "text/plain", schema = @Schema(implementation = PageEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -97,7 +102,7 @@ public class ApiMediaResource extends AbstractResource {
 
     @GET
     @Path("/{hash}")
-    @ApiOperation(value = "Retrieve a media for an API")
+    @Operation(summary = "Retrieve a media for an API")
     public Response getApiMediaImage(@Context Request request, @PathParam("hash") String hash) {
         MediaEntity mediaEntity = mediaService.findByHashAndApiId(hash, api);
 

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import io.gravitee.rest.api.management.rest.resource.param.AnalyticsAverageTypeParam.AnalyticsAverageType;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;

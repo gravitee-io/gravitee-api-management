@@ -26,8 +26,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.model.theme.UpdateThemeEntity;
 import io.gravitee.rest.api.service.ThemeService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import javax.inject.Inject;
@@ -40,14 +40,14 @@ import javax.ws.rs.core.*;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Themes" })
+@Tag(name = "Themes")
 public class ThemeResource extends AbstractResource {
 
     @Inject
     private ThemeService themeService;
 
     @PathParam("themeId")
-    @ApiParam(name = "themeId", required = true)
+    @Parameter(name = "themeId", required = true)
     private String themeId;
 
     @GET

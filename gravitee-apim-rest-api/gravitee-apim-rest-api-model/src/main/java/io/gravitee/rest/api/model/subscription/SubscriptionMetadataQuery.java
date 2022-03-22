@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.subscription;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.*;
 import java.util.function.BiFunction;
 
@@ -148,6 +149,7 @@ public class SubscriptionMetadataQuery {
         return Collections.emptyList();
     }
 
+    @Schema(enumAsRef = true)
     public enum DelegateType {
         API,
     }

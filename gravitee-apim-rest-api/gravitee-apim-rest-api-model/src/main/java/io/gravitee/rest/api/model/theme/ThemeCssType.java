@@ -17,8 +17,10 @@ package io.gravitee.rest.api.model.theme;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
+@Schema(enumAsRef = true)
 public enum ThemeCssType {
     COLOR("color"),
     LENGTH("length"),

@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.model.api;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.Size;
 
 /**
@@ -24,7 +24,7 @@ import javax.validation.constraints.Size;
  */
 public class ApiDeploymentEntity {
 
-    @ApiModelProperty(value = "Label for an Api deployment. Duplicate names can exists.", example = "My deployment")
+    @Schema(description = "Label for an Api deployment. Duplicate names can exists.", example = "My deployment")
     @Size(max = 32)
     private String deploymentLabel;
 

@@ -20,10 +20,12 @@ import io.gravitee.rest.api.management.rest.resource.param.FetchersParam;
 import io.gravitee.rest.api.model.FetcherEntity;
 import io.gravitee.rest.api.model.FetcherListItem;
 import io.gravitee.rest.api.service.FetcherService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -41,7 +43,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Plugins" })
+@Tag(name = "Plugins")
 public class FetchersResource {
 
     @Context
@@ -52,13 +54,16 @@ public class FetchersResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List of fetcher plugins")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of fetchers", response = FetcherListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "List of fetcher plugins")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of fetchers",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = FetcherListItem.class))
+        )
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Collection<FetcherListItem> getFetchers(@BeanParam FetchersParam params) {
         Stream<FetcherListItem> stream = fetcherService.findAll(params.isOnlyFilesFetchers()).stream().map(this::convert);
 

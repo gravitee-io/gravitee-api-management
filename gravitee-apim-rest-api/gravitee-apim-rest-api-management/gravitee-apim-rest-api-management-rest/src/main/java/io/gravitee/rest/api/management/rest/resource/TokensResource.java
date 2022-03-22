@@ -22,10 +22,12 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.service.TokenService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -36,7 +38,7 @@ import javax.ws.rs.*;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "User Tokens" })
+@Tag(name = "User Tokens")
 public class TokensResource extends AbstractResource {
 
     @Inject
@@ -44,14 +46,17 @@ public class TokensResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List user's personal tokens")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "User's personal tokens"),
-            @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "List user's personal tokens")
+    @ApiResponse(
+        responseCode = "200",
+        description = "User's personal tokens",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = TokenEntity.class))
+        )
     )
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<TokenEntity> getTokens() {
         return tokenService.findByUser(getAuthenticatedUser()).stream().sorted(comparing(TokenEntity::getCreatedAt)).collect(toList());
     }
@@ -59,27 +64,23 @@ public class TokensResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create a personal token")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "A new personal token", response = TokenEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Create a personal token")
+    @ApiResponse(
+        responseCode = "201",
+        description = "A new personal token",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TokenEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public TokenEntity createTokens(@Valid @NotNull final NewTokenEntity token) {
         return tokenService.create(token, getAuthenticatedUser());
     }
 
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke all user's personal tokens")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "User's personal tokens revoked"),
-            @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @Operation(summary = "Revoke all user's personal tokens")
+    @ApiResponse(responseCode = "204", description = "User's personal tokens revoked")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public void revokeAllTokens() {
         tokenService.revokeByUser(getAuthenticatedUser());
     }
@@ -87,14 +88,10 @@ public class TokensResource extends AbstractResource {
     @Path("{token}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke a single user's personal tokens")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "User's personal token revoked"),
-            @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @Operation(summary = "Revoke a single user's personal tokens")
+    @ApiResponse(responseCode = "204", description = "User's personal token revoked")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public void revokeToken(@PathParam("token") String tokenId) {
         tokenService.revoke(tokenId);
     }

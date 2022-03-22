@@ -228,7 +228,13 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             /*
              * Swagger
              */
+            // ---------------------------
+            // TODO: DELETE THIS IN 3.18.0
             .antMatchers(HttpMethod.GET, "/swagger.json")
+            .permitAll()
+            // ---------------------------
+
+            .antMatchers(HttpMethod.GET, "/openapi.*")
             .permitAll()
             .antMatchers(HttpMethod.OPTIONS, "**")
             .permitAll()

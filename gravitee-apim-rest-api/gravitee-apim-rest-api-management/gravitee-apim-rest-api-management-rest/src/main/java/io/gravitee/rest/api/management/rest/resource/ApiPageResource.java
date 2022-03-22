@@ -32,7 +32,12 @@ import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -46,7 +51,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "API Pages" })
+@Tag(name = "API Pages")
 public class ApiPageResource extends AbstractResource {
 
     @Inject
@@ -57,11 +62,11 @@ public class ApiPageResource extends AbstractResource {
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
-    @ApiParam(name = "api", hidden = true)
+    @Parameter(name = "api", hidden = true)
     private String api;
 
     @PathParam("page")
-    @ApiParam(name = "page", required = true)
+    @Parameter(name = "page", required = true)
     private String page;
 
     @Context
@@ -69,8 +74,13 @@ public class ApiPageResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a page", notes = "User must have the READ permission to use this service")
-    @ApiResponses({ @ApiResponse(code = 200, message = "Page"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Operation(summary = "Get a page", description = "User must have the READ permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public PageEntity getApiPage(
         @HeaderParam("Accept-Language") String acceptLang,
         @QueryParam("portal") boolean portal,
@@ -117,8 +127,13 @@ public class ApiPageResource extends AbstractResource {
 
     @GET
     @Path("/content")
-    @ApiOperation(value = "Get the page's content", notes = "User must have the READ permission to use this service")
-    @ApiResponses({ @ApiResponse(code = 200, message = "Page's content"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Operation(summary = "Get the page's content", description = "User must have the READ permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page's content",
+        content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = "string"))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApiPageContent() {
         final PageEntity pageEntity = getApiPage(null, true, false);
         return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
@@ -128,15 +143,11 @@ public class ApiPageResource extends AbstractResource {
     @Path("/content")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Put the page's content", notes = "User must have the MANAGE_PAGES permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Page content successfully updated"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @Operation(summary = "Put the page's content", description = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponse(responseCode = "201", description = "Page content successfully updated")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
-    public String updatePageContent(@ApiParam(name = "content", required = true) @Valid @NotNull String content) {
+    public String updatePageContent(@Parameter(name = "content", required = true) @Valid @NotNull String content) {
         pageService.findById(page);
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -149,15 +160,15 @@ public class ApiPageResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a page", notes = "User must have the MANAGE_PAGES permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Update a page", description = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponse(
+        responseCode = "201",
+        description = "Page successfully updated",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
-    public PageEntity updateApiPage(@ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
+    public PageEntity updateApiPage(@Parameter(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
@@ -172,16 +183,16 @@ public class ApiPageResource extends AbstractResource {
     @POST
     @Path("/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Refresh page by calling the associated fetcher",
-        notes = "User must have the MANAGE_PAGES permission to use this service"
+    @Operation(
+        summary = "Refresh page by calling the associated fetcher",
+        description = "User must have the MANAGE_PAGES permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Page successfully refreshed", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "201",
+        description = "Page successfully refreshed",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public PageEntity fetchApiPage() {
         pageService.findById(page);
@@ -193,15 +204,15 @@ public class ApiPageResource extends AbstractResource {
     @PATCH
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a page", notes = "User must have the MANAGE_PAGES permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Update a page", description = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponse(
+        responseCode = "201",
+        description = "Page successfully updated",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
-    public PageEntity partialUpdateApiPage(@ApiParam(name = "page") UpdatePageEntity updatePageEntity) {
+    public PageEntity partialUpdateApiPage(@Parameter(name = "page") UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
@@ -214,10 +225,9 @@ public class ApiPageResource extends AbstractResource {
     }
 
     @DELETE
-    @ApiOperation(value = "Delete a page", notes = "User must have the MANAGE_PAGES permission to use this service")
-    @ApiResponses(
-        { @ApiResponse(code = 204, message = "Page successfully deleted"), @ApiResponse(code = 500, message = "Internal server error") }
-    )
+    @Operation(summary = "Delete a page", description = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponse(responseCode = "204", description = "Page successfully deleted")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
     public void deleteApiPage() {
         PageEntity existingPage = pageService.findById(page);

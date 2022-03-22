@@ -18,7 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.PluginService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractPluginService<T extends ConfigurablePlugin, E extends PluginEntity>
+public abstract class AbstractPluginService<T extends ConfigurablePlugin, E extends PlatformPluginEntity>
     extends TransactionalService
     implements PluginService<E> {
 
@@ -102,8 +102,8 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
         }
     }
 
-    protected PluginEntity convert(Plugin plugin) {
-        PluginEntity entity = new PluginEntity();
+    protected PlatformPluginEntity convert(Plugin plugin) {
+        PlatformPluginEntity entity = new PlatformPluginEntity();
 
         entity.setId(plugin.id());
         entity.setDescription(plugin.manifest().description());

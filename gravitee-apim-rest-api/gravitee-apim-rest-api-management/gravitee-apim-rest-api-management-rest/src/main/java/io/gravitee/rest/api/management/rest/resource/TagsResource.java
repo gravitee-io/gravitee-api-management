@@ -26,10 +26,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -42,7 +44,7 @@ import javax.ws.rs.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Sharding Tags" })
+@Tag(name = "Sharding Tags")
 public class TagsResource extends AbstractResource {
 
     @Inject
@@ -50,13 +52,13 @@ public class TagsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List sharding tags")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of sharding tags", response = TagEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "List sharding tags")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of sharding tags",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = TagEntity.class)))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<TagEntity> getTags() {
         return tagService
             .findByReference(GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION)
@@ -68,13 +70,13 @@ public class TagsResource extends AbstractResource {
     @GET
     @Path("{tag}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a sharding tag", notes = "User must have the MANAGEMENT_TAG[READ] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Tag", response = TagEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Get a sharding tag", description = "User must have the MANAGEMENT_TAG[READ] permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Tag",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TagEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.READ),
@@ -88,13 +90,13 @@ public class TagsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create a sharding tag", notes = "User must have the MANAGEMENT_TAG[CREATE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "A new sharding tag", response = TagEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "Create a sharding tag", description = "User must have the MANAGEMENT_TAG[CREATE] permission to use this service")
+    @ApiResponse(
+        responseCode = "201",
+        description = "A new sharding tag",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TagEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.CREATE),
@@ -109,16 +111,16 @@ public class TagsResource extends AbstractResource {
     @Path("{tag}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Update an existing sharding tag",
-        notes = "User must have the MANAGEMENT_TAG[UPDATE] permission to use this service"
+    @Operation(
+        summary = "Update an existing sharding tag",
+        description = "User must have the MANAGEMENT_TAG[UPDATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Sharding tag", response = TagEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Sharding tag",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TagEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.UPDATE),
@@ -132,16 +134,12 @@ public class TagsResource extends AbstractResource {
     @Path("{tag}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Delete an existing sharding tag",
-        notes = "User must have the MANAGEMENT_TAG[DELETE] permission to use this service"
+    @Operation(
+        summary = "Delete an existing sharding tag",
+        description = "User must have the MANAGEMENT_TAG[DELETE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "Sharding tag successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
+    @ApiResponse(responseCode = "204", description = "Sharding tag successfully deleted")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
         {
             @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.DELETE),

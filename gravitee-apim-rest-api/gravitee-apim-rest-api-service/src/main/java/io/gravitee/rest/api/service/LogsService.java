@@ -16,19 +16,17 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
-import io.gravitee.rest.api.model.log.ApiRequest;
-import io.gravitee.rest.api.model.log.ApplicationRequest;
-import io.gravitee.rest.api.model.log.SearchLogResponse;
+import io.gravitee.rest.api.model.log.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface LogsService {
-    SearchLogResponse findByApi(String api, LogQuery query);
-    SearchLogResponse findByApplication(String application, LogQuery query);
-    SearchLogResponse findPlatform(LogQuery query);
+    SearchLogResponse<ApiRequestItem> findByApi(String api, LogQuery query);
+    SearchLogResponse<ApplicationRequestItem> findByApplication(String application, LogQuery query);
+    SearchLogResponse<PlatformRequestItem> findPlatform(LogQuery query);
     ApiRequest findApiLog(String id, Long timestamp);
     ApplicationRequest findApplicationLog(String id, Long timestamp);
-    String exportAsCsv(SearchLogResponse searchLogResponse);
+    String exportAsCsv(SearchLogResponse<?> searchLogResponse);
 }

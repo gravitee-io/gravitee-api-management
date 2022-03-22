@@ -16,12 +16,13 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyEntity extends io.gravitee.rest.api.model.platform.plugin.PluginEntity {
+public class PolicyEntity extends PlatformPluginEntity {
 
     private PolicyType type;
 

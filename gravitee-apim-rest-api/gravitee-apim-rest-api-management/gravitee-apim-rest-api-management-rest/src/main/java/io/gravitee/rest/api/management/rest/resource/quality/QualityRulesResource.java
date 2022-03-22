@@ -27,10 +27,12 @@ import io.gravitee.rest.api.model.quality.NewQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.service.QualityRuleService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -43,7 +45,7 @@ import javax.ws.rs.core.Context;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = { "Configuration" })
+@Tag(name = "Configuration")
 public class QualityRulesResource extends AbstractResource {
 
     @Context
@@ -54,13 +56,13 @@ public class QualityRulesResource extends AbstractResource {
 
     @GET
     @Produces(APPLICATION_JSON)
-    @ApiOperation(value = "List quality rules")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "List of quality rules", response = QualityRuleEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @Operation(summary = "List quality rules")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List of quality rules",
+        content = @Content(mediaType = APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = QualityRuleEntity.class)))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<QualityRuleEntity> getQualityRules() {
         if (!hasPermission(RolePermission.ENVIRONMENT_QUALITY_RULE, RolePermissionAction.READ) && !canReadAPIConfiguration()) {
             throw new ForbiddenAccessException();
@@ -71,16 +73,16 @@ public class QualityRulesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Create a quality rule",
-        notes = "User must have the MANAGEMENT_QUALITY_RULE[CREATE] permission to use this service"
+    @Operation(
+        summary = "Create a quality rule",
+        description = "User must have the MANAGEMENT_QUALITY_RULE[CREATE] permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Quality rule successfully created", response = QualityRuleEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
+    @ApiResponse(
+        responseCode = "200",
+        description = "Quality rule successfully created",
+        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = QualityRuleEntity.class))
     )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.CREATE) })
     public QualityRuleEntity createQualityRule(@Valid @NotNull final NewQualityRuleEntity newQualityRuleEntity) {
         return qualityRuleService.create(newQualityRuleEntity);

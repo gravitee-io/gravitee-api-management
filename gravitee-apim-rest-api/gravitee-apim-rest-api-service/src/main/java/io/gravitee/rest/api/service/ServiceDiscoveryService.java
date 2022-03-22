@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ServiceDiscoveryService extends PluginService<PluginEntity> {}
+public interface ServiceDiscoveryService extends PluginService<PlatformPluginEntity> {}

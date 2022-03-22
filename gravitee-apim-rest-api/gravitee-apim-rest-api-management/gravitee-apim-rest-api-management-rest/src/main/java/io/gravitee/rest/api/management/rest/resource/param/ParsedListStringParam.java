@@ -15,33 +15,35 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.ArrayList;
+import java.util.List;
 import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
+@JsonIgnoreProperties({ "empty", "values" })
+public abstract class ParsedListStringParam<T> extends ArrayList<String> /* to generate the right open-api def */{
 
-    public enum AnalyticsType {
-        GROUP_BY,
-        DATE_HISTO,
-        COUNT,
-        STATS,
-    }
+    private List<T> values;
 
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
-        super(param);
-    }
-
-    @Override
-    protected AnalyticsType parse(String param) throws Throwable {
+    public ParsedListStringParam(String param) throws WebApplicationException {
         try {
             if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
+                String[] inputAggs = param.split("[;,]"); // ; is for backwards compatibility
+                values = new ArrayList<>(inputAggs.length);
+                for (String inputAgg : inputAggs) {
+                    values.add(parseValue(inputAgg));
+                }
             }
-        } catch (IllegalArgumentException iae) {}
+        } catch (IllegalArgumentException ignored) {}
+    }
 
-        return null;
+    protected abstract T parseValue(String param);
+
+    public List<T> getValues() {
+        return values;
     }
 }
