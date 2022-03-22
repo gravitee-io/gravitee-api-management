@@ -33,6 +33,7 @@ executors:
             - image: mcr.microsoft.com/azure-cli:2.34.1
         resource_class: <<parameters.resource_class>>
 
+
 commands:
     prepare-env-var:
         description: Prepare env variables used in [version.properties] files
