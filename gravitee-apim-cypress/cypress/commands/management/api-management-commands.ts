@@ -17,7 +17,6 @@ import { Api, ApiLifecycleState, ApiMember, UpdateApiEntity } from '@model/apis'
 import { ApiImport, ImportSwaggerDescriptorEntity } from '@model/api-imports';
 import { BasicAuthentication } from '@model/users';
 import { ProcessSubscriptionEntity } from '@model/api-subscriptions';
-import { coerce } from 'semver';
 
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({
@@ -96,11 +95,10 @@ export function importCreateApi(auth: BasicAuthentication, body: ApiImport) {
 }
 
 export function importSwaggerApi(auth: BasicAuthentication, swaggerImport: string, attributes?: Partial<ImportSwaggerDescriptorEntity>) {
-  const swaggerVersion = coerce(JSON.parse(swaggerImport).swagger).toString();
   return cy.request({
     method: 'POST',
     url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/import/swagger`,
-    qs: { definitionVersion: swaggerVersion },
+    qs: { definitionVersion: '2.0.0' },
     body: {
       payload: swaggerImport,
       ...attributes,

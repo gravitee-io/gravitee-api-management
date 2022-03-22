@@ -23,6 +23,8 @@
     "gatewayServer": "https://apim.gravitee.io",
     "am_gatewayServer": "https://am.gravitee.io",
     "am_managementAPI": "https://am.gravitee.io/management/organizations/DEFAULT/environments/DEFAULT",
-    "portalApi": "/portal/environments/DEFAULT"
+    "portalApi": "/portal/environments/DEFAULT",
+    "localPetstore_v2": "http://petstore:8080/v2",
+    "localPetstore_v3": "http://petstore3:8080/api/v3"
   }
 }

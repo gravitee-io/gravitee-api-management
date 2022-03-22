@@ -26,7 +26,7 @@ import {
 import { closePlan, createPlan, publishPlan } from '@commands/management/api-plan-management-commands';
 import { ApiImportFakers } from '@fakers/api-imports';
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
-import { ApiImport, ImportSwaggerDescriptorEntity } from '@model/api-imports';
+import { ApiImport, ImportSwaggerDescriptorEntity, ImportSwaggerDescriptorEntityType } from '@model/api-imports';
 import * as faker from 'faker';
 
 declare global {
@@ -49,27 +49,30 @@ Cypress.Commands.add('teardownApi', (api) => {
   deleteApi(ADMIN_USER, api.id).noContent();
 });
 
-Cypress.Commands.add('createAndStartApiFromSwagger', (swaggerImport: unknown, attributes?: ImportSwaggerDescriptorEntity) => {
-  importSwaggerApi(API_PUBLISHER_USER, JSON.stringify(swaggerImport), attributes)
-    .created()
-    .its('body')
-    .then((api: ApiImport) => {
-      const fakePlan = ApiImportFakers.plan();
-      const name = `swagger_${faker.datatype.number()}`;
-      api.name = name;
-      api.proxy.virtual_hosts = [{ path: `/${name}` }];
-      updateApi(API_PUBLISHER_USER, api.id, api);
-      return createPlan(API_PUBLISHER_USER, api.id, fakePlan)
-        .its('body')
-        .then((plan) => {
-          publishPlan(API_PUBLISHER_USER, api.id, plan.id);
-          return deployApi(API_PUBLISHER_USER, api.id)
-            .its('body')
-            .then((api) => {
-              return startApi(API_PUBLISHER_USER, api.id).then(() => {
-                return api;
-              });
-            });
-        });
+Cypress.Commands.add('createAndStartApiFromSwagger', (swaggerImport: string, attributes?) => {
+  if (swaggerImport.startsWith('http')) attributes.type = ImportSwaggerDescriptorEntityType.URL;
+  importSwaggerApi(API_PUBLISHER_USER, swaggerImport, attributes).then((response) => {
+    if (response.status !== 201) return response;
+    let api: ApiImport = response.body;
+    const fakePlan = ApiImportFakers.plan();
+    const name = `swagger_${faker.datatype.number()}`;
+    api.name = name;
+    api.proxy.virtual_hosts = [{ path: `/${name}` }];
+    api.proxy.groups[0].endpoints.forEach((_value, index) => {
+      api.proxy.groups[0].endpoints[index].target = `${Cypress.env('localPetstore_v2')}`;
     });
+    updateApi(API_PUBLISHER_USER, api.id, api);
+    return createPlan(API_PUBLISHER_USER, api.id, fakePlan)
+      .its('body')
+      .then((plan) => {
+        publishPlan(API_PUBLISHER_USER, api.id, plan.id);
+        return deployApi(API_PUBLISHER_USER, api.id)
+          .its('body')
+          .then((api) => {
+            return startApi(API_PUBLISHER_USER, api.id).then(() => {
+              return api;
+            });
+          });
+      });
+  });
 });
