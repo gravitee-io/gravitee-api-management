@@ -3,8 +3,8 @@ version: 2.1
 orbs:
     slack: circleci/slack@4.4.4
     gravitee: gravitee-io/gravitee@1.0.38
-    secrethub: secrethub/cli@1.1.0
     gh: circleci/github-cli@1.0.4
+    keeper: gravitee-io/keeper@0.5.0
 
 executors:
     node-lts:
@@ -160,8 +160,8 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - secrethub/env-export:
-                  secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
+            - keeper/env-export:
+                  secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
                   var-name: SONAR_TOKEN
             - run:
                   name: Run Sonarcloud Analysis
@@ -627,7 +627,6 @@ jobs:
         steps:
             - setup_remote_docker
             - checkout
-            - secrethub/install
             - run:
                   name: "Parse GRAVITEEIO_VERSION to extract major, minor and patch version"
                   command: |
@@ -749,11 +748,11 @@ workflows:
                       - test
                       - compute-apim-tag
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
+                      - keeper/env-export:
+                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
                             var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
+                      - keeper/env-export:
+                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
                             var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   filters:
                       branches:
@@ -772,33 +771,33 @@ workflows:
             - console-webui-deploy-on-azure-storage:
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-id
+                      - keeper/env-export:
+                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
                             var-name: AZURE_APPLICATION_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/tenant
+                      - keeper/env-export:
+                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
                             var-name: AZURE_TENANT
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-secret
+                      - keeper/env-export:
+                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
                             var-name: AZURE_APPLICATION_SECRET
                   requires:
                       - console-webui-build
             - console-webui-comment-pr-after-deployment:
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
+                      - keeper/env-export:
+                            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
                             var-name: GITHUB_TOKEN
                   requires:
                       - console-webui-deploy-on-azure-storage
             - console-webui-publish-images-azure-registry:
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
+                      - keeper/env-export:
+                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
                             var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
+                      - keeper/env-export:
+                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
                             var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   requires:
                       - console-webui-build
@@ -831,11 +830,11 @@ workflows:
             - portal-webui-publish-images-azure-registry:
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
+                      - keeper/env-export:
+                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
                             var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
+                      - keeper/env-export:
+                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
                             var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   requires:
                       - portal-webui-build
@@ -848,14 +847,14 @@ workflows:
             - deploy-on-azure-cluster:
                   context: cicd-orchestrator
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-id
+                      - keeper/env-export:
+                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
                             var-name: AZURE_APPLICATION_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/tenant
+                      - keeper/env-export:
+                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
                             var-name: AZURE_TENANT
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-secret
+                      - keeper/env-export:
+                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
                             var-name: AZURE_APPLICATION_SECRET
                   requires:
                       - publish-images-azure-registry
@@ -880,11 +879,11 @@ workflows:
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM CE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                      - keeper/env-export:
+                            secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login
                             var-name: DOCKERHUB_BOT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                      - keeper/env-export:
+                            secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
                             var-name: DOCKERHUB_BOT_USER_TOKEN
             - publish_prod_docker_images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
@@ -894,11 +893,11 @@ workflows:
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                   pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
+                      - keeper/env-export:
+                            secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login
                             var-name: DOCKERHUB_BOT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
+                      - keeper/env-export:
+                            secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
                             var-name: DOCKERHUB_BOT_USER_TOKEN
     release:
         when:
