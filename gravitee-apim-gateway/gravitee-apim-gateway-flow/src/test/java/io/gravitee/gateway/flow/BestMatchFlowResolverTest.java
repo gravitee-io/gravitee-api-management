@@ -18,14 +18,13 @@ package io.gravitee.gateway.flow;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.flow.condition.CompositeConditionEvaluator;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
 import java.util.Arrays;

@@ -15,10 +15,6 @@
  */
 package io.gravitee.gateway.flow.benchmark;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.util.MultiValueMap;
@@ -30,13 +26,14 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.ws.WebSocket;
+import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
+import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.flow.FlowResolver;
-import io.gravitee.gateway.flow.condition.CompositeConditionEvaluator;
-import io.gravitee.gateway.flow.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
 import io.gravitee.reporter.api.http.Metrics;
@@ -44,14 +41,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.net.ssl.SSLSession;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -265,6 +255,11 @@ public class BestMatchFlowResolverBenchmark {
 
         @Override
         public Request customFrameHandler(Handler<HttpFrame> handler) {
+            return null;
+        }
+
+        @Override
+        public String host() {
             return null;
         }
 
