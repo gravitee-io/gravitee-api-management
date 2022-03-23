@@ -72,7 +72,8 @@ public class ApiKeysHandlerTest {
         Router router = Router.router(vertx);
 
         router.route().handler(BodyHandler.create());
-        router.post("/_search").handler(apiKeysHandler::findByCriteria);
+        router.post("/_search").handler(apiKeysHandler::search);
+        router.post("/_findByCriteria").handler(apiKeysHandler::findByCriteria);
 
         int port = getRandomPort();
 
@@ -124,6 +125,41 @@ public class ApiKeysHandlerTest {
                     context.assertEquals("subscription-id", responseApiKey.getString("subscription"));
                     context.assertEquals("subscription-api-id", responseApiKey.getString("api"));
                     context.assertEquals("subscription-plan-id", responseApiKey.getString("plan"));
+                    async.complete();
+                }
+            )
+            .onFailure(
+                err -> {
+                    context.fail(err);
+                    async.complete();
+                }
+            );
+    }
+
+    @Test
+    public void findByCriteriaShouldRespondWithSubscriptionList(TestContext context) throws TechnicalException {
+        ApiKey apiKey = new ApiKey();
+        apiKey.setSubscriptions(List.of("subscription-id1", "subscription-id2"));
+
+        when(apiKeyRepository.findByCriteria(any())).thenReturn(List.of(apiKey));
+
+        Async async = context.async();
+
+        client
+            .post("/_findByCriteria")
+            .expect(ResponsePredicate.SC_OK)
+            .expect(ResponsePredicate.JSON)
+            .as(BodyCodec.jsonArray())
+            .sendJsonObject(new JsonObject())
+            .onSuccess(
+                response -> {
+                    JsonArray responseBody = response.body();
+                    context.assertEquals(1, responseBody.size());
+                    JsonObject responseApiKey = responseBody.getJsonObject(0);
+                    context.assertEquals("[subscription-id1, subscription-id2]", responseApiKey.getString("subscriptions"));
+                    context.assertNull(responseApiKey.getString("subscription"));
+                    context.assertNull(responseApiKey.getString("api"));
+                    context.assertNull(responseApiKey.getString("plan"));
                     async.complete();
                 }
             )
