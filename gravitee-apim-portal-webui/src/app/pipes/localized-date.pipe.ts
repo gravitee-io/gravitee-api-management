@@ -19,7 +19,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'localizedDate',
 })
 export class LocalizedDatePipe implements PipeTransform {
-  transform(value: any, format: string = 'shortDate', defaultValue: string = null): string {
+  transform(value: any, format = 'shortDate', defaultValue: string = null): string {
     if (value == null && defaultValue != null) {
       return defaultValue;
     }

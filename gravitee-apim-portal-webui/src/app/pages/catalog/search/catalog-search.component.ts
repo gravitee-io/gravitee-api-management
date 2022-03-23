@@ -53,7 +53,7 @@ export class CatalogSearchComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.activatedRoute.queryParamMap.subscribe((params) => {
+    this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has(SearchQueryParam.QUERY)) {
         const query = params.get(SearchQueryParam.QUERY);
         this.searchForm.value.query = query;
@@ -94,21 +94,20 @@ export class CatalogSearchComponent implements OnInit {
           this.totalElements = 0;
         }
 
-        apisResponse.data.forEach((api) => {
+        apisResponse.data.forEach(api => {
           deferredList.shift().resolve(api);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         if (err && err.interceptorFuture) {
           // avoid a duplicated notification with the same error
           err.interceptorFuture.cancel();
         }
-        // @ts-ignore
         this.totalElements = 0;
         return [];
       })
       .finally(() => {
-        deferredList.forEach((row) => row.resolve(undefined));
+        deferredList.forEach(row => row.resolve(undefined));
       });
   }
 
@@ -127,7 +126,7 @@ export class CatalogSearchComponent implements OnInit {
   }
 
   goToApi(api: Promise<Api>) {
-    api.then((_api) => {
+    api.then(_api => {
       this.router.navigate(['/catalog/api/' + _api.id], { queryParamsHandling: 'merge' });
     });
   }

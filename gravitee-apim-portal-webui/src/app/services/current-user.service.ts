@@ -41,11 +41,11 @@ export class CurrentUserService {
 
   load() {
     const baseURL = this.configurationService.get('baseURL');
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.http
         .get(baseURL + '/user')
         .toPromise()
-        .then((data) => {
+        .then(data => {
           this.currentUserSource.next(data);
         })
         .catch(() => this.currentUserSource.next(null))

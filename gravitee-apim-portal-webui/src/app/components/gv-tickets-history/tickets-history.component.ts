@@ -59,9 +59,10 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
       : this.config.get('pagination.size.default');
 
     // since the content of the table is already sorted by the backend, we don't need to sort the table again
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     this.compareFn = () => {};
 
-    this.queryParamSubscription = this.route.queryParams.subscribe((queryParams) => {
+    this.queryParamSubscription = this.route.queryParams.subscribe(queryParams => {
       if (queryParams && !queryParams.skipRefresh) {
         this.refresh(queryParams);
       }
@@ -78,12 +79,12 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
     this.tickets = response.data;
 
     this.buildPaginationData(response.metadata.data.total);
-    this.format = (key) => this.translateService.get(key).toPromise();
+    this.format = key => this.translateService.get(key).toPromise();
 
     this.initTableOptions();
 
     if (queryParams.ticket) {
-      this.selectedTicketIds = this.tickets.filter((t) => t.id === queryParams.ticket).map((ticket) => ticket.id);
+      this.selectedTicketIds = this.tickets.filter(t => t.id === queryParams.ticket).map(ticket => ticket.id);
       this.loadTicket(queryParams.ticket);
     } else {
       this.selectedTicket = null;
@@ -146,7 +147,7 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
   }
 
   private loadTicket(ticketId) {
-    this.selectedTicket = this.tickets.find((t) => t.id === ticketId);
+    this.selectedTicket = this.tickets.find(t => t.id === ticketId);
     this.scrollService.scrollToAnchor('ticket');
   }
 

@@ -17,7 +17,7 @@ import { AbstractControl, ValidatorFn } from '@angular/forms';
 
 function isNullOrEmpty(value: string | Array<string>) {
   if (Array.isArray(value)) {
-    return value.filter((v) => v != null).length === 0;
+    return value.filter(v => v != null).length === 0;
   }
   return value == null || value.trim() === '';
 }

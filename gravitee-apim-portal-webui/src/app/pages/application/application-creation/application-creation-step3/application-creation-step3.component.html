@@ -41,7 +41,7 @@
       <div class="step-grid-column">
         <div *ngIf="disabledPlans > 0 || (plans && plans.length === 0)" class="form-control message">
           <p *ngIf="selectedApi && plans.length === 0">{{ 'applicationCreation.subscription.noPlan' | translate }}</p>
-          <p *ngIf="selectedApi == null">{{ 'applicationCreation.subscription.plan.description' | translate }}</p>
+          <p *ngIf="selectedApi === null">{{ 'applicationCreation.subscription.plan.description' | translate }}</p>
         </div>
 
         <div *ngIf="selectedApi && plans && plans.length > 0" class="application-creation__subscription-form__plans">
@@ -81,7 +81,7 @@
       <div class="step-grid-column" *ngIf="!hasGeneralConditions || canAddPlan || generalConditionsAcceptedAndPlanSubscribed">
         <gv-table
           [items]="this.subscribeList"
-          (input)="this.onRequestChange($event)"
+          (input)="this.onRequestChange()"
           rowheight="75px"
           emptymessage="{{ 'applicationCreation.subscription.description' | translate: { count: 0 } }}"
           [options]="subscriptionListOptions"

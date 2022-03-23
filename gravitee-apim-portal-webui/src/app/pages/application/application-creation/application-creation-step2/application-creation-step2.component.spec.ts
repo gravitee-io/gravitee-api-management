@@ -69,7 +69,7 @@ describe('ApplicationCreationStep2Component', () => {
       ],
       mandatory_grant_types: [],
     },
-  ].map((o) => ({ ...o, title: o.name, icon: '' }));
+  ].map(o => ({ ...o, title: o.name, icon: '' }));
 
   beforeEach(() => {
     spectator = createComponent({

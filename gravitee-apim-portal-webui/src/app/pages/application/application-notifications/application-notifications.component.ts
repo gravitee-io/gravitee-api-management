@@ -42,14 +42,14 @@ export class ApplicationNotificationsComponent implements OnInit {
       this.applicationService
         .getHooks()
         .toPromise()
-        .then((hooks) => {
+        .then(hooks => {
           this.applicationService
             .getNotificationsByApplicationId({ applicationId })
             .toPromise()
-            .then((applicationHooks) => {
+            .then(applicationHooks => {
               this.hooks = applicationHooks;
               this.hooksByCategory = {};
-              hooks.forEach((hook) => {
+              hooks.forEach(hook => {
                 if (this.hooksByCategory[hook.category]) {
                   this.hooksByCategory[hook.category].push(hook);
                 } else {
@@ -72,7 +72,7 @@ export class ApplicationNotificationsComponent implements OnInit {
     this.applicationService
       .updateApplicationNotifications({ applicationId, notificationInput: { hooks: this.hooks } })
       .toPromise()
-      .then((_) => {
+      .then(_ => {
         this.notificationService.success(i18n('application.notifications.saveSuccess'));
       });
   }

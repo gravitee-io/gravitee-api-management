@@ -32,7 +32,6 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { GvHeaderItemComponent } from '../../../components/gv-header-item/gv-header-item.component';
-import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
@@ -81,10 +80,10 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
 
       this.initForm();
       this.updateGrantTypes();
-      this.applicationForm.get('picture').valueChanges.subscribe((picture) => {
+      this.applicationForm.get('picture').valueChanges.subscribe(picture => {
         this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_PICTURE, { data: picture }));
       });
-      this.applicationForm.get('background').valueChanges.subscribe((background) => {
+      this.applicationForm.get('background').valueChanges.subscribe(background => {
         this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_BACKGROUND, { data: background }));
       });
 
@@ -94,7 +93,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
           statuses: [StatusEnum.ACCEPTED],
         })
         .toPromise()
-        .then((response) => response.data.map((api) => ({ item: api, type: 'api' })));
+        .then(response => response.data.map(api => ({ item: api, type: 'api' })));
     }
   }
 
@@ -159,10 +158,10 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   updateGrantTypes() {
     if (this.isOAuth()) {
       this.grantTypes.clear();
-      this.allGrantTypes = this.applicationTypeEntity.allowed_grant_types.map((allowedGrantType) => {
-        const value = this.application.settings.oauth.grant_types.find((grant) => allowedGrantType.type === grant) != null;
+      this.allGrantTypes = this.applicationTypeEntity.allowed_grant_types.map(allowedGrantType => {
+        const value = this.application.settings.oauth.grant_types.find(grant => allowedGrantType.type === grant) != null;
 
-        const disabled = this.applicationTypeEntity.mandatory_grant_types.find((grant) => allowedGrantType.type === grant.type) != null;
+        const disabled = this.applicationTypeEntity.mandatory_grant_types.find(grant => allowedGrantType.type === grant.type) != null;
 
         if (value === true) {
           this.grantTypes.push(new FormControl(allowedGrantType.type));
@@ -173,7 +172,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
         this.redirectURIs.setValidators(Validators.required);
       }
       this.redirectURIs.clear();
-      this.application.settings.oauth.redirect_uris.forEach((value) => {
+      this.application.settings.oauth.redirect_uris.forEach(value => {
         this.redirectURIs.push(new FormControl(value));
       });
     }
@@ -191,7 +190,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     if (event.target.valid) {
       const value = event.target.value;
       if (value && value.trim() !== '') {
-        if (!this.redirectURIs.controls.map((c) => c.value).includes(value)) {
+        if (!this.redirectURIs.controls.map(c => c.value).includes(value)) {
           this.redirectURIs.push(new FormControl(value, Validators.required));
           this.applicationForm.markAsDirty();
         }
@@ -218,7 +217,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     this.applicationService
       .updateApplicationByApplicationId({ applicationId: this.application.id, application: this.applicationForm.getRawValue() })
       .toPromise()
-      .then((application) => {
+      .then(application => {
         this.application = application;
         this.reset();
         this.notificationService.success(i18n('application.success.save'));
@@ -248,7 +247,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     this.applicationService
       .renewApplicationSecret({ applicationId: this.application.id })
       .toPromise()
-      .then((application) => {
+      .then(application => {
         this.application = application;
         this.reset();
         this.notificationService.success(i18n('application.success.renewSecret'));

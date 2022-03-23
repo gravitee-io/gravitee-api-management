@@ -56,12 +56,12 @@ export class TranslateServiceMock {
     return this.languages;
   }
 
-  // tslint:disable-next-line:no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getTranslation(): Observable<any> {
     return of({});
   }
 
-  instant(key: string | string[], interpolateParams?: object): string {
+  instant(key: string | string[]): string {
     return TRANSLATED_STRING + key.toString();
   }
 
@@ -78,10 +78,10 @@ export class TranslateMockPipe implements PipeTransform {
 }
 
 @Directive({
-  // tslint:disable-next-line:directive-selector
+  // eslint-disable-next-line @angular-eslint/directive-selector
   selector: '[translate]',
 })
-// tslint:disable:no-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class TranslateMockDirective implements AfterViewChecked {
   @Input()
   translateParams: any;

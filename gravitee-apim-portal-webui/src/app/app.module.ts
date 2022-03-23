@@ -144,7 +144,7 @@ import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets
 })
 export class AppModule {
   constructor(router: Router, viewportScroller: ViewportScroller) {
-    router.events.pipe(filter((e): e is Scroll => e instanceof Scroll)).subscribe((e) => {
+    router.events.pipe(filter((e): e is Scroll => e instanceof Scroll)).subscribe(e => {
       if (e.position) {
         // backward navigation
         viewportScroller.scrollToPosition(e.position);

@@ -78,7 +78,7 @@ export class ApplicationMetadataComponent implements OnInit {
           i18n('application.metadata.list.add.title'),
         ])
         .toPromise()
-        .then((translations) => {
+        .then(translations => {
           this.tableTranslations = Object.values(translations);
           this.metadataOptions = this._buildMetadataOptions();
           this.loadMetadataTable();
@@ -125,13 +125,13 @@ export class ApplicationMetadataComponent implements OnInit {
       width: '140px',
       attributes: {
         onClick: (item, event, target) => (this._isAddFormLine(item) ? this.addMetadata(item, target) : this.removeMetadata(item, target)),
-        innerHTML: (item) => {
+        innerHTML: item => {
           return this._isAddFormLine(item) ? addLabel : removeLabel;
         },
-        danger: (item) => !this._isAddFormLine(item),
+        danger: item => !this._isAddFormLine(item),
         outlined: true,
-        disabled: (item) => this._isAddFormLine(item) && this._disabledNewLine(item),
-        icon: (item) => (this._isAddFormLine(item) ? 'code:plus' : 'home:trash'),
+        disabled: item => this._isAddFormLine(item) && this._disabledNewLine(item),
+        icon: item => (this._isAddFormLine(item) ? 'code:plus' : 'home:trash'),
       },
     };
   }
@@ -140,7 +140,7 @@ export class ApplicationMetadataComponent implements OnInit {
     return {
       field: 'key',
       label: keyLabel,
-      style: (item) => {
+      style: item => {
         if (this._isNewLine(item)) {
           return 'visibility: hidden;';
         }
@@ -153,11 +153,11 @@ export class ApplicationMetadataComponent implements OnInit {
     return {
       field: 'name',
       label: nameLabel,
-      type: (item) => (this._isAddFormLine(item) ? 'gv-input' : 'div'),
+      type: item => (this._isAddFormLine(item) ? 'gv-input' : 'div'),
       attributes: {
         placeholder: 'Nom de la donnée',
         required: true,
-        innerText: (item) => (this._isAddFormLine(item) ? '' : item.name),
+        innerText: item => (this._isAddFormLine(item) ? '' : item.name),
         'ongv-input:input': this._onInput.bind(this),
       },
     };
@@ -171,7 +171,7 @@ export class ApplicationMetadataComponent implements OnInit {
       format: (v: string) => v.toUpperCase(),
       attributes: {
         options: this.formats,
-        'ongv-select:select': (item) => {
+        'ongv-select:select': item => {
           item.value = null;
           if (this._isAddFormLine(item)) {
             this.addMetadataForm.get('value').setValidators(this.getValidators(item));
@@ -266,7 +266,7 @@ export class ApplicationMetadataComponent implements OnInit {
     return {
       field: 'value',
       label: valueLabel,
-      type: (item) => {
+      type: item => {
         switch (item.format.toUpperCase()) {
           case 'BOOLEAN':
             return 'gv-checkbox';
@@ -277,23 +277,23 @@ export class ApplicationMetadataComponent implements OnInit {
         }
       },
       attributes: {
-        value: (item) => {
+        value: item => {
           if (item.format.toUpperCase() === 'DATE' && item.value != null) {
             return Date.parse(item.value);
           }
           return item.value;
         },
-        required: (item) => item.format.toUpperCase() !== 'BOOLEAN',
+        required: item => item.format.toUpperCase() !== 'BOOLEAN',
         'ongv-input:input': this._onInput.bind(this),
         'ongv-date-picker:input': this._onDatePicked.bind(this),
         'ongv-checkbox:input': this._onChecked.bind(this),
-        checked: (item) => {
+        checked: item => {
           if (item.format.toUpperCase() === 'BOOLEAN') {
             return item.value === true || item.value === 'true' ? true : false;
           }
           return false;
         },
-        type: (item) => {
+        type: item => {
           if (item.format.toUpperCase() === 'MAIL') {
             return 'email';
           } else if (item.format.toUpperCase() === 'NUMERIC') {
@@ -325,9 +325,10 @@ export class ApplicationMetadataComponent implements OnInit {
     return this.applicationService
       .getMetadataByApplicationId({ applicationId: this.application.id, size: -1 })
       .toPromise()
-      .then((metadataResponse) => {
+      .then(metadataResponse => {
         this.updateMetadataForms = {};
         if (this.hasCreatePermission) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           this.metadata = [{ _new: true, format: 'STRING', name: '', value: '', key: null }, ...metadataResponse.data];
         } else {
@@ -347,7 +348,7 @@ export class ApplicationMetadataComponent implements OnInit {
   removeMetadata(metadata: ReferenceMetadata, target: Element) {
     target.setAttribute('loading', 'true');
     this._removeUpdateForm(metadata);
-    this.metadata = this.metadata.filter((m) => m.key !== metadata.key);
+    this.metadata = this.metadata.filter(m => m.key !== metadata.key);
     if (!this._isNewLine(metadata)) {
       this.metadataToDelete.push(metadata);
     }
@@ -382,7 +383,7 @@ export class ApplicationMetadataComponent implements OnInit {
       event.target.loading = true;
       const formKeys = Object.keys(this.updateMetadataForms);
 
-      const updatePromises: Promise<any>[] = formKeys.map((metadataId) => {
+      const updatePromises: Promise<any>[] = formKeys.map(metadataId => {
         const form = this.updateMetadataForms[metadataId];
 
         if (form.get('new')) {
@@ -404,7 +405,7 @@ export class ApplicationMetadataComponent implements OnInit {
         }
       });
 
-      const deletePromises: Promise<any>[] = this.metadataToDelete.map((metadata) => {
+      const deletePromises: Promise<any>[] = this.metadataToDelete.map(metadata => {
         return this.applicationService
           .deleteApplicationMetadata({
             applicationId: this.application.id,
@@ -414,11 +415,11 @@ export class ApplicationMetadataComponent implements OnInit {
       });
 
       Promise.all([...updatePromises, ...deletePromises])
-        .then((response) => {
+        .then(() => {
           this.metadataToDelete = [];
           return this.loadMetadataTable();
         })
-        .then((response) => {
+        .then(() => {
           this.notificationService.success(i18n('application.metadata.update.success'));
         })
         .finally(() => {
@@ -433,7 +434,7 @@ export class ApplicationMetadataComponent implements OnInit {
     }
     if (this.updateMetadataForms) {
       const forms = Object.values(this.updateMetadataForms);
-      return this.hasUpdatePermission && forms.length > 0 && forms.find((form) => form.invalid) == null;
+      return this.hasUpdatePermission && forms.length > 0 && forms.find(form => form.invalid) == null;
     }
     return false;
   }
@@ -453,7 +454,7 @@ export class ApplicationMetadataComponent implements OnInit {
     return this.metadata != null && this.metadata.length > 0;
   }
 
-  private _disabledNewLine(item: any) {
+  private _disabledNewLine(_: any) {
     return this.addMetadataForm.invalid;
   }
 

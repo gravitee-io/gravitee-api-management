@@ -21,7 +21,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { CookieEnum } from '../model/cookie.enum';
 import { Router, NavigationEnd } from '@angular/router';
 
-declare var gtag: any;
+declare let gtag: any;
 
 @Injectable({
   providedIn: 'root',
@@ -36,7 +36,7 @@ export class GoogleAnalyticsService {
   constructor(private configurationService: ConfigurationService, private cookieService: CookieService, private router: Router) {
     this.isGAEnabled = new BehaviorSubject<boolean>(undefined);
     this.isGALoaded = new BehaviorSubject<boolean>(undefined);
-    this.router.events.subscribe((event) => {
+    this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         if (this.isEnabled()) {
           this.sendTag(event.urlAfterRedirects);

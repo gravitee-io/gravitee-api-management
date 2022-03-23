@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
 import { Router } from '@angular/router';
@@ -23,12 +23,10 @@ import { Router } from '@angular/router';
   templateUrl: './not-found.component.html',
   styleUrls: ['./not-found.component.css'],
 })
-export class NotFoundComponent implements OnInit {
+export class NotFoundComponent {
   constructor(private router: Router) {}
 
-  ngOnInit() {}
-
-  goHome($event: any) {
+  goHome() {
     this.router.navigate(['/']);
   }
 }

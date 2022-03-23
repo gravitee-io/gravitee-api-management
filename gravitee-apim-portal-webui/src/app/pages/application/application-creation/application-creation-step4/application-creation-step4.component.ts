@@ -41,7 +41,7 @@ export class ApplicationCreationStep4Component implements OnInit {
         i18n('apiKeyMode.shared.description'),
       ])
       .toPromise()
-      .then((_translations) => {
+      .then(_translations => {
         const translations: string[] = Object.values(_translations);
         this.apiKeyModeOptions = [
           {

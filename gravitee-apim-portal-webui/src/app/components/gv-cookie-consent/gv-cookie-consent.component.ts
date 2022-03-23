@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-message';
 import { CookieEnum } from '../../model/cookie.enum';
@@ -25,10 +25,8 @@ import { CookieService } from 'ngx-cookie-service';
   templateUrl: './gv-cookie-consent.component.html',
   styleUrls: ['./gv-cookie-consent.component.css'],
 })
-export class GvCookieConsentComponent implements OnInit {
+export class GvCookieConsentComponent {
   constructor(private googleAnalyticsService: GoogleAnalyticsService, private cookieService: CookieService) {}
-
-  ngOnInit() {}
 
   _disableGA() {
     this.googleAnalyticsService.disableGA();

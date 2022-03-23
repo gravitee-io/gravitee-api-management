@@ -27,15 +27,15 @@ export class TranslationService {
   constructor(private translateService: TranslateService, private titleService: Title) {}
 
   load() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.translateService.addLangs(environment.locales);
       const defaultLang = environment.locales[0];
       this.translateService.setDefaultLang(defaultLang);
       const browserLang = this.translateService.getBrowserLang();
-      this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe((translations) => {
+      this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe(translations => {
         setLanguage(this.translateService.currentLang);
         addTranslations(this.translateService.currentLang, translations, this.translateService.currentLang);
-        this.translateService.get(i18n('site.title')).subscribe((title) => this.titleService.setTitle(title));
+        this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
         resolve(true);
       });
     });

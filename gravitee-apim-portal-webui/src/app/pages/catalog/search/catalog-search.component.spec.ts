@@ -20,7 +20,7 @@ import { TranslateTestingModule } from '../../../test/translate-testing-module';
 import { CatalogSearchComponent } from './catalog-search.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
-import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NotificationService } from '../../../services/notification.service';
 import { ConfigurationService } from '../../../services/configuration.service';

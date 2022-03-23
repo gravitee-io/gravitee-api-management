@@ -317,7 +317,7 @@ export const routes: Routes = [
   { path: 'pages/:pageId', component: SinglePageComponent },
   {
     path: 'applications',
-    loadChildren: () => import('./pages/applications/applications.module').then((m) => m.ApplicationsModule),
+    loadChildren: () => import('./pages/applications/applications.module').then(m => m.ApplicationsModule),
     canActivate: [AuthGuardService, PermissionGuardService],
     data: {
       title: i18n('route.applications'),

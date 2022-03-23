@@ -20,7 +20,7 @@ import { Api } from '../../../projects/portal-webclient-sdk/src/lib';
   name: 'apiLabels',
 })
 export class ApiLabelsPipe implements PipeTransform {
-  transform(api: Api, ...args: any[]): any {
+  transform(api: Api): string[] | undefined {
     return api.labels;
   }
 }

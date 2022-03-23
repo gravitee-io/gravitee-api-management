@@ -37,7 +37,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
   currentUser: User;
 
   ngOnInit() {
-    this.currentUserService.get().subscribe((newCurrentUser) => {
+    this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
     });
     const page = this.pageService.getCurrentPage();
@@ -108,7 +108,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
       presets: [SwaggerUIBundle.presets.apis],
       layout: 'BaseLayout',
       plugins: customPlugins,
-      requestInterceptor: (req) => {
+      requestInterceptor: req => {
         if (req.loadSpec) {
           req.credentials = 'include';
         }

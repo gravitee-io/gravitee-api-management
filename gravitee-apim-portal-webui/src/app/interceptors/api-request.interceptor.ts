@@ -49,7 +49,7 @@ export class Future {
   }
 
   cancel() {
-    this.timeouts.forEach((timeout) => clearTimeout(timeout));
+    this.timeouts.forEach(timeout => clearTimeout(timeout));
     this.timeouts = [];
   }
 }
@@ -89,10 +89,9 @@ export class ApiRequestInterceptor implements HttpInterceptor {
       tap(
         (event: HttpEvent<any>) => {
           if (request.url.endsWith('_export')) {
-            /* tslint:disable:no-string-literal */
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore hack because of the sdk client limitations
             request['responseType'] = 'text';
-            /* tslint:enable:no-string-literal */
           }
 
           if (event instanceof HttpResponse) {
@@ -101,7 +100,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
         },
         (err: any) => {
           const interceptorFuture = new Future();
-          const silentCall = SILENT_URLS.find((silentUrl) => err.url.includes(silentUrl));
+          const silentCall = SILENT_URLS.find(silentUrl => err.url.includes(silentUrl));
           if (err instanceof HttpErrorResponse) {
             this.saveXsrfToken(err);
 

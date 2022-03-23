@@ -21,7 +21,7 @@
       link
       icon="navigation:angle-left"
       class="page__content-back-button"
-      *ngIf="this.backButton.label != null"
+      *ngIf="this.backButton.label !== null"
       (:gv-button:click)="goBack()"
     >
       {{ backButton.label }}

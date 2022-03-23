@@ -45,18 +45,18 @@ export class RegistrationComponent implements OnInit {
     this.usersService
       .listCustomUserFields()
       .toPromise()
-      .then((response) => {
+      .then(response => {
         this.customUserFields = response;
 
         if (this.customUserFields) {
-          this.customUserFields.forEach((field) => {
+          this.customUserFields.forEach(field => {
             formDescriptor[field.key] = new FormControl('', field.required ? Validators.required : null);
           });
         }
 
         this.registrationForm = this.formBuilder.group(formDescriptor);
       })
-      .catch((error) => {
+      .catch(() => {
         // in case of error load the minimal form
         // user will be able to complete information through the account page
         // or admin will reject the registration
@@ -80,7 +80,7 @@ export class RegistrationComponent implements OnInit {
 
       if (this.customUserFields) {
         registerUserInput.customFields = {};
-        this.customUserFields.forEach((field) => {
+        this.customUserFields.forEach(field => {
           registerUserInput.customFields[field.key] = this.registrationForm.get(field.key).value;
         });
       }
@@ -90,7 +90,7 @@ export class RegistrationComponent implements OnInit {
           .registerNewUser({ registerUserInput })
           .toPromise()
           .then(() => (this.isSubmitted = true))
-          .catch(() => {});
+          .catch(() => ({}));
       });
     }
   }

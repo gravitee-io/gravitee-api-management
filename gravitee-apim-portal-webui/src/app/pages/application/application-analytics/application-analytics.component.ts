@@ -49,17 +49,17 @@ export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
     const dashboardParam = this.route.snapshot.queryParams.dashboard;
     if (dashboards) {
       if (dashboardParam) {
-        this.dashboard = dashboards.find((dashboard) => dashboard.id === dashboardParam);
+        this.dashboard = dashboards.find(dashboard => dashboard.id === dashboardParam);
       } else {
         this.dashboard = dashboards[0];
       }
-      this.subscription = this.route.queryParams.subscribe((param) => {
+      this.subscription = this.route.queryParams.subscribe(param => {
         if (param.dashboard && this.filtersComponent && this.dashboardComponent && param.dashboard !== this.dashboard.id) {
-          this.dashboardComponent.dashboard = this.dashboard = dashboards.find((dashboard) => dashboard.id === param.dashboard);
+          this.dashboardComponent.dashboard = this.dashboard = dashboards.find(dashboard => dashboard.id === param.dashboard);
           this.filtersComponent.reset();
         }
       });
-      this.translateService.get('application.analytics.displayLogs').subscribe((displayAnalytics) => {
+      this.translateService.get('application.analytics.displayLogs').subscribe(displayAnalytics => {
         this.link = { label: displayAnalytics, relativePath: '../logs', icon: 'communication:clipboard-list' };
       });
     }

@@ -87,7 +87,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     if (this.application) {
       this.canDelete = permissions?.SUBSCRIPTION?.includes('D');
       this.canUpdate = permissions?.SUBSCRIPTION?.includes('U');
-      this.format = (key) => this.translateService.get(key).toPromise();
+      this.format = key => this.translateService.get(key).toPromise();
       this.apisOptions = [];
       this.options = {
         selectable: true,
@@ -95,26 +95,26 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           {
             field: 'api',
             type: 'image',
-            alt: (item) => this.metadata[item.api] && getPictureDisplayName(this.metadata[item.api]),
-            format: (item) => this.metadata[item] && this.metadata[item].pictureUrl,
+            alt: item => this.metadata[item.api] && getPictureDisplayName(this.metadata[item.api]),
+            format: item => this.metadata[item] && this.metadata[item].pictureUrl,
           },
           {
             field: 'api',
             label: i18n('application.subscriptions.api'),
-            tag: (item) => this.metadata[item.api] && this.metadata[item.api].version,
-            format: (item) => this.metadata[item] && this.metadata[item].name,
+            tag: item => this.metadata[item.api] && this.metadata[item.api].version,
+            format: item => this.metadata[item] && this.metadata[item].name,
           },
           {
             field: 'plan',
             label: i18n('application.subscriptions.plan'),
-            format: (item) => this.metadata[item] && this.metadata[item].name,
+            format: item => this.metadata[item] && this.metadata[item].name,
           },
           {
             field: 'plan',
             label: i18n('application.subscriptions.security_type'),
             type: () => 'div',
             attributes: {
-              innerHTML: (item) => {
+              innerHTML: item => {
                 const securityType = this.metadata[item.plan]?.securityType.toLocaleLowerCase().replace('_', ' ');
                 if (this.isAPIKeySubscription(item.plan) && this.applicationHasSharedKey()) {
                   return `${securityType} <gv-state> ${this.application.api_key_mode} </gv-state>`;
@@ -127,18 +127,18 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           {
             field: 'subscribed_by',
             label: i18n('application.subscriptions.subscribed_by'),
-            format: (item) => this.metadata[item] && this.metadata[item].name,
+            format: item => this.metadata[item] && this.metadata[item].name,
             width: '190px',
           },
           {
             field: 'status',
             label: i18n('application.subscriptions.status'),
             width: '80px',
-            format: (key) => {
+            format: key => {
               const statusKey = 'common.status.' + key.toUpperCase();
               return this.translateService.get(statusKey).toPromise();
             },
-            style: (item) => {
+            style: item => {
               switch (item.status.toUpperCase()) {
                 case StatusEnum.ACCEPTED:
                   return 'color: #009B5B';
@@ -153,13 +153,13 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           {
             type: 'gv-button',
             width: '25px',
-            condition: (item) => this.metadata[item.api] && this.metadata[item.api].state === 'published',
+            condition: item => this.metadata[item.api] && this.metadata[item.api].state === 'published',
             attributes: {
               link: true,
-              href: (item) => `/catalog/api/${item.api}`,
+              href: item => `/catalog/api/${item.api}`,
               title: i18n('application.subscriptions.navigateToApi'),
               icon: 'communication:share',
-              onClick: (item, e) => this.goToApi(item.api),
+              onClick: item => this.goToApi(item.api),
             },
           },
         ],
@@ -168,19 +168,19 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       this.applicationService
         .getSubscriberApisByApplicationId({ applicationId: this.application.id, size: -1 })
         .toPromise()
-        .then((apis) => {
+        .then(apis => {
           this.apisOptions = [];
-          apis.data.forEach((api) => {
+          apis.data.forEach(api => {
             this.apisOptions.push({ label: api.name + ' (' + api.version + ')', value: api.id });
           });
         });
 
-      const statusKeys = Object.keys(StatusEnum).map((s) => 'common.status.' + s);
+      const statusKeys = Object.keys(StatusEnum).map(s => 'common.status.' + s);
 
       this.translateService
         .get(statusKeys)
         .toPromise()
-        .then((translatedKeys) => {
+        .then(translatedKeys => {
           this.statusOptions = Object.keys(StatusEnum).map((s, i) => {
             return { label: Object.values(translatedKeys)[i], value: s };
           });
@@ -195,7 +195,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     if (this.applicationHasSharedKey()) {
       this.sharedAPIKeyLoaded = false;
       delete this.sharedAPIKey;
-      const sharedAPIKeySub = this.subscriptions?.find((subscription) => {
+      const sharedAPIKeySub = this.subscriptions?.find(subscription => {
         return (
           this.isAPIKeySubscription(subscription.plan) &&
           [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.CLOSED].includes(subscription.status)
@@ -203,12 +203,12 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       });
       if (sharedAPIKeySub) {
         this.loadSubscriptionKeys(sharedAPIKeySub.id)
-          .then((keys) => {
+          .then(keys => {
             // First find sharedKey without end date.
-            this.sharedAPIKey = keys.find((key) => !this.endAt(key));
+            this.sharedAPIKey = keys.find(key => !this.endAt(key));
             if (!this.sharedAPIKey) {
               // If none exist, find a valid one with an end date.
-              this.sharedAPIKey = keys.find((key) => this.isApiKeyValid(key));
+              this.sharedAPIKey = keys.find(key => this.isApiKeyValid(key));
             }
           })
           .finally(() => (this.sharedAPIKeyLoaded = true));
@@ -269,11 +269,11 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     return this.subscriptionService
       .getSubscriptions(requestParameters)
       .toPromise()
-      .then((response) => {
+      .then(response => {
         this.subscriptions = response.data;
         this.metadata = response.metadata;
         if (displaySubscription && this.route.snapshot.queryParams.subscription) {
-          const subscription = this.subscriptions.find((s) => s.id === this.route.snapshot.queryParams.subscription);
+          const subscription = this.subscriptions.find(s => s.id === this.route.snapshot.queryParams.subscription);
           this.selectedSubscriptions = [subscription.id];
           this.onSelectSubscription(subscription);
         } else {
@@ -325,7 +325,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     this.applicationService
       .renewSharedKey({ applicationId: this.application.id })
       .toPromise()
-      .then((newKey) => {
+      .then(() => {
         this.notificationService.success(i18n('application.shared-key.renew.success'));
         this.search(true);
       });
@@ -357,8 +357,8 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     return this.subscriptionService
       .getSubscriptionById({ subscriptionId, include: ['keys'] })
       .toPromise()
-      .then((subscription) => {
-        this.subscriptions.find((s) => s.id === subscriptionId).keys = subscription.keys;
+      .then(subscription => {
+        this.subscriptions.find(s => s.id === subscriptionId).keys = subscription.keys;
         this.ref.detectChanges();
         return subscription.keys;
       });
@@ -366,7 +366,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
 
   getValidApiKeys(sub: Subscription) {
     if (sub && sub.keys) {
-      const validApiKeys = sub.keys.filter((apiKey) => this.isApiKeyValid(apiKey));
+      const validApiKeys = sub.keys.filter(apiKey => this.isApiKeyValid(apiKey));
       if (validApiKeys && validApiKeys.length > 0) {
         return validApiKeys;
       }
@@ -375,7 +375,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
 
   getExpiredApiKeys(sub: Subscription) {
     if (sub && sub.keys) {
-      const expiredApiKeys = sub.keys.filter((apiKey) => !this.isApiKeyValid(apiKey));
+      const expiredApiKeys = sub.keys.filter(apiKey => !this.isApiKeyValid(apiKey));
       if (expiredApiKeys && expiredApiKeys.length > 0) {
         return expiredApiKeys;
       }

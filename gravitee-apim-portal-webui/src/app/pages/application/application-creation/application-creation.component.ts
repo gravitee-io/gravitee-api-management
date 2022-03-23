@@ -119,20 +119,20 @@ export class ApplicationCreationComponent implements OnInit {
     }
 
     this._allSteps = await Promise.all(
-      stepsTitle.map((_title) =>
+      stepsTitle.map(_title =>
         this.translateService
           .get(_title)
           .toPromise()
-          .then((title) => ({ title })),
+          .then(title => ({ title })),
       ),
     );
     this.steps = this._allSteps;
     this.allowedTypes = await Promise.all(
-      this.route.snapshot.data.enabledApplicationTypes.map((type, index) => {
+      this.route.snapshot.data.enabledApplicationTypes.map(type => {
         return this.translateService
           .get([`applicationType.${type.id}.title`, `applicationType.${type.id}.description`])
           .toPromise()
-          .then((translations) => {
+          .then(translations => {
             const [title, description] = Object.values(translations);
             return {
               ...type,
@@ -178,7 +178,7 @@ export class ApplicationCreationComponent implements OnInit {
 
   get requireClientId() {
     if (this.applicationType && this.isSimpleApp && this.subscribeList) {
-      const subscription = this.subscribeList.find((s) => !this.hasValidClientId(s.plan));
+      const subscription = this.subscribeList.find(s => !this.hasValidClientId(s.plan));
       if (subscription) {
         return true;
       }
@@ -204,7 +204,7 @@ export class ApplicationCreationComponent implements OnInit {
   hasValidSubscriptions() {
     return (
       this.readSteps.includes(3) &&
-      this.subscribeList.find((s) => this.hasRequireComment(s.plan) && (s.request == null || s.request.trim() === '')) == null
+      this.subscribeList.find(s => this.hasRequireComment(s.plan) && (s.request == null || s.request.trim() === '')) == null
     );
   }
 
@@ -364,7 +364,7 @@ export class ApplicationCreationComponent implements OnInit {
     this.applicationService
       .createApplication({ applicationInput })
       .toPromise()
-      .then(async (application) => {
+      .then(async application => {
         this.createdApplication = application;
 
         for (const subscription of this.subscribeList) {
@@ -434,7 +434,7 @@ export class ApplicationCreationComponent implements OnInit {
   hasAtLeastTwoApiKeySubscriptionsNotOnSameApi() {
     const subscriptionsApi = [];
 
-    const apiKeySubscriptionList = this.subscribeList?.filter((sub) => sub.plan.security === SecurityEnum.APIKEY);
+    const apiKeySubscriptionList = this.subscribeList?.filter(sub => sub.plan.security === SecurityEnum.APIKEY);
     if (!apiKeySubscriptionList || apiKeySubscriptionList.length < 2) {
       return false;
     }

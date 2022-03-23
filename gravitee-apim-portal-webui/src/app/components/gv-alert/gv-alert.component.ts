@@ -105,7 +105,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
   }
 
   get apiLabel() {
-    return this.apisOptions?.find((option) => option.value === this.alert?.api)?.label ?? this.apiAllLabel;
+    return this.apisOptions?.find(option => option.value === this.alert?.api)?.label ?? this.apiAllLabel;
   }
 
   get isAlertingEnabled() {
@@ -128,15 +128,15 @@ export class GvAlertComponent implements OnInit, OnDestroy {
       this.permissionsService
         .getCurrentUserPermissions({ applicationId: this.application.id })
         .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((permissions) => {
+        .subscribe(permissions => {
           this.permissions = permissions.ALERT;
         });
     }
     this.notifiersService
       .getNotifiers()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((notifiers) => {
-        this.isWebhookNotifierEnabled = notifiers.some((notifier) => notifier.id === 'webhook-notifier');
+      .subscribe(notifiers => {
+        this.isWebhookNotifierEnabled = notifiers.some(notifier => notifier.id === 'webhook-notifier');
       });
     this.resetAddAlert();
     this.resetAddAlertStatus();
@@ -159,7 +159,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
           i18n('application.alerts.timeUnits.hours'),
           i18n('application.alerts.phrase.api.all'),
         ])
-        .subscribe((translations) => {
+        .subscribe(translations => {
           this.statusLabel = '' + Object.values(translations)[0];
           this.responseTimeLabel = '' + Object.values(translations)[1];
           this.types = [
@@ -197,10 +197,10 @@ export class GvAlertComponent implements OnInit, OnDestroy {
           size: -1,
         })
         .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((apis) => {
+        .subscribe(apis => {
           this.apisOptions = [
             { label: this.apiAllLabel, value: '' },
-            ...apis.data.map((sub) => {
+            ...apis.data.map(sub => {
               const apiMetadata = apis.metadata[sub.api];
               return { label: apiMetadata.name + ' (' + apiMetadata.version + ')', value: sub.api };
             }),
@@ -248,7 +248,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
         },
       })
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((created) => {
+      .subscribe(created => {
         this.notificationService.success(i18n('application.alerts.add.success'));
         this.resetAddAlert();
         this.resetAddAlertStatus();
@@ -265,7 +265,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
   }
 
   getHttpStatusLabel(value: string): string {
-    return this.httpStatus.find((http) => http.value === '' + value)?.label;
+    return this.httpStatus.find(http => http.value === '' + value)?.label;
   }
 
   reset() {
@@ -287,19 +287,19 @@ export class GvAlertComponent implements OnInit, OnDestroy {
   }
 
   hasDeletePermission() {
-    return this.permissions?.find((p) => p === 'D');
+    return this.permissions?.find(p => p === 'D');
   }
 
   hasCreatePermission() {
-    return this.permissions?.find((p) => p === 'C');
+    return this.permissions?.find(p => p === 'C');
   }
 
   hasUpdatePermission() {
-    return this.permissions?.find((p) => p === 'U');
+    return this.permissions?.find(p => p === 'U');
   }
 
   hasReadPermission() {
-    return this.permissions?.find((p) => p === 'R');
+    return this.permissions?.find(p => p === 'R');
   }
 
   private resetAddAlertStatus() {
@@ -389,7 +389,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
         },
       })
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((updated) => {
+      .subscribe(updated => {
         this.alert = updated;
         this.notificationService.success(i18n('application.alerts.update.success'));
         this.mode = AlertMode.READING;
@@ -397,7 +397,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
   }
 
   timeUnitTranslated() {
-    return this.timeUnits?.find((tu) => tu?.value?.toLowerCase() === this.alert.time_unit?.toLowerCase())?.label;
+    return this.timeUnits?.find(tu => tu?.value?.toLowerCase() === this.alert.time_unit?.toLowerCase())?.label;
   }
 
   ngOnDestroy() {

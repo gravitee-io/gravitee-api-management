@@ -31,26 +31,24 @@ describe('ApplicationsComponent', () => {
   let fixture: ComponentFixture<ApplicationsComponent>;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [ApplicationsComponent],
-        imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
-        schemas: [CUSTOM_ELEMENTS_SCHEMA],
-        providers: [
-          {
-            provide: ActivatedRoute,
-            useValue: {
-              queryParamMap: mockActivatedRouteQueryParamMap$,
-            },
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      declarations: [ApplicationsComponent],
+      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParamMap: mockActivatedRouteQueryParamMap$,
           },
-        ],
-        teardown: { destroyAfterEach: false },
-      }).compileComponents();
+        },
+      ],
+      teardown: { destroyAfterEach: false },
+    }).compileComponents();
 
-      httpTestingController = TestBed.inject(HttpTestingController);
-    }),
-  );
+    httpTestingController = TestBed.inject(HttpTestingController);
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ApplicationsComponent);

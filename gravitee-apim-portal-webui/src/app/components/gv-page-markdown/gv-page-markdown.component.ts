@@ -67,6 +67,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
   private get renderer() {
     const defaultRenderer = new marked.Renderer();
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     return {
       image(href, title, text) {

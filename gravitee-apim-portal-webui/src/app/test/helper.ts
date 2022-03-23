@@ -17,8 +17,7 @@ import { TestBed } from '@angular/core/testing';
 import { TokenService } from '../services/token.service';
 
 export function getTokenServiceMock() {
-  let tokenService: TokenService;
-  tokenService = TestBed.inject(TokenService);
+  const tokenService = TestBed.inject(TokenService);
   tokenService.isParsedTokenExpired = jest.fn(() => true);
   tokenService.parseToken = jest.fn(() => ({
     firstname: 'foobar',

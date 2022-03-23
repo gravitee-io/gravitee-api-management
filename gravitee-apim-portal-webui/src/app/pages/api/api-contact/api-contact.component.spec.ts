@@ -22,7 +22,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ResetPasswordComponent } from '../../reset-password/reset-password.component';
-import { ApiContactComponent } from './api-contact.component';
 
 describe('ApiContactComponent', () => {
   const createComponent = createComponentFactory({

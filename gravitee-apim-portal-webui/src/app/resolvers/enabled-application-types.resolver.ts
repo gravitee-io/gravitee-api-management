@@ -21,10 +21,10 @@ import { ApplicationType, PortalService } from '../../../projects/portal-webclie
 export class EnabledApplicationTypesResolver implements Resolve<Array<ApplicationType>> {
   constructor(private portalService: PortalService) {}
 
-  resolve(route: ActivatedRouteSnapshot) {
+  resolve(_route: ActivatedRouteSnapshot) {
     return this.portalService
       .getEnabledApplicationTypes()
       .toPromise()
-      .then((response) => response.data);
+      .then(response => response.data);
   }
 }

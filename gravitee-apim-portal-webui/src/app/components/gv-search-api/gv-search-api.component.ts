@@ -36,7 +36,7 @@ export class GvSearchApiComponent implements OnInit {
 
   ngOnInit() {
     this.options = [];
-    this.activatedRoute.queryParamMap.subscribe((queryParamMap) => {
+    this.activatedRoute.queryParamMap.subscribe(queryParamMap => {
       if (queryParamMap.has(SearchQueryParam.QUERY)) {
         this.query = queryParamMap.get(SearchQueryParam.QUERY);
       } else {
@@ -51,10 +51,12 @@ export class GvSearchApiComponent implements OnInit {
       .toPromise()
       .then((apisResponse: ApisResponse) => {
         if (apisResponse.data.length) {
-          this.options = apisResponse.data.map((a) => {
+          this.options = apisResponse.data.map(a => {
             const row = document.createElement('gv-row');
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             row.small = true;
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             row.item = a;
             return { value: a.name, element: row, id: a.id };
@@ -63,7 +65,7 @@ export class GvSearchApiComponent implements OnInit {
           this.options = [];
         }
       })
-      .catch((err) => {
+      .catch(err => {
         if (err && err.interceptorFuture) {
           // avoid a duplicated notification with the same error
           err.interceptorFuture.cancel();

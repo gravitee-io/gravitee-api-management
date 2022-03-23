@@ -23,7 +23,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { FeatureGuardService } from './feature-guard.service';
 import { AuthGuardService } from './auth-guard.service';
 import { CurrentUserService } from './current-user.service';
-import { PermissionGuardService } from './permission-guard.service';
 
 describe('NavRouteService', () => {
   let service: SpectatorService<NavRouteService>;
@@ -48,7 +47,6 @@ describe('NavRouteService', () => {
     providers: [mockProvider(FeatureGuardService), mockProvider(ActivatedRoute)],
   });
   let routeService: NavRouteService;
-  let permissionGuardService: PermissionGuardService;
   let featureGuardService: FeatureGuardService;
   beforeEach(() => {
     service = createService();
@@ -56,7 +54,6 @@ describe('NavRouteService', () => {
     service.inject(AuthGuardService);
     service.inject(TranslateService);
     featureGuardService = service.inject(FeatureGuardService);
-    permissionGuardService = service.inject(PermissionGuardService);
     routeService = service.service;
   });
 

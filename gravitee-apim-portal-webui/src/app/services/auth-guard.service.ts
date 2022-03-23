@@ -27,7 +27,7 @@ export class AuthGuardService implements CanActivate {
     if (route && route.data) {
       const expectedRole = route.data.expectedRole;
       if (expectedRole) {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
           const user = this.currentUserService.get().getValue();
           if ((expectedRole === Role.AUTH_USER && user == null) || (expectedRole === Role.GUEST && user)) {
             // 📝 Check OAuth state to find redirectUrl if exist

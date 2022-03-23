@@ -27,12 +27,10 @@ export class ApiDocumentationComponent implements OnInit {
   constructor(private apiService: ApiService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.route.params.subscribe((params) => {
+    this.route.params.subscribe(params => {
       if (params.apiId) {
         const apiId = params.apiId;
-        this.apiService
-          .getPagesByApiId({ apiId, homepage: false, size: -1 })
-          .subscribe((pagesResponse) => (this.pages = pagesResponse.data));
+        this.apiService.getPagesByApiId({ apiId, homepage: false, size: -1 }).subscribe(pagesResponse => (this.pages = pagesResponse.data));
       }
     });
   }

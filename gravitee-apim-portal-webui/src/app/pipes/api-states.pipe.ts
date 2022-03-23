@@ -20,7 +20,7 @@ import { Api } from '../../../projects/portal-webclient-sdk/src/lib';
   name: 'apiStates',
 })
 export class ApiStatesPipe implements PipeTransform {
-  transform(api: Api, ...args: any[]): any {
+  transform(api: Api): { value: string; major?: boolean }[] {
     const states = [];
     if (api.draft) {
       states.push({ value: 'draft' });

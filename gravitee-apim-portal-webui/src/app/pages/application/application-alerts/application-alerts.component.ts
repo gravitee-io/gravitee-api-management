@@ -68,7 +68,7 @@ export class ApplicationAlertsComponent implements OnInit {
       this.permissionsService
         .getCurrentUserPermissions({ applicationId: this.application.id })
         .toPromise()
-        .then((permissions) => {
+        .then(permissions => {
           this.permissions = permissions.ALERT;
           if (this.hasReadPermission()) {
             this.applicationService
@@ -76,7 +76,7 @@ export class ApplicationAlertsComponent implements OnInit {
                 applicationId: this.application.id,
               })
               .toPromise()
-              .then((status) => {
+              .then(status => {
                 this.status = status;
                 if (!this.isAlertingEnabled) {
                   this.notificationService.warning(i18n('application.alerts.disabled'));
@@ -90,7 +90,7 @@ export class ApplicationAlertsComponent implements OnInit {
   }
 
   hasReadPermission() {
-    return this.permissions?.find((p) => p === 'R');
+    return this.permissions?.find(p => p === 'R');
   }
 
   resetAlerts() {
@@ -100,7 +100,7 @@ export class ApplicationAlertsComponent implements OnInit {
           applicationId: this.application.id,
         })
         .toPromise()
-        .then((alerts) => {
+        .then(alerts => {
           this.alerts = alerts;
         });
     }
@@ -114,6 +114,6 @@ export class ApplicationAlertsComponent implements OnInit {
   }
 
   onDeleteAlert(alert: Alert) {
-    this.alerts = this.alerts.filter((a) => a.id !== alert.id);
+    this.alerts = this.alerts.filter(a => a.id !== alert.id);
   }
 }

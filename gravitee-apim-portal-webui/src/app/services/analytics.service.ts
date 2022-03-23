@@ -111,7 +111,7 @@ export class AnalyticsService {
         i18n('analytics.timeframes.days'),
       ])
       .toPromise()
-      .then((translatedTimeframes) => {
+      .then(translatedTimeframes => {
         const values = Object.values(translatedTimeframes);
         const minutes = values[0];
         const hour = values[1];
@@ -230,15 +230,15 @@ export class AnalyticsService {
 
   getQueryFromPath(field?, ranges?) {
     const params = Object.keys(this.route.snapshot.queryParams)
-      .filter((q) => !this.queryParams.includes(q))
-      .filter((q) => this.route.snapshot.queryParams[q].length)
-      .filter((q) => (ranges && ranges.length) || !field || q !== field)
-      .map((q) => {
+      .filter(q => !this.queryParams.includes(q))
+      .filter(q => this.route.snapshot.queryParams[q].length)
+      .filter(q => (ranges && ranges.length) || !field || q !== field)
+      .map(q => {
         const queryParam = this.route.snapshot.queryParams[q];
         if (typeof queryParam === 'string') {
           return q + ':' + AnalyticsService.buildQueryParam(queryParam, q);
         }
-        return '(' + q + ':' + queryParam.map((qp) => AnalyticsService.buildQueryParam(qp, q)).join(' OR ') + ')';
+        return '(' + q + ':' + queryParam.map(qp => AnalyticsService.buildQueryParam(qp, q)).join(' OR ') + ')';
       });
     if (params && params.length) {
       return { query: params.join(' AND ') };
@@ -256,7 +256,7 @@ export class AnalyticsService {
     if (from && to) {
       const diff = to - from;
       let selectedTimeframe;
-      this.timeframes.forEach((t) => {
+      this.timeframes.forEach(t => {
         if (t.range < diff) {
           selectedTimeframe = t;
         }
@@ -266,9 +266,9 @@ export class AnalyticsService {
       }
       interval = selectedTimeframe.interval;
     } else {
-      let currentTimeframe = this.timeframes.find((t) => t.id === timeframe);
+      let currentTimeframe = this.timeframes.find(t => t.id === timeframe);
       if (!currentTimeframe) {
-        currentTimeframe = this.timeframes.find((t) => t.id === '1d');
+        currentTimeframe = this.timeframes.find(t => t.id === '1d');
       }
       from = now - currentTimeframe.range;
       to = now;
@@ -297,7 +297,7 @@ export class AnalyticsService {
         'dashboard.stats.ms',
       ])
       .toPromise()
-      .then((translated) => {
+      .then(translated => {
         const translatedValues = Object.values(translated);
         return [
           { key: 'min', label: translatedValues[0], unit: translatedValues[7], color: '#66bb6a' },

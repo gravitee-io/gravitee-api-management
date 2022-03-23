@@ -74,10 +74,10 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
     }
     this.applicationType = applicationType;
     this.grantTypes.clear();
-    this.allGrantTypes = this.applicationType.allowed_grant_types.map((allowedGrantType) => {
-      const value = this.applicationType.default_grant_types.find((grant) => allowedGrantType.type === grant.type) != null;
+    this.allGrantTypes = this.applicationType.allowed_grant_types.map(allowedGrantType => {
+      const value = this.applicationType.default_grant_types.find(grant => allowedGrantType.type === grant.type) != null;
 
-      const disabled = this.applicationType.mandatory_grant_types.find((grant) => allowedGrantType.type === grant.type) != null;
+      const disabled = this.applicationType.mandatory_grant_types.find(grant => allowedGrantType.type === grant.type) != null;
 
       if (value === true) {
         this.grantTypes.push(new FormControl(allowedGrantType.type));
@@ -154,7 +154,7 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
     if (event.target.valid) {
       const value = event.target.value;
       if (value && value.trim() !== '') {
-        if (!this.redirectURIs.controls.map((c) => c.value).includes(value)) {
+        if (!this.redirectURIs.controls.map(c => c.value).includes(value)) {
           this.redirectURIs.push(new FormControl(value, Validators.required));
         }
         event.target.value = '';

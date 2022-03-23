@@ -25,16 +25,14 @@ describe('SinglePageComponent', () => {
   let component: SinglePageComponent;
   let fixture: ComponentFixture<SinglePageComponent>;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [SinglePageComponent, GvPageComponent],
-        imports: [HttpClientTestingModule, RouterTestingModule],
-        schemas: [CUSTOM_ELEMENTS_SCHEMA],
-        teardown: { destroyAfterEach: false },
-      }).compileComponents();
-    }),
-  );
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      declarations: [SinglePageComponent, GvPageComponent],
+      imports: [HttpClientTestingModule, RouterTestingModule],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      teardown: { destroyAfterEach: false },
+    }).compileComponents();
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(SinglePageComponent);

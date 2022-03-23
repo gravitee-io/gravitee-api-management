@@ -35,12 +35,12 @@ export class GvSelectDashboardComponent implements OnInit {
       const dashboards = this.route.firstChild.firstChild.firstChild.snapshot.data.dashboards;
       if (dashboards && dashboards.length) {
         if (this.route.snapshot.queryParams.dashboard) {
-          this.dashboard = dashboards.find((dashboard) => dashboard.id === this.route.snapshot.queryParams.dashboard);
+          this.dashboard = dashboards.find(dashboard => dashboard.id === this.route.snapshot.queryParams.dashboard);
         } else {
           this.dashboard = dashboards[0];
         }
         this._onChangDisplay(this.dashboard.id);
-        this.dashboardsSelect = dashboards.map((dashboard) => {
+        this.dashboardsSelect = dashboards.map(dashboard => {
           return { label: dashboard.name, value: dashboard.id };
         });
       }
