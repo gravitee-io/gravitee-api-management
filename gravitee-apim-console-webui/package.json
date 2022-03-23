@@ -104,7 +104,7 @@
     "@types/jest": "27.4.0",
     "@types/jquery": "3.5.13",
     "@types/lodash": "4.14.178",
-    "@types/node": "14.18.9",
+    "@types/node": "16.10.9",
     "@typescript-eslint/eslint-plugin": "5.2.0",
     "@typescript-eslint/parser": "5.2.0",
     "angular-mocks": "1.8.2",

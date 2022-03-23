@@ -16,7 +16,7 @@ executors:
                 enum: ["small", "medium", "large", "xlarge"]
                 default: "medium"
         docker:
-            - image: cimg/node:14.18
+            - image: cimg/node:16.10
         resource_class: << parameters.class >>
 
     azure-cli:
