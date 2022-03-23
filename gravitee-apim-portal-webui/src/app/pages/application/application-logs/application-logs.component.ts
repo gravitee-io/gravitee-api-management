@@ -67,12 +67,12 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     this.size = this.route.snapshot.queryParams[SearchQueryParam.SIZE]
       ? parseInt(this.route.snapshot.queryParams[SearchQueryParam.SIZE], 10)
       : this.config.get('pagination.size.default');
-    this.subscription = this.route.queryParams.subscribe((queryParams) => {
+    this.subscription = this.route.queryParams.subscribe(queryParams => {
       if (queryParams && !queryParams.skipRefresh) {
         this.refresh(queryParams);
       }
     });
-    this.translateService.get('application.logs.displayAnalytics').subscribe((displayAnalytics) => {
+    this.translateService.get('application.logs.displayAnalytics').subscribe(displayAnalytics => {
       this.link = { label: displayAnalytics, relativePath: '../analytics', icon: 'shopping:chart-line#1' };
     });
   }
@@ -91,7 +91,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
 
       const metadata = response.metadata;
       this.buildPaginationData(response.metadata.data.total);
-      this.format = (key) => this.translateService.get(key).toPromise();
+      this.format = key => this.translateService.get(key).toPromise();
       this.options = {
         selectable: true,
         data: [
@@ -104,12 +104,12 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
               return `--gv-tag--bdc: ${color}; --gv-tag--c: ${color};`;
             },
           },
-          { field: 'api', label: i18n('application.logs.api'), format: (item) => metadata[item].name },
-          { field: 'plan', label: i18n('application.logs.plan'), format: (item) => metadata[item].name },
+          { field: 'api', label: i18n('application.logs.api'), format: item => metadata[item].name },
+          { field: 'plan', label: i18n('application.logs.plan'), format: item => metadata[item].name },
           {
             field: 'method',
             label: i18n('application.logs.method'),
-            format: (item) => item.toUpperCase(),
+            format: item => item.toUpperCase(),
             style: ({ method }) => 'color:' + this.getMethodColor(method),
           },
           {
@@ -122,13 +122,13 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
             field: 'responseTime',
             label: i18n('application.logs.responseTime'),
             headerStyle: () => 'justify-content: flex-end',
-            format: (item) => item + ' ms',
+            format: item => item + ' ms',
             style: () => 'text-align: right',
           },
         ],
       };
       if (queryParams.log && queryParams.timestamp) {
-        this.selectedLogIds = this.logs.filter((l) => l.id === queryParams.log).map((log) => log.id);
+        this.selectedLogIds = this.logs.filter(l => l.id === queryParams.log).map(log => log.id);
         this._loadLog({ id: queryParams.log, timestamp: queryParams.timestamp });
       } else {
         this.selectedLogIds = [];
@@ -210,7 +210,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   }
 
   getLang(headers) {
-    const contentTypeHeaderKey = Object.keys(headers).find((header) => 'content-type' === header.toLowerCase());
+    const contentTypeHeaderKey = Object.keys(headers).find(header => 'content-type' === header.toLowerCase());
     const contentTypeHeader = headers[contentTypeHeaderKey];
     if (contentTypeHeader) {
       const contentType = contentTypeHeader[0];
@@ -279,10 +279,10 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
       .toPromise();
 
     if (this.selectedLog.request) {
-      this.requestHeaders = Object.keys(this.selectedLog.request.headers).map((key) => [key, this.selectedLog.request.headers[key]]);
+      this.requestHeaders = Object.keys(this.selectedLog.request.headers).map(key => [key, this.selectedLog.request.headers[key]]);
     }
     if (this.selectedLog.response) {
-      this.responseHeaders = Object.keys(this.selectedLog.response.headers).map((key) => [key, this.selectedLog.response.headers[key]]);
+      this.responseHeaders = Object.keys(this.selectedLog.response.headers).map(key => [key, this.selectedLog.response.headers[key]]);
     }
     this.scrollService.scrollToAnchor('log');
   }
@@ -297,7 +297,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     this.applicationService
       .exportApplicationLogsByApplicationId(logsQuery)
       .toPromise()
-      .then((response) => {
+      .then(response => {
         const hiddenElement = document.createElement('a');
         hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response);
         hiddenElement.target = '_self';

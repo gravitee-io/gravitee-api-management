@@ -87,7 +87,7 @@ export class GvPageComponent implements OnChanges, OnDestroy {
       }
       this.appGvPageContentSlot.viewContainerRef.clear();
       if (componentFactory) {
-        this._loadPageWithContent(this.page).then((page) => {
+        this._loadPageWithContent(this.page).then(page => {
           this.pageService.disposePage();
           const viewerPage: any = this.appGvPageContentSlot.viewContainerRef.createComponent(componentFactory);
           this.pageService.set(page);

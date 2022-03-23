@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -21,10 +21,8 @@ import { Router } from '@angular/router';
   templateUrl: './gv-button-create-application.component.html',
   styleUrls: ['./gv-button-create-application.component.css'],
 })
-export class GvButtonCreateApplicationComponent implements OnInit {
+export class GvButtonCreateApplicationComponent {
   constructor(private router: Router) {}
-
-  ngOnInit() {}
 
   @HostListener(':gv-button:click')
   onClick() {

@@ -36,13 +36,13 @@ export class PermissionsResolver implements Resolve<PermissionsResponse | void> 
         return this.permissionsService
           .getCurrentUserPermissions({ applicationId })
           .toPromise()
-          .catch(() => {});
+          .catch(() => ({}));
       } else if (params.apiId && this.configurationService.hasFeature(FeatureEnum.rating)) {
         const apiId = params.apiId;
         return this.permissionsService
           .getCurrentUserPermissions({ apiId })
           .toPromise()
-          .catch(() => {});
+          .catch(() => ({}));
       }
     }
     return Promise.resolve({});

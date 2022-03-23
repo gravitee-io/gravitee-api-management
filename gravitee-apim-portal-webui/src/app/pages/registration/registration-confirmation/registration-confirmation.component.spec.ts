@@ -17,7 +17,6 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
-import { Observable } from 'rxjs';
 import { NotificationService } from '../../../services/notification.service';
 import { TokenService } from '../../../services/token.service';
 
@@ -32,7 +31,7 @@ describe('RegistrationConfirmationComponent', () => {
     providers: [
       mockProvider(NotificationService),
       mockProvider(TokenService, {
-        parseToken: (token) => ({
+        parseToken: () => ({
           firstName: 'foo',
           lastName: 'bar',
           email: 'foo@bar',

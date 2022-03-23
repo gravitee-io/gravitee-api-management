@@ -43,7 +43,7 @@ export class AuthService {
     this.authenticationService = this.injector.get(AuthenticationService);
     this.portalService = this.injector.get(PortalService);
     this.router = this.injector.get(Router);
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (this.getProviderId()) {
         this._fetchProviderAndConfigure().then(() => {
           this.oauthService
@@ -60,8 +60,8 @@ export class AuthService {
     });
   }
 
-  login(username: string, password: string, redirectUrl: string = ''): Promise<boolean> {
-    return new Promise((resolve) => {
+  login(username: string, password: string, redirectUrl = ''): Promise<boolean> {
+    return new Promise(resolve => {
       const authorization: string = 'Basic ' + this.encode(`${username}:${password}`);
       return this.authenticationService.login({ authorization }).subscribe(
         () => {
@@ -78,7 +78,7 @@ export class AuthService {
     });
   }
 
-  encode = (str) => {
+  encode = str => {
     // first we use encodeURIComponent to get percent-encoded UTF-8,
     // then we convert the percent encodings into raw bytes which
     // can be fed into btoa.
@@ -99,7 +99,7 @@ export class AuthService {
   }
 
   logout(): Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (this.getProviderId()) {
         this._fetchProviderAndConfigure().finally(() => {
           this._logout(resolve);
@@ -154,12 +154,12 @@ export class AuthService {
   }
 
   private _fetchProviderAndConfigure(): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>(resolve => {
       this.portalService
         .getPortalIdentityProvider({ identityProviderId: this.getProviderId() })
         .toPromise()
         .then(
-          (identityProvider) => {
+          identityProvider => {
             if (identityProvider) {
               this._configure(identityProvider);
               resolve(true);

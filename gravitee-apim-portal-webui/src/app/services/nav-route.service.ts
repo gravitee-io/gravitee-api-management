@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ActivatedRoute, NavigationExtras, PRIMARY_OUTLET, Route, Router, Routes } from '@angular/router';
+import { ActivatedRoute, NavigationExtras, Route, Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FeatureGuardService } from './feature-guard.service';
 import { AuthGuardService } from './auth-guard.service';
@@ -49,7 +49,7 @@ export class NavRouteService {
     const managementRoute: Promise<INavRoute> = this.getManagementNav();
     const userRoutes: Promise<INavRoute[]> = this.getChildrenNav(userRoute, parentPath, []);
 
-    return Promise.all([managementRoute, userRoutes]).then((values) => {
+    return Promise.all([managementRoute, userRoutes]).then(values => {
       const routesArray = values[1];
 
       if (routesArray.length > 1 && values[0]) {
@@ -68,7 +68,7 @@ export class NavRouteService {
       return this.translateService
         .get('route.management')
         .toPromise()
-        .then((_title) => {
+        .then(_title => {
           const routeNav: INavRoute = {
             path: user.config.management_url,
             icon: 'code:settings',
@@ -81,6 +81,7 @@ export class NavRouteService {
   }
 
   async getChildrenNav(aRoute: ActivatedRoute | Route, parentPath?: string, hiddenPaths?: Array<string>): Promise<INavRoute[]> {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const _route: { data; pathFromRoot; routeConfig; children; path } = aRoute instanceof ActivatedRoute ? aRoute.snapshot : aRoute;
 
@@ -92,8 +93,8 @@ export class NavRouteService {
       const _parentPath = parentPath
         ? parentPath
         : (_route.pathFromRoot || [])
-            .filter((route) => route.routeConfig)
-            .map((route) => route.routeConfig.path)
+            .filter(route => route.routeConfig)
+            .map(route => route.routeConfig.path)
             .join('/');
 
       let children = _route.routeConfig ? _route.routeConfig.children : _route.children;
@@ -101,19 +102,20 @@ export class NavRouteService {
         children = _route.routeConfig._loadedConfig.routes;
       }
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       return Promise.all(
         children
-          .filter((child) => child.data != null && child.data.title)
+          .filter(child => child.data != null && child.data.title)
           .filter(this.isVisiblePath(_hiddenPaths))
-          .map((child) => {
+          .map(child => {
             const newChild = Object.assign({}, child);
             newChild.data = { ...data, ...child.data };
             return newChild;
           })
-          .filter((child) => this.featureGuardService.canActivate(child) === true)
-          .filter((child) => this.permissionGuardService.canActivate(child) === true)
-          .map(async (child) => {
+          .filter(child => this.featureGuardService.canActivate(child) === true)
+          .filter(child => this.permissionGuardService.canActivate(child) === true)
+          .map(async child => {
             const hasAuth = await this.authGuardService.canActivate(child);
             if (hasAuth === true) {
               let path = `${_parentPath}/${child.path}`;
@@ -125,7 +127,7 @@ export class NavRouteService {
               return this.translateService
                 .get(child.data.title)
                 .toPromise()
-                .then((_title) => {
+                .then(_title => {
                   const routeNav: INavRoute = {
                     path,
                     icon: child.data.icon,
@@ -138,7 +140,7 @@ export class NavRouteService {
             }
             return null;
           }),
-      ).then((routes) => routes.filter((route) => route != null));
+      ).then(routes => routes.filter(route => route != null));
     }
     return null;
   }
@@ -149,7 +151,7 @@ export class NavRouteService {
   }
 
   private isVisiblePath(_hiddenPaths) {
-    return (child) => !_hiddenPaths.includes(child.path);
+    return child => !_hiddenPaths.includes(child.path);
   }
 
   async getSiblingsNav(activatedRoute: ActivatedRoute): Promise<INavRoute[]> {
@@ -159,9 +161,9 @@ export class NavRouteService {
       const childrenNav = this.getChildrenNav(activatedRoute.parent);
       if (params) {
         // Replace dynamic path param
-        return childrenNav.then((navRoutes) => {
+        return childrenNav.then(navRoutes => {
           if (navRoutes) {
-            return navRoutes.map((navRoute) => {
+            return navRoutes.map(navRoute => {
               for (const key of Object.keys(params)) {
                 navRoute.active = this.isActive(navRoute.path, this.router.url);
                 navRoute.path = navRoute.path.replace(`:${key}`, params[key]);
@@ -197,9 +199,9 @@ export class NavRouteService {
 
   _getRouteByPath(children: Routes, path: string) {
     if (children) {
-      const found = children.find((route) => route.path === path);
+      const found = children.find(route => route.path === path);
       if (found == null) {
-        return children.map((route) => this._getRouteByPath(route.children, path)).find((route) => route && route.path === path);
+        return children.map(route => this._getRouteByPath(route.children, path)).find(route => route && route.path === path);
       }
       return found;
     }

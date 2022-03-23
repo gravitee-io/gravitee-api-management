@@ -52,7 +52,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.subscription = this.currentUserService.get().subscribe((user) => {
+    this.subscription = this.currentUserService.get().subscribe(user => {
       this.currentUser = user;
       const formDescriptor: any = {
         last_name: new FormControl({ value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
@@ -65,11 +65,11 @@ export class UserAccountComponent implements OnInit, OnDestroy {
         this.usersService
           .listCustomUserFields()
           .toPromise()
-          .then((respo) => {
+          .then(respo => {
             this.customUserFields = respo;
 
             if (this.customUserFields) {
-              this.customUserFields.forEach((field) => {
+              this.customUserFields.forEach(field => {
                 const controlField = new FormControl('', field.required ? Validators.required : null);
                 controlField.setValue(this.currentUser.customFields[field.key]);
                 formDescriptor[field.key] = controlField;
@@ -78,7 +78,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
 
             this.userForm = this.formBuilder.group(formDescriptor);
 
-            this.userForm.get('avatar').valueChanges.subscribe((avatar) => {
+            this.userForm.get('avatar').valueChanges.subscribe(avatar => {
               this.eventService.dispatch(new GvEvent(AppComponent.UPDATE_USER_AVATAR, { data: avatar }));
               this.avatarHasChanged = true;
             });
@@ -88,7 +88,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
       } else {
         this.userForm = this.formBuilder.group(formDescriptor);
 
-        this.userForm.get('avatar').valueChanges.subscribe((avatar) => {
+        this.userForm.get('avatar').valueChanges.subscribe(avatar => {
           this.eventService.dispatch(new GvEvent(AppComponent.UPDATE_USER_AVATAR, { data: avatar }));
           this.avatarHasChanged = true;
         });
@@ -142,7 +142,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     this.userForm.get('email').patchValue(this.email);
 
     if (this.customUserFields) {
-      this.customUserFields.forEach((field) => {
+      this.customUserFields.forEach(field => {
         this.userForm.get(field.key).setValue(this.currentUser.customFields[field.key]);
       });
     }
@@ -168,7 +168,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
 
     if (this.customUserFields && this.customUserFields.length > 0) {
       const customFields: any = {};
-      this.customUserFields.forEach((field) => {
+      this.customUserFields.forEach(field => {
         customFields[field.key] = this.userForm.get(field.key).value;
       });
       const customFieldsProp = 'customFields';
@@ -179,7 +179,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     this.userService
       .updateCurrentUser({ userInput })
       .toPromise()
-      .then((user) => {
+      .then(user => {
         this.currentUserService.set(user);
         this.notificationService.success(i18n('user.account.success'));
       })

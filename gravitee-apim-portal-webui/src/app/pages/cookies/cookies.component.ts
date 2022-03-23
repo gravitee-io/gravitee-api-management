@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CookieEnum } from '../../model/cookie.enum';
 import { CookieService } from 'ngx-cookie-service';
 import { GoogleAnalyticsService } from '../../services/google-analytics.service';

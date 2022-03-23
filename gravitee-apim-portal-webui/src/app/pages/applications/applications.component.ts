@@ -61,14 +61,14 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
     this.activatedRoute.queryParamMap
       .pipe(
         takeUntil(this.unsubscribe$),
-        switchMap((params) =>
+        switchMap(params =>
           this.applicationService.getApplications({
             size: Number(params.get('size') ?? this.initialPaginationSize),
             page: Number(params.get('page') ?? 1),
           }),
         ),
       )
-      .subscribe((response) => {
+      .subscribe(response => {
         const pagination = response.metadata.pagination as unknown as Pagination;
         if (pagination) {
           this.paginationData = {
@@ -83,7 +83,7 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
           this.nbApplications = 0;
         }
 
-        this.applications = response.data.map((application) => ({
+        this.applications = response.data.map(application => ({
           item: application,
           metrics: this._getMetrics(application, response.metadata),
         }));
@@ -119,7 +119,7 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
 
   @HostListener(':gv-card-full:click', ['$event.detail'])
   onClickToApp(application: Promise<Application>) {
-    Promise.resolve(application).then((_application) => {
+    Promise.resolve(application).then(_application => {
       this.router.navigate(['/applications', _application.id]);
     });
   }

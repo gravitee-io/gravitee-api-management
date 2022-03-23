@@ -52,7 +52,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
   }
 
   loadScript() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const scriptId = 'redoc-standalone';
       if (document.getElementById(scriptId) == null) {
         const scriptElement = document.createElement('script');
@@ -69,7 +69,6 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
 
   refresh(page) {
     if (page) {
-      // @ts-ignore
       // https://github.com/Redocly/redoc/blob/master/src/theme.ts
       const color = getCssVar(document.body, '--gv-theme-color-dark', undefined);
       const successColor = getCssVar(document.body, '--gv-theme-color', undefined);
@@ -117,7 +116,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
         contentAsJson = readYaml(page.content);
       }
 
-      Redoc.init(contentAsJson, options, this.redocContainer.nativeElement, (errors) => this._redocCallback(errors));
+      Redoc.init(contentAsJson, options, this.redocContainer.nativeElement, errors => this._redocCallback(errors));
     }
   }
 
@@ -134,6 +133,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM;
 
       const wrap = document.querySelector('.redoc-wrap');
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const height = window.getComputedStyle(wrap).height;
 
@@ -141,23 +141,30 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       if (container == null) {
         container = document.querySelector('.layout__content');
       }
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       container.style.minHeight = height;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       document.querySelector(GvDocumentationComponent.PAGE_COMPONENT).style.minHeight = height;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.redocMenu.style.position = 'fixed';
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.redocMenu.style.height = ` ${window.innerHeight - top - GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM}px`;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.redocMenu.style.top = `${top}px`;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.redocMenu.style.bottom = `${GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM}px`;
       const width = window.getComputedStyle(document.querySelector('.menu-content')).width;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       document.querySelector('.api-content').style.marginLeft = width;
       document.querySelector('.menu-content a[target="_blank"]').remove();
-      [].forEach.call(document.querySelectorAll('.api-content h2 a, .api-content h1 a'), (link) => {
+      [].forEach.call(document.querySelectorAll('.api-content h2 a, .api-content h1 a'), link => {
         link.remove();
       });
       if (this.fragment) {
@@ -172,11 +179,13 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    ['.layout__content', '.page__content', GvDocumentationComponent.PAGE_COMPONENT].forEach((xpath) => {
+    ['.layout__content', '.page__content', GvDocumentationComponent.PAGE_COMPONENT].forEach(xpath => {
       const element = document.querySelector(xpath);
       if (element) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         element.style.height = 'auto';
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         element.style.minHeight = 'auto';
       }

@@ -47,7 +47,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subscription = this.route.queryParams.subscribe((queryParams) => {
+    this.subscription = this.route.queryParams.subscribe(queryParams => {
       if (queryParams && !queryParams.skipRefresh) {
         this.refresh(queryParams);
       }
@@ -64,14 +64,14 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
       const timeSlot = this.analyticsService.getTimeSlotFromQueryParams();
 
       const promises: Promise<any>[] = [];
-      this.definition = JSON.parse(this.dashboard.definition).map((widget) => {
+      this.definition = JSON.parse(this.dashboard.definition).map(widget => {
         if (widget.chart.request.ranges) {
           widget.chart.request.ranges = widget.chart.request.ranges.replace(/%3B/g, ';');
         }
         // table
         if (widget.chart.columns) {
           widget.chart.selectable = 'multi';
-          widget.chart.data = widget.chart.columns.map((column) => {
+          widget.chart.data = widget.chart.columns.map(column => {
             return { label: column };
           });
           const selected = queryParams[widget.chart.request.field];
@@ -155,7 +155,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
 
               const keys = Object.keys(items.values);
               if (itemsPercent) {
-                widget.items = keys.map((key) => {
+                widget.items = keys.map(key => {
                   const value = items.values[key];
                   return {
                     id: key,
@@ -165,17 +165,17 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
                   };
                 });
               } else {
-                widget.items = keys.map((key) => {
+                widget.items = keys.map(key => {
                   return { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
                 });
               }
             } else {
               const values = items.values;
               if (Array.isArray(values)) {
-                values.forEach((item) => {
+                values.forEach(item => {
                   const visible = queryParams[item.field];
                   if (visible) {
-                    item.buckets.forEach((bucket) => {
+                    item.buckets.forEach(bucket => {
                       bucket.visible = !visible.length || visible.includes(bucket.name);
                     });
                   }
@@ -191,7 +191,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
 
   onTableSelect({ detail }) {
     const queryParams: any = {};
-    queryParams[detail.options.request.field] = detail.items.map((item) => item.id || item.key);
+    queryParams[detail.options.request.field] = detail.items.map(item => item.id || item.key);
     this.router.navigate([], {
       queryParams,
       queryParamsHandling: 'merge',

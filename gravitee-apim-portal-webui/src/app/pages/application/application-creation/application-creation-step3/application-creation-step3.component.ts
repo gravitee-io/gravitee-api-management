@@ -31,7 +31,7 @@ export class ApplicationCreationStep3Component implements OnInit {
   @Output() updated = new EventEmitter<any[]>();
   @Input() subscribeList: any[];
   @Output() changeStep = new EventEmitter<{ step: number; fragment: string }>();
-  // tslint:disable-next-line:ban-types
+  // eslint-disable-next-line @typescript-eslint/ban-types
   @Input() hasValidClientId: Function;
 
   @ViewChild('searchApiAutocomplete') searchApiAutocomplete;
@@ -92,7 +92,7 @@ export class ApplicationCreationStep3Component implements OnInit {
               include: ['content'],
             })
             .toPromise()
-            .then((page) => {
+            .then(page => {
               this.generalConditions.set(page.id, page);
               this.currentGeneralConditions = page;
             });
@@ -120,7 +120,7 @@ export class ApplicationCreationStep3Component implements OnInit {
       this.apiService
         .getApiByApiId({ apiId })
         .toPromise()
-        .then((api) => this.loadPlans(api));
+        .then(api => this.loadPlans(api));
     }
 
     this.translateService
@@ -130,7 +130,7 @@ export class ApplicationCreationStep3Component implements OnInit {
         i18n('applicationCreation.subscription.remove'),
       ])
       .toPromise()
-      .then((translations) => {
+      .then(translations => {
         const values = Object.values(translations);
         this.subscriptionListOptions = {
           data: [
@@ -142,8 +142,8 @@ export class ApplicationCreationStep3Component implements OnInit {
               type: 'gv-text',
               attributes: {
                 rows: 2,
-                required: (item) => item.requiredComment,
-                placeholder: (item) => item.plan.comment_question || values[0],
+                required: item => item.requiredComment,
+                placeholder: item => item.plan.comment_question || values[0],
               },
               width: '300px',
             },
@@ -153,7 +153,7 @@ export class ApplicationCreationStep3Component implements OnInit {
               attributes: {
                 shape: 'general:trash',
                 clickable: true,
-                onClick: (item) => this.removePlan(item.plan),
+                onClick: item => this.removePlan(item.plan),
                 title: values[2],
               },
             },
@@ -169,8 +169,9 @@ export class ApplicationCreationStep3Component implements OnInit {
       .toPromise()
       .then((apisResponse: ApisResponse) => {
         if (apisResponse.data.length) {
-          this.apiList = apisResponse.data.map((a) => {
+          this.apiList = apisResponse.data.map(a => {
             const row = document.createElement('gv-row');
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             row.item = a;
             return { value: a.name, element: row, id: a.id, data: a };
@@ -189,18 +190,18 @@ export class ApplicationCreationStep3Component implements OnInit {
     this.changeStep.emit({ step: 2, fragment: 'appClientId' });
   }
 
-  onRequestChange($event: any) {
+  onRequestChange() {
     clearTimeout(this.updateStepsTimer);
     this.updateStepsTimer = setTimeout(() => this.updated.emit(this.subscribeList), 200);
   }
 
   get selectedPlan() {
     const id = this.planForm.get('planId').value;
-    return this.plans.find((p) => p.id === id);
+    return this.plans.find(p => p.id === id);
   }
 
   async onSelectApi({ detail }) {
-    const api = this.apiList.find((a) => a.id === detail.id).data;
+    const api = this.apiList.find(a => a.id === detail.id).data;
     this.planForm.get('apiId').setValue(api.id);
     this.loadPlans(api);
   }
@@ -234,7 +235,7 @@ export class ApplicationCreationStep3Component implements OnInit {
   private async loadPlans(api) {
     if (api) {
       const plans = await this.apiService.getApiPlansByApiId({ apiId: api.id, size: -1 }).toPromise();
-      this.plans = plans.data.filter((plan) => plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS);
+      this.plans = plans.data.filter(plan => plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS);
       if (this.selectedPlan == null && this.plans.length > 0) {
         this.planForm.get('planId').setValue(this.plans[0].id);
       }
@@ -244,7 +245,7 @@ export class ApplicationCreationStep3Component implements OnInit {
   }
 
   get canAddPlan() {
-    return this.subscribeList && this.subscribeList.find((s) => s.plan.id === this.selectedPlan.id) != null;
+    return this.subscribeList && this.subscribeList.find(s => s.plan.id === this.selectedPlan.id) != null;
   }
 
   get requireClientId() {
@@ -275,7 +276,7 @@ export class ApplicationCreationStep3Component implements OnInit {
       this.planForm.get('general_conditions_accepted').setValue(false);
       this._generalConditionsAccepted = false;
     }
-    this.subscribeList = this.subscribeList.filter((s) => !(s.plan.id === plan.id));
+    this.subscribeList = this.subscribeList.filter(s => !(s.plan.id === plan.id));
     this.updated.emit(this.subscribeList);
     this.ref.detectChanges();
   }

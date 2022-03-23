@@ -28,9 +28,9 @@ export class SinglePageComponent implements OnInit {
   constructor(private route: ActivatedRoute, private router: Router, private portalService: PortalService) {}
 
   ngOnInit() {
-    this.route.params.subscribe((params) => {
+    this.route.params.subscribe(params => {
       if (params.pageId) {
-        this.portalService.getPageByPageId({ pageId: params.pageId }).subscribe((response) => (this.singlePage = response));
+        this.portalService.getPageByPageId({ pageId: params.pageId }).subscribe(response => (this.singlePage = response));
       }
     });
   }

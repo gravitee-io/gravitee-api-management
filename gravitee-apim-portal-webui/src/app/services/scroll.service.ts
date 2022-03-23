@@ -19,8 +19,6 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class ScrollService {
-  constructor() {}
-
   static pxToInt(size: string) {
     const intValue = parseInt(size.replace('px', ''), 10);
     return isNaN(intValue) ? 0 : intValue;
@@ -57,6 +55,7 @@ export class ScrollService {
               resolutionTime = 250;
               behavior = 'auto';
             }
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             window.scrollBy({ top: scrollY, left, behavior });
             setTimeout(() => {

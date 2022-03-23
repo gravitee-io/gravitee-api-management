@@ -15,10 +15,10 @@
  */
 import { Injectable } from '@angular/core';
 import { ConfigurationService } from './configuration.service';
-import { NavigationEnd, NavigationStart, Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
-declare var grecaptcha: any;
+declare let grecaptcha: any;
 
 @Injectable({
   providedIn: 'root',
@@ -33,13 +33,14 @@ export class ReCaptchaService {
   private display = false;
 
   constructor(private configurationService: ConfigurationService, private router: Router) {
-    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event) => {
+    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
       this.hideBadge();
     });
   }
 
   load(): Promise<any> {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     this.enabled = this.configurationService.get('recaptcha.enabled');
     this.siteKey = this.configurationService.get('recaptcha.siteKey');
@@ -96,6 +97,7 @@ export class ReCaptchaService {
     this.display = true;
 
     if (this.enabled && this.loaded) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       document.getElementsByClassName('grecaptcha-badge')[0].style.setProperty('visibility', 'initial');
     }
@@ -105,6 +107,7 @@ export class ReCaptchaService {
     this.display = false;
 
     if (this.enabled && this.loaded) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       document.getElementsByClassName('grecaptcha-badge')[0].style.setProperty('visibility', 'collapse', 'important');
     }

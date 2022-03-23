@@ -42,25 +42,23 @@ describe('ApplicationSubscriptionsComponent', () => {
   }
 
   describe('empty app', () => {
-    beforeEach(
-      waitForAsync(() => {
-        TestBed.configureTestingModule({
-          ...defaultConf,
-          providers: [
-            {
-              provide: ActivatedRoute,
-              useValue: {
-                snapshot: {
-                  data: {},
-                },
+    beforeEach(waitForAsync(() => {
+      TestBed.configureTestingModule({
+        ...defaultConf,
+        providers: [
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                data: {},
               },
             },
-          ],
-          teardown: { destroyAfterEach: false },
-        }).compileComponents();
-        initFixture();
-      }),
-    );
+          },
+        ],
+        teardown: { destroyAfterEach: false },
+      }).compileComponents();
+      initFixture();
+    }));
 
     it('should create', () => {
       expect(component).toBeTruthy();
@@ -124,32 +122,30 @@ describe('ApplicationSubscriptionsComponent', () => {
       httpTestingController.verify();
     });
 
-    beforeEach(
-      waitForAsync(() => {
-        TestBed.configureTestingModule({
-          ...defaultConf,
-          providers: [
-            {
-              provide: ActivatedRoute,
-              useValue: {
-                snapshot: {
-                  data: {
-                    application,
-                  },
-                  params: {
-                    applicationId: application.id,
-                  },
-                  queryParams: {},
+    beforeEach(waitForAsync(() => {
+      TestBed.configureTestingModule({
+        ...defaultConf,
+        providers: [
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                data: {
+                  application,
                 },
+                params: {
+                  applicationId: application.id,
+                },
+                queryParams: {},
               },
             },
-          ],
-          teardown: { destroyAfterEach: false },
-        }).compileComponents();
-        httpTestingController = TestBed.inject(HttpTestingController);
-        initFixture();
-      }),
-    );
+          },
+        ],
+        teardown: { destroyAfterEach: false },
+      }).compileComponents();
+      httpTestingController = TestBed.inject(HttpTestingController);
+      initFixture();
+    }));
 
     it('should init sharedApiKey', fakeAsync(() => {
       initSharedKey();
@@ -247,37 +243,35 @@ describe('ApplicationSubscriptionsComponent', () => {
       httpTestingController.verify();
     });
 
-    beforeEach(
-      waitForAsync(() => {
-        TestBed.configureTestingModule({
-          ...defaultConf,
-          providers: [
-            {
-              provide: ActivatedRoute,
-              useValue: {
-                snapshot: {
-                  data: {
-                    application: {
-                      id: 'application1',
-                      name: 'applicationWithSharedKey',
-                      api_key_mode: ApiKeyModeEnum.EXCLUSIVE,
-                    },
+    beforeEach(waitForAsync(() => {
+      TestBed.configureTestingModule({
+        ...defaultConf,
+        providers: [
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                data: {
+                  application: {
+                    id: 'application1',
+                    name: 'applicationWithSharedKey',
+                    api_key_mode: ApiKeyModeEnum.EXCLUSIVE,
                   },
-                  params: {
-                    applicationId: 'application1',
-                  },
-                  queryParams: {},
                 },
+                params: {
+                  applicationId: 'application1',
+                },
+                queryParams: {},
               },
             },
-          ],
-          teardown: { destroyAfterEach: false },
-        }).compileComponents();
-        httpTestingController = TestBed.inject(HttpTestingController);
+          },
+        ],
+        teardown: { destroyAfterEach: false },
+      }).compileComponents();
+      httpTestingController = TestBed.inject(HttpTestingController);
 
-        initFixture();
-      }),
-    );
+      initFixture();
+    }));
 
     it('should not init sharedApiKey', fakeAsync(() => {
       const subscription: Subscription = {

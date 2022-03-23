@@ -47,12 +47,12 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   ) {}
 
   ngOnInit(): void {
-    this.route.fragment.subscribe((anchor) => {
+    this.route.fragment.subscribe(anchor => {
       if (!this.scrollInProgress) {
         this.currentAnchor = anchor;
       }
     });
-    this.pageServiceSubscription = this.pageService.get().subscribe((page) => {
+    this.pageServiceSubscription = this.pageService.get().subscribe(page => {
       if (page && page.content) {
         this.tocList = this._buildTocModel(page.content);
       }
@@ -94,8 +94,8 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
 
     const tokens = marked
       .lexer(content)
-      .filter((item) => item.type === 'heading' && item.depth > 1)
-      .map((item) => ({
+      .filter(item => item.type === 'heading' && item.depth > 1)
+      .map(item => ({
         anchor: this._computeAnchor(item),
         text: this._computeText(item),
         children: [],

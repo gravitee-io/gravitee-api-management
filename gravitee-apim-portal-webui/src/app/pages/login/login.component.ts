@@ -60,10 +60,10 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     this.registrationEnabled = this.config.hasFeature(FeatureEnum.userRegistration);
     this.redirectUrl = this.activatedRoute.snapshot.queryParams.redirectUrl || '';
     this.portalService.getPortalIdentityProviders().subscribe(
-      (configurationIdentitiesResponse) => {
+      configurationIdentitiesResponse => {
         this.providers = configurationIdentitiesResponse.data;
       },
-      (error) => {
+      error => {
         console.error('something wrong occurred with identity providers: ' + error.statusText);
       },
     );
@@ -93,7 +93,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isFormValid()) {
       this.reCaptchaService.execute('login').then(() => {
         this.authService.login(this.loginForm.value.username, this.loginForm.value.password, this.redirectUrl).then(
-          () => {},
+          () => ({}),
           () => {
             this.loginForm.setValue({ username: this.loginForm.value.username, password: '' });
           },

@@ -37,7 +37,7 @@ export class CategoriesComponent implements OnInit {
     this.portalService
       .getCategories({ size: -1 })
       .toPromise()
-      .then((response) => {
+      .then(response => {
         this.nbCategories = response.metadata.data.total;
         this.categories = response.data;
         if (response.data.length === 0) {

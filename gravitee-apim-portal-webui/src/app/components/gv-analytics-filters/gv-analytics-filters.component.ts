@@ -74,21 +74,21 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     this.analyticsForm.get('timeframe').setValidators(GvValidators.oneRequired(this.analyticsForm.get('range')));
     this.analyticsForm.get('range').setValidators([GvValidators.dateRange, GvValidators.oneRequired(this.analyticsForm.get('timeframe'))]);
 
-    this.analyticsForm.get('range').valueChanges.subscribe((range) => {
+    this.analyticsForm.get('range').valueChanges.subscribe(range => {
       // Reset timeframe if range is set
-      if (range !== null && range.filter((v) => v != null).length === 2) {
+      if (range !== null && range.filter(v => v != null).length === 2) {
         this.analyticsForm.get('timeframe').setValue(null);
       }
     });
 
-    this.analyticsForm.get('timeframe').valueChanges.subscribe((timeframe) => {
+    this.analyticsForm.get('timeframe').valueChanges.subscribe(timeframe => {
       // Reset range if timeframe is set
       if (timeframe) {
         this.analyticsForm.get('range').setValue([null, null]);
       }
     });
 
-    this.route.queryParams.subscribe((queryParams) => {
+    this.route.queryParams.subscribe(queryParams => {
       if (!this.route.snapshot.queryParams.timeframe && !(this.route.snapshot.queryParams.from && this.route.snapshot.queryParams.to)) {
         this.router.navigate([], {
           queryParams: { timeframe: '1d' },
@@ -113,14 +113,14 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
       this.tags = [];
       Object.keys(queryParams)
-        .filter((q) => !this.analyticsService.queryParams.includes(q))
-        .filter((q) => !this.analyticsService.advancedQueryParams.includes(q))
-        .forEach((q) => {
+        .filter(q => !this.analyticsService.queryParams.includes(q))
+        .filter(q => !this.analyticsService.advancedQueryParams.includes(q))
+        .forEach(q => {
           const queryParam = queryParams[q];
           if (typeof queryParam === 'string') {
             this.tags.push(q + ': ' + queryParam);
           } else {
-            queryParam.forEach((qp) => {
+            queryParam.forEach(qp => {
               this.tags.push(q + ': ' + qp);
             });
           }
@@ -154,8 +154,8 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
       this.applicationService
         .getSubscriberApisByApplicationId({ applicationId: this.route.snapshot.params.applicationId, size: -1 })
         .toPromise()
-        .then((apis) => {
-          this.apisOptions = apis.data.map((api) => {
+        .then(apis => {
+          this.apisOptions = apis.data.map(api => {
             return { label: api.name + ' (' + api.version + ')', value: api.id };
           });
         });
@@ -182,8 +182,8 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     const key = tagSplit[0];
     const value = tagSplit[1];
     Object.keys(queryParams)
-      .filter((q) => q === key)
-      .forEach((q) => {
+      .filter(q => q === key)
+      .forEach(q => {
         if (queryParams[q].includes(value)) {
           if (typeof queryParams[q] === 'string') {
             queryParams[q] = queryParams[q].replace(value, '');
@@ -239,8 +239,8 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     }
     // keep analytics params
     Object.keys(this.route.snapshot.queryParams)
-      .filter((q) => this.analyticsService.queryParams.includes(q))
-      .forEach((q) => {
+      .filter(q => this.analyticsService.queryParams.includes(q))
+      .forEach(q => {
         queryParams[q] = this.route.snapshot.queryParams[q];
       });
     this.router.navigate([], {

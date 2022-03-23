@@ -93,7 +93,7 @@ export class FilteredCatalogComponent implements OnInit {
       .get(i18n('catalog.defaultCategory'))
       .toPromise()
       .then(
-        (label) =>
+        label =>
           (this.defaultCategory = {
             value: '',
             label,
@@ -107,7 +107,7 @@ export class FilteredCatalogComponent implements OnInit {
 
     this.filterApiQuery = this.activatedRoute.snapshot.data.filterApiQuery;
 
-    this.activatedRoute.queryParamMap.subscribe((params) => {
+    this.activatedRoute.queryParamMap.subscribe(params => {
       const page = parseInt(params.get(SearchQueryParam.PAGE), 10) || 1;
       const size = parseInt(params.get(SearchQueryParam.SIZE), 10) || 6;
       const categoryPath = this._getCategoryPath();
@@ -133,7 +133,7 @@ export class FilteredCatalogComponent implements OnInit {
         this.portalService
           .getPageByPageId({ pageId: this.category.page })
           .toPromise()
-          .then((docPage) => (this.currentCategoryDocumentationPage = docPage));
+          .then(docPage => (this.currentCategoryDocumentationPage = docPage));
       }
     });
   }
@@ -146,8 +146,9 @@ export class FilteredCatalogComponent implements OnInit {
         title: i18n('catalog.display.cards'),
       },
       { id: 'list', icon: 'layout:layout-horizontal', title: i18n('catalog.display.list') },
-    ].map((option) => {
-      this.translateService.get(option.title).subscribe((title) => (option.title = title));
+    ].map(option => {
+      this.translateService.get(option.title).subscribe(title => (option.title = title));
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       option.title = '';
       return option;
@@ -168,16 +169,17 @@ export class FilteredCatalogComponent implements OnInit {
     return this.apiService
       .getApis({ size: FilteredCatalogComponent.RANDOM_MAX_SIZE, filter2: this.filterApiQuery })
       .toPromise()
-      .then((apiResponse) => {
-        apiResponse.data.forEach((a, index) => {
+      .then(apiResponse => {
+        apiResponse.data.forEach(a => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           a.states = this.apiStates.transform(a);
           deferredList.shift().resolve(a);
         });
-        deferredList.forEach((d) => d.resolve(undefined));
+        deferredList.forEach(d => d.resolve(undefined));
       })
-      .catch((err) => {
-        deferredList.forEach((d) => d.reject(err));
+      .catch(err => {
+        deferredList.forEach(d => d.reject(err));
       });
   }
 
@@ -185,7 +187,7 @@ export class FilteredCatalogComponent implements OnInit {
     return this.apiService
       .getApis(requestParams)
       .toPromise()
-      .then(async (response) => {
+      .then(async response => {
         const promoted = response.data[0];
         if (promoted) {
           this.promotedMetrics = await this.apiService.getApiMetricsByApiId({ apiId: promoted.id }).toPromise();
@@ -219,10 +221,11 @@ export class FilteredCatalogComponent implements OnInit {
       .then(async ({ data, metadata }) => {
         this.paginationData = metadata.pagination;
 
-        this.allApis = data.map((api) => {
+        this.allApis = data.map(api => {
           const metrics = this.apiService.getApiMetricsByApiId({ apiId: api.id }).toPromise();
 
           const item = metrics.then(() => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             api.states = this.apiStates.transform(api);
             api.labels = this.apiLabels.transform(api);
@@ -233,10 +236,12 @@ export class FilteredCatalogComponent implements OnInit {
         });
 
         if (this.hasCategoryMode() && this.categories == null) {
-          this.apiService.listCategories({ filter: this.filterApiQuery }).subscribe((categoriesResponse) => {
+          this.apiService.listCategories({ filter: this.filterApiQuery }).subscribe(categoriesResponse => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            const categories = categoriesResponse.data.map((category) => ({ value: category.id, label: category.name }));
+            const categories = categoriesResponse.data.map(category => ({ value: category.id, label: category.name }));
             if (categories.length > 0) {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               this.categories = [this.defaultCategory].concat(categories);
             } else {
@@ -344,7 +349,7 @@ export class FilteredCatalogComponent implements OnInit {
 
   @HostListener(':gv-card-full:click', ['$event.detail'])
   goToApi(api: Promise<Api>) {
-    Promise.resolve(api).then((_api) => {
+    Promise.resolve(api).then(_api => {
       const queryParams = {};
       if (this.inCategory()) {
         queryParams[SearchQueryParam.CATEGORY] = this.category.id;

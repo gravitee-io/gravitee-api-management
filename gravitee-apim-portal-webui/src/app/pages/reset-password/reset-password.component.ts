@@ -49,7 +49,7 @@ export class ResetPasswordComponent implements OnInit {
           .resetUserPassword({ resetUserPasswordInput })
           .toPromise()
           .then(() => (this.isSubmitted = true))
-          .catch(() => {});
+          .catch(() => ({}));
       });
     }
   }

@@ -13,13 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
-import { TokenService } from '../../services/token.service';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-import { ResetPasswordComponent } from '../reset-password/reset-password.component';
 
 import { NotFoundComponent } from './not-found.component';
 import { RouterTestingModule } from '@angular/router/testing';

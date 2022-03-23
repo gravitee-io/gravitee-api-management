@@ -31,7 +31,7 @@ describe('ResetPasswordConfirmationComponent', () => {
     providers: [
       mockProvider(NotificationService),
       mockProvider(TokenService, {
-        parseToken: (token) => ({
+        parseToken: () => ({
           firstName: 'foo',
           lastName: 'bar',
           email: 'foo@bar',

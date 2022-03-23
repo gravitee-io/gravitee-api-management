@@ -45,8 +45,8 @@ export class ApplicationCreationStep5Component implements OnInit {
     if (!this.isSimpleApp && this.applicationForm.contains('settings')) {
       const { settings } = this.applicationForm.getRawValue();
       const types = this.applicationType.allowed_grant_types;
-      return settings.oauth.grant_types.map((type) => {
-        return types.find((a) => a.type === type).name;
+      return settings.oauth.grant_types.map(type => {
+        return types.find(a => a.type === type).name;
       });
     }
     return [];
@@ -97,7 +97,7 @@ export class ApplicationCreationStep5Component implements OnInit {
         i18n('applicationCreation.subscription.validation.manual'),
       ])
       .toPromise()
-      .then((translations) => {
+      .then(translations => {
         const values = Object.values(translations);
 
         this.validationListOptions = {
@@ -109,7 +109,7 @@ export class ApplicationCreationStep5Component implements OnInit {
               label: values[0],
             },
             {
-              field: (item) => (item.plan.validation.toUpperCase() === Plan.ValidationEnum.AUTO ? values[2] : values[3]),
+              field: item => (item.plan.validation.toUpperCase() === Plan.ValidationEnum.AUTO ? values[2] : values[3]),
               label: values[1],
             },
           ],

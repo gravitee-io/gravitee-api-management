@@ -29,7 +29,7 @@ describe('ScrollServiceService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should be call scrollToAnchor with id', (done) => {
+  it('should be call scrollToAnchor with id', done => {
     document.getElementById = jest.fn(() => document.createElement('a'));
     window.getComputedStyle = jest.fn(() => ({ height: '42' } as any));
     window.scrollBy = jest.fn(() => null);
@@ -44,7 +44,7 @@ describe('ScrollServiceService', () => {
     });
   });
 
-  it('should be call scrollToAnchor with xpath', (done) => {
+  it('should be call scrollToAnchor with xpath', done => {
     document.querySelector = jest.fn(() => document.createElement('a'));
     window.getComputedStyle = jest.fn(() => ({ height: '42' } as any));
     window.scrollBy = jest.fn(() => null);
@@ -58,7 +58,7 @@ describe('ScrollServiceService', () => {
     });
   });
 
-  it('should be call scrollToAnchor with name attribute', (done) => {
+  it('should be call scrollToAnchor with name attribute', done => {
     window.getComputedStyle = jest.fn(() => ({ height: '42' } as any));
     window.scrollBy = jest.fn(() => null);
     document.querySelector = jest

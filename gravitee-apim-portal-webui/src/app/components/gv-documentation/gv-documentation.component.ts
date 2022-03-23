@@ -45,7 +45,7 @@ export class GvDocumentationComponent implements AfterViewInit {
         if (pageId) {
           pageToDisplay = this.getFirstPage(pages, pageId);
         } else if (folderId) {
-          const folderPages = pages.filter((p) => p.parent === folderId);
+          const folderPages = pages.filter(p => p.parent === folderId);
           pageToDisplay = this.getFirstPage(folderPages);
         } else {
           pageToDisplay = this.getFirstPage(pages);
@@ -122,9 +122,9 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   private initTree(pages: Page[], selectedPage?: string) {
     let pagesMap: any[] = pages;
-    pagesMap.forEach((page) => {
+    pagesMap.forEach(page => {
       if (page.parent) {
-        const parentPage = pagesMap.find((element) => element.id === page.parent);
+        const parentPage = pagesMap.find(element => element.id === page.parent);
         if (parentPage) {
           if (parentPage.children) {
             parentPage.children.push(page);
@@ -135,14 +135,14 @@ export class GvDocumentationComponent implements AfterViewInit {
       }
     });
     pagesMap = pagesMap
-      .filter((page) => (!page.parent && page.type.toUpperCase() !== Page.TypeEnum.ROOT) || (page.parent && page.parent === this.rootDir))
+      .filter(page => (!page.parent && page.type.toUpperCase() !== Page.TypeEnum.ROOT) || (page.parent && page.parent === this.rootDir))
       .sort((p1, p2) => p1.order - p2.order);
     return this.buildMenu(pagesMap, selectedPage);
   }
 
   private buildMenu(pages: any[], selectedPage?: string) {
     const result: TreeItem[] = [];
-    pages.forEach((page) => {
+    pages.forEach(page => {
       const name = page.name;
       let treeItem;
       if (page.children) {
@@ -159,10 +159,10 @@ export class GvDocumentationComponent implements AfterViewInit {
     return result;
   }
 
-  expandMenu(menu: TreeItem[], parents?: TreeItem[], firstLevel: boolean = true) {
-    menu.forEach((menuItem) => {
+  expandMenu(menu: TreeItem[], parents?: TreeItem[], firstLevel = true) {
+    menu.forEach(menuItem => {
       if (menuItem === this.currentMenuItem && parents) {
-        parents.forEach((parent) => (parent.expanded = true));
+        parents.forEach(parent => (parent.expanded = true));
       } else {
         if (menuItem.children) {
           if (parents && !firstLevel) {
@@ -232,8 +232,8 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   private getFirstPage(pages: any[], pageId?: string) {
     return pages
-      .filter((page) => this.isAsciiDoc(page) || this.isAsyncApi(page) || this.isSwagger(page) || this.isMarkdown(page))
-      .find((page) =>
+      .filter(page => this.isAsciiDoc(page) || this.isAsyncApi(page) || this.isSwagger(page) || this.isMarkdown(page))
+      .find(page =>
         // Check pageId if input is defined otherwise fallback on the first page
         pageId ? pageId === page.id : true,
       );
@@ -246,7 +246,7 @@ export class GvDocumentationComponent implements AfterViewInit {
   @HostListener(':gv-button:click', ['$event.srcElement.dataset.pageId'])
   onInternalLinkClick(pageId: string) {
     if (pageId) {
-      const pageToDisplay = this._pages.find((page) => page.id === pageId);
+      const pageToDisplay = this._pages.find(page => page.id === pageId);
       this.onPageChange(pageToDisplay);
     }
   }

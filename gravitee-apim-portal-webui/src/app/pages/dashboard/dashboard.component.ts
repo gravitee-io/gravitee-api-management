@@ -64,16 +64,16 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.currentUserService.get().subscribe((user) => {
+    this.currentUserService.get().subscribe(user => {
       this.currentUser = user;
     });
     if (this.hasApplicationPermission()) {
       this.applicationService
         .getApplications({ size: 3, order: '-nbSubscriptions' })
         .toPromise()
-        .then((response) => {
+        .then(response => {
           const subscriptionsByAppId: { [p: string]: object } = response.metadata?.subscriptions;
-          this.applications = response.data.map((application) => {
+          this.applications = response.data.map(application => {
             const applicationSubscriptions = (subscriptionsByAppId?.[application.id] as Array<Subscription>) || [];
             if (applicationSubscriptions.length > 0) {
               // Load subscriptions details
@@ -84,8 +84,8 @@ export class DashboardComponent implements OnInit {
                   statuses: [StatusEnum.ACCEPTED],
                 })
                 .toPromise()
-                .then((subscriptionsResponse) => {
-                  subscriptionsResponse.data.forEach((sub) => {
+                .then(subscriptionsResponse => {
+                  subscriptionsResponse.data.forEach(sub => {
                     this.subscriptions = this.subscriptions.concat({
                       application,
                       api: { ...{ id: sub.api }, ...subscriptionsResponse.metadata[sub.api] },
@@ -103,22 +103,22 @@ export class DashboardComponent implements OnInit {
         });
     }
 
-    this.format = (key) => this.translateService.get(key).toPromise();
+    this.format = key => this.translateService.get(key).toPromise();
     this.optionsSubscriptions = {
       selectable: true,
       data: [
         {
           field: 'application._links.picture',
           type: 'image',
-          alt: (item) => getPictureDisplayName(item.application),
+          alt: item => getPictureDisplayName(item.application),
         },
         {
           field: 'name',
           type: 'gv-icon',
           width: '30px',
           attributes: {
-            shape: (item) => getApplicationTypeIcon(item.application.applicationType),
-            title: (item) => item.application.applicationType,
+            shape: item => getApplicationTypeIcon(item.application.applicationType),
+            title: item => item.application.applicationType,
           },
         },
         {
@@ -129,14 +129,14 @@ export class DashboardComponent implements OnInit {
         { field: 'plan.name', label: i18n('dashboard.subscriptions.plan') },
       ],
     };
-    this.analyticsService.getDefaultStatsOptions().then((result) => {
+    this.analyticsService.getDefaultStatsOptions().then(result => {
       this.optionsStats = result;
     });
   }
 
   hasApplicationPermission() {
     return (
-      this.currentUser && this.currentUser.permissions && this.currentUser.permissions.APPLICATION.find((permission) => 'R' === permission)
+      this.currentUser && this.currentUser.permissions && this.currentUser.permissions.APPLICATION.find(permission => 'R' === permission)
     );
   }
 
@@ -154,7 +154,7 @@ export class DashboardComponent implements OnInit {
 
   @HostListener(':gv-card-full:click', ['$event.detail'])
   goToApplication(application: Promise<Application>) {
-    Promise.resolve(application).then((app) => {
+    Promise.resolve(application).then(app => {
       this.router.navigate(['/applications/' + app.id]);
     });
   }
@@ -170,7 +170,7 @@ export class DashboardComponent implements OnInit {
     return (
       this.applications &&
       this.config.hasFeature(FeatureEnum.applicationCreation) &&
-      this.currentUser?.permissions?.APPLICATION.find((permission) => 'C' === permission)
+      this.currentUser?.permissions?.APPLICATION.find(permission => 'C' === permission)
     );
   }
 
@@ -189,7 +189,7 @@ export class DashboardComponent implements OnInit {
           query: `(api:${item.api.id})`,
         })
         .toPromise()
-        .then((response) => (this.stats = response));
+        .then(response => (this.stats = response));
     } else {
       delete this.stats;
     }

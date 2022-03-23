@@ -57,7 +57,7 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
     this.size = this.route.snapshot.queryParams[SearchQueryParam.SIZE]
       ? parseInt(this.route.snapshot.queryParams[SearchQueryParam.SIZE], 10)
       : this.config.get('pagination.size.default');
-    this.format = (key) => this.translateService.get(key).toPromise();
+    this.format = key => this.translateService.get(key).toPromise();
     this.options = {
       data: [
         { field: 'title', width: '150px' },
@@ -66,7 +66,7 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
           type: 'gv-relative-time',
           width: '150px',
           attributes: {
-            datetime: (item) => item.created_at,
+            datetime: item => item.created_at,
           },
           style: () => 'text-align: right',
         },
@@ -75,7 +75,7 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
           width: '30px',
           style: () => 'text-align: right',
           attributes: {
-            onClick: (item) => this.markAsRead(item.id),
+            onClick: item => this.markAsRead(item.id),
             shape: 'code:check',
             title: i18n('user.notifications.read'),
           },
@@ -101,7 +101,7 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
         page: this.route.snapshot.queryParams[SearchQueryParam.PAGE] || 1,
       })
       .toPromise()
-      .then((response) => {
+      .then(response => {
         this.notifications = response.data;
         this.total = response.metadata.pagination ? response.metadata.pagination.total : 0;
         this.buildPaginationData();

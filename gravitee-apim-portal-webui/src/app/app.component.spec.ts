@@ -27,11 +27,9 @@ describe('AppComponent', () => {
   });
 
   let spectator: Spectator<AppComponent>;
-  let component;
 
   beforeEach(() => {
     spectator = createComponent();
-    component = spectator.component;
   });
 
   it('should create the app', () => {

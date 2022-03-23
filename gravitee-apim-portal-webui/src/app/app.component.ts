@@ -106,13 +106,13 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private googleAnalyticsService: GoogleAnalyticsService,
     private previewService: PreviewService,
   ) {
-    this.activatedRoute.queryParamMap.subscribe((params) => {
+    this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has('preview') && params.get('preview') === 'on') {
         this.previewService.activate();
       }
     });
 
-    this.router.events.subscribe((event) => {
+    this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
         if (!this.currentUserService.exist() && !this.isInLoginOrRegistration(event.url) && this.forceLogin()) {
@@ -132,7 +132,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.homepageTitle =
       this.configurationService.get('portal.homepageTitle') || (await this.translateService.get(i18n('homepage.title')).toPromise());
     this.googleAnalyticsService.load();
-    this.currentUserService.get().subscribe((newCurrentUser) => {
+    this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
       this.userRoutes = this.navRouteService.getUserNav();
       if (this.currentUser) {
@@ -148,9 +148,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
         clearInterval(this.interval);
       }
     });
-    this.notificationService.notification.subscribe((notification) => {
+    this.notificationService.notification.subscribe(notification => {
       if (notification) {
-        this.translateService.get(notification.code, notification.parameters).subscribe((translatedMessage) => {
+        this.translateService.get(notification.code, notification.parameters).subscribe(translatedMessage => {
           if (notification.code !== translatedMessage || !notification.message) {
             notification.message = translatedMessage;
           }
@@ -167,7 +167,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.userService
       .getCurrentUserNotifications({ size: 1 })
       .toPromise()
-      .then((response) => {
+      .then(response => {
         if (response.data && response.data[0]) {
           const portalNotification = response.data[0];
           const total = response.metadata.pagination ? response.metadata.pagination.total : 0;
@@ -175,9 +175,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
             this.eventService.dispatch(new GvEvent(UserNotificationComponent.NEW));
             const windowNotification = (window as any).Notification;
             if (windowNotification) {
-              windowNotification.requestPermission().then((permission) => {
+              windowNotification.requestPermission().then(permission => {
                 if (permission === 'granted') {
-                  const n = new windowNotification(portalNotification.title, {
+                  new windowNotification(portalNotification.title, {
                     body: portalNotification.message,
                   });
                 }
@@ -197,7 +197,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     }
     this.slots = [this.appGvMenuRightSlot, this.appGvMenuRightTransitionSlot, this.appGvMenuTopSlot];
 
-    this.eventService.subscribe((event) => {
+    this.eventService.subscribe(event => {
       if (event.type === UserNotificationComponent.REMOVE) {
         this.loadNotifications();
       } else if (event.type === AppComponent.UPDATE_USER_AVATAR) {
@@ -255,10 +255,10 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private _setBrowserTitle(currentRoute: ActivatedRoute) {
-    this.translateService.get(i18n('site.title')).subscribe((siteTitle) => {
+    this.translateService.get(i18n('site.title')).subscribe(siteTitle => {
       const data = currentRoute.snapshot.data;
       if (data && data.title) {
-        this.translateService.get(data.title).subscribe((title) => this.titleService.setTitle(`${title} | ${siteTitle}`));
+        this.translateService.get(data.title).subscribe(title => this.titleService.setTitle(`${title} | ${siteTitle}`));
       } else {
         this.titleService.setTitle(siteTitle);
       }
@@ -266,7 +266,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   _buildLinks(links: Link[]): INavRoute[] {
-    return links.map((element) => {
+    return links.map(element => {
       let path: string;
       let target: string;
       switch (element.resourceType) {
@@ -340,22 +340,22 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   private _onNavigationEnd(event: NavigationEnd) {
     this.isHomepage = this.isHomepageUrl(event.url);
-    this.portalService.getPortalLinks().subscribe((portalLinks) => {
+    this.portalService.getPortalLinks().subscribe(portalLinks => {
       if (portalLinks.slots) {
         // deepcode ignore reDOS: <please specify a reason of ignoring this>
         this.mainRoutes = this.navRouteService.getChildrenNav({
           data: { menu: true },
-          children: this.router.config.filter((route) => route.data && route.data.menu),
+          children: this.router.config.filter(route => route.data && route.data.menu),
         });
 
         if (portalLinks.slots.header) {
-          const headerLinks = portalLinks.slots.header.find((catLinks) => catLinks.root);
+          const headerLinks = portalLinks.slots.header.find(catLinks => catLinks.root);
           if (headerLinks) {
             const dynamicRoutes = this._buildLinks(headerLinks.links);
-            const hasDynamicRouteActive = dynamicRoutes.find((r) => r.active);
-            this.mainRoutes = this.mainRoutes.then((navRoutes) => {
+            const hasDynamicRouteActive = dynamicRoutes.find(r => r.active);
+            this.mainRoutes = this.mainRoutes.then(navRoutes => {
               if (hasDynamicRouteActive) {
-                const activeRoute = navRoutes.find((r) => r.active);
+                const activeRoute = navRoutes.find(r => r.active);
                 if (activeRoute) {
                   activeRoute.active = false;
                 }
@@ -365,7 +365,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
           }
         }
         if (portalLinks.slots.footer) {
-          const footerLinks = portalLinks.slots.footer.find((catLinks) => catLinks.root);
+          const footerLinks = portalLinks.slots.footer.find(catLinks => catLinks.root);
           if (footerLinks) {
             this.links.footer = this._buildLinks(footerLinks.links);
           }
@@ -373,8 +373,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
         if (portalLinks.slots.topfooter) {
           this.links.topfooter = portalLinks.slots.topfooter
-            .filter((catLinks) => !catLinks.root)
-            .map((catLinks) => {
+            .filter(catLinks => !catLinks.root)
+            .map(catLinks => {
               return {
                 title: catLinks.category,
                 links: this._buildLinks(catLinks.links),
@@ -402,13 +402,13 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private _clearMenuSlots() {
-    this.slots.forEach((directive) => {
+    this.slots.forEach(directive => {
       directive.clear();
     });
   }
 
   private _injectMenuSlots(slots) {
-    this.slots.forEach((directive) => {
+    this.slots.forEach(directive => {
       const name = directive.getName();
       let slot = slots ? slots[name] : null;
       if (slots && slots.expectedFeature && !this.configurationService.hasFeature(slots.expectedFeature)) {
@@ -418,7 +418,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
         const userPermissions = (this.currentUserService.get().getValue() && this.currentUserService.get().getValue().permissions) || {};
         const expectedPermissions = slots.expectedPermissions;
         const expectedPermissionsObject = {};
-        expectedPermissions.map((perm) => {
+        expectedPermissions.map(perm => {
           const splittedPerms = perm.split('-');
           if (expectedPermissionsObject[splittedPerms[0]]) {
             expectedPermissionsObject[splittedPerms[0]].push(splittedPerms[1]);
@@ -426,7 +426,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
             expectedPermissionsObject[splittedPerms[0]] = [splittedPerms[1]];
           }
         });
-        Object.keys(expectedPermissionsObject).forEach((perm) => {
+        Object.keys(expectedPermissionsObject).forEach(perm => {
           const applicationRights = userPermissions[perm];
           if (
             slot !== null &&
@@ -442,7 +442,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   private _includesAll(applicationRights, expectedRights): boolean {
     let includesAll = true;
-    expectedRights.forEach((r) => {
+    expectedRights.forEach(r => {
       if (!applicationRights.includes(r)) {
         includesAll = false;
       }

@@ -63,38 +63,34 @@ describe('GvTicketsHistoryComponent', () => {
     component = spectator.component;
   });
 
-  beforeEach(
-    waitForAsync(() => {
-      route = spectator.inject(ActivatedRoute);
-      portalService = spectator.inject(PortalService);
-      routerSpy = spectator.inject(Router);
+  beforeEach(waitForAsync(() => {
+    route = spectator.inject(ActivatedRoute);
+    portalService = spectator.inject(PortalService);
+    routerSpy = spectator.inject(Router);
 
-      jest.spyOn(ConfigurationService.prototype, 'get').mockImplementation((arg) => {
-        if (arg === 'pagination.size.values') {
-          return PAGE_SIZES;
-        } else if (arg === 'pagination.size.values') {
-          return PAGE_SIZE_DEFAULT;
-        }
-      });
+    jest.spyOn(ConfigurationService.prototype, 'get').mockImplementation(arg => {
+      if (arg === 'pagination.size.values') {
+        return PAGE_SIZES;
+      }
+    });
 
-      route.queryParams = of({
-        skipRefresh: false,
+    route.queryParams = of({
+      skipRefresh: false,
+      size: 10,
+      page: 1,
+      field: 'subject',
+      order: 'ASC',
+    });
+
+    route.snapshot = {
+      queryParams: {
         size: 10,
-        page: 1,
-        field: 'subject',
-        order: 'ASC',
-      });
-
-      route.snapshot = {
-        queryParams: {
-          size: 10,
-        },
-        data: {
-          api: { id: 'apiId' },
-        },
-      };
-    }),
-  );
+      },
+      data: {
+        api: { id: 'apiId' },
+      },
+    };
+  }));
 
   afterEach(() => {
     if (component.queryParamSubscription) {

@@ -40,14 +40,15 @@ export class HomepageComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.portalService.getPages({ homepage: true }).subscribe((response) => {
+    this.portalService.getPages({ homepage: true }).subscribe(response => {
       this.homepage = response.data[0];
     });
 
     const size = this.config.get('homepage.featured.size', 9);
-    this.apiService.getApis({ filter: 'FEATURED', size }).subscribe((response) => {
-      this.topApis = response.data.map((a) => {
+    this.apiService.getApis({ filter: 'FEATURED', size }).subscribe(response => {
+      this.topApis = response.data.map(a => {
         const metric = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         a.states = this.apiStates.transform(a);
         a.labels = this.apiLabels.transform(a);
@@ -58,7 +59,7 @@ export class HomepageComponent implements OnInit {
 
   @HostListener(':gv-card-full:click', ['$event.detail'])
   goToApi(api: Promise<Api>) {
-    Promise.resolve(api).then((_api) => {
+    Promise.resolve(api).then(_api => {
       this.router.navigate(['/catalog/api/' + _api.id]);
     });
   }

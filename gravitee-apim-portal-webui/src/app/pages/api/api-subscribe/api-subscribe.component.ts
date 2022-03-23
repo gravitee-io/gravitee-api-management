@@ -116,7 +116,7 @@ export class ApiSubscribeComponent implements OnInit {
     this.translateService
       .get([i18n('apiSubscribe.apps.comment'), i18n('apiSubscribe.plan'), i18n('apiSubscribe.apps.missingClientId')])
       .toPromise()
-      .then((_translations) => {
+      .then(_translations => {
         const translations = Object.values(_translations);
         this._commentLabel = translations[0];
         this._planLabel = translations[1];
@@ -137,7 +137,7 @@ export class ApiSubscribeComponent implements OnInit {
           i18n('apiKeyMode.shared.description'),
         ])
         .toPromise()
-        .then((_translations) => {
+        .then(_translations => {
           const translations: string[] = Object.values(_translations);
           this.apiKeyModeOptions = [
             {
@@ -223,11 +223,11 @@ export class ApiSubscribeComponent implements OnInit {
     }
 
     this._allSteps = await Promise.all(
-      stepsTitle.map((title) => {
+      stepsTitle.map(title => {
         return this.translateService
           .get(title)
           .toPromise()
-          .then((_title) => {
+          .then(_title => {
             return { title: _title };
           });
       }),
@@ -294,7 +294,7 @@ export class ApiSubscribeComponent implements OnInit {
                 include: ['content'],
               })
               .toPromise()
-              .then((p) => {
+              .then(p => {
                 this._generalConditions.set(p.id, p);
                 this._currentGeneralConditions = p;
               });
@@ -325,7 +325,7 @@ export class ApiSubscribeComponent implements OnInit {
   getSelectedApplication() {
     const applicationId = this.subscribeForm.value.application;
     if (applicationId) {
-      return this._applications.find((application) => application.id === applicationId);
+      return this._applications.find(application => application.id === applicationId);
     }
     return undefined;
   }
@@ -338,7 +338,7 @@ export class ApiSubscribeComponent implements OnInit {
   getApplicationKeyMode() {
     const apiKeyMode = this.subscribeForm.value.apiKeyMode;
     if (apiKeyMode) {
-      const keyMode = this.apiKeyModeOptions.find((option) => option.id === apiKeyMode);
+      const keyMode = this.apiKeyModeOptions.find(option => option.id === apiKeyMode);
       return keyMode ? keyMode.title : '';
     }
     return '';
@@ -382,7 +382,7 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   hasStepper() {
-    return this.hasPlans() && this.plans.filter((plan) => plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS).length > 0;
+    return this.hasPlans() && this.plans.filter(plan => plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS).length > 0;
   }
 
   isApiKey() {
@@ -515,7 +515,7 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   private findPlanById(planId: string): Plan {
-    return this.plans.find((plan) => plan.id === planId);
+    return this.plans.find(plan => plan.id === planId);
   }
 
   hasSubscription() {
@@ -554,7 +554,7 @@ export class ApiSubscribeComponent implements OnInit {
       if (this.subscribeForm.valid) {
         return true;
       }
-      const invalidControls = Object.values(this.subscribeForm.controls).filter((control) => control.invalid);
+      const invalidControls = Object.values(this.subscribeForm.controls).filter(control => control.invalid);
       if (invalidControls.length === 1 && invalidControls[0] === this.subscribeForm.get('general_conditions_accepted')) {
         return true;
       }
@@ -577,13 +577,13 @@ export class ApiSubscribeComponent implements OnInit {
         let disabled = false;
         let title;
         this.availableApplications = this._applications
-          .map((application) => {
+          .map(application => {
             disabled = false;
             title = undefined;
             const label = `${application.name} (${application.owner.display_name})`;
-            const appSubscriptions = this._allApiSubscriptions.filter((sub) => sub.application === application.id);
+            const appSubscriptions = this._allApiSubscriptions.filter(sub => sub.application === application.id);
             if (appSubscriptions.length > 0) {
-              const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
+              const appPlansSubscriptions = appSubscriptions.filter(subscription => subscription.plan === plan.id);
               if (appPlansSubscriptions.length > 0) {
                 subscribedApps.push({
                   item: application,
@@ -604,7 +604,7 @@ export class ApiSubscribeComponent implements OnInit {
 
             return { label, value: application.id, disabled, title };
           })
-          .filter((app) => app !== null);
+          .filter(app => app !== null);
         this.connectedApps = subscribedApps;
       }
     }
@@ -621,7 +621,7 @@ export class ApiSubscribeComponent implements OnInit {
 
   private canSubscribe(appSubscriptions: Subscription[], plan: Plan) {
     if (appSubscriptions && appSubscriptions.length > 0) {
-      return appSubscriptions.find((subscription) => subscription.plan === plan.id) == null;
+      return appSubscriptions.find(subscription => subscription.plan === plan.id) == null;
     }
     return true;
   }
@@ -645,10 +645,10 @@ export class ApiSubscribeComponent implements OnInit {
         statuses: [StatusEnum.ACCEPTED, StatusEnum.PENDING, StatusEnum.PAUSED],
       })
       .toPromise()
-      .then((response) => {
+      .then(response => {
         this._allApiSubscriptions = response.data;
       })
-      .catch((err) => {
+      .catch(err => {
         if (err.status === 403) {
           this._canSubscribe = false;
         }
@@ -676,7 +676,7 @@ export class ApiSubscribeComponent implements OnInit {
     const selectedApplication = this.getSelectedApplication();
     if (selectedApplication) {
       this._selectedApplicationSubscriptionsWithMetadata = this._allApplicationSubscriptionsWithMetadata?.find(
-        (item) => item.applicationId === selectedApplication.id,
+        item => item.applicationId === selectedApplication.id,
       )?.subscriptionsResponse;
       if (!this._selectedApplicationSubscriptionsWithMetadata) {
         const subscriptionsResponse = await this.subscriptionService
@@ -696,7 +696,7 @@ export class ApiSubscribeComponent implements OnInit {
       const appSubscriptions: Subscription[] = this._selectedApplicationSubscriptionsWithMetadata.data;
       const appSubscriptionsMetadata: any = this._selectedApplicationSubscriptionsWithMetadata.metadata;
       const nbSubsOnApiKeyPlans = appSubscriptions.filter(
-        (sub) => sub.api !== this.apiId && appSubscriptionsMetadata[sub.plan]?.securityType === SecurityEnum.APIKEY,
+        sub => sub.api !== this.apiId && appSubscriptionsMetadata[sub.plan]?.securityType === SecurityEnum.APIKEY,
       ).length;
       return nbSubsOnApiKeyPlans >= 1;
     }

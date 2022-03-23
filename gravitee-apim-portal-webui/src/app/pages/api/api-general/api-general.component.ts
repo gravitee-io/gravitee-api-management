@@ -133,8 +133,8 @@ export class ApiGeneralComponent implements OnInit {
               i18n('apiGeneral.ratingsSortOptions.answers'),
             ])
             .toPromise()
-            .then((translations) => {
-              const options = Object.values(translations).map((label) => ({ label, value: 'date' }));
+            .then(translations => {
+              const options = Object.values(translations).map(label => ({ label, value: 'date' }));
               options[1].value = '-date';
               options[2].value = 'value';
               options[3].value = '-value';
@@ -150,11 +150,11 @@ export class ApiGeneralComponent implements OnInit {
         this.apiService
           .getApiMetricsByApiId({ apiId })
           .toPromise()
-          .then((metrics) => (this.currentApiMetrics = metrics));
+          .then(metrics => (this.currentApiMetrics = metrics));
         this.currentApi = this.route.snapshot.data.api;
-        this.apiService.getApiLinks({ apiId }).subscribe((apiLinks) => {
+        this.apiService.getApiLinks({ apiId }).subscribe(apiLinks => {
           if (apiLinks.slots && apiLinks.slots.aside) {
-            apiLinks.slots.aside.forEach((catLinks) => {
+            apiLinks.slots.aside.forEach(catLinks => {
               if (catLinks.root) {
                 this.resources = this._buildLinks(apiId, catLinks.links);
               }
@@ -171,7 +171,7 @@ export class ApiGeneralComponent implements OnInit {
               statuses: [StatusEnum.ACCEPTED],
             })
             .toPromise()
-            .then((response) => response.data.map((app) => ({ item: app, type: ItemResourceTypeEnum.APPLICATION })))
+            .then(response => response.data.map(app => ({ item: app, type: ItemResourceTypeEnum.APPLICATION })))
             .catch(() => []);
         }
 
@@ -202,8 +202,8 @@ export class ApiGeneralComponent implements OnInit {
         this.apiService
           .getApiRatingsByApiId(requestParameters)
           .toPromise()
-          .then((mineRatingsResponse) => {
-            this.userRating = mineRatingsResponse.data.find((rating) => {
+          .then(mineRatingsResponse => {
+            this.userRating = mineRatingsResponse.data.find(rating => {
               return rating.author.id === this.currentUser.id;
             });
             this.canRate = this.permissions.RATING && this.permissions.RATING.includes('C') && this.userRating == null;
@@ -219,14 +219,14 @@ export class ApiGeneralComponent implements OnInit {
           order: this.currentOrder,
         })
         .toPromise()
-        .then((ratingsResponse) => {
+        .then(ratingsResponse => {
           this.ratings = ratingsResponse.data;
           if (this.currentUser) {
             this.ratingListPermissions.update = this.ratings
-              .filter((rating) => {
+              .filter(rating => {
                 return rating.author.id === this.currentUser.id;
               })
-              .map((rating) => rating.id);
+              .map(rating => rating.id);
             this.ratingListPermissions.delete = this.permissions.RATING && this.permissions.RATING.includes('D');
             this.ratingListPermissions.addAnswer = this.permissions.RATING_ANSWER && this.permissions.RATING_ANSWER.includes('C');
             this.ratingListPermissions.deleteAnswer = this.permissions.RATING_ANSWER && this.permissions.RATING_ANSWER.includes('D');
@@ -237,7 +237,7 @@ export class ApiGeneralComponent implements OnInit {
   }
 
   _buildLinks(apiId: string, links: Link[]) {
-    return links.map((element) => {
+    return links.map(element => {
       let path: string;
       let target: string;
       switch (element.resourceType) {
@@ -310,13 +310,13 @@ export class ApiGeneralComponent implements OnInit {
     this.apiService
       .updateApiRating({ apiId, ratingId: rating.id, ratingInput })
       .toPromise()
-      .then((res) => {
+      .then(_res => {
         this.ratingForm = null;
         this._updateRatings();
         this.apiService
           .getApiByApiId({ apiId })
           .toPromise()
-          .then((api) => (this.currentApi = api));
+          .then(api => (this.currentApi = api));
       })
       .then(() => this.notificationService.info(i18n('apiGeneral.ratingUpdated')));
   }
@@ -335,7 +335,7 @@ export class ApiGeneralComponent implements OnInit {
         this.apiService
           .getApiByApiId({ apiId })
           .toPromise()
-          .then((api) => (this.currentApi = api));
+          .then(api => (this.currentApi = api));
       });
   }
 
@@ -384,14 +384,14 @@ export class ApiGeneralComponent implements OnInit {
     this.apiService
       .createApiRating({ apiId, ratingInput })
       .toPromise()
-      .then((res) => {
+      .then(_res => {
         this.ratingForm = null;
         this.notificationService.info(i18n('apiGeneral.ratingCreated'));
         this._updateRatings();
         this.apiService
           .getApiByApiId({ apiId })
           .toPromise()
-          .then((api) => (this.currentApi = api));
+          .then(api => (this.currentApi = api));
       });
   }
 

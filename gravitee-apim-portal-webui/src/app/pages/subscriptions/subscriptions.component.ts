@@ -94,14 +94,14 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
     this.options = {
       selectable: true,
       data: [
-        { field: '_links.picture', type: 'image', alt: (item) => getPictureDisplayName(item) },
+        { field: '_links.picture', type: 'image', alt: item => getPictureDisplayName(item) },
         {
           field: 'name',
           type: 'gv-icon',
           width: '30px',
           attributes: {
-            shape: (item) => getApplicationTypeIcon(item.applicationType),
-            title: (item) => item.applicationType,
+            shape: item => getApplicationTypeIcon(item.applicationType),
+            title: item => item.applicationType,
           },
         },
         {
@@ -114,10 +114,10 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
           width: '30px',
           attributes: {
             link: true,
-            href: (item) => `/applications/${item.id}`,
+            href: item => `/applications/${item.id}`,
             title: i18n('subscriptions.applications.navigate'),
             icon: 'communication:share',
-            onClick: (item, e) => this.goToApplication(item.id),
+            onClick: item => this.goToApplication(item.id),
           },
         },
       ],
@@ -129,16 +129,16 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
       selectable: true,
       data: [
         {
-          field: (item) => {
+          field: item => {
             return this.subscriptionsMetadata[item.subscription.api].pictureUrl;
           },
           type: 'image',
-          alt: (item) =>
+          alt: item =>
             this.subscriptionsMetadata[item.subscription.api] && getPictureDisplayName(this.subscriptionsMetadata[item.subscription.api]),
         },
         {
-          field: (item) => this.subscriptionsMetadata[item.subscription.api].name,
-          tag: (item) => this.subscriptionsMetadata[item.subscription.api] && this.subscriptionsMetadata[item.subscription.api].version,
+          field: item => this.subscriptionsMetadata[item.subscription.api].name,
+          tag: item => this.subscriptionsMetadata[item.subscription.api] && this.subscriptionsMetadata[item.subscription.api].version,
           label: i18n('subscriptions.subscriptions.api'),
         },
         { field: 'plan.name', label: i18n('subscriptions.subscriptions.plan') },
@@ -149,27 +149,27 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
           width: '25px',
           attributes: {
             link: true,
-            href: (item) => `/applications/${this.selectedApplicationId}/subscriptions?subscription=${item.subscription.id}`,
+            href: item => `/applications/${this.selectedApplicationId}/subscriptions?subscription=${item.subscription.id}`,
             title: i18n('subscriptions.subscriptions.navigate'),
             icon: 'communication:share',
-            onClick: (item) => this.goToSubscription(item.subscription.id),
+            onClick: item => this.goToSubscription(item.subscription.id),
           },
         },
       ],
     };
-    this.format = (key) => this.translateService.get(key).toPromise();
+    this.format = key => this.translateService.get(key).toPromise();
 
     this.activatedRoute.queryParamMap
       .pipe(
         takeUntil(this.unsubscribe$),
-        switchMap((params) =>
+        switchMap(params =>
           this.applicationService.getApplications({
             size: Number(params.get('size') ?? this.paginationSize),
             page: Number(params.get('page') ?? 1),
           }),
         ),
       )
-      .subscribe((response) => {
+      .subscribe(response => {
         this.applications = response.data;
         this.skeleton = false;
 
@@ -265,7 +265,7 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
         const { data, metadata } = await this.subscriptionService.getSubscriptions(params).toPromise();
         this.subscriptionsMetadata = { ...this.subscriptionsMetadata, ...metadata };
         const subscription = await Promise.all(
-          data.map(async (applicationSubscription) => {
+          data.map(async applicationSubscription => {
             return {
               subscription: applicationSubscription,
               api: this.subscriptionsMetadata[applicationSubscription.api],

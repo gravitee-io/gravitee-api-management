@@ -21,7 +21,7 @@ import { Dashboard, PortalService } from '../../../projects/portal-webclient-sdk
 export class DashboardsResolver implements Resolve<Array<Dashboard>> {
   constructor(private portalService: PortalService) {}
 
-  resolve(route: ActivatedRouteSnapshot) {
+  resolve(_route: ActivatedRouteSnapshot) {
     return this.portalService.getDashboards();
   }
 }

@@ -51,13 +51,13 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadData();
 
-    this.router.events.subscribe((event) => {
+    this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         this.loadData();
       }
     });
 
-    this.eventService.subscribe((event) => {
+    this.eventService.subscribe(event => {
       if (event.type === GvHeaderItemComponent.RELOAD_EVENT) {
         this.loadData(true);
       } else if (event.type === GvHeaderItemComponent.UPDATE_PICTURE) {
@@ -94,7 +94,7 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.currentUserService.get().subscribe((newCurrentUser) => {
+    this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
     });
   }

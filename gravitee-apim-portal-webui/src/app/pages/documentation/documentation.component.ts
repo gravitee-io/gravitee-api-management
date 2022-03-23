@@ -30,7 +30,7 @@ export class DocumentationComponent implements OnInit {
 
   ngOnInit() {
     this.fragment = this.activeRoute.snapshot.fragment;
-    this.activeRoute.params.subscribe((params) => {
+    this.activeRoute.params.subscribe(params => {
       if (params.rootDir && params.rootDir !== 'root') {
         this.rootDir = params.rootDir;
       } else {
@@ -39,7 +39,7 @@ export class DocumentationComponent implements OnInit {
       this.portalService
         .getPages({ homepage: false, size: -1, parent: this.rootDir })
         .toPromise()
-        .then((pagesResponse) => {
+        .then(pagesResponse => {
           this.pages = pagesResponse.data;
         });
     });

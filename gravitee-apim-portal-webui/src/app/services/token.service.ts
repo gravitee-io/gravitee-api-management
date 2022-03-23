@@ -19,8 +19,6 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class TokenService {
-  constructor() {}
-
   isParsedTokenExpired(parsedToken: any) {
     return parsedToken ? parsedToken.exp * 1000 <= Date.now() : false;
   }
@@ -32,7 +30,7 @@ export class TokenService {
       const jsonPayload = decodeURIComponent(
         atob(base64)
           .split('')
-          .map((c) => {
+          .map(c => {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
           })
           .join(''),

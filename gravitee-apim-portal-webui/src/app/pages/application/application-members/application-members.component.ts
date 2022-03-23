@@ -118,9 +118,9 @@ export class ApplicationMembersComponent implements OnInit {
       this.portalService
         .getApplicationRoles()
         .toPromise()
-        .then((appRoles) => {
+        .then(appRoles => {
           this.roles = [];
-          appRoles.data.forEach((appRole) => {
+          appRoles.data.forEach(appRole => {
             if (appRole.name !== 'PRIMARY_OWNER') {
               this.roles.push({
                 label: appRole.name,
@@ -132,11 +132,11 @@ export class ApplicationMembersComponent implements OnInit {
 
       if (this.application.groups && this.application.groups.length > 0) {
         this.groups = [];
-        this.application.groups.forEach((grp) => {
+        this.application.groups.forEach(grp => {
           this.groupService
             .getMembersByGroupId({ groupId: grp.id, size: -1 })
             .toPromise()
-            .then((membersResponse) => {
+            .then(membersResponse => {
               this.groups.push({
                 groupId: grp.id,
                 groupName: grp.name,
@@ -155,7 +155,7 @@ export class ApplicationMembersComponent implements OnInit {
           i18n('application.members.list.remove.title'),
         ])
         .toPromise()
-        .then((translations) => {
+        .then(translations => {
           this.tableTranslations = Object.values(translations);
           this.membersOptions = this._buildMemberOptions();
 
@@ -178,7 +178,7 @@ export class ApplicationMembersComponent implements OnInit {
           statuses: [StatusEnum.ACCEPTED],
         })
         .toPromise()
-        .then((response) => response.data.map((api) => ({ item: api, type: ItemResourceTypeEnum.API })));
+        .then(response => response.data.map(api => ({ item: api, type: ItemResourceTypeEnum.API })));
     }
   }
 
@@ -205,8 +205,8 @@ export class ApplicationMembersComponent implements OnInit {
       label: roleLabel,
       type: 'gv-select',
       attributes: {
-        options: (item) => (item.role === 'PRIMARY_OWNER' ? ['PRIMARY_OWNER'] : this.roles),
-        disabled: (item) => item.role === 'PRIMARY_OWNER',
+        options: item => (item.role === 'PRIMARY_OWNER' ? ['PRIMARY_OWNER'] : this.roles),
+        disabled: item => item.role === 'PRIMARY_OWNER',
         'ongv-select:select': (item, e) => this.updateMember(item, e),
       },
     };
@@ -217,9 +217,9 @@ export class ApplicationMembersComponent implements OnInit {
       type: 'gv-icon',
       width: '25px',
       confirm: { msg: confirmMessage, danger: true },
-      condition: (item) => item.role !== 'PRIMARY_OWNER',
+      condition: item => item.role !== 'PRIMARY_OWNER',
       attributes: {
-        onClick: (item) => this.removeMember(item),
+        onClick: item => this.removeMember(item),
         shape: 'general:trash',
         title: iconTitle,
       },
@@ -246,7 +246,7 @@ export class ApplicationMembersComponent implements OnInit {
     return this.applicationService
       .getMembersByApplicationId({ applicationId: this.application.id })
       .toPromise()
-      .then((membersResponse) => {
+      .then(membersResponse => {
         this.members = membersResponse.data;
       });
   }
@@ -269,14 +269,13 @@ export class ApplicationMembersComponent implements OnInit {
 
   onSearchUserToAdd({ detail }) {
     this.searchUser(detail).then(
-      (users) =>
-        (this.userListForAddMember = users.filter((user) => this.members.findIndex((member) => member.user.id === user.id) === -1)),
+      users => (this.userListForAddMember = users.filter(user => this.members.findIndex(member => member.user.id === user.id) === -1)),
     );
   }
 
   onSearchUserForTransferOwnership({ detail }) {
     this.searchUser(detail).then(
-      (users) => (this.userListForTransferOwnership = users.filter((user) => this.application.owner.id !== user.id)),
+      users => (this.userListForTransferOwnership = users.filter(user => this.application.owner.id !== user.id)),
     );
   }
 
@@ -292,11 +291,12 @@ export class ApplicationMembersComponent implements OnInit {
     return this.usersService
       .getUsers({ q: query })
       .toPromise()
-      .then((usersResponse) => {
+      .then(usersResponse => {
         let result: User[] = [];
         if (usersResponse.data.length) {
-          result = usersResponse.data.map((u) => {
+          result = usersResponse.data.map(u => {
             const row = document.createElement('gv-row');
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             row.item = { name: u.display_name, picture: u._links ? u._links.avatar : '' };
             return { value: u.display_name, element: row, id: u.id, data: u };
@@ -368,7 +368,7 @@ export class ApplicationMembersComponent implements OnInit {
       .then(() => {
         this.notificationService.success(i18n('application.members.list.success'));
         if (this.currentUser.exist() && this.currentUser.getUser().id === member.user.id) {
-          this.isReadOnly().then((isReadOnly) => {
+          this.isReadOnly().then(isReadOnly => {
             this.readonly = isReadOnly;
             this.membersOptions = this._buildMemberOptions();
             this.ref.detectChanges();

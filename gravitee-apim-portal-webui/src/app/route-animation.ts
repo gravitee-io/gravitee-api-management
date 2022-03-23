@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { transition, trigger, query, style, animate, group, animateChild } from '@angular/animations';
+import { transition, trigger, query, style, animate, group } from '@angular/animations';
 
 export function isSlide(previous, next) {
   return previous && previous.type === 'slide' && next && next.type === 'slide' && previous.group === next.group;
