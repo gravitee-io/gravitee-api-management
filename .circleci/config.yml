@@ -33,6 +33,39 @@ executors:
         resource_class: <<parameters.resource_class>>
 
 commands:
+    build-and-publish-dev-docker-images:
+        description: Build & Publish Dev Management API and Gateway Docker Image to Azure Registry
+        parameters:
+            enterprise_edition:
+                default: false
+                type: boolean
+        steps:
+            - run:
+                  name: Build & publish dev docker image <<# parameters.enterprise_edition >>- Enterprise edition<</ parameters.enterprise_edition >>
+                  command: |
+                      export dockerTag=$TAG
+                      if [ "<< parameters.enterprise_edition >>" == "true" ]; then
+                        dockerTag=$(echo $dockerTag | sed 's/-/-ee-/')
+                      fi
+                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${dockerTag}
+                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${dockerTag}
+
+                      docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
+                      --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
+                      -t ${REST_API_PRIVATE_IMAGE_TAG} \
+                      rest-api-docker-context
+
+                      docker build -f gravitee-apim-gateway/docker/Dockerfile-dev \
+                      --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
+                      -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
+                      gateway-docker-context
+
+                      echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+                      docker push ${REST_API_PRIVATE_IMAGE_TAG}
+                      docker push ${GATEWAY_PRIVATE_IMAGE_TAG}
+
+                      docker logout graviteeio.azurecr.io
+
     prepare-env-var:
         description: Prepare env variables used in [version.properties] files
         steps:
@@ -265,7 +298,7 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -s .gravitee.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mvn -s .gravitee.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev,distribution-ee
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
@@ -361,27 +394,25 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
                   var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+            - build-and-publish-dev-docker-images:
+                  enterprise_edition: true
             - run:
-                  name: Build & Publish Management API and Gateway Docker Image to Azure Registry
+                  name: prepare the CE image by removing EE lib & plugins
                   command: |
-                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
-                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${TAG}
+                      ## Clean rest api
+                      rm rest-api-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
+                      rm rest-api-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
+                      rm rest-api-docker-context/distribution/plugins/gravitee-notifier-*.zip
+                      rm rest-api-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
+                      rm rest-api-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
 
-                      docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
-                      --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-                      -t ${REST_API_PRIVATE_IMAGE_TAG} \
-                      rest-api-docker-context
-
-                      docker build -f gravitee-apim-gateway/docker/Dockerfile-dev \
-                      --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-                      -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
-                      gateway-docker-context
-
-                      echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-                      docker push ${REST_API_PRIVATE_IMAGE_TAG}
-                      docker push ${GATEWAY_PRIVATE_IMAGE_TAG}
-                      docker logout graviteeio.azurecr.io
-
+                      ## Clean Gateway
+                      rm gateway-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
+                      rm gateway-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
+                      rm gateway-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
+                      rm gateway-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
+            - build-and-publish-dev-docker-images:
+                  enterprise_edition: false
             - notify-on-failure
 
     cypress-install:
@@ -1072,148 +1103,143 @@ workflows:
         jobs:
             - setup:
                   context: cicd-orchestrator
-            - validate:
-                  context: gravitee-qa
-                  requires:
-                      - setup
+#            - validate:
+#                  context: gravitee-qa
+#                  requires:
+#                      - setup
             - build:
                   context: gravitee-qa
                   requires:
-                      - validate
-            - test:
-                  requires:
-                      - build
-            - sonarcloud-analysis:
-                  name: Sonar - << matrix.working_directory >>
-                  matrix:
-                      parameters:
-                          working_directory:
-                              - gravitee-apim-rest-api
-                              - gravitee-apim-repository
-                              - gravitee-apim-gateway
-                  context: cicd-orchestrator
-                  requires:
-                      - test
-            - publish-on-artifactory:
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
-                              - fix-nexus-pb
-                  requires:
-                      - test
-            - publish-on-nexus:
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
-                              - fix-nexus-pb
-                  requires:
-                      - test
+                       - setup
+#                      - validate
+#            - test:
+#                  requires:
+#                      - build
+#            - sonarcloud-analysis:
+#                  name: Sonar - << matrix.working_directory >>
+#                  matrix:
+#                      parameters:
+#                          working_directory:
+#                              - gravitee-apim-rest-api
+#                              - gravitee-apim-repository
+#                              - gravitee-apim-gateway
+#                  context: cicd-orchestrator
+#                  requires:
+#                      - test
+#            - publish-on-artifactory:
+#                  filters:
+#                      branches:
+#                          only:
+#                              - master
+#                              - /^\d+\.\d+\.x$/
+#                              - fix-nexus-pb
+#                  requires:
+#                      - test
+#            - publish-on-nexus:
+#                  filters:
+#                      branches:
+#                          only:
+#                              - master
+#                              - /^\d+\.\d+\.x$/
+#                              - fix-nexus-pb
+#                  requires:
+#                      - test
             - publish-images-azure-registry:
                   context: cicd-orchestrator
                   requires:
-                      - test
+                      - build 
+#                     - test
                   filters:
                       branches:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-            - webui-lint-test:
-                  name: Lint & Test APIM Console
-                  apim-ui-project: gravitee-apim-console-webui
-                  requires:
-                      - setup
-            - console-webui-build-storybook:
-                  name: Build Console Storybook
-                  requires:
-                      - setup
-            - console-webui-chromatic-deployment:
-                  context: cicd-orchestrator
-                  requires:
-                      - Build Console Storybook
-            - webui-build:
-                  name: Build APIM Console
-                  apim-ui-project: gravitee-apim-console-webui
-                  requires:
-                      - setup
-            - console-webui-deploy-on-azure-storage:
-                  context: cicd-orchestrator
-                  requires:
-                      - Build APIM Console
-            - console-webui-comment-pr-after-deployment:
-                  context: cicd-orchestrator
-                  requires:
-                      - console-webui-deploy-on-azure-storage
-            - webui-publish-images-azure-registry:
-                  name: Build and publish APIM Console docker image
-                  apim-ui-project: gravitee-apim-console-webui
-                  docker-image-name: apim-management-ui
-                  context: cicd-orchestrator
-                  requires:
-                      - Build APIM Console
-                      - setup
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
-            - webui-lint-test:
-                  name: Lint & Test APIM Portal
-                  apim-ui-project: gravitee-apim-portal-webui
-                  resource-class: large
-                  requires:
-                      - setup
-            - sonarcloud-analysis:
-                  name: Sonar - << matrix.working_directory >>
-                  matrix:
-                      parameters:
-                          working_directory:
-                              - gravitee-apim-console-webui
-                              - gravitee-apim-portal-webui
-                  context: cicd-orchestrator
-                  requires:
-                      - Lint & Test APIM Console
-                      - Lint & Test APIM Portal
-            - webui-build:
-                  name: Build APIM Portal
-                  apim-ui-project: gravitee-apim-portal-webui
-                  requires:
-                      - setup
-            - webui-publish-images-azure-registry:
-                  name: Build and publish APIM Portal docker image
-                  apim-ui-project: gravitee-apim-portal-webui
-                  docker-image-name: apim-portal-ui
-                  context: cicd-orchestrator
-                  requires:
-                      - Build APIM Portal
-                      - setup
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
-            - deploy-on-azure-cluster:
-                  context: cicd-orchestrator
-                  requires:
-                      - publish-images-azure-registry
-                      - Build and publish APIM Console docker image
-                      - Build and publish APIM Portal docker image
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
-                  # To be modified when testing strategy will be defined
-            - cypress-install:
-                  requires:
-                      - build
-            - cypress-lint-test:
-                  requires:
-                      - cypress-install
-
+                              - buildingEEImageForDev
+#            - webui-lint-test:
+#                  name: Lint & Test APIM Console
+#                  apim-ui-project: gravitee-apim-console-webui
+#                  requires:
+#                      - setup
+#            - console-webui-build-storybook:
+#                  name: Build Console Storybook
+#                  requires:
+#                      - setup
+#            - console-webui-chromatic-deployment:
+#                  context: cicd-orchestrator
+#                  requires:
+#                      - Build Console Storybook
+#            - webui-build:
+#                  name: Build APIM Console
+#                  apim-ui-project: gravitee-apim-console-webui
+#                  requires:
+#                      - setup
+#            - console-webui-deploy-on-azure-storage:
+#                  context: cicd-orchestrator
+#                  requires:
+#                      - Build APIM Console
+#            - console-webui-comment-pr-after-deployment:
+#                  context: cicd-orchestrator
+#                  requires:
+#                      - console-webui-deploy-on-azure-storage
+#            - webui-publish-images-azure-registry:
+#                  name: Build and publish APIM Console docker image
+#                  apim-ui-project: gravitee-apim-console-webui
+#                  docker-image-name: apim-management-ui
+#                  context: cicd-orchestrator
+#                  requires:
+#                      - Build APIM Console
+#                      - setup
+#                  filters:
+#                      branches:
+#                          only:
+#                              - master
+#                              - /^\d+\.\d+\.x$/
+#            - webui-lint-test:
+#                  name: Lint & Test APIM Portal
+#                  apim-ui-project: gravitee-apim-portal-webui
+#                  resource-class: large
+#                  requires:
+#                      - setup
+#            - sonarcloud-analysis:
+#                  name: Sonar - << matrix.working_directory >>
+v                  matrix:
+#                      parameters:
+#                          working_directory:
+#                              - gravitee-apim-console-webui
+#                              - gravitee-apim-portal-webui
+#                  context: cicd-orchestrator
+#                  requires:
+#                      - Lint & Test APIM Console
+#                      - Lint & Test APIM Portal
+#            - webui-build:
+#                  name: Build APIM Portal
+#                  apim-ui-project: gravitee-apim-portal-webui
+#                  requires:
+#                      - setup
+#            - webui-publish-images-azure-registry:
+#                  name: Build and publish APIM Portal docker image
+#                  apim-ui-project: gravitee-apim-portal-webui
+#                  docker-image-name: apim-portal-ui
+#                  context: cicd-orchestrator
+#                  requires:
+#                      - Build APIM Portal
+#                      - setup
+#                  filters:
+#                      branches:
+#                          only:
+#                              - master
+#                              - /^\d+\.\d+\.x$/
+#            - deploy-on-azure-cluster:
+#                  context: cicd-orchestrator
+#                  requires:
+#                      - publish-images-azure-registry
+#                      - Build and publish APIM Console docker image
+#                      - Build and publish APIM Portal docker image
+#                  filters:
+#                      branches:
+#                          only:
+#                              - master
+#                              - /^\d+\.\d+\.x$/
     build_docker_images:
         when:
             equal: [build_docker_images, << pipeline.parameters.gio_action >>]
