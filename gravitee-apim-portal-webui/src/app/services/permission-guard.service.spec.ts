@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-
-import { PermissionGuardService } from './permission-guard.service';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+
+import { PermissionGuardService } from './permission-guard.service';
 
 describe('PermissionGuardService', () => {
   beforeEach(() =>

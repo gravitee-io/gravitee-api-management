@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-import { GvAnalyticsFiltersComponent } from './gv-analytics-filters.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+import { TranslateTestingModule } from '../../test/translate-testing-module';
+
+import { GvAnalyticsFiltersComponent } from './gv-analytics-filters.component';
 
 describe('GvAnalyticsFiltersComponent', () => {
   const createComponent = createComponentFactory({

@@ -15,6 +15,8 @@
  */
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+
 import { GvButtonCreateApplicationComponent } from '../../components/gv-button-create-application/gv-button-create-application.component';
 import { GvHeaderItemComponent } from '../../components/gv-header-item/gv-header-item.component';
 import { GvSelectDashboardComponent } from '../../components/gv-select-dashboard/gv-select-dashboard.component';
@@ -33,11 +35,11 @@ import { ApplicationMetadataComponent } from '../application/application-metadat
 import { ApplicationNotificationsComponent } from '../application/application-notifications/application-notifications.component';
 import { ApplicationSubscriptionsComponent } from '../application/application-subscriptions/application-subscriptions.component';
 import { SubscriptionsComponent } from '../subscriptions/subscriptions.component';
-import { ApplicationsComponent } from './applications.component';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { PermissionsResolver } from '../../resolvers/permissions-resolver.service';
 import { ApplicationAlertsComponent } from '../application/application-alerts/application-alerts.component';
 import { PermissionGuardService } from '../../services/permission-guard.service';
+
+import { ApplicationsComponent } from './applications.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'mine', pathMatch: 'full' },

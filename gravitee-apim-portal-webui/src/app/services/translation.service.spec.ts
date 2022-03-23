@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+
 import { TranslationService } from './translation.service';
 
 describe('TranslationService', () => {

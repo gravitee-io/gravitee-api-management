@@ -18,6 +18,10 @@ import { Location } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, PRIMARY_OUTLET, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { TranslateService } from '@ngx-translate/core';
+
+import StatusEnum = Subscription.StatusEnum;
+
 import {
   Api,
   ApiInformation,
@@ -39,7 +43,6 @@ import '@gravitee/ui-components/wc/gv-confirm';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-rating';
 import '@gravitee/ui-components/wc/gv-rating-list';
-import { TranslateService } from '@ngx-translate/core';
 import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { INavRoute } from '../../../services/nav-route.service';
 import { FeatureEnum } from '../../../model/feature.enum';
@@ -48,7 +51,6 @@ import { CurrentUserService } from '../../../services/current-user.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ScrollService } from '../../../services/scroll.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
-import StatusEnum = Subscription.StatusEnum;
 
 const searchableKeysMapping = {
   labels: 'labels',

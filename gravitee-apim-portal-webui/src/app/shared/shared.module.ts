@@ -21,14 +21,10 @@ import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-transl
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
+
 import { GvCheckboxControlValueAccessorDirective } from '../directives/gv-checkbox-control-value-accessor.directive';
 import { GvFormControlDirective } from '../directives/gv-form-control.directive';
 import { LocalizedDatePipe } from '../pipes/localized-date.pipe';
-
-import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
-import { SafePipe } from './../pipes/safe.pipe';
-import { ApiStatesPipe } from './../pipes/api-states.pipe';
-
 import { GvPageComponent } from '../components/gv-page/gv-page.component';
 import { GvPageContentSlotDirective } from '../directives/gv-page-content-slot.directive';
 import { GvPageAsciiDocComponent } from '../components/gv-page-asciidoc/gv-page-asciidoc.component';
@@ -37,6 +33,10 @@ import { GvPageRedocComponent } from '../components/gv-page-redoc/gv-page-redoc.
 import { GvPageSwaggerUIComponent } from '../components/gv-page-swaggerui/gv-page-swaggerui.component';
 import { GvMarkdownTocComponent } from '../components/gv-markdown-toc/gv-markdown-toc.component';
 import { GvPageAsyncApiComponent } from '../components/gv-page-asyncapi/gv-page-asyncapi.component';
+
+import { ApiStatesPipe } from './../pipes/api-states.pipe';
+import { SafePipe } from './../pipes/safe.pipe';
+import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
 
 @NgModule({
   declarations: [

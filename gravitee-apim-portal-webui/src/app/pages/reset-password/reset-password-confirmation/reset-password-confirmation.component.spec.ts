@@ -15,13 +15,15 @@
  */
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ResetPasswordConfirmationComponent } from './reset-password-confirmation.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
 import { NotificationService } from '../../../services/notification.service';
 import { TokenService } from '../../../services/token.service';
+
+import { ResetPasswordConfirmationComponent } from './reset-password-confirmation.component';
 
 describe('ResetPasswordConfirmationComponent', () => {
   const createComponent = createComponentFactory({

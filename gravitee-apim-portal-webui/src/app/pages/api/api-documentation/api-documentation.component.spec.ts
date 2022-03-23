@@ -15,12 +15,14 @@
  */
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ApiDocumentationComponent } from './api-documentation.component';
-import { PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
-import { GvDocumentationComponent } from '../../../components/gv-documentation/gv-documentation.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+
+import { GvDocumentationComponent } from '../../../components/gv-documentation/gv-documentation.component';
+import { PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
+
+import { ApiDocumentationComponent } from './api-documentation.component';
 
 describe('ApiDocumentationComponent', () => {
   const createComponent = createComponentFactory({

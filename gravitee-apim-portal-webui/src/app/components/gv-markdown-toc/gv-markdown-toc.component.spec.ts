@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { GvMarkdownTocComponent } from './gv-markdown-toc.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+
+import { GvMarkdownTocComponent } from './gv-markdown-toc.component';
 
 describe('GvMarkdownTocComponent', () => {
   const createComponent = createComponentFactory({

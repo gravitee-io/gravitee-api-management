@@ -16,13 +16,14 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureGuardService } from '../../services/feature-guard.service';
 import { NotificationService } from '../../services/notification.service';
 
 import { LoginComponent } from './login.component';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('LoginComponent', () => {
   const createComponent = createComponentFactory({

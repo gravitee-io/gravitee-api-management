@@ -17,9 +17,11 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator/jest';
-import { UserTestingModule } from '../test/user-testing-module';
-import { NavRouteService } from './nav-route.service';
 import { TranslateService } from '@ngx-translate/core';
+
+import { UserTestingModule } from '../test/user-testing-module';
+
+import { NavRouteService } from './nav-route.service';
 import { FeatureGuardService } from './feature-guard.service';
 import { AuthGuardService } from './auth-guard.service';
 import { CurrentUserService } from './current-user.service';

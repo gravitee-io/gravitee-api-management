@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
+
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
 

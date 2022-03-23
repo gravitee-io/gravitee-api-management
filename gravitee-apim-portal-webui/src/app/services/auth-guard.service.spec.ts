@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-
-import { AuthGuardService } from './auth-guard.service';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { mockProvider } from '@ngneat/spectator/jest';
 import { OAuthService } from 'angular-oauth2-oidc';
+
+import { AuthGuardService } from './auth-guard.service';
 
 describe('AuthGuardService', () => {
   beforeEach(() =>

@@ -15,6 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+
 import { Notification } from '../model/notification';
 
 @Injectable({

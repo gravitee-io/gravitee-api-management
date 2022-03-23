@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { DocumentationComponent } from './documentation.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
+
+import { DocumentationComponent } from './documentation.component';
 
 describe('DocumentationComponent', () => {
   const createComponent = createComponentFactory({

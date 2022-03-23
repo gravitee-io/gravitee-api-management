@@ -14,6 +14,18 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
+import '@gravitee/ui-components/wc/gv-table';
+import { TranslateService } from '@ngx-translate/core';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { ActivatedRoute, Router } from '@angular/router';
+import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
+import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import { switchMap, takeUntil } from 'rxjs/operators';
+import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
+import { Subject } from 'rxjs';
+
+import StatusEnum = Subscription.StatusEnum;
+
 import {
   Api,
   ApiService,
@@ -24,17 +36,7 @@ import {
   Subscription,
   SubscriptionService,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
-import '@gravitee/ui-components/wc/gv-table';
-import { TranslateService } from '@ngx-translate/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { ActivatedRoute, Router } from '@angular/router';
-import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import { ConfigurationService } from '../../services/configuration.service';
-import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
-import { switchMap, takeUntil } from 'rxjs/operators';
-import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
-import { Subject } from 'rxjs';
-import StatusEnum = Subscription.StatusEnum;
 import { formatCurlCommandLine } from '../../utils/utils';
 
 @Component({

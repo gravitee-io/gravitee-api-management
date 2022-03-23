@@ -24,12 +24,12 @@ import {
 } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
-
 import { tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+
 import { CurrentUserService } from '../services/current-user.service';
 import { NotificationService } from '../services/notification.service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ConfigurationService } from '../services/configuration.service';
 import { ReCaptchaService } from '../services/recaptcha.service';
 

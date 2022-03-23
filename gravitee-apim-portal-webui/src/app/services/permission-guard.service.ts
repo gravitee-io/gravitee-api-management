@@ -15,6 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
+
 import { CurrentUserService } from './current-user.service';
 
 @Injectable({ providedIn: 'root' })

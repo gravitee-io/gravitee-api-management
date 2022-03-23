@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import {
-  Application,
-  ApplicationService,
-  GetApplicationsRequestParams,
-  PermissionsService,
-  SubscriptionService,
-} from '../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -28,6 +21,13 @@ import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
+import {
+  Application,
+  ApplicationService,
+  GetApplicationsRequestParams,
+  PermissionsService,
+  SubscriptionService,
+} from '../../../../projects/portal-webclient-sdk/src/lib';
 @Component({
   selector: 'app-applications',
   templateUrl: './applications.component.html',

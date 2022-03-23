@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { Page, User } from '../../../../projects/portal-webclient-sdk/src/lib';
-
 import { SwaggerUIBundle } from 'swagger-ui-dist';
+import { PlatformLocation } from '@angular/common';
+
+import { Page, User } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { CurrentUserService } from '../../services/current-user.service';
 import { PageService } from '../../services/page.service';
-import { PlatformLocation } from '@angular/common';
 import { readYaml } from '../../utils/yaml-parser';
 
 @Component({

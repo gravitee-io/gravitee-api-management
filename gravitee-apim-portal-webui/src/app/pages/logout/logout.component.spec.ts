@@ -15,11 +15,13 @@
  */
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { LogoutComponent } from './logout.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+
 import { AuthService } from '../../services/auth.service';
+
+import { LogoutComponent } from './logout.component';
 
 describe('LogoutComponent', () => {
   const createComponent = createComponentFactory({

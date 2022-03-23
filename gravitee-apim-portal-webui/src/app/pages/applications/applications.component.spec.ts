@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-
-import { ApplicationsComponent } from './applications.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Application } from 'projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
+
+import { TranslateTestingModule } from '../../test/translate-testing-module';
+
+import { ApplicationsComponent } from './applications.component';
 
 describe('ApplicationsComponent', () => {
   const mockActivatedRouteQueryParamMap$ = new BehaviorSubject(new Map());

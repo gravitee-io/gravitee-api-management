@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { CurrentUserService } from '../../services/current-user.service';
-import {
-  Application,
-  ApplicationService,
-  Subscription,
-  SubscriptionService,
-  User,
-} from '../../../../projects/portal-webclient-sdk/src/lib';
 import { Router } from '@angular/router';
-import { FeatureEnum } from '../../model/feature.enum';
-import { ConfigurationService } from '../../services/configuration.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
@@ -32,9 +22,21 @@ import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-table';
 import '@gravitee/ui-components/wc/gv-stats';
 import '@gravitee/ui-components/wc/gv-card-list';
-import { AnalyticsService } from '../../services/analytics.service';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+
 import StatusEnum = Subscription.StatusEnum;
+
+import { CurrentUserService } from '../../services/current-user.service';
+import { AnalyticsService } from '../../services/analytics.service';
+import { ConfigurationService } from '../../services/configuration.service';
+import { FeatureEnum } from '../../model/feature.enum';
+import {
+  Application,
+  ApplicationService,
+  Subscription,
+  SubscriptionService,
+  User,
+} from '../../../../projects/portal-webclient-sdk/src/lib';
 
 @Component({
   selector: 'app-dashboard',

@@ -15,17 +15,18 @@
  */
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
-import { CatalogSearchComponent } from './catalog-search.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
 import { NotificationService } from '../../../services/notification.service';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
+
+import { CatalogSearchComponent } from './catalog-search.component';
 
 describe('CatalogSearchComponent', () => {
   const createComponent = createComponentFactory({

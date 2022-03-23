@@ -15,16 +15,18 @@
  */
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { LocalizedDatePipe } from '../../../pipes/localized-date.pipe';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
-import { ApplicationSubscriptionsComponent } from './application-subscriptions.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { fakeAsync, ComponentFixture, TestBed, tick, waitForAsync } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
-import { ApiKeyModeEnum, Application, Key, Plan, Subscription } from '../../../../../projects/portal-webclient-sdk/src/lib';
+
 import SecurityEnum = Plan.SecurityEnum;
+
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { ApiKeyModeEnum, Application, Key, Plan, Subscription } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import { LocalizedDatePipe } from '../../../pipes/localized-date.pipe';
+
+import { ApplicationSubscriptionsComponent } from './application-subscriptions.component';
 
 describe('ApplicationSubscriptionsComponent', () => {
   let component: ApplicationSubscriptionsComponent;

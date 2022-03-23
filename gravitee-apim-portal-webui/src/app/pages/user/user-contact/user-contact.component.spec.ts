@@ -15,14 +15,15 @@
  */
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-
-import { UserContactComponent } from './user-contact.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { RouterTestingModule } from '@angular/router/testing';
+
 import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from '../../../services/current-user.service';
-import { RouterTestingModule } from '@angular/router/testing';
+
+import { UserContactComponent } from './user-contact.component';
 
 describe('UserContactComponent', () => {
   const createComponent = createComponentFactory({

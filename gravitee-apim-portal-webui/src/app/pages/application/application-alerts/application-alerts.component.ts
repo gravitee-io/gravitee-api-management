@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import {
-  Alert,
-  AlertStatusResponse,
-  Application,
-  ApplicationService,
-  PermissionsService,
-} from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-confirm';
@@ -32,10 +27,16 @@ import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-table';
-import { TranslateService } from '@ngx-translate/core';
+
+import {
+  Alert,
+  AlertStatusResponse,
+  Application,
+  ApplicationService,
+  PermissionsService,
+} from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { HttpStatus } from '../../../utils/http-helpers';
 import { NotificationService } from '../../../services/notification.service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
   selector: 'app-application-alerts',

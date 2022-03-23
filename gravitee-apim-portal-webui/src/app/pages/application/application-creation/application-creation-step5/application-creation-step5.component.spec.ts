@@ -15,6 +15,7 @@
  */
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+
 import { ApplicationCreationStep5Component } from './application-creation-step5.component';
 
 describe('ApplicationCreationStep5Component', () => {

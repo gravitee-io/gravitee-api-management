@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { FilteredCatalogComponent } from './filtered-catalog.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
+
+import { FilteredCatalogComponent } from './filtered-catalog.component';
 
 describe('FilteredCatalogComponent', () => {
   const createComponent = createComponentFactory({

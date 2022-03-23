@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { createHttpFactory, SpectatorService } from '@ngneat/spectator/jest';
+
 import { CurrentUserService } from './current-user.service';
 
 describe('CurrentUserService', () => {

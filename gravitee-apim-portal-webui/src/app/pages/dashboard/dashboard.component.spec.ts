@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { UserTestingModule } from '../../test/user-testing-module';
-import { DashboardComponent } from './dashboard.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+
+import { UserTestingModule } from '../../test/user-testing-module';
+
+import { DashboardComponent } from './dashboard.component';
 
 describe('DashboardComponent', () => {
   const createComponent = createComponentFactory({

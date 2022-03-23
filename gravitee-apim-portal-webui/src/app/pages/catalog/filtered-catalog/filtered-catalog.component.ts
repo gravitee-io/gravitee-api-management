@@ -14,6 +14,16 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
+import '@gravitee/ui-components/wc/gv-promote';
+import '@gravitee/ui-components/wc/gv-card-list';
+import '@gravitee/ui-components/wc/gv-card-full';
+import '@gravitee/ui-components/wc/gv-card';
+import '@gravitee/ui-components/wc/gv-select';
+import '@gravitee/ui-components/wc/gv-option';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+
 import {
   Api,
   ApiMetrics,
@@ -23,16 +33,7 @@ import {
   Page,
   PortalService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
-import '@gravitee/ui-components/wc/gv-promote';
-import '@gravitee/ui-components/wc/gv-card-list';
-import '@gravitee/ui-components/wc/gv-card-full';
-import '@gravitee/ui-components/wc/gv-card';
-import '@gravitee/ui-components/wc/gv-select';
-import '@gravitee/ui-components/wc/gv-option';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { ActivatedRoute, Router } from '@angular/router';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
-import { TranslateService } from '@ngx-translate/core';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ConfigurationService } from '../../../services/configuration.service';

@@ -20,6 +20,19 @@ import '@gravitee/ui-components/wc/gv-plans';
 import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-code';
 import '@gravitee/ui-components/wc/gv-list';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { distinctUntilChanged } from 'rxjs/operators';
+import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+
+import StatusEnum = Subscription.StatusEnum;
+import SecurityEnum = Plan.SecurityEnum;
+
+import { ConfigurationService } from '../../../services/configuration.service';
+import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
+import { FeatureEnum } from '../../../model/feature.enum';
+import { formatCurlCommandLine } from '../../../utils/utils';
 import {
   Api,
   ApiKeyModeEnum,
@@ -32,17 +45,6 @@ import {
   SubscriptionService,
   SubscriptionsResponse,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { ConfigurationService } from '../../../services/configuration.service';
-import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
-import { FeatureEnum } from '../../../model/feature.enum';
-import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
-import StatusEnum = Subscription.StatusEnum;
-import { formatCurlCommandLine } from '../../../utils/utils';
-import SecurityEnum = Plan.SecurityEnum;
 
 @Component({
   selector: 'app-api-subscribe',

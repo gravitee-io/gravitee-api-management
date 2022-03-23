@@ -16,6 +16,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
+
 import { ApiKeyModeEnum } from '../../../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-option';
 

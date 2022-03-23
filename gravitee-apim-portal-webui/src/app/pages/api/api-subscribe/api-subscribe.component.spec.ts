@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-import { ApiSubscribeComponent } from './api-subscribe.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
-import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
+import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
+
+import { ApiSubscribeComponent } from './api-subscribe.component';
 
 describe('ApiSubscribeComponent', () => {
   const createComponent = createComponentFactory({

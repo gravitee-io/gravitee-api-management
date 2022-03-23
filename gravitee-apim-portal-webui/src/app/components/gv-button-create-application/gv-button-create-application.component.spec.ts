@@ -15,11 +15,13 @@
  */
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
-import { GvButtonCreateApplicationComponent } from './gv-button-create-application.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+import { PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
+
+import { GvButtonCreateApplicationComponent } from './gv-button-create-application.component';
 
 describe('GvButtonCreateApplicationComponent', () => {
   const createComponent = createComponentFactory({

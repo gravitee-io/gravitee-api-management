@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { SafePipe } from '../../pipes/safe.pipe';
-
-import { GvPageComponent } from './gv-page.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { GvPageRedocComponent } from '../gv-page-redoc/gv-page-redoc.component';
-import { GvPageSwaggerUIComponent } from '../gv-page-swaggerui/gv-page-swaggerui.component';
 import { BrowserDynamicTestingModule } from '@angular/platform-browser-dynamic/testing';
+
+import { GvPageSwaggerUIComponent } from '../gv-page-swaggerui/gv-page-swaggerui.component';
+import { GvPageRedocComponent } from '../gv-page-redoc/gv-page-redoc.component';
+import { SafePipe } from '../../pipes/safe.pipe';
 import { GvPageContentSlotDirective } from '../../directives/gv-page-content-slot.directive';
 import { GvPageMarkdownComponent } from '../gv-page-markdown/gv-page-markdown.component';
+
+import { GvPageComponent } from './gv-page.component';
 
 describe('GvPageComponent', () => {
   const createComponent = createComponentFactory({

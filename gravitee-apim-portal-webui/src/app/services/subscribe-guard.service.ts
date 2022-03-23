@@ -15,8 +15,9 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
-import { CurrentUserService } from './current-user.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+
+import { CurrentUserService } from './current-user.service';
 import { NotificationService } from './notification.service';
 
 @Injectable({

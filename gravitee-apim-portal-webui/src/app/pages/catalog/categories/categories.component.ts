@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Category, PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
-
 import '@gravitee/ui-components/wc/gv-category-list';
 import { ActivatedRoute, Router } from '@angular/router';
+
+import { Category, PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 
 @Component({
   selector: 'app-categories',

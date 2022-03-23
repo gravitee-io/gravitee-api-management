@@ -16,12 +16,13 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { SafePipe } from '../../../pipes/safe.pipe';
 
 import { CategoriesComponent } from './categories.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { SafePipe } from '../../../pipes/safe.pipe';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CategoriesComponent', () => {
   const createComponent = createComponentFactory({

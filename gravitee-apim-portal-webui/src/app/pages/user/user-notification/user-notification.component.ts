@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-
-import { PortalNotification, UserService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { ActivatedRoute, Router } from '@angular/router';
+
+import { SearchQueryParam } from '../../../utils/search-query-param.enum';
+import { PortalNotification, UserService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { EventService, GvEvent } from '../../../services/event.service';
 

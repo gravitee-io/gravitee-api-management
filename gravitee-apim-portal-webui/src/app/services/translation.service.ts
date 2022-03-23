@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { addTranslations, setLanguage } from '@gravitee/ui-components/src/lib/i18n';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
+
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',

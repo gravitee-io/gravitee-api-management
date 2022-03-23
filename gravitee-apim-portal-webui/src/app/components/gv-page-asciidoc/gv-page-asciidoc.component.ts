@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
+import { toDom } from '@gravitee/ui-components/src/lib/text-format';
+
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
-import { toDom } from '@gravitee/ui-components/src/lib/text-format';
 
 @Component({
   selector: 'app-gv-page-asciidoc',

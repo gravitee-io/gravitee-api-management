@@ -17,10 +17,11 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
 import { AnalyticsService } from '../../services/analytics.service';
 
 import { GvAnalyticsDashboardComponent } from './gv-analytics-dashboard.component';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('GvAnalyticsDashboardComponent', () => {
   const createComponent = createComponentFactory({

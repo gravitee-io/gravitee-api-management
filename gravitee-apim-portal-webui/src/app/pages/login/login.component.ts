@@ -16,12 +16,11 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-
-import { IdentityProvider, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
-
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-input';
+
+import { IdentityProvider, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../services/notification.service';
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureEnum } from '../../model/feature.enum';

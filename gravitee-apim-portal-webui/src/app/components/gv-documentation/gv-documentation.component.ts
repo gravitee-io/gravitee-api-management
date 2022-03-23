@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import '@gravitee/ui-components/wc/gv-tree';
+import { animate, style, transition, trigger } from '@angular/animations';
 import { AfterViewInit, Component, HostListener, Input, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { TreeItem } from '../../model/tree-item';
 import { NotificationService } from '../../services/notification.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import '@gravitee/ui-components/wc/gv-tree';
-import { animate, style, transition, trigger } from '@angular/animations';
 import { ScrollService } from '../../services/scroll.service';
 
 @Component({

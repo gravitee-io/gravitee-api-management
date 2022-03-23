@@ -15,14 +15,16 @@
  */
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { UserTestingModule } from '../../../test/user-testing-module';
-import { UserNotificationComponent } from './user-notification.component';
-import { SafePipe } from '../../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { UserService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { Observable } from 'rxjs';
+
+import { UserService } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import { SafePipe } from '../../../pipes/safe.pipe';
+import { UserTestingModule } from '../../../test/user-testing-module';
+
+import { UserNotificationComponent } from './user-notification.component';
 
 describe('UserNotificationComponent', () => {
   const createComponent = createComponentFactory({

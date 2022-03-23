@@ -15,14 +15,15 @@
  */
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Application, Dashboard } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-chart-line';
 import '@gravitee/ui-components/wc/gv-chart-pie';
 import '@gravitee/ui-components/wc/gv-chart-map';
 import '@gravitee/ui-components/wc/gv-stats';
+import { TranslateService } from '@ngx-translate/core';
+
+import { Application, Dashboard } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { GvAnalyticsDashboardComponent } from '../../../components/gv-analytics-dashboard/gv-analytics-dashboard.component';
 import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-filters/gv-analytics-filters.component';
-import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-application-analytics',

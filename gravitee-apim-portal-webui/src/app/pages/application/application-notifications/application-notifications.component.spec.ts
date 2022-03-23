@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ApplicationNotificationsComponent } from './application-notifications.component';
-import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
+
+import { ApplicationNotificationsComponent } from './application-notifications.component';
 
 describe('ApplicationNotificationsComponent', () => {
   const createComponent = createComponentFactory({

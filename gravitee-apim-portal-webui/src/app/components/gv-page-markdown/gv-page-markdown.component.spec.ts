@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { SafePipe } from '../../pipes/safe.pipe';
-import { GvMarkdownTocComponent } from '../gv-markdown-toc/gv-markdown-toc.component';
-import { GvPageMarkdownComponent } from './gv-page-markdown.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { mockProvider } from '@ngneat/spectator/jest';
+
+import { GvMarkdownTocComponent } from '../gv-markdown-toc/gv-markdown-toc.component';
+import { SafePipe } from '../../pipes/safe.pipe';
 import { ConfigurationService } from '../../services/configuration.service';
+
+import { GvPageMarkdownComponent } from './gv-page-markdown.component';
 
 const BASE_URL = 'my-base-url';
 

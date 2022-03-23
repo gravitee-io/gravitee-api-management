@@ -17,8 +17,9 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 
-import { GvPageAsciiDocComponent } from './gv-page-asciidoc.component';
 import { SafePipe } from '../../pipes/safe.pipe';
+
+import { GvPageAsciiDocComponent } from './gv-page-asciidoc.component';
 
 describe('GvPageAsciiDocComponent', () => {
   const createComponent = createComponentFactory({

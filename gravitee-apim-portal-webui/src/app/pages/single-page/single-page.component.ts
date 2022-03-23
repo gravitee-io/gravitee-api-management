@@ -15,6 +15,7 @@
  */
 import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+
 import { Page, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 
 @Component({
