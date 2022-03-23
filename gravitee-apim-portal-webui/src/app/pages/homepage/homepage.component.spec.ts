@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { HomepageComponent } from './homepage.component';
-import { GvPageComponent } from '../../components/gv-page/gv-page.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+import { GvPageComponent } from '../../components/gv-page/gv-page.component';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+import { HomepageComponent } from './homepage.component';
 
 describe('HomepageComponent', () => {
   const createComponent = createComponentFactory({

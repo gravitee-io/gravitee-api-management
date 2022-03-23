@@ -15,6 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+
 import { Dashboard, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Injectable({ providedIn: 'root' })

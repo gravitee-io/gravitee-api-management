@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-
-import { SubscribeGuardService } from './subscribe-guard.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+
+import { SubscribeGuardService } from './subscribe-guard.service';
 
 describe('SubscribeGuardService', () => {
   beforeEach(() =>

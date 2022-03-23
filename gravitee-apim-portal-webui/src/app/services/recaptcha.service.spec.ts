@@ -16,6 +16,7 @@
 import { HttpClient } from '@angular/common/http';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator/jest';
+
 import { ReCaptchaService } from './recaptcha.service';
 
 describe('ReCaptchaService', () => {

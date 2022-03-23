@@ -15,8 +15,9 @@
  */
 import { Component, HostListener, Input, OnDestroy, ViewChild, OnInit } from '@angular/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { NotificationService } from '../../services/notification.service';
 import { getCssVar } from '@gravitee/ui-components/src/lib/style';
+
+import { NotificationService } from '../../services/notification.service';
 import { ScrollService } from '../../services/scroll.service';
 import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.component';
 import { PageService } from '../../services/page.service';

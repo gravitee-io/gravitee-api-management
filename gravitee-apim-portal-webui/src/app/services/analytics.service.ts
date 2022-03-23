@@ -17,6 +17,7 @@ import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActivatedRoute } from '@angular/router';
+
 import { SearchQueryParam } from '../utils/search-query-param.enum';
 
 @Injectable({

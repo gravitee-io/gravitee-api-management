@@ -19,11 +19,12 @@ import '@gravitee/ui-components/wc/gv-chart-line';
 import '@gravitee/ui-components/wc/gv-chart-pie';
 import '@gravitee/ui-components/wc/gv-chart-map';
 import '@gravitee/ui-components/wc/gv-stats';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { TranslateService } from '@ngx-translate/core';
+
 import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-filters/gv-analytics-filters.component';
 import { ApplicationService, Log } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { AnalyticsService } from '../../../services/analytics.service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { TranslateService } from '@ngx-translate/core';
 import { ScrollService } from '../../../services/scroll.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { ConfigurationService } from '../../../services/configuration.service';

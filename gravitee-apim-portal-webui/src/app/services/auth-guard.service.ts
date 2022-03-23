@@ -16,7 +16,9 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
 import { OAuthService } from 'angular-oauth2-oidc';
+
 import { Role } from '../model/role.enum';
+
 import { CurrentUserService } from './current-user.service';
 
 @Injectable({ providedIn: 'root' })

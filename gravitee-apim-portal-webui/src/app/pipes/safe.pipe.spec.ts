@@ -15,6 +15,7 @@
  */
 
 import { createPipeFactory, SpectatorPipe } from '@ngneat/spectator/jest';
+
 import { SafePipe } from './safe.pipe';
 
 describe('SafePipe', () => {

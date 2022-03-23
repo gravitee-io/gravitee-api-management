@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
+
 import { AuthService } from '../../services/auth.service';
 
 @Component({

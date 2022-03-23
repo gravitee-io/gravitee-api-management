@@ -15,8 +15,10 @@
  */
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { User } from '../../../projects/portal-webclient-sdk/src/lib';
 import { HttpClient } from '@angular/common/http';
+
+import { User } from '../../../projects/portal-webclient-sdk/src/lib';
+
 import { ConfigurationService } from './configuration.service';
 
 @Injectable({ providedIn: 'root' })

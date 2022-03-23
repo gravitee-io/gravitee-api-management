@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ApiGeneralComponent } from './api-general.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
+
+import { ApiGeneralComponent } from './api-general.component';
 
 describe('ApiGeneralComponent', () => {
   const createComponent = createComponentFactory({

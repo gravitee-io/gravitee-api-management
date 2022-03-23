@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+
 import { TranslateTestingModule } from '../test/translate-testing-module';
 
 import { AnalyticsService } from './analytics.service';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('AnalyticsService', () => {
   beforeEach(() =>

@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 import { fakeAsync, tick, waitForAsync } from '@angular/core/testing';
-
-import { TicketsHistoryComponent } from './tickets-history.component';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TranslateService } from '@ngx-translate/core';
-import { ConfigurationService } from '../../services/configuration.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
-import { ScrollService } from '../../services/scroll.service';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
-import { PortalService, Ticket, TicketsResponse } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+import { ScrollService } from '../../services/scroll.service';
+import { PortalService, Ticket, TicketsResponse } from '../../../../projects/portal-webclient-sdk/src/lib';
+import { ConfigurationService } from '../../services/configuration.service';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
+
+import { TicketsHistoryComponent } from './tickets-history.component';
 
 describe('GvTicketsHistoryComponent', () => {
   let route;

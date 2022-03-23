@@ -16,12 +16,13 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import * as marked from 'marked';
 import * as hljs from 'highlight.js';
+import '@gravitee/ui-components/wc/gv-button';
+import { Router } from '@angular/router';
+import { dispatchCustomEvent } from '@gravitee/ui-components/src/lib/events';
+
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
-import { Router } from '@angular/router';
 import { ScrollService } from '../../services/scroll.service';
-import '@gravitee/ui-components/wc/gv-button';
-import { dispatchCustomEvent } from '@gravitee/ui-components/src/lib/events';
 import { ConfigurationService } from '../../services/configuration.service';
 
 @Component({

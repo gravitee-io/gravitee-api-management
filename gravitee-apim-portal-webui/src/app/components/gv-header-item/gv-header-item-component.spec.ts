@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-import { UserTestingModule } from '../../test/user-testing-module';
-
-import { GvHeaderItemComponent } from './gv-header-item.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+import { UserTestingModule } from '../../test/user-testing-module';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
 import { ApiService } from '../../../../projects/portal-webclient-sdk/src/lib';
+
+import { GvHeaderItemComponent } from './gv-header-item.component';
 
 describe('GvHeaderItemComponent', () => {
   const createComponent = createComponentFactory({

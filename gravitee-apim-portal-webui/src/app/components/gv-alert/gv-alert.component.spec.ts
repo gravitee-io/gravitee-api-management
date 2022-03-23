@@ -16,12 +16,13 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { mockProvider, Spectator, createRoutingFactory } from '@ngneat/spectator/jest';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
 import { CurrentUserService } from '../../services/current-user.service';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { AlertMode, GvAlertComponent } from './gv-alert.component';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('GvAlertComponent', () => {
   const createComponent = createRoutingFactory({

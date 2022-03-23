@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { CookieEnum } from '../../model/cookie.enum';
 import { CookieService } from 'ngx-cookie-service';
-import { GoogleAnalyticsService } from '../../services/google-analytics.service';
-import '@gravitee/ui-components/wc/gv-switch';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import '@gravitee/ui-components/wc/gv-switch';
+
+import { CookieEnum } from '../../model/cookie.enum';
+import { GoogleAnalyticsService } from '../../services/google-analytics.service';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({

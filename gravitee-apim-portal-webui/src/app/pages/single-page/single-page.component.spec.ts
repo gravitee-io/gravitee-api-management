@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
-import { SinglePageComponent } from './single-page.component';
-import { GvPageComponent } from '../../components/gv-page/gv-page.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+
+import { GvPageComponent } from '../../components/gv-page/gv-page.component';
+
+import { SinglePageComponent } from './single-page.component';
 
 describe('SinglePageComponent', () => {
   let component: SinglePageComponent;

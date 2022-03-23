@@ -15,12 +15,14 @@
  */
 import { Injectable, Injector } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { Router } from '@angular/router';
+
+import { AuthenticationService, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
+
 import { CurrentUserService } from './current-user.service';
 import { NotificationService } from './notification.service';
 import { ConfigurationService } from './configuration.service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { AuthenticationService, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
-import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',

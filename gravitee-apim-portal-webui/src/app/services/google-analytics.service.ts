@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { FeatureEnum } from '../model/feature.enum';
-import { ConfigurationService } from './configuration.service';
 import { BehaviorSubject } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
-import { CookieEnum } from '../model/cookie.enum';
 import { Router, NavigationEnd } from '@angular/router';
+
+import { CookieEnum } from '../model/cookie.enum';
+import { FeatureEnum } from '../model/feature.enum';
+
+import { ConfigurationService } from './configuration.service';
 
 declare let gtag: any;
 

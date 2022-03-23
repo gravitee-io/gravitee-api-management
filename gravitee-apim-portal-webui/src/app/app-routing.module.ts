@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+
+import { FilterApiQuery } from '../../projects/portal-webclient-sdk/src/lib';
+
 import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
@@ -23,7 +29,6 @@ import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.c
 import { AuthGuardService } from './services/auth-guard.service';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
-import { FilterApiQuery } from '../../projects/portal-webclient-sdk/src/lib';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
 import { FeatureEnum } from './model/feature.enum';
@@ -34,15 +39,12 @@ import { GvSearchApiComponent } from './components/gv-search-api/gv-search-api.c
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { LoginComponent } from './pages/login/login.component';
 import { LogoutComponent } from './pages/logout/logout.component';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { NgModule } from '@angular/core';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { ResetPasswordConfirmationComponent } from './pages/reset-password/reset-password-confirmation/reset-password-confirmation.component';
 import { Role } from './model/role.enum';
-import { RouterModule, Routes } from '@angular/router';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { SubscribeGuardService } from './services/subscribe-guard.service';
 import { UserAccountComponent } from './pages/user/user-account/user-account.component';

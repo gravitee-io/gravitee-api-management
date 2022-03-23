@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { Component, Input, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+
 import { ApiService, ApplicationService, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../services/notification.service';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { CurrentUserService } from '../../services/current-user.service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
   selector: 'app-gv-contact',

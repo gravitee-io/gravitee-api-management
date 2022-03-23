@@ -17,11 +17,12 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
 import { NotificationService } from '../../../services/notification.service';
 import { TokenService } from '../../../services/token.service';
 
 import { RegistrationConfirmationComponent } from './registration-confirmation.component';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('RegistrationConfirmationComponent', () => {
   const createComponent = createComponentFactory({

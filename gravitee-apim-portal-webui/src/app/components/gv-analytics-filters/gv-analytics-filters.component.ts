@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { ApplicationService, Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+
+import { ApplicationService, Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { AnalyticsService } from '../../services/analytics.service';
 import { GvValidators } from '../../utils/gv-validators';
 import '@gravitee/ui-components/wc/gv-button';

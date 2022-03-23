@@ -14,6 +14,24 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { TranslateService } from '@ngx-translate/core';
+import { FormControl, FormGroup } from '@angular/forms';
+
+import StatusEnum = Subscription.StatusEnum;
+
+import '@gravitee/ui-components/wc/gv-autocomplete';
+import '@gravitee/ui-components/wc/gv-button';
+import '@gravitee/ui-components/wc/gv-confirm';
+import '@gravitee/ui-components/wc/gv-icon';
+import '@gravitee/ui-components/wc/gv-identity-picture';
+import '@gravitee/ui-components/wc/gv-relative-time';
+import '@gravitee/ui-components/wc/gv-input';
+import '@gravitee/ui-components/wc/gv-list';
+import '@gravitee/ui-components/wc/gv-select';
+import '@gravitee/ui-components/wc/gv-table';
+
 import {
   Application,
   ApplicationService,
@@ -26,25 +44,10 @@ import {
   User,
   UsersService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
-import { ActivatedRoute, Router } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import '@gravitee/ui-components/wc/gv-autocomplete';
-import '@gravitee/ui-components/wc/gv-button';
-import '@gravitee/ui-components/wc/gv-confirm';
-import '@gravitee/ui-components/wc/gv-icon';
-import '@gravitee/ui-components/wc/gv-identity-picture';
-import '@gravitee/ui-components/wc/gv-relative-time';
-import '@gravitee/ui-components/wc/gv-input';
-import '@gravitee/ui-components/wc/gv-list';
-import '@gravitee/ui-components/wc/gv-select';
-import '@gravitee/ui-components/wc/gv-table';
-import { TranslateService } from '@ngx-translate/core';
-import { FormControl, FormGroup } from '@angular/forms';
 import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
-import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-application-members',

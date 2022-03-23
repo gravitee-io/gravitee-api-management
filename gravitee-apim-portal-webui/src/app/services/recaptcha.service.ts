@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ConfigurationService } from './configuration.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
+
+import { ConfigurationService } from './configuration.service';
 
 declare let grecaptcha: any;
 

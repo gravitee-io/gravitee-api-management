@@ -18,6 +18,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+
 import { ApplicationCreationStep1Component } from './application-creation-step1.component';
 
 describe('ApplicationCreationStep1Component', () => {

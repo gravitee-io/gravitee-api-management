@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { ApiService, Page } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute } from '@angular/router';
+
+import { ApiService, Page } from '../../../../../projects/portal-webclient-sdk/src/lib';
 
 @Component({
   selector: 'app-api-documentation',

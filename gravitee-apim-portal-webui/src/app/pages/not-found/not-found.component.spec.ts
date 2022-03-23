@@ -15,15 +15,16 @@
  */
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-
-import { NotFoundComponent } from './not-found.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
 import { NotificationService } from '../../services/notification.service';
 import { FeatureGuardService } from '../../services/feature-guard.service';
 import { ConfigurationService } from '../../services/configuration.service';
+
+import { NotFoundComponent } from './not-found.component';
 
 describe('NotFoundComponent', () => {
   const createComponent = createComponentFactory({

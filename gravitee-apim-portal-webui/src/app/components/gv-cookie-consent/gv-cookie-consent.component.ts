@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-message';
+import { Component } from '@angular/core';
+import { CookieService } from 'ngx-cookie-service';
+
 import { CookieEnum } from '../../model/cookie.enum';
 import { GoogleAnalyticsService } from '../../services/google-analytics.service';
-import { CookieService } from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-gv-cookie-consent',

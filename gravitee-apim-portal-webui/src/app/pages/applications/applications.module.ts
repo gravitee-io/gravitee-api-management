@@ -19,6 +19,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
+
 import { GvAnalyticsDashboardComponent } from '../../components/gv-analytics-dashboard/gv-analytics-dashboard.component';
 import { GvAnalyticsFiltersComponent } from '../../components/gv-analytics-filters/gv-analytics-filters.component';
 import { GvButtonCreateApplicationComponent } from '../../components/gv-button-create-application/gv-button-create-application.component';
@@ -38,11 +39,11 @@ import { ApplicationMetadataComponent } from '../application/application-metadat
 import { ApplicationNotificationsComponent } from '../application/application-notifications/application-notifications.component';
 import { ApplicationSubscriptionsComponent } from '../application/application-subscriptions/application-subscriptions.component';
 import { SubscriptionsComponent } from '../subscriptions/subscriptions.component';
+import { ApplicationAlertsComponent } from '../application/application-alerts/application-alerts.component';
+import { GvAlertComponent } from '../../components/gv-alert/gv-alert.component';
 
 import { ApplicationsRoutingModule } from './applications-routing.module';
 import { ApplicationsComponent } from './applications.component';
-import { ApplicationAlertsComponent } from '../application/application-alerts/application-alerts.component';
-import { GvAlertComponent } from '../../components/gv-alert/gv-alert.component';
 
 @NgModule({
   declarations: [

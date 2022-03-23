@@ -32,9 +32,6 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
-import { CurrentUserService } from './services/current-user.service';
-import { NotificationService } from './services/notification.service';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -45,9 +42,14 @@ import {
   UrlSegmentGroup,
   UrlTree,
 } from '@angular/router';
+
+import { Link, PortalService, User, UserService } from '../../projects/portal-webclient-sdk/src/lib';
+
+import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
+import { CurrentUserService } from './services/current-user.service';
+import { NotificationService } from './services/notification.service';
 import { INavRoute, NavRouteService } from './services/nav-route.service';
 import { animation } from './route-animation';
-import { Link, PortalService, User, UserService } from '../../projects/portal-webclient-sdk/src/lib';
 import { Notification } from './model/notification';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
 import { GvMenuRightTransitionSlotDirective } from './directives/gv-menu-right-transition-slot.directive';

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { GvDocumentationComponent } from './gv-documentation.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
+
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
+
+import { GvDocumentationComponent } from './gv-documentation.component';
 
 describe('GvDocumentationComponent', () => {
   const createComponent = createComponentFactory({

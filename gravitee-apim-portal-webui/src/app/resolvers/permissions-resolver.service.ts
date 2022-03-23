@@ -15,6 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+
 import { PermissionsResponse, PermissionsService } from '../../../projects/portal-webclient-sdk/src/lib';
 import { CurrentUserService } from '../services/current-user.service';
 import { ConfigurationService } from '../services/configuration.service';

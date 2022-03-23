@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
+
 import { TokenService } from '../services/token.service';
 
 export function getTokenServiceMock() {

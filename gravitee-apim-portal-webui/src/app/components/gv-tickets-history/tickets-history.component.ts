@@ -16,13 +16,14 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-table';
-import { SearchQueryParam } from '../../utils/search-query-param.enum';
-import { ConfigurationService } from '../../services/configuration.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { ScrollService } from '../../services/scroll.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+
+import { ScrollService } from '../../services/scroll.service';
+import { ConfigurationService } from '../../services/configuration.service';
+import { SearchQueryParam } from '../../utils/search-query-param.enum';
 import { GetTicketsRequestParams, PortalService, Ticket } from '../../../../projects/portal-webclient-sdk/src/lib';
 
 @Component({

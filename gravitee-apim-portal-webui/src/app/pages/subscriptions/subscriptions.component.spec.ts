@@ -15,10 +15,10 @@
  */
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-
-import { SubscriptionsComponent } from './subscriptions.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+import { SubscriptionsComponent } from './subscriptions.component';
 
 describe('SubscriptionsComponent', () => {
   const createComponent = createComponentFactory({

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ConfigurationService } from './configuration.service';
 import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
+
+import { ConfigurationService } from './configuration.service';
 
 @Injectable({ providedIn: 'root' })
 export class FeatureGuardService implements CanActivate {

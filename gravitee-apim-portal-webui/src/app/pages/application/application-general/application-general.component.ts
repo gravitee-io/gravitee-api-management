@@ -20,6 +20,13 @@ import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import '@gravitee/ui-components/wc/gv-file-upload';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import { ActivatedRoute, Router } from '@angular/router';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { TranslateService } from '@ngx-translate/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+
+import StatusEnum = Subscription.StatusEnum;
+
 import {
   Application,
   ApplicationService,
@@ -27,15 +34,10 @@ import {
   PermissionsResponse,
   Subscription,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
-import { ActivatedRoute, Router } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { TranslateService } from '@ngx-translate/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { GvHeaderItemComponent } from '../../../components/gv-header-item/gv-header-item.component';
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
-import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-application-general',

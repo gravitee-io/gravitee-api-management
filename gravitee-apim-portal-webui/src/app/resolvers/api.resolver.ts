@@ -15,6 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+
 import { Api, ApiService } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Injectable({ providedIn: 'root' })

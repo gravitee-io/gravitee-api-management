@@ -15,8 +15,9 @@
  */
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { FeatureEnum } from '../model/feature.enum';
 import { applyTheme } from '@gravitee/ui-components/src/lib/theme';
+
+import { FeatureEnum } from '../model/feature.enum';
 
 @Injectable({
   providedIn: 'root',

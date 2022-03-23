@@ -16,6 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+
 import { ChangeUserPasswordInput, UsersService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { TokenService } from '../../../services/token.service';
 import { GvValidators } from '../../../utils/gv-validators';

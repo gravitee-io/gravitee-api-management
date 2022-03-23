@@ -17,7 +17,9 @@ import { HttpClient } from '@angular/common/http';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+
 import { TranslateTestingModule } from '../../test/translate-testing-module';
+
 import { GvCookieConsentComponent } from './gv-cookie-consent.component';
 import '@gravitee/ui-components/wc/gv-button';
 

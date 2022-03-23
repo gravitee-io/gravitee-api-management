@@ -16,11 +16,12 @@
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { mockProvider } from '@ngneat/spectator/jest';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { TokenService } from '../../../services/token.service';
-import { PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+
+import { PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import { TokenService } from '../../../services/token.service';
 import { ResetPasswordComponent } from '../../reset-password/reset-password.component';
 
 describe('ApiContactComponent', () => {

@@ -15,10 +15,11 @@
  */
 import { Component, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-switch';
-import { ApplicationService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute } from '@angular/router';
-import { NotificationService } from '../../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+
+import { ApplicationService } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-application-notifications',

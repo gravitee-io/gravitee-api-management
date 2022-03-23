@@ -16,11 +16,12 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
 import { CurrentUserService } from '../../services/current-user.service';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { GvSearchApiComponent } from './gv-search-api.component';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('GvSearchApiComponent', () => {
   const createComponent = createComponentFactory({

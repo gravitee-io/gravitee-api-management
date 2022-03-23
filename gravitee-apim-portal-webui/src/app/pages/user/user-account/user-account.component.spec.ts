@@ -15,10 +15,12 @@
  */
 import { ReactiveFormsModule } from '@angular/forms';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { UserTestingModule } from '../../../test/user-testing-module';
-import { UserAccountComponent } from './user-account.component';
-import { SafePipe } from '../../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+import { UserTestingModule } from '../../../test/user-testing-module';
+import { SafePipe } from '../../../pipes/safe.pipe';
+
+import { UserAccountComponent } from './user-account.component';
 
 describe('UserAccountComponent', () => {
   const createComponent = createComponentFactory({
