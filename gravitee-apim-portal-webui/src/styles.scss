@@ -1,6 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
-$font-prefix: '~@ibm/plex';
-@import '~@ibm/plex/scss/ibm-plex.scss';
+@import '~@fontsource/ibm-plex-sans/latin.css';
 @import '~@gravitee/ui-components/assets/css/gravitee-theme.generated.css';
 
 :root {
