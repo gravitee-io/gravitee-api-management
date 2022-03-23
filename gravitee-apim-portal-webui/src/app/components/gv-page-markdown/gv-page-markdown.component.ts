@@ -15,7 +15,7 @@
  */
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import * as marked from 'marked';
-import * as hljs from 'highlight.js';
+import hljs from 'highlight.js';
 import '@gravitee/ui-components/wc/gv-button';
 import { Router } from '@angular/router';
 import { dispatchCustomEvent } from '@gravitee/ui-components/src/lib/events';
