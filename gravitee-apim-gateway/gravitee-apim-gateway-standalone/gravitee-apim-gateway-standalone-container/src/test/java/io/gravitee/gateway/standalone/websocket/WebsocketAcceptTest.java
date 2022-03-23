@@ -46,38 +46,56 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
         VertxTestContext testContext = new VertxTestContext();
 
         HttpServer httpServer = vertx.createHttpServer();
+        logger.info("Http server created");
         httpServer
             .webSocketHandler(
                 event -> {
                     event.accept();
                     event.writeTextMessage("PING");
+                    logger.info("message written");
                 }
             )
-            .listen(16664);
+            .listen(16664)
+            .onComplete(
+                server -> {
+                    logger.info("onComplete");
+                    if (server.failed()) {
+                        logger.info("server fail");
+                        Assert.fail("HttpServer failed to listen on port 16664");
+                    }
 
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
+                    HttpClient httpClient = vertx.createHttpClient(
+                        new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost")
+                    );
 
-        httpClient.webSocket(
-            "/test",
-            event -> {
-                if (event.failed()) {
-                    logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
-                } else {
-                    final WebSocket webSocket = event.result();
-                    webSocket.frameHandler(
-                        frame -> {
-                            if (frame.isText()) {
-                                Assert.assertEquals("PING", frame.textData());
-                                testContext.completeNow();
+                    httpClient.webSocket(
+                        "/test",
+                        event -> {
+                            logger.info("websocket event");
+                            if (event.failed()) {
+                                logger.error("An error occurred during websocket call", event.cause());
+                                Assert.fail();
                             } else {
-                                testContext.failNow("The frame is not a text frame");
+                                logger.info("websocket event success");
+                                final WebSocket webSocket = event.result();
+                                webSocket.frameHandler(
+                                    frame -> {
+                                        logger.info("frame");
+                                        if (frame.isText()) {
+                                            logger.info("frame is text");
+                                            Assert.assertEquals("PING", frame.textData());
+                                            testContext.completeNow();
+                                        } else {
+                                            logger.info("frame is not text");
+                                            testContext.failNow("The frame is not a text frame");
+                                        }
+                                    }
+                                );
                             }
                         }
                     );
                 }
-            }
-        );
+            );
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
         httpServer.close();
