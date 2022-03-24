@@ -25,7 +25,7 @@ import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
-import io.gravitee.gateway.flow.BestMatchPolicyResolver;
+import io.gravitee.gateway.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
 import io.gravitee.gateway.flow.SimpleFlowProvider;
 import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowConditionEvaluator;
@@ -144,7 +144,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                     new PlanFlowPolicyChainProvider(
                         new SimpleFlowProvider(
                             StreamType.ON_REQUEST,
-                            new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
+                            new BestMatchFlowResolver(new PlanFlowResolver(api, evaluator)),
                             policyChainFactory
                         )
                     )
@@ -153,7 +153,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                     new SimpleFlowPolicyChainProvider(
                         new SimpleFlowProvider(
                             StreamType.ON_REQUEST,
-                            new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
+                            new BestMatchFlowResolver(new ApiFlowResolver(api, evaluator)),
                             policyChainFactory
                         )
                     )
