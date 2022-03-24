@@ -20,6 +20,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Properties;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,10 +70,16 @@ public class JdbcTestRepositoryConfiguration {
         DockerImageName dockerImageName = DockerImageName.parse(tcDatabase.getDockerImageName()).withTag(tag);
         switch (tcDatabase) {
             case MYSQL:
-                containerBean = new MySQLContainer<>(dockerImageName);
+                // It appears that the limitation is not entirely due to the DB engine configuration, but also in the way I/O are managed between container and host.
+                // I let this configuration for documentation purpose, but it does not solve our performance issue.
+                // See --> https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html
+                containerBean = new MySQLContainer<>(dockerImageName).withCommand("mysqld --innodb-buffer-pool-size=1G");
                 break;
             case MARIADB:
-                containerBean = new MariaDBContainer<>(dockerImageName);
+                // It appears that the limitation is not entirely due to the DB engine configuration, but also in the way I/O are managed between container and host.
+                // I let this configuration for documentation purpose, but it does not solve our performance issue.
+                // See --> https://mariadb.com/kb/en/innodb-system-variables/
+                containerBean = new MariaDBContainer<>(dockerImageName).withCommand("mysqld --innodb-buffer-pool-size=1G");
                 break;
             case SQLSERVER:
                 containerBean = new MSSQLServerContainer<>(dockerImageName);
@@ -82,6 +89,9 @@ public class JdbcTestRepositoryConfiguration {
                 containerBean = new PostgreSQLContainer<>(dockerImageName);
                 break;
         }
+        containerBean
+            .withUrlParam("TC_DAEMON", "true") // https://www.testcontainers.org/modules/databases/jdbc/#running-container-in-daemon-mode
+            .withTmpFs(Collections.singletonMap("/testtmpfs", "rw")); // https://www.testcontainers.org/modules/databases/jdbc/#running-container-with-tmpfs-options
         containerBean.start();
         return containerBean;
     }
