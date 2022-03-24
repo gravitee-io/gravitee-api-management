@@ -24,8 +24,6 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActivatedRoute, Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 
-import SecurityEnum = Plan.SecurityEnum;
-
 import { ConfigurationService } from '../../../services/configuration.service';
 import {
   Api,
@@ -41,6 +39,8 @@ import {
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../../services/notification.service';
 import { FeatureEnum } from '../../../model/feature.enum';
+
+const SecurityEnum = Plan.SecurityEnum;
 
 export interface ApplicationTypeOption extends ApplicationType {
   icon: string;

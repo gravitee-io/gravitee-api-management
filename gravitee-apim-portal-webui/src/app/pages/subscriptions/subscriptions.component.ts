@@ -24,8 +24,6 @@ import { switchMap, takeUntil } from 'rxjs/operators';
 import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 import { Subject } from 'rxjs';
 
-import StatusEnum = Subscription.StatusEnum;
-
 import {
   Api,
   ApiService,
@@ -38,6 +36,8 @@ import {
 } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ConfigurationService } from '../../services/configuration.service';
 import { formatCurlCommandLine } from '../../utils/utils';
+
+const StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-subscriptions',
