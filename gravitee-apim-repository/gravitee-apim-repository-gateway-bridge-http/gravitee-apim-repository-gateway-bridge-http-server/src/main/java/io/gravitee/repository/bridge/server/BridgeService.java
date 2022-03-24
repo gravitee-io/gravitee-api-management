@@ -141,6 +141,7 @@ public class BridgeService extends AbstractService {
             SubscriptionsHandler subscriptionsHandler = new SubscriptionsHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(subscriptionsHandler);
             bridgeRouter.post("/subscriptions/_search").handler(subscriptionsHandler::search);
+            bridgeRouter.post("/subscriptions/_findByIds").handler(subscriptionsHandler::findByIds);
 
             // Events handler
             EventsHandler eventsHandler = new EventsHandler();
