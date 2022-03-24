@@ -68,7 +68,7 @@
               }
             ],
             "scripts": [
-              "node_modules/marked/lib/marked.js",
+              "node_modules/marked/marked.min.js",
               {
                 "input": "node_modules/redoc/bundles/redoc.standalone.js",
                 "inject": true,

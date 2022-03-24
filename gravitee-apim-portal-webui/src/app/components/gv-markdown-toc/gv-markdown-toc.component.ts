@@ -15,7 +15,7 @@
  */
 import { Component, OnInit, OnDestroy, HostListener, ElementRef, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as marked from 'marked';
+import { marked } from 'marked';
 import { Subscription } from 'rxjs';
 
 import { PageService } from '../../services/page.service';
@@ -93,15 +93,14 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   _buildTocModel(content: string): TocModel[] {
     const nodeMap = [];
 
-    const tokens = marked
-      .lexer(content)
-      .filter(item => item.type === 'heading' && item.depth > 1)
-      .map(item => ({
+    const tokens = (marked.lexer(content).filter(item => item.type === 'heading' && item.depth > 1) as marked.Tokens.Heading[]).map(
+      item => ({
         anchor: this._computeAnchor(item),
         text: this._computeText(item),
         children: [],
         level: item.depth,
-      }));
+      }),
+    );
 
     for (let index = 0; index < tokens.length; index++) {
       const node: TocModel = tokens[index];
@@ -116,11 +115,11 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   _computeText(item: any) {
-    return this.parser.parseInline(item.tokens, this.textRenderer);
+    return this.parser.parseInline(item.tokens, this.textRenderer as marked.Renderer);
   }
 
   _computeAnchor(item: any) {
-    return this.slugger.slug(this._unescape(this.parser.parseInline(item.tokens, this.textRenderer)));
+    return this.slugger.slug(this._unescape(this.parser.parseInline(item.tokens, this.textRenderer as marked.Renderer)));
   }
 
   _findParentNode(tokens: TocModel[], child: TocModel, childIndex: number): any {
