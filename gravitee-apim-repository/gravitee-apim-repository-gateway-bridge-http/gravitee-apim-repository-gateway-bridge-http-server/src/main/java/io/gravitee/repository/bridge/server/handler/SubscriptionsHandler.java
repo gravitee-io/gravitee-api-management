@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
+import static java.util.Collections.emptyList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -50,6 +52,29 @@ public class SubscriptionsHandler extends AbstractHandler {
                         promise.complete(subscriptionRepository.search(subscriptionCriteria));
                     } catch (TechnicalException te) {
                         LOGGER.error("Unable to search for subscriptions", te);
+                        promise.fail(te);
+                    }
+                },
+                (Handler<AsyncResult<List<Subscription>>>) result -> handleResponse(ctx, result)
+            );
+    }
+
+    public void findByIds(RoutingContext ctx) {
+        List<String> ids = ctx.getBodyAsJsonArray() == null
+            ? emptyList()
+            : ctx.getBodyAsJsonArray().stream().map(String::valueOf).collect(Collectors.toList());
+
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    if (ids.isEmpty()) {
+                        promise.fail("Unable to search for subscriptions by id : ids list is mandatory");
+                    }
+                    try {
+                        promise.complete(subscriptionRepository.findByIdIn(ids));
+                    } catch (TechnicalException te) {
+                        LOGGER.error("Unable to search for subscriptions by id", te);
                         promise.fail(te);
                     }
                 },
