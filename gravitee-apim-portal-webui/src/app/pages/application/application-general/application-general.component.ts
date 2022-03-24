@@ -25,8 +25,6 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-import StatusEnum = Subscription.StatusEnum;
-
 import {
   Application,
   ApplicationService,
@@ -39,6 +37,7 @@ import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 
+const StatusEnum = Subscription.StatusEnum;
 @Component({
   selector: 'app-application-general',
   templateUrl: './application-general.component.html',

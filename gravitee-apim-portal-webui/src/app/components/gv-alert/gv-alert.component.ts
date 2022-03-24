@@ -25,8 +25,6 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import StatusEnum = Subscription.StatusEnum;
-
 import { NotificationService } from '../../services/notification.service';
 import { HttpHelpers, HttpStatus } from '../../utils/http-helpers';
 import {
@@ -42,6 +40,8 @@ import {
   Subscription,
   SubscriptionService,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
+
+const StatusEnum = Subscription.StatusEnum;
 
 export enum AlertMode {
   CREATION = 'CREATION',

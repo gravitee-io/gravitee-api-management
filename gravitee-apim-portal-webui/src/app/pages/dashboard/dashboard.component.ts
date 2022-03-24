@@ -24,8 +24,6 @@ import '@gravitee/ui-components/wc/gv-stats';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
-import StatusEnum = Subscription.StatusEnum;
-
 import { CurrentUserService } from '../../services/current-user.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { ConfigurationService } from '../../services/configuration.service';
@@ -37,6 +35,8 @@ import {
   SubscriptionService,
   User,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
+
+const StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-dashboard',

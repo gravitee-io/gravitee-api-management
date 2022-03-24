@@ -20,8 +20,6 @@ import { ActivatedRoute, Params, PRIMARY_OUTLET, Router } from '@angular/router'
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 
-import StatusEnum = Subscription.StatusEnum;
-
 import {
   Api,
   ApiInformation,
@@ -51,6 +49,8 @@ import { CurrentUserService } from '../../../services/current-user.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ScrollService } from '../../../services/scroll.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
+
+const StatusEnum = Subscription.StatusEnum;
 
 const searchableKeysMapping = {
   labels: 'labels',

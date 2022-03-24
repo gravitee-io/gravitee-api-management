@@ -26,9 +26,6 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { distinctUntilChanged } from 'rxjs/operators';
 import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
-import StatusEnum = Subscription.StatusEnum;
-import SecurityEnum = Plan.SecurityEnum;
-
 import { ConfigurationService } from '../../../services/configuration.service';
 import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { FeatureEnum } from '../../../model/feature.enum';
@@ -45,6 +42,9 @@ import {
   SubscriptionService,
   SubscriptionsResponse,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
+
+const StatusEnum = Subscription.StatusEnum;
+const SecurityEnum = Plan.SecurityEnum;
 
 @Component({
   selector: 'app-api-subscribe',

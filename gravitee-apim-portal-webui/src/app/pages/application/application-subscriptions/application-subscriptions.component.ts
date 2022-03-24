@@ -24,9 +24,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
-import StatusEnum = Subscription.StatusEnum;
-import SecurityEnum = Plan.SecurityEnum;
-
 import { NotificationService } from '../../../services/notification.service';
 import {
   ApiKeyModeEnum,
@@ -41,6 +38,9 @@ import {
   Subscription,
   SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
+
+const StatusEnum = Subscription.StatusEnum;
+const SecurityEnum = Plan.SecurityEnum;
 
 @Component({
   selector: 'app-application-subscriptions',

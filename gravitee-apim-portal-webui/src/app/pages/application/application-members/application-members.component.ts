@@ -19,8 +19,6 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import StatusEnum = Subscription.StatusEnum;
-
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-confirm';
@@ -49,6 +47,7 @@ import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 
+const StatusEnum = Subscription.StatusEnum;
 @Component({
   selector: 'app-application-members',
   templateUrl: './application-members.component.html',
