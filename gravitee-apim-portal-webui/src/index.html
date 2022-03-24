@@ -23,6 +23,11 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="webcomponents/webcomponents-loader.js"></script>
+    <script src="@asciidoctor/asciidoctor.js"></script>
+    <script>
+      // Preload the asciidoctor dependencies before ui-component because asciidoctor not work with asynchronous esm import (or something like that)
+      window._gvAsciidoctor = Asciidoctor();
+    </script>
   </head>
   <body>
     <gv-spinner id="loader"></gv-spinner>

@@ -28,6 +28,11 @@
                 "output": "webcomponents/"
               },
               {
+                "glob": "asciidoctor.js",
+                "input": "node_modules/@asciidoctor/core/dist/browser",
+                "output": "@asciidoctor/"
+              },
+              {
                 "glob": "*",
                 "input": "node_modules/@gravitee/ui-components/assets/images",
                 "output": "images/"
