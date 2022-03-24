@@ -990,7 +990,7 @@ jobs:
                 default: ""
         machine:
             image: ubuntu-2004:current
-        resource_class: medium
+        resource_class: large
         steps:
             - when:
                   condition: << parameters.version >>
@@ -1357,7 +1357,6 @@ workflows:
                                   "mariadb~10.2.43",
                                   "mariadb~10.3.34",
                                   "mariadb~10.4.24",
-                                  "mysql~5.6.51",
                                   "mysql~5.7.37",
                                   "mysql~8.0.28",
                                   "sqlserver~2017-CU12",
