@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
-import * as marked from 'marked';
+import { marked } from 'marked';
 import hljs from 'highlight.js';
 import '@gravitee/ui-components/wc/gv-button';
 import { Router } from '@angular/router';
