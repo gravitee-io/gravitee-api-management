@@ -1,0 +1,76 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "virtual_hosts": [
+      {
+        "path": "/team"
+      }
+    ],
+    "groups": [
+      {
+        "name": "group-default",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://localhost:8083/myapi"
+          }
+        ]
+      }],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  },
+
+  "properties" : [ {
+    "key" : "my_property",
+    "value" : "true"
+  }, {
+    "key" : "my_property2",
+    "value" : "123"
+  }, {
+    "key" : "my_property3",
+    "value" : "text"
+  }],
+
+  "services": {
+    "health-check": {
+      "enabled": true,
+      "trigger": {
+        "rate": 60,
+        "unit": "SECONDS"
+      },
+      "steps": [
+        {
+          "request": {
+            "fromRoot": true,
+            "path": "http://se56-2-qlf.mbstech.aec.corp/services/cxf/mobilite",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "X-TOTO",
+                "value": "my_value"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": "My content in JSON form"
+          },
+          "response": {
+            "assertions": [
+              "response.status == 200",
+              "#jsonPath(response.body, '$.store.book[0].author')",
+              "#jsonPath(response.body, '$.store.book[0].author')"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

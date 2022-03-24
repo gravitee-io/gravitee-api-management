@@ -1,0 +1,39 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8083/myapi"
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  },
+
+  "properties": {
+    "my_property": "true",
+    "my_property2": "123",
+    "my_property3": "text"
+  },
+
+  "services": {
+    "dynamic-property": {
+      "interval": 60,
+      "unit": "seconds",
+      "enabled": true,
+      "provider": "HTTP",
+      "configuration": {
+        "url": "http://my_configuration_url",
+        "specification": "{}"
+      }
+    }
+  }
+}

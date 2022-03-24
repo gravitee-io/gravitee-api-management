@@ -1,0 +1,30 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+
+  "proxy": {
+    "context_path": "/my-api",
+    "endpoint": "http://localhost:1234",
+    "strip_context_path": false
+  },
+
+  "resources": [
+    {
+      "name": "oauth2",
+      "enabled": true,
+      "type": "oauth2",
+      "configuration": {
+        "url": "https://oauth2.gravitee.io",
+        "clientId": "myClientId",
+        "clientSecret": "myClientSecret"
+      }
+    }, {
+      "name": "ldap",
+      "enabled": true,
+      "type": "ldap",
+      "configuration": {
+        "url": "http://localhost:389"
+      }
+    }
+  ]
+}
