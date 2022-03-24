@@ -15,4 +15,6 @@
     limitations under the License.
 
 -->
-<gv-button primary icon="code:plus">{{ 'gv-create-application.createApplication' | translate }}</gv-button>
+<gv-button link primary icon="code:plus" *ngIf="'gv-create-application.createApplication' | translate as createApplicationLabel">
+  {{ createApplicationLabel }}
+</gv-button>
