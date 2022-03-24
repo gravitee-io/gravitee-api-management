@@ -55,13 +55,13 @@
 			<artifactId>gravitee-apim-rest-api-service</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<!-- Gravitee dependencies -->
 		<dependency>
-			<groupId>io.gravitee.definition</groupId>
-			<artifactId>gravitee-definition-jackson</artifactId>
+			<groupId>io.gravitee.apim.definition</groupId>
+			<artifactId>gravitee-apim-definition-jackson</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
+		<!-- Gravitee dependencies -->
 		<dependency>
 			<groupId>io.gravitee.common</groupId>
 			<artifactId>gravitee-common</artifactId>
