@@ -2,8 +2,11 @@
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["ES2020", "dom"],
-    "types": ["cypress", "node", "jsonwebtoken", "semver"],
+    "types": ["cypress", "node", "jsonwebtoken"],
     "baseUrl": "./cypress",
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
     "paths": {
       "@fakers/*": ["fixtures/fakers/*"],
       "@keys/*": ["fixtures/keys/*"],
