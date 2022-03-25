@@ -145,6 +145,11 @@
             <scope>test</scope>
         </dependency>
 
+        <!--
+          Gravitee only uses this dependency to test the connectivity to MySQL databases
+          and does not supply or bundle the mysql-connector-java in the software as per the license in:
+            https://github.com/mysql/mysql-connector-j/blob/release/8.0/LICENSE
+        -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
