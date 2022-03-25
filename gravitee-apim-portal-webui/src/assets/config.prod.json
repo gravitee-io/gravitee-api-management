@@ -1,0 +1,15 @@
+{
+  "baseURL": "http://localhost:8083/portal/environments/DEFAULT",
+  "homepage": {
+    "featured": {
+      "size": 9
+    }
+  },
+  "loaderURL": "assets/images/gravitee-loader.gif",
+  "pagination": {
+    "size": {
+      "default": 10,
+      "values": [5, 10, 25, 50, 100]
+    }
+  }
+}
