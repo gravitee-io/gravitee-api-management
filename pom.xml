@@ -51,8 +51,6 @@
         <module>gravitee-apim-distribution</module>
         <module>gravitee-apim-repository</module>
         <module>gravitee-apim-rest-api</module>
-        <module>gravitee-apim-console-webui</module>
-        <module>gravitee-apim-portal-webui</module>
         <module>gravitee-apim-gateway</module>
     </modules>
 
@@ -853,6 +851,8 @@
                         <exclude>**/*.adoc</exclude>
                         <exclude>**/LICENSE_TEMPLATE.txt</exclude>
                         <exclude>**/sonar-project.properties</exclude>
+                        <exclude>gravitee-apim-portal-webui/**</exclude>
+                        <exclude>gravitee-apim-console-webui/**</exclude>
                     </excludes>
                     <mapping>
                         <ts>SLASHSTAR_STYLE</ts>

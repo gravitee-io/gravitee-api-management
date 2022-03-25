@@ -6,6 +6,7 @@ orbs:
     secrethub: secrethub/cli@1.1.0
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
+    artifactory-orb: jfrog/artifactory-orb@1.0.1
 
 executors:
     node-lts:
@@ -268,7 +269,7 @@ jobs:
             - run:
                   name: "validate project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml validate --no-transfer-progress -T 2C
+                      mvn -s .gravitee.settings.xml validate --no-transfer-progress -T 2C
 
             - notify-on-failure
             - save-maven-cache
@@ -286,7 +287,7 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mvn -s .gravitee.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
@@ -313,7 +314,7 @@ jobs:
                   command: |
                       # Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos 
                       # and then collect and merge all coverage reports
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
+                      mvn -s .gravitee.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -345,7 +346,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
+                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -s .gravitee-snapshot.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
             - save-maven-cache
             - notify-on-failure
 
@@ -361,7 +362,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Nexus Snapshots"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml
+                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -s .gravitee-snapshot.settings.xml
             - save-maven-cache
             - notify-on-failure
 
@@ -484,6 +485,40 @@ jobs:
             - store_test_results:
                   path: << parameters.apim-ui-project >>/coverage
 
+    webui-publish-artifactory:
+        parameters:
+            apim-ui-project:
+                type: string
+                default: ""
+                description: the name of the UI project to build
+        executor:
+            name: node-lts
+            class: small
+        steps:
+            - attach_workspace:
+                  at: .
+            - get-apim-version
+            - artifactory-orb/install
+            - artifactory-orb/configure
+            - run:
+                  name: Rename and zip dist folder
+                  command: mv dist << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT} && zip -r dist.zip << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT}
+                  working_directory: << parameters.apim-ui-project >>
+            - when:
+                  condition: << pipeline.parameters.dry_run>>
+                  steps:
+                      - artifactory-orb/upload:
+                            source: << parameters.apim-ui-project >>/dist.zip
+                            target: dry-run-releases/io/gravitee/apim/ui/<< parameters.apim-ui-project >>/${APIM_VERSION%-SNAPSHOT}/<< parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT}.zip
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - artifactory-orb/upload:
+                            source: << parameters.apim-ui-project >>/dist.zip
+                            target: gravitee-releases/io/gravitee/apim/ui/<< parameters.apim-ui-project >>/${APIM_VERSION%-SNAPSHOT}/<< parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT}.zip
+            - notify-on-failure
+
     webui-build:
         parameters:
             apim-ui-project:
@@ -503,12 +538,6 @@ jobs:
                   environment:
                       NODE_OPTIONS: --max_old_space_size=4086
                       BACKEND_ENV: apim-master
-                  working_directory: << parameters.apim-ui-project >>
-            - run:
-                  name: Zip dist folder
-                  # TODO:
-                  #  - Use gzip instead of zip
-                  command: zip -r dist.zip dist
                   working_directory: << parameters.apim-ui-project >>
             - notify-on-failure
             - persist_to_workspace:
@@ -767,72 +796,89 @@ jobs:
                                 --endpoint-url https://cellar-c2.services.clever-cloud.com \
                                 --acl public-read
                             name: S3 Copy ${CIRCLE_PROJECT_REPONAME}.tar.bz2 -> s3://${S3_BUCKET_NAME}/${CIRCLE_PROJECT_REPONAME}/project/
-    prepare-settings:
+    backend-prepare-settings:
         docker:
             - image: cimg/base:stable
         resource_class: small
         steps:
             - attach_workspace:
-                  at: /tmp
+                  at: .
             - run:
                   name: "Setup [settings.xml] <<# pipeline.parameters.dry_run >>for dry-run<</ pipeline.parameters.dry_run >>"
                   command: |
-                      cp -f /tmp/gravit33bot/.secrets/<<^ pipeline.parameters.dry_run >>non.<</ pipeline.parameters.dry_run >>dry.release.settings.xml /tmp/release.settings.xml
+                      cp -f ./gravit33bot/.secrets/<<^ pipeline.parameters.dry_run >>non.<</ pipeline.parameters.dry_run >>dry.release.settings.xml ./release.settings.xml
                       echo "Here is the settings.xml which will be used:"
-                      cat /tmp/release.settings.xml | sed "s#<passphrase>.*</passphrase>#<passphrase>obfuscated</passphrase>#g" | sed "s#<password>.*</password>#<password>obfuscated</password>#g" | sed "s#<username>.*</username>#<username>obfuscated</username>#g"
+                      cat ./release.settings.xml | sed "s#<passphrase>.*</passphrase>#<passphrase>obfuscated</passphrase>#g" | sed "s#<password>.*</password>#<password>obfuscated</password>#g" | sed "s#<username>.*</username>#<username>obfuscated</username>#g"
             - persist_to_workspace:
-                  root: /tmp
+                  root: .
                   paths:
                       - release.settings.xml
-    release:
+
+    release-prepare-version:
+        docker:
+            - image: cimg/openjdk:11.0.13
+        resource_class: small
+        steps:
+            - checkout
+            - run:
+                  name: Remove `-SNAPSHOT` from versions
+                  command: mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+            - run:
+                  name: Compute APIM Version
+                  command: |
+                      export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+                      echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
+                      echo "Gravitee APIM version: ${APIM_VERSION}"
+                      echo $APIM_VERSION > .apim-version.txt
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                      - .apim-version.txt
+
+    backend-build-and-publish-artifactory:
         docker:
             - image: cimg/openjdk:11.0.13
         resource_class: large
-
         environment:
             DRY_RUN: << pipeline.parameters.dry_run >>
             MAVEN_PROFILE_ID: << pipeline.parameters.maven_profile_id >>
         steps:
             - checkout
-            - restore_cache:
-                  keys:
-                      - gio-gravitee-release-dependencies-{{ .Branch }}
             - attach_workspace:
-                  at: /tmp
+                  at: .
+            - restore-maven-cache
             - run:
-                  name: Update maven dependencies versions from properties and remove `-SNAPSHOT` from versions
+                  name: Remove `-SNAPSHOT` from versions
+                  command: mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+            - run:
+                  name: Update maven dependencies versions from properties
                   command: |
-                      # Update maven dependencies versions from properties
-                      mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee-releases -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C
-
-                      # Remove `-SNAPSHOT` from versions
-                      mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+                      mvn -Duser.home=${HOME} -s ./release.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee-releases -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C
             - prepare-gpg
             - prepare-env-var
             - run:
                   name: Maven deploy to Gravitee's private Artifactory"
                   command: |
                       echo "  MAVEN_PROFILE_ID=[${MAVEN_PROFILE_ID}]  "
-                      mvn -Duser.home=${HOME} -s /tmp/release.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation
-            - run:
-                  name: "Exclude Gravitee internal dependencies from cache"
-                  command: |
-                      if [ -d ${HOME}/.m2/io/gravitee ]; then
-                        rm -fr ${HOME}/.m2/io/gravitee
-                      fi;
-                      if [ -d ${HOME}/.m2/com/graviteesource ]; then
-                        rm -fr ${HOME}/.m2/com/graviteesource
-                      fi;
-            - save_cache:
-                  paths:
-                      - ~/.m2
-                  key: gio-gravitee-release-dependencies-{{ .Branch }}
-                  when: always
+                      mvn -Duser.home=${HOME} -s ./release.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation
+            - save-maven-cache
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run >>
                   steps:
                       - prepare-tar-for-s3-glacier
+
+    release-commit-and-prepare-next-version:
+        docker:
+            - image: cimg/openjdk:11.0.13
+        resource_class: large
+
+        environment:
+            DRY_RUN: << pipeline.parameters.dry_run >>
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: /tmp
             - add_ssh_keys:
                   fingerprints:
                       - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
@@ -841,7 +887,9 @@ jobs:
                   command: |
                       git config --global user.name "${GIT_USER_NAME}"
                       git config --global user.email "${GIT_USER_EMAIL}"
-
+            - run:
+                  name: Remove `-SNAPSHOT` from versions
+                  command: mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
             - run:
                   name: Git release
                   command: |
@@ -1217,15 +1265,71 @@ workflows:
         when:
             equal: [release, << pipeline.parameters.gio_action >>]
         jobs:
+            # Prepare
+            - setup:
+                  context: cicd-orchestrator
+
+            # APIM Portal
+            - webui-lint-test:
+                  name: Lint & Test APIM Portal
+                  apim-ui-project: gravitee-apim-portal-webui
+                  resource-class: large
+                  requires:
+                      - setup
+            - webui-build:
+                  name: Build APIM Portal
+                  apim-ui-project: gravitee-apim-portal-webui
+                  requires:
+                      - setup
+            - webui-publish-artifactory:
+                  name: Publish APIM Portal to artifactory
+                  apim-ui-project: gravitee-apim-portal-webui
+                  requires:
+                      - Build APIM Portal
+                      - Lint & Test APIM Portal
+
+            # APIM Console
+            - webui-lint-test:
+                  name: Lint & Test APIM Console
+                  apim-ui-project: gravitee-apim-console-webui
+                  resource-class: large
+                  requires:
+                      - setup
+            - webui-build:
+                  name: Build APIM Console
+                  apim-ui-project: gravitee-apim-console-webui
+                  requires:
+                      - setup
+            - webui-publish-artifactory:
+                  name: Publish APIM Console to artifactory
+                  apim-ui-project: gravitee-apim-console-webui
+                  requires:
+                      - Build APIM Console
+                      - Lint & Test APIM Console
+
+            # APIM Backend
             - gravitee/d_release_secrets:
                   context: cicd-orchestrator
-                  name: release_secrets_resolution
-            - prepare-settings:
+                  name: Backend prepare secrets resolution
                   requires:
-                      - release_secrets_resolution
-            - release:
+                      - setup
+            - backend-prepare-settings:
+                  name: Backend prepare settings
                   requires:
-                      - prepare-settings
+                      - Backend prepare secrets resolution
+            - backend-build-and-publish-artifactory:
+                  name: Backend build and publish to artifactory
+                  requires:
+                      - Backend prepare settings
+                  context: cicd-orchestrator
+
+            # Commit and set next version
+            - release-commit-and-prepare-next-version:
+                  name: Commit and prepare next version
+                  requires:
+                      - Backend build and publish to artifactory
+                      - Publish APIM Console to artifactory
+                      - Publish APIM Portal to artifactory
                   context: cicd-orchestrator
                   pre-steps:
                       - secrethub/env-export:
@@ -1234,17 +1338,18 @@ workflows:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/graviteebot/git/user/email
                             var-name: GIT_USER_EMAIL
-            - nexus-staging-prepare-component:
-                  requires:
-                      - release
-                  context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/zip-bundle-server/clever-cloud-s3/s3cmd/aws_access_key
-                            var-name: AWS_ACCESS_KEY_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/zip-bundle-server/clever-cloud-s3/s3cmd/aws_secret_key
-                            var-name: AWS_SECRET_ACCESS_KEY
+            # - nexus-staging-prepare-component:
+            #       requires:
+            #           - Commit and prepare next version
+            #       context: cicd-orchestrator
+            #       pre-steps:
+            #           - secrethub/env-export:
+            #                 secret-path: graviteeio/cicd/graviteebot/infra/zip-bundle-server/clever-cloud-s3/s3cmd/aws_access_key
+            #                 var-name: AWS_ACCESS_KEY_ID
+            #           - secrethub/env-export:
+            #                 secret-path: graviteeio/cicd/graviteebot/infra/zip-bundle-server/clever-cloud-s3/s3cmd/aws_secret_key
+            #                 var-name: AWS_SECRET_ACCESS_KEY
+
     # ---
     # CICD Workflow For APIM Orchestrated Nexus Staging, Container-based : Circle CI Docker Executor
     nexus_staging:
