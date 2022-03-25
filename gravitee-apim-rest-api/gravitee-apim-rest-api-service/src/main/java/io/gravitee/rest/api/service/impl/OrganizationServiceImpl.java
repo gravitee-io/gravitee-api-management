@@ -24,9 +24,11 @@ import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.RoleService;
@@ -61,6 +63,9 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private EnvironmentService environmentService;
 
     @Autowired
     private ObjectMapper mapper;
@@ -135,12 +140,14 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     private void createPublishOrganizationEvent(OrganizationEntity organizationEntity) throws JsonProcessingException {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organizationEntity.getId());
-        eventService.create(
-            Collections.singleton(GraviteeContext.getCurrentEnvironment()),
-            EventType.PUBLISH_ORGANIZATION,
-            mapper.writeValueAsString(organizationEntity),
-            properties
-        );
+
+        Set<String> environmentIds = environmentService
+            .findByOrganization(organizationEntity.getId())
+            .stream()
+            .map(EnvironmentEntity::getId)
+            .collect(Collectors.toSet());
+
+        eventService.create(environmentIds, EventType.PUBLISH_ORGANIZATION, mapper.writeValueAsString(organizationEntity), properties);
     }
 
     @Override
