@@ -178,7 +178,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         context.response().reason(proxyResponse.reason());
 
         // Copy HTTP headers
-        proxyResponse.headers().forEach(entry -> context.response().headers().set(entry.getKey(), entry.getValue()));
+        proxyResponse.headers().forEach(entry -> context.response().headers().add(entry.getKey(), entry.getValue()));
 
         final StreamableProcessor<ExecutionContext, Buffer> chain = responseProcessorChain.create();
 

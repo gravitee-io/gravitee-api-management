@@ -42,8 +42,8 @@ public class BestMatchFlowTest extends AbstractWiremockGatewayTest {
 
         final HttpResponse response = execute(Request.Get("http://localhost:8082/test/teams/team1")).returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
-        assertEquals("2", response.getFirstHeader("my-counter").getValue());
-        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/teams/team1")).withHeader("my-counter", equalTo("2")));
+        assertEquals("1", response.getFirstHeader("my-counter").getValue());
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/teams/team1")).withHeader("my-counter", equalTo("1")));
     }
 
     @Override

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.flow;
+package io.gravitee.gateway.flow.benchmark;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.flow.BestMatchFlowResolver;
+import io.gravitee.gateway.flow.FlowResolver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,12 +26,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
- * This flow provider is resolving only the {@link Flow} which best match according to the incoming request.
- *
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * Implementation of BestMatchFlowResolver before improvement
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BestMatchPolicyResolver implements FlowResolver {
+public class OldBestMatchFlowResolver extends BestMatchFlowResolver {
 
     private final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
@@ -40,7 +41,8 @@ public class BestMatchPolicyResolver implements FlowResolver {
 
     private final FlowResolver flowResolver;
 
-    public BestMatchPolicyResolver(final FlowResolver flowResolver) {
+    public OldBestMatchFlowResolver(FlowResolver flowResolver) {
+        super(flowResolver);
         this.flowResolver = flowResolver;
     }
 

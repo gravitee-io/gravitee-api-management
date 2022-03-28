@@ -136,7 +136,7 @@
                   <md-tooltip md-direction="left">Revoke</md-tooltip>
                   <ng-md-icon
                     permission
-                    permission-only="'api-subscription-u'"
+                    permission-only="'application-subscription-u'"
                     style="top: 0"
                     icon="not_interested"
                     ng-click="$ctrl.revokeApiKey(key)"
@@ -152,7 +152,7 @@
         class="md-actions gravitee-api-save-button"
         layout="row"
         permission
-        permission-only="'api-subscription-u'"
+        permission-only="'application-subscription-u'"
         ng-if="$ctrl.subscription.status === 'ACCEPTED'"
       >
         <md-button class="md-raised md-primary" ng-click="$ctrl.renewApiKey()">
