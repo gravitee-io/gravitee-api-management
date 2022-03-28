@@ -23,7 +23,7 @@
   <properties>
     <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
     <skiptTests>false</skiptTests>
-    <node.version>v16.10.O</node.version>
+    <node.version>v16.10.0</node.version>
     <npm.version>7.24.0</npm.version>
   </properties>
 
