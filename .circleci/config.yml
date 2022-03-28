@@ -163,6 +163,7 @@ jobs:
         docker:
             - image: cimg/base:stable
         steps:
+            - checkout
             - run:
                   name: Store maven settings env variable in a file
                   command: echo $MAVEN_SETTINGS > /tmp/.gravitee-snapshot.settings.xml
@@ -994,6 +995,12 @@ workflows:
                       - keeper/env-export:
                             secret-url: keeper://zy9yQmXus2_LRA0lkydEkw/custom_field/xml
                             var-name: MAVEN_SETTINGS
+                      - keeper/env-export:
+                            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+                            var-name: GIT_USER_NAME
+                      - keeper/env-export:
+                            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+                            var-name: GIT_USER_EMAIL
             - compute-apim-tag:
                   requires:
                       - load-snapshot-configuration
