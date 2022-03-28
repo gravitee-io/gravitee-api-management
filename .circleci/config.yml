@@ -163,6 +163,9 @@ jobs:
         docker:
             - image: cimg/base:stable
         steps:
+            - keeper/env-export:
+                  secret-url: keeper://zy9yQmXus2_LRA0lkydEkw/custom_field/xml
+                  var-name: MAVEN_SETTINGS
             - run:
                   name: Store maven settings env variable in a file
                   command: echo $MAVEN_SETTINGS > /tmp/.gravitee-snapshot.settings.xml
@@ -350,6 +353,12 @@ jobs:
             - setup_remote_docker
             - get-apim-tag
             - get-apim-version
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+                  var-name: AZURE_DOCKER_REGISTRY_USERNAME
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+                  var-name: AZURE_DOCKER_REGISTRY_PASSWORD
             - run:
                   name: Build & Publish Management API and Gateway Docker Image to Azure Registry
                   command: |
@@ -537,6 +546,12 @@ jobs:
                   at: .
             - setup_remote_docker
             - get-apim-tag
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+                  var-name: AZURE_DOCKER_REGISTRY_USERNAME
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+                  var-name: AZURE_DOCKER_REGISTRY_PASSWORD
             - run:
                   name: Build & Publish Web UI Docker Image to Azure Registry
                   command: |
@@ -580,6 +595,9 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
             - run:
                   name: Running Chromatic
                   # TODO:
@@ -627,6 +645,15 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
+                  var-name: AZURE_APPLICATION_ID
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
+                  var-name: AZURE_TENANT
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
+                  var-name: AZURE_APPLICATION_SECRET
             - run:
                   name: Login into Azure Storage and upload dist
                   # TODO:
@@ -648,6 +675,9 @@ jobs:
             class: small
         steps:
             - checkout
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
             - gh/setup
             - run:
                   name: Edit Pull Request Description
@@ -701,6 +731,15 @@ jobs:
             - attach_workspace:
                   at: .
             - get-apim-tag
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
+                  var-name: AZURE_APPLICATION_ID
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
+                  var-name: AZURE_TENANT
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
+                  var-name: AZURE_APPLICATION_SECRET
             - run:
                   name: Install Kubectl
                   command: |
@@ -740,6 +779,12 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
+            - keeper/env-export:
+                  secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
+                  var-name: AWS_ACCESS_KEY_ID
+            - keeper/env-export:
+                  secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
+                  var-name: AWS_SECRET_ACCESS_KEY
             - when:
                   condition: << pipeline.parameters.dry_run>>
                   steps:
@@ -800,6 +845,12 @@ jobs:
                       - gio-gravitee-release-dependencies-{{ .Branch }}
             - attach_workspace:
                   at: /tmp
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+                  var-name: GIT_USER_NAME
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+                  var-name: GIT_USER_EMAIL
             - run:
                   name: Update maven dependencies versions from properties and remove `-SNAPSHOT` from versions
                   command: |
@@ -917,6 +968,12 @@ jobs:
         steps:
             - setup_remote_docker
             - checkout
+            - keeper/env-export:
+                  secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login
+                  var-name: DOCKERHUB_BOT_USER_NAME
+            - keeper/env-export:
+                  secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
+                  var-name: DOCKERHUB_BOT_USER_TOKEN
             - run:
                   name: "Parse GRAVITEEIO_VERSION to extract major, minor and patch version"
                   command: |
@@ -990,10 +1047,6 @@ workflows:
         jobs:
             - load-snapshot-configuration:
                   context: cicd-orchestrator
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://zy9yQmXus2_LRA0lkydEkw/custom_field/xml
-                            var-name: MAVEN_SETTINGS
             - compute-apim-tag:
                   requires:
                       - load-snapshot-configuration
@@ -1041,13 +1094,6 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - test
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - keeper/env-export:
-                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   filters:
                       branches:
                           only:
@@ -1070,10 +1116,6 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - console-webui-build-storybook
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-                            var-name: GITHUB_TOKEN
             - webui-build:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
@@ -1081,24 +1123,10 @@ workflows:
                       - Install APIM Console
             - console-webui-deploy-on-azure-storage:
                   context: cicd-orchestrator
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
-                            var-name: AZURE_APPLICATION_ID
-                      - keeper/env-export:
-                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
-                            var-name: AZURE_TENANT
-                      - keeper/env-export:
-                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
-                            var-name: AZURE_APPLICATION_SECRET
                   requires:
                       - Build APIM Console
             - console-webui-comment-pr-after-deployment:
                   context: cicd-orchestrator
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-                            var-name: GITHUB_TOKEN
                   requires:
                       - console-webui-deploy-on-azure-storage
             - webui-publish-images-azure-registry:
@@ -1106,13 +1134,6 @@ workflows:
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   context: cicd-orchestrator
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - keeper/env-export:
-                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   requires:
                       - Build APIM Console
                       - compute-apim-tag
@@ -1153,13 +1174,6 @@ workflows:
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
                   context: cicd-orchestrator
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - keeper/env-export:
-                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   requires:
                       - Build APIM Portal
                       - compute-apim-tag
@@ -1170,16 +1184,6 @@ workflows:
                               - /^\d+\.\d+\.x$/
             - deploy-on-azure-cluster:
                   context: cicd-orchestrator
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
-                            var-name: AZURE_APPLICATION_ID
-                      - keeper/env-export:
-                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
-                            var-name: AZURE_TENANT
-                      - keeper/env-export:
-                            secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
-                            var-name: AZURE_APPLICATION_SECRET
                   requires:
                       - publish-images-azure-registry
                       - Build and publish APIM Console docker image
@@ -1208,13 +1212,6 @@ workflows:
                   enterprise_edition: false
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM CE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login
-                            var-name: DOCKERHUB_BOT_USER_NAME
-                      - keeper/env-export:
-                            secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
-                            var-name: DOCKERHUB_BOT_USER_TOKEN
             - publish_prod_docker_images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
                   docker_tag_as_latest: << pipeline.parameters.docker_tag_as_latest >>
@@ -1222,13 +1219,6 @@ workflows:
                   enterprise_edition: true
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login
-                            var-name: DOCKERHUB_BOT_USER_NAME
-                      - keeper/env-export:
-                            secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
-                            var-name: DOCKERHUB_BOT_USER_TOKEN
     release:
         when:
             equal: [release, << pipeline.parameters.gio_action >>]
@@ -1243,24 +1233,10 @@ workflows:
                   requires:
                       - prepare-settings
                   context: cicd-orchestrator
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
-                            var-name: GIT_USER_NAME
-                      - keeper/env-export:
-                            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
-                            var-name: GIT_USER_EMAIL
             - nexus-staging-prepare-component:
                   requires:
                       - release
                   context: cicd-orchestrator
-                  pre-steps:
-                      - keeper/env-export:
-                            secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
-                            var-name: AWS_ACCESS_KEY_ID
-                      - keeper/env-export:
-                            secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
-                            var-name: AWS_SECRET_ACCESS_KEY
     # ---
     # CICD Workflow For APIM Orchestrated Nexus Staging, Container-based : Circle CI Docker Executor
     nexus_staging:
