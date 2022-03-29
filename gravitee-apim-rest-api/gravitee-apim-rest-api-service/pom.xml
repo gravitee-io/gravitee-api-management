@@ -68,15 +68,17 @@
 			<artifactId>gravitee-apim-rest-api-spec-converter</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-        <dependency>
+		<dependency>
+			<groupId>io.gravitee.apim.definition</groupId>
+			<artifactId>gravitee-apim-definition-jackson</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Gravitee Dependencies -->
+		<dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-api</artifactId>
         </dependency>
-		<!-- Gravitee Dependencies -->
-		<dependency>
-			<groupId>io.gravitee.definition</groupId>
-			<artifactId>gravitee-definition-jackson</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>io.gravitee.apim.repository</groupId>

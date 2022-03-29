@@ -45,6 +45,7 @@
     </issueManagement>
 
     <modules>
+        <module>gravitee-apim-definition</module>
         <module>gravitee-apim-distribution</module>
         <module>gravitee-apim-repository</module>
         <module>gravitee-apim-rest-api</module>
@@ -60,7 +61,6 @@
         <gravitee-parent.version>19.2.3</gravitee-parent.version>
         <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
         <gravitee-common.version>1.19.5</gravitee-common.version>
-        <gravitee-definition.version>1.25.1</gravitee-definition.version>
         <gravitee-expression-language.version>1.5.2</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.23.0</gravitee-gateway-api.version>
@@ -101,6 +101,7 @@
         <jaxb-api.version>2.3.0</jaxb-api.version>
         <jaxb-impl.version>2.1.2</jaxb-impl.version>
         <jmh.version>1.26</jmh.version>
+        <jsonassert.version>1.4.0</jsonassert.version>
         <json-patch.version>1.13</json-patch.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
         <json-smart.version>2.3</json-smart.version>
@@ -153,16 +154,6 @@
                 <groupId>io.gravitee.common</groupId>
                 <artifactId>gravitee-common</artifactId>
                 <version>${gravitee-common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.gravitee.definition</groupId>
-                <artifactId>gravitee-definition-jackson</artifactId>
-                <version>${gravitee-definition.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.gravitee.definition</groupId>
-                <artifactId>gravitee-definition-model</artifactId>
-                <version>${gravitee-definition.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.gravitee.discovery</groupId>
@@ -378,6 +369,12 @@
                 <groupId>com.nimbusds</groupId>
                 <artifactId>nimbus-jose-jwt</artifactId>
                 <version>${nimbus-jose-jwt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.skyscreamer</groupId>
+                <artifactId>jsonassert</artifactId>
+                <version>${jsonassert.version}</version>
             </dependency>
 
             <!-- json-smart is needed by nimbus-jose-jwt -->
