@@ -23,4 +23,5 @@ public enum DebugStepStatus {
     COMPLETED,
     ERROR,
     SKIPPED,
+    NO_TRANSFORMATION,
 }
