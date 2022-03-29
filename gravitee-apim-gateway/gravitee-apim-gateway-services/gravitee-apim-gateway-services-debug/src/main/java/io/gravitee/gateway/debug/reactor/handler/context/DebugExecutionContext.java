@@ -57,6 +57,17 @@ public class DebugExecutionContext implements MutableExecutionContext {
         return initialAttributes;
     }
 
+    /**
+     * Some streamable policies returns null when a condition is not fulfilled as a fail-fast strategy.
+     * This method allows to save the debug step as a regular one, with the {@link io.gravitee.definition.model.debug.DebugStepStatus#NO_TRANSFORMATION} status
+     * @param debugStep, the debug step to save
+     */
+    public void saveNoTransformationDebugStep(DebugStep<?> debugStep) {
+        debugStep.noTransformation();
+        beforePolicyExecution(debugStep);
+        afterPolicyExecution(debugStep);
+    }
+
     public void beforePolicyExecution(DebugStep<?> debugStep) {
         if (!steps.contains(debugStep)) {
             steps.add(debugStep);
