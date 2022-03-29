@@ -136,8 +136,7 @@ commands:
 parameters:
     gio_action:
         type: enum
-        enum:
-            [release, standalone_release, standalone_release_replay, nexus_staging, pull_requests, build_docker_images, jdbc_test_container]
+        enum: [release, standalone_release, standalone_release_replay, nexus_staging, pull_requests, build_docker_images]
         default: pull_requests
     dry_run:
         type: boolean
@@ -1013,6 +1012,7 @@ jobs:
                       - save-maven-cache
                       - store_test_results:
                             path: ~/test-results
+                      - notify-on-failure
             - when:
                   condition:
                       not: << parameters.version >>
@@ -1336,8 +1336,13 @@ workflows:
                       - setup
 
     jdbc_test_container:
-        when:
-            equal: [jdbc_test_container, << pipeline.parameters.gio_action >>]
+        triggers:
+            - schedule:
+                  cron: "0 12 * * *"
+                  filters:
+                      branches:
+                          only:
+                              - master
         jobs:
             - setup:
                   context: cicd-orchestrator
