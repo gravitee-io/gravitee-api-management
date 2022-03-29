@@ -46,15 +46,6 @@ echo "POSTMAN_HEALTH_URL    = ${POSTMAN_HEALTH_URL}"
 echo "-------------------------------------------------"
 echo ""
 
-# Check if POSTMAN_ENV value is a valid environment
-if [ $POSTMAN_ENV != "demo" ] && [ $POSTMAN_ENV != "nightly" ] && [ $POSTMAN_ENV != "localhost" ]; then
-  echoerr "$POSTMAN_ENV is not a valid environment ❌";
-  echoerr "You should try with nightly, demo or localhost (default)";
-  exit;
-fi
-
-echo "Tests will be run on $POSTMAN_ENV"
-
 STATUS=0
 RETRY_LIMIT=10
 RETRY_COUNT=1
@@ -84,4 +75,9 @@ fi
 set -e;
 
 # Run all collections
-for f in $POSTMAN_DIR/test/*;do if [[ -f $f ]]; then newman run $f -e $POSTMAN_DIR/env/Gravitee.io-$POSTMAN_ENV-Environment.json --bail; fi; done;
+for f in $POSTMAN_DIR/test/*;do
+  if [ -f "$f" ]; then
+     echo "Run Newman tests on $f"
+     newman run $f -e $POSTMAN_DIR/env/Gravitee.io-$POSTMAN_ENV-Environment.json --bail;
+  fi;
+done;

@@ -1,10 +1,11 @@
 = Run postman collections
 
 == Run collection locally using newman.
-```
-newman run postman/test/collections/[...]collection.json -e postman/env/Gravitee.io-Localhost-Environment.json --bail
 
-```
+[source]
+----
+newman run postman/test/collections/[...]collection.json -e postman/env/Gravitee.io-Localhost-Environment.json --bail
+----
 
 == Arguments
 
@@ -28,7 +29,7 @@ newman run postman/test/collections/[...]collection.json -e postman/env/Gravitee
 |POSTMAN_URL
 |`-u`
 |`--postman-health-url`
-|localhost:8083/management/swagger.json
+|localhost:8083/management/openapi.yaml
 |The endpoint to check if environment is healthy. The script will try 10 times with an interval of 5 seconds between calls before failing. *This endpoint must return a 200 status to be successful.*
 |===
 
@@ -36,25 +37,19 @@ newman run postman/test/collections/[...]collection.json -e postman/env/Gravitee
 
 
 == Run all the tests collections locally using shell script.
-```
+
+[source, shell]
+----
 sh scripts/tests.sh
-```
+----
 
-== Run all the tests collections on Nightly or Demo environment
+or
 
-*Nightly*
+[source, shell]
+----
+sh scripts/tests.sh --postman-health-url=localhost:8083/management/openapi.yaml
+----
 
-```
-sh scripts/tests.sh --postman-env=nightly --postman-health-url=nightly.gravitee.io/api/management/swagger.json
-
-```
-
-*Demo*
-
-```
-sh scripts/tests.sh --postman-env=demo --postman-health-url=demo.gravitee.io/management/swagger.json
-
-```
 
 == Good practices
 
@@ -64,7 +59,8 @@ Each scenario must be able to run on its own. For that, we need to create the sc
 
 You can structure your collections like this:
 
-```
+[source]
+----
 MyCollection
 |-- --Prepare--
 |-- Scenario name
@@ -78,7 +74,7 @@ MySecondCollection
     |-- --Prepare--
     |-- Scenario name
     |-- --Clean Up--
-```
+----
 
 === Variable scopes
 
