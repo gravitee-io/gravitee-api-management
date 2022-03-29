@@ -45,6 +45,7 @@
     </issueManagement>
 
     <modules>
+        <module>gravitee-apim-definition</module>
         <module>gravitee-apim-distribution</module>
         <module>gravitee-apim-repository</module>
         <module>gravitee-apim-rest-api</module>
@@ -61,7 +62,6 @@
         <gravitee-alert-api.version>1.9.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.7.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.20.5</gravitee-common.version>
-        <gravitee-definition.version>1.28.2</gravitee-definition.version>
         <gravitee-expression-language.version>1.6.3</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.27.3</gravitee-gateway-api.version>
@@ -105,6 +105,7 @@
         <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
         <jaxb-api.version>2.3.0</jaxb-api.version>
         <jmh.version>1.26</jmh.version>
+        <jsonassert.version>1.4.0</jsonassert.version>
         <json-patch.version>1.13</json-patch.version>
         <json-path.version>2.6.0</json-path.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
@@ -120,6 +121,7 @@
         <snakeyaml.version>1.26</snakeyaml.version>
         <swagger-annotations.version>1.6.2</swagger-annotations.version>
         <swagger-core.version>2.0.10</swagger-core.version>
+        <swagger-core-annotations.version>2.1.9</swagger-core-annotations.version>
         <swagger-parser.version>2.0.30</swagger-parser.version>
         <testcontainers.version>1.15.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
@@ -166,18 +168,6 @@
                 <groupId>io.gravitee.common</groupId>
                 <artifactId>gravitee-common</artifactId>
                 <version>${gravitee-common.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.definition</groupId>
-                <artifactId>gravitee-definition-jackson</artifactId>
-                <version>${gravitee-definition.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.definition</groupId>
-                <artifactId>gravitee-definition-model</artifactId>
-                <version>${gravitee-definition.version}</version>
             </dependency>
 
             <dependency>
@@ -412,6 +402,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.skyscreamer</groupId>
+                <artifactId>jsonassert</artifactId>
+                <version>${jsonassert.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.twelvemonkeys.imageio</groupId>
                 <artifactId>imageio-core</artifactId>
                 <version>${imageio.version}</version>
@@ -465,6 +461,12 @@
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-core</artifactId>
                 <version>${swagger-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${swagger-core-annotations.version}</version>
             </dependency>
 
             <dependency>

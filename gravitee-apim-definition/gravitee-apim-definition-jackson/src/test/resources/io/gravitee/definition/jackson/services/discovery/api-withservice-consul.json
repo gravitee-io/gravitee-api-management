@@ -1,0 +1,30 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "groups": [
+      {
+        "name": "default"
+      }
+    ]
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  },
+
+  "services": {
+    "discovery": {
+      "provider": "consul-service-discovery",
+      "configuration": {
+        "url": "http://host1:8500",
+        "service": "my-service",
+        "acl": "acl",
+        "dc": "dc"
+      }
+    }
+  }
+}

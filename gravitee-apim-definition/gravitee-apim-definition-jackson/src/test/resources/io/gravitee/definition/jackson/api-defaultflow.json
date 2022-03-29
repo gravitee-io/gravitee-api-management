@@ -1,0 +1,237 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/my-api",
+    "endpoint": "http://localhost:1234",
+    "strip_context_path": false
+  },
+  "flows": [
+    {
+      "name": "ALL",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "#request.headers['content-type'] == 'application/json'",
+      "consumers": [
+        {
+          "consumerId": "PUBLIC",
+          "consumerType": "TAG"
+        },
+        {
+          "consumerId": "PRIVATE"
+        }
+      ],
+      "pre": [
+        {
+          "policy": "rate-limit",
+          "name": "Rate Limit",
+          "description": "Step description",
+          "configuration": {
+            "rate": "1 req/s"
+          }
+        },
+        {
+          "policy": "api-key",
+          "name": "Check API Key",
+          "description": "Step description",
+          "configuration": {
+            "propagateApiKey": true
+          }
+        },
+        {
+          "policy": "transform-headers",
+          "name": "Add HTTP headers",
+          "description": "Step description",
+          "configuration": {
+            "add-headers": "...."
+          }
+        }
+      ],
+      "post": [
+        {
+          "policy": "url-rewriting",
+          "name": "url-rewriting",
+          "description": "Description of the URL Rewriting Gravitee Policy",
+          "configuration": {
+          }
+        },
+        {
+          "policy": "xml-json",
+          "name": "XML to JSON",
+          "description": "Step description",
+          "configuration": {
+          }
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan-1",
+      "name": "Plan 1",
+      "status": "PUBLISHED",
+      "security": "OAUTH2",
+      "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
+      "selectionRule": "#context.attributes['jwt'].claims['iss'] == 'toto'",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "flows": [
+        {
+          "name": "ALL",
+          "condition": "#request.headers['content-type'] == 'application/json'",
+          "pre": [
+            {
+              "policy": "rate-limit",
+              "name": "Rate Limit",
+              "description": "Step description",
+              "configuration": {
+                "rate": "1 req/s"
+              }
+            },
+            {
+              "policy": "api-key",
+              "name": "Check API Key",
+              "description": "Step description",
+              "configuration": {
+                "propagateApiKey": true
+              }
+            },
+            {
+              "policy": "transform-headers",
+              "name": "Add HTTP headers",
+              "description": "Step description",
+              "configuration": {
+                "add-headers": "...."
+              }
+            }
+          ],
+          "post": [
+            {
+              "policy": "url-rewriting",
+              "name": "url-rewriting",
+              "description": "Description of the URL Rewriting Gravitee Policy",
+              "configuration": {
+              }
+            },
+            {
+              "policy": "xml-json",
+              "name": "XML to JSON",
+              "description": "Step description",
+              "configuration": {
+              }
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "condition": "#request.headers['content-type'] == 'application/json'",
+          "pre": [
+            {
+              "policy": "rate-limit",
+              "name": "Rate Limit",
+              "description": "Step description",
+              "configuration": {
+                "rate": "1 req/s"
+              }
+            },
+            {
+              "policy": "api-key",
+              "name": "Check API Key",
+              "description": "Step description",
+              "configuration": {
+                "propagateApiKey": true
+              }
+            },
+            {
+              "policy": "transform-headers",
+              "name": "Add HTTP headers",
+              "description": "Step description",
+              "configuration": {
+                "add-headers": "...."
+              }
+            }
+          ],
+          "post": [
+            {
+              "policy": "xml-json",
+              "name": "XML to JSON",
+              "description": "Step description",
+              "configuration": {
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "plan-2",
+      "name": "Plan 2",
+      "status": "PUBLISHED",
+      "security": "OAUTH2",
+      "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
+      "selectionRule": "#context.attributes['jwt'].claims['iss'] == 'toto'",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "flows": [
+        {
+          "name": "ALL",
+          "condition": "#request.headers['content-type'] == 'application/json'",
+          "pre": [
+            {
+              "policy": "rate-limit",
+              "name": "Rate Limit",
+              "description": "Step description",
+              "configuration": {
+                "rate": "1 req/s"
+              }
+            },
+            {
+              "policy": "api-key",
+              "name": "Check API Key",
+              "description": "Step description",
+              "configuration": {
+                "propagateApiKey": true
+              }
+            },
+            {
+              "policy": "transform-headers",
+              "name": "Add HTTP headers",
+              "description": "Step description",
+              "configuration": {
+                "add-headers": "...."
+              }
+            }
+          ],
+          "post": [
+            {
+              "policy": "url-rewriting",
+              "name": "url-rewriting",
+              "description": "Description of the URL Rewriting Gravitee Policy",
+              "configuration": {
+              }
+            },
+            {
+              "policy": "xml-json",
+              "name": "XML to JSON",
+              "description": "Step description",
+              "configuration": {
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
