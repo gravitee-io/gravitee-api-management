@@ -38,6 +38,10 @@ export class HttpClient extends RequestInfoHolder {
   }
 
   post<T extends string | object, R = T>(path: string, body: T, queryParams?: ParamMap): Cypress.Chainable<Response<R>> {
+    // FIXME: Need to clear cookies before each request to avoid any issue with the session cookie,
+    // a Bearer token is stored in the session cookie and is inherited when we are login in the UI (in some UI tests).
+    cy.clearCookie('Auth-Graviteeio-APIM');
+
     const queryParamString = this.buildQueryParamString(queryParams);
     return cy
       .request<R>({
@@ -55,6 +59,10 @@ export class HttpClient extends RequestInfoHolder {
   }
 
   get<T extends string | object, R = T>(path: string, queryParams?: ParamMap): Cypress.Chainable<Response<R>> {
+    // FIXME: Need to clear cookies before each request to avoid any issue with the session cookie,
+    // a Bearer token is stored in the session cookie and is inherited when we are login in the UI (in some UI tests).
+    cy.clearCookie('Auth-Graviteeio-APIM');
+
     const queryParamString = this.buildQueryParamString(queryParams);
     return cy
       .request<R>({
@@ -67,6 +75,10 @@ export class HttpClient extends RequestInfoHolder {
   }
 
   delete<T extends string | object, R = T>(path: string, queryParams?: ParamMap): Cypress.Chainable<Response<R>> {
+    // FIXME: Need to clear cookies before each request to avoid any issue with the session cookie,
+    // a Bearer token is stored in the session cookie and is inherited when we are login in the UI (in some UI tests).
+    cy.clearCookie('Auth-Graviteeio-APIM');
+
     const queryParamString = this.buildQueryParamString(queryParams);
     return cy
       .request<R>({
@@ -79,6 +91,10 @@ export class HttpClient extends RequestInfoHolder {
   }
 
   put<T extends string | object, R = T>(path: string, body: T): Cypress.Chainable<Response<R>> {
+    // FIXME: Need to clear cookies before each request to avoid any issue with the session cookie,
+    // a Bearer token is stored in the session cookie and is inherited when we are login in the UI (in some UI tests).
+    cy.clearCookie('Auth-Graviteeio-APIM');
+
     return cy
       .request<R>({
         method: 'PUT',

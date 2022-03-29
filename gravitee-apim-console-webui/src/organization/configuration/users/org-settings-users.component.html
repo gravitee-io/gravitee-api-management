@@ -19,7 +19,9 @@
 <div class="title">
   <h1>Users</h1>
 
-  <button (click)="onAddUserClick()" mat-raised-button color="primary"><mat-icon>person_add</mat-icon> Add user</button>
+  <button (click)="onAddUserClick()" mat-raised-button color="primary" data-testid="add-user">
+    <mat-icon>person_add</mat-icon> Add user
+  </button>
 </div>
 
 <gio-table-wrapper [length]="nbTotalUsers" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
@@ -73,6 +75,7 @@
             *ngIf="!element.primary_owner"
             (click)="onDeleteUserClick(element)"
             mat-icon-button
+            data-testid="delete-user"
             aria-label="Button to delete user"
             matTooltip="Delete user"
           >

@@ -21,7 +21,6 @@ import { gio } from '@commands/gravitee.commands';
 
 describe('API List feature', () => {
   let createdApi: Api;
-
   before(() => {
     gio
       .management(ADMIN_USER)
@@ -32,18 +31,19 @@ describe('API List feature', () => {
         createdApi = response.body;
         cy.log('Created api id:', createdApi.id);
       });
+  });
+
+  beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
   });
 
   it(`Visit Home board`, () => {
     cy.visit(Cypress.env('managementUI'));
-    cy.wait(3000);
     cy.contains('Home board');
   });
 
   it(`Visit Search Apis`, () => {
     cy.visit(`${Cypress.env('managementUI')}/#!/environments/DEFAULT/apis/`);
-    cy.wait(3000);
     cy.contains(createdApi.name);
   });
 
