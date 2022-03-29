@@ -53,6 +53,15 @@ public class DebugExecutionContextTest {
     }
 
     @Test
+    public void shouldAddNoTransformationStep() {
+        doNothing().when(debugStep).before(any(), any());
+        cut.saveNoTransformationDebugStep(debugStep);
+        assertThat(cut.getDebugSteps()).hasSize(1);
+        assertThat(cut.getDebugSteps()).contains(debugStep);
+        verify(debugStep, times(1)).noTransformation();
+    }
+
+    @Test
     public void shouldNotAddAStepTwice() {
         doNothing().when(debugStep).before(any(), any());
         cut.beforePolicyExecution(debugStep);

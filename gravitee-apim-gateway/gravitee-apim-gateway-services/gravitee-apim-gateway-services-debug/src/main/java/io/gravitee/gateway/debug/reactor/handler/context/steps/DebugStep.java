@@ -104,6 +104,10 @@ public abstract class DebugStep<T> {
         }
     }
 
+    public void noTransformation() {
+        this.status = DebugStepStatus.NO_TRANSFORMATION;
+    }
+
     public void error(Throwable ex) {
         this.stop();
         this.status = DebugStepStatus.ERROR;

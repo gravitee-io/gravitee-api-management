@@ -77,10 +77,10 @@ public class PolicyDebugDecorator implements Policy {
         final DebugPolicyChain debugPolicyChain = new DebugStreamablePolicyChain(chain, debugStep, debugContext);
 
         try {
-            final ReadWriteStream<Buffer> stream = policy.stream(debugPolicyChain, context);
+            ReadWriteStream<Buffer> stream = policy.stream(debugPolicyChain, context);
 
             if (stream == null) {
-                return null;
+                debugContext.saveNoTransformationDebugStep(debugStep);
             }
 
             return new DebugReadWriteStream(debugContext, stream, debugStep);
