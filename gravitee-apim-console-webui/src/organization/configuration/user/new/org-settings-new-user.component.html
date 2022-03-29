@@ -40,19 +40,19 @@
       <h2>User</h2>
       <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
         <mat-label>First Name</mat-label>
-        <input matInput formControlName="firstName" required />
+        <input matInput formControlName="firstName" required data-testid="firstName" />
         <mat-error *ngIf="userForm.get('firstName').errors?.required">This field is required.</mat-error>
       </mat-form-field>
 
       <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
         <mat-label>Last Name</mat-label>
-        <input matInput formControlName="lastName" required />
+        <input matInput formControlName="lastName" required data-testid="lastName" />
         <mat-error *ngIf="userForm.get('lastName').errors?.required">This field is required.</mat-error>
       </mat-form-field>
 
       <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
         <mat-label>Email</mat-label>
-        <input matInput formControlName="email" type="email" required />
+        <input matInput formControlName="email" type="email" required data-testid="email" />
         <mat-error *ngIf="userForm.get('email').errors?.required">This field is required.</mat-error>
         <mat-error *ngIf="userForm.get('email').errors?.email">This field should be a valid email.</mat-error>
       </mat-form-field>
@@ -87,14 +87,14 @@
 
       <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
         <mat-label>Service Name</mat-label>
-        <input matInput formControlName="lastName" required />
+        <input matInput formControlName="lastName" required data-testid="lastName" />
         <mat-hint>Choose a meaningful name for your service account.</mat-hint>
         <mat-error *ngIf="userForm.get('lastName').errors?.required">This field is required.</mat-error>
       </mat-form-field>
 
       <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
         <mat-label>Email</mat-label>
-        <input matInput formControlName="email" type="email" />
+        <input matInput formControlName="email" type="email" data-testid="email" />
         <mat-error *ngIf="userForm.get('email').errors?.email">This field should be a valid email.</mat-error>
       </mat-form-field>
     </mat-card-content>

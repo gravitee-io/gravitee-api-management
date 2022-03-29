@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { gio } from '@commands/gravitee.commands';
+import { ADMIN_USER } from '@fakers/users/users';
+
 declare namespace Cypress {
   interface Chainable {
     /**
-     * Custom command to select DOM element by data-cy attribute.
-     * @example cy.dataCy('greeting')
+     * Custom command to type into a gv text input
      */
     gvType(selector: string, value: string): Chainable<Element>;
+
+    /**
+     * Custom command to select DOM element by data-testid attribute.
+     * @example cy.getByDataTestId('greeting')
+     */
+    getByDataTestId(selector: string): Chainable<Element>;
 
     /**
      * Custom command to setup authentication token/cookie to visit directly some pages instead of
@@ -34,6 +42,10 @@ declare namespace Cypress {
 
 Cypress.Commands.add('gvType', (selector, value) => {
   cy.get(selector).within(() => cy.get('input').focus().type(value, { force: true }).trigger('input', { bubbles: true, composed: true }));
+});
+
+Cypress.Commands.add('getByDataTestId', (selector) => {
+  cy.get(`[data-testid=${selector}]`);
 });
 
 Cypress.Commands.add('loginInAPIM', (username: string, password: string) => {

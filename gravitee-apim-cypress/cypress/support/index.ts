@@ -22,12 +22,3 @@ import './common/api.commands';
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 require('cypress-terminal-report/src/installLogsCollector')({ enableExtendedCollector: Cypress.env('printLogsToConsole') === 'always' });
-
-Cypress.Cookies.defaults({ preserve: ['Auth-Graviteeio-APIM'] });
-before(() => {
-  cy.clearCookie('Auth-Graviteeio-APIM');
-});
-
-after(() => {
-  cy.clearCookie('Auth-Graviteeio-APIM');
-});

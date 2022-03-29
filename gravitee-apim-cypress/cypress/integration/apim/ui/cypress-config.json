@@ -1,6 +1,6 @@
 {
   "projectId": "gravitee-apim-cypress-ui",
-  "integrationFolder": "cypress/integration/ui",
+  "integrationFolder": "cypress/integration/apim/ui",
   "video": true,
   "screenshotOnRunFailure": true,
   "viewportWidth": 1920,
@@ -19,7 +19,7 @@
     "admin_user_password": "admin",
     "managementOrganizationApi": "/management/organizations/DEFAULT",
     "managementApi": "/management/organizations/DEFAULT/environments/DEFAULT",
-    "managementUI": "http://localhost:8084",
+    "managementUI": "http://localhost:3000",
     "gatewayServer": "http://localhost:8082",
     "portalApi": "/portal/environments/DEFAULT"
   }
