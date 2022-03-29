@@ -1,0 +1,30 @@
+{
+  "id" : "my-api",
+  "name" : "my-team-api",
+  "version" : "undefined",
+  "gravitee" : "1.0.0",
+  "flow_mode" : "DEFAULT",
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/team"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false
+  },
+  "paths" : {
+    "/*" : [ ]
+  },
+  "properties" : [ {
+    "key" : "my_property",
+    "value" : "true"
+  }, {
+    "key" : "my_property2",
+    "value" : "123"
+  }, {
+    "key" : "my_property3",
+    "value" : "text"
+  }, {
+    "key" : "my_property4",
+    "value" : "{{my_property3}}"
+  } ]
+}
