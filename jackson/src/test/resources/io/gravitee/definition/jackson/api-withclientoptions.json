@@ -1,0 +1,33 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8083/myapi",
+        "http": {
+          "idleTimeout": 5000,
+          "connectTimeout": 5000,
+          "keepAlive": true,
+          "followRedirects": true
+        },
+        "ssl": {
+          "trustAll": true,
+          "hostnameVerifier": false,
+          "pem": "sdfsdfsdfsdfsdfsdfsdfsdf"
+        }
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  },
+
+  "tags": [ "tag1", "tag2" ]
+}

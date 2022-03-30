@@ -1,0 +1,24 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://host1:8083/myapi",
+        "headers": [
+          { "name": "x-header1", "value": "header1" },
+          { "name": "x-header2", "value": "header2" }
+        ]
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}
