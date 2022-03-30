@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.CommandService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchEngineServiceImpl;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
@@ -519,6 +520,19 @@ public class SearchEngineServiceTest {
         assertNotNull(matches);
         assertEquals(2, matches.getHits());
         assertEquals(Arrays.asList("api-3", "api-1"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindWithoutEnvironmentId() {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2"));
+        SearchResult matches = searchEngineService.search(
+            new ExecutionContext(GraviteeContext.getCurrentOrganization(), null),
+            QueryBuilder.create(ApiEntity.class).setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(1, 2, matches.getHits());
+        assertEquals(Arrays.asList("api-1", "api-2"), new ArrayList(matches.getDocuments()));
     }
 
     @Before
