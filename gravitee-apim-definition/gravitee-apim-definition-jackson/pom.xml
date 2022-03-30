@@ -22,29 +22,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.definition</groupId>
-        <artifactId>gravitee-definition</artifactId>
-        <version>1.32.2-SNAPSHOT</version>
+        <groupId>io.gravitee.apim.definition</groupId>
+        <artifactId>gravitee-apim-definition</artifactId>
+        <version>3.16.3-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-definition-jackson</artifactId>
+    <artifactId>gravitee-apim-definition-jackson</artifactId>
     <name>Gravitee.io APIM - Definition - Jackson</name>
 
     <dependencies>
         <dependency>
-            <groupId>io.gravitee.definition</groupId>
-            <artifactId>gravitee-definition-model</artifactId>
+            <groupId>io.gravitee.apim.definition</groupId>
+            <artifactId>gravitee-apim-definition-model</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.gravitee.common</groupId>
-            <artifactId>gravitee-common</artifactId>
-        </dependency>
-
-        <!-- Jackson dependencies -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
         </dependency>
 
         <!-- Logging -->
@@ -57,14 +47,12 @@
         <dependency>
             <groupId>org.skyscreamer</groupId>
             <artifactId>jsonassert</artifactId>
-            <version>1.5.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>1.3.2</version>
             <scope>test</scope>
         </dependency>
 
