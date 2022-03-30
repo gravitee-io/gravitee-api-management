@@ -72,9 +72,9 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.definition</groupId>
-            <artifactId>gravitee-definition-jackson</artifactId>
-            <version>${gravitee-definition.version}</version>
+            <groupId>io.gravitee.apim.definition</groupId>
+            <artifactId>gravitee-apim-definition-jackson</artifactId>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 

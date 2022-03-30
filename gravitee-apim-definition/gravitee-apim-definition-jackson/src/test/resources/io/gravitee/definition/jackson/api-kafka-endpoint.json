@@ -1,0 +1,19 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+  "proxy": {
+    "context_path": "/team",
+    "endpoints": [
+      {
+        "name": "endpoint_0",
+        "type": "kafka",
+        "target": "kafka://host1:8083/myapi"
+      }
+    ],
+    "strip_context_path": false
+  },
+  "paths": {
+    "/*": [
+    ]
+  }
+}

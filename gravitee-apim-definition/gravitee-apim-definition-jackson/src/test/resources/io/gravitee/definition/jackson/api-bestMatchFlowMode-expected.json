@@ -1,0 +1,38 @@
+{
+  "id" : "my-api",
+  "name" : "my-api",
+  "version" : "undefined",
+  "gravitee" : "1.0.0",
+  "flow_mode" : "BEST_MATCH",
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/my-api"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : true,
+    "groups" : [ {
+      "name" : "default-group",
+      "endpoints" : [ {
+        "name" : "default",
+        "target" : "http://localhost:1234",
+        "weight" : 1,
+        "backup" : false,
+        "type" : "http"
+      } ],
+      "load_balancing" : {
+        "type" : "ROUND_ROBIN"
+      },
+      "http" : {
+        "connectTimeout" : 5000,
+        "idleTimeout" : 60000,
+        "keepAlive" : true,
+        "readTimeout" : 10000,
+        "pipelining" : false,
+        "maxConcurrentConnections" : 100,
+        "useCompression" : true,
+        "followRedirects" : false
+      }
+    } ]
+  },
+  "properties" : [ ]
+}

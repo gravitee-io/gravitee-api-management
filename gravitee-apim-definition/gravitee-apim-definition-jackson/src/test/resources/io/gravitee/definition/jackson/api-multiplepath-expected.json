@@ -1,0 +1,27 @@
+{
+  "id" : "my-api",
+  "name" : "my-api2",
+  "version" : "v1",
+  "gravitee" : "1.0.0",
+  "flow_mode" : "DEFAULT",
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/weather"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false
+  },
+  "paths" : {
+    "/users/{id}" : [ {
+      "methods" : [ "GET" ],
+      "transform" : [{"delete_headers":["authorization"],"add_headers":{"x-widgets-secret":"th-secret-widget-key-is-secret"}}],
+      "enabled" : true
+    } ],
+    "/users/*" : [ {
+      "methods" : [ "POST" ],
+      "rate-limit" : {"rate":50,"per":60,"unit":"SECOND"},
+      "enabled" : true
+    } ]
+  },
+  "properties" : [ ]
+}

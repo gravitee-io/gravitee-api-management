@@ -1,0 +1,34 @@
+{
+  "id" : "my-api",
+  "name" : "my-api",
+  "version" : "undefined",
+  "gravitee" : "1.0.0",
+  "flow_mode" : "DEFAULT",
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/my-api"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false
+  },
+  "paths" : {
+    "/*" : [ {
+      "methods" : [ "GET", "POST" ],
+      "access-control" : {},
+      "enabled" : false
+    }, {
+      "methods" : [ "GET", "POST" ],
+      "cors" : {},
+      "enabled" : true
+    }, {
+      "methods" : [ "GET" ],
+      "rate-limit" : {"periodTime":60,"limit":20,"periodTimeUnit":"SECONDS"},
+      "enabled" : true
+    }, {
+      "methods" : [ "GET" ],
+      "rate-limit" : {"periodTime":1,"limit":200,"periodTimeUnit":"HOURS"},
+      "enabled" : true
+    } ]
+  },
+  "properties" : [ ]
+}

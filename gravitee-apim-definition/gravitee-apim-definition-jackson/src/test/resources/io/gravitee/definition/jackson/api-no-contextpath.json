@@ -1,0 +1,9 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+
+  "proxy": {
+    "endpoint": "http://localhost:1234",
+    "strip_context_path": false
+  }
+}
