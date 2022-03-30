@@ -40,7 +40,6 @@ import io.gravitee.rest.api.service.ThemeService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateThemeNameException;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
-import io.gravitee.rest.api.service.impl.ThemeServiceImpl;
 import io.gravitee.rest.api.service.impl.ThemeServiceImpl.ThemeDefinitionMapper;
 import java.io.IOException;
 import java.util.Collections;
@@ -100,7 +99,7 @@ public class ThemeServiceTest {
         when(theme.getFavicon()).thenReturn("favicon.png");
         when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
 
-        final ThemeEntity themeEntity = themeService.findById(THEME_ID);
+        final ThemeEntity themeEntity = themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID);
         assertEquals(THEME_ID, themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
         assertEquals(definition, definitionMapper.writeValueAsString(themeEntity.getDefinition()));
@@ -112,7 +111,7 @@ public class ThemeServiceTest {
     @Test(expected = ThemeNotFoundException.class)
     public void shouldThrowThemeNotFoundException() throws TechnicalException {
         when(themeRepository.findById(THEME_ID)).thenReturn(empty());
-        themeService.findById(THEME_ID);
+        themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID);
     }
 
     @Test(expected = ThemeNotFoundException.class)
@@ -126,7 +125,7 @@ public class ThemeServiceTest {
         when(theme.getReferenceId()).thenReturn("NOT-DEFAULT");
         when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
 
-        final ThemeEntity themeEntity = themeService.findById(THEME_ID);
+        final ThemeEntity themeEntity = themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID);
         assertEquals(THEME_ID, themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
         assertEquals(definition, definitionMapper.writeValueAsString(themeEntity.getDefinition()));
@@ -147,7 +146,7 @@ public class ThemeServiceTest {
         when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
             .thenReturn(singleton(theme));
 
-        final Set<ThemeEntity> themes = themeService.findAll();
+        final Set<ThemeEntity> themes = themeService.findAll(GraviteeContext.getExecutionContext());
         final ThemeEntity themeEntity = themes.iterator().next();
         assertEquals(THEME_ID, themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
@@ -169,7 +168,7 @@ public class ThemeServiceTest {
         when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
             .thenReturn(singleton(theme));
 
-        assertNotNull(themeService.findEnabled());
+        assertNotNull(themeService.findEnabled(GraviteeContext.getExecutionContext()));
     }
 
     @Test
@@ -179,7 +178,7 @@ public class ThemeServiceTest {
         when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
             .thenReturn(singleton(theme));
 
-        assertNotNull(themeService.findEnabled());
+        assertNotNull(themeService.findEnabled(GraviteeContext.getExecutionContext()));
     }
 
     @Test
@@ -200,7 +199,7 @@ public class ThemeServiceTest {
         createdTheme.setUpdatedAt(new Date());
         when(themeRepository.create(any())).thenReturn(createdTheme);
 
-        final ThemeEntity themeEntity = themeService.create(newThemeEntity);
+        final ThemeEntity themeEntity = themeService.create(GraviteeContext.getExecutionContext(), newThemeEntity);
 
         assertNotNull(themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
@@ -233,6 +232,7 @@ public class ThemeServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_CREATED),
@@ -253,7 +253,7 @@ public class ThemeServiceTest {
 
         final NewThemeEntity newThemeEntity = new NewThemeEntity();
         newThemeEntity.setName("NAME");
-        themeService.create(newThemeEntity);
+        themeService.create(GraviteeContext.getExecutionContext(), newThemeEntity);
     }
 
     @Test
@@ -277,7 +277,7 @@ public class ThemeServiceTest {
         when(themeRepository.update(any())).thenReturn(updatedTheme);
         when(themeRepository.findById(THEME_ID)).thenReturn(of(updatedTheme));
 
-        final ThemeEntity themeEntity = themeService.update(updateThemeEntity);
+        final ThemeEntity themeEntity = themeService.update(GraviteeContext.getExecutionContext(), updateThemeEntity);
 
         assertNotNull(themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
@@ -306,6 +306,7 @@ public class ThemeServiceTest {
 
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_UPDATED),
@@ -334,7 +335,7 @@ public class ThemeServiceTest {
         final UpdateThemeEntity updateThemeEntity = new UpdateThemeEntity();
         updateThemeEntity.setId(THEME_ID);
         updateThemeEntity.setName("NAME");
-        themeService.update(updateThemeEntity);
+        themeService.update(GraviteeContext.getExecutionContext(), updateThemeEntity);
     }
 
     @Test
@@ -349,7 +350,7 @@ public class ThemeServiceTest {
         when(theme.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
         when(themeRepository.create(any())).thenReturn(theme);
 
-        themeService.update(updateThemeEntity);
+        themeService.update(GraviteeContext.getExecutionContext(), updateThemeEntity);
         verify(themeRepository).create(any());
     }
 
@@ -367,12 +368,13 @@ public class ThemeServiceTest {
         theme.setCreatedAt(new Date());
         theme.setUpdatedAt(new Date());
 
-        themeService.resetToDefaultTheme(THEME_ID);
+        themeService.resetToDefaultTheme(GraviteeContext.getExecutionContext(), THEME_ID);
 
         verify(themeRepository, times(1)).delete(THEME_ID);
 
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_RESET),
@@ -387,11 +389,12 @@ public class ThemeServiceTest {
         final Theme theme = mock(Theme.class);
         when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
 
-        themeService.delete(THEME_ID);
+        themeService.delete(GraviteeContext.getExecutionContext(), THEME_ID);
 
         verify(themeRepository, times(1)).delete(THEME_ID);
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_DELETED),
@@ -507,7 +510,7 @@ public class ThemeServiceTest {
         assertEquals(definitionMapper.readTree(definition), definitionMapper.readTree(definition));
         assertEquals(definition, definition);
 
-        themeService.update(themeToCreate);
+        themeService.update(GraviteeContext.getExecutionContext(), themeToCreate);
 
         verify(themeRepository, times(1))
             .create(
@@ -532,6 +535,7 @@ public class ThemeServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_CREATED),
@@ -565,7 +569,7 @@ public class ThemeServiceTest {
 
         String mergeDefinition = themeDefinitionMapper.writeValueAsString(themeDefinitionMapper.merge(definition, customDefinition));
 
-        themeService.updateDefaultTheme();
+        themeService.updateDefaultTheme(GraviteeContext.getExecutionContext());
 
         verify(themeRepository, times(1))
             .update(
@@ -590,6 +594,7 @@ public class ThemeServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_UPDATED),
@@ -609,7 +614,7 @@ public class ThemeServiceTest {
         when(theme.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
         when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
             .thenReturn(singleton(theme));
-        PictureEntity backgroundImage = themeService.getBackgroundImage(THEME_ID);
+        PictureEntity backgroundImage = themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), THEME_ID);
         assertNotNull(backgroundImage);
         assertTrue(backgroundImage instanceof UrlPictureEntity);
     }
@@ -618,7 +623,7 @@ public class ThemeServiceTest {
     public void shouldGetBackgroundImage() throws TechnicalException {
         final Theme theme = mock(Theme.class);
         Mockito.lenient().when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
-        PictureEntity backgroundImage = themeService.getBackgroundImage(THEME_ID);
+        PictureEntity backgroundImage = themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), THEME_ID);
         assertNull(backgroundImage);
     }
 
@@ -629,7 +634,7 @@ public class ThemeServiceTest {
         when(theme.getReferenceId()).thenReturn("DEFAULT");
         when(theme.getLogo()).thenReturn(themeServiceImpl.getDefaultLogo());
 
-        PictureEntity logo = themeService.getLogo(THEME_ID);
+        PictureEntity logo = themeService.getLogo(GraviteeContext.getExecutionContext(), THEME_ID);
         assertNotNull(logo);
         assertTrue(logo instanceof InlinePictureEntity);
     }

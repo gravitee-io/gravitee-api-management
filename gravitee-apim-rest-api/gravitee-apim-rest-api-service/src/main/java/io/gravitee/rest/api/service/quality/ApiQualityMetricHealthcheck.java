@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.quality;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -35,7 +36,7 @@ public class ApiQualityMetricHealthcheck implements ApiQualityMetric {
     }
 
     @Override
-    public boolean isValid(ApiEntity api, final String environmentId) {
+    public boolean isValid(ExecutionContext executionContext, ApiEntity api) {
         return this.apiService.hasHealthCheckEnabled(api, true);
     }
 }

@@ -21,6 +21,7 @@ import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
 import io.gravitee.rest.api.portal.rest.model.PortalNotification;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.PortalNotificationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public class UserNotificationsResource extends AbstractResource {
             .map(portalNotificationMapper::convert)
             .collect(Collectors.toList());
 
-        return createListResponse(notifications, paginationParam);
+        return createListResponse(GraviteeContext.getExecutionContext(), notifications, paginationParam);
     }
 
     @DELETE

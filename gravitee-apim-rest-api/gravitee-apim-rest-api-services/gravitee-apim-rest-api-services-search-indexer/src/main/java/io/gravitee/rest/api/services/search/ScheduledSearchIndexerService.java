@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.command.CommandQuery;
 import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.IOException;
 import java.time.Instant;
@@ -88,7 +89,7 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
         CommandQuery query = new CommandQuery();
         query.setTo(MessageRecipient.MANAGEMENT_APIS.name());
         query.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
-        List<CommandEntity> messageEntities = commandService.search(query);
+        List<CommandEntity> messageEntities = commandService.search(GraviteeContext.getExecutionContext(), query);
         messageEntities.forEach(
             commandEntity -> {
                 if (commandEntity.isExpired()) {
@@ -97,7 +98,10 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
                     if (!commandEntity.isProcessedInCurrentNode()) {
                         commandService.ack(commandEntity.getId());
                         try {
-                            searchEngineService.process(mapper.readValue(commandEntity.getContent(), CommandSearchIndexerEntity.class));
+                            searchEngineService.process(
+                                GraviteeContext.getExecutionContext(),
+                                mapper.readValue(commandEntity.getContent(), CommandSearchIndexerEntity.class)
+                            );
                         } catch (IOException e) {
                             logger.error("Search Indexer has received a bad message.", e);
                         }

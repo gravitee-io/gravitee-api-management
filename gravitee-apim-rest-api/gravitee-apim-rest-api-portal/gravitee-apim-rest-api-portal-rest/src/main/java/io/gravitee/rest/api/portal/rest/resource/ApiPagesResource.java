@@ -26,6 +26,7 @@ import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.ArrayList;
@@ -70,17 +71,18 @@ public class ApiPagesResource extends AbstractResource {
     ) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        if (accessControlService.canAccessApiFromPortal(apiId)) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
             Stream<Page> pageStream = pageService
                 .search(
+                    GraviteeContext.getCurrentEnvironment(),
                     new PageQuery.Builder().api(apiId).homepage(homepage).published(true).build(),
-                    acceptedLocale,
-                    GraviteeContext.getCurrentEnvironment()
+                    acceptedLocale
                 )
                 .stream()
-                .filter(page -> accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), apiId, page))
+                .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, apiId, page))
                 .map(pageMapper::convert)
                 .map(page -> this.addPageLink(apiId, page));
 
@@ -103,7 +105,7 @@ public class ApiPagesResource extends AbstractResource {
                 pages = pageStream.collect(Collectors.toList());
             }
 
-            return createListResponse(pages, paginationParam);
+            return createListResponse(executionContext, pages, paginationParam);
         }
         throw new ApiNotFoundException(apiId);
     }

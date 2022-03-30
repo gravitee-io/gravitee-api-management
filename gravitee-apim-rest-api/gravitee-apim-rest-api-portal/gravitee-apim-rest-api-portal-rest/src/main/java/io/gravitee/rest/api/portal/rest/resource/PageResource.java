@@ -59,11 +59,11 @@ public class PageResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
-        if (accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity)) {
+        if (accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity)) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
             }
-            pageService.transformWithTemplate(pageEntity, null);
+            pageService.transformWithTemplate(GraviteeContext.getExecutionContext(), pageEntity, null);
 
             Page page = pageMapper.convert(uriInfo.getBaseUriBuilder(), null, pageEntity);
 
@@ -90,8 +90,8 @@ public class PageResource extends AbstractResource {
     public Response getPageContentByPageId(@PathParam("pageId") String pageId) {
         PageEntity pageEntity = pageService.findById(pageId, null);
 
-        if (accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity)) {
-            pageService.transformWithTemplate(pageEntity, null);
+        if (accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity)) {
+            pageService.transformWithTemplate(GraviteeContext.getExecutionContext(), pageEntity, null);
             return Response.ok(pageEntity.getContent()).build();
         } else {
             throw new UnauthorizedAccessException();

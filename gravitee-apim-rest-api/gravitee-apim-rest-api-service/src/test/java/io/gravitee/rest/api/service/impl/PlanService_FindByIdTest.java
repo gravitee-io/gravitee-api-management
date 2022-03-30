@@ -26,10 +26,10 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,13 +69,13 @@ public class PlanService_FindByIdTest {
     @Test
     public void shouldFindById() throws TechnicalException {
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         PlanEntity planEntityFromConverter = mock(PlanEntity.class);
         when(planConverter.toPlanEntity(plan, api)).thenReturn(planEntityFromConverter);
 
-        final PlanEntity resultPlanEntity = planService.findById(PLAN_ID);
+        final PlanEntity resultPlanEntity = planService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         assertSame(resultPlanEntity, planEntityFromConverter);
     }
@@ -84,13 +84,13 @@ public class PlanService_FindByIdTest {
     public void shouldNotFindByIdBecauseNotExists() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
 
-        planService.findById(PLAN_ID);
+        planService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.findById(PLAN_ID);
+        planService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 }

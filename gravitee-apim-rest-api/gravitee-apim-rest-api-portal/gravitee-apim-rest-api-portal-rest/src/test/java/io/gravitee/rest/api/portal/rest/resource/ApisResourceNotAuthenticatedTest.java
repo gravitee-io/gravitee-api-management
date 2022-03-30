@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.common.http.HttpStatusCode;
@@ -24,6 +25,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApisResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
@@ -101,14 +103,16 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         anotherPublishedApi.setName("C");
         anotherPublishedApi.setId("C");
 
-        doReturn(Arrays.asList("A", "C")).when(filteringService).filterApis(any(), any(), any(), any());
-        doReturn(Arrays.asList(publishedApi, anotherPublishedApi)).when(apiService).search(any());
+        doReturn(Arrays.asList("A", "C")).when(filteringService).filterApis(any(), any(), any(), any(), any());
+        doReturn(Arrays.asList(publishedApi, anotherPublishedApi))
+            .when(apiService)
+            .search(eq(GraviteeContext.getExecutionContext()), any());
 
-        doReturn(false).when(ratingService).isEnabled();
+        doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
-        doReturn(new Api().name("A").id("A")).when(apiMapper).convert(publishedApi);
-        doReturn(new Api().name("B").id("B")).when(apiMapper).convert(unpublishedApi);
-        doReturn(new Api().name("C").id("C")).when(apiMapper).convert(anotherPublishedApi);
+        doReturn(new Api().name("A").id("A")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), publishedApi);
+        doReturn(new Api().name("B").id("B")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), unpublishedApi);
+        doReturn(new Api().name("C").id("C")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), anotherPublishedApi);
     }
 
     @Test

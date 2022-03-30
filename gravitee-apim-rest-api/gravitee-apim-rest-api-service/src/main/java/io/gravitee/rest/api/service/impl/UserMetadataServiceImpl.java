@@ -29,6 +29,7 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserMetadataService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MetadataNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -65,13 +66,13 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
     }
 
     @Override
-    public UserMetadataEntity create(NewUserMetadataEntity metadata) {
-        return convert(create(metadata, USER, metadata.getUserId(), false, GraviteeContext.getCurrentEnvironment()), metadata.getUserId());
+    public UserMetadataEntity create(ExecutionContext executionContext, NewUserMetadataEntity metadata) {
+        return convert(create(executionContext, metadata, USER, metadata.getUserId(), false), metadata.getUserId());
     }
 
     @Override
-    public UserMetadataEntity update(UpdateUserMetadataEntity metadata) {
-        return convert(update(metadata, USER, metadata.getUserId(), false, GraviteeContext.getCurrentEnvironment()), metadata.getUserId());
+    public UserMetadataEntity update(ExecutionContext executionContext, UpdateUserMetadataEntity metadata) {
+        return convert(update(executionContext, metadata, USER, metadata.getUserId(), false), metadata.getUserId());
     }
 
     @Override
@@ -88,7 +89,12 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
     }
 
     @Override
-    public void deleteAllByCustomFieldId(String key, String refId, CustomUserFieldReferenceType refType) {
+    public void deleteAllByCustomFieldId(
+        ExecutionContext executionContext,
+        String key,
+        String refId,
+        CustomUserFieldReferenceType refType
+    ) {
         try {
             // CustomField is linked to an Org
             // we have to retrieve users based on org and then
@@ -108,7 +114,7 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
                 pageOfUser = this.userRepository.search(criteria, new PageableBuilder().pageNumber(pageNumber).pageSize(100).build());
                 for (User user : pageOfUser.getContent()) {
                     try {
-                        this.delete(CustomFieldSanitizer.formatKeyValue(key), USER, user.getId());
+                        this.delete(executionContext, CustomFieldSanitizer.formatKeyValue(key), USER, user.getId());
                     } catch (MetadataNotFoundException e) {
                         LOGGER.debug(
                             "Metadata key={}, refType={}, refId={} not found," +
@@ -129,11 +135,11 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
 
     @Override
     protected void checkReferenceMetadataFormat(
+        ExecutionContext executionContext,
         MetadataFormat format,
         String value,
         MetadataReferenceType referenceType,
-        String referenceId,
-        final String environmentId
+        String referenceId
     ) {
         // do nothing for User, currently on String is used without templating
     }

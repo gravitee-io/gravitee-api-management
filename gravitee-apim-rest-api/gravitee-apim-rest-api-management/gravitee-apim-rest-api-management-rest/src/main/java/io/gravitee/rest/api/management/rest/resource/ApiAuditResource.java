@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -75,7 +76,7 @@ public class ApiAuditResource extends AbstractResource {
             query.setEvents(Collections.singletonList(param.getEvent()));
         }
 
-        return auditService.search(query);
+        return auditService.search(GraviteeContext.getExecutionContext(), query);
     }
 
     @Path("/events")

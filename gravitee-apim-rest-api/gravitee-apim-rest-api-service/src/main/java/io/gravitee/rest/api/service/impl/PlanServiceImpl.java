@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
@@ -96,7 +97,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     );
 
     @Override
-    public PlanEntity findById(String plan) {
+    public PlanEntity findById(final ExecutionContext executionContext, String plan) {
         try {
             logger.debug("Find plan by id : {}", plan);
 
@@ -106,7 +107,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new PlanNotFoundException(plan);
             }
 
-            return convert(optPlan.get());
+            return convert(executionContext, optPlan.get());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find a plan by id: {}", plan, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by id: %s", plan), ex);
@@ -114,22 +115,22 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public Set<PlanEntity> findByIdIn(Set<String> ids) {
+    public Set<PlanEntity> findByIdIn(final ExecutionContext executionContext, Set<String> ids) {
         try {
-            return planRepository.findByIdIn(ids).stream().map(this::convert).collect(Collectors.toSet());
+            return planRepository.findByIdIn(ids).stream().map(plan -> convert(executionContext, plan)).collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error has occurred retrieving plans by ids", e);
         }
     }
 
     @Override
-    public Set<PlanEntity> findByApi(String api) {
+    public Set<PlanEntity> findByApi(final ExecutionContext executionContext, String api) {
         try {
             logger.debug("Find plan by api : {}", api);
 
             Set<Plan> plans = planRepository.findByApi(api);
 
-            return plans.stream().map(this::convert).collect(Collectors.toSet());
+            return plans.stream().map(plan -> convert(executionContext, plan)).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find a plan by api: {}", api, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by api: %s", api), ex);
@@ -137,10 +138,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public List<PlanEntity> search(final PlanQuery query) {
+    public List<PlanEntity> search(final ExecutionContext executionContext, final PlanQuery query) {
         Set<PlanEntity> planEntities;
         if (query.getApi() != null) {
-            planEntities = findByApi(query.getApi());
+            planEntities = findByApi(executionContext, query.getApi());
         } else {
             planEntities = emptySet();
         }
@@ -163,13 +164,13 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity create(NewPlanEntity newPlan) {
+    public PlanEntity create(final ExecutionContext executionContext, NewPlanEntity newPlan) {
         try {
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApi());
 
-            assertPlanSecurityIsAllowed(newPlan.getSecurity());
+            assertPlanSecurityIsAllowed(executionContext, newPlan.getSecurity());
 
-            final ApiEntity api = apiService.findById(newPlan.getApi());
+            final ApiEntity api = apiService.findById(executionContext, newPlan.getApi());
             if (ApiLifecycleState.DEPRECATED.equals(api.getLifecycleState())) {
                 throw new ApiDeprecatedException(api.getName());
             }
@@ -183,10 +184,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
                 UpdateApiEntity updateApi = apiConverter.toUpdateApiEntity(api);
                 updateApi.addPlan(fillApiDefinitionPlan(new io.gravitee.definition.model.Plan(), plan, newPlan.getFlows()));
-                apiService.update(api.getId(), updateApi);
+                apiService.update(executionContext, api.getId(), updateApi);
             }
 
             auditService.createApiAuditLog(
+                executionContext,
                 newPlan.getApi(),
                 Collections.singletonMap(PLAN, plan.getId()),
                 PLAN_CREATED,
@@ -194,7 +196,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 null,
                 plan
             );
-            return convert(plan);
+            return convert(executionContext, plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to create a plan {} for API {}", newPlan.getName(), newPlan.getApi(), ex);
             throw new TechnicalManagementException(
@@ -211,23 +213,23 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity createOrUpdatePlan(PlanEntity planEntity, final String environmentId) {
+    public PlanEntity createOrUpdatePlan(final ExecutionContext executionContext, PlanEntity planEntity) {
         PlanEntity resultPlanEntity;
         try {
-            findById(planEntity.getId());
-            resultPlanEntity = update(planConverter.toUpdatePlanEntity(planEntity));
+            findById(executionContext, planEntity.getId());
+            resultPlanEntity = update(executionContext, planConverter.toUpdatePlanEntity(planEntity));
         } catch (PlanNotFoundException npe) {
-            resultPlanEntity = create(planConverter.toNewPlanEntity(planEntity));
+            resultPlanEntity = create(executionContext, planConverter.toNewPlanEntity(planEntity));
         }
         return resultPlanEntity;
     }
 
     @Override
-    public PlanEntity update(UpdatePlanEntity updatePlan) {
-        return update(updatePlan, false);
+    public PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan) {
+        return update(executionContext, updatePlan, false);
     }
 
-    public PlanEntity update(UpdatePlanEntity updatePlan, boolean fromImport) {
+    public PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan, boolean fromImport) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());
             Optional<Plan> optPlan = planRepository.findById(updatePlan.getId());
@@ -236,9 +238,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
             Plan oldPlan = optPlan.get();
-            assertPlanSecurityIsAllowed(PlanSecurityType.valueOf(oldPlan.getSecurity().name()));
+            assertPlanSecurityIsAllowed(executionContext, PlanSecurityType.valueOf(oldPlan.getSecurity().name()));
 
-            ApiEntity api = apiService.findById(oldPlan.getApi());
+            ApiEntity api = apiService.findById(executionContext, oldPlan.getApi());
             if (
                 DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion())) &&
                 updatePlan.getFlows() == null
@@ -294,7 +296,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             newPlan.setCharacteristics(updatePlan.getCharacteristics());
 
-            updatePlanToApiDefinition(api, newPlan, updatePlan.getFlows(), fromImport);
+            updatePlanToApiDefinition(executionContext, api, newPlan, updatePlan.getFlows(), fromImport);
 
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
@@ -302,11 +304,17 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 reorderAndSavePlans(newPlan);
                 return null;
             } else {
-                if (!planSynchronizationProcessor.processCheckSynchronization(convert(oldPlan), convert(newPlan))) {
+                if (
+                    !planSynchronizationProcessor.processCheckSynchronization(
+                        convert(executionContext, oldPlan),
+                        convert(executionContext, newPlan)
+                    )
+                ) {
                     newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
                 }
                 newPlan = planRepository.update(newPlan);
                 auditService.createApiAuditLog(
+                    executionContext,
                     newPlan.getApi(),
                     Collections.singletonMap(PLAN, newPlan.getId()),
                     PLAN_UPDATED,
@@ -315,7 +323,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                     newPlan
                 );
 
-                return convert(newPlan);
+                return convert(executionContext, newPlan);
             }
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to update plan {}", updatePlan.getName(), ex);
@@ -342,7 +350,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity close(String planId, String userId) {
+    public PlanEntity close(final ExecutionContext executionContext, String planId, String userId) {
         try {
             logger.debug("Close plan {}", planId);
 
@@ -367,12 +375,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             // Close subscriptions
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
                 subscriptionService
-                    .findByPlan(planId)
+                    .findByPlan(executionContext, planId)
                     .stream()
                     .forEach(
                         subscription -> {
                             try {
-                                subscriptionService.close(subscription.getId());
+                                subscriptionService.close(executionContext, subscription.getId());
                             } catch (SubscriptionNotClosableException snce) {
                                 // subscription status could not be closed (already closed or rejected)
                                 // ignore it
@@ -386,6 +394,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Audit
             auditService.createApiAuditLog(
+                executionContext,
                 plan.getApi(),
                 Collections.singletonMap(PLAN, plan.getId()),
                 PLAN_CLOSED,
@@ -397,7 +406,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             //reorder plan
             reorderedAndSavePlansAfterRemove(optPlan.get());
 
-            return convert(plan);
+            return convert(executionContext, plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to delete plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to delete plan: %s", planId), ex);
@@ -405,7 +414,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public void delete(String plan) {
+    public void delete(ExecutionContext executionContext, String plan) {
         try {
             logger.debug("Delete plan {}", plan);
 
@@ -415,7 +424,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
             if (optPlan.get().getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
-                int subscriptions = subscriptionService.findByPlan(plan).size();
+                int subscriptions = subscriptionService.findByPlan(executionContext, plan).size();
                 if (
                     (optPlan.get().getStatus() == Plan.Status.PUBLISHED || optPlan.get().getStatus() == Plan.Status.DEPRECATED) &&
                     subscriptions > 0
@@ -429,6 +438,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Audit
             auditService.createApiAuditLog(
+                executionContext,
                 optPlan.get().getApi(),
                 Collections.singletonMap(PLAN, optPlan.get().getId()),
                 PLAN_DELETED,
@@ -445,15 +455,21 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         }
     }
 
-    private void updatePlanToApiDefinition(Plan updatedPlan) {
+    private void updatePlanToApiDefinition(final ExecutionContext executionContext, Plan updatedPlan) {
         String apiId = updatedPlan.getApi();
         if (apiId != null) {
-            ApiEntity api = apiService.findById(apiId);
-            updatePlanToApiDefinition(api, updatedPlan, null, false);
+            ApiEntity api = apiService.findById(executionContext, apiId);
+            updatePlanToApiDefinition(executionContext, api, updatedPlan, null, false);
         }
     }
 
-    private void updatePlanToApiDefinition(ApiEntity api, Plan updatedPlan, List<Flow> flows, boolean fromImport) {
+    private void updatePlanToApiDefinition(
+        final ExecutionContext executionContext,
+        ApiEntity api,
+        Plan updatedPlan,
+        List<Flow> flows,
+        boolean fromImport
+    ) {
         if (api != null) {
             if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
                 final Optional<io.gravitee.definition.model.Plan> existingPlan = api
@@ -470,7 +486,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                     // we are importing an API, create the plan definition
                     updateApi.addPlan(fillApiDefinitionPlan(new io.gravitee.definition.model.Plan(), updatedPlan, flows));
                 }
-                apiService.update(updatedPlan.getApi(), updateApi);
+                apiService.update(executionContext, updatedPlan.getApi(), updateApi);
             }
         }
     }
@@ -494,7 +510,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity publish(String planId) {
+    public PlanEntity publish(final ExecutionContext executionContext, String planId) {
         try {
             logger.debug("Publish plan {}", planId);
 
@@ -545,13 +561,14 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setUpdatedAt(plan.getPublishedAt());
             plan.setNeedRedeployAt(plan.getPublishedAt());
 
-            updatePlanToApiDefinition(plan);
+            updatePlanToApiDefinition(executionContext, plan);
 
             // Save plan
             plan = planRepository.update(plan);
 
             // Audit
             auditService.createApiAuditLog(
+                executionContext,
                 plan.getApi(),
                 Collections.singletonMap(PLAN, plan.getId()),
                 PLAN_PUBLISHED,
@@ -560,7 +577,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 plan
             );
 
-            return convert(plan);
+            return convert(executionContext, plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to publish plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to publish plan: %s", planId), ex);
@@ -568,12 +585,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity deprecate(String planId) {
-        return deprecate(planId, false);
+    public PlanEntity deprecate(final ExecutionContext executionContext, String planId) {
+        return deprecate(executionContext, planId, false);
     }
 
     @Override
-    public PlanEntity deprecate(String planId, boolean allowStaging) {
+    public PlanEntity deprecate(final ExecutionContext executionContext, String planId, boolean allowStaging) {
         try {
             logger.debug("Deprecate plan {}", planId);
 
@@ -596,13 +613,14 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setStatus(Plan.Status.DEPRECATED);
             plan.setUpdatedAt(new Date());
 
-            updatePlanToApiDefinition(plan);
+            updatePlanToApiDefinition(executionContext, plan);
 
             // Save plan
             plan = planRepository.update(plan);
 
             // Audit
             auditService.createApiAuditLog(
+                executionContext,
                 plan.getApi(),
                 Collections.singletonMap(PLAN, plan.getId()),
                 PLAN_DEPRECATED,
@@ -611,7 +629,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 plan
             );
 
-            return convert(plan);
+            return convert(executionContext, plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to deprecate plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to deprecate plan: %s", planId), ex);
@@ -679,11 +697,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             );
     }
 
-    private PlanEntity convert(Plan plan) {
-        return planConverter.toPlanEntity(plan, apiService.findById(plan.getApi()));
+    private PlanEntity convert(final ExecutionContext executionContext, Plan plan) {
+        return planConverter.toPlanEntity(plan, apiService.findById(executionContext, plan.getApi()));
     }
 
-    private void assertPlanSecurityIsAllowed(PlanSecurityType securityType) {
+    private void assertPlanSecurityIsAllowed(final ExecutionContext executionContext, PlanSecurityType securityType) {
         Key securityKey;
         switch (securityType) {
             case API_KEY:
@@ -701,7 +719,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             default:
                 return;
         }
-        if (!parameterService.findAsBoolean(securityKey, ParameterReferenceType.ENVIRONMENT)) {
+        if (!parameterService.findAsBoolean(executionContext, securityKey, ParameterReferenceType.ENVIRONMENT)) {
             throw new UnauthorizedPlanSecurityTypeException(securityType);
         }
     }

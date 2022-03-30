@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -99,6 +100,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
         // add filter by Apis or Applications
         String extraFilter = null;
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!isAdmin()) {
             String fieldName;
             List<String> ids;
@@ -106,23 +108,19 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 fieldName = APPLICATION_FIELD;
                 ids =
                     applicationService
-                        .findByUser(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
-                            getAuthenticatedUser()
-                        )
+                        .findByUser(executionContext, getAuthenticatedUser())
                         .stream()
                         .map(ApplicationListItem::getId)
-                        .filter(appId -> permissionService.hasPermission(APPLICATION_ANALYTICS, appId, READ))
+                        .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
                         .collect(Collectors.toList());
             } else {
                 fieldName = API_FIELD;
                 ids =
                     apiService
-                        .findByUser(getAuthenticatedUser(), null, false)
+                        .findByUser(executionContext, getAuthenticatedUser(), null, false)
                         .stream()
                         .map(ApiEntity::getId)
-                        .filter(apiId -> permissionService.hasPermission(API_ANALYTICS, apiId, READ))
+                        .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
                         .collect(Collectors.toList());
             }
 
@@ -135,13 +133,20 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
         switch (analyticsParam.getType()) {
             case DATE_HISTO:
-                analytics = !isAdmin() && extraFilter == null ? new HistogramAnalytics() : executeDateHisto(analyticsParam, extraFilter);
+                analytics =
+                    !isAdmin() && extraFilter == null
+                        ? new HistogramAnalytics()
+                        : executeDateHisto(executionContext, analyticsParam, extraFilter);
                 break;
             case GROUP_BY:
-                analytics = !isAdmin() && extraFilter == null ? new TopHitsAnalytics() : executeGroupBy(analyticsParam, extraFilter);
+                analytics =
+                    !isAdmin() && extraFilter == null
+                        ? new TopHitsAnalytics()
+                        : executeGroupBy(executionContext, analyticsParam, extraFilter);
                 break;
             case COUNT:
-                analytics = !isAdmin() && extraFilter == null ? new StatsAnalytics() : executeCount(analyticsParam, extraFilter);
+                analytics =
+                    !isAdmin() && extraFilter == null ? new StatsAnalytics() : executeCount(executionContext, analyticsParam, extraFilter);
                 break;
             case STATS:
                 analytics = !isAdmin() && extraFilter == null ? new StatsAnalytics() : executeStats(analyticsParam, extraFilter);
@@ -162,7 +167,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         return analyticsService.execute(query);
     }
 
-    private Analytics executeCount(AnalyticsParam analyticsParam, String extraFilter) {
+    private Analytics executeCount(final ExecutionContext executionContext, AnalyticsParam analyticsParam, String extraFilter) {
         CountQuery query = new CountQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
@@ -173,25 +178,15 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         switch (analyticsParam.getField()) {
             case API_FIELD:
                 if (isAdmin()) {
-                    return buildCountStat(apiService.search(new ApiQuery()).size());
+                    return buildCountStat(apiService.search(executionContext, new ApiQuery()).size());
                 } else {
-                    return buildCountStat(apiService.findByUser(getAuthenticatedUser(), new ApiQuery(), false).size());
+                    return buildCountStat(apiService.findByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), false).size());
                 }
             case APPLICATION_FIELD:
                 if (isAdmin()) {
-                    return buildCountStat(
-                        applicationService.findAll(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment()).size()
-                    );
+                    return buildCountStat(applicationService.findAll(executionContext).size());
                 } else {
-                    return buildCountStat(
-                        applicationService
-                            .findByUser(
-                                GraviteeContext.getCurrentOrganization(),
-                                GraviteeContext.getCurrentEnvironment(),
-                                getAuthenticatedUser()
-                            )
-                            .size()
-                    );
+                    return buildCountStat(applicationService.findByUser(executionContext, getAuthenticatedUser()).size());
                 }
             default:
                 return analyticsService.execute(query);
@@ -204,7 +199,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         return stats;
     }
 
-    private Analytics executeDateHisto(AnalyticsParam analyticsParam, String extraFilter) {
+    private Analytics executeDateHisto(final ExecutionContext executionContext, AnalyticsParam analyticsParam, String extraFilter) {
         DateHistogramQuery query = new DateHistogramQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
@@ -233,10 +228,10 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
             query.setAggregations(aggregationList);
         }
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        return analyticsService.execute(executionContext, query);
     }
 
-    private Analytics executeGroupBy(AnalyticsParam analyticsParam, String extraFilter) {
+    private Analytics executeGroupBy(final ExecutionContext executionContext, AnalyticsParam analyticsParam, String extraFilter) {
         GroupByQuery query = new GroupByQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
@@ -264,22 +259,22 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         switch (analyticsParam.getField()) {
             case STATE_FIELD:
                 {
-                    return getTopHitsAnalytics(api -> api.getState().name());
+                    return getTopHitsAnalytics(executionContext, api -> api.getState().name());
                 }
             case LIFECYCLE_STATE_FIELD:
                 {
-                    return getTopHitsAnalytics(api -> api.getLifecycleState().name());
+                    return getTopHitsAnalytics(executionContext, api -> api.getLifecycleState().name());
                 }
             default:
-                return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+                return analyticsService.execute(executionContext, query);
         }
     }
 
     @NotNull
-    private TopHitsAnalytics getTopHitsAnalytics(Function<ApiEntity, String> groupingByFunction) {
+    private TopHitsAnalytics getTopHitsAnalytics(final ExecutionContext executionContext, Function<ApiEntity, String> groupingByFunction) {
         Set<ApiEntity> apis = isAdmin()
-            ? new HashSet<>(apiService.search(new ApiQuery()))
-            : apiService.findByUser(getAuthenticatedUser(), new ApiQuery(), false);
+            ? new HashSet<>(apiService.search(executionContext, new ApiQuery()))
+            : apiService.findByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), false);
         Map<String, Long> collect = apis.stream().collect(Collectors.groupingBy(groupingByFunction, Collectors.counting()));
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
         topHitsAnalytics.setValues(collect);

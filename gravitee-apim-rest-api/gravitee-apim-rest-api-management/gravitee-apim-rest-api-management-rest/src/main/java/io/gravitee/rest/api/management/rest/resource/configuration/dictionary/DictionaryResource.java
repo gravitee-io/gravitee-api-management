@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -65,6 +66,7 @@ public class DictionaryResource extends AbstractResource {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
         // remove provider informations for readonlyUsers
         boolean notReadOnly = hasPermission(
+            GraviteeContext.getExecutionContext(),
             RolePermission.ENVIRONMENT_DICTIONARY,
             RolePermissionAction.CREATE,
             RolePermissionAction.UPDATE,
@@ -92,7 +94,7 @@ public class DictionaryResource extends AbstractResource {
         @PathParam("dictionary") String dictionary,
         @Parameter(name = "dictionary", required = true) @Valid @NotNull final UpdateDictionaryEntity updatedDictionary
     ) {
-        return dictionaryService.update(dictionary, updatedDictionary);
+        return dictionaryService.update(GraviteeContext.getExecutionContext(), dictionary, updatedDictionary);
     }
 
     @POST
@@ -113,7 +115,7 @@ public class DictionaryResource extends AbstractResource {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
 
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
-            dictionaryEntity = dictionaryService.deploy(dictionary);
+            dictionaryEntity = dictionaryService.deploy(GraviteeContext.getExecutionContext(), dictionary);
             return Response
                 .ok(dictionaryEntity)
                 .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
@@ -142,7 +144,7 @@ public class DictionaryResource extends AbstractResource {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
 
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
-            dictionaryEntity = dictionaryService.undeploy(dictionary);
+            dictionaryEntity = dictionaryService.undeploy(GraviteeContext.getExecutionContext(), dictionary);
             return Response
                 .ok(dictionaryEntity)
                 .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
@@ -159,7 +161,7 @@ public class DictionaryResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteDictionary(@PathParam("dictionary") String dictionary) {
-        dictionaryService.delete(dictionary);
+        dictionaryService.delete(GraviteeContext.getExecutionContext(), dictionary);
         return Response.noContent().build();
     }
 
@@ -187,11 +189,11 @@ public class DictionaryResource extends AbstractResource {
             switch (action) {
                 case START:
                     checkLifecycle(dictionaryEntity, action);
-                    dictionaryEntity = dictionaryService.start(dictionary);
+                    dictionaryEntity = dictionaryService.start(GraviteeContext.getExecutionContext(), dictionary);
                     break;
                 case STOP:
                     checkLifecycle(dictionaryEntity, action);
-                    dictionaryEntity = dictionaryService.stop(dictionary);
+                    dictionaryEntity = dictionaryService.stop(GraviteeContext.getExecutionContext(), dictionary);
                     break;
                 default:
                     dictionaryEntity = null;

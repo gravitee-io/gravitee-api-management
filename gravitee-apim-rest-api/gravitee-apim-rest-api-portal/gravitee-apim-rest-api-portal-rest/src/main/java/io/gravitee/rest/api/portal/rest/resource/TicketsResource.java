@@ -54,6 +54,7 @@ public class TicketsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid @NotNull(message = "Input must not be null.") final TicketInput ticketInput) {
         ticketService.create(
+            GraviteeContext.getExecutionContext(),
             getAuthenticatedUser(),
             ticketMapper.convert(ticketInput),
             GraviteeContext.getCurrentEnvironment(),
@@ -77,6 +78,7 @@ public class TicketsResource extends AbstractResource {
         }
 
         Page<TicketEntity> tickets = ticketService.search(
+            GraviteeContext.getExecutionContext(),
             query,
             sortable,
             new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
@@ -88,6 +90,6 @@ public class TicketsResource extends AbstractResource {
         final Map<String, Map<String, Object>> metadata = new HashMap<>();
         metadata.put(METADATA_DATA_KEY, metadataTotal);
 
-        return createListResponse(tickets.getContent(), paginationParam, metadata, false);
+        return createListResponse(GraviteeContext.getExecutionContext(), tickets.getContent(), paginationParam, metadata, false);
     }
 }

@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.TenantReferenceType;
 import io.gravitee.rest.api.model.UpdateTenantEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.TenantService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateTenantNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -93,7 +94,12 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     }
 
     @Override
-    public List<TenantEntity> create(final List<NewTenantEntity> tenantEntities, String referenceId, TenantReferenceType referenceType) {
+    public List<TenantEntity> create(
+        ExecutionContext executionContext,
+        final List<NewTenantEntity> tenantEntities,
+        String referenceId,
+        TenantReferenceType referenceType
+    ) {
         // First we prevent the duplicate tenant name
         final List<String> tenantNames = tenantEntities.stream().map(NewTenantEntity::getName).collect(Collectors.toList());
 
@@ -113,7 +119,8 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                     Tenant tenant = convert(tenantEntity, referenceId, referenceType);
                     savedTenants.add(convert(tenantRepository.create(tenant)));
                     auditService.createEnvironmentAuditLog(
-                        GraviteeContext.getCurrentEnvironment(),
+                        executionContext,
+                        executionContext.getEnvironmentId(),
                         Collections.singletonMap(TENANT, tenant.getId()),
                         TENANT_CREATED,
                         new Date(),
@@ -130,7 +137,12 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     }
 
     @Override
-    public List<TenantEntity> update(final List<UpdateTenantEntity> tenantEntities, String referenceId, TenantReferenceType referenceType) {
+    public List<TenantEntity> update(
+        ExecutionContext executionContext,
+        final List<UpdateTenantEntity> tenantEntities,
+        String referenceId,
+        TenantReferenceType referenceType
+    ) {
         final List<TenantEntity> savedTenants = new ArrayList<>(tenantEntities.size());
         tenantEntities.forEach(
             tenantEntity -> {
@@ -147,7 +159,8 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                         tenant.setReferenceType(existingTenant.getReferenceType());
                         savedTenants.add(convert(tenantRepository.update(tenant)));
                         auditService.createEnvironmentAuditLog(
-                            GraviteeContext.getCurrentEnvironment(),
+                            executionContext,
+                            executionContext.getEnvironmentId(),
                             Collections.singletonMap(TENANT, tenant.getId()),
                             TENANT_UPDATED,
                             new Date(),
@@ -165,7 +178,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     }
 
     @Override
-    public void delete(final String tenantId, String referenceId, TenantReferenceType referenceType) {
+    public void delete(ExecutionContext executionContext, final String tenantId, String referenceId, TenantReferenceType referenceType) {
         try {
             Optional<Tenant> tenantOptional = tenantRepository.findByIdAndReference(
                 tenantId,
@@ -175,7 +188,8 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
             if (tenantOptional.isPresent()) {
                 tenantRepository.delete(tenantId);
                 auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(TENANT, tenantId),
                     TENANT_DELETED,
                     new Date(),

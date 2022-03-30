@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
@@ -131,7 +132,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public CategoryEntity create(final String environmentId, NewCategoryEntity newCategory) {
+    public CategoryEntity create(ExecutionContext executionContext, final String environmentId, NewCategoryEntity newCategory) {
         // First we prevent the duplicate category name
         final List<CategoryEntity> categories = findAll(environmentId);
         final Optional<CategoryEntity> optionalCategory = categories
@@ -155,6 +156,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             category.setOrder(categories.size());
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
             auditService.createEnvironmentAuditLog(
+                executionContext,
                 environmentId,
                 Collections.singletonMap(CATEGORY, category.getId()),
                 CATEGORY_CREATED,
@@ -171,7 +173,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public CategoryEntity update(String categoryId, UpdateCategoryEntity categoryEntity) {
+    public CategoryEntity update(ExecutionContext executionContext, String categoryId, UpdateCategoryEntity categoryEntity) {
         try {
             LOGGER.debug("Update Category {}", categoryId);
 
@@ -197,6 +199,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             category.setUpdatedAt(updatedAt);
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
             auditService.createEnvironmentAuditLog(
+                executionContext,
                 categoryToUpdate.getEnvironmentId(),
                 Collections.singletonMap(CATEGORY, category.getId()),
                 CATEGORY_UPDATED,
@@ -213,7 +216,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public List<CategoryEntity> update(final List<UpdateCategoryEntity> categoriesEntities) {
+    public List<CategoryEntity> update(ExecutionContext executionContext, final List<UpdateCategoryEntity> categoriesEntities) {
         final List<CategoryEntity> savedCategories = new ArrayList<>(categoriesEntities.size());
         categoriesEntities.forEach(
             categoryEntity -> {
@@ -237,6 +240,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                         category.setUpdatedAt(updatedAt);
                         savedCategories.add(convert(categoryRepository.update(category)));
                         auditService.createEnvironmentAuditLog(
+                            executionContext,
                             category.getEnvironmentId(),
                             Collections.singletonMap(CATEGORY, category.getId()),
                             CATEGORY_UPDATED,
@@ -258,13 +262,14 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public void delete(final String categoryId) {
+    public void delete(ExecutionContext executionContext, final String categoryId) {
         try {
             Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
             if (categoryOptional.isPresent()) {
                 Category categoryToDelete = categoryOptional.get();
                 categoryRepository.delete(categoryToDelete.getId());
                 auditService.createEnvironmentAuditLog(
+                    executionContext,
                     categoryToDelete.getEnvironmentId(),
                     Collections.singletonMap(CATEGORY, categoryId),
                     CATEGORY_DELETED,
@@ -274,7 +279,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 );
 
                 // delete all reference on APIs
-                apiService.deleteCategoryFromAPIs(categoryId);
+                apiService.deleteCategoryFromAPIs(executionContext, categoryId);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete category {}", categoryId, ex);

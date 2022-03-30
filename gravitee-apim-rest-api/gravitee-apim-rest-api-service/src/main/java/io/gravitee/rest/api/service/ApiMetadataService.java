@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -27,12 +28,12 @@ public interface ApiMetadataService {
 
     ApiMetadataEntity findByIdAndApi(String metadataId, String apiId);
 
-    List<ApiMetadataEntity> create(List<ApiMetadataEntity> apiMetadata, String apiId);
-    ApiMetadataEntity create(NewApiMetadataEntity metadata);
+    List<ApiMetadataEntity> create(final ExecutionContext executionContext, List<ApiMetadataEntity> apiMetadata, String apiId);
+    ApiMetadataEntity create(final ExecutionContext executionContext, NewApiMetadataEntity metadata);
 
-    ApiMetadataEntity update(UpdateApiMetadataEntity metadata);
+    ApiMetadataEntity update(final ExecutionContext executionContext, UpdateApiMetadataEntity metadata);
 
-    void delete(String metadataId, String api);
+    void delete(final ExecutionContext executionContext, String metadataId, String api);
 
-    void deleteAllByApi(String apiId);
+    void deleteAllByApi(final ExecutionContext executionContext, String apiId);
 }

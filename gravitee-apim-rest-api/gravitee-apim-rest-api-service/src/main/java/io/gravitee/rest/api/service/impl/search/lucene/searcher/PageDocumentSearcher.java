@@ -20,6 +20,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import java.util.Optional;
 import org.apache.lucene.index.Term;
@@ -40,7 +41,8 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
     protected static final String FIELD_TYPE_VALUE = "page";
 
     @Override
-    public SearchResult searchReference(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
+    public SearchResult searchReference(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query query)
+        throws TechnicalException {
         try {
             BooleanQuery.Builder pageQuery = this.buildQuery(query);
             // Note: Page search does not seem to be used so for now we don't implement any filtering for organization or environment.
@@ -52,7 +54,8 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     @Override
-    public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
+    public SearchResult search(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query query)
+        throws TechnicalException {
         try {
             BooleanQuery.Builder pageQuery = this.buildQuery(query);
             // Note: Page search does not seem to be used so for now we don't implement any filtering for organization or environment.

@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.CustomUserFieldEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import javax.annotation.Priority;
@@ -90,7 +91,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         final Response response = orgTarget().request().post(Entity.json(field));
 
         assertEquals(FORBIDDEN_403, response.getStatus());
-        verify(customUserFieldService, never()).create(any());
+        verify(customUserFieldService, never()).create(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -103,7 +104,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         final Response response = orgTarget("/" + field.getKey()).request().put(Entity.json(field));
 
         assertEquals(FORBIDDEN_403, response.getStatus());
-        verify(customUserFieldService, never()).update(any());
+        verify(customUserFieldService, never()).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -113,7 +114,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         final Response response = orgTarget("/some-key").request().delete();
 
         assertEquals(FORBIDDEN_403, response.getStatus());
-        verify(customUserFieldService, never()).delete(any());
+        verify(customUserFieldService, never()).delete(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -123,6 +124,6 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         final Response response = orgTarget().request().get();
 
         assertEquals(OK_200, response.getStatus());
-        verify(customUserFieldService).listAllFields();
+        verify(customUserFieldService).listAllFields(any());
     }
 }

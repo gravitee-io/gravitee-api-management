@@ -17,9 +17,9 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
 
@@ -36,75 +36,80 @@ public interface PageService {
 
     PageEntity findById(String pageId, String acceptedLocale);
 
-    default List<PageEntity> findByApi(String apiId) {
-        return search(new PageQuery.Builder().api(apiId).build(), false);
+    default List<PageEntity> findByApi(String environmentId, String apiId) {
+        return search(environmentId, new PageQuery.Builder().api(apiId).build(), false);
     }
 
-    List<PageEntity> search(PageQuery query, String environmentId);
+    List<PageEntity> search(String environmentId, PageQuery query);
 
-    List<PageEntity> search(PageQuery query, boolean withTranslations);
+    List<PageEntity> search(String environmentId, PageQuery query, boolean withTranslations);
 
-    List<PageEntity> search(PageQuery query, boolean withTranslations, String environmentId);
+    List<PageEntity> search(String environmentId, PageQuery query, String acceptedLocale);
 
-    List<PageEntity> search(PageQuery query, String acceptedLocale, String environmentId);
+    void transformSwagger(ExecutionContext executionContext, PageEntity pageEntity);
 
-    void transformSwagger(PageEntity pageEntity);
+    void transformSwagger(ExecutionContext executionContext, PageEntity pageEntity, String apiId);
 
-    void transformSwagger(PageEntity pageEntity, String apiId);
+    PageEntity createPage(ExecutionContext executionContext, String apiId, NewPageEntity page);
 
-    PageEntity createPage(String apiId, NewPageEntity page, String environmentId);
+    PageEntity createPage(ExecutionContext executionContext, NewPageEntity page);
 
-    PageEntity createPage(NewPageEntity page, String environmentId);
+    PageEntity update(ExecutionContext executionContext, String pageId, UpdatePageEntity updatePageEntity);
 
-    PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
+    PageEntity update(ExecutionContext executionContext, String pageId, UpdatePageEntity updatePageEntity, boolean partial);
 
-    PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial);
+    void delete(ExecutionContext executionContext, String pageId);
 
-    void delete(String pageId);
-
-    void deleteAllByApi(String apiId, String environmentId);
+    void deleteAllByApi(ExecutionContext executionContext, String apiId);
 
     int findMaxApiPageOrderByApi(String apiId);
 
     int findMaxPortalPageOrder(String referenceId);
 
-    void fetchAll(PageQuery query, String contributor, String currentEnvironment);
+    void fetchAll(ExecutionContext executionContext, PageQuery query, String contributor);
 
-    long execAutoFetch(String environmentId);
+    long execAutoFetch(ExecutionContext executionContext);
 
-    PageEntity fetch(String pageId, String contributor);
+    PageEntity fetch(ExecutionContext executionContext, String pageId, String contributor);
 
-    List<PageEntity> importFiles(ImportPageEntity pageEntity, String environmentId);
+    List<PageEntity> importFiles(ExecutionContext executionContext, ImportPageEntity pageEntity);
 
-    List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity, String environmentId);
+    List<PageEntity> importFiles(ExecutionContext executionContext, String apiId, ImportPageEntity pageEntity);
 
-    void transformWithTemplate(PageEntity pageEntity, String api);
+    void transformWithTemplate(ExecutionContext executionContext, PageEntity pageEntity, String api);
 
-    PageEntity create(String apiId, PageEntity pageEntity, String environmentId);
+    PageEntity create(ExecutionContext executionContext, String apiId, PageEntity pageEntity);
 
-    List<String> validateSafeContent(PageEntity pageEntity, String apiId);
+    List<String> validateSafeContent(ExecutionContext executionContext, PageEntity pageEntity, String apiId);
 
-    Map<SystemFolderType, String> initialize(String environmentId);
+    Map<SystemFolderType, String> initialize(ExecutionContext executionContext);
 
-    PageEntity createAsideFolder(String apiId, String environmentId);
-    PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId);
+    PageEntity createAsideFolder(ExecutionContext executionContext, String apiId);
+    PageEntity createSystemFolder(ExecutionContext executionContext, String apiId, SystemFolderType systemFolderType, int order);
 
-    PageEntity createWithDefinition(String apiId, String toString, String environmentId);
+    PageEntity createWithDefinition(ExecutionContext executionContext, String apiId, String toString);
 
-    void createOrUpdatePages(List<PageEntity> pages, String environmentId, String apiId);
+    void createOrUpdatePages(ExecutionContext executionContext, List<PageEntity> pages, String apiId);
 
-    void createOrUpdateSwaggerPage(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor, boolean isForCreation);
+    void createOrUpdateSwaggerPage(
+        ExecutionContext executionContext,
+        String apiId,
+        ImportSwaggerDescriptorEntity swaggerDescriptor,
+        boolean isForCreation
+    );
 
-    void duplicatePages(List<PageEntity> pages, String environmentId, String apiId);
+    void duplicatePages(ExecutionContext executionContext, List<PageEntity> pages, String apiId);
 
     /**
      * Check if the page is used as GeneralCondition by an active Plan for the given ApiID
      *
+     *
+     * @param executionContext
      * @param page
      * @param apiId
      * @return
      */
-    boolean isPageUsedAsGeneralConditions(PageEntity page, String apiId);
+    boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, String apiId);
 
     boolean shouldHaveRevision(String pageType);
 

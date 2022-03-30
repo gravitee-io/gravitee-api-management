@@ -26,9 +26,9 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Test;
@@ -76,20 +76,21 @@ public class PlanService_DeleteTest {
     public void shouldNotDeleteBecauseSubscriptionsExist() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+            .thenReturn(Collections.singleton(subscription));
 
-        planService.delete(PLAN_ID);
+        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test
     public void shouldDeleteBecauseStagingState() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.delete(PLAN_ID);
+        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
     }
@@ -98,18 +99,18 @@ public class PlanService_DeleteTest {
     public void shouldNotDeleteBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.delete(PLAN_ID);
+        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test
     public void shouldDeleteBecauseClosedState() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.delete(PLAN_ID);
+        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
     }
@@ -118,11 +119,11 @@ public class PlanService_DeleteTest {
     public void shouldDeleteBecausePublishedWithNoSubscription() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.delete(PLAN_ID);
+        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
     }
@@ -130,11 +131,11 @@ public class PlanService_DeleteTest {
     @Test
     public void shouldDelete() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.delete(PLAN_ID);
+        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
     }

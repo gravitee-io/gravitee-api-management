@@ -64,7 +64,10 @@ public class BridgeCommandFactoryTest {
     @Test
     public void shouldCreateListEnvironmentsCommand() {
         // When
-        final BridgeCommand listEnvironmentCommand = bridgeCommandFactory.createListEnvironmentCommand();
+        final BridgeCommand listEnvironmentCommand = bridgeCommandFactory.createListEnvironmentCommand(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
 
         // Then
         assertThat(listEnvironmentCommand).isNotNull();
@@ -85,7 +88,12 @@ public class BridgeCommandFactoryTest {
         PromotionEntity promotionEntity = new PromotionEntity();
         promotionEntity.setTargetEnvCockpitId("env#target");
 
-        final BridgeCommand promoteApiCommand = bridgeCommandFactory.createPromoteApiCommand("env#target", "{ \"id\": \"test\"}");
+        final BridgeCommand promoteApiCommand = bridgeCommandFactory.createPromoteApiCommand(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            "env#target",
+            "{ \"id\": \"test\"}"
+        );
 
         assertThat(promoteApiCommand).isNotNull();
         assertThat(promoteApiCommand.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);

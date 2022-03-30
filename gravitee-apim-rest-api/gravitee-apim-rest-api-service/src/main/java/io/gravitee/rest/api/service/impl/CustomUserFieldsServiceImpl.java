@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.CustomUserFieldEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.UserMetadataService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldAlreadyExistException;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldNotFoundException;
@@ -72,9 +73,9 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
     private UserMetadataService userMetadataService;
 
     @Override
-    public CustomUserFieldEntity create(CustomUserFieldEntity newFieldEntity) {
+    public CustomUserFieldEntity create(final ExecutionContext executionContext, CustomUserFieldEntity newFieldEntity) {
         try {
-            final String refId = GraviteeContext.getCurrentOrganization();
+            final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             LOGGER.debug("Create custom user field [key={}, refId={}]", newFieldEntity.getKey(), refId);
             Optional<CustomUserField> existingRecord =
@@ -91,7 +92,7 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
 
                 final CustomUserField recorded = customUserFieldsRepository.create(fieldToCreate);
 
-                createAuditLog(CUSTOM_USER_FIELD_CREATED, now, null, recorded);
+                createAuditLog(executionContext, CUSTOM_USER_FIELD_CREATED, now, null, recorded);
                 return map(recorded);
             }
         } catch (TechnicalException e) {
@@ -101,9 +102,9 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
     }
 
     @Override
-    public CustomUserFieldEntity update(CustomUserFieldEntity updateFieldEntity) {
+    public CustomUserFieldEntity update(final ExecutionContext executionContext, CustomUserFieldEntity updateFieldEntity) {
         try {
-            final String refId = GraviteeContext.getCurrentOrganization();
+            final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             LOGGER.debug("Update custom user field [key={}, refId={}]", updateFieldEntity.getKey(), refId);
             Optional<CustomUserField> existingRecord =
@@ -119,7 +120,7 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
 
                 final CustomUserField updatedField = customUserFieldsRepository.update(fieldToUpdate);
 
-                createAuditLog(CUSTOM_USER_FIELD_UPDATED, updatedAt, existingRecord.get(), updatedField);
+                createAuditLog(executionContext, CUSTOM_USER_FIELD_UPDATED, updatedAt, existingRecord.get(), updatedField);
                 return map(updatedField);
             } else {
                 throw new CustomUserFieldNotFoundException(updateFieldEntity.getKey());
@@ -131,17 +132,18 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
     }
 
     @Override
-    public void delete(String key) {
+    public void delete(final ExecutionContext executionContext, String key) {
         try {
-            final String refId = GraviteeContext.getCurrentOrganization();
+            final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             LOGGER.debug("Delete custom user field [key={}, refId={}]", key, refId);
             Optional<CustomUserField> existingRecord = this.customUserFieldsRepository.findById(formatKeyValue(key), refId, refType);
             if (existingRecord.isPresent()) {
                 customUserFieldsRepository.delete(formatKeyValue(key), refId, refType);
-                createAuditLog(CUSTOM_USER_FIELD_DELETED, new Date(), existingRecord.get(), null);
+                createAuditLog(executionContext, CUSTOM_USER_FIELD_DELETED, new Date(), existingRecord.get(), null);
                 // remove all instance of this field from UserMetadata
                 this.userMetadataService.deleteAllByCustomFieldId(
+                        executionContext,
                         existingRecord.get().getKey(),
                         existingRecord.get().getReferenceId(),
                         existingRecord.get().getReferenceType()
@@ -154,9 +156,9 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
     }
 
     @Override
-    public List<CustomUserFieldEntity> listAllFields() {
+    public List<CustomUserFieldEntity> listAllFields(final ExecutionContext executionContext) {
         try {
-            final String refId = GraviteeContext.getCurrentOrganization();
+            final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             LOGGER.debug("List all custom user fields [refId={}/refType={}]", refId, refType);
             List<CustomUserField> records = this.customUserFieldsRepository.findByReferenceIdAndReferenceType(refId, refType);
@@ -167,12 +169,19 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
         }
     }
 
-    private void createAuditLog(Audit.AuditEvent event, Date createdAt, CustomUserField oldValue, CustomUserField newValue) {
+    private void createAuditLog(
+        final ExecutionContext executionContext,
+        Audit.AuditEvent event,
+        Date createdAt,
+        CustomUserField oldValue,
+        CustomUserField newValue
+    ) {
         String key = oldValue != null ? oldValue.getKey() : newValue.getKey();
         CustomUserFieldReferenceType type = oldValue != null ? oldValue.getReferenceType() : newValue.getReferenceType();
         if (type == ORGANIZATION) {
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentOrganization(),
+                executionContext,
+                executionContext.getOrganizationId(),
                 Collections.singletonMap(USER_FIELD, key),
                 event,
                 createdAt,
@@ -181,7 +190,8 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
             );
         } else if (type == ENVIRONMENT) {
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(USER_FIELD, key),
                 event,
                 createdAt,

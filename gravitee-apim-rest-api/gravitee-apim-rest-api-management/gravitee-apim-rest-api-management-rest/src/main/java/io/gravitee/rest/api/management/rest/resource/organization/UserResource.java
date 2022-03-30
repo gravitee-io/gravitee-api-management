@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -83,7 +84,7 @@ public class UserResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ))
     public UserEntity getUser() {
-        UserEntity user = userService.findByIdWithRoles(userId);
+        UserEntity user = userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), userId);
 
         // Delete password for security reason
         user.setPassword(null);
@@ -99,7 +100,7 @@ public class UserResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.DELETE))
     public Response deleteUser() {
-        userService.delete(userId);
+        userService.delete(GraviteeContext.getExecutionContext(), userId);
         return Response.noContent().build();
     }
 
@@ -164,7 +165,7 @@ public class UserResource extends AbstractResource {
         if (sType != null) {
             type = MembershipReferenceType.valueOf(sType.toUpperCase());
         }
-        List<UserMembership> userMemberships = membershipService.findUserMembership(type, userId);
+        List<UserMembership> userMemberships = membershipService.findUserMembership(GraviteeContext.getExecutionContext(), type, userId);
         Metadata metadata = membershipService.findUserMembershipMetadata(userMemberships, type);
         UserMembershipList userMembershipList = new UserMembershipList();
         userMembershipList.setMemberships(userMemberships);
@@ -187,7 +188,7 @@ public class UserResource extends AbstractResource {
     )
     @Path("resetPassword")
     public Response resetUserPassword() {
-        userService.resetPassword(userId);
+        userService.resetPassword(GraviteeContext.getExecutionContext(), userId);
         return Response.noContent().build();
     }
 
@@ -202,7 +203,7 @@ public class UserResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getUserAvatar(@Context Request request) {
-        PictureEntity picture = userService.getPicture(userId);
+        PictureEntity picture = userService.getPicture(GraviteeContext.getExecutionContext(), userId);
 
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
@@ -238,6 +239,7 @@ public class UserResource extends AbstractResource {
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE))
     public Response updateUserRoles(@NotNull UserReferenceRoleEntity userReferenceRoles) {
         userService.updateUserRoles(
+            GraviteeContext.getExecutionContext(),
             userId,
             userReferenceRoles.getReferenceType(),
             userReferenceRoles.getReferenceId(),
@@ -256,7 +258,7 @@ public class UserResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response finalizeResetPassword(@Valid ResetPasswordUserEntity resetPwdEntity) {
-        UserEntity newUser = userService.finalizeResetPassword(resetPwdEntity);
+        UserEntity newUser = userService.finalizeResetPassword(GraviteeContext.getExecutionContext(), resetPwdEntity);
         if (newUser != null) {
             return Response.ok().entity(newUser).build();
         }
@@ -276,7 +278,7 @@ public class UserResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response validateRegistration(boolean accepted) {
-        return Response.ok(userService.processRegistration(userId, accepted)).build();
+        return Response.ok(userService.processRegistration(GraviteeContext.getExecutionContext(), userId, accepted)).build();
     }
 
     @Path("tokens")

@@ -26,9 +26,9 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.Collections;
 import java.util.Set;
 import org.junit.Test;
@@ -69,10 +69,10 @@ public class PlanService_FindByApiTest {
     @Test
     public void shouldFindByApi() throws TechnicalException {
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(plan));
 
-        final Set<PlanEntity> plans = planService.findByApi(API_ID);
+        final Set<PlanEntity> plans = planService.findByApi(GraviteeContext.getExecutionContext(), API_ID);
 
         assertNotNull(plans);
         assertTrue(!plans.isEmpty());
@@ -82,6 +82,6 @@ public class PlanService_FindByApiTest {
     public void shouldNotFindByApiBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findByApi(API_ID)).thenThrow(TechnicalException.class);
 
-        planService.findByApi(API_ID);
+        planService.findByApi(GraviteeContext.getExecutionContext(), API_ID);
     }
 }

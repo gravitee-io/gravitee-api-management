@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
@@ -66,7 +67,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
     private IdentityProviderActivationService identityProviderActivationService;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         boolean found = true;
         int idx = 0;
 
@@ -83,13 +84,13 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                     try {
                         identityProviderService.findById(id);
                     } catch (IdentityProviderNotFoundException e) {
-                        id = createIdp(id, IdentityProviderType.valueOf(type.toUpperCase()), idx);
+                        id = createIdp(executionContext, id, IdentityProviderType.valueOf(type.toUpperCase()), idx);
                     }
                     // always update
-                    updateIdp(id, idx);
+                    updateIdp(executionContext, id, idx);
 
                     // update idp activations
-                    updateIdpActivations(id, idx);
+                    updateIdpActivations(executionContext, id, idx);
                 } else {
                     logger.info("Unknown identity provider [{}]", type);
                 }
@@ -99,7 +100,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
         return true;
     }
 
-    private String createIdp(String id, IdentityProviderType type, int providerIndex) {
+    private String createIdp(ExecutionContext executionContext, String id, IdentityProviderType type, int providerIndex) {
         NewIdentityProviderEntity idp = new NewIdentityProviderEntity();
         idp.setName(id);
         idp.setType(type);
@@ -114,16 +115,16 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
             idp.setUserProfileMapping(userProfileMapping);
         }
 
-        return identityProviderService.create(idp).getId();
+        return identityProviderService.create(executionContext, idp).getId();
     }
 
-    private void updateIdpActivations(String id, int providerIndex) {
+    private void updateIdpActivations(ExecutionContext executionContext, String id, int providerIndex) {
         //remove all previous activations
-        identityProviderActivationService.deactivateIdpOnAllTargets(id);
+        identityProviderActivationService.deactivateIdpOnAllTargets(executionContext, id);
 
         ActivationTarget[] targets = getActivationsTarget(providerIndex);
         if (targets.length > 0) {
-            identityProviderActivationService.activateIdpOnTargets(id, targets);
+            identityProviderActivationService.activateIdpOnTargets(executionContext, id, targets);
         }
     }
 
@@ -160,7 +161,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
         return activationTargets.toArray(new ActivationTarget[activationTargets.size()]);
     }
 
-    private void updateIdp(String id, int providerIndex) {
+    private void updateIdp(ExecutionContext executionContext, String id, int providerIndex) {
         UpdateIdentityProviderEntity idp = new UpdateIdentityProviderEntity();
         idp.setName(id);
         idp.setDescription(description);
@@ -174,7 +175,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
             idp.setUserProfileMapping(userProfileMapping);
         }
 
-        List<GroupMappingEntity> groupMappings = getGroupMappings(providerIndex);
+        List<GroupMappingEntity> groupMappings = getGroupMappings(executionContext, providerIndex);
         if (!groupMappings.isEmpty()) {
             idp.setGroupMappings(groupMappings);
         }
@@ -184,7 +185,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
             idp.setRoleMappings(roleMappings);
         }
 
-        identityProviderService.update(id, idp);
+        identityProviderService.update(executionContext, id, idp);
     }
 
     private Map<String, Object> getConfiguration(int providerIndex) {
@@ -241,7 +242,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
         return mapping;
     }
 
-    private List<GroupMappingEntity> getGroupMappings(int providerIndex) {
+    private List<GroupMappingEntity> getGroupMappings(ExecutionContext executionContext, int providerIndex) {
         boolean found = true;
         int idx = 0;
         List<GroupMappingEntity> mapping = new ArrayList<>();
@@ -257,7 +258,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                     List<String> groups = new ArrayList<>();
                     groupNames.forEach(
                         groupName -> {
-                            List<GroupEntity> groupsFound = groupService.findByName(GraviteeContext.getCurrentEnvironment(), groupName);
+                            List<GroupEntity> groupsFound = groupService.findByName(executionContext.getEnvironmentId(), groupName);
 
                             if (groupsFound != null && groupsFound.size() == 1) {
                                 groups.add(groupsFound.get(0).getId());

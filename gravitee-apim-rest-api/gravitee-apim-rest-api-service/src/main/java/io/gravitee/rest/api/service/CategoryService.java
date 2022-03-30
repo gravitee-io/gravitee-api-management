@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewCategoryEntity;
 import io.gravitee.rest.api.model.UpdateCategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
 
@@ -34,10 +35,10 @@ public interface CategoryService {
     Set<CategoryEntity> findByIdIn(final String environmentId, final Set<String> ids);
     CategoryEntity findById(String id, final String environment);
     CategoryEntity findNotHiddenById(String id, final String environmentId);
-    CategoryEntity create(final String environmentId, NewCategoryEntity category);
-    CategoryEntity update(String categoryId, UpdateCategoryEntity category);
-    List<CategoryEntity> update(List<UpdateCategoryEntity> categories);
-    void delete(String categoryId);
+    CategoryEntity create(ExecutionContext executionContext, final String environmentId, NewCategoryEntity category);
+    CategoryEntity update(ExecutionContext executionContext, String categoryId, UpdateCategoryEntity category);
+    List<CategoryEntity> update(ExecutionContext executionContext, List<UpdateCategoryEntity> categories);
+    void delete(ExecutionContext executionContext, String categoryId);
     long getTotalApisByCategory(Set<ApiEntity> apis, CategoryEntity category);
     long getTotalApisByCategoryId(Set<Api> apis, String categoryId);
     InlinePictureEntity getPicture(final String environmentId, String categoryId);

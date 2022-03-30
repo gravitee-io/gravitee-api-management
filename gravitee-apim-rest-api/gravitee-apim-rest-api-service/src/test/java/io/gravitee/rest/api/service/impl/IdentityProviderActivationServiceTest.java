@@ -30,6 +30,7 @@ import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.repository.management.model.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
 import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProviderActivationNotFoundException;
@@ -108,6 +109,7 @@ public class IdentityProviderActivationServiceTest {
         // When
         Set<IdentityProviderActivationEntity> activatedIdentityProviders =
             this.identityProviderActivationService.activateIdpOnTargets(
+                    GraviteeContext.getExecutionContext(),
                     IDENTITY_PROVIDER_ID,
                     new ActivationTarget(
                         TARGET_REFERENCE_ID,
@@ -148,6 +150,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
                 eq(TARGET_REFERENCE_ID),
                 any(),
@@ -159,6 +162,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())),
                 eq(ANOTHER_TARGET_REFERENCE_ID),
                 any(),
@@ -209,6 +213,7 @@ public class IdentityProviderActivationServiceTest {
         // When
         Set<IdentityProviderActivationEntity> activatedIdentityProviders =
             this.identityProviderActivationService.addIdpsOnTarget(
+                    GraviteeContext.getExecutionContext(),
                     new ActivationTarget(
                         TARGET_REFERENCE_ID,
                         io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
@@ -244,6 +249,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
                 eq(TARGET_REFERENCE_ID),
                 any(),
@@ -255,6 +261,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
                 eq(TARGET_REFERENCE_ID),
                 any(),
@@ -357,6 +364,7 @@ public class IdentityProviderActivationServiceTest {
 
         // When
         this.identityProviderActivationService.deactivateIdpOnTargets(
+                GraviteeContext.getExecutionContext(),
                 IDENTITY_PROVIDER_ID,
                 new ActivationTarget(
                     TARGET_REFERENCE_ID,
@@ -383,6 +391,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
                 eq(TARGET_REFERENCE_ID),
                 any(),
@@ -394,6 +403,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())),
                 eq(ANOTHER_TARGET_REFERENCE_ID),
                 any(),
@@ -429,6 +439,7 @@ public class IdentityProviderActivationServiceTest {
 
         // When
         this.identityProviderActivationService.removeIdpsFromTarget(
+                GraviteeContext.getExecutionContext(),
                 new ActivationTarget(
                     TARGET_REFERENCE_ID,
                     io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
@@ -448,6 +459,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
                 eq(TARGET_REFERENCE_ID),
                 any(),
@@ -459,6 +471,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
                 eq(TARGET_REFERENCE_ID),
                 any(),
@@ -490,7 +503,7 @@ public class IdentityProviderActivationServiceTest {
             .findAllByIdentityProviderId(IDENTITY_PROVIDER_ID);
 
         // When
-        this.identityProviderActivationService.deactivateIdpOnAllTargets(IDENTITY_PROVIDER_ID);
+        this.identityProviderActivationService.deactivateIdpOnAllTargets(GraviteeContext.getExecutionContext(), IDENTITY_PROVIDER_ID);
 
         // Then
         verify(identityProviderActivationRepository).findAllByIdentityProviderId(IDENTITY_PROVIDER_ID);
@@ -499,6 +512,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
                 eq(TARGET_REFERENCE_ID),
                 any(),
@@ -510,6 +524,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())),
                 eq(ANOTHER_TARGET_REFERENCE_ID),
                 any(),
@@ -542,6 +557,7 @@ public class IdentityProviderActivationServiceTest {
 
         // When
         this.identityProviderActivationService.removeAllIdpsFromTarget(
+                GraviteeContext.getExecutionContext(),
                 new ActivationTarget(
                     TARGET_REFERENCE_ID,
                     io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
@@ -557,6 +573,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
                 eq(TARGET_REFERENCE_ID),
                 any(),
@@ -568,6 +585,7 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService)
             .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
                 eq(TARGET_REFERENCE_ID),
                 any(),
@@ -587,6 +605,7 @@ public class IdentityProviderActivationServiceTest {
 
         // When
         this.identityProviderActivationService.deactivateIdpOnTargets(
+                GraviteeContext.getExecutionContext(),
                 IDENTITY_PROVIDER_ID,
                 new ActivationTarget(
                     TARGET_REFERENCE_ID,
@@ -606,6 +625,7 @@ public class IdentityProviderActivationServiceTest {
 
         // When
         this.identityProviderActivationService.removeIdpsFromTarget(
+                GraviteeContext.getExecutionContext(),
                 new ActivationTarget(
                     TARGET_REFERENCE_ID,
                     io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(

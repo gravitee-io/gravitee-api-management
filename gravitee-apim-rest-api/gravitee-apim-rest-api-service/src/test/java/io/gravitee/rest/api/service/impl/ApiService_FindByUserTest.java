@@ -41,7 +41,6 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import java.util.*;
 import org.junit.Before;
@@ -151,13 +150,14 @@ public class ApiService_FindByUserTest {
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
 
-        when(roleService.findByScope(RoleScope.API)).thenReturn(List.of(poRole, userRole));
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
         MemberEntity poMember = new MemberEntity();
         poMember.setId("admin");
         poMember.setRoles(Collections.singletonList(poRole));
         when(
             membershipService.getMembersByReferencesAndRole(
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.API,
                 Collections.singletonList(api.getId()),
                 "API_PRIMARY_OWNER"
@@ -168,7 +168,7 @@ public class ApiService_FindByUserTest {
         final ApplicationListItem application = new ApplicationListItem();
         application.setId("appId");
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null, false);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, false);
 
         assertNotNull(apiEntities);
         assertEquals(1, apiEntities.size());
@@ -227,13 +227,14 @@ public class ApiService_FindByUserTest {
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
 
-        when(roleService.findByScope(RoleScope.API)).thenReturn(List.of(userRole, poRole));
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(userRole, poRole));
 
         MemberEntity poMember = new MemberEntity();
         poMember.setId("admin");
         poMember.setRoles(Collections.singletonList(poRole));
         when(
             membershipService.getMembersByReferencesAndRole(
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.API,
                 Collections.singletonList(api1.getId()),
                 "API_PRIMARY_OWNER"
@@ -242,6 +243,7 @@ public class ApiService_FindByUserTest {
             .thenReturn(new HashSet<>(singletonList(poMember)));
 
         final Page<ApiEntity> apiPage = apiService.findByUser(
+            GraviteeContext.getExecutionContext(),
             USER_NAME,
             null,
             new SortableImpl("name", false),
@@ -266,12 +268,12 @@ public class ApiService_FindByUserTest {
         poRole.setScope(RoleScope.API);
         poRole.setName(SystemRole.PRIMARY_OWNER.name());
 
-        when(roleService.findByScope(RoleScope.API)).thenReturn(List.of(poRole));
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole));
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
             .thenReturn(Collections.emptySet());
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null, false);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, false);
 
         assertNotNull(apiEntities);
         assertTrue(apiEntities.isEmpty());
@@ -279,7 +281,7 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldFindPublicApisOnlyWithAnonymousUser() throws TechnicalException {
-        final Set<ApiEntity> apiEntities = apiService.findByUser(null, null, false);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), null, null, false);
 
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
@@ -288,8 +290,7 @@ public class ApiService_FindByUserTest {
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
         verify(membershipService, times(0))
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
-        verify(applicationService, times(0))
-            .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), null);
+        verify(applicationService, times(0)).findByUser(GraviteeContext.getExecutionContext(), null);
     }
 
     @Test
@@ -311,9 +312,9 @@ public class ApiService_FindByUserTest {
         poRole.setScope(RoleScope.API);
         poRole.setName(SystemRole.PRIMARY_OWNER.name());
 
-        when(roleService.findByScope(RoleScope.API)).thenReturn(List.of(poRole, userRole));
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null, false);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, false);
 
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());

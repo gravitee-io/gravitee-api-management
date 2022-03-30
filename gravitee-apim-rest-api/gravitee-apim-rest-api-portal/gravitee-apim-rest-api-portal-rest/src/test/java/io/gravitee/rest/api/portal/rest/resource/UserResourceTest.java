@@ -66,19 +66,19 @@ public class UserResourceTest extends AbstractResourceTest {
         byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
-        doReturn(mockImage).when(userService).getPicture(any());
+        doReturn(mockImage).when(userService).getPicture(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
     public void shouldGetCurrentUserWithoutConfig() {
-        when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
-        when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.FALSE);
+        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Boolean.FALSE);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(userService).findByIdWithRoles(userId.capture());
+        Mockito.verify(userService).findByIdWithRoles(eq(GraviteeContext.getExecutionContext()), userId.capture());
 
         assertEquals(USER_NAME, userId.getValue());
 
@@ -90,15 +90,15 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithEmptyManagementConfig() {
-        when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
-        when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
-        when(configService.getConsoleSettings(GraviteeContext.getCurrentOrganization())).thenReturn(new ConsoleSettingsEntity());
+        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Boolean.TRUE);
+        when(configService.getConsoleSettings(GraviteeContext.getExecutionContext())).thenReturn(new ConsoleSettingsEntity());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(userService).findByIdWithRoles(userId.capture());
+        Mockito.verify(userService).findByIdWithRoles(eq(GraviteeContext.getExecutionContext()), userId.capture());
 
         assertEquals(USER_NAME, userId.getValue());
 
@@ -110,16 +110,16 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithManagementConfigWithoutUrl() {
-        when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
-        when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
+        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Boolean.TRUE);
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
-        when(configService.getConsoleSettings(GraviteeContext.getCurrentOrganization())).thenReturn(consoleConfigEntity);
+        when(configService.getConsoleSettings(GraviteeContext.getExecutionContext())).thenReturn(consoleConfigEntity);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(userService).findByIdWithRoles(userId.capture());
+        Mockito.verify(userService).findByIdWithRoles(eq(GraviteeContext.getExecutionContext()), userId.capture());
 
         assertEquals(USER_NAME, userId.getValue());
 
@@ -131,19 +131,19 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithManagementConfigWithUrl() {
-        when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
-        when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
+        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Boolean.TRUE);
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
         Management managementConfig = new Management();
         managementConfig.setUrl("URL");
         consoleConfigEntity.setManagement(managementConfig);
-        when(configService.getConsoleSettings(GraviteeContext.getCurrentOrganization())).thenReturn(consoleConfigEntity);
+        when(configService.getConsoleSettings(GraviteeContext.getExecutionContext())).thenReturn(consoleConfigEntity);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(userService).findByIdWithRoles(userId.capture());
+        Mockito.verify(userService).findByIdWithRoles(eq(GraviteeContext.getExecutionContext()), userId.capture());
 
         assertEquals(USER_NAME, userId.getValue());
 
@@ -179,13 +179,13 @@ public class UserResourceTest extends AbstractResourceTest {
 
         userInput.setAvatar(newAvatar);
         userInput.setId(USER_NAME);
-        when(userService.update(eq(USER_NAME), any())).thenReturn(new UserEntity());
+        when(userService.update(eq(GraviteeContext.getExecutionContext()), eq(USER_NAME), any())).thenReturn(new UserEntity());
 
         final Response response = target().request().put(Entity.json(userInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<UpdateUserEntity> user = ArgumentCaptor.forClass(UpdateUserEntity.class);
-        Mockito.verify(userService).update(eq(USER_NAME), user.capture());
+        Mockito.verify(userService).update(eq(GraviteeContext.getExecutionContext()), eq(USER_NAME), user.capture());
 
         final UpdateUserEntity updateUserEntity = user.getValue();
         assertNotNull(updateUserEntity);
@@ -198,24 +198,26 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetUserAvatar() throws IOException {
-        doReturn(new UserEntity()).when(userService).findById(any());
+        doReturn(new UserEntity()).when(userService).findById(eq(GraviteeContext.getExecutionContext()), any());
         final Response response = target().path("avatar").request().get();
         assertEquals(OK_200, response.getStatus());
     }
 
     @Test
     public void shouldGetUserAvatarRedirectUrl() throws IOException {
-        doReturn(new UserEntity()).when(userService).findById(any());
-        doReturn(new UserEntity()).when(userService).findByIdWithRoles(any());
-        doReturn(new UrlPictureEntity(target().getUri().toURL().toString())).when(userService).getPicture(any());
+        doReturn(new UserEntity()).when(userService).findById(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(new UserEntity()).when(userService).findByIdWithRoles(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(new UrlPictureEntity(target().getUri().toURL().toString()))
+            .when(userService)
+            .getPicture(eq(GraviteeContext.getExecutionContext()), any());
         final Response response = target().path("avatar").request().get();
         assertEquals(OK_200, response.getStatus());
     }
 
     @Test
     public void shouldGetNoContent() throws IOException {
-        doReturn(new UserEntity()).when(userService).findById(any());
-        doReturn(null).when(userService).getPicture(any());
+        doReturn(new UserEntity()).when(userService).findById(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(null).when(userService).getPicture(eq(GraviteeContext.getExecutionContext()), any());
         final Response response = target().path("avatar").request().get();
         assertEquals(OK_200, response.getStatus());
     }

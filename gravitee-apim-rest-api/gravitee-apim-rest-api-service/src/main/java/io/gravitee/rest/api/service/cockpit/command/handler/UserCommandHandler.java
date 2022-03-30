@@ -28,7 +28,7 @@ import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.Single;
 import java.util.HashMap;
@@ -60,10 +60,9 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
     @Override
     public Single<UserReply> handle(UserCommand command) {
         UserPayload userPayload = command.getPayload();
-        GraviteeContext.setCurrentOrganization(userPayload.getOrganizationId());
-
+        ExecutionContext executionContext = new ExecutionContext(userPayload.getOrganizationId(), null);
         try {
-            final UserEntity existingUser = userService.findBySource(COCKPIT_SOURCE, userPayload.getId(), false);
+            final UserEntity existingUser = userService.findBySource(executionContext, COCKPIT_SOURCE, userPayload.getId(), false);
 
             UpdateUserEntity updatedUser = new UpdateUserEntity();
             updatedUser.setFirstname(userPayload.getFirstName());
@@ -79,7 +78,7 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
             updatedUser.getCustomFields().computeIfAbsent(PICTURE, k -> userPayload.getPicture());
             updatedUser.getCustomFields().computeIfAbsent(SUB, k -> userPayload.getUsername());
 
-            UserEntity cockpitUserEntity = userService.update(existingUser.getId(), updatedUser);
+            UserEntity cockpitUserEntity = userService.update(executionContext, existingUser.getId(), updatedUser);
             logger.info("User [{}] with APIM id [{}] updated.", userPayload.getUsername(), cockpitUserEntity.getId());
 
             return Single.just(new UserReply(command.getId(), CommandStatus.SUCCEEDED));
@@ -101,7 +100,7 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
             newUser.getCustomFields().computeIfAbsent(SUB, k -> userPayload.getUsername());
 
             try {
-                UserEntity cockpitUserEntity = userService.create(newUser, false);
+                UserEntity cockpitUserEntity = userService.create(executionContext, newUser, false);
                 logger.info("User [{}] created with APIM id [{}].", userPayload.getUsername(), cockpitUserEntity.getId());
                 return Single.just(new UserReply(command.getId(), CommandStatus.SUCCEEDED));
             } catch (Exception e) {
@@ -121,8 +120,6 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
                 e
             );
             return Single.just(new UserReply(command.getId(), CommandStatus.ERROR));
-        } finally {
-            GraviteeContext.cleanContext();
         }
     }
 }

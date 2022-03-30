@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -93,11 +94,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     @Override
-    public List<RoleEntity> findAll() {
-        return this.findAllByOrganization(GraviteeContext.getCurrentOrganization());
-    }
-
-    private List<RoleEntity> findAllByOrganization(String organizationId) {
+    public List<RoleEntity> findAllByOrganization(String organizationId) {
         try {
             LOGGER.debug("Find all Roles");
             return roleRepository
@@ -112,11 +109,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     @Override
-    public RoleEntity create(final NewRoleEntity roleEntity) {
-        return this.create(roleEntity, GraviteeContext.getCurrentOrganization());
-    }
-
-    private RoleEntity create(final NewRoleEntity roleEntity, String organizationId) {
+    public RoleEntity create(ExecutionContext executionContext, final NewRoleEntity roleEntity) {
         try {
             Role role = convert(roleEntity);
             if (
@@ -124,7 +117,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                     .findByScopeAndNameAndReferenceIdAndReferenceType(
                         role.getScope(),
                         role.getName(),
-                        organizationId,
+                        executionContext.getOrganizationId(),
                         RoleReferenceType.ORGANIZATION
                     )
                     .isPresent()
@@ -134,12 +127,13 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             role.setId(UuidString.generateRandom());
             role.setCreatedAt(new Date());
             role.setUpdatedAt(role.getCreatedAt());
-            role.setReferenceId(organizationId);
+            role.setReferenceId(executionContext.getOrganizationId());
             role.setReferenceType(RoleReferenceType.ORGANIZATION);
 
             RoleEntity entity = convert(roleRepository.create(role));
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentOrganization(),
+                executionContext,
+                executionContext.getOrganizationId(),
                 Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
                 ROLE_CREATED,
                 role.getCreatedAt(),
@@ -147,7 +141,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 role
             );
             if (entity.isDefaultRole()) {
-                toggleDefaultRole(roleEntity.getScope(), entity.getName());
+                toggleDefaultRole(executionContext, roleEntity.getScope(), entity.getName());
             }
             return entity;
         } catch (TechnicalException ex) {
@@ -157,7 +151,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     @Override
-    public RoleEntity update(final UpdateRoleEntity roleEntity) {
+    public RoleEntity update(final ExecutionContext executionContext, final UpdateRoleEntity roleEntity) {
         if (isReserved(roleEntity.getName())) {
             throw new RoleReservedNameException(roleEntity.getName());
         }
@@ -174,7 +168,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             updatedRole.setReferenceType(role.getReferenceType());
             RoleEntity entity = convert(roleRepository.update(updatedRole));
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentOrganization(),
+                executionContext,
+                executionContext.getOrganizationId(),
                 Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
                 ROLE_UPDATED,
                 updatedRole.getUpdatedAt(),
@@ -182,7 +177,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 updatedRole
             );
             if (entity.isDefaultRole()) {
-                toggleDefaultRole(scope, entity.getName());
+                toggleDefaultRole(executionContext, scope, entity.getName());
             }
             return entity;
         } catch (TechnicalException ex) {
@@ -192,7 +187,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     @Override
-    public void delete(final String roleId) {
+    public void delete(final ExecutionContext executionContext, final String roleId) {
         try {
             Optional<Role> optRole = roleRepository.findById(roleId);
             if (!optRole.isPresent()) {
@@ -204,7 +199,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 throw new RoleDeletionForbiddenException(scope, role.getName());
             }
 
-            List<RoleEntity> defaultRoleByScopes = findDefaultRoleByScopes(scope);
+            List<RoleEntity> defaultRoleByScopes = findDefaultRoleByScopes(executionContext.getOrganizationId(), scope);
             if (defaultRoleByScopes.isEmpty()) {
                 throw new DefaultRoleNotFoundException();
             }
@@ -213,7 +208,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             roleRepository.delete(roleId);
 
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentOrganization(),
+                executionContext,
+                executionContext.getOrganizationId(),
                 Collections.singletonMap(ROLE, scope + ":" + role.getName()),
                 ROLE_DELETED,
                 role.getUpdatedAt(),
@@ -227,15 +223,11 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     @Override
-    public List<RoleEntity> findByScope(RoleScope scope) {
+    public List<RoleEntity> findByScope(RoleScope scope, final String organizationId) {
         try {
             LOGGER.debug("Find Roles by scope");
             return roleRepository
-                .findByScopeAndReferenceIdAndReferenceType(
-                    convert(scope),
-                    GraviteeContext.getCurrentOrganization(),
-                    RoleReferenceType.ORGANIZATION
-                )
+                .findByScopeAndReferenceIdAndReferenceType(convert(scope), organizationId, RoleReferenceType.ORGANIZATION)
                 .stream()
                 .map(this::convert)
                 .sorted(comparing(RoleEntity::getName))
@@ -247,11 +239,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     @Override
-    public Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name) {
-        return this.findByScopeAndName(scope, name, GraviteeContext.getCurrentOrganization());
-    }
-
-    private Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name, String organizationId) {
+    public Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name, String organizationId) {
         try {
             LOGGER.debug("Find Roles by scope and name");
 
@@ -273,18 +261,14 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     @Override
-    public List<RoleEntity> findDefaultRoleByScopes(RoleScope... scopes) {
+    public List<RoleEntity> findDefaultRoleByScopes(final String organizationId, RoleScope... scopes) {
         try {
             LOGGER.debug("Find default Roles by scope");
             List<RoleEntity> roles = new ArrayList<>();
             for (RoleScope scope : scopes) {
                 roles.addAll(
                     roleRepository
-                        .findByScopeAndReferenceIdAndReferenceType(
-                            convert(scope),
-                            GraviteeContext.getCurrentOrganization(),
-                            RoleReferenceType.ORGANIZATION
-                        )
+                        .findByScopeAndReferenceIdAndReferenceType(convert(scope), organizationId, RoleReferenceType.ORGANIZATION)
                         .stream()
                         .filter(Role::isDefaultRole)
                         .map(this::convert)
@@ -318,13 +302,10 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         return hasPermission;
     }
 
-    private void toggleDefaultRole(RoleScope scope, String newDefaultRoleName) throws TechnicalException {
+    private void toggleDefaultRole(ExecutionContext executionContext, RoleScope scope, String newDefaultRoleName)
+        throws TechnicalException {
         List<Role> roles = roleRepository
-            .findByScopeAndReferenceIdAndReferenceType(
-                convert(scope),
-                GraviteeContext.getCurrentOrganization(),
-                RoleReferenceType.ORGANIZATION
-            )
+            .findByScopeAndReferenceIdAndReferenceType(convert(scope), executionContext.getOrganizationId(), RoleReferenceType.ORGANIZATION)
             .stream()
             .filter(Role::isDefaultRole)
             .collect(toList());
@@ -335,7 +316,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 role.setUpdatedAt(new Date());
                 roleRepository.update(role);
                 auditService.createOrganizationAuditLog(
-                    GraviteeContext.getCurrentOrganization(),
+                    executionContext,
+                    executionContext.getOrganizationId(),
                     Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
                     ROLE_UPDATED,
                     role.getUpdatedAt(),
@@ -461,50 +443,69 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     @Override
-    public void initialize(String organizationId) {
+    public void initialize(ExecutionContext executionContext, String organizationId) {
         LOGGER.info("     - <ORGANIZATION> USER (default)");
-        this.create(DEFAULT_ROLE_ORGANIZATION_USER, organizationId);
+        this.create(executionContext, DEFAULT_ROLE_ORGANIZATION_USER);
 
         LOGGER.info("     - <ENVIRONMENT> API_PUBLISHER");
-        this.create(ROLE_ENVIRONMENT_API_PUBLISHER, organizationId);
+        this.create(executionContext, ROLE_ENVIRONMENT_API_PUBLISHER);
 
         LOGGER.info("     - <ENVIRONMENT> USER (default)");
-        this.create(DEFAULT_ROLE_ENVIRONMENT_USER, organizationId);
+        this.create(executionContext, DEFAULT_ROLE_ENVIRONMENT_USER);
 
         LOGGER.info("     - <API> USER (default)");
-        this.create(DEFAULT_ROLE_API_USER, organizationId);
+        this.create(executionContext, DEFAULT_ROLE_API_USER);
 
         LOGGER.info("     - <API> OWNER");
-        this.create(ROLE_API_OWNER, organizationId);
+        this.create(executionContext, ROLE_API_OWNER);
 
         LOGGER.info("     - <API> REVIEWER");
-        this.create(ROLE_API_REVIEWER, organizationId);
+        this.create(executionContext, ROLE_API_REVIEWER);
 
         LOGGER.info("     - <APPLICATION> USER (default)");
-        this.create(DEFAULT_ROLE_APPLICATION_USER, organizationId);
+        this.create(executionContext, DEFAULT_ROLE_APPLICATION_USER);
 
         LOGGER.info("     - <APPLICATION> OWNER");
-        this.create(ROLE_APPLICATION_OWNER, organizationId);
+        this.create(executionContext, ROLE_APPLICATION_OWNER);
     }
 
     @Override
-    public void createOrUpdateSystemRoles(String organizationId) {
+    public void createOrUpdateSystemRoles(ExecutionContext executionContext, String organizationId) {
         try {
             //ORGANIZATION - ADMIN
-            createOrUpdateSystemRole(SystemRole.ADMIN, RoleScope.ORGANIZATION, OrganizationPermission.values(), organizationId);
+            createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.ADMIN,
+                RoleScope.ORGANIZATION,
+                OrganizationPermission.values(),
+                organizationId
+            );
             //ENVIRONMENT - ADMIN
-            createOrUpdateSystemRole(SystemRole.ADMIN, RoleScope.ENVIRONMENT, EnvironmentPermission.values(), organizationId);
+            createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.ADMIN,
+                RoleScope.ENVIRONMENT,
+                EnvironmentPermission.values(),
+                organizationId
+            );
             //API - PRIMARY_OWNER
             createOrUpdateSystemRole(
+                executionContext,
                 SystemRole.PRIMARY_OWNER,
                 RoleScope.API,
                 stream(ApiPermission.values()).filter(permission -> !REVIEWS.equals(permission)).toArray(Permission[]::new),
                 organizationId
             );
             //APPLICATION - PRIMARY_OWNER
-            createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.APPLICATION, ApplicationPermission.values(), organizationId);
+            createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.APPLICATION,
+                ApplicationPermission.values(),
+                organizationId
+            );
             //GROUP - ADMINISTRATOR
-            createOrUpdateSystemRole(SystemRole.ADMIN, RoleScope.GROUP, GroupPermission.values(), organizationId);
+            createOrUpdateSystemRole(executionContext, SystemRole.ADMIN, RoleScope.GROUP, GroupPermission.values(), organizationId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create admin roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to create admin roles ", ex);
@@ -547,8 +548,13 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         throw new RoleNotFoundException(roleScope + "_PRIMARY_OWNER");
     }
 
-    private void createOrUpdateSystemRole(SystemRole roleName, RoleScope roleScope, Permission[] permissions, String organizationId)
-        throws TechnicalException {
+    private void createOrUpdateSystemRole(
+        ExecutionContext executionContext,
+        SystemRole roleName,
+        RoleScope roleScope,
+        Permission[] permissions,
+        String organizationId
+    ) throws TechnicalException {
         Role systemRole = createSystemRoleWithoutPermissions(roleName.name(), roleScope, new Date());
         Map<String, char[]> perms = new HashMap<>();
         for (Permission perm : permissions) {
@@ -570,7 +576,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             systemRole.setUpdatedAt(new Date());
             roleRepository.update(systemRole);
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentOrganization(),
+                executionContext,
+                organizationId,
                 Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
                 ROLE_UPDATED,
                 systemRole.getCreatedAt(),
@@ -580,7 +587,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         } else if (!existingRole.isPresent()) {
             roleRepository.create(systemRole);
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentOrganization(),
+                executionContext,
+                organizationId,
                 Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
                 ROLE_CREATED,
                 systemRole.getCreatedAt(),

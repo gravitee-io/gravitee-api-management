@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
@@ -92,36 +93,17 @@ public class ApplicationsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (query != null && !query.trim().isEmpty()) {
             applications =
-                applicationService.findByUserAndNameAndStatus(
-                    getAuthenticatedUser(),
-                    isAdmin(),
-                    query,
-                    status,
-                    GraviteeContext.getCurrentEnvironment(),
-                    GraviteeContext.getCurrentOrganization()
-                );
+                applicationService.findByUserAndNameAndStatus(executionContext, getAuthenticatedUser(), isAdmin(), query, status);
         } else if (isAdmin()) {
             applications =
                 group != null
-                    ? applicationService.findByGroupsAndStatus(
-                        GraviteeContext.getCurrentOrganization(),
-                        Collections.singletonList(group),
-                        status
-                    )
-                    : applicationService.findByStatus(
-                        GraviteeContext.getCurrentOrganization(),
-                        GraviteeContext.getCurrentEnvironment(),
-                        status
-                    );
+                    ? applicationService.findByGroupsAndStatus(executionContext, Collections.singletonList(group), status)
+                    : applicationService.findByStatus(executionContext, status);
         } else {
-            applications =
-                applicationService.findByUser(
-                    GraviteeContext.getCurrentOrganization(),
-                    GraviteeContext.getCurrentEnvironment(),
-                    getAuthenticatedUser()
-                );
+            applications = applicationService.findByUser(executionContext, getAuthenticatedUser());
             if (group != null && !group.isEmpty()) {
                 applications =
                     applications
@@ -199,7 +181,7 @@ public class ApplicationsResource extends AbstractResource {
         }
 
         ApplicationEntity newApplication = applicationService.create(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             application,
             getAuthenticatedUser()
         );

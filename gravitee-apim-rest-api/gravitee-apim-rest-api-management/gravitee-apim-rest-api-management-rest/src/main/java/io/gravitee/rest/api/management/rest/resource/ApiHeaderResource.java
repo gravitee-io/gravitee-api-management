@@ -61,7 +61,7 @@ public class ApiHeaderResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.UPDATE) })
     public ApiHeaderEntity updateApiHeader(@PathParam("id") String id, @Valid @NotNull final UpdateApiHeaderEntity updateApiHeaderEntity) {
         updateApiHeaderEntity.setId(id);
-        return apiHeaderService.update(GraviteeContext.getCurrentEnvironment(), updateApiHeaderEntity);
+        return apiHeaderService.update(GraviteeContext.getExecutionContext(), updateApiHeaderEntity);
     }
 
     @DELETE
@@ -75,6 +75,6 @@ public class ApiHeaderResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.DELETE) })
     public void deleteApiHeader(@PathParam("id") String id) {
-        apiHeaderService.delete(GraviteeContext.getCurrentEnvironment(), id);
+        apiHeaderService.delete(GraviteeContext.getExecutionContext(), id);
     }
 }

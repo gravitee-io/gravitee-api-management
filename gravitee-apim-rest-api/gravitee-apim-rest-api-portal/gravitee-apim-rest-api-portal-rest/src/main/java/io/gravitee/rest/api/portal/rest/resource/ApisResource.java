@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import java.time.OffsetDateTime;
@@ -70,6 +71,7 @@ public class ApisResource extends AbstractResource<Api, String> {
     @RequirePortalAuth
     public Response listCategories(@BeanParam ApisParam apisParam) {
         Set<CategoryEntity> categories = filteringService.listCategories(
+            GraviteeContext.getExecutionContext(),
             getAuthenticatedUserOrNull(),
             convert(apisParam.getFilter()),
             convert(apisParam.getExcludedFilter())
@@ -81,7 +83,8 @@ public class ApisResource extends AbstractResource<Api, String> {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
-        Collection<String> filteredApis = findApisForCurrentUser(apisParam, createQueryFromParam(apisParam));
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Collection<String> filteredApis = findApisForCurrentUser(executionContext, apisParam, createQueryFromParam(apisParam));
 
         if (!filteredApis.isEmpty() && apisParam.getPromoted() != null) {
             //By default, the promoted API is the first of the list;
@@ -110,7 +113,7 @@ public class ApisResource extends AbstractResource<Api, String> {
             }
         }
 
-        return createListResponse(filteredApis, paginationParam, null);
+        return createListResponse(executionContext, filteredApis, paginationParam, null);
     }
 
     @POST
@@ -122,8 +125,9 @@ public class ApisResource extends AbstractResource<Api, String> {
         @BeanParam PaginationParam paginationParam
     ) {
         try {
-            Collection<String> apisList = filteringService.searchApis(getAuthenticatedUserOrNull(), query);
-            return createListResponse(new ArrayList<>(apisList), paginationParam);
+            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+            Collection<String> apisList = filteringService.searchApis(executionContext, getAuthenticatedUserOrNull(), query);
+            return createListResponse(executionContext, new ArrayList<>(apisList), paginationParam);
         } catch (TechnicalException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
@@ -135,24 +139,25 @@ public class ApisResource extends AbstractResource<Api, String> {
     }
 
     @Override
-    protected List<Api> transformPageContent(List<String> pageContent) {
+    protected List<Api> transformPageContent(ExecutionContext executionContext, List<String> pageContent) {
         if (pageContent.isEmpty()) {
             return Collections.emptyList();
         }
         final boolean apiShowTagsInApiHeaders = parameterService.findAsBoolean(
+            executionContext,
             Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
             ParameterReferenceType.ENVIRONMENT
         );
 
         ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(pageContent);
-        Collection<ApiEntity> apiEntities = apiService.search(apiQuery);
+        Collection<ApiEntity> apiEntities = apiService.search(executionContext, apiQuery);
         Comparator<String> orderingComparator = Comparator.comparingInt(pageContent::indexOf);
         return apiEntities
             .stream()
             .map(
                 apiEntity -> {
-                    Api api = apiMapper.convert(apiEntity);
+                    Api api = apiMapper.convert(executionContext, apiEntity);
                     return addApiLinks(api);
                 }
             )
@@ -200,12 +205,9 @@ public class ApisResource extends AbstractResource<Api, String> {
         return filter != null ? FilteringService.FilterType.valueOf(filter.name()) : null;
     }
 
-    private Collection<String> findApisForCurrentUser(ApisParam apisParam) {
-        return findApisForCurrentUser(apisParam, null);
-    }
-
-    private Collection<String> findApisForCurrentUser(ApisParam apisParam, ApiQuery apiQuery) {
+    private Collection<String> findApisForCurrentUser(final ExecutionContext executionContext, ApisParam apisParam, ApiQuery apiQuery) {
         return filteringService.filterApis(
+            executionContext,
             getAuthenticatedUserOrNull(),
             convert(apisParam.getFilter()),
             convert(apisParam.getExcludedFilter()),

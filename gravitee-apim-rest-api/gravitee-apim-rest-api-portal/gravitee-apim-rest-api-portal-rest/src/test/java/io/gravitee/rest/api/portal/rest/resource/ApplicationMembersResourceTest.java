@@ -69,22 +69,22 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         MemberEntity memberEntity2 = new MemberEntity();
         memberEntity2.setId(MEMBER_2);
-        doReturn(new Member().id(MEMBER_2)).when(memberMapper).convert(eq(memberEntity2), any());
-        doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(eq(memberEntity1), any());
+        doReturn(new Member().id(MEMBER_2)).when(memberMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(memberEntity2), any());
+        doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(memberEntity1), any());
         doReturn(Sets.newSet(memberEntity1, memberEntity2))
             .when(membershipService)
-            .getMembersByReference(MembershipReferenceType.APPLICATION, APPLICATION);
+            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, APPLICATION);
         doReturn(memberEntity1)
             .when(membershipService)
-            .getUserMember(GraviteeContext.getCurrentEnvironment(), MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1);
+            .getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1);
         doReturn(null)
             .when(membershipService)
-            .getUserMember(GraviteeContext.getCurrentEnvironment(), MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_2);
+            .getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_2);
 
         doThrow(ApplicationNotFoundException.class)
             .when(applicationService)
-            .findById(GraviteeContext.getCurrentEnvironment(), UNKNOWN_APPLICATION);
-        doThrow(UserNotFoundException.class).when(userService).findById(UNKNOWN_MEMBER);
+            .findById(GraviteeContext.getExecutionContext(), UNKNOWN_APPLICATION);
+        doThrow(UserNotFoundException.class).when(userService).findById(GraviteeContext.getExecutionContext(), UNKNOWN_MEMBER);
     }
 
     @Test
@@ -134,7 +134,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoMemberAndNoLink() {
-        doReturn(new HashSet<>()).when(membershipService).getMembersByReference(any(), any());
+        doReturn(new HashSet<>()).when(membershipService).getMembersByReference(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         //Test with default limit
         final Response response = target(APPLICATION).path("members").request().get();
@@ -175,8 +175,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         Mockito
             .verify(membershipService)
             .deleteReferenceMember(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.APPLICATION,
                 APPLICATION,
                 MembershipMemberType.USER,
@@ -191,13 +190,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         doReturn(MEMBER_1).when(returnedMemberEntity).getId();
         doReturn(returnedMemberEntity)
             .when(membershipService)
-            .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                any(),
-                any()
-            );
+            .addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
 
         final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
@@ -219,8 +212,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         Mockito
             .verify(membershipService)
             .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(GraviteeContext.getExecutionContext()),
                 memberShipRefCaptor.capture(),
                 memberShipUserCaptor.capture(),
                 memberShipRoleCaptor.capture()
@@ -249,8 +241,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         Mockito
             .verify(membershipService)
             .updateRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(GraviteeContext.getExecutionContext()),
                 memberShipRefCaptor.capture(),
                 memberShipUserCaptor.capture(),
                 memberShipRoleCaptor.capture()
@@ -264,7 +255,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     public void shouldTransferOwnerShip() {
         RoleEntity mockRoleEntity = new RoleEntity();
         TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwnerId(MEMBER_1).primaryOwnerNewrole("OWNER");
-        doReturn(Optional.of(mockRoleEntity)).when(roleService).findByScopeAndName(any(), any());
+        doReturn(Optional.of(mockRoleEntity)).when(roleService).findByScopeAndName(any(), any(), any());
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
@@ -277,8 +268,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         Mockito
             .verify(membershipService)
             .transferApplicationOwnership(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(GraviteeContext.getExecutionContext()),
                 applicationCaptor.capture(),
                 memberShipUserCaptor.capture(),
                 roleCaptor.capture()
@@ -290,7 +280,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldTransferOwnerShipWithWrongRole() {
-        doReturn(Optional.empty()).when(roleService).findByScopeAndName(any(), any());
+        doReturn(Optional.empty()).when(roleService).findByScopeAndName(any(), any(), any());
         TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwnerId(MEMBER_1).primaryOwnerNewrole("OWNER");
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
@@ -304,8 +294,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         Mockito
             .verify(membershipService)
             .transferApplicationOwnership(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(GraviteeContext.getExecutionContext()),
                 applicationCaptor.capture(),
                 memberShipUserCaptor.capture(),
                 roleCaptor.capture()

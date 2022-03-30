@@ -120,14 +120,14 @@ public class ApplicationMapperTest {
         GroupEntity grpEntity = new GroupEntity();
         grpEntity.setId(APPLICATION_GROUP_ID);
         grpEntity.setName(APPLICATION_GROUP_NAME);
-        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_GROUP_ID)).thenReturn(grpEntity);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), APPLICATION_GROUP_ID)).thenReturn(grpEntity);
 
         UserEntity userEntity = Mockito.mock(UserEntity.class);
         when(userEntity.getDisplayName()).thenReturn(APPLICATION_USER_DISPLAYNAME);
         when(userEntity.getEmail()).thenReturn(APPLICATION_USER_EMAIL);
         when(userEntity.getId()).thenReturn(APPLICATION_USER_ID);
 
-        when(userService.findById(APPLICATION_USER_ID)).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), APPLICATION_USER_ID)).thenReturn(userEntity);
         when(userMapper.convert(userEntity)).thenCallRealMethod();
         when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
 
@@ -162,13 +162,13 @@ public class ApplicationMapperTest {
 
     @Test
     public void testConvertFromAppListItem() {
-        Application responseApplication = applicationMapper.convert(applicationListItem, uriInfo);
+        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS);
     }
 
     @Test
     public void testConvertFromAppEntityNoSettings() {
-        Application responseApplication = applicationMapper.convert(applicationEntity, uriInfo);
+        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS);
     }
 
@@ -181,7 +181,7 @@ public class ApplicationMapperTest {
         settings.setApp(simpleAppEntitySetings);
         applicationEntity.setSettings(settings);
 
-        Application responseApplication = applicationMapper.convert(applicationEntity, uriInfo);
+        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.SIMPLE_SETTINGS);
     }
 
@@ -202,7 +202,7 @@ public class ApplicationMapperTest {
         settings.setoAuthClient(oAuthClientEntitySettings);
         applicationEntity.setSettings(settings);
 
-        Application responseApplication = applicationMapper.convert(applicationEntity, uriInfo);
+        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.OAUTH_SETTINGS);
     }
 

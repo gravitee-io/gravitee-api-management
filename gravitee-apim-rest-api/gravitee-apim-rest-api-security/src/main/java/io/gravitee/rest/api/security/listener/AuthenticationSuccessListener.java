@@ -65,7 +65,12 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
         final UserDetails details = (UserDetails) event.getAuthentication().getPrincipal();
         try {
-            UserEntity registeredUser = userService.findBySource(details.getSource(), details.getSourceId(), false);
+            UserEntity registeredUser = userService.findBySource(
+                GraviteeContext.getExecutionContext(),
+                details.getSource(),
+                details.getSourceId(),
+                false
+            );
             updateRegisteredUser(registeredUser, details);
             // Principal username is the technical identifier of the user
             // Dirty hack because spring security is requiring a username...
@@ -93,7 +98,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             if (event.getAuthentication().getAuthorities() == null || event.getAuthentication().getAuthorities().isEmpty()) {
                 addDefaultRole = true;
             }
-            UserEntity createdUser = userService.create(newUser, addDefaultRole);
+            UserEntity createdUser = userService.create(GraviteeContext.getExecutionContext(), newUser, addDefaultRole);
             // Principal username is the technical identifier of the user
             details.setUsername(createdUser.getId());
 
@@ -103,7 +108,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             }
         }
 
-        userService.connect(details.getUsername());
+        userService.connect(GraviteeContext.getExecutionContext(), details.getUsername());
     }
 
     public String computePicture(final byte[] pictureData) {
@@ -142,7 +147,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             updateUserEntity.setFirstname(details.getFirstname());
             updateUserEntity.setLastname(details.getLastname());
             updateUserEntity.setEmail(details.getEmail());
-            userService.update(registeredUser.getId(), updateUserEntity);
+            userService.update(GraviteeContext.getExecutionContext(), registeredUser.getId(), updateUserEntity);
         }
     }
 
@@ -203,11 +208,18 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                     if (SystemRole.ADMIN.name().equals(role)) {
                         roleName = role;
                     } else {
-                        Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(roleScope, role);
+                        Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
+                            roleScope,
+                            role,
+                            GraviteeContext.getCurrentOrganization()
+                        );
                         if (optionalRole.isPresent()) {
                             roleName = optionalRole.get().getName();
                         } else {
-                            Optional<RoleEntity> first = roleService.findDefaultRoleByScopes(roleScope).stream().findFirst();
+                            Optional<RoleEntity> first = roleService
+                                .findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), roleScope)
+                                .stream()
+                                .findFirst();
                             if (first.isPresent()) {
                                 roleName = first.get().getName();
                             } else {
@@ -217,8 +229,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                     }
                     try {
                         membershipService.addRoleToMemberOnReference(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
+                            GraviteeContext.getExecutionContext(),
                             membershipRef,
                             new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                             new MembershipService.MembershipRole(roleScope, roleName)

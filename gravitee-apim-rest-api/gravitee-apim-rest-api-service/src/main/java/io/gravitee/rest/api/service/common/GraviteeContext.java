@@ -64,11 +64,6 @@ public class GraviteeContext {
         return (String) contextThread.get().get(CURRENT_ENVIRONMENT_CONTEXT_KEY);
     }
 
-    public static String getCurrentEnvironmentOrDefault() {
-        String currentEnvironment = getCurrentEnvironment();
-        return StringUtils.isEmpty(currentEnvironment) ? getDefaultEnvironment() : currentEnvironment;
-    }
-
     public static void setCurrentEnvironment(String currentEnvironment) {
         contextThread.get().put(CURRENT_ENVIRONMENT_CONTEXT_KEY, currentEnvironment);
     }

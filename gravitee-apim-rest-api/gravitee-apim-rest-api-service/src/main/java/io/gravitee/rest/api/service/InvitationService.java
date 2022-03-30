@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.InvitationEntity;
 import io.gravitee.rest.api.model.InvitationReferenceType;
 import io.gravitee.rest.api.model.NewInvitationEntity;
 import io.gravitee.rest.api.model.UpdateInvitationEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -26,10 +27,17 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface InvitationService {
-    InvitationEntity create(NewInvitationEntity invitation);
+    InvitationEntity create(final ExecutionContext executionContext, NewInvitationEntity invitation);
     InvitationEntity update(UpdateInvitationEntity invitation);
     List<InvitationEntity> findByReference(InvitationReferenceType referenceType, String referenceId);
     void delete(String invitationId, String referenceId);
     List<InvitationEntity> findAll();
-    void addMember(String referenceType, String referenceId, String userId, String apiRole, String applicationRole);
+    void addMember(
+        final ExecutionContext executionContext,
+        String referenceType,
+        String referenceId,
+        String userId,
+        String apiRole,
+        String applicationRole
+    );
 }

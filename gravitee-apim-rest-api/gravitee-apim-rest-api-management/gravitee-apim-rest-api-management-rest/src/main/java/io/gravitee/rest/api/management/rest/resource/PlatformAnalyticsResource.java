@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -91,26 +92,23 @@ public class PlatformAnalyticsResource extends AbstractResource {
         if (!isAdmin()) {
             String fieldName;
             List<String> ids;
+            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             if ("application".equals(analyticsParam.getField())) {
                 fieldName = "application";
                 ids =
                     applicationService
-                        .findByUser(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
-                            getAuthenticatedUser()
-                        )
+                        .findByUser(executionContext, getAuthenticatedUser())
                         .stream()
-                        .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
+                        .filter(app -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, app.getId(), READ))
                         .map(ApplicationListItem::getId)
                         .collect(Collectors.toList());
             } else {
                 fieldName = "api";
                 ids =
                     apiService
-                        .findByUser(getAuthenticatedUser(), null, false)
+                        .findByUser(executionContext, getAuthenticatedUser(), null, false)
                         .stream()
-                        .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
+                        .filter(api -> permissionService.hasPermission(executionContext, API_ANALYTICS, api.getId(), READ))
                         .map(ApiEntity::getId)
                         .collect(Collectors.toList());
             }
@@ -193,7 +191,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
             query.setAggregations(aggregationList);
         }
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeGroupBy(AnalyticsParam analyticsParam, String extraFilter) {
@@ -219,7 +217,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
             query.setGroups(rangeMap);
         }
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private void addExtraFilter(AbstractQuery query, String extraFilter) {

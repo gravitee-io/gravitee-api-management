@@ -104,7 +104,12 @@ public class TagsResource extends AbstractResource {
         }
     )
     public TagEntity createTag(@Valid @NotNull final NewTagEntity tag) {
-        return tagService.create(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
+        return tagService.create(
+            GraviteeContext.getExecutionContext(),
+            tag,
+            GraviteeContext.getCurrentOrganization(),
+            TagReferenceType.ORGANIZATION
+        );
     }
 
     @PUT
@@ -128,7 +133,12 @@ public class TagsResource extends AbstractResource {
         }
     )
     public TagEntity updateTag(@PathParam("tag") String tagId, @Valid @NotNull final UpdateTagEntity tag) {
-        return tagService.update(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
+        return tagService.update(
+            GraviteeContext.getExecutionContext(),
+            tag,
+            GraviteeContext.getCurrentOrganization(),
+            TagReferenceType.ORGANIZATION
+        );
     }
 
     @Path("{tag}")
@@ -147,6 +157,11 @@ public class TagsResource extends AbstractResource {
         }
     )
     public void deleteTag(@PathParam("tag") String tag) {
-        tagService.delete(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
+        tagService.delete(
+            GraviteeContext.getExecutionContext(),
+            tag,
+            GraviteeContext.getCurrentOrganization(),
+            TagReferenceType.ORGANIZATION
+        );
     }
 }

@@ -20,6 +20,7 @@ import io.gravitee.rest.api.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.rest.api.idp.repository.authentication.spring.RepositoryAuthenticationProviderConfiguration;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.List;
@@ -80,7 +81,12 @@ public class RepositoryAuthenticationProvider
     @Override
     protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         try {
-            UserEntity user = userService.findBySource(RepositoryIdentityProvider.PROVIDER_TYPE, username, true);
+            UserEntity user = userService.findBySource(
+                GraviteeContext.getExecutionContext(),
+                RepositoryIdentityProvider.PROVIDER_TYPE,
+                username,
+                true
+            );
             if (RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())) {
                 if (user.getPassword() == null) {
                     throw new BadCredentialsException(

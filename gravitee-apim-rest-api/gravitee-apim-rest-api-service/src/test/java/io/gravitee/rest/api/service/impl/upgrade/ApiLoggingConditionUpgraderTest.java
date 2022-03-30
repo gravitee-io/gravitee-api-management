@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +53,7 @@ public class ApiLoggingConditionUpgraderTest {
     public void upgrade_should_not_run_cause_already_executed_successfull() {
         mockInstallationWithExecutionStatus("SUCCESS");
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertFalse(success);
         verify(installationService, never()).setAdditionalInformation(any());
@@ -62,7 +63,7 @@ public class ApiLoggingConditionUpgraderTest {
     public void upgrade_should_not_run_cause_already_running() {
         mockInstallationWithExecutionStatus("RUNNING");
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertFalse(success);
         verify(installationService, never()).setAdditionalInformation(any());
@@ -73,7 +74,7 @@ public class ApiLoggingConditionUpgraderTest {
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
         doThrow(new Exception("test exception")).when(upgrader).fixApis();
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertFalse(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "RUNNING");
@@ -86,7 +87,7 @@ public class ApiLoggingConditionUpgraderTest {
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
         doNothing().when(upgrader).fixApis();
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertTrue(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "RUNNING");

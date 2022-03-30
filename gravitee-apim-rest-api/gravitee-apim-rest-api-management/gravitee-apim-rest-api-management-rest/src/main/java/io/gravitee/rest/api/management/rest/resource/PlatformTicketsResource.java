@@ -55,6 +55,7 @@ public class PlatformTicketsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createPlatformTicket(@Valid @NotNull final NewTicketEntity ticketEntity) {
         ticketService.create(
+            GraviteeContext.getExecutionContext(),
             getAuthenticatedUser(),
             ticketEntity,
             GraviteeContext.getCurrentOrganization(),
@@ -84,7 +85,7 @@ public class PlatformTicketsResource extends AbstractResource {
             sortable = new SortableImpl(ticketsParam.getOrder().getField(), ticketsParam.getOrder().isOrder());
         }
 
-        return new TicketEntityPage(ticketService.search(query, sortable, pageable.toPageable()));
+        return new TicketEntityPage(ticketService.search(GraviteeContext.getExecutionContext(), query, sortable, pageable.toPageable()));
     }
 
     @GET
@@ -99,7 +100,7 @@ public class PlatformTicketsResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "Ticket not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getTicket(@PathParam("ticket") String ticketId) {
-        TicketEntity ticketEntity = ticketService.findById(ticketId);
+        TicketEntity ticketEntity = ticketService.findById(GraviteeContext.getExecutionContext(), ticketId);
 
         return Response.ok(ticketEntity).build();
     }

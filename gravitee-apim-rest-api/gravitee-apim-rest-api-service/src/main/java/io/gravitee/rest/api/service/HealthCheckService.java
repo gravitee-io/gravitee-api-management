@@ -21,17 +21,18 @@ import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.healthcheck.ApiMetrics;
 import io.gravitee.rest.api.model.healthcheck.Log;
 import io.gravitee.rest.api.model.healthcheck.SearchLogResponse;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface HealthCheckService {
-    ApiMetrics getAvailability(String api, String field);
+    ApiMetrics getAvailability(ExecutionContext executionContext, String api, String field);
 
-    ApiMetrics getResponseTime(String api, String field);
+    ApiMetrics getResponseTime(ExecutionContext executionContext, String api, String field);
 
-    SearchLogResponse findByApi(String api, LogQuery logQuery, Boolean transition);
+    SearchLogResponse findByApi(ExecutionContext executionContext, String api, LogQuery logQuery, Boolean transition);
 
     Log findLog(String id);
 

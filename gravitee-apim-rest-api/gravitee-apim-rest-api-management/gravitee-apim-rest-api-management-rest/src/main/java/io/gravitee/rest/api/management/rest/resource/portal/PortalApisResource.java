@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -94,31 +95,41 @@ public class PortalApisResource extends AbstractResource {
         try {
             final Collection<ApiEntity> apis;
             final ApiQuery apiQuery = new ApiQuery();
+            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             if (isAdmin()) {
-                apis = apiService.search(apiQuery);
+                apis = apiService.search(executionContext, apiQuery);
             } else {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
                 if (isAuthenticated()) {
-                    apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, true);
-                } else if (configService.portalLoginForced(GraviteeContext.getCurrentEnvironment())) {
+                    apis = apiService.findByUser(executionContext, getAuthenticatedUser(), apiQuery, true);
+                } else if (configService.portalLoginForced(executionContext)) {
                     // if portal requires login, this endpoint should hide the APIS even PUBLIC ones
                     return Response.ok().entity(emptyList()).build();
                 } else {
                     apiQuery.setVisibility(PUBLIC);
-                    apis = apiService.search(apiQuery);
+                    apis = apiService.search(executionContext, apiQuery);
                 }
             }
 
             Map<String, Object> filters = new HashMap<>();
             filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
-            return Response.ok().entity(apiService.search(query, filters).stream().map(this::convert).collect(toList())).build();
+            return Response
+                .ok()
+                .entity(
+                    apiService
+                        .search(executionContext, query, filters)
+                        .stream()
+                        .map(api -> convert(executionContext, api))
+                        .collect(toList())
+                )
+                .build();
         } catch (TechnicalException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
         }
     }
 
-    private ApiListItem convert(ApiEntity api) {
+    private ApiListItem convert(final ExecutionContext executionContext, ApiEntity api) {
         final ApiListItem apiItem = new ApiListItem();
 
         apiItem.setId(api.getId());
@@ -152,8 +163,8 @@ public class PortalApisResource extends AbstractResource {
             apiItem.setVirtualHosts(api.getProxy().getVirtualHosts());
         }
 
-        if (ratingService.isEnabled()) {
-            final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(api.getId());
+        if (ratingService.isEnabled(executionContext)) {
+            final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(executionContext, api.getId());
             apiItem.setRate(ratingSummary.getAverageRate());
             apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());
         }

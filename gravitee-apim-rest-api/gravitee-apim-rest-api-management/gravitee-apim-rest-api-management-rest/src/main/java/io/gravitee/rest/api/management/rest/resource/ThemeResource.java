@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.model.theme.UpdateThemeEntity;
 import io.gravitee.rest.api.service.ThemeService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayOutputStream;
@@ -54,7 +55,7 @@ public class ThemeResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ) })
     public ThemeEntity getTheme() {
-        return themeService.findEnabled();
+        return themeService.findEnabled(GraviteeContext.getExecutionContext());
     }
 
     @PUT
@@ -63,7 +64,7 @@ public class ThemeResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE) })
     public ThemeEntity updateTheme(@Valid @NotNull final UpdateThemeEntity theme) {
         theme.setId(themeId);
-        return themeService.update(theme);
+        return themeService.update(GraviteeContext.getExecutionContext(), theme);
     }
 
     @Path("/reset")
@@ -71,38 +72,38 @@ public class ThemeResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE) })
     public ThemeEntity resetTheme() {
-        return themeService.resetToDefaultTheme(themeId);
+        return themeService.resetToDefaultTheme(GraviteeContext.getExecutionContext(), themeId);
     }
 
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.DELETE) })
     public void deleteTheme() {
-        themeService.delete(themeId);
+        themeService.delete(GraviteeContext.getExecutionContext(), themeId);
     }
 
     @GET
     @Path("/logo")
     public Response getThemeLogo(@Context Request request) {
-        return this.buildPictureResponse(themeService.getLogo(themeId), request);
+        return this.buildPictureResponse(themeService.getLogo(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     @GET
     @Path("/optionalLogo")
     public Response getLogoLight(@Context Request request) {
-        return this.buildPictureResponse(themeService.getOptionalLogo(themeId), request);
+        return this.buildPictureResponse(themeService.getOptionalLogo(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     @GET
     @Path("/favicon")
     public Response getFavicon(@Context Request request) {
-        return this.buildPictureResponse(themeService.getFavicon(themeId), request);
+        return this.buildPictureResponse(themeService.getFavicon(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     @GET
     @Path("/backgroundImage")
     public Response getThemeBackground(@Context Request request) {
-        return this.buildPictureResponse(themeService.getBackgroundImage(themeId), request);
+        return this.buildPictureResponse(themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     private Response buildPictureResponse(PictureEntity picture, @Context Request request) {

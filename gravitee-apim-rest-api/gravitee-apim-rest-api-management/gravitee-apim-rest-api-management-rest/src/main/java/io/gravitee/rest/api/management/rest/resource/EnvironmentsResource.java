@@ -95,7 +95,7 @@ public class EnvironmentsResource extends AbstractResource {
                     if (isAuthenticated()) {
                         final String username = getAuthenticatedUser();
                         permissions =
-                            membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), environment, username);
+                            membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), environment, username);
                     }
 
                     EnvironmentPermissionsEntity environmentPermissions = new EnvironmentPermissionsEntity();

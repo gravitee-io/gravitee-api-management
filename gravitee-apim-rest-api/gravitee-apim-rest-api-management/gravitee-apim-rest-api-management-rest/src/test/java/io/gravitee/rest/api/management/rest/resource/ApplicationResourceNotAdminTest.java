@@ -17,11 +17,13 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import javax.annotation.Priority;
@@ -54,7 +56,7 @@ public class ApplicationResourceNotAdminTest extends AbstractResourceTest {
 
         ApplicationEntity restored = new ApplicationEntity();
         restored.setId("my-beautiful-application");
-        doReturn(restored).when(applicationService).restore(any());
+        doReturn(restored).when(applicationService).restore(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget("_restore").request().post(null);
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());

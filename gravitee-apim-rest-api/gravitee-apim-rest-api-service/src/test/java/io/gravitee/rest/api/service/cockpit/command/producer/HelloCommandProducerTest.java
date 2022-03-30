@@ -155,6 +155,11 @@ public class HelloCommandProducerTest {
 
         cut.handleReply(helloReply);
 
-        verify(organizationService).createOrUpdate(eq(defaultOrgId), argThat(org -> org.getCockpitId().equals("org#cockpit-1")));
+        verify(organizationService)
+            .createOrUpdate(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(defaultOrgId),
+                argThat(org -> org.getCockpitId().equals("org#cockpit-1"))
+            );
     }
 }

@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -32,15 +33,13 @@ import java.util.Set;
  */
 public interface MembershipService {
     MemberEntity addRoleToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReference reference,
         MembershipMember member,
         MembershipRole role
     );
     MemberEntity addRoleToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
@@ -48,8 +47,7 @@ public interface MembershipService {
         String role
     );
     MemberEntity addRoleToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
@@ -57,51 +55,77 @@ public interface MembershipService {
         String role,
         String source
     );
-    void deleteMembership(final String organizationId, final String environmentId, String membershipId);
-    void deleteReference(
-        final String organizationId,
-        final String environmentId,
-        MembershipReferenceType referenceType,
-        String referenceId
-    );
+    void deleteMembership(ExecutionContext executionContext, String membershipId);
+    void deleteReference(ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId);
     void deleteReferenceMember(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
         String memberId
     );
     void deleteReferenceMemberBySource(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
         String memberId,
         String sourceId
     );
-    List<UserMembership> findUserMembership(MembershipReferenceType referenceType, String userId);
-    List<UserMembership> findUserMembershipBySource(MembershipReferenceType referenceType, String userId, String sourceId);
+    List<UserMembership> findUserMembership(ExecutionContext executionContext, MembershipReferenceType referenceType, String userId);
+    List<UserMembership> findUserMembershipBySource(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String userId,
+        String sourceId
+    );
     Metadata findUserMembershipMetadata(List<UserMembership> memberships, MembershipReferenceType type);
-    Page<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId, Pageable pageable);
-    Set<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId);
-    Page<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId, String role, Pageable pageable);
-    Set<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId, String role);
-    Page<MemberEntity> getMembersByReferenceAndRole(
+    Page<MemberEntity> getMembersByReference(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        Pageable pageable
+    );
+    Set<MemberEntity> getMembersByReference(ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId);
+    Page<MemberEntity> getMembersByReference(
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         String role,
         Pageable pageable
     );
-    Set<MemberEntity> getMembersByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, String role);
+    Set<MemberEntity> getMembersByReference(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String role
+    );
+    Page<MemberEntity> getMembersByReferenceAndRole(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String role,
+        Pageable pageable
+    );
+    Set<MemberEntity> getMembersByReferenceAndRole(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String role
+    );
     Page<MemberEntity> getMembersByReferencesAndRole(
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         List<String> referenceIds,
         String role,
         Pageable pageable
     );
-    Set<MemberEntity> getMembersByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role);
+    Set<MemberEntity> getMembersByReferencesAndRole(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        List<String> referenceIds,
+        String role
+    );
     Set<MembershipEntity> getMembershipsByMember(MembershipMemberType memberType, String memberId);
     Set<MembershipEntity> getMembershipsByMemberAndReference(
         MembershipMemberType memberType,
@@ -130,17 +154,17 @@ public interface MembershipService {
     Set<MembershipEntity> getMembershipsByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role);
     MembershipEntity getPrimaryOwner(final String organizationId, MembershipReferenceType referenceType, String referenceId);
     Set<RoleEntity> getRoles(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
-    MemberEntity getUserMember(final String environmentId, MembershipReferenceType referenceType, String referenceId, String userId);
+    MemberEntity getUserMember(ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId, String userId);
     Map<String, char[]> getUserMemberPermissions(
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         String userId
     );
-    Map<String, char[]> getUserMemberPermissions(final String environmentId, ApiEntity api, String userId);
-    Map<String, char[]> getUserMemberPermissions(final String environmentId, ApplicationEntity application, String userId);
-    Map<String, char[]> getUserMemberPermissions(final String environmentId, GroupEntity group, String userId);
-    Map<String, char[]> getUserMemberPermissions(final String environmentId, EnvironmentEntity environment, String userId);
+    Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, ApiEntity api, String userId);
+    Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, ApplicationEntity application, String userId);
+    Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, GroupEntity group, String userId);
+    Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, EnvironmentEntity environment, String userId);
     void removeRole(
         MembershipReferenceType referenceType,
         String referenceId,
@@ -151,30 +175,26 @@ public interface MembershipService {
     void removeRoleUsage(String oldRoleId, String newRoleId);
     void removeMemberMemberships(MembershipMemberType memberType, String memberId);
     void transferApiOwnership(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         String apiId,
         MembershipMember member,
         List<RoleEntity> newPrimaryOwnerRoles
     );
 
     void transferApplicationOwnership(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         String applicationId,
         MembershipMember member,
         List<RoleEntity> newPrimaryOwnerRoles
     );
     MemberEntity updateRoleToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReference reference,
         MembershipMember member,
         MembershipRole role
     );
     List<MemberEntity> updateRolesToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReference reference,
         MembershipMember member,
         Collection<MembershipRole> roles,
@@ -182,8 +202,7 @@ public interface MembershipService {
         boolean notify
     );
     List<MemberEntity> updateRolesToMemberOnReferenceBySource(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReference reference,
         MembershipMember member,
         Collection<MembershipRole> roles,

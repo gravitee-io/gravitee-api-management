@@ -19,6 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -99,7 +100,7 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
 
         Set<ApiEntity> mockApis = new HashSet<>();
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         doReturn(Map.of(CATEGORY_ID, 5L)).when(apiService).countPublishedByUserGroupedByCategories(null);
 

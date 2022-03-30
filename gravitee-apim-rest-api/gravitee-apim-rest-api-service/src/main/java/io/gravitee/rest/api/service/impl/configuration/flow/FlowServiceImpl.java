@@ -30,7 +30,7 @@ import io.gravitee.repository.management.model.flow.*;
 import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.service.TagService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -79,10 +79,10 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     }
 
     @Override
-    public String getPlatformFlowSchemaForm() {
+    public String getPlatformFlowSchemaForm(ExecutionContext executionContext) {
         LOGGER.debug("Get platform schema form");
         String fileContent = getFileContent("/flow/platform-flow-schema-form.json");
-        List<TagEntity> tags = tagService.findByReference(GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
+        List<TagEntity> tags = tagService.findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION);
         if (tags.size() > 0) {
             LOGGER.debug("Append {} tag(s) to platform schema form", tags.size());
             try {

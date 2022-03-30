@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewMetadataEntity;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class DefaultMetadataUpgrader implements Upgrader, Ordered {
     private MetadataService metadataService;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         // initialize default metadata
         final MetadataEntity defaultEmailSupportMetadata = metadataService.findDefaultByKey(METADATA_EMAIL_SUPPORT_KEY);
 
@@ -56,7 +57,7 @@ public class DefaultMetadataUpgrader implements Upgrader, Ordered {
             metadata.setFormat(MetadataFormat.MAIL);
             metadata.setName("Email support");
             metadata.setValue(DEFAULT_METADATA_EMAIL_SUPPORT);
-            final MetadataEntity metadataEntity = metadataService.create(metadata);
+            final MetadataEntity metadataEntity = metadataService.create(executionContext, metadata);
             logger.info("    Added default metadata for email support with success: {}", metadataEntity);
         }
 

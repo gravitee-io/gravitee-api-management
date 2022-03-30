@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.parameters.Key.MAINTENANCE_MODE_ENABLED
 
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MaintenanceModeException;
 import java.io.IOException;
 import java.util.regex.Pattern;
@@ -50,6 +51,7 @@ public class MaintenanceFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         final boolean maintenanceModeEnabled = parameterService.findAsBoolean(
+            GraviteeContext.getExecutionContext(),
             MAINTENANCE_MODE_ENABLED,
             ParameterReferenceType.ORGANIZATION
         );

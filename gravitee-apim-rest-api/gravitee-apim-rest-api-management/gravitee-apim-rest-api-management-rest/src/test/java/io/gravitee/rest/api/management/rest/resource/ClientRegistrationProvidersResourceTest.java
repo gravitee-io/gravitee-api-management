@@ -18,12 +18,14 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -51,7 +53,8 @@ public class ClientRegistrationProvidersResourceTest extends AbstractResourceTes
 
         ClientRegistrationProviderEntity createdClientRegistrationProvider = new ClientRegistrationProviderEntity();
         createdClientRegistrationProvider.setId("my-client-registration-provider-id");
-        when(clientRegistrationService.create(any())).thenReturn(createdClientRegistrationProvider);
+        when(clientRegistrationService.create(eq(GraviteeContext.getExecutionContext()), any()))
+            .thenReturn(createdClientRegistrationProvider);
 
         final Response response = envTarget().request().post(Entity.json(newClientRegistrationProviderEntity));
         assertEquals(CREATED_201, response.getStatus());

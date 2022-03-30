@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException;
 import java.io.IOException;
 import java.util.Arrays;
@@ -59,26 +60,28 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(mockApis)
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         RatingEntity rating1 = new RatingEntity();
         RatingEntity rating2 = new RatingEntity();
 
         List<RatingEntity> ratingEntityPage = Arrays.asList(rating1, rating2);
-        doReturn(ratingEntityPage).when(ratingService).findByApi(eq(API));
+        doReturn(ratingEntityPage).when(ratingService).findByApi(eq(GraviteeContext.getExecutionContext()), eq(API));
 
         Rating rating = new Rating();
         rating.setId(RATING);
         rating.setComment(RATING);
         rating.setValue(1);
 
-        doReturn(rating).when(ratingMapper).convert(any(), any());
+        doReturn(rating).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         RatingEntity createdRating = new RatingEntity();
         createdRating.setId(RATING);
         createdRating.setComment(RATING);
         createdRating.setRate((byte) 1);
-        doReturn(createdRating).when(ratingService).create(any());
+        doReturn(createdRating).when(ratingService).create(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -86,7 +89,9 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(emptySet())
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         //test
         final Response response = target(API).path("ratings").request().get();
@@ -106,7 +111,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetServiceUnavailable() {
-        doThrow(ApiRatingUnavailableException.class).when(ratingService).create(any());
+        doThrow(ApiRatingUnavailableException.class).when(ratingService).create(eq(GraviteeContext.getExecutionContext()), any());
 
         RatingInput ratingInput = new RatingInput().comment(RATING).value(1);
 
@@ -168,7 +173,9 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(emptySet())
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         //test
         RatingInput ratingInput = new RatingInput().comment(RATING).value(1);
@@ -194,7 +201,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         //test
 

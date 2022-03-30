@@ -35,7 +35,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.DebugApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.Comparator;
 import java.util.List;
@@ -66,15 +66,15 @@ public class DebugApiServiceImpl implements DebugApiService {
     }
 
     @Override
-    public EventEntity debug(String apiId, String userId, DebugApiEntity debugApiEntity) {
+    public EventEntity debug(final ExecutionContext executionContext, String apiId, String userId, DebugApiEntity debugApiEntity) {
         try {
             LOGGER.debug("Debug API : {}", apiId);
 
             apiService.checkPolicyConfigurations(debugApiEntity.getPaths(), debugApiEntity.getFlows(), debugApiEntity.getPlans());
 
-            final ApiEntity api = apiService.findById(apiId);
+            final ApiEntity api = apiService.findById(executionContext, apiId);
 
-            final InstanceEntity instanceEntity = selectTargetGateway(api);
+            final InstanceEntity instanceEntity = selectTargetGateway(executionContext, api);
 
             Map<String, String> properties = Map.ofEntries(
                 entry(Event.EventProperties.USER.getValue(), userId),
@@ -88,7 +88,8 @@ public class DebugApiServiceImpl implements DebugApiService {
             validateDefinitionVersion(apiId, debugApi);
 
             return eventService.create(
-                singleton(GraviteeContext.getCurrentEnvironment()),
+                executionContext,
+                singleton(executionContext.getEnvironmentId()),
                 EventType.DEBUG_API,
                 objectMapper.writeValueAsString(debugApi),
                 properties
@@ -120,8 +121,8 @@ public class DebugApiServiceImpl implements DebugApiService {
         }
     }
 
-    private InstanceEntity selectTargetGateway(ApiEntity api) {
-        final List<InstanceEntity> startedInstances = instanceService.findAllStarted();
+    private InstanceEntity selectTargetGateway(ExecutionContext executionContext, ApiEntity api) {
+        final List<InstanceEntity> startedInstances = instanceService.findAllStarted(executionContext);
 
         String debugPluginId = "gateway-debug";
 

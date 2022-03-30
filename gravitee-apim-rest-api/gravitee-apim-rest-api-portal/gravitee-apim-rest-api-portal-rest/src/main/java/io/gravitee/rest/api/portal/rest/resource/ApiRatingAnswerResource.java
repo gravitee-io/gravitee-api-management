@@ -24,6 +24,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RatingAnswerNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
@@ -55,12 +57,13 @@ public class ApiRatingAnswerResource extends AbstractResource {
     ) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(executionContext, getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            RatingEntity ratingEntity = ratingService.findById(ratingId);
+            RatingEntity ratingEntity = ratingService.findById(executionContext, ratingId);
             if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
                 if (ratingEntity.getAnswers().stream().anyMatch(answer -> answer.getId().equals(answerId))) {
-                    ratingService.deleteAnswer(ratingId, answerId);
+                    ratingService.deleteAnswer(executionContext, ratingId, answerId);
                     return Response.status(Status.NO_CONTENT).build();
                 }
 

@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.CustomUserFieldEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import org.junit.Test;
@@ -44,13 +45,13 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         field.setKey("TestResCreate");
         field.setLabel("TestResCreate");
         ArgumentCaptor<CustomUserFieldEntity> argument = ArgumentCaptor.forClass(CustomUserFieldEntity.class);
-        when(customUserFieldService.create(any())).thenReturn(field);
+        when(customUserFieldService.create(any(), any())).thenReturn(field);
 
         final Response response = orgTarget().request().post(Entity.json(field));
 
         assertEquals(CREATED_201, response.getStatus());
-        verify(customUserFieldService, times(1)).create(any());
-        verify(customUserFieldService).create(argument.capture());
+        verify(customUserFieldService, times(1)).create(any(), any());
+        verify(customUserFieldService).create(any(), argument.capture());
         assertNotNull("Field provided can't be null", argument.getValue());
         assertEquals(field.getKey(), argument.getValue().getKey());
         assertTrue("LocationHeader value", response.getHeaderString("Location").endsWith(this.contextPath() + "/" + field.getKey()));
@@ -63,13 +64,13 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         field.setKey("test-update");
         field.setLabel("Test");
         ArgumentCaptor<CustomUserFieldEntity> argument = ArgumentCaptor.forClass(CustomUserFieldEntity.class);
-        when(customUserFieldService.update(any())).thenReturn(field);
+        when(customUserFieldService.update(any(), any())).thenReturn(field);
 
         final Response response = orgTarget("/" + field.getKey()).request().put(Entity.json(field));
 
         assertEquals(OK_200, response.getStatus());
-        verify(customUserFieldService, times(1)).update(any());
-        verify(customUserFieldService).update(argument.capture());
+        verify(customUserFieldService, times(1)).update(any(), any());
+        verify(customUserFieldService).update(any(), argument.capture());
         assertNotNull("Field provided can't be null", argument.getValue());
         assertEquals(field.getKey(), argument.getValue().getKey());
     }
@@ -81,11 +82,11 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         field.setKey("test-update");
         field.setLabel("Test");
         ArgumentCaptor<CustomUserFieldEntity> argument = ArgumentCaptor.forClass(CustomUserFieldEntity.class);
-        when(customUserFieldService.update(any())).thenReturn(field);
+        when(customUserFieldService.update(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(field);
 
         final Response response = orgTarget("/invalid-key").request().put(Entity.json(field));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
-        verify(customUserFieldService, never()).update(any());
+        verify(customUserFieldService, never()).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 }

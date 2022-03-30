@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.cockpit.services;
 
 import io.gravitee.rest.api.model.api.ApiEntityResult;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -25,6 +26,7 @@ import java.util.List;
  */
 public interface ApiServiceCockpit {
     ApiEntityResult createApi(
+        ExecutionContext executionContext,
         String apiId,
         String userId,
         String swaggerDefinition,
@@ -33,6 +35,7 @@ public interface ApiServiceCockpit {
         List<String> labels
     );
     ApiEntityResult updateApi(
+        ExecutionContext executionContext,
         String apiId,
         String userId,
         String swaggerDefinition,

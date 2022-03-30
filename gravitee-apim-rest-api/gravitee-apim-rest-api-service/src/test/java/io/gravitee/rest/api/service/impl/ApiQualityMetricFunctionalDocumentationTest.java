@@ -52,22 +52,22 @@ public class ApiQualityMetricFunctionalDocumentationTest {
     @Test
     public void shouldBeValidWithMarkdownPublished() {
         PageEntity item = mock(PageEntity.class);
-        when(mockPageService.search(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Collections.singletonList(item));
+        when(mockPageService.search(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.singletonList(item));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertTrue(valid);
     }
 
     @Test
     public void shouldNotBeValidWithEmptyList() {
-        when(mockPageService.search(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Collections.emptyList());
+        when(mockPageService.search(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertFalse(valid);
     }

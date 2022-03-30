@@ -155,7 +155,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             if (!filteredFieldsList.contains("members")) {
                 Set<MemberEntity> memberEntities = applicationContext
                     .getBean(MembershipService.class)
-                    .getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
+                    .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiEntity.getId());
                 List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
                 if (memberEntities != null) {
                     final UserService userService = applicationContext.getBean(UserService.class);
@@ -164,7 +164,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                         .filter(m -> m.getType() == MembershipMemberType.USER)
                         .forEach(
                             m -> {
-                                UserEntity userEntity = userService.findById(m.getId());
+                                UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), m.getId());
                                 if (userEntity != null) {
                                     Member member = new Member();
                                     member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
@@ -182,7 +182,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             if (!filteredFieldsList.contains("pages")) {
                 List<PageEntity> pages = applicationContext
                     .getBean(PageService.class)
-                    .search(new PageQuery.Builder().api(apiEntity.getId()).build(), true, GraviteeContext.getCurrentEnvironment());
+                    .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(apiEntity.getId()).build(), true);
 
                 if (this.version().getVersion().startsWith("1.")) {
                     pages =
@@ -223,7 +223,9 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
             // plans
             if (!filteredFieldsList.contains("plans")) {
-                Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
+                Set<PlanEntity> plans = applicationContext
+                    .getBean(PlanService.class)
+                    .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
                 Set<PlanEntity> plansToAdd = plans == null
                     ? Collections.emptySet()
                     : plans.stream().filter(p -> !PlanStatus.CLOSED.equals(p.getStatus())).collect(Collectors.toSet());

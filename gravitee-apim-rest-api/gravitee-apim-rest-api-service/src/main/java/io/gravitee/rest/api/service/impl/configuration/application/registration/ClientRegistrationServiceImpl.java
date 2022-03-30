@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.configuration.application.registration.Initial
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
@@ -95,7 +96,10 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     @Override
-    public ClientRegistrationProviderEntity create(NewClientRegistrationProviderEntity newClientRegistrationProvider) {
+    public ClientRegistrationProviderEntity create(
+        ExecutionContext executionContext,
+        NewClientRegistrationProviderEntity newClientRegistrationProvider
+    ) {
         try {
             LOGGER.debug("Create client registration provider {}", newClientRegistrationProvider);
 
@@ -149,7 +153,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             );
 
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 singletonMap(CLIENT_REGISTRATION_PROVIDER, createdClientRegistrationProvider.getId()),
                 ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
                 createdClientRegistrationProvider.getUpdatedAt(),
@@ -165,7 +170,11 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     @Override
-    public ClientRegistrationProviderEntity update(String id, UpdateClientRegistrationProviderEntity updateClientRegistrationProvider) {
+    public ClientRegistrationProviderEntity update(
+        ExecutionContext executionContext,
+        String id,
+        UpdateClientRegistrationProviderEntity updateClientRegistrationProvider
+    ) {
         try {
             LOGGER.debug("Update client registration provider {}", updateClientRegistrationProvider);
 
@@ -210,7 +219,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             // Audit
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
                 ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
                 clientRegistrationProvider.getUpdatedAt(),
@@ -266,7 +276,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     @Override
-    public void delete(String id) {
+    public void delete(ExecutionContext executionContext, String id) {
         try {
             LOGGER.debug("Delete client registration provider: {}", id);
 
@@ -279,7 +289,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             clientRegistrationProviderRepository.delete(id);
 
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
                 ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED,
                 new Date(),

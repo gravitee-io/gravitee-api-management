@@ -32,7 +32,6 @@ import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.ConfigServiceImpl;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -88,12 +87,20 @@ public class ConfigServiceTest {
         params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
         params.put(Key.API_LABELS_DICTIONARY.key(), Arrays.asList("label1", "label2"));
 
-        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        )
             .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
-        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getCurrentEnvironment());
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
         assertNotNull(portalSettings);
         assertEquals("force login", true, portalSettings.getAuthentication().getForceLogin().isEnabled());
@@ -122,7 +129,15 @@ public class ConfigServiceTest {
         params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
         params.put(Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
 
-        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        )
             .thenReturn(params);
 
         when(environment.containsProperty(eq(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key()))).thenReturn(true);
@@ -131,7 +146,7 @@ public class ConfigServiceTest {
         when(environment.containsProperty(Key.PORTAL_ANALYTICS_ENABLED.key())).thenReturn(true);
         when(environment.containsProperty(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key())).thenReturn(true);
 
-        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getCurrentEnvironment());
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
         assertNotNull(portalSettings);
         assertEquals("force login", true, portalSettings.getAuthentication().getForceLogin().isEnabled());
@@ -163,11 +178,21 @@ public class ConfigServiceTest {
     public void shouldCreatePortalSettings() {
         PortalSettingsEntity portalSettingsEntity = new PortalSettingsEntity();
         portalSettingsEntity.getPortal().setUrl("ACME");
-        when(mockParameterService.save(PORTAL_URL, "ACME", "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(new Parameter());
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                PORTAL_URL,
+                "ACME",
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(new Parameter());
 
-        configService.save(GraviteeContext.getCurrentEnvironment(), portalSettingsEntity);
+        configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
 
-        verify(mockParameterService, times(1)).save(PORTAL_URL, "ACME", "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        verify(mockParameterService, times(1))
+            .save(GraviteeContext.getExecutionContext(), PORTAL_URL, "ACME", "DEFAULT", ParameterReferenceType.ENVIRONMENT);
     }
 
     @Test
@@ -177,12 +202,20 @@ public class ConfigServiceTest {
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
 
-        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
-        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getCurrentOrganization());
+        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
 
         assertNotNull(consoleSettings);
         assertEquals("scheduler notifications", Integer.valueOf(11), consoleSettings.getScheduler().getNotificationsInSeconds());
@@ -199,12 +232,20 @@ public class ConfigServiceTest {
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
 
-        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
-        ConsoleConfigEntity consoleConfig = configService.getConsoleConfig(GraviteeContext.getCurrentOrganization());
+        ConsoleConfigEntity consoleConfig = configService.getConsoleConfig(GraviteeContext.getExecutionContext());
 
         assertNotNull(consoleConfig);
         assertEquals("scheduler notifications", Integer.valueOf(11), consoleConfig.getScheduler().getNotificationsInSeconds());
@@ -223,13 +264,21 @@ public class ConfigServiceTest {
         params.put(Key.ANALYTICS_CLIENT_TIMEOUT.key(), singletonList("60000"));
         params.put(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
 
-        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(params);
 
         when(environment.containsProperty(eq(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key()))).thenReturn(true);
         when(environment.containsProperty(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
 
-        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getCurrentOrganization());
+        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
 
         assertNotNull(consoleSettings);
         assertEquals("scheduler notifications", Integer.valueOf(11), consoleSettings.getScheduler().getNotificationsInSeconds());
@@ -262,22 +311,80 @@ public class ConfigServiceTest {
         user.setDisplayed(true);
         logging.setUser(user);
         consoleSettingsEntity.setLogging(logging);
-        when(mockParameterService.save(ALERT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION)).thenReturn(new Parameter());
-        when(mockParameterService.save(LOGGING_DEFAULT_MAX_DURATION, "3000", "DEFAULT", ParameterReferenceType.ORGANIZATION))
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                ALERT_ENABLED,
+                "true",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
             .thenReturn(new Parameter());
-        when(mockParameterService.save(LOGGING_USER_DISPLAYED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION))
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_DEFAULT_MAX_DURATION,
+                "3000",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
             .thenReturn(new Parameter());
-        when(mockParameterService.save(LOGGING_AUDIT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION))
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_USER_DISPLAYED,
+                "true",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
             .thenReturn(new Parameter());
-        when(mockParameterService.save(LOGGING_AUDIT_TRAIL_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION))
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_AUDIT_ENABLED,
+                "true",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(new Parameter());
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_AUDIT_TRAIL_ENABLED,
+                "true",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
             .thenReturn(new Parameter());
 
-        configService.save(GraviteeContext.getCurrentOrganization(), consoleSettingsEntity);
+        configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
 
-        verify(mockParameterService, times(1)).save(ALERT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
-        verify(mockParameterService, times(1)).save(LOGGING_DEFAULT_MAX_DURATION, "3000", "DEFAULT", ParameterReferenceType.ORGANIZATION);
-        verify(mockParameterService, times(1)).save(LOGGING_USER_DISPLAYED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
-        verify(mockParameterService, times(1)).save(LOGGING_AUDIT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
-        verify(mockParameterService, times(1)).save(LOGGING_AUDIT_TRAIL_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+            .save(GraviteeContext.getExecutionContext(), ALERT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+            .save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_DEFAULT_MAX_DURATION,
+                "3000",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            );
+        verify(mockParameterService, times(1))
+            .save(GraviteeContext.getExecutionContext(), LOGGING_USER_DISPLAYED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+            .save(GraviteeContext.getExecutionContext(), LOGGING_AUDIT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+            .save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_AUDIT_TRAIL_ENABLED,
+                "true",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            );
     }
 }

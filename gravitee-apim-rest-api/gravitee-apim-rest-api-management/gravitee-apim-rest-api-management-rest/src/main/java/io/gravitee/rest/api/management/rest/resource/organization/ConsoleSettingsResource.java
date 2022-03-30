@@ -73,7 +73,7 @@ public class ConsoleSettingsResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = READ) })
     public ConsoleSettingsEntity getConsoleSettings() {
-        return configService.getConsoleSettings(GraviteeContext.getCurrentOrganization());
+        return configService.getConsoleSettings(GraviteeContext.getExecutionContext());
     }
 
     @POST
@@ -91,12 +91,13 @@ public class ConsoleSettingsResource {
         // reject settings update if maintenanceMode isn't disabled into the payload
         checkMaintenanceMode(consoleSettingsEntity);
 
-        configService.save(GraviteeContext.getCurrentOrganization(), consoleSettingsEntity);
+        configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
         return Response.ok().entity(consoleSettingsEntity).build();
     }
 
     private void checkMaintenanceMode(ConsoleSettingsEntity consoleSettingsEntity) {
         boolean maintenanceMode = parameterService.findAsBoolean(
+            GraviteeContext.getExecutionContext(),
             Key.MAINTENANCE_MODE_ENABLED,
             GraviteeContext.getCurrentOrganization(),
             ParameterReferenceType.ORGANIZATION

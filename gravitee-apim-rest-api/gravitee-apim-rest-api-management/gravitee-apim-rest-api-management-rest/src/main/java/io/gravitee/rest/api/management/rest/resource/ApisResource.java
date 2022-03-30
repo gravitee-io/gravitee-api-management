@@ -42,6 +42,7 @@ import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
@@ -132,6 +133,7 @@ public class ApisResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public ApiListItemPagedResult getApis(@BeanParam final ApisParam apisParam, @Valid @BeanParam Pageable pageable) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiQuery apiQuery = new ApiQuery();
         if (apisParam.getGroup() != null) {
             apiQuery.setGroups(singletonList(apisParam.getGroup()));
@@ -143,7 +145,7 @@ public class ApisResource extends AbstractResource {
         apiQuery.setTag(apisParam.getTag());
         apiQuery.setState(apisParam.getState());
         if (apisParam.getCategory() != null) {
-            apiQuery.setCategory(categoryService.findById(apisParam.getCategory(), GraviteeContext.getCurrentEnvironment()).getId());
+            apiQuery.setCategory(categoryService.findById(apisParam.getCategory(), executionContext.getEnvironmentId()).getId());
         }
 
         Sortable sortable = null;
@@ -158,30 +160,39 @@ public class ApisResource extends AbstractResource {
         }
 
         final Page<ApiEntity> apis;
+
         if (isAdmin()) {
-            apis = apiService.search(apiQuery, sortable, commonPageable);
+            apis = apiService.search(executionContext, apiQuery, sortable, commonPageable);
         } else {
             if (apisParam.isPortal() || apisParam.isTop()) {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
             }
             if (isAuthenticated()) {
-                apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, sortable, commonPageable, apisParam.isPortal());
+                apis =
+                    apiService.findByUser(
+                        executionContext,
+                        getAuthenticatedUser(),
+                        apiQuery,
+                        sortable,
+                        commonPageable,
+                        apisParam.isPortal()
+                    );
             } else {
                 apiQuery.setVisibility(PUBLIC);
-                apis = apiService.search(apiQuery, sortable, commonPageable);
+                apis = apiService.search(executionContext, apiQuery, sortable, commonPageable);
             }
         }
 
-        final boolean isRatingServiceEnabled = ratingService.isEnabled();
+        final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
 
         if (apisParam.isTop()) {
             final List<String> visibleApis = apis.getContent().stream().map(ApiEntity::getId).collect(toList());
             return new ApiListItemPagedResult(
                 topApiService
-                    .findAll()
+                    .findAll(executionContext)
                     .stream()
                     .filter(topApi -> visibleApis.contains(topApi.getApi()))
-                    .map(topApiEntity -> apiService.findById(topApiEntity.getApi()))
+                    .map(topApiEntity -> apiService.findById(executionContext, topApiEntity.getApi()))
                     .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
                     .collect(toList()),
                 apis.getPageNumber(),
@@ -212,7 +223,7 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response createApi(@Parameter(name = "api", required = true) @Valid @NotNull final NewApiEntity newApiEntity)
         throws ApiAlreadyExistsException {
-        ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUser());
+        ApiEntity newApi = apiService.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
         if (newApi != null) {
             return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();
         }
@@ -243,17 +254,14 @@ public class ApisResource extends AbstractResource {
         @Parameter(name = "definition", required = true) @Valid @NotNull String apiDefinition,
         @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
     ) {
-        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(
-            apiDefinition,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, apiDefinition);
 
         if (
             DefinitionVersion.valueOfLabel(definitionVersion).equals(DefinitionVersion.V2) &&
             DefinitionVersion.V1.getLabel().equals(imported.getGraviteeDefinitionVersion())
         ) {
-            return Response.ok(apiService.migrate(imported.getId())).build();
+            return Response.ok(apiService.migrate(executionContext, imported.getId())).build();
         }
 
         return Response.ok(imported).build();
@@ -274,11 +282,13 @@ public class ApisResource extends AbstractResource {
         @Parameter(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor,
         @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
     ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(
+            executionContext,
             swaggerDescriptor,
             DefinitionVersion.valueOfLabel(definitionVersion)
         );
-        final ApiEntity api = apiService.createFromSwagger(swaggerApiEntity, getAuthenticatedUser(), swaggerDescriptor);
+        final ApiEntity api = apiService.createFromSwagger(executionContext, swaggerApiEntity, getAuthenticatedUser(), swaggerDescriptor);
         return Response
             .created(URI.create(this.uriInfo.getRequestUri().getRawPath().replaceAll("import/swagger", "") + api.getId()))
             .entity(api)
@@ -298,7 +308,10 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
         // TODO : create verify service to query repository with criteria
-        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())));
+        virtualHostService.sanitizeAndValidate(
+            GraviteeContext.getExecutionContext(),
+            Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath()))
+        );
         return Response.ok("API context [" + verifyApiParam.getContextPath() + "] is available").build();
     }
 
@@ -355,13 +368,14 @@ public class ApisResource extends AbstractResource {
             commonPageable = pageable.toPageable();
         }
 
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!isAdmin()) {
-            filters.put("api", apiService.findIdsByUser(getAuthenticatedUser(), apiQuery, false));
+            filters.put("api", apiService.findIdsByUser(executionContext, getAuthenticatedUser(), apiQuery, false));
         }
 
-        final boolean isRatingServiceEnabled = ratingService.isEnabled();
+        final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
 
-        final Page<ApiEntity> apis = apiService.search(query, filters, apisOrderParam.toSortable(), commonPageable);
+        final Page<ApiEntity> apis = apiService.search(executionContext, query, filters, apisOrderParam.toSortable(), commonPageable);
 
         return new PagedResult<>(
             apis.getContent().stream().map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled)).collect(toList()),
@@ -383,11 +397,7 @@ public class ApisResource extends AbstractResource {
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateWithDefinition(@Parameter(name = "definition", required = true) String apiDefinition) {
-        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(
-            apiDefinition,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinition);
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
@@ -448,7 +458,7 @@ public class ApisResource extends AbstractResource {
         }
 
         if (isRatingServiceEnabled) {
-            final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(api.getId());
+            final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(GraviteeContext.getExecutionContext(), api.getId());
             apiItem.setRate(ratingSummary.getAverageRate());
             apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());
         }

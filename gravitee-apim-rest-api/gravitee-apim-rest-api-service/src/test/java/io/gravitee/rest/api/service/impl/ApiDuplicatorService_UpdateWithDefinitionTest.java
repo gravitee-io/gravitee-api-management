@@ -38,7 +38,6 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
 import java.net.URL;
@@ -125,7 +124,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         when(authentication.getPrincipal()).thenReturn(authenticatedUserDetails);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
         GraviteeContext.cleanContext();
     }
 
@@ -153,7 +152,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
+        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
@@ -173,7 +172,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         owner.setReferenceType(MembershipReferenceType.API);
         owner.setRoles(Collections.singletonList(ownerRoleEntity));
 
-        when(membershipService.getMembersByReference(MembershipReferenceType.API, API_ID)).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID))
+            .thenReturn(Collections.singleton(po));
 
         UserEntity admin = new UserEntity();
         admin.setId(po.getId());
@@ -183,40 +183,24 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         user.setId(owner.getId());
         user.setSource(SOURCE);
         user.setSourceId(owner.getReferenceId());
-        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
         PageEntity existingPage = mock(PageEntity.class);
 
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(admin.getId());
         memberEntity.setRoles(Collections.singletonList(poRoleEntity));
 
-        when(
-            membershipService.addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        )
+        when(membershipService.addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any()))
             .thenReturn(memberEntity);
-        when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            apiEntity.getId(),
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(pageService, times(1))
-            .createOrUpdatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
+            .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pagesList -> pagesList.size() == 2), eq(API_ID));
         verify(membershipService, never())
             .addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.API,
                 API_ID,
                 MembershipMemberType.USER,
@@ -225,16 +209,15 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             );
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.API,
                 API_ID,
                 MembershipMemberType.USER,
                 user.getId(),
                 "API_OWNER"
             );
-        verify(apiService, times(1)).update(eq(API_ID), any());
-        verify(apiService, never()).create(any(), any());
+        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any());
+        verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     private ApiEntity prepareUpdateImportApiWithMembers(UserEntity admin, UserEntity user) {
@@ -244,7 +227,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         apiEntity.setId(API_ID);
         apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
-        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
+        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -264,7 +247,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         owner.setReferenceType(MembershipReferenceType.API);
         owner.setRoles(Collections.singletonList(ownerRole));
 
-        when(membershipService.getMembersByReference(MembershipReferenceType.API, API_ID))
+        when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID))
             .thenReturn(new HashSet(Arrays.asList(owner, po)));
 
         admin.setId(po.getId());
@@ -275,7 +258,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId(owner.getReferenceId());
 
-        when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
 
         return apiEntity;
     }
@@ -298,21 +281,16 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Arrays.asList(poRoleEntity));
 
-        when(membershipService.getMembersByReference(MembershipReferenceType.API, API_ID)).thenReturn(new HashSet(Arrays.asList(po)));
-        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID))
+            .thenReturn(new HashSet(Arrays.asList(po)));
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            apiEntity.getId(),
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
-        verify(pageService, never()).duplicatePages(anyList(), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
+        verify(pageService, never()).duplicatePages(eq(GraviteeContext.getExecutionContext()), anyList(), eq(API_ID));
         verify(membershipService, never())
             .addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.API,
                 API_ID,
                 MembershipMemberType.USER,
@@ -321,16 +299,15 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             );
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.API,
                 API_ID,
                 MembershipMemberType.USER,
                 user.getId(),
                 "API_OWNER"
             );
-        verify(apiService, times(1)).update(eq(API_ID), any());
-        verify(apiService, never()).create(any(), any());
+        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any());
+        verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -347,35 +324,28 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
 
-        when(userService.findById(admin.getId())).thenReturn(admin);
-        when(userService.findById(user.getId())).thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
+        when(userService.findById(GraviteeContext.getExecutionContext(), user.getId())).thenReturn(user);
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            apiEntity.getId(),
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
-        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, never()).createPage(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never())
             .addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(admin.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
         verify(membershipService, never())
             .addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
             );
-        verify(apiService, times(1)).update(eq(API_ID), any());
-        verify(apiService, never()).create(any(), any());
+        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any());
+        verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -391,35 +361,28 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
 
-        when(userService.findById(admin.getId())).thenReturn(admin);
-        when(userService.findById(user.getId())).thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
+        when(userService.findById(GraviteeContext.getExecutionContext(), user.getId())).thenReturn(user);
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            apiEntity.getId(),
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
-        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, never()).createPage(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never())
             .addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(admin.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
         verify(membershipService, never())
             .addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
             );
-        verify(apiService, times(1)).update(eq(API_ID), any());
-        verify(apiService, never()).create(any(), any());
+        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any());
+        verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -430,7 +393,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
+        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -441,25 +404,13 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Collections.singletonList(poRole));
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            apiEntity.getId(),
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(pageService, times(1))
-            .createOrUpdatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
-        verify(membershipService, never())
-            .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                any(),
-                any()
-            );
-        verify(apiService, times(1)).update(eq(API_ID), any());
-        verify(apiService, never()).create(any(), any());
+            .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pagesList -> pagesList.size() == 2), eq(API_ID));
+        verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any());
+        verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -470,29 +421,17 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiService.update(eq(API_ID), any())).thenReturn(apiEntity);
+        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            apiEntity.getId(),
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
-        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
-        verify(membershipService, never())
-            .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                any(),
-                any()
-            );
-        verify(apiService, times(1)).update(eq(API_ID), any());
-        verify(apiService, never()).create(any(), any());
+        verify(pageService, never()).createPage(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any(NewPageEntity.class));
+        verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any());
+        verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -519,29 +458,28 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         PlanEntity plan4 = new PlanEntity();
         plan4.setId("plan-id4");
 
-        when(planService.findByApi(apiEntity.getId())).thenReturn(Set.of(plan1, plan2, plan3, plan4));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId()))
+            .thenReturn(Set.of(plan1, plan2, plan3, plan4));
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            apiEntity.getId(),
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
-        verify(planService, times(1)).findByApi(apiEntity.getId());
+        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
         // plan1, plan2 and plan4 has to be created or updated
-        verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id1")), eq("DEFAULT"));
-        verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id2")), eq("DEFAULT"));
-        verify(planService, times(1)).createOrUpdatePlan(argThat(plan -> plan.getId().equals("plan-id4")), eq("DEFAULT"));
+        verify(planService, times(1))
+            .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals("plan-id1")));
+        verify(planService, times(1))
+            .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals("plan-id2")));
+        verify(planService, times(1))
+            .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals("plan-id4")));
         // plan3 has to be deleted cause no more in imported file
-        verify(planService, times(1)).delete("plan-id3");
+        verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), "plan-id3");
 
         verify(planService, times(1)).anyPlanMismatchWithApi(eq(List.of("plan-id1", "plan-id2", "plan-id4")), eq(apiEntity.getId()));
 
         verifyNoMoreInteractions(planService);
 
-        verify(apiService, times(1)).update(eq(API_ID), any());
-        verify(apiService, never()).create(any(), any());
+        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any());
+        verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -560,25 +498,20 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         plan1.setCrossId("plan-cross-id-1");
         plan1.setName("plan name before import");
         plan1.setDescription("plan description before import");
-        when(planService.findByApi(apiEntity.getId())).thenReturn(Set.of(plan1));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId())).thenReturn(Set.of(plan1));
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            apiEntity.getId(),
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         // plan1 has been updated with new name from imported description. But kept his old description
         verify(planService, times(1))
             .createOrUpdatePlan(
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(
                     plan ->
                         plan.getId().equals("plan-id1") &&
                         plan.getName().equals("new name from imported description") &&
                         plan.getDescription().equals("plan description before import")
-                ),
-                eq("DEFAULT")
+                )
             );
     }
 
@@ -597,12 +530,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         when(planService.anyPlanMismatchWithApi(anyList(), eq("id-api"))).thenReturn(true);
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            API_ID,
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
     }
 
     @Test(expected = ForbiddenAccessException.class)
@@ -613,26 +541,17 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
         String toBeImport = Resources.toString(resource, Charsets.UTF_8);
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            API_ID,
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
     }
 
     @Test(expected = ForbiddenAccessException.class)
     public void shouldRaiseAForbiddenAccessException_whenUserHasNoRequiredPermission() throws IOException {
-        when(permissionService.hasPermission(API_DEFINITION, "id-api", UPDATE)).thenReturn(false);
+        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(API_DEFINITION), eq("id-api"), eq(UPDATE)))
+            .thenReturn(false);
 
         URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
         String toBeImport = Resources.toString(resource, Charsets.UTF_8);
 
-        apiDuplicatorService.updateWithImportedDefinition(
-            API_ID,
-            toBeImport,
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
     }
 }

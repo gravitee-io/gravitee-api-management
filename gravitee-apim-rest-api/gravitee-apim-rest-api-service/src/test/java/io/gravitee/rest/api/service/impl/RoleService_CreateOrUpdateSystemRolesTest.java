@@ -27,7 +27,7 @@ import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.impl.RoleServiceImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,7 +59,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
     public void shouldCreateSystemRole() throws TechnicalException {
         when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenReturn(empty());
 
-        roleService.createOrUpdateSystemRoles(REFERENCE_ID);
+        roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
         verify(mockRoleRepository, times(5))
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
@@ -110,7 +110,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
         when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.GROUP, "ADMIN", REFERENCE_ID, REFERENCE_TYPE))
             .thenReturn(empty());
 
-        roleService.createOrUpdateSystemRoles(REFERENCE_ID);
+        roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
         verify(mockRoleRepository, times(5))
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
@@ -170,7 +170,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
         when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.GROUP, "ADMIN", REFERENCE_ID, REFERENCE_TYPE))
             .thenReturn(empty());
 
-        roleService.createOrUpdateSystemRoles(REFERENCE_ID);
+        roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
         verify(mockRoleRepository, times(5))
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));

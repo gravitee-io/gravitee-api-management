@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.parameters.KeyScope;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
@@ -79,96 +80,117 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     // Current context
     @Override
-    public String find(Key key, io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
-        return find(key, null, referenceType);
+    public String find(
+        ExecutionContext executionContext,
+        Key key,
+        io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
+        return find(executionContext, key, null, referenceType);
     }
 
     @Override
-    public boolean findAsBoolean(final Key key, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
-        return findAsBoolean(key, null, referenceType);
+    public boolean findAsBoolean(
+        ExecutionContext executionContext,
+        final Key key,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
+        return findAsBoolean(executionContext, key, null, referenceType);
     }
 
     @Override
-    public List<String> findAll(final Key key, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
-        return findAll(key, Function.identity(), null, null, referenceType);
+    public List<String> findAll(
+        ExecutionContext executionContext,
+        final Key key,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
+        return findAll(executionContext, key, Function.identity(), null, null, referenceType);
     }
 
     @Override
     public Map<String, List<String>> findAll(
+        ExecutionContext executionContext,
         final List<Key> keys,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return findAll(keys, Function.identity(), null, null, referenceType);
+        return findAll(executionContext, keys, Function.identity(), null, null, referenceType);
     }
 
     @Override
     public <T> List<T> findAll(
+        ExecutionContext executionContext,
         final Key key,
         final Function<String, T> mapper,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return findAll(key, mapper, null, null, referenceType);
+        return findAll(executionContext, key, mapper, null, null, referenceType);
     }
 
     @Override
     public <T> Map<String, List<T>> findAll(
+        ExecutionContext executionContext,
         final List<Key> keys,
         final Function<String, T> mapper,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return findAll(keys, mapper, null, null, referenceType);
+        return findAll(executionContext, keys, mapper, null, null, referenceType);
     }
 
     @Override
     public <T> List<T> findAll(
+        ExecutionContext executionContext,
         final Key key,
         final Function<String, T> mapper,
         final Predicate<String> filter,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return findAll(key, mapper, filter, null, referenceType);
+        return findAll(executionContext, key, mapper, filter, null, referenceType);
     }
 
     @Override
     public <T> Map<String, List<T>> findAll(
+        ExecutionContext executionContext,
         List<Key> keys,
         Function<String, T> mapper,
         Predicate<String> filter,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return findAll(keys, mapper, filter, null, referenceType);
+        return findAll(executionContext, keys, mapper, filter, null, referenceType);
     }
 
     @Override
     public Parameter save(
+        ExecutionContext executionContext,
         final Key key,
         final String value,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return save(key, value, null, referenceType);
+        return save(executionContext, key, value, null, referenceType);
     }
 
     @Override
     public Parameter save(
+        ExecutionContext executionContext,
         final Key key,
         final List<String> values,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return save(key, values, null, referenceType);
+        return save(executionContext, key, values, null, referenceType);
     }
 
     @Override
     public Parameter save(
+        ExecutionContext executionContext,
         final Key key,
         final Map<String, String> values,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return save(key, values, null, referenceType);
+        return save(executionContext, key, values, null, referenceType);
     }
 
     // Specific context
     @Override
     public String find(
+        ExecutionContext executionContext,
         final Key key,
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
@@ -178,7 +200,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             .computeIfAbsent(
                 key,
                 k -> {
-                    final List<String> values = findAll(k, referenceId, referenceType);
+                    final List<String> values = findAll(k, referenceId, referenceType, executionContext);
                     final String value;
                     if (values == null || values.isEmpty()) {
                         value = k.defaultValue();
@@ -192,60 +214,66 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Override
     public boolean findAsBoolean(
+        ExecutionContext executionContext,
         final Key key,
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return Boolean.parseBoolean(find(key, referenceId, referenceType));
+        return Boolean.parseBoolean(find(executionContext, key, referenceId, referenceType));
     }
 
     @Override
     public List<String> findAll(
         final Key key,
         final String referenceId,
-        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType,
+        ExecutionContext executionContext
     ) {
-        return findAll(key, Function.identity(), null, referenceId, referenceType);
+        return findAll(executionContext, key, Function.identity(), null, referenceId, referenceType);
     }
 
     @Override
     public Map<String, List<String>> findAll(
         final List<Key> keys,
         final String referenceId,
-        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType,
+        ExecutionContext executionContext
     ) {
-        return findAll(keys, Function.identity(), null, referenceId, referenceType);
+        return findAll(executionContext, keys, Function.identity(), null, referenceId, referenceType);
     }
 
     @Override
     public <T> List<T> findAll(
+        ExecutionContext executionContext,
         final Key key,
         final Function<String, T> mapper,
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return findAll(key, mapper, null, referenceId, referenceType);
+        return findAll(executionContext, key, mapper, null, referenceId, referenceType);
     }
 
     @Override
     public <T> Map<String, List<T>> findAll(
+        ExecutionContext executionContext,
         final List<Key> keys,
         final Function<String, T> mapper,
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return findAll(keys, mapper, null, referenceId, referenceType);
+        return findAll(executionContext, keys, mapper, null, referenceId, referenceType);
     }
 
     @Override
     public <T> List<T> findAll(
+        ExecutionContext executionContext,
         final Key key,
         final Function<String, T> mapper,
         final Predicate<String> filter,
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        String refIdToUse = getEffectiveReferenceId(referenceId, referenceType);
+        String refIdToUse = getEffectiveReferenceId(executionContext, referenceId, referenceType);
         try {
             Optional<Parameter> optionalParameter = this.getSystemParameter(key);
             if (optionalParameter.isPresent()) {
@@ -279,13 +307,14 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Override
     public <T> Map<String, List<T>> findAll(
+        ExecutionContext executionContext,
         List<Key> keys,
         Function<String, T> mapper,
         Predicate<String> filter,
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        String refIdToUse = getEffectiveReferenceId(referenceId, referenceType);
+        String refIdToUse = getEffectiveReferenceId(executionContext, referenceId, referenceType);
         try {
             List<Key> keysToFind = new ArrayList<>(keys);
             Map<String, List<T>> result = new HashMap<>();
@@ -352,13 +381,17 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         }
     }
 
-    private String getEffectiveReferenceId(String referenceId, io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    private String getEffectiveReferenceId(
+        ExecutionContext executionContext,
+        String referenceId,
+        io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         String refIdToUse = referenceId;
         if (refIdToUse == null) {
             if (referenceType == io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION) {
-                refIdToUse = GraviteeContext.getCurrentOrganization();
+                refIdToUse = executionContext.getOrganizationId();
             } else {
-                refIdToUse = GraviteeContext.getCurrentEnvironment();
+                refIdToUse = executionContext.getEnvironmentId();
             }
         }
         return refIdToUse;
@@ -377,12 +410,13 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Override
     public Parameter save(
+        ExecutionContext executionContext,
         final Key key,
         final String value,
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        String refIdToUse = getEffectiveReferenceId(referenceId, referenceType);
+        String refIdToUse = getEffectiveReferenceId(executionContext, referenceId, referenceType);
         try {
             Optional<Parameter> optionalParameter = parameterRepository.findById(
                 key.key(),
@@ -409,7 +443,8 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 } else if (!value.equals(optionalParameter.get().getValue())) {
                     final Parameter updatedParameter = parameterRepository.update(parameter);
                     auditService.createEnvironmentAuditLog(
-                        GraviteeContext.getCurrentEnvironment(),
+                        executionContext,
+                        executionContext.getEnvironmentId(),
                         singletonMap(PARAMETER, updatedParameter.getKey()),
                         PARAMETER_UPDATED,
                         new Date(),
@@ -427,7 +462,8 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 }
                 final Parameter savedParameter = parameterRepository.create(parameter);
                 auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     singletonMap(PARAMETER, savedParameter.getKey()),
                     PARAMETER_CREATED,
                     new Date(),
@@ -446,22 +482,31 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Override
     public Parameter save(
+        ExecutionContext executionContext,
         final Key key,
         final List<String> values,
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return save(key, (values == null || values.isEmpty()) ? null : join(SEPARATOR, values), referenceId, referenceType);
+        return save(
+            executionContext,
+            key,
+            (values == null || values.isEmpty()) ? null : join(SEPARATOR, values),
+            referenceId,
+            referenceType
+        );
     }
 
     @Override
     public Parameter save(
+        ExecutionContext executionContext,
         final Key key,
         final Map<String, String> values,
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
         return save(
+            executionContext,
             key,
             values == null
                 ? null

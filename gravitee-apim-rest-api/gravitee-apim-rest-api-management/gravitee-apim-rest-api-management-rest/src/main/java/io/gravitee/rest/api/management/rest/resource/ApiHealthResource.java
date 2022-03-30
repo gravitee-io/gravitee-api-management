@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.healthcheck.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.HealthCheckService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -71,9 +72,13 @@ public class ApiHealthResource extends AbstractResource {
     ) {
         switch (healthcheckType) {
             case RESPONSE_TIME:
-                return Response.ok(healthCheckService.getResponseTime(api, healthcheckField.name())).build();
+                return Response
+                    .ok(healthCheckService.getResponseTime(GraviteeContext.getExecutionContext(), api, healthcheckField.name()))
+                    .build();
             default:
-                return Response.ok(healthCheckService.getAvailability(api, healthcheckField.name())).build();
+                return Response
+                    .ok(healthCheckService.getAvailability(GraviteeContext.getExecutionContext(), api, healthcheckField.name()))
+                    .build();
         }
     }
 
@@ -142,7 +147,7 @@ public class ApiHealthResource extends AbstractResource {
         logQuery.setFrom(param.getFrom());
         logQuery.setTo(param.getTo());
 
-        return healthCheckService.findByApi(api, logQuery, param.isTransition());
+        return healthCheckService.findByApi(GraviteeContext.getExecutionContext(), api, logQuery, param.isTransition());
     }
 
     @GET

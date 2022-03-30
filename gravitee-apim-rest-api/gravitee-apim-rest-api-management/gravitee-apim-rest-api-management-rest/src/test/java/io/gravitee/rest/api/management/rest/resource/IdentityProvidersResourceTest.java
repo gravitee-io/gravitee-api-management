@@ -23,14 +23,13 @@ import static org.mockito.Mockito.reset;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.configuration.identity.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
-import javax.management.relation.Role;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -52,11 +51,11 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
 
         IdentityProviderEntity createdIdentityProvider = new IdentityProviderEntity();
         createdIdentityProvider.setId(ID);
-        doReturn(createdIdentityProvider).when(identityProviderService).create(any());
+        doReturn(createdIdentityProvider).when(identityProviderService).create(eq(GraviteeContext.getExecutionContext()), any());
 
         IdentityProviderEntity updatedIdentityProvider = new IdentityProviderEntity();
         updatedIdentityProvider.setId(ID);
-        doReturn(updatedIdentityProvider).when(identityProviderService).update(eq(ID), any());
+        doReturn(updatedIdentityProvider).when(identityProviderService).update(eq(GraviteeContext.getExecutionContext()), eq(ID), any());
     }
 
     @Test

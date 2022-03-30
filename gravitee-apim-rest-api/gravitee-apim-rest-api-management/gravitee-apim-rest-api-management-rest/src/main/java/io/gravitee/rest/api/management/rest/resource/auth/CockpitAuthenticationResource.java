@@ -132,7 +132,12 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             GraviteeContext.setCurrentOrganization(organizationId);
 
             // Retrieve the user.
-            final UserEntity user = userService.findBySource(COCKPIT_SOURCE, jwtClaimsSet.getSubject(), true);
+            final UserEntity user = userService.findBySource(
+                GraviteeContext.getExecutionContext(),
+                COCKPIT_SOURCE,
+                jwtClaimsSet.getSubject(),
+                true
+            );
 
             //set user to Authentication Context
             final String environmentId = jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM);

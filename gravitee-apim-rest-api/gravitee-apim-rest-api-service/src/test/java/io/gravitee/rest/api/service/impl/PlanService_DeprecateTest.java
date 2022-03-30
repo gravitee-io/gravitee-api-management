@@ -27,12 +27,12 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -82,7 +82,7 @@ public class PlanService_DeprecateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.DEPRECATED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.deprecate(PLAN_ID);
+        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
@@ -90,7 +90,7 @@ public class PlanService_DeprecateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.deprecate(PLAN_ID);
+        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test(expected = PlanNotYetPublishedException.class)
@@ -98,7 +98,7 @@ public class PlanService_DeprecateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.deprecate(PLAN_ID);
+        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test
@@ -107,11 +107,11 @@ public class PlanService_DeprecateTest {
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
-        planService.deprecate(PLAN_ID, true);
+        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID, true);
 
         verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
         verify(planRepository, times(1)).update(plan);
@@ -125,7 +125,7 @@ public class PlanService_DeprecateTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.deprecate(PLAN_ID, false);
+        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID, false);
 
         verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
         verify(planRepository, times(1)).update(plan);
@@ -135,7 +135,7 @@ public class PlanService_DeprecateTest {
     public void shouldNotDepreciateBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.deprecate(PLAN_ID);
+        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test
@@ -144,11 +144,11 @@ public class PlanService_DeprecateTest {
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
-        planService.deprecate(PLAN_ID);
+        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
         verify(planRepository, times(1)).update(plan);

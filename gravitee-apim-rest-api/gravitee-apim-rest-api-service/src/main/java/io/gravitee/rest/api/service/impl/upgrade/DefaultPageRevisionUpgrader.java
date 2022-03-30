@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class DefaultPageRevisionUpgrader implements Upgrader, Ordered {
     private PageRevisionService pageRevisionService;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         if (hasNoRevisions()) {
             logger.info("No page revisions found. Create a default revision based on pages.");
             final int pageSize = 100;

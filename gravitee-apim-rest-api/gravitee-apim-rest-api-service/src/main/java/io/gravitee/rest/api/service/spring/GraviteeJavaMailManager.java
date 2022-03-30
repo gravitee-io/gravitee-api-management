@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import java.util.List;
@@ -47,28 +48,28 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
         eventManager.subscribeForEvents(this, Key.class);
     }
 
-    public JavaMailSender getOrCreateMailSender(String referenceId, ParameterReferenceType type) {
-        GraviteeContext.ReferenceContext ref = GraviteeContext.getCurrentContext();
+    public JavaMailSender getOrCreateMailSender(ExecutionContext executionContext, String referenceId, ParameterReferenceType type) {
+        GraviteeContext.ReferenceContext ref = executionContext.getReferenceContext();
         JavaMailSenderImpl mailSender = this.getMailSenderByReference(ref);
         if (mailSender == null) {
             mailSender = new JavaMailSenderImpl();
-            mailSender.setHost(parameterService.find(Key.EMAIL_HOST, referenceId, type));
-            String port = parameterService.find(Key.EMAIL_PORT, referenceId, type);
+            mailSender.setHost(parameterService.find(executionContext, Key.EMAIL_HOST, referenceId, type));
+            String port = parameterService.find(executionContext, Key.EMAIL_PORT, referenceId, type);
             if (StringUtils.isNumeric(port)) {
                 mailSender.setPort(Integer.parseInt(port));
             }
-            String username = parameterService.find(Key.EMAIL_USERNAME, referenceId, type);
+            String username = parameterService.find(executionContext, Key.EMAIL_USERNAME, referenceId, type);
             if (username != null && !username.isEmpty()) {
                 mailSender.setUsername(username);
             }
 
-            String password = parameterService.find(Key.EMAIL_PASSWORD, referenceId, type);
+            String password = parameterService.find(executionContext, Key.EMAIL_PASSWORD, referenceId, type);
             if (password != null && !password.isEmpty()) {
                 mailSender.setPassword(password);
             }
 
-            mailSender.setProtocol(parameterService.find(Key.EMAIL_PROTOCOL, referenceId, type));
-            mailSender.setJavaMailProperties(loadProperties(referenceId, type));
+            mailSender.setProtocol(parameterService.find(executionContext, Key.EMAIL_PROTOCOL, referenceId, type));
+            mailSender.setJavaMailProperties(loadProperties(executionContext, referenceId, type));
 
             this.mailSenderByReference.put(ref, mailSender);
         }
@@ -133,11 +134,12 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
         return MAILAPI_PROPERTIES_PREFIX + graviteeProperty.substring(EMAIL_PROPERTIES_PREFIX.length() + 1);
     }
 
-    private Properties loadProperties(String referenceId, ParameterReferenceType referenceType) {
+    private Properties loadProperties(ExecutionContext executionContext, String referenceId, ParameterReferenceType referenceType) {
         Map<String, List<String>> parameters = parameterService.findAll(
             Arrays.asList(Key.EMAIL_PROPERTIES_AUTH_ENABLED, Key.EMAIL_PROPERTIES_STARTTLS_ENABLE, Key.EMAIL_PROPERTIES_SSL_TRUST),
             referenceId,
-            referenceType
+            referenceType,
+            executionContext
         );
 
         Properties properties = new Properties();

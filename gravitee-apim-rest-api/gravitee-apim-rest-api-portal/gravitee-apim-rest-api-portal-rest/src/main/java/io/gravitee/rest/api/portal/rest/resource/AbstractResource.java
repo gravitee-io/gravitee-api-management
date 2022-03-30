@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import java.awt.*;
@@ -99,12 +100,17 @@ public abstract class AbstractResource<T, K> {
         return securityContext.getUserPrincipal() != null;
     }
 
-    protected boolean hasPermission(RolePermission permission, RolePermissionAction... acls) {
-        return hasPermission(permission, null, acls);
+    protected boolean hasPermission(final ExecutionContext executionContext, RolePermission permission, RolePermissionAction... acls) {
+        return hasPermission(executionContext, permission, null, acls);
     }
 
-    protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
-        return isAuthenticated() && (permissionService.hasPermission(permission, referenceId, acls));
+    protected boolean hasPermission(
+        final ExecutionContext executionContext,
+        RolePermission permission,
+        String referenceId,
+        RolePermissionAction... acls
+    ) {
+        return isAuthenticated() && (permissionService.hasPermission(executionContext, permission, referenceId, acls));
     }
 
     String checkAndScaleImage(final String encodedPicture) {
@@ -262,6 +268,7 @@ public abstract class AbstractResource<T, K> {
     }
 
     protected DataResponse createDataResponse(
+        final ExecutionContext executionContext,
         Collection dataList,
         PaginationParam paginationParam,
         Map<String, Map<String, Object>> metadata,
@@ -294,16 +301,16 @@ public abstract class AbstractResource<T, K> {
         }
 
         return new DataResponse()
-            .data(transformPageContent(pageContent))
-            .metadata(this.fillMetadata(this.computeMetadata(metadata, dataMetadata, paginationMetadata), pageContent))
+            .data(transformPageContent(executionContext, pageContent))
+            .metadata(this.fillMetadata(executionContext, this.computeMetadata(metadata, dataMetadata, paginationMetadata), pageContent))
             .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
     }
 
-    protected List<T> transformPageContent(List<K> pageContent) {
+    protected List<T> transformPageContent(ExecutionContext executionContext, List<K> pageContent) {
         return (List<T>) pageContent;
     }
 
-    protected Map fillMetadata(Map metadata, List<K> pageContent) {
+    protected Map fillMetadata(ExecutionContext executionContext, Map metadata, List<K> pageContent) {
         return metadata;
     }
 
@@ -322,25 +329,36 @@ public abstract class AbstractResource<T, K> {
         return metadata;
     }
 
-    protected Response createListResponse(Collection dataList, PaginationParam paginationParam) {
-        return createListResponse(dataList, paginationParam, null, true);
-    }
-
-    protected Response createListResponse(Collection dataList, PaginationParam paginationParam, boolean withPagination) {
-        return createListResponse(dataList, paginationParam, null, withPagination);
-    }
-
-    protected Response createListResponse(Collection dataList, PaginationParam paginationParam, Map<String, Map<String, Object>> metadata) {
-        return createListResponse(dataList, paginationParam, metadata, true);
+    protected Response createListResponse(final ExecutionContext executionContext, Collection dataList, PaginationParam paginationParam) {
+        return createListResponse(executionContext, dataList, paginationParam, null);
     }
 
     protected Response createListResponse(
+        final ExecutionContext executionContext,
+        Collection dataList,
+        PaginationParam paginationParam,
+        boolean withPagination
+    ) {
+        return createListResponse(executionContext, dataList, paginationParam, null, withPagination);
+    }
+
+    protected Response createListResponse(
+        final ExecutionContext executionContext,
+        Collection dataList,
+        PaginationParam paginationParam,
+        Map<String, Map<String, Object>> metadata
+    ) {
+        return createListResponse(executionContext, dataList, paginationParam, metadata, true);
+    }
+
+    protected Response createListResponse(
+        final ExecutionContext executionContext,
         Collection dataList,
         PaginationParam paginationParam,
         Map<String, Map<String, Object>> metadata,
         boolean withPagination
     ) {
-        return Response.ok(createDataResponse(dataList, paginationParam, metadata, withPagination)).build();
+        return Response.ok(createDataResponse(executionContext, dataList, paginationParam, metadata, withPagination)).build();
     }
 
     protected Response createPictureResponse(Request request, InlinePictureEntity image) {

@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.v3.oas.annotations.Operation;
@@ -117,7 +118,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         boolean expandApiKeys = expand != null && expand.contains("keys");
         boolean expandPlanSecurity = expand != null && expand.contains("security");
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Page<SubscriptionEntity> subscriptions = subscriptionService.search(
+            executionContext,
             subscriptionQuery,
             pageable.toPageable(),
             expandApiKeys,
@@ -126,14 +129,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         SubscriptionEntityPageResult result = new SubscriptionEntityPageResult(subscriptions, pageable.getSize());
         SubscriptionMetadataQuery subscriptionMetadataQuery = new SubscriptionMetadataQuery(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            executionContext.getOrganizationId(),
+            executionContext.getEnvironmentId(),
             subscriptions.getContent()
         )
             .withApis(true)
             .withApplications(true)
             .withPlans(true);
-        result.setMetadata(subscriptionService.getMetadata(subscriptionMetadataQuery).toMap());
+        result.setMetadata(subscriptionService.getMetadata(executionContext, subscriptionMetadataQuery).toMap());
         return result;
     }
 
@@ -153,9 +156,10 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @Parameter(name = "plan", required = true) @NotNull @QueryParam("plan") String plan,
         @Parameter(name = "customApiKey") @CustomApiKey @QueryParam("customApiKey") String customApiKey
     ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             StringUtils.isNotEmpty(customApiKey) &&
-            !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
         ) {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
         }
@@ -163,7 +167,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(plan, application);
 
         // Create subscription
-        SubscriptionEntity subscription = subscriptionService.create(newSubscriptionEntity, customApiKey);
+        SubscriptionEntity subscription = subscriptionService.create(executionContext, newSubscriptionEntity, customApiKey);
 
         if (subscription.getStatus() == SubscriptionStatus.PENDING) {
             ProcessSubscriptionEntity process = new ProcessSubscriptionEntity();
@@ -171,7 +175,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             process.setAccepted(true);
             process.setStartingAt(new Date());
             process.setCustomApiKey(customApiKey);
-            subscription = subscriptionService.process(process, getAuthenticatedUser());
+            subscription = subscriptionService.process(executionContext, process, getAuthenticatedUser());
         }
 
         return Response
@@ -182,7 +186,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                     .replaceQueryParam("plan", null)
                     .build()
             )
-            .entity(convert(subscription))
+            .entity(convert(executionContext, subscription))
             .build();
     }
 
@@ -225,7 +229,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @Parameter(name = "key", required = true) @CustomApiKey @NotNull @QueryParam("key") String key,
         @Parameter(name = "application", required = true) @NotNull @QueryParam("application") String application
     ) {
-        boolean canCreate = apiKeyService.canCreate(key, api, application);
+        boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), key, api, application);
         return Response.ok(canCreate).build();
     }
 
@@ -234,7 +238,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         return resourceContext.getResource(ApiSubscriptionResource.class);
     }
 
-    private Subscription convert(SubscriptionEntity subscriptionEntity) {
+    private Subscription convert(final ExecutionContext executionContext, SubscriptionEntity subscriptionEntity) {
         Subscription subscription = new Subscription();
 
         subscription.setId(subscriptionEntity.getId());
@@ -249,17 +253,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()
+                userService.findById(executionContext, subscriptionEntity.getSubscribedBy()).getDisplayName()
             )
         );
 
-        PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
+        PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
-        ApplicationEntity application = applicationService.findById(
-            GraviteeContext.getCurrentEnvironment(),
-            subscriptionEntity.getApplication()
-        );
+        ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());
         subscription.setApplication(
             new Subscription.Application(
                 application.getId(),

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.quality;
 
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -24,5 +25,5 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 public interface ApiQualityMetric {
     Key getWeightKey();
-    boolean isValid(ApiEntity api, final String environmentId);
+    boolean isValid(ExecutionContext executionContext, ApiEntity api);
 }

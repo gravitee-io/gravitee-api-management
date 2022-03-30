@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.UpdateTagEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
 
@@ -29,10 +30,20 @@ import java.util.Set;
 public interface TagService {
     List<TagEntity> findByReference(String referenceId, TagReferenceType referenceType);
     TagEntity findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType);
-    TagEntity create(NewTagEntity tag, String referenceId, TagReferenceType referenceType);
-    TagEntity update(UpdateTagEntity tag, String referenceId, TagReferenceType referenceType);
-    List<TagEntity> create(List<NewTagEntity> tags, String referenceId, TagReferenceType referenceType);
-    List<TagEntity> update(List<UpdateTagEntity> tags, String referenceId, TagReferenceType referenceType);
-    void delete(String tagId, String referenceId, TagReferenceType referenceType);
+    TagEntity create(final ExecutionContext executionContext, NewTagEntity tag, String referenceId, TagReferenceType referenceType);
+    TagEntity update(final ExecutionContext executionContext, UpdateTagEntity tag, String referenceId, TagReferenceType referenceType);
+    List<TagEntity> create(
+        final ExecutionContext executionContext,
+        List<NewTagEntity> tags,
+        String referenceId,
+        TagReferenceType referenceType
+    );
+    List<TagEntity> update(
+        final ExecutionContext executionContext,
+        List<UpdateTagEntity> tags,
+        String referenceId,
+        TagReferenceType referenceType
+    );
+    void delete(final ExecutionContext executionContext, String tagId, String referenceId, TagReferenceType referenceType);
     Set<String> findByUser(String user, String referenceId, TagReferenceType referenceType);
 }

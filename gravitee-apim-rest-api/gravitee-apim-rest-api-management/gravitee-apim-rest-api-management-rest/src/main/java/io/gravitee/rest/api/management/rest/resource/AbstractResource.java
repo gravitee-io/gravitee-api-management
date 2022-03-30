@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.net.URI;
 import java.util.*;
@@ -94,12 +95,17 @@ public abstract class AbstractResource {
         return securityContext.isUserInRole(role);
     }
 
-    protected boolean hasPermission(RolePermission permission, RolePermissionAction... acls) {
-        return hasPermission(permission, null, acls);
+    protected boolean hasPermission(final ExecutionContext executionContext, RolePermission permission, RolePermissionAction... acls) {
+        return hasPermission(executionContext, permission, null, acls);
     }
 
-    protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
-        return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, acls));
+    protected boolean hasPermission(
+        ExecutionContext executionContext,
+        RolePermission permission,
+        String referenceId,
+        RolePermissionAction... acls
+    ) {
+        return (isAuthenticated() && (isAdmin() || permissionService.hasPermission(executionContext, permission, referenceId, acls)));
     }
 
     protected boolean canReadAPIConfiguration() {
@@ -166,7 +172,7 @@ public abstract class AbstractResource {
         return !groups.isEmpty();
     }
 
-    protected void canReadApi(final String api) {
+    protected void canReadApi(final ExecutionContext executionContext, final String api) {
         if (!isAdmin()) {
             // get memberships of the current user
             List<MembershipEntity> memberships = retrieveApiMembership().collect(Collectors.toList());
@@ -190,7 +196,7 @@ public abstract class AbstractResource {
             final ApiQuery apiQuery = new ApiQuery();
             apiQuery.setGroups(new ArrayList<>(groups));
             apiQuery.setIds(Collections.singletonList(api));
-            final Collection<String> strings = apiService.searchIds(apiQuery);
+            final Collection<String> strings = apiService.searchIds(executionContext, apiQuery);
             final boolean canReadAPI = strings.contains(api);
             if (!canReadAPI) {
                 throw new ForbiddenAccessException();

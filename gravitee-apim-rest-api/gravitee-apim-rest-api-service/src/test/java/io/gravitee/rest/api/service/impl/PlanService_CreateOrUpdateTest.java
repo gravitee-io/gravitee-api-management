@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
@@ -30,22 +27,15 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
-import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.PlanServiceImpl;
-import java.util.ArrayList;
 import java.util.Optional;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -94,14 +84,14 @@ public class PlanService_CreateOrUpdateTest {
         expected.setId("updated");
 
         when(this.planEntity.getId()).thenReturn(PLAN_ID);
-        doReturn(new PlanEntity()).when(planService).findById(PLAN_ID);
-        doReturn(expected).when(planService).update(any());
+        doReturn(new PlanEntity()).when(planService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        doReturn(expected).when(planService).update(eq(GraviteeContext.getExecutionContext()), any());
 
-        final PlanEntity actual = planService.createOrUpdatePlan(this.planEntity, ENVIRONMENT_ID);
+        final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), this.planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).findById(PLAN_ID);
-        verify(planService, times(1)).update(any());
+        verify(planService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(planService, times(1)).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -110,14 +100,14 @@ public class PlanService_CreateOrUpdateTest {
         expected.setId("created");
 
         when(planEntity.getId()).thenReturn(PLAN_ID);
-        doThrow(PlanNotFoundException.class).when(planService).findById(PLAN_ID);
-        doReturn(expected).when(planService).create(any());
+        doThrow(PlanNotFoundException.class).when(planService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        doReturn(expected).when(planService).create(eq(GraviteeContext.getExecutionContext()), any());
 
-        final PlanEntity actual = planService.createOrUpdatePlan(planEntity, ENVIRONMENT_ID);
+        final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).findById(PLAN_ID);
-        verify(planService, times(1)).create(any());
+        verify(planService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(planService, times(1)).create(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -128,13 +118,13 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getId()).thenReturn(null);
         when(planRepository.findById(any())).thenReturn(Optional.empty());
 
-        doReturn(expected).when(planService).create(any());
+        doReturn(expected).when(planService).create(eq(GraviteeContext.getExecutionContext()), any());
 
-        final PlanEntity actual = planService.createOrUpdatePlan(planEntity, ENVIRONMENT_ID);
+        final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).findById(any());
-        verify(planService, times(1)).create(any());
+        verify(planService, times(1)).findById(eq(GraviteeContext.getExecutionContext()), any());
+        verify(planService, times(1)).create(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -143,13 +133,13 @@ public class PlanService_CreateOrUpdateTest {
         expected.setId("updated");
 
         when(planEntity.getId()).thenReturn(null);
-        doReturn(expected).when(planService).findById(any());
-        doReturn(expected).when(planService).update(any());
+        doReturn(expected).when(planService).findById(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(expected).when(planService).update(eq(GraviteeContext.getExecutionContext()), any());
 
-        final PlanEntity actual = planService.createOrUpdatePlan(planEntity, ENVIRONMENT_ID);
+        final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).findById(any());
-        verify(planService, times(1)).update(any());
+        verify(planService, times(1)).findById(eq(GraviteeContext.getExecutionContext()), any());
+        verify(planService, times(1)).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 }

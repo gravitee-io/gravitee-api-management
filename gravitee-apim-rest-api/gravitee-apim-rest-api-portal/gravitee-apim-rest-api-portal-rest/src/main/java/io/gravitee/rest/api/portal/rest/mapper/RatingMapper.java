@@ -24,6 +24,7 @@ import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingAnswer;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.List;
@@ -45,9 +46,9 @@ public class RatingMapper {
     @Autowired
     UserMapper userMapper;
 
-    public Rating convert(RatingEntity ratingEntity, UriInfo uriInfo) {
+    public Rating convert(ExecutionContext executionContext, RatingEntity ratingEntity, UriInfo uriInfo) {
         final Rating rating = new Rating();
-        UserEntity authorEntity = userService.findById(ratingEntity.getUser());
+        UserEntity authorEntity = userService.findById(executionContext, ratingEntity.getUser());
         User author = userMapper.convert(authorEntity);
         author.setLinks(
             userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), authorEntity.getId()), authorEntity.getUpdatedAt())
@@ -68,7 +69,7 @@ public class RatingMapper {
                 .sorted(Comparator.comparing(RatingAnswerEntity::getCreatedAt))
                 .map(
                     rae -> {
-                        UserEntity answerAuthorEntity = userService.findById(rae.getUser());
+                        UserEntity answerAuthorEntity = userService.findById(executionContext, rae.getUser());
                         User answerAuthor = userMapper.convert(answerAuthorEntity);
                         answerAuthor.setLinks(
                             userMapper.computeUserLinks(

@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
@@ -88,10 +89,14 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public OrganizationEntity createOrUpdate(String organizationId, final UpdateOrganizationEntity organizationEntity) {
+    public OrganizationEntity createOrUpdate(
+        ExecutionContext executionContext,
+        String organizationId,
+        final UpdateOrganizationEntity organizationEntity
+    ) {
         try {
             try {
-                return this.update(organizationId, organizationEntity);
+                return this.update(executionContext, organizationId, organizationEntity);
             } catch (OrganizationNotFoundException e) {
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationId);
@@ -99,9 +104,9 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
 
                 //create Default role for organization
-                roleService.initialize(createdOrganization.getId());
-                roleService.createOrUpdateSystemRoles(createdOrganization.getId());
-                createPublishOrganizationEvent(createdOrganization);
+                roleService.initialize(executionContext, createdOrganization.getId());
+                roleService.createOrUpdateSystemRoles(executionContext, createdOrganization.getId());
+                createPublishOrganizationEvent(executionContext, createdOrganization, executionContext.getEnvironmentId());
 
                 return createdOrganization;
             }
@@ -115,7 +120,11 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public OrganizationEntity update(String organizationId, final UpdateOrganizationEntity organizationEntity) {
+    public OrganizationEntity update(
+        ExecutionContext executionContext,
+        String organizationId,
+        final UpdateOrganizationEntity organizationEntity
+    ) {
         try {
             Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
             if (organizationOptional.isPresent()) {
@@ -123,7 +132,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationId);
                 OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
-                createPublishOrganizationEvent(updatedOrganization);
+                createPublishOrganizationEvent(executionContext, updatedOrganization, executionContext.getEnvironmentId());
                 return updatedOrganization;
             } else {
                 throw new OrganizationNotFoundException(organizationId);
@@ -137,7 +146,11 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         }
     }
 
-    private void createPublishOrganizationEvent(OrganizationEntity organizationEntity) throws JsonProcessingException {
+    private void createPublishOrganizationEvent(
+        ExecutionContext executionContext,
+        OrganizationEntity organizationEntity,
+        String environmentId
+    ) throws JsonProcessingException {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organizationEntity.getId());
 
@@ -147,7 +160,13 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             .map(EnvironmentEntity::getId)
             .collect(Collectors.toSet());
 
-        eventService.create(environmentIds, EventType.PUBLISH_ORGANIZATION, mapper.writeValueAsString(organizationEntity), properties);
+        eventService.create(
+            executionContext,
+            environmentIds,
+            EventType.PUBLISH_ORGANIZATION,
+            mapper.writeValueAsString(organizationEntity),
+            properties
+        );
     }
 
     @Override

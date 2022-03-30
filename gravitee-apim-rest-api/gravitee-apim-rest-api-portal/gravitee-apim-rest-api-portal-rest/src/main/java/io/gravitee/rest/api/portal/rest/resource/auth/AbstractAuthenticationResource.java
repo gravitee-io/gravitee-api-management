@@ -97,7 +97,7 @@ abstract class AbstractAuthenticationResource {
         final String accessToken,
         final String idToken
     ) {
-        UserEntity user = userService.connect(userId);
+        UserEntity user = userService.connect(GraviteeContext.getExecutionContext(), userId);
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

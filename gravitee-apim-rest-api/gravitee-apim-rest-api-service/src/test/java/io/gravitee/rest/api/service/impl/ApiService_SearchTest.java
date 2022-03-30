@@ -38,8 +38,8 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -164,6 +164,7 @@ public class ApiService_SearchTest {
         poMember.setRoles(Collections.singletonList(poRole));
         when(
             membershipService.getMembersByReferencesAndRole(
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.API,
                 Collections.singletonList(api1.getId()),
                 "API_PRIMARY_OWNER"
@@ -172,7 +173,12 @@ public class ApiService_SearchTest {
             .thenReturn(new HashSet<>(singletonList(poMember)));
 
         final ApiQuery apiQuery = new ApiQuery();
-        final Page<ApiEntity> apiPage = apiService.search(apiQuery, new SortableImpl("name", false), new PageableImpl(2, 1));
+        final Page<ApiEntity> apiPage = apiService.search(
+            GraviteeContext.getExecutionContext(),
+            apiQuery,
+            new SortableImpl("name", false),
+            new PageableImpl(2, 1)
+        );
 
         assertNotNull(apiPage);
         assertEquals(1, apiPage.getContent().size());
@@ -198,7 +204,7 @@ public class ApiService_SearchTest {
 
         final SearchResult searchResult = new SearchResult(Arrays.asList(api3.getId(), api1.getId(), api2.getId()));
 
-        when(searchEngineService.search(any(Query.class))).thenReturn(searchResult);
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), any(Query.class))).thenReturn(searchResult);
 
         when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build()))
             .thenReturn(Arrays.asList(api3, api1, api2));
@@ -216,10 +222,23 @@ public class ApiService_SearchTest {
 
         MemberEntity poMember3 = new MemberEntity();
         poMember3.setId("user 3");
-        when(membershipService.getMembersByReferencesAndRole(eq(MembershipReferenceType.API), anyList(), eq("API_PRIMARY_OWNER")))
+        when(
+            membershipService.getMembersByReferencesAndRole(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(MembershipReferenceType.API),
+                anyList(),
+                eq("API_PRIMARY_OWNER")
+            )
+        )
             .thenReturn(new HashSet<>(Arrays.asList(poMember, poMember2, poMember3)));
 
-        final Page<ApiEntity> apiPage = apiService.search("API Test", emptyMap(), null, new PageableImpl(1, 10));
+        final Page<ApiEntity> apiPage = apiService.search(
+            GraviteeContext.getExecutionContext(),
+            "API Test",
+            emptyMap(),
+            null,
+            new PageableImpl(1, 10)
+        );
 
         assertThat(apiPage.getPageNumber()).isEqualTo(1);
         assertThat(apiPage.getPageElements()).isEqualTo(3);

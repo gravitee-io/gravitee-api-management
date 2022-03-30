@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -81,7 +82,9 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
         query.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
         query.setEndingAtBefore(new Date().getTime());
 
-        subscriptionService.search(query).forEach(subscription -> subscriptionService.close(subscription.getId()));
+        subscriptionService
+            .search(GraviteeContext.getExecutionContext(), query)
+            .forEach(subscription -> subscriptionService.close(GraviteeContext.getExecutionContext(), subscription.getId()));
 
         logger.debug("Refresh subscriptions #{} ended at {}", counter.get(), Instant.now().toString());
     }

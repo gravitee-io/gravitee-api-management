@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
 import java.util.*;
 
@@ -31,63 +32,85 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 public interface UserService {
-    UserEntity connect(String userId);
+    UserEntity connect(ExecutionContext executionContext, String userId);
 
-    UserEntity findById(String id, boolean defaultValue);
+    UserEntity findById(ExecutionContext executionContext, String id, boolean defaultValue);
 
-    default UserEntity findById(String id) {
-        return findById(id, false);
+    default UserEntity findById(ExecutionContext executionContext, String id) {
+        return findById(executionContext, id, false);
     }
 
-    Optional<UserEntity> findByEmail(String email);
+    Optional<UserEntity> findByEmail(ExecutionContext executionContext, String email);
 
-    UserEntity findByIdWithRoles(String id);
+    UserEntity findByIdWithRoles(ExecutionContext executionContext, String id);
 
-    UserEntity findBySource(String source, String sourceId, boolean loadRoles);
+    UserEntity findBySource(ExecutionContext executionContext, String source, String sourceId, boolean loadRoles);
 
-    Set<UserEntity> findByIds(Collection<String> ids);
+    Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids);
 
-    Set<UserEntity> findByIds(Collection<String> ids, boolean withUserMetadata);
+    Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids, boolean withUserMetadata);
 
-    UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
+    UserEntity create(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
 
-    UserEntity update(String userId, UpdateUserEntity updateUserEntity);
+    UserEntity update(ExecutionContext executionContext, String userId, UpdateUserEntity updateUserEntity);
 
-    UserEntity update(String userId, UpdateUserEntity updateUserEntity, String newsletterEmail);
+    UserEntity update(ExecutionContext executionContext, String userId, UpdateUserEntity updateUserEntity, String newsletterEmail);
 
-    Page<UserEntity> search(String query, Pageable pageable);
+    Page<UserEntity> search(ExecutionContext executionContext, String query, Pageable pageable);
 
-    Page<UserEntity> search(UserCriteria criteria, Pageable pageable);
+    Page<UserEntity> search(ExecutionContext executionContext, UserCriteria criteria, Pageable pageable);
 
-    UserEntity register(NewExternalUserEntity newExternalUserEntity);
+    UserEntity register(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity);
 
-    UserEntity register(NewExternalUserEntity newExternalUserEntity, String confirmationPageUrl);
+    UserEntity register(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, String confirmationPageUrl);
 
-    UserEntity finalizeRegistration(RegisterUserEntity registerUserEntity);
+    UserEntity finalizeRegistration(ExecutionContext executionContext, RegisterUserEntity registerUserEntity);
 
-    UserEntity finalizeResetPassword(ResetPasswordUserEntity registerUserEntity);
+    UserEntity finalizeResetPassword(ExecutionContext executionContext, ResetPasswordUserEntity registerUserEntity);
 
-    UserEntity processRegistration(String userId, boolean accepted);
+    UserEntity processRegistration(ExecutionContext executionContext, String userId, boolean accepted);
 
-    PictureEntity getPicture(String id);
+    PictureEntity getPicture(ExecutionContext executionContext, String id);
 
-    void delete(String id);
+    void delete(ExecutionContext executionContext, String id);
 
-    void resetPassword(String id);
+    void resetPassword(ExecutionContext executionContext, String id);
 
-    UserEntity resetPasswordFromSourceId(String sourceId, String resetPageUrl);
+    UserEntity resetPasswordFromSourceId(ExecutionContext executionContext, String sourceId, String resetPageUrl);
 
-    Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action);
+    Map<String, Object> getTokenRegistrationParams(
+        ExecutionContext executionContext,
+        UserEntity userEntity,
+        String portalUri,
+        ACTION action
+    );
 
-    Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action, String confirmationPageUrl);
+    Map<String, Object> getTokenRegistrationParams(
+        ExecutionContext executionContext,
+        UserEntity userEntity,
+        String portalUri,
+        ACTION action,
+        String confirmationPageUrl
+    );
 
-    UserEntity create(NewPreRegisterUserEntity newPreRegisterUserEntity);
+    UserEntity create(ExecutionContext executionContext, NewPreRegisterUserEntity newPreRegisterUserEntity);
 
-    UserEntity createOrUpdateUserFromSocialIdentityProvider(SocialIdentityProviderEntity socialProvider, String userInfo);
+    UserEntity createOrUpdateUserFromSocialIdentityProvider(
+        ExecutionContext executionContext,
+        SocialIdentityProviderEntity socialProvider,
+        String userInfo
+    );
 
-    void updateUserRoles(String userId, MembershipReferenceType referenceType, String referenceId, List<String> roleIds);
+    void updateUserRoles(
+        ExecutionContext executionContext,
+        String userId,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        List<String> roleIds
+    );
 
     void computeRolesToAddUser(
+        ExecutionContext executionContext,
         String username,
         List<RoleMappingEntity> mappings,
         String userInfo,

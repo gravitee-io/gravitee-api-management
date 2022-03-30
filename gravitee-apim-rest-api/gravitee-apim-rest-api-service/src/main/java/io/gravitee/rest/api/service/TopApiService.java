@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.NewTopApiEntity;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.UpdateTopApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -25,11 +26,11 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface TopApiService {
-    List<TopApiEntity> findAll();
+    List<TopApiEntity> findAll(ExecutionContext executionContext);
 
-    List<TopApiEntity> create(NewTopApiEntity topApis);
+    List<TopApiEntity> create(ExecutionContext executionContext, NewTopApiEntity topApis);
 
-    List<TopApiEntity> update(List<UpdateTopApiEntity> topApis);
+    List<TopApiEntity> update(ExecutionContext executionContext, List<UpdateTopApiEntity> topApis);
 
-    void delete(String apiId);
+    void delete(ExecutionContext executionContext, String apiId);
 }

@@ -90,7 +90,12 @@ public class TenantsResource extends AbstractResource {
         }
     )
     public List<TenantEntity> createTenants(@Valid @NotNull final List<NewTenantEntity> tenant) {
-        return tenantService.create(tenant, GraviteeContext.getCurrentOrganization(), TenantReferenceType.ORGANIZATION);
+        return tenantService.create(
+            GraviteeContext.getExecutionContext(),
+            tenant,
+            GraviteeContext.getCurrentOrganization(),
+            TenantReferenceType.ORGANIZATION
+        );
     }
 
     @PUT
@@ -113,7 +118,12 @@ public class TenantsResource extends AbstractResource {
         }
     )
     public List<TenantEntity> updateTenants(@Valid @NotNull final List<UpdateTenantEntity> tenant) {
-        return tenantService.update(tenant, GraviteeContext.getCurrentOrganization(), TenantReferenceType.ORGANIZATION);
+        return tenantService.update(
+            GraviteeContext.getExecutionContext(),
+            tenant,
+            GraviteeContext.getCurrentOrganization(),
+            TenantReferenceType.ORGANIZATION
+        );
     }
 
     @Path("{tenant}")
@@ -136,6 +146,11 @@ public class TenantsResource extends AbstractResource {
         }
     )
     public void deleteTenant(@PathParam("tenant") String tenant) {
-        tenantService.delete(tenant, GraviteeContext.getCurrentOrganization(), TenantReferenceType.ORGANIZATION);
+        tenantService.delete(
+            GraviteeContext.getExecutionContext(),
+            tenant,
+            GraviteeContext.getCurrentOrganization(),
+            TenantReferenceType.ORGANIZATION
+        );
     }
 }

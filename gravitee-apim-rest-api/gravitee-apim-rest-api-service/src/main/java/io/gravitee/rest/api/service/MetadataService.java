@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.MetadataEntity;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewMetadataEntity;
 import io.gravitee.rest.api.model.UpdateMetadataEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -29,15 +30,21 @@ import java.util.List;
 public interface MetadataService {
     List<MetadataEntity> findAllDefault();
 
-    MetadataEntity create(NewMetadataEntity metadata);
+    MetadataEntity create(ExecutionContext executionContext, NewMetadataEntity metadata);
 
-    MetadataEntity update(UpdateMetadataEntity metadata);
+    MetadataEntity update(ExecutionContext executionContext, UpdateMetadataEntity metadata);
 
-    void delete(String metadataId);
+    void delete(ExecutionContext executionContext, String metadataId);
 
-    void checkMetadataFormat(MetadataFormat format, String value);
+    void checkMetadataFormat(ExecutionContext executionContext, MetadataFormat format, String value);
 
-    void checkMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, Object entity);
+    void checkMetadataFormat(
+        ExecutionContext executionContext,
+        MetadataFormat format,
+        String value,
+        MetadataReferenceType referenceType,
+        Object entity
+    );
 
     MetadataEntity findDefaultByKey(String key);
 }

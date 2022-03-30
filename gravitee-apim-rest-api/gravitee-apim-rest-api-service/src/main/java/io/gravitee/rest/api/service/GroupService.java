@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
 
@@ -27,21 +28,21 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface GroupService {
-    GroupEntity create(final String environmentId, NewGroupEntity group);
-    void delete(final String environmentId, String groupId);
-    void deleteUserFromGroup(final String environmentId, String groupId, String username);
-    List<GroupEntity> findAll(final String environmentId);
+    GroupEntity create(ExecutionContext executionContext, NewGroupEntity group);
+    void delete(ExecutionContext executionContext, String groupId);
+    void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username);
+    List<GroupEntity> findAll(ExecutionContext executionContext);
     List<GroupSimpleEntity> findAllByOrganization(String organizationId);
-    GroupEntity findById(final String environmentId, String groupId);
+    GroupEntity findById(ExecutionContext executionContext, String groupId);
     Set<GroupEntity> findByIds(Set<String> groupIds);
-    void associate(String groupId, String associationType);
+    void associate(final ExecutionContext executionContext, String groupId, String associationType);
     Set<GroupEntity> findByEvent(final String environmentId, GroupEvent event);
     List<GroupEntity> findByName(final String environmentId, String name);
     Set<GroupEntity> findByUser(String username);
     List<ApiEntity> getApis(final String environmentId, String groupId);
     List<ApplicationEntity> getApplications(String groupId);
-    int getNumberOfMembers(String groupId);
+    int getNumberOfMembers(ExecutionContext executionContext, String groupId);
     boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username);
-    GroupEntity update(final String environmentId, String groupId, UpdateGroupEntity group);
+    GroupEntity update(ExecutionContext executionContext, String groupId, UpdateGroupEntity group);
     void updateApiPrimaryOwner(String groupId, String newApiPrimaryOwner);
 }

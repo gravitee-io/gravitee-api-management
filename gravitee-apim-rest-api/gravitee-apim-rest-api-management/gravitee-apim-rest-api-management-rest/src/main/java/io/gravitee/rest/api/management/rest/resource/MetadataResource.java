@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.UpdateMetadataEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MetadataService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -82,7 +83,7 @@ public class MetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.CREATE) })
     public MetadataEntity createMetadata(@Valid @NotNull final NewMetadataEntity metadata) {
-        return metadataService.create(metadata);
+        return metadataService.create(GraviteeContext.getExecutionContext(), metadata);
     }
 
     @PUT
@@ -100,7 +101,7 @@ public class MetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.UPDATE) })
     public MetadataEntity updateMetadata(@Valid @NotNull final UpdateMetadataEntity metadata) {
-        return metadataService.update(metadata);
+        return metadataService.update(GraviteeContext.getExecutionContext(), metadata);
     }
 
     @Path("{metadata}")
@@ -114,6 +115,6 @@ public class MetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.DELETE) })
     public void deleteMetadata(@PathParam("metadata") String metadata) {
-        metadataService.delete(metadata);
+        metadataService.delete(GraviteeContext.getExecutionContext(), metadata);
     }
 }

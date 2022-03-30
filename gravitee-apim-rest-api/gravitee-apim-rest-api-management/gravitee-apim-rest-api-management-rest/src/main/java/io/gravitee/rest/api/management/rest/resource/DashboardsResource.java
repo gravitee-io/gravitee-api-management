@@ -25,6 +25,8 @@ import io.gravitee.rest.api.model.UpdateDashboardEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.DashboardService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -61,9 +63,10 @@ public class DashboardsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<DashboardEntity> getDashboards(final @QueryParam("reference_type") DashboardReferenceType referenceType) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
-            !hasPermission(RolePermission.ENVIRONMENT_DASHBOARD, RolePermissionAction.READ) &&
-            !hasPermission(RolePermission.ENVIRONMENT_API, RolePermissionAction.READ) &&
+            !hasPermission(executionContext, RolePermission.ENVIRONMENT_DASHBOARD, RolePermissionAction.READ) &&
+            !hasPermission(executionContext, RolePermission.ENVIRONMENT_API, RolePermissionAction.READ) &&
             !canReadAPIConfiguration() &&
             !DashboardReferenceType.HOME.equals(referenceType)
         ) {
@@ -91,7 +94,7 @@ public class DashboardsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.CREATE) })
     public DashboardEntity createDashboard(@Valid @NotNull final NewDashboardEntity dashboard) {
-        return dashboardService.create(dashboard);
+        return dashboardService.create(GraviteeContext.getExecutionContext(), dashboard);
     }
 
     @GET
@@ -132,7 +135,7 @@ public class DashboardsResource extends AbstractResource {
         @Valid @NotNull final UpdateDashboardEntity dashboard
     ) {
         dashboard.setId(dashboardId);
-        return dashboardService.update(dashboard);
+        return dashboardService.update(GraviteeContext.getExecutionContext(), dashboard);
     }
 
     @Path("{dashboardId}")
@@ -146,6 +149,6 @@ public class DashboardsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.DELETE) })
     public void deleteDashboard(@PathParam("dashboardId") String dashboardId) {
-        dashboardService.delete(dashboardId);
+        dashboardService.delete(GraviteeContext.getExecutionContext(), dashboardId);
     }
 }

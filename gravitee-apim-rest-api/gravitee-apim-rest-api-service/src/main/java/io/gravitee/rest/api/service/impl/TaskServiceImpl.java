@@ -34,7 +34,7 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
@@ -82,7 +82,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     private PromotionTasksService promotionTasksService;
 
     @Override
-    public List<TaskEntity> findAll(String userId) {
+    public List<TaskEntity> findAll(ExecutionContext executionContext, String userId) {
         if (userId == null) {
             throw new UnauthorizedAccessException();
         }
@@ -92,7 +92,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             // the user has a SUBSCRIPTION_UPDATE permission
 
             // search for PENDING subscriptions
-            Set<String> apiIds = getApisForAPermission(userId, SUBSCRIPTION.getName());
+            Set<String> apiIds = getApisForAPermission(executionContext, userId, SUBSCRIPTION.getName());
             final List<TaskEntity> tasks;
             if (apiIds.isEmpty()) {
                 tasks = new ArrayList<>();
@@ -100,12 +100,13 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 SubscriptionQuery query = new SubscriptionQuery();
                 query.setStatuses(singleton(PENDING));
                 query.setApis(apiIds);
-                tasks = subscriptionService.search(query).stream().map(this::convert).collect(toList());
+                tasks = subscriptionService.search(executionContext, query).stream().map(this::convert).collect(toList());
             }
 
             if (isAdmin()) {
                 // search for PENDING user registration
                 final Page<UserEntity> pendingUsers = userService.search(
+                    executionContext,
                     new UserCriteria.Builder().statuses(UserStatus.PENDING).build(),
                     new PageableImpl(1, NUMBER_OF_PENDING_USERS_TO_SEARCH)
                 );
@@ -115,7 +116,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             }
 
             // search for IN_REVIEW apis
-            apiIds = getApisForAPermission(userId, REVIEWS.getName());
+            apiIds = getApisForAPermission(executionContext, userId, REVIEWS.getName());
             if (!apiIds.isEmpty()) {
                 apiIds.forEach(
                     apiId -> {
@@ -131,7 +132,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             }
 
             // search for REQUEST_FOR_CHANGES apis
-            apiIds = getApisForAPermission(userId, DEFINITION.getName());
+            apiIds = getApisForAPermission(executionContext, userId, DEFINITION.getName());
             if (!apiIds.isEmpty()) {
                 apiIds.forEach(
                     apiId -> {
@@ -147,7 +148,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             }
 
             // search for TO_BE_VALIDATED promotions
-            tasks.addAll(promotionTasksService.getPromotionTasks(GraviteeContext.getCurrentOrganization()));
+            tasks.addAll(promotionTasksService.getPromotionTasks(executionContext));
 
             return tasks;
         } catch (TechnicalException e) {
@@ -156,7 +157,8 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         }
     }
 
-    private Set<String> getApisForAPermission(final String userId, final String permission) throws TechnicalException {
+    private Set<String> getApisForAPermission(ExecutionContext executionContext, final String userId, final String permission)
+        throws TechnicalException {
         // 1. find apis and group memberships
         Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(
             MembershipMemberType.USER,
@@ -210,14 +212,14 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         if (!groupIds.isEmpty()) {
             ApiQuery apiQuery = new ApiQuery();
             apiQuery.setGroups(groupIds);
-            apiIds.addAll(apiService.searchIds(apiQuery));
+            apiIds.addAll(apiService.searchIds(executionContext, apiQuery));
         }
 
         return apiIds;
     }
 
     @Override
-    public Metadata getMetadata(List<TaskEntity> tasks) {
+    public Metadata getMetadata(ExecutionContext executionContext, List<TaskEntity> tasks) {
         final Metadata metadata = new Metadata();
         tasks.forEach(
             task -> {
@@ -226,17 +228,14 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                     final SubscriptionEntity subscription = (SubscriptionEntity) data;
 
                     if (!metadata.containsKey(subscription.getApplication())) {
-                        ApplicationEntity applicationEntity = applicationService.findById(
-                            GraviteeContext.getCurrentEnvironment(),
-                            subscription.getApplication()
-                        );
+                        ApplicationEntity applicationEntity = applicationService.findById(executionContext, subscription.getApplication());
                         metadata.put(subscription.getApplication(), "name", applicationEntity.getName());
                     }
 
                     if (!metadata.containsKey(subscription.getPlan())) {
-                        PlanEntity planEntity = planService.findById(subscription.getPlan());
+                        PlanEntity planEntity = planService.findById(executionContext, subscription.getPlan());
                         String apiId = planEntity.getApi();
-                        ApiEntity api = apiService.findById(apiId);
+                        ApiEntity api = apiService.findById(executionContext, apiId);
                         metadata.put(subscription.getPlan(), "name", planEntity.getName());
                         metadata.put(subscription.getPlan(), "api", apiId);
                         metadata.put(apiId, "name", api.getName());
@@ -244,7 +243,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 } else if (data instanceof Workflow) {
                     final Workflow workflow = (Workflow) data;
                     if (API.name().equals(workflow.getReferenceType()) && !metadata.containsKey(workflow.getReferenceId())) {
-                        ApiEntity api = apiService.findById(workflow.getReferenceId());
+                        ApiEntity api = apiService.findById(executionContext, workflow.getReferenceId());
                         metadata.put(api.getId(), "name", api.getName());
                     }
                 }

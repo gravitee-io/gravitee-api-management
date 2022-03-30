@@ -17,12 +17,12 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -52,7 +52,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         resetAllMocks();
 
         Set<Api> mockApis = new HashSet<>();
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         CategoryEntity category1 = new CategoryEntity();
         category1.setId("1");

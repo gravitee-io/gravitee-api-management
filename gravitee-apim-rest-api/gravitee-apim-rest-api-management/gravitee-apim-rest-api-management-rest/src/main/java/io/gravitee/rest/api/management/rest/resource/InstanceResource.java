@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
@@ -54,7 +55,7 @@ public class InstanceResource {
     @Operation(summary = "Get a gateway instance")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ) })
     public InstanceEntity getInstance() {
-        return instanceService.findByEvent(this.instance);
+        return instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
     }
 
     @Path("monitoring/{gatewayId}")

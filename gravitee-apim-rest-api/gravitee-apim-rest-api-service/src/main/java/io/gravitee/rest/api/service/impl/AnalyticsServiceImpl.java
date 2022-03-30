@@ -36,7 +36,7 @@ import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -135,7 +135,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public HistogramAnalytics execute(final String organizationId, DateHistogramQuery query) {
+    public HistogramAnalytics execute(ExecutionContext executionContext, DateHistogramQuery query) {
         try {
             DateHistogramQueryBuilder queryBuilder = QueryBuilders
                 .dateHistogram()
@@ -153,7 +153,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             DateHistogramResponse response = analyticsRepository.query(queryBuilder.build());
-            return convert(organizationId, response);
+            return convert(executionContext, response);
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -161,7 +161,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public TopHitsAnalytics execute(final String organizationId, GroupByQuery query) {
+    public TopHitsAnalytics execute(ExecutionContext executionContext, GroupByQuery query) {
         try {
             GroupByQueryBuilder queryBuilder = QueryBuilders
                 .groupBy()
@@ -186,14 +186,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             GroupByResponse response = analyticsRepository.query(queryBuilder.build());
-            return convert(organizationId, response);
+            return convert(executionContext, response);
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
 
-    private HistogramAnalytics convert(final String organizationId, DateHistogramResponse histogramResponse) {
+    private HistogramAnalytics convert(ExecutionContext executionContext, DateHistogramResponse histogramResponse) {
         final HistogramAnalytics analytics = new HistogramAnalytics();
         final List<Long> timestamps = histogramResponse.timestamps();
         if (timestamps != null && timestamps.size() > 1) {
@@ -205,7 +205,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
             List<Bucket> buckets = new ArrayList<>(histogramResponse.values().size());
             for (io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
-                Bucket analyticsBucket = convertBucket(organizationId, histogramResponse.timestamps(), from, interval, bucket);
+                Bucket analyticsBucket = convertBucket(executionContext, histogramResponse.timestamps(), from, interval, bucket);
                 buckets.add(analyticsBucket);
             }
             analytics.setValues(buckets);
@@ -214,7 +214,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private Bucket convertBucket(
-        final String organizationId,
+        ExecutionContext executionContext,
         List<Long> timestamps,
         long from,
         long interval,
@@ -227,25 +227,25 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         List<Bucket> childBuckets = new ArrayList<>();
 
         for (io.gravitee.repository.analytics.query.response.histogram.Bucket childBucket : bucket.buckets()) {
-            childBuckets.add(convertBucket(organizationId, timestamps, from, interval, childBucket));
+            childBuckets.add(convertBucket(executionContext, timestamps, from, interval, childBucket));
         }
 
         if (FIELD_APPLICATION.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().forEach(app -> metadata.put(app, getApplicationMetadata(app)));
+            bucket.data().keySet().forEach(app -> metadata.put(app, getApplicationMetadata(executionContext, app)));
 
             analyticsBucket.setMetadata(metadata);
         } else if (FIELD_API.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().forEach(api -> metadata.put(api, getAPIMetadata(api)));
+            bucket.data().keySet().forEach(api -> metadata.put(api, getAPIMetadata(executionContext, api)));
 
             analyticsBucket.setMetadata(metadata);
         } else if (FIELD_TENANT.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().forEach(tenant -> metadata.put(tenant, getTenantMetadata(organizationId, tenant)));
+            bucket.data().keySet().forEach(tenant -> metadata.put(tenant, getTenantMetadata(executionContext.getOrganizationId(), tenant)));
 
             analyticsBucket.setMetadata(metadata);
         }
@@ -292,7 +292,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return hitsAnalytics;
     }
 
-    private TopHitsAnalytics convert(final String organizationId, GroupByResponse groupByResponse) {
+    private TopHitsAnalytics convert(final ExecutionContext executionContext, GroupByResponse groupByResponse) {
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
 
         // Set results
@@ -324,16 +324,16 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 for (String key : topHitsAnalytics.getValues().keySet()) {
                     switch (fieldName) {
                         case FIELD_API:
-                            metadata.put(key, getAPIMetadata(key));
+                            metadata.put(key, getAPIMetadata(executionContext, key));
                             break;
                         case FIELD_APPLICATION:
-                            metadata.put(key, getApplicationMetadata(key));
+                            metadata.put(key, getApplicationMetadata(executionContext, key));
                             break;
                         case FIELD_PLAN:
-                            metadata.put(key, getPlanMetadata(key));
+                            metadata.put(key, getPlanMetadata(executionContext, key));
                             break;
                         case FIELD_TENANT:
-                            metadata.put(key, getTenantMetadata(organizationId, key));
+                            metadata.put(key, getTenantMetadata(executionContext.getOrganizationId(), key));
                             break;
                         case FIELD_GEOIP_COUNTRY_ISO_CODE:
                             metadata.put(key, getCountryName(key));
@@ -353,7 +353,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return topHitsAnalytics;
     }
 
-    private Map<String, String> getAPIMetadata(String api) {
+    private Map<String, String> getAPIMetadata(final ExecutionContext executionContext, String api) {
         Map<String, String> metadata = new HashMap<>();
 
         try {
@@ -361,7 +361,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                ApiEntity apiEntity = apiService.findById(api);
+                ApiEntity apiEntity = apiService.findById(executionContext, api);
                 metadata.put(METADATA_NAME, apiEntity.getName());
                 metadata.put(METADATA_VERSION, apiEntity.getVersion());
                 if (ApiLifecycleState.ARCHIVED.equals(apiEntity.getLifecycleState())) {
@@ -376,7 +376,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return metadata;
     }
 
-    private Map<String, String> getApplicationMetadata(String application) {
+    private Map<String, String> getApplicationMetadata(ExecutionContext executionContext, String application) {
         Map<String, String> metadata = new HashMap<>();
 
         try {
@@ -384,7 +384,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+                ApplicationEntity applicationEntity = applicationService.findById(executionContext, application);
                 metadata.put(METADATA_NAME, applicationEntity.getName());
                 if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
                     metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
@@ -398,14 +398,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return metadata;
     }
 
-    private Map<String, String> getPlanMetadata(String plan) {
+    private Map<String, String> getPlanMetadata(final ExecutionContext executionContext, String plan) {
         Map<String, String> metadata = new HashMap<>();
         try {
             if (plan.equals(UNKNOWN_SERVICE) || plan.equals(UNKNOWN_SERVICE_MAPPED)) {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                PlanEntity planEntity = planService.findById(plan);
+                PlanEntity planEntity = planService.findById(executionContext, plan);
                 metadata.put(METADATA_NAME, planEntity.getName());
             }
         } catch (PlanNotFoundException anfe) {

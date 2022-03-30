@@ -38,7 +38,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.impl.ApiExportServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
 import java.io.IOException;
@@ -185,7 +184,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         responseTemplate.setBody("{\"bad\":\"news\"}");
         apiEntity.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", Collections.singletonMap("*/*", responseTemplate)));
 
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
         PageEntity folder = new PageEntity();
         folder.setName("My Folder");
         folder.setOrder(1);
@@ -233,7 +232,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         asciidocPage.setType(PageType.ASCIIDOC.toString());
         asciidocPage.setContent("Read the asciidoc");
         asciidocPage.setVisibility(Visibility.PUBLIC);
-        when(pageService.search(any(), eq(true), eq(GraviteeContext.getCurrentEnvironment())))
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true)))
             .thenReturn(
                 Arrays.asList(folder, markdownPage, swaggerPage, asideFolder, linkPage, translationPage, markdownTemplatePage, asciidocPage)
             );
@@ -250,13 +249,15 @@ public class ApiExportService_ExportAsJsonTestSetup {
         memberEntity.setId(membership.getMemberId());
         memberEntity.setType(membership.getMemberType());
         memberEntity.setRoles(Collections.singletonList(poRole));
-        when(membershipService.getMembersByReference(eq(MembershipReferenceType.API), eq(API_ID)))
+        when(
+            membershipService.getMembersByReference(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID))
+        )
             .thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
         userEntity.setId(memberEntity.getId());
         userEntity.setSource(userEntity.getId() + "-source");
         userEntity.setSourceId(userEntity.getId() + "-sourceId");
-        when(userService.findById(memberEntity.getId())).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId())).thenReturn(userEntity);
 
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         primaryOwnerEntity.setDisplayName("johndoe-sourceId");
@@ -317,7 +318,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         Set<PlanEntity> set = new HashSet<>();
         set.add(publishedPlan);
         set.add(closedPlan);
-        when(planService.findByApi(API_ID)).thenReturn(set);
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(set);
         ApiMetadataEntity apiMetadataEntity = new ApiMetadataEntity();
         apiMetadataEntity.setApiId(API_ID);
         apiMetadataEntity.setKey("metadata-key");
@@ -334,7 +335,12 @@ public class ApiExportService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
+        String jsonForExport = apiExportService.exportAsJson(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            version.getVersion(),
+            SystemRole.PRIMARY_OWNER.name()
+        );
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExport" + (filename != null ? "-" + filename : "") + ".json"
@@ -346,7 +352,13 @@ public class ApiExportService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonWithoutMembers(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "members");
+        String jsonForExport = apiExportService.exportAsJson(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            version.getVersion(),
+            SystemRole.PRIMARY_OWNER.name(),
+            "members"
+        );
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMembers" +
@@ -360,7 +372,13 @@ public class ApiExportService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonWithoutPages(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "pages");
+        String jsonForExport = apiExportService.exportAsJson(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            version.getVersion(),
+            SystemRole.PRIMARY_OWNER.name(),
+            "pages"
+        );
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPages" +
@@ -374,7 +392,13 @@ public class ApiExportService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonWithoutPlans(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "plans");
+        String jsonForExport = apiExportService.exportAsJson(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            version.getVersion(),
+            SystemRole.PRIMARY_OWNER.name(),
+            "plans"
+        );
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPlans" +
@@ -388,7 +412,13 @@ public class ApiExportService_ExportAsJsonTestSetup {
     }
 
     protected void shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiExportService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "metadata");
+        String jsonForExport = apiExportService.exportAsJson(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            version.getVersion(),
+            SystemRole.PRIMARY_OWNER.name(),
+            "metadata"
+        );
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMetadata" +

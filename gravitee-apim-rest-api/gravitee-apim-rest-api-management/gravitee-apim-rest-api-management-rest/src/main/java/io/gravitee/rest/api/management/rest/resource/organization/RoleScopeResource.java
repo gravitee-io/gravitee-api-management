@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -66,7 +67,7 @@ public class RoleScopeResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ) })
     public List<RoleEntity> getRoles(@PathParam("scope") RoleScope scope) {
-        return roleService.findByScope(scope);
+        return roleService.findByScope(scope, GraviteeContext.getCurrentOrganization());
     }
 
     @POST
@@ -81,7 +82,7 @@ public class RoleScopeResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE) })
     public RoleEntity createRole(@PathParam("scope") RoleScope scope, @Valid @NotNull final NewRoleEntity role) {
-        return roleService.create(role);
+        return roleService.create(GraviteeContext.getExecutionContext(), role);
     }
 
     @Path("{role}")

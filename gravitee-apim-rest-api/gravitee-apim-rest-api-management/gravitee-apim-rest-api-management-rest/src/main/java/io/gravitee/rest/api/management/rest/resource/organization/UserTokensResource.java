@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.TokenService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -91,7 +92,10 @@ public class UserTokensResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ, RolePermissionAction.CREATE }))
     public Response createToken(@Valid @NotNull final NewTokenEntity token) {
-        return Response.status(Response.Status.CREATED).entity(tokenService.create(token, userId)).build();
+        return Response
+            .status(Response.Status.CREATED)
+            .entity(tokenService.create(GraviteeContext.getExecutionContext(), token, userId))
+            .build();
     }
 
     @Path("{token}")
@@ -103,6 +107,6 @@ public class UserTokensResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ, RolePermissionAction.DELETE }))
     public void revokeToken(@PathParam("token") String tokenId) {
-        tokenService.revoke(tokenId);
+        tokenService.revoke(GraviteeContext.getExecutionContext(), tokenId);
     }
 }

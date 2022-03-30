@@ -81,7 +81,7 @@ public class ApplicationApiKeysResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public List<ApiKeyEntity> getApiKeysForApplication() {
-        return apiKeyService.findByApplication(application);
+        return apiKeyService.findByApplication(GraviteeContext.getExecutionContext(), application);
     }
 
     @POST
@@ -102,7 +102,7 @@ public class ApplicationApiKeysResource extends AbstractResource {
     public Response renewApiKeyForApplicationSubscription() {
         ApplicationEntity applicationEntity = getApplication();
         checkApplicationApiKeyModeAllowed(applicationEntity);
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(applicationEntity);
+        ApiKeyEntity apiKeyEntity = apiKeyService.renew(GraviteeContext.getExecutionContext(), applicationEntity);
         URI location = URI.create(uriInfo.getPath().replace("_renew", apiKeyEntity.getId()));
         return Response.created(location).entity(apiKeyEntity).build();
     }
@@ -114,7 +114,7 @@ public class ApplicationApiKeysResource extends AbstractResource {
     }
 
     private ApplicationEntity getApplication() {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), application);
         if (applicationEntity == null) {
             throw new ApplicationNotFoundException(application);
         }

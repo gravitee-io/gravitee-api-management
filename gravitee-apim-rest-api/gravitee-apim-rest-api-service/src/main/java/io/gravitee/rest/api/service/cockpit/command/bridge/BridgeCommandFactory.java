@@ -20,9 +20,7 @@ import io.gravitee.cockpit.api.command.bridge.BridgePayload;
 import io.gravitee.cockpit.api.command.bridge.BridgeTarget;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
-import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,8 +34,8 @@ public class BridgeCommandFactory {
         this.installationService = installationService;
     }
 
-    public BridgeCommand createListEnvironmentCommand() {
-        BridgeCommand listEnvironmentCommand = initBridgeCommand();
+    public BridgeCommand createListEnvironmentCommand(String organizationId, String environmentId) {
+        BridgeCommand listEnvironmentCommand = initBridgeCommand(organizationId, environmentId);
 
         BridgeTarget target = new BridgeTarget();
         target.setScopes(Collections.singletonList(BRIDGE_SCOPE_APIM));
@@ -48,8 +46,13 @@ public class BridgeCommandFactory {
         return listEnvironmentCommand;
     }
 
-    public BridgeCommand createPromoteApiCommand(String targetEnvironmentId, String serializedPromotion) {
-        BridgeCommand createPromoteApiCommand = initBridgeCommand();
+    public BridgeCommand createPromoteApiCommand(
+        String organizationId,
+        String environmentId,
+        String targetEnvironmentId,
+        String serializedPromotion
+    ) {
+        BridgeCommand createPromoteApiCommand = initBridgeCommand(organizationId, environmentId);
         createPromoteApiCommand.setOperation(BridgeOperation.PROMOTE_API.name());
 
         BridgePayload payload = new BridgePayload();
@@ -64,8 +67,13 @@ public class BridgeCommandFactory {
         return createPromoteApiCommand;
     }
 
-    public BridgeCommand createProcessPromotionCommand(String sourceEnvCockpitId, String serializedPromotion) {
-        BridgeCommand processPromotionCommand = initBridgeCommand();
+    public BridgeCommand createProcessPromotionCommand(
+        String organizationId,
+        String environmentId,
+        String sourceEnvCockpitId,
+        String serializedPromotion
+    ) {
+        BridgeCommand processPromotionCommand = initBridgeCommand(organizationId, environmentId);
         processPromotionCommand.setOperation(BridgeOperation.PROCESS_API_PROMOTION.name());
 
         BridgePayload payload = new BridgePayload();
@@ -80,10 +88,10 @@ public class BridgeCommandFactory {
         return processPromotionCommand;
     }
 
-    private BridgeCommand initBridgeCommand() {
+    private BridgeCommand initBridgeCommand(String organizationId, String environmentId) {
         BridgeCommand command = new BridgeCommand();
-        command.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
-        command.setOrganizationId(GraviteeContext.getCurrentOrganization());
+        command.setEnvironmentId(environmentId);
+        command.setOrganizationId(organizationId);
         command.setInstallationId(installationService.get().getId());
         return command;
     }

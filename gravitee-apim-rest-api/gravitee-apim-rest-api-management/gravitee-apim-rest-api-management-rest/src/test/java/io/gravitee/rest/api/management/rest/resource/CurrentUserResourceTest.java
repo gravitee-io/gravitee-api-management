@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -99,7 +100,7 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
 
         final Response response = orgTarget().request().delete();
 
-        verify(userService, times(1)).delete(USER_NAME);
+        verify(userService, times(1)).delete(any(), eq(USER_NAME));
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
@@ -115,7 +116,7 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         userEntity.setLastConnectionAt(new Date());
 
         when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userService.findByIdWithRoles(USER_NAME)).thenReturn(userEntity);
+        when(userService.findByIdWithRoles(any(), eq(USER_NAME))).thenReturn(userEntity);
 
         SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_GLOBAL);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));

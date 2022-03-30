@@ -42,7 +42,6 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -188,7 +187,8 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         po.setReferenceId(API_ID);
         po.setReferenceType(io.gravitee.rest.api.model.MembershipReferenceType.API);
         po.setRoles(Collections.singletonList(poRoleEntity));
-        when(membershipService.getMembersByReferencesAndRole(any(), any(), any())).thenReturn(singleton(po));
+        when(membershipService.getMembersByReferencesAndRole(eq(GraviteeContext.getExecutionContext()), any(), any(), any()))
+            .thenReturn(singleton(po));
 
         mockStatic(System.class);
         when(System.currentTimeMillis()).thenReturn(0L);
@@ -198,11 +198,12 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(new UserDetails("username", "", emptyList()));
         SecurityContextHolder.setContext(securityContext);
-        when(userService.findById(any())).thenReturn(new UserEntity());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
 
-        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any()))
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
             .thenReturn("toDecode=decoded-value");
-        when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn("USER");
+        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
+            .thenReturn("USER");
         MembershipEntity primaryOwner = new MembershipEntity();
         primaryOwner.setMemberType(MembershipMemberType.USER);
         when(membershipService.getPrimaryOwner(eq(GraviteeContext.getCurrentOrganization()), eq(MembershipReferenceType.API), any()))
@@ -212,7 +213,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     @Test
     public void shouldNotAddDefaultConditionIfNoLogging() throws TechnicalException {
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -232,7 +233,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -241,10 +242,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.NONE);
         logging.setCondition("wrong");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -266,7 +274,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -275,10 +283,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("true");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(0L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -300,7 +315,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -309,10 +324,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("true");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -334,7 +356,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -343,10 +365,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("{#request.timestamp <= 2550166583090l}");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -368,7 +397,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -377,10 +406,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("{#request.timestamp < 2550166583090l}");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -402,7 +438,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -411,10 +447,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("{#request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2}");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -441,7 +484,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -450,10 +493,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l}");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -480,7 +530,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -491,10 +541,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
             "{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}"
         );
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -521,7 +578,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -532,10 +589,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
             "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}"
         );
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -562,7 +626,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -573,10 +637,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
             "{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}"
         );
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -603,7 +674,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -614,10 +685,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
             "{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2'}"
         );
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -644,7 +722,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -653,10 +731,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("{#request.timestamp <= 2l}");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(3L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -678,7 +763,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -687,10 +772,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("{#request.timestamp >= 5l}");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -715,7 +807,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -724,10 +816,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("{#request.timestamp > 5l}");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -752,7 +851,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -761,10 +860,17 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("{#request.timestamp >= 0l}");
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -789,7 +895,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -797,7 +903,14 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         final Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
         existingApi.getProxy().setLogging(logging);
-        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any(Function.class), eq(ParameterReferenceType.ORGANIZATION)))
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                any(Function.class),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
             .thenReturn(singletonList(1L));
 
         checkCondition(logging, "true || #request.timestamp <= 2l", "{(true) && #request.timestamp <= 1l}");
@@ -822,7 +935,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         when(apiRepository.update(any())).thenReturn(api);
 
         logging.setCondition(condition);
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         verify(apiRepository, times(1))
             .update(
                 argThat(

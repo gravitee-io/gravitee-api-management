@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.DashboardService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.DashboardNotFoundException;
@@ -123,12 +124,13 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     }
 
     @Override
-    public DashboardEntity create(final NewDashboardEntity dashboardEntity) {
+    public DashboardEntity create(ExecutionContext executionContext, final NewDashboardEntity dashboardEntity) {
         try {
             final List<Dashboard> dashboards = dashboardRepository.findByReferenceType(dashboardEntity.getReferenceType().name());
             Dashboard dashboard = dashboardRepository.create(convert(dashboardEntity, dashboards));
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(DASHBOARD, dashboard.getId()),
                 DASHBOARD_CREATED,
                 dashboard.getCreatedAt(),
@@ -144,7 +146,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     }
 
     @Override
-    public DashboardEntity update(UpdateDashboardEntity dashboardEntity) {
+    public DashboardEntity update(ExecutionContext executionContext, UpdateDashboardEntity dashboardEntity) {
         try {
             final Optional<Dashboard> dashboardOptional = dashboardRepository.findById(dashboardEntity.getId());
             if (dashboardOptional.isPresent()) {
@@ -156,7 +158,8 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                     savedDashboard = convert(dashboardRepository.update(dashboard));
                 }
                 auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(DASHBOARD, dashboard.getId()),
                     DASHBOARD_UPDATED,
                     new Date(),
@@ -230,14 +233,15 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     }
 
     @Override
-    public void delete(final String dashboardId) {
+    public void delete(ExecutionContext executionContext, final String dashboardId) {
         try {
             Optional<Dashboard> dashboardOptional = dashboardRepository.findById(dashboardId);
             if (dashboardOptional.isPresent()) {
                 dashboardRepository.delete(dashboardId);
                 reorderAndSaveDashboards(dashboardOptional.get(), true);
                 auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(DASHBOARD, dashboardId),
                     DASHBOARD_DELETED,
                     new Date(),

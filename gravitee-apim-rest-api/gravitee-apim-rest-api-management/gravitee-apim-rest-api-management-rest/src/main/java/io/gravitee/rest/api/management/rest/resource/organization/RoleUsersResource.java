@@ -74,9 +74,10 @@ public class RoleUsersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ) })
     public List<MembershipListItem> getUsersPerRole(@PathParam("scope") RoleScope scope, @PathParam("role") String role) {
         if (RoleScope.ORGANIZATION.equals(scope)) {
-            Optional<RoleEntity> optRole = roleService.findByScopeAndName(scope, role);
+            Optional<RoleEntity> optRole = roleService.findByScopeAndName(scope, role, GraviteeContext.getCurrentOrganization());
             if (optRole.isPresent()) {
                 Set<MemberEntity> members = membershipService.getMembersByReferenceAndRole(
+                    GraviteeContext.getExecutionContext(),
                     MembershipReferenceType.ORGANIZATION,
                     GraviteeContext.getCurrentOrganization(),
                     optRole.get().getId()
@@ -140,8 +141,7 @@ public class RoleUsersResource extends AbstractResource {
         }
 
         membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
             new MembershipService.MembershipMember(roleMembership.getId(), roleMembership.getReference(), MembershipMemberType.USER),
             new MembershipService.MembershipRole(roleScope, roleName)

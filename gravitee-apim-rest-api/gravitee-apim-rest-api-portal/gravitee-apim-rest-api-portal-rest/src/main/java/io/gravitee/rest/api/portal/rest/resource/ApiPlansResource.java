@@ -31,6 +31,8 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,13 +70,14 @@ public class ApiPlansResource extends AbstractResource {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
 
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(username, apiQuery);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(executionContext, username, apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            ApiEntity apiEntity = apiService.findById(apiId);
+            ApiEntity apiEntity = apiService.findById(executionContext, apiId);
 
-            if (Visibility.PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(API_PLAN, apiId, READ)) {
+            if (Visibility.PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(executionContext, API_PLAN, apiId, READ)) {
                 List<Plan> plans = planService
-                    .findByApi(apiId)
+                    .findByApi(executionContext, apiId)
                     .stream()
                     .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
                     .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))
@@ -82,9 +85,9 @@ public class ApiPlansResource extends AbstractResource {
                     .map(p -> planMapper.convert(p))
                     .collect(Collectors.toList());
 
-                return createListResponse(plans, paginationParam);
+                return createListResponse(executionContext, plans, paginationParam);
             } else {
-                return createListResponse(emptyList(), paginationParam);
+                return createListResponse(executionContext, emptyList(), paginationParam);
             }
         }
         throw new ApiNotFoundException(apiId);

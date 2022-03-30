@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.LogsService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -78,7 +79,7 @@ public class ApiLogsResource extends AbstractResource {
         logQuery.setField(param.getField());
         logQuery.setOrder(param.isOrder());
 
-        return logsService.findByApi(api, logQuery);
+        return logsService.findByApi(GraviteeContext.getExecutionContext(), api, logQuery);
     }
 
     @GET
@@ -93,7 +94,7 @@ public class ApiLogsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ) })
     public ApiRequest getApiLog(@PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
-        return logsService.findApiLog(logId, timestamp);
+        return logsService.findApiLog(GraviteeContext.getExecutionContext(), logId, timestamp);
     }
 
     @GET
@@ -110,7 +111,7 @@ public class ApiLogsResource extends AbstractResource {
     public Response exportApiLogsAsCSV(@BeanParam LogsParam param) {
         final SearchLogResponse<ApiRequestItem> searchLogResponse = getApiLogs(param);
         return Response
-            .ok(logsService.exportAsCsv(searchLogResponse))
+            .ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", api, System.currentTimeMillis()))
             .build();
     }

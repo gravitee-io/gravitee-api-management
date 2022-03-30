@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.notifier.NotifierPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -30,6 +28,7 @@ import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PortalNotificationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.NotifierNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -42,11 +41,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -102,19 +98,25 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
     @Override
     @Async
-    public void trigger(final ApiHook hook, final String apiId, Map<String, Object> params) {
-        triggerPortalNotifications(hook, NotificationReferenceType.API, apiId, params);
-        triggerGenericNotifications(hook, NotificationReferenceType.API, apiId, params);
+    public void trigger(final ExecutionContext executionContext, final ApiHook hook, final String apiId, Map<String, Object> params) {
+        triggerPortalNotifications(executionContext, hook, NotificationReferenceType.API, apiId, params);
+        triggerGenericNotifications(executionContext, hook, NotificationReferenceType.API, apiId, params);
     }
 
     @Override
     @Async
-    public void triggerEmail(final ApplicationHook hook, final String appId, Map<String, Object> params, String recipient) {
+    public void triggerEmail(
+        final ExecutionContext executionContext,
+        final ApplicationHook hook,
+        final String appId,
+        Map<String, Object> params,
+        String recipient
+    ) {
         if (!(recipient == null || recipient.isEmpty())) {
             GenericNotificationConfig genericNotificationConfig = new GenericNotificationConfig();
             genericNotificationConfig.setConfig(recipient);
             genericNotificationConfig.setNotifier(DEFAULT_EMAIL_NOTIFIER_ID);
-            emailNotifierService.trigger(hook, genericNotificationConfig, params);
+            emailNotifierService.trigger(executionContext, hook, genericNotificationConfig, params);
         } else {
             LOGGER.debug("Recipient email is missing, ignore email trigger '{}' for application '{}'", hook, appId);
         }
@@ -122,13 +124,19 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
     @Override
     @Async
-    public void trigger(final ApplicationHook hook, final String applicationId, Map<String, Object> params) {
-        triggerPortalNotifications(hook, NotificationReferenceType.APPLICATION, applicationId, params);
-        triggerGenericNotifications(hook, NotificationReferenceType.APPLICATION, applicationId, params);
+    public void trigger(
+        final ExecutionContext executionContext,
+        final ApplicationHook hook,
+        final String applicationId,
+        Map<String, Object> params
+    ) {
+        triggerPortalNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params);
+        triggerGenericNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params);
     }
 
     @Override
     public boolean hasEmailNotificationFor(
+        final ExecutionContext executionContext,
         final ApplicationHook hook,
         final String applicationId,
         Map<String, Object> params,
@@ -142,7 +150,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                 applicationId
             )) {
                 if (genericNotificationConfig.getNotifier().equals(DEFAULT_EMAIL_NOTIFIER_ID)) {
-                    List<String> mails = emailNotifierService.getMails(genericNotificationConfig, params);
+                    List<String> mails = emailNotifierService.getMails(executionContext, genericNotificationConfig, params);
                     result = mails != null && mails.contains(recipient);
                 }
             }
@@ -160,12 +168,25 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
     @Override
     @Async
-    public void trigger(final PortalHook hook, Map<String, Object> params) {
-        triggerPortalNotifications(hook, NotificationReferenceType.PORTAL, PortalNotificationDefaultReferenceId.DEFAULT.name(), params);
-        triggerGenericNotifications(hook, NotificationReferenceType.PORTAL, PortalNotificationDefaultReferenceId.DEFAULT.name(), params);
+    public void trigger(final ExecutionContext executionContext, final PortalHook hook, Map<String, Object> params) {
+        triggerPortalNotifications(
+            executionContext,
+            hook,
+            NotificationReferenceType.PORTAL,
+            PortalNotificationDefaultReferenceId.DEFAULT.name(),
+            params
+        );
+        triggerGenericNotifications(
+            executionContext,
+            hook,
+            NotificationReferenceType.PORTAL,
+            PortalNotificationDefaultReferenceId.DEFAULT.name(),
+            params
+        );
     }
 
     private void triggerPortalNotifications(
+        final ExecutionContext executionContext,
         final Hook hook,
         final NotificationReferenceType refType,
         final String refId,
@@ -178,7 +199,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                 .map(PortalNotificationConfig::getUser)
                 .collect(Collectors.toList());
             if (!userIds.isEmpty()) {
-                portalNotificationService.create(hook, userIds, params);
+                portalNotificationService.create(executionContext, hook, userIds, params);
             }
         } catch (TechnicalException e) {
             LOGGER.error("Error looking for PortalNotificationConfig with {}/{}/{}", hook, refType, refId, e);
@@ -186,6 +207,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     }
 
     private void triggerGenericNotifications(
+        ExecutionContext executionContext,
         final Hook hook,
         final NotificationReferenceType refType,
         final String refId,
@@ -199,7 +221,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
             )) {
                 switch (genericNotificationConfig.getNotifier()) {
                     case DEFAULT_EMAIL_NOTIFIER_ID:
-                        emailNotifierService.trigger(hook, genericNotificationConfig, params);
+                        emailNotifierService.trigger(executionContext, hook, genericNotificationConfig, params);
                         break;
                     case DEFAULT_WEBHOOK_NOTIFIER_ID:
                         webhookNotifierService.trigger(hook, genericNotificationConfig, params);

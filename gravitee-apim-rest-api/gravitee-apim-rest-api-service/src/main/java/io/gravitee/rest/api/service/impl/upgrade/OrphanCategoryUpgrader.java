@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,7 +52,7 @@ public class OrphanCategoryUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    protected void processOneShotUpgrade() throws TechnicalException {
+    protected void processOneShotUpgrade(ExecutionContext executionContext) throws TechnicalException {
         Set<Api> updatedApis = findAndFixApisWithOrphanCategories();
         for (Api api : updatedApis) {
             LOGGER.info("Removing orphan categories for API [{}]", api.getId());

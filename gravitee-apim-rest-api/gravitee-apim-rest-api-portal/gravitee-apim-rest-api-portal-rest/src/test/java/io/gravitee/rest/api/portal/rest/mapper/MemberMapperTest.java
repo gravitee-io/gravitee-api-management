@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
@@ -89,12 +90,12 @@ public class MemberMapperTest {
 
         when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromPath(""));
 
-        when(userService.findById(MEMBER_ID)).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), MEMBER_ID)).thenReturn(userEntity);
         when(userMapper.convert(userEntity)).thenCallRealMethod();
         when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
 
         //Test
-        Member responseMember = memberMapper.convert(memberEntity, uriInfo);
+        Member responseMember = memberMapper.convert(GraviteeContext.getExecutionContext(), memberEntity, uriInfo);
         assertNotNull(responseMember);
         assertEquals(now.toEpochMilli(), responseMember.getCreatedAt().toInstant().toEpochMilli());
         assertNull(responseMember.getId());

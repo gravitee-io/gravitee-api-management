@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -86,7 +87,7 @@ public class ApiSubscriptionResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public Subscription getApiSubscription(@PathParam("subscription") String subscription) {
-        return convert(subscriptionService.findById(subscription));
+        return convert(GraviteeContext.getExecutionContext(), subscriptionService.findById(subscription));
     }
 
     @POST
@@ -115,8 +116,13 @@ public class ApiSubscriptionResource extends AbstractResource {
         // Force subscription ID
         processSubscriptionEntity.setId(subscription);
 
-        SubscriptionEntity subscriptionEntity = subscriptionService.process(processSubscriptionEntity, getAuthenticatedUser());
-        return Response.ok(convert(subscriptionEntity)).build();
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity subscriptionEntity = subscriptionService.process(
+            executionContext,
+            processSubscriptionEntity,
+            getAuthenticatedUser()
+        );
+        return Response.ok(convert(executionContext, subscriptionEntity)).build();
     }
 
     @PUT
@@ -145,8 +151,9 @@ public class ApiSubscriptionResource extends AbstractResource {
         // Force ID
         updateSubscriptionEntity.setId(subscription);
 
-        SubscriptionEntity subscriptionEntity = subscriptionService.update(updateSubscriptionEntity);
-        return Response.ok(convert(subscriptionEntity)).build();
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity subscriptionEntity = subscriptionService.update(executionContext, updateSubscriptionEntity);
+        return Response.ok(convert(executionContext, subscriptionEntity)).build();
     }
 
     @POST
@@ -171,15 +178,16 @@ public class ApiSubscriptionResource extends AbstractResource {
             "status"
         ) SubscriptionStatus subscriptionStatus
     ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (CLOSED.equals(subscriptionStatus)) {
-            SubscriptionEntity updatedSubscriptionEntity = subscriptionService.close(subscription);
-            return Response.ok(convert(updatedSubscriptionEntity)).build();
+            SubscriptionEntity updatedSubscriptionEntity = subscriptionService.close(executionContext, subscription);
+            return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
         } else if (PAUSED.equals(subscriptionStatus)) {
-            SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pause(subscription);
-            return Response.ok(convert(updatedSubscriptionEntity)).build();
+            SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pause(executionContext, subscription);
+            return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
         } else if (RESUMED.equals(subscriptionStatus)) {
-            SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resume(subscription);
-            return Response.ok(convert(updatedSubscriptionEntity)).build();
+            SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resume(executionContext, subscription);
+            return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
         } else {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -214,11 +222,16 @@ public class ApiSubscriptionResource extends AbstractResource {
         // Force subscription ID
         transferSubscriptionEntity.setId(subscription);
 
-        SubscriptionEntity subscriptionEntity = subscriptionService.transfer(transferSubscriptionEntity, getAuthenticatedUser());
-        return Response.ok(convert(subscriptionEntity)).build();
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity subscriptionEntity = subscriptionService.transfer(
+            executionContext,
+            transferSubscriptionEntity,
+            getAuthenticatedUser()
+        );
+        return Response.ok(convert(executionContext, subscriptionEntity)).build();
     }
 
-    private Subscription convert(SubscriptionEntity subscriptionEntity) {
+    private Subscription convert(final ExecutionContext executionContext, SubscriptionEntity subscriptionEntity) {
         Subscription subscription = new Subscription();
 
         subscription.setId(subscriptionEntity.getId());
@@ -235,19 +248,16 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(subscriptionEntity.getSubscribedBy(), true).getDisplayName()
+                userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName()
             )
         );
         subscription.setClientId(subscriptionEntity.getClientId());
 
-        PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
+        PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         subscription.getPlan().setSecurity(plan.getSecurity());
 
-        ApplicationEntity application = applicationService.findById(
-            GraviteeContext.getCurrentEnvironment(),
-            subscriptionEntity.getApplication()
-        );
+        ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());
         subscription.setApplication(
             new Subscription.Application(
                 application.getId(),

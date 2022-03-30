@@ -40,6 +40,7 @@ import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
@@ -130,7 +131,7 @@ public class CurrentUserResource extends AbstractResource {
             final String password = details.getPassword() != null ? details.getPassword() : "";
             UserEntity userEntity;
             try {
-                userEntity = userService.findByIdWithRoles(userId);
+                userEntity = userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), userId);
             } catch (final UserNotFoundException unfe) {
                 final String unfeMessage = "User '{}' does not exist.";
                 if (LOG.isDebugEnabled()) {
@@ -247,7 +248,7 @@ public class CurrentUserResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response deleteCurrentUser() {
         if (isAuthenticated()) {
-            userService.delete(getAuthenticatedUser());
+            userService.delete(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
             logoutCurrentUser();
             return Response.noContent().build();
         } else {
@@ -266,7 +267,8 @@ public class CurrentUserResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
-        UserEntity userEntity = userService.findById(getAuthenticatedUser());
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        UserEntity userEntity = userService.findById(executionContext, getAuthenticatedUser());
         try {
             if (user.getPicture() != null) {
                 user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
@@ -278,7 +280,7 @@ public class CurrentUserResource extends AbstractResource {
             throw new BadRequestException("Invalid image format");
         }
 
-        return ok(userService.update(userEntity.getId(), user)).build();
+        return ok(userService.update(executionContext, userEntity.getId(), user)).build();
     }
 
     @GET
@@ -292,8 +294,9 @@ public class CurrentUserResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCurrentUserPicture(@Context Request request) {
-        String userId = userService.findById(getAuthenticatedUser()).getId();
-        PictureEntity picture = userService.getPicture(userId);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String userId = userService.findById(executionContext, getAuthenticatedUser()).getId();
+        PictureEntity picture = userService.getPicture(executionContext, userId);
 
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
@@ -427,8 +430,9 @@ public class CurrentUserResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public TaskEntityPagedResult getUserTasks() {
-        List<TaskEntity> tasks = taskService.findAll(getAuthenticatedUserOrNull());
-        Map<String, Map<String, Object>> metadata = taskService.getMetadata(tasks).toMap();
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        List<TaskEntity> tasks = taskService.findAll(executionContext, getAuthenticatedUserOrNull());
+        Map<String, Map<String, Object>> metadata = taskService.getMetadata(executionContext, tasks).toMap();
         TaskEntityPagedResult pagedResult = new TaskEntityPagedResult(tasks);
         pagedResult.setMetadata(metadata);
         return pagedResult;

@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.InstanceQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
@@ -61,7 +62,7 @@ public class InstancesResource {
         query.setPage(param.getPage());
         query.setSize(param.getSize());
 
-        return instanceService.search(query);
+        return instanceService.search(GraviteeContext.getExecutionContext(), query);
     }
 
     @Path("{instance}")

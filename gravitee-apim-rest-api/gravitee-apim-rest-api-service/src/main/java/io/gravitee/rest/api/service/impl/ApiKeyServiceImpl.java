@@ -27,13 +27,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -41,12 +39,10 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -86,34 +82,45 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private NotifierService notifierService;
 
     @Override
-    public ApiKeyEntity generate(ApplicationEntity application, SubscriptionEntity subscription, String customApiKey) {
+    public ApiKeyEntity generate(
+        ExecutionContext executionContext,
+        ApplicationEntity application,
+        SubscriptionEntity subscription,
+        String customApiKey
+    ) {
         if (!application.hasApiKeySharedMode()) {
-            return generate(subscription, customApiKey);
+            return generate(executionContext, subscription, customApiKey);
         }
-        return findOrGenerate(application, subscription, customApiKey);
+        return findOrGenerate(executionContext, application, subscription, customApiKey);
     }
 
     @Override
-    public ApiKeyEntity renew(SubscriptionEntity subscription) {
-        return renew(subscription, null);
+    public ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription) {
+        return renew(executionContext, subscription, null);
     }
 
     @Override
-    public ApiKeyEntity renew(SubscriptionEntity subscription, String customApiKey) {
+    public ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
         try {
             LOGGER.debug("Renew API Key for subscription {}", subscription.getId());
 
-            ApiKey newApiKey = generateForSubscription(subscription, customApiKey);
+            ApiKey newApiKey = generateForSubscription(executionContext, subscription, customApiKey);
             newApiKey = apiKeyRepository.create(newApiKey);
 
             // Expire previously generated keys
-            expireApiKeys(apiKeyRepository.findBySubscription(subscription.getId()), newApiKey);
+            expireApiKeys(executionContext, apiKeyRepository.findBySubscription(subscription.getId()), newApiKey);
 
-            ApiKeyEntity newApiKeyEntity = convert(newApiKey);
+            ApiKeyEntity newApiKeyEntity = convert(executionContext, newApiKey);
             // Audit
-            createAuditLog(newApiKeyEntity, null, APIKEY_RENEWED, newApiKey.getCreatedAt());
+            createAuditLog(executionContext, newApiKeyEntity, null, APIKEY_RENEWED, newApiKey.getCreatedAt());
             // Notification
-            triggerNotifierService(ApiHook.APIKEY_RENEWED, newApiKey, newApiKeyEntity.getApplication(), newApiKeyEntity.getSubscriptions());
+            triggerNotifierService(
+                executionContext,
+                ApiHook.APIKEY_RENEWED,
+                newApiKey,
+                newApiKeyEntity.getApplication(),
+                newApiKeyEntity.getSubscriptions()
+            );
 
             return newApiKeyEntity;
         } catch (TechnicalException ex) {
@@ -126,7 +133,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public ApiKeyEntity renew(ApplicationEntity application) {
+    public ApiKeyEntity renew(ExecutionContext executionContext, ApplicationEntity application) {
         if (!application.hasApiKeySharedMode()) {
             throw new InvalidApplicationApiKeyModeException("Can't renew an API key on application that doesn't use shared API key mode");
         }
@@ -139,16 +146,22 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             // Expire previously generated keys
             Collection<ApiKey> allApiKeys = apiKeyRepository.findByApplication(application.getId());
-            expireApiKeys(allApiKeys, newApiKey);
+            expireApiKeys(executionContext, allApiKeys, newApiKey);
 
             // add all subscriptions to the new key
             addSharedSubscriptions(allApiKeys, newApiKey);
 
-            ApiKeyEntity newApiKeyEntity = convert(newApiKey);
+            ApiKeyEntity newApiKeyEntity = convert(executionContext, newApiKey);
 
-            createAuditLog(newApiKeyEntity, null, APIKEY_RENEWED, newApiKey.getCreatedAt());
+            createAuditLog(executionContext, newApiKeyEntity, null, APIKEY_RENEWED, newApiKey.getCreatedAt());
 
-            triggerNotifierService(ApiHook.APIKEY_RENEWED, newApiKey, newApiKeyEntity.getApplication(), newApiKeyEntity.getSubscriptions());
+            triggerNotifierService(
+                executionContext,
+                ApiHook.APIKEY_RENEWED,
+                newApiKey,
+                newApiKeyEntity.getApplication(),
+                newApiKeyEntity.getSubscriptions()
+            );
 
             return newApiKeyEntity;
         } catch (TechnicalException ex) {
@@ -160,14 +173,15 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         }
     }
 
-    private void expireApiKeys(Collection<ApiKey> apiKeys, ApiKey activeApiKey) throws TechnicalException {
+    private void expireApiKeys(ExecutionContext executionContext, Collection<ApiKey> apiKeys, ApiKey activeApiKey)
+        throws TechnicalException {
         Instant expirationInst = activeApiKey.getCreatedAt().toInstant().plus(Duration.ofHours(2));
         Date expirationDate = Date.from(expirationInst);
 
         for (ApiKey apiKey : apiKeys) {
-            ApiKeyEntity apiKeyEntity = convert(apiKey);
+            ApiKeyEntity apiKeyEntity = convert(executionContext, apiKey);
             if (!apiKey.equals(activeApiKey) && !apiKeyEntity.isExpired()) {
-                setExpiration(expirationDate, apiKeyEntity, apiKey);
+                setExpiration(executionContext, expirationDate, apiKeyEntity, apiKey);
             }
         }
     }
@@ -180,12 +194,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         apiKeyRepository.update(activeApiKey);
     }
 
-    private ApiKeyEntity findOrGenerate(ApplicationEntity application, SubscriptionEntity subscription, String customApiKey) {
-        return findByApplication(application.getId())
+    private ApiKeyEntity findOrGenerate(
+        ExecutionContext executionContext,
+        ApplicationEntity application,
+        SubscriptionEntity subscription,
+        String customApiKey
+    ) {
+        return findByApplication(executionContext, application.getId())
             .stream()
             .peek(apiKey -> addSubscription(apiKey, subscription))
             .max(comparing(ApiKeyEntity::isRevoked, reverseOrder()).thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())))
-            .orElseGet(() -> generate(subscription, customApiKey));
+            .orElseGet(() -> generate(executionContext, subscription, customApiKey));
     }
 
     private void addSubscription(ApiKeyEntity apiKeyEntity, SubscriptionEntity subscription) {
@@ -202,18 +221,18 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         }
     }
 
-    private ApiKeyEntity generate(SubscriptionEntity subscription, String customApiKey) {
+    private ApiKeyEntity generate(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
         try {
             LOGGER.debug("Generate an API Key for subscription {}", subscription);
 
-            ApiKey apiKey = generateForSubscription(subscription, customApiKey);
+            ApiKey apiKey = generateForSubscription(executionContext, subscription, customApiKey);
             apiKey = apiKeyRepository.create(apiKey);
 
             //TODO: Send a notification to the application owner
 
-            ApiKeyEntity apiKeyEntity = convert(apiKey);
+            ApiKeyEntity apiKeyEntity = convert(executionContext, apiKey);
             // Audit
-            createAuditLog(apiKeyEntity, null, APIKEY_CREATED, apiKey.getCreatedAt());
+            createAuditLog(executionContext, apiKeyEntity, null, APIKEY_CREATED, apiKey.getCreatedAt());
 
             return apiKeyEntity;
         } catch (TechnicalException ex) {
@@ -228,12 +247,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     /**
      * Generate an {@link ApiKey} from a subscription. If no custom API key, then generate a new one.
      *
+     * @param executionContext
      * @param subscription
      * @param customApiKey
      * @return An Api Key
      */
-    private ApiKey generateForSubscription(SubscriptionEntity subscription, String customApiKey) {
-        if (isNotEmpty(customApiKey) && !canCreate(customApiKey, subscription)) {
+    private ApiKey generateForSubscription(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
+        if (isNotEmpty(customApiKey) && !canCreate(executionContext, customApiKey, subscription)) {
             throw new ApiKeyAlreadyExistingException();
         }
 
@@ -279,10 +299,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public void revoke(String keyId, boolean notify) {
+    public void revoke(ExecutionContext executionContext, String keyId, boolean notify) {
         try {
             ApiKey key = apiKeyRepository.findById(keyId).orElseThrow(ApiKeyNotFoundException::new);
-            revoke(key, notify);
+            revoke(executionContext, key, notify);
         } catch (TechnicalException e) {
             String message = String.format("An error occurs while trying to revoke a key with id %s", keyId);
             LOGGER.error(message, e);
@@ -291,14 +311,14 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public void revoke(ApiKeyEntity apiKeyEntity, boolean notify) {
-        revoke(apiKeyEntity.getId(), notify);
+    public void revoke(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, boolean notify) {
+        revoke(executionContext, apiKeyEntity.getId(), notify);
     }
 
-    private void revoke(ApiKey key, boolean notify) throws TechnicalException {
+    private void revoke(ExecutionContext executionContext, ApiKey key, boolean notify) throws TechnicalException {
         LOGGER.debug("Revoke API Key with id {}", key.getId());
 
-        checkApiKeyExpired(key);
+        checkApiKeyExpired(executionContext, key);
 
         ApiKey previousApiKey = new ApiKey(key);
         key.setRevoked(true);
@@ -308,22 +328,22 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         apiKeyRepository.update(key);
 
         // Audit
-        createAuditLog(convert(previousApiKey), previousApiKey, APIKEY_REVOKED, key.getUpdatedAt());
+        createAuditLog(executionContext, convert(executionContext, previousApiKey), previousApiKey, APIKEY_REVOKED, key.getUpdatedAt());
 
         // notify
         if (notify) {
-            triggerNotifierService(ApiHook.APIKEY_REVOKED, key, new NotificationParamsBuilder());
+            triggerNotifierService(executionContext, ApiHook.APIKEY_REVOKED, key, new NotificationParamsBuilder());
         }
     }
 
     @Override
-    public ApiKeyEntity reactivate(ApiKeyEntity apiKeyEntity) {
+    public ApiKeyEntity reactivate(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity) {
         try {
             ApiKey key = apiKeyRepository.findById(apiKeyEntity.getId()).orElseThrow(ApiKeyNotFoundException::new);
 
             LOGGER.debug("Reactivate API Key id {}", apiKeyEntity.getId());
 
-            if (!key.isRevoked() && !convert(key).isExpired()) {
+            if (!key.isRevoked() && !convert(executionContext, key).isExpired()) {
                 throw new ApiKeyAlreadyActivatedException();
             }
 
@@ -343,9 +363,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             }
 
             ApiKey updated = apiKeyRepository.update(key);
-            ApiKeyEntity updatedEntity = convert(updated);
+            ApiKeyEntity updatedEntity = convert(executionContext, updated);
             // Audit
-            createAuditLog(updatedEntity, previousApiKey, APIKEY_REACTIVATED, key.getUpdatedAt());
+            createAuditLog(executionContext, updatedEntity, previousApiKey, APIKEY_REACTIVATED, key.getUpdatedAt());
 
             return updatedEntity;
         } catch (TechnicalException ex) {
@@ -354,16 +374,19 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         }
     }
 
-    private void checkApiKeyExpired(ApiKey key) {
-        if (key.isRevoked() || convert(key).isExpired()) {
+    private void checkApiKeyExpired(ExecutionContext executionContext, ApiKey key) {
+        if (key.isRevoked() || convert(executionContext, key).isExpired()) {
             throw new ApiKeyAlreadyExpiredException();
         }
     }
 
     @Override
-    public ApiKeyEntity findById(String keyId) {
+    public ApiKeyEntity findById(ExecutionContext executionContext, String keyId) {
         try {
-            return apiKeyRepository.findById(keyId).map(this::convert).orElseThrow(ApiKeyNotFoundException::new);
+            return apiKeyRepository
+                .findById(keyId)
+                .map(apiKey -> convert(executionContext, apiKey))
+                .orElseThrow(ApiKeyNotFoundException::new);
         } catch (TechnicalException e) {
             String message = String.format("An error occurs while trying to find a key with id %s", keyId);
             LOGGER.error(message, e);
@@ -372,10 +395,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public List<ApiKeyEntity> findByKey(String apiKey) {
+    public List<ApiKeyEntity> findByKey(ExecutionContext executionContext, String apiKey) {
         try {
             LOGGER.debug("Find API Keys by key");
-            return apiKeyRepository.findByKey(apiKey).stream().map(this::convert).collect(toList());
+            return apiKeyRepository.findByKey(apiKey).stream().map(apiKey1 -> convert(executionContext, apiKey1)).collect(toList());
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while finding API keys", e);
             throw new TechnicalManagementException("An error occurs while finding API keys", e);
@@ -383,13 +406,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public List<ApiKeyEntity> findBySubscription(String subscription) {
+    public List<ApiKeyEntity> findBySubscription(ExecutionContext executionContext, String subscription) {
         try {
             LOGGER.debug("Find API Keys for subscription {}", subscription);
 
             SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
             Set<ApiKey> keys = apiKeyRepository.findBySubscription(subscriptionEntity.getId());
-            return keys.stream().map(this::convert).sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt())).collect(toList());
+            return keys
+                .stream()
+                .map(apiKey -> convert(executionContext, apiKey))
+                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                .collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while finding API keys for subscription {}", subscription, ex);
             throw new TechnicalManagementException(
@@ -400,11 +427,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public ApiKeyEntity findByKeyAndApi(String apiKey, String apiId) {
+    public ApiKeyEntity findByKeyAndApi(ExecutionContext executionContext, String apiKey, String apiId) {
         try {
             LOGGER.debug("Find an API Key by key for API {}", apiId);
             ApiKey key = apiKeyRepository.findByKeyAndApi(apiKey, apiId).orElseThrow(ApiKeyNotFoundException::new);
-            return convert(key);
+            return convert(executionContext, key);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find an API Key for API {}", apiId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to find an API Key for API %s", apiId), ex);
@@ -412,9 +439,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public List<ApiKeyEntity> findByApplication(String applicationId) {
+    public List<ApiKeyEntity> findByApplication(ExecutionContext executionContext, String applicationId) {
         try {
-            return apiKeyRepository.findByApplication(applicationId).stream().map(this::convert).collect(toList());
+            return apiKeyRepository
+                .findByApplication(applicationId)
+                .stream()
+                .map(apiKey -> convert(executionContext, apiKey))
+                .collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find API Keys for application {}", applicationId, ex);
             throw new TechnicalManagementException(
@@ -425,23 +456,23 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public ApiKeyEntity update(ApiKeyEntity apiKeyEntity) {
+    public ApiKeyEntity update(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity) {
         try {
             LOGGER.debug("Update API Key with id {}", apiKeyEntity.getId());
             ApiKey key = apiKeyRepository.findById(apiKeyEntity.getId()).orElseThrow(ApiKeyNotFoundException::new);
 
-            checkApiKeyExpired(key);
+            checkApiKeyExpired(executionContext, key);
 
             key.setSubscriptions(apiKeyEntity.getSubscriptionIds());
             key.setPaused(apiKeyEntity.isPaused());
             if (apiKeyEntity.getExpireAt() != null) {
-                setExpiration(apiKeyEntity.getExpireAt(), apiKeyEntity, key);
+                setExpiration(executionContext, apiKeyEntity.getExpireAt(), apiKeyEntity, key);
             } else {
                 key.setUpdatedAt(new Date());
                 apiKeyRepository.update(key);
             }
 
-            return convert(key);
+            return convert(executionContext, key);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while updating an API Key with id {}", apiKeyEntity.getId(), ex);
             throw new TechnicalManagementException(
@@ -452,7 +483,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public ApiKeyEntity updateDaysToExpirationOnLastNotification(ApiKeyEntity apiKeyEntity, Integer value) {
+    public ApiKeyEntity updateDaysToExpirationOnLastNotification(
+        ExecutionContext executionContext,
+        ApiKeyEntity apiKeyEntity,
+        Integer value
+    ) {
         try {
             return apiKeyRepository
                 .findById(apiKeyEntity.getId())
@@ -470,7 +505,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                         }
                     }
                 )
-                .map(this::convert)
+                .map(apiKey -> convert(executionContext, apiKey))
                 .orElseThrow(ApiKeyNotFoundException::new);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update apiKey", ex);
@@ -479,15 +514,15 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public boolean canCreate(String apiKeyValue, SubscriptionEntity subscription) {
-        return canCreate(apiKeyValue, subscription.getApi(), subscription.getApplication());
+    public boolean canCreate(ExecutionContext executionContext, String apiKeyValue, SubscriptionEntity subscription) {
+        return canCreate(executionContext, apiKeyValue, subscription.getApi(), subscription.getApplication());
     }
 
     @Override
-    public boolean canCreate(String apiKey, String apiId, String applicationId) {
+    public boolean canCreate(ExecutionContext executionContext, String apiKey, String apiId, String applicationId) {
         LOGGER.debug("Check if an API Key can be created for api {} and application {}", apiId, applicationId);
 
-        return findByKey(apiKey).stream().noneMatch(existingKey -> isConflictingKey(existingKey, apiId, applicationId));
+        return findByKey(executionContext, apiKey).stream().noneMatch(existingKey -> isConflictingKey(existingKey, apiId, applicationId));
     }
 
     private boolean isConflictingKey(ApiKeyEntity existingKey, String apiId, String applicationId) {
@@ -498,13 +533,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public Collection<ApiKeyEntity> search(ApiKeyQuery query) {
+    public Collection<ApiKeyEntity> search(ExecutionContext executionContext, ApiKeyQuery query) {
         try {
             LOGGER.debug("Search api keys {}", query);
 
             ApiKeyCriteria.Builder builder = toApiKeyCriteriaBuilder(query);
 
-            return apiKeyRepository.findByCriteria(builder.build()).stream().map(this::convert).collect(toList());
+            return apiKeyRepository
+                .findByCriteria(builder.build())
+                .stream()
+                .map(apiKey -> convert(executionContext, apiKey))
+                .collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to search api keys: {}", query, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to search api keys: {}", query), ex);
@@ -533,7 +572,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         */
     }
 
-    private void setExpiration(Date expirationDate, ApiKeyEntity apiKeyEntity, ApiKey key) throws TechnicalException {
+    private void setExpiration(ExecutionContext executionContext, Date expirationDate, ApiKeyEntity apiKeyEntity, ApiKey key)
+        throws TechnicalException {
         final Date now = new Date();
 
         if (now.after(expirationDate)) {
@@ -569,16 +609,16 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             if (key.getExpireAt() != null && now.before(key.getExpireAt())) {
                 paramsBuilder.expirationDate(key.getExpireAt());
             }
-            triggerNotifierService(ApiHook.APIKEY_EXPIRED, key, paramsBuilder);
+            triggerNotifierService(executionContext, ApiHook.APIKEY_EXPIRED, key, paramsBuilder);
 
             // Audit
-            createAuditLog(convert(key), oldkey, APIKEY_EXPIRED, key.getUpdatedAt());
+            createAuditLog(executionContext, convert(executionContext, key), oldkey, APIKEY_EXPIRED, key.getUpdatedAt());
         } else {
             apiKeyRepository.update(key);
         }
     }
 
-    private ApiKeyEntity convert(ApiKey apiKey) {
+    private ApiKeyEntity convert(ExecutionContext executionContext, ApiKey apiKey) {
         ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
 
         apiKeyEntity.setId(apiKey.getId());
@@ -592,7 +632,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
         apiKeyEntity.setSubscriptions(subscriptionService.findByIdIn(apiKey.getSubscriptions()));
 
-        apiKeyEntity.setApplication(applicationService.findById(GraviteeContext.getCurrentEnvironment(), apiKey.getApplication()));
+        apiKeyEntity.setApplication(applicationService.findById(executionContext, apiKey.getApplication()));
 
         apiKeyEntity.setDaysToExpirationOnLastNotification(apiKey.getDaysToExpirationOnLastNotification());
 
@@ -609,7 +649,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             .expireBefore(query.getExpireBefore());
     }
 
-    private void createAuditLog(ApiKeyEntity key, ApiKey previousApiKey, ApiKey.AuditEvent event, Date eventDate) {
+    private void createAuditLog(
+        ExecutionContext executionContext,
+        ApiKeyEntity key,
+        ApiKey previousApiKey,
+        ApiKey.AuditEvent event,
+        Date eventDate
+    ) {
         key
             .getSubscriptions()
             .forEach(
@@ -618,22 +664,42 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                     properties.put(API_KEY, key.getKey());
                     properties.put(API, subscription.getApi());
                     properties.put(APPLICATION, key.getApplication().getId());
-                    auditService.createApiAuditLog(subscription.getApi(), properties, event, eventDate, previousApiKey, key);
+                    auditService.createApiAuditLog(
+                        executionContext,
+                        subscription.getApi(),
+                        properties,
+                        event,
+                        eventDate,
+                        previousApiKey,
+                        key
+                    );
                 }
             );
     }
 
-    private void triggerNotifierService(ApiHook apiHook, ApiKey key, NotificationParamsBuilder paramsBuilder) {
-        ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), key.getApplication());
+    private void triggerNotifierService(
+        ExecutionContext executionContext,
+        ApiHook apiHook,
+        ApiKey key,
+        NotificationParamsBuilder paramsBuilder
+    ) {
+        ApplicationEntity application = applicationService.findById(executionContext, key.getApplication());
         Set<SubscriptionEntity> subscriptions = subscriptionService.findByIdIn(key.getSubscriptions());
-        triggerNotifierService(apiHook, key, application, subscriptions, paramsBuilder);
-    }
-
-    private void triggerNotifierService(ApiHook apiHook, ApiKey key, ApplicationEntity application, Set<SubscriptionEntity> subscriptions) {
-        triggerNotifierService(apiHook, key, application, subscriptions, new NotificationParamsBuilder());
+        triggerNotifierService(executionContext, apiHook, key, application, subscriptions, paramsBuilder);
     }
 
     private void triggerNotifierService(
+        ExecutionContext executionContext,
+        ApiHook apiHook,
+        ApiKey key,
+        ApplicationEntity application,
+        Set<SubscriptionEntity> subscriptions
+    ) {
+        triggerNotifierService(executionContext, apiHook, key, application, subscriptions, new NotificationParamsBuilder());
+    }
+
+    private void triggerNotifierService(
+        ExecutionContext executionContext,
         ApiHook apiHook,
         ApiKey key,
         ApplicationEntity application,
@@ -642,11 +708,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     ) {
         subscriptions.forEach(
             subscription -> {
-                PlanEntity plan = planService.findById(subscription.getPlan());
-                ApiModelEntity api = apiService.findByIdForTemplates(subscription.getApi());
+                PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
+                ApiModelEntity api = apiService.findByIdForTemplates(executionContext, subscription.getApi());
                 PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 Map<String, Object> params = paramsBuilder.application(application).plan(plan).api(api).owner(owner).apikey(key).build();
-                notifierService.trigger(apiHook, api.getId(), params);
+                notifierService.trigger(executionContext, apiHook, api.getId(), params);
             }
         );
     }

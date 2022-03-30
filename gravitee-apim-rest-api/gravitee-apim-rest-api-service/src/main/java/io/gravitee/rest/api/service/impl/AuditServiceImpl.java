@@ -33,7 +33,7 @@ import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -85,15 +85,13 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private ObjectMapper mapper;
 
     @Override
-    public MetadataPage<AuditEntity> search(AuditQuery query) {
+    public MetadataPage<AuditEntity> search(final ExecutionContext executionContext, AuditQuery query) {
         Builder criteria = new Builder().from(query.getFrom()).to(query.getTo());
 
         if (query.isCurrentEnvironmentLogsOnly()) {
-            // FIXME: Rework AuditQuery to remove call to GraviteeContext.getCurrentEnvironment() here
-            criteria.references(Audit.AuditReferenceType.ENVIRONMENT, Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
+            criteria.references(Audit.AuditReferenceType.ENVIRONMENT, Collections.singletonList(executionContext.getEnvironmentId()));
         } else if (query.isCurrentOrganizationLogsOnly()) {
-            // FIXME: Rework AuditQuery to remove call to GraviteeContext.getCurrentOrganization() here
-            criteria.references(Audit.AuditReferenceType.ORGANIZATION, Collections.singletonList(GraviteeContext.getCurrentOrganization()));
+            criteria.references(Audit.AuditReferenceType.ORGANIZATION, Collections.singletonList(executionContext.getOrganizationId()));
         } else if (query.getApiIds() != null && !query.getApiIds().isEmpty()) {
             criteria.references(Audit.AuditReferenceType.API, query.getApiIds());
         } else if (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) {
@@ -111,16 +109,22 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
         List<AuditEntity> content = auditPage.getContent().stream().map(this::convert).collect(Collectors.toList());
 
-        return new MetadataPage<>(content, query.getPage(), query.getSize(), auditPage.getTotalElements(), getMetadata(content));
+        return new MetadataPage<>(
+            content,
+            query.getPage(),
+            query.getSize(),
+            auditPage.getTotalElements(),
+            getMetadata(executionContext, content)
+        );
     }
 
-    private Map<String, String> getMetadata(List<AuditEntity> content) {
+    private Map<String, String> getMetadata(ExecutionContext executionContext, List<AuditEntity> content) {
         Map<String, String> metadata = new HashMap<>();
         for (AuditEntity auditEntity : content) {
             //add user's display name
             String metadataKey = "USER:" + auditEntity.getUser() + ":name";
             try {
-                UserEntity user = userService.findById(auditEntity.getUser());
+                UserEntity user = userService.findById(executionContext, auditEntity.getUser());
                 metadata.put(metadataKey, user.getDisplayName());
             } catch (TechnicalManagementException e) {
                 LOGGER.error("Error finding metadata {}", auditEntity.getUser());
@@ -216,7 +220,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                     break;
                                 case USER:
                                     try {
-                                        UserEntity user = userService.findById(property.getValue());
+                                        UserEntity user = userService.findById(executionContext, property.getValue());
                                         name = user.getDisplayName();
                                     } catch (UserNotFoundException unfe) {
                                         name = property.getValue();
@@ -238,6 +242,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Override
     public void createApiAuditLog(
+        ExecutionContext executionContext,
         String apiId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
@@ -245,11 +250,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         Object oldValue,
         Object newValue
     ) {
-        createAuditLog(Audit.AuditReferenceType.API, apiId, properties, event, createdAt, oldValue, newValue);
+        createAuditLog(executionContext, Audit.AuditReferenceType.API, apiId, properties, event, createdAt, oldValue, newValue);
     }
 
     @Override
     public void createApplicationAuditLog(
+        ExecutionContext executionContext,
         String applicationId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
@@ -257,11 +263,21 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         Object oldValue,
         Object newValue
     ) {
-        createAuditLog(Audit.AuditReferenceType.APPLICATION, applicationId, properties, event, createdAt, oldValue, newValue);
+        createAuditLog(
+            executionContext,
+            Audit.AuditReferenceType.APPLICATION,
+            applicationId,
+            properties,
+            event,
+            createdAt,
+            oldValue,
+            newValue
+        );
     }
 
     @Override
     public void createEnvironmentAuditLog(
+        ExecutionContext executionContext,
         final String environmentId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
@@ -269,11 +285,21 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         Object oldValue,
         Object newValue
     ) {
-        createAuditLog(Audit.AuditReferenceType.ENVIRONMENT, environmentId, properties, event, createdAt, oldValue, newValue);
+        createAuditLog(
+            executionContext,
+            Audit.AuditReferenceType.ENVIRONMENT,
+            environmentId,
+            properties,
+            event,
+            createdAt,
+            oldValue,
+            newValue
+        );
     }
 
     @Override
     public void createOrganizationAuditLog(
+        ExecutionContext executionContext,
         final String organizationId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
@@ -281,12 +307,22 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         Object oldValue,
         Object newValue
     ) {
-        createAuditLog(Audit.AuditReferenceType.ORGANIZATION, organizationId, properties, event, createdAt, oldValue, newValue);
+        createAuditLog(
+            executionContext,
+            Audit.AuditReferenceType.ORGANIZATION,
+            organizationId,
+            properties,
+            event,
+            createdAt,
+            oldValue,
+            newValue
+        );
     }
 
     @Async
     @Override
     public void createAuditLog(
+        ExecutionContext executionContext,
         Audit.AuditReferenceType referenceType,
         String referenceId,
         Map<Audit.AuditProperties, String> properties,
@@ -303,7 +339,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         final String user;
         if (authenticatedUser != null && "token".equals(authenticatedUser.getSource())) {
             user =
-                userService.findById(authenticatedUser.getUsername()).getDisplayName() +
+                userService.findById(executionContext, authenticatedUser.getUsername()).getDisplayName() +
                 " - (using token \"" +
                 authenticatedUser.getSourceId() +
                 "\")";

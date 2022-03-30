@@ -52,7 +52,6 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -226,14 +225,14 @@ public class ApiService_UpdateTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(new UserDetails("username", "", emptyList()));
         SecurityContextHolder.setContext(securityContext);
-        when(userService.findById(any())).thenReturn(new UserEntity());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
 
         when(api.getId()).thenReturn(API_ID);
         when(api.getDefinition())
             .thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
         when(api.getEnvironmentId()).thenReturn("DEFAULT");
 
-        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any()))
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
             .thenReturn("toDecode=decoded-value");
         MembershipEntity primaryOwner = new MembershipEntity();
         primaryOwner.setMemberType(MembershipMemberType.USER);
@@ -267,18 +266,18 @@ public class ApiService_UpdateTest {
     public void shouldUpdate() throws TechnicalException {
         prepareUpdate();
 
-        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
     @Test(expected = ApiNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -300,7 +299,7 @@ public class ApiService_UpdateTest {
         when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
         when(apiRepository.update(any())).thenThrow(TechnicalException.class);
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
     }
 
     @Test(expected = EndpointNameInvalidException.class)
@@ -315,7 +314,7 @@ public class ApiService_UpdateTest {
         when(proxy.getGroups()).thenReturn(singleton(group));
         when(group.getEndpoints()).thenReturn(singleton(mock(Endpoint.class)));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         fail("should throw EndpointNameInvalidException");
     }
@@ -334,7 +333,7 @@ public class ApiService_UpdateTest {
         when(endpoint.getName()).thenReturn("inva:lid");
         when(group.getEndpoints()).thenReturn(singleton(endpoint));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         fail("should throw EndpointNameInvalidException");
     }
@@ -355,7 +354,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getPaths()).thenReturn(paths);
         doThrow(new InvalidDataException()).when(policyService).validatePolicyConfiguration(any(Policy.class));
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         fail("should throw InvalidDataException");
     }
@@ -374,7 +373,7 @@ public class ApiService_UpdateTest {
         //        when(groupService.findByIds(groups)).thenReturn(groupEntitySet);
         when(groupService.findByIds(groups)).thenThrow(GroupsNotFoundException.class);
 
-        apiService.update(API_ID, existingApi);
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         fail("should throw InvalidDataException");
     }
@@ -410,7 +409,8 @@ public class ApiService_UpdateTest {
         po.setReferenceId(API_ID);
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Collections.singletonList(poRoleEntity));
-        when(membershipService.getMembersByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembersByReferencesAndRole(eq(GraviteeContext.getExecutionContext()), any(), any(), any()))
+            .thenReturn(Collections.singleton(po));
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRoleEntity);
     }
 
@@ -426,10 +426,10 @@ public class ApiService_UpdateTest {
                 API_NAME +
                 "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
             );
-        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
     @Test
@@ -444,10 +444,10 @@ public class ApiService_UpdateTest {
                 API_NAME +
                 "\",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
             );
-        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         verify(apiRepository).update(argThat(api -> api.getLabels().size() == 1));
         assertNotNull(apiEntity);
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
     @Test
@@ -470,11 +470,11 @@ public class ApiService_UpdateTest {
                 "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
             );
         when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
-        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -497,11 +497,11 @@ public class ApiService_UpdateTest {
                 "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
             );
         when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
-        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -516,11 +516,11 @@ public class ApiService_UpdateTest {
                 API_NAME +
                 "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}"
             );
-        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = InvalidDataException.class)
@@ -532,8 +532,8 @@ public class ApiService_UpdateTest {
         when(existingApi.getPlans()).thenReturn(asList(plan));
         when(api.getDefinition())
             .thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
-        apiService.update(API_ID, existingApi, true);
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi, true);
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = InvalidDataException.class)
@@ -552,8 +552,8 @@ public class ApiService_UpdateTest {
                 API_NAME +
                 "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"MALICIOUS\", \"status\":\"CLOSED\"}]}"
             );
-        apiService.update(API_ID, existingApi, true);
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi, true);
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -572,8 +572,8 @@ public class ApiService_UpdateTest {
                 API_NAME +
                 "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"MALICIOUS\", \"status\":\"CLOSED\"}]}"
             );
-        apiService.update(API_ID, existingApi, true);
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi, true);
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -592,8 +592,8 @@ public class ApiService_UpdateTest {
                 API_NAME +
                 "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"VALID\", \"status\":\"PUBLISHED\"}]}"
             );
-        apiService.update(API_ID, existingApi, true);
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi, true);
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = TagNotAllowedException.class)
@@ -616,8 +616,8 @@ public class ApiService_UpdateTest {
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any(), any(), any())).thenReturn(emptySet());
-        apiService.update(API_ID, existingApi);
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = TagNotAllowedException.class)
@@ -640,8 +640,8 @@ public class ApiService_UpdateTest {
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("public"));
-        apiService.update(API_ID, existingApi);
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = TagNotAllowedException.class)
@@ -664,8 +664,8 @@ public class ApiService_UpdateTest {
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("private"));
-        apiService.update(API_ID, existingApi);
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = InvalidDataException.class)
@@ -676,11 +676,11 @@ public class ApiService_UpdateTest {
         when(healthCheckService.getSchedule()).thenReturn("**");
         services.put(HealthCheckService.class, healthCheckService);
         when(existingApi.getServices()).thenReturn(services);
-        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -691,12 +691,12 @@ public class ApiService_UpdateTest {
         healthCheckService.setSchedule("1,2 */100 5-8 * * *");
         services.put(HealthCheckService.class, healthCheckService);
         when(existingApi.getServices()).thenReturn(services);
-        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -705,16 +705,16 @@ public class ApiService_UpdateTest {
         // from UNPUBLISHED state
         when(existingApi.getLifecycleState()).thenReturn(UNPUBLISHED);
         when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.PUBLISHED);
-        ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED, apiEntity.getLifecycleState());
         // from CREATED state
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
         when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.PUBLISHED);
-        apiEntity = apiService.update(API_ID, existingApi);
+        apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED, apiEntity.getLifecycleState());
-        verify(notifierService, times(2)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(2)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -722,11 +722,11 @@ public class ApiService_UpdateTest {
         prepareUpdate();
         when(existingApi.getLifecycleState()).thenReturn(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED);
         when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.UNPUBLISHED);
-        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(UNPUBLISHED, apiEntity.getLifecycleState());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -763,10 +763,11 @@ public class ApiService_UpdateTest {
 
         final ReviewEntity reviewEntity = new ReviewEntity();
         reviewEntity.setMessage("Test Review msg");
-        apiService.rejectReview(API_ID, USER_NAME, reviewEntity);
+        apiService.rejectReview(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, reviewEntity);
 
         verify(auditService)
             .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(apiId -> apiId.equals(API_ID)),
                 anyMap(),
                 argThat(Workflow.AuditEvent.API_REVIEW_REJECTED::equals),
@@ -774,14 +775,15 @@ public class ApiService_UpdateTest {
                 any(),
                 any()
             );
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
     public void shouldTraceReviewAsked() throws TechnicalException {
         prepareReviewAuditTest();
 
-        when(roleService.findByScope(RoleScope.API)).thenReturn(Collections.singletonList(mock(RoleEntity.class)));
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Collections.singletonList(mock(RoleEntity.class)));
         final RolePermissionAction[] acls = { RolePermissionAction.UPDATE };
         when(roleService.hasPermission(any(), eq(ApiPermission.REVIEWS), eq(acls))).thenReturn(true);
 
@@ -793,13 +795,14 @@ public class ApiService_UpdateTest {
 
         UserEntity reviewerEntity = mock(UserEntity.class);
         when(reviewerEntity.getEmail()).thenReturn("Reviewer@ema.il");
-        when(userService.findById("reviewerID")).thenReturn(reviewerEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), "reviewerID")).thenReturn(reviewerEntity);
 
         final ReviewEntity reviewEntity = new ReviewEntity();
         reviewEntity.setMessage("Test Review msg");
-        apiService.askForReview(API_ID, USER_NAME, reviewEntity);
+        apiService.askForReview(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, reviewEntity);
         verify(auditService)
             .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(apiId -> apiId.equals(API_ID)),
                 anyMap(),
                 argThat(evt -> Workflow.AuditEvent.API_REVIEW_ASKED.equals(evt)),
@@ -809,6 +812,7 @@ public class ApiService_UpdateTest {
             );
         verify(emailService)
             .sendAsyncEmailNotification(
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(
                     emailNotification ->
                         emailNotification
@@ -816,11 +820,10 @@ public class ApiService_UpdateTest {
                             .equals(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW.getLinkedHook().getTemplate()) &&
                         emailNotification.getTo().length == 1 &&
                         emailNotification.getTo()[0].equals("Reviewer@ema.il")
-                ),
-                any()
+                )
             );
-        verify(roleService).findByScope(RoleScope.API);
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(roleService).findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization());
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -829,9 +832,10 @@ public class ApiService_UpdateTest {
 
         final ReviewEntity reviewEntity = new ReviewEntity();
         reviewEntity.setMessage("Test Review msg");
-        apiService.acceptReview(API_ID, USER_NAME, reviewEntity);
+        apiService.acceptReview(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, reviewEntity);
         verify(auditService)
             .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(apiId -> apiId.equals(API_ID)),
                 anyMap(),
                 argThat(evt -> Workflow.AuditEvent.API_REVIEW_ACCEPTED.equals(evt)),
@@ -839,7 +843,7 @@ public class ApiService_UpdateTest {
                 any(),
                 any()
             );
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     private void prepareReviewAuditTest() throws TechnicalException {
@@ -851,7 +855,7 @@ public class ApiService_UpdateTest {
         when(membershipService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), MembershipReferenceType.API, API_ID))
             .thenReturn(membership);
 
-        when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(mock(UserEntity.class));
 
         final Workflow workflow = new Workflow();
         workflow.setState(WorkflowState.REQUEST_FOR_CHANGES.name());
@@ -861,7 +865,15 @@ public class ApiService_UpdateTest {
     @Test
     public void shouldNotChangeLifecycleStateFromCreatedInReview() throws TechnicalException {
         prepareUpdate();
-        when(parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.API_REVIEW_ENABLED,
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(true);
         final Workflow workflow = new Workflow();
         workflow.setState("IN_REVIEW");
         when(workflowService.findByReferenceAndType(API, API_ID, REVIEW)).thenReturn(singletonList(workflow));
@@ -870,7 +882,7 @@ public class ApiService_UpdateTest {
         assertUpdate(ApiLifecycleState.CREATED, PUBLISHED, true);
         assertUpdate(ApiLifecycleState.CREATED, UNPUBLISHED, true);
         assertUpdate(ApiLifecycleState.CREATED, DEPRECATED, true);
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = AllowOriginNotAllowedException.class)
@@ -890,8 +902,8 @@ public class ApiService_UpdateTest {
                     "/test^"
                 )
             );
-        apiService.update(API_ID, existingApi);
-        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -899,8 +911,8 @@ public class ApiService_UpdateTest {
         prepareUpdate();
         existingApi.getProxy().getCors().setEnabled(true);
         existingApi.getProxy().getCors().setAccessControlAllowOrigin(Collections.singleton("*"));
-        apiService.update(API_ID, existingApi);
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -908,8 +920,8 @@ public class ApiService_UpdateTest {
         prepareUpdate();
         existingApi.getProxy().getCors().setEnabled(true);
         existingApi.getProxy().getCors().setAccessControlAllowOrigin(Collections.singleton("null"));
-        apiService.update(API_ID, existingApi);
-        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     private void assertUpdate(
@@ -921,7 +933,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getLifecycleState()).thenReturn(lifecycleState);
         boolean failed = false;
         try {
-            apiService.update(API_ID, existingApi);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
         } catch (final LifecycleStateChangeNotAllowedException ise) {
             failed = true;
         }

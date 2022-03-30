@@ -25,6 +25,7 @@ import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
@@ -84,7 +85,7 @@ public class TokenAuthenticationFilterTest {
 
         UserEntity user = mock(UserEntity.class);
         when(user.getId()).thenReturn(USER_ID);
-        when(userService.findById(USER_ID)).thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenReturn(user);
 
         filter.doFilter(request, response, filterChain);
 
@@ -135,7 +136,7 @@ public class TokenAuthenticationFilterTest {
         when(token.getReferenceId()).thenReturn(USER_ID);
         when(tokenService.findByToken(TOKEN)).thenReturn(token);
 
-        when(userService.findById(USER_ID)).thenThrow(new UserNotFoundException(USER_ID));
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenThrow(new UserNotFoundException(USER_ID));
 
         filter.doFilter(request, response, filterChain);
 

@@ -33,7 +33,6 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.GroupServiceImpl;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Test;
@@ -81,10 +80,20 @@ public class GroupService_UpdateTest {
         updatedGroupEntity.setSystemInvitation(false);
 
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(Mockito.mock(Group.class)));
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, "DEFAULT", CREATE, UPDATE, DELETE)).thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_GROUP),
+                eq("DEFAULT"),
+                eq(CREATE),
+                eq(UPDATE),
+                eq(DELETE)
+            )
+        )
+            .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
-        groupService.update(GraviteeContext.getCurrentEnvironment(), GROUP_ID, updatedGroupEntity);
+        groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
         verify(groupRepository)
             .update(
@@ -103,8 +112,7 @@ public class GroupService_UpdateTest {
 
         verify(membershipService)
             .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(
                     membershipReference ->
                         membershipReference.getType() == MembershipReferenceType.API && membershipReference.getId() == null
@@ -127,27 +135,22 @@ public class GroupService_UpdateTest {
         );
 
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(Mockito.mock(Group.class)));
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, "DEFAULT", CREATE, UPDATE, DELETE)).thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_GROUP),
+                eq("DEFAULT"),
+                eq(CREATE),
+                eq(UPDATE),
+                eq(DELETE)
+            )
+        )
+            .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
-        groupService.update(GraviteeContext.getCurrentEnvironment(), GROUP_ID, updatedGroupEntity);
+        groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
-        verify(membershipService, never())
-            .deleteReferenceMember(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                any(),
-                any(),
-                any()
-            );
-        verify(membershipService, never())
-            .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                any(),
-                any()
-            );
+        verify(membershipService, never()).deleteReferenceMember(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any());
+        verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
     }
 }

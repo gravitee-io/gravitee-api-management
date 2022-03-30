@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.util.Set;
 
@@ -30,13 +31,20 @@ import java.util.Set;
 public interface ClientRegistrationService {
     Set<ClientRegistrationProviderEntity> findAll();
 
-    ClientRegistrationProviderEntity create(NewClientRegistrationProviderEntity clientRegistrationProvider);
+    ClientRegistrationProviderEntity create(
+        ExecutionContext executionContext,
+        NewClientRegistrationProviderEntity clientRegistrationProvider
+    );
 
-    ClientRegistrationProviderEntity update(String id, UpdateClientRegistrationProviderEntity clientRegistrationProvider);
+    ClientRegistrationProviderEntity update(
+        ExecutionContext executionContext,
+        String id,
+        UpdateClientRegistrationProviderEntity clientRegistrationProvider
+    );
 
     ClientRegistrationProviderEntity findById(String id);
 
-    void delete(String id);
+    void delete(ExecutionContext executionContext, String id);
 
     ClientRegistrationResponse register(NewApplicationEntity application);
 

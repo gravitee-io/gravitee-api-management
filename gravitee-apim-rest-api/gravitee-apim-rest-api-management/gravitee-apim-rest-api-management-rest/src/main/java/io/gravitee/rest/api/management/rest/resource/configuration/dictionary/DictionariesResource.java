@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -75,7 +76,7 @@ public class DictionariesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<DictionaryListItem> getDictionaries() {
         return dictionaryService
-            .findAll()
+            .findAll(GraviteeContext.getExecutionContext())
             .stream()
             .map(
                 dictionaryEntity -> {
@@ -117,7 +118,7 @@ public class DictionariesResource extends AbstractResource {
     public Response createDictionary(
         @Parameter(name = "dictionary", required = true) @Valid @NotNull NewDictionaryEntity newDictionaryEntity
     ) {
-        DictionaryEntity newDictionary = dictionaryService.create(newDictionaryEntity);
+        DictionaryEntity newDictionary = dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionaryEntity);
 
         if (newDictionary != null) {
             return Response.created(this.getLocationHeader(newDictionary.getId())).entity(newDictionary).build();

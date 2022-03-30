@@ -65,7 +65,7 @@ public class TopApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.READ) })
     public List<TopApiEntity> getTopApis() {
-        return topApiService.findAll().stream().peek(addPictureUrl()).collect(toList());
+        return topApiService.findAll(GraviteeContext.getExecutionContext()).stream().peek(addPictureUrl()).collect(toList());
     }
 
     @POST
@@ -83,7 +83,7 @@ public class TopApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.CREATE) })
     public List<TopApiEntity> createTopApi(@Valid @NotNull final NewTopApiEntity topApi) {
-        return topApiService.create(topApi).stream().peek(addPictureUrl()).collect(toList());
+        return topApiService.create(GraviteeContext.getExecutionContext(), topApi).stream().peek(addPictureUrl()).collect(toList());
     }
 
     @PUT
@@ -101,7 +101,7 @@ public class TopApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.UPDATE) })
     public List<TopApiEntity> updateTopApi(@Valid @NotNull final List<UpdateTopApiEntity> topApis) {
-        return topApiService.update(topApis).stream().peek(addPictureUrl()).collect(toList());
+        return topApiService.update(GraviteeContext.getExecutionContext(), topApis).stream().peek(addPictureUrl()).collect(toList());
     }
 
     @Path("{topAPI}")
@@ -115,7 +115,7 @@ public class TopApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.DELETE) })
     public void deleteTopApi(@PathParam("topAPI") String topAPI) {
-        topApiService.delete(topAPI);
+        topApiService.delete(GraviteeContext.getExecutionContext(), topAPI);
     }
 
     private Consumer<TopApiEntity> addPictureUrl() {

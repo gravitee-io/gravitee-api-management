@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
 
@@ -27,39 +28,44 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApiKeyService {
-    ApiKeyEntity generate(ApplicationEntity application, SubscriptionEntity subscription, String customApiKey);
+    ApiKeyEntity generate(
+        ExecutionContext executionContext,
+        ApplicationEntity application,
+        SubscriptionEntity subscription,
+        String customApiKey
+    );
 
-    ApiKeyEntity renew(ApplicationEntity application);
+    ApiKeyEntity renew(ExecutionContext executionContext, ApplicationEntity application);
 
-    ApiKeyEntity renew(SubscriptionEntity subscription);
+    ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription);
 
-    ApiKeyEntity renew(SubscriptionEntity subscription, String customApiKey);
+    ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey);
 
-    void revoke(String keyId, boolean notify);
+    void revoke(ExecutionContext executionContext, String keyId, boolean notify);
 
-    void revoke(ApiKeyEntity apiKeyEntity, boolean notify);
+    void revoke(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, boolean notify);
 
-    ApiKeyEntity reactivate(ApiKeyEntity apiKeyEntity);
+    ApiKeyEntity reactivate(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity);
 
-    List<ApiKeyEntity> findBySubscription(String subscription);
+    List<ApiKeyEntity> findBySubscription(ExecutionContext executionContext, String subscription);
 
-    List<ApiKeyEntity> findByKey(String apiKey);
+    List<ApiKeyEntity> findByKey(ExecutionContext executionContext, String apiKey);
 
-    ApiKeyEntity findById(String keyId);
+    ApiKeyEntity findById(ExecutionContext executionContext, String keyId);
 
-    ApiKeyEntity findByKeyAndApi(String apiKey, String apiId);
+    ApiKeyEntity findByKeyAndApi(ExecutionContext executionContext, String apiKey, String apiId);
 
-    List<ApiKeyEntity> findByApplication(String applicationId);
+    List<ApiKeyEntity> findByApplication(ExecutionContext executionContext, String applicationId);
 
     void delete(String apiKey);
 
-    ApiKeyEntity update(ApiKeyEntity apiKeyEntity);
+    ApiKeyEntity update(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity);
 
-    ApiKeyEntity updateDaysToExpirationOnLastNotification(ApiKeyEntity apiKeyEntity, Integer value);
+    ApiKeyEntity updateDaysToExpirationOnLastNotification(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, Integer value);
 
-    boolean canCreate(String apiKey, SubscriptionEntity subscription);
+    boolean canCreate(ExecutionContext executionContext, String apiKey, SubscriptionEntity subscription);
 
-    boolean canCreate(String apiKey, String apiId, String applicationId);
+    boolean canCreate(ExecutionContext executionContext, String apiKey, String apiId, String applicationId);
 
-    Collection<ApiKeyEntity> search(ApiKeyQuery query);
+    Collection<ApiKeyEntity> search(ExecutionContext executionContext, ApiKeyQuery query);
 }

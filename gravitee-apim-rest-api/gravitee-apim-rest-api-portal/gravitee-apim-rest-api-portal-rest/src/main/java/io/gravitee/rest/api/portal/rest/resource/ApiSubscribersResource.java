@@ -30,6 +30,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.time.Instant;
@@ -68,7 +69,8 @@ public class ApiSubscribersResource extends AbstractResource {
         String currentUser = getAuthenticatedUserOrNull();
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(currentUser, apiQuery);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(executionContext, currentUser, apiQuery);
         Optional<ApiEntity> optionalApi = userApis.stream().filter(a -> a.getId().equals(apiId)).findFirst();
         if (optionalApi.isPresent()) {
             SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
@@ -78,30 +80,25 @@ public class ApiSubscribersResource extends AbstractResource {
 
             ApiEntity api = optionalApi.get();
             if (!api.getPrimaryOwner().getId().equals(currentUser)) {
-                Set<ApplicationListItem> userApplications =
-                    this.applicationService.findByUser(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
-                            currentUser
-                        );
+                Set<ApplicationListItem> userApplications = this.applicationService.findByUser(executionContext, currentUser);
                 if (userApplications == null || userApplications.isEmpty()) {
-                    return createListResponse(Collections.emptyList(), paginationParam);
+                    return createListResponse(executionContext, Collections.emptyList(), paginationParam);
                 }
                 subscriptionQuery.setApplications(userApplications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
             }
 
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(apiId);
 
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery);
+            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
             List<Application> subscribersApplication = subscriptions
                 .stream()
                 .map(SubscriptionEntity::getApplication)
                 .distinct()
-                .map(application -> applicationService.findById(GraviteeContext.getCurrentEnvironment(), application))
-                .map(application -> applicationMapper.convert(application, uriInfo))
+                .map(application -> applicationService.findById(executionContext, application))
+                .map(application -> applicationMapper.convert(executionContext, application, uriInfo))
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());
-            return createListResponse(subscribersApplication, paginationParam);
+            return createListResponse(executionContext, subscribersApplication, paginationParam);
         }
         throw new ApiNotFoundException(apiId);
     }
@@ -136,7 +133,7 @@ public class ApiSubscribersResource extends AbstractResource {
         query.setRootIdentifier(apiId);
 
         try {
-            final TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+            final TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getExecutionContext(), query);
             if (analytics != null) {
                 return analytics.getValues();
             }

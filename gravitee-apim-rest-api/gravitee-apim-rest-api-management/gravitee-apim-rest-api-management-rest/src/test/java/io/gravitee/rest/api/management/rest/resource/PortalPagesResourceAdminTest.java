@@ -106,7 +106,7 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
 
         PageEntity returnedPage = new PageEntity();
         returnedPage.setId("my-beautiful-page");
-        doReturn(returnedPage).when(pageService).createPage(any(), eq(GraviteeContext.getCurrentEnvironment()));
+        doReturn(returnedPage).when(pageService).createPage(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(0).when(pageService).findMaxPortalPageOrder(eq(GraviteeContext.getCurrentEnvironment()));
 
         final Response response = envTarget().request().post(Entity.json(newPageEntity));

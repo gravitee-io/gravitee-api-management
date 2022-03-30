@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,7 @@ public class CockpitIdUpgrader implements Upgrader, Ordered {
     private EnvironmentService environmentService;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         Collection<OrganizationEntity> organizations = organizationService.findAll();
 
         organizations
@@ -47,7 +48,7 @@ public class CockpitIdUpgrader implements Upgrader, Ordered {
                 org -> {
                     UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
                     newOrganization.setCockpitId(org.getId());
-                    organizationService.update(org.getId(), newOrganization);
+                    organizationService.update(executionContext, org.getId(), newOrganization);
                 }
             );
 

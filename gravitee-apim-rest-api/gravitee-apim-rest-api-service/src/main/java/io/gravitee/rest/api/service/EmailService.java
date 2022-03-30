@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -23,7 +23,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 public interface EmailService {
     String[] DEFAULT_MAIL_TO = { "DEFAULT_MAIL_TO" };
 
-    void sendEmailNotification(EmailNotification emailNotification);
+    void sendEmailNotification(ExecutionContext executionContext, EmailNotification emailNotification);
 
-    void sendAsyncEmailNotification(EmailNotification emailNotification, GraviteeContext.ReferenceContext context);
+    void sendAsyncEmailNotification(ExecutionContext executionContext, EmailNotification emailNotification);
 }

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,11 +41,14 @@ public class DefaultApiHeaderUpgrader implements Upgrader, Ordered {
     private ApiHeaderService apiHeaderService;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         // Initialize default headers
-        if (apiHeaderService.findAll(GraviteeContext.getCurrentEnvironment()).size() == 0) {
+        // FIXME: need to iterate on each env...
+        if (apiHeaderService.findAll(executionContext.getEnvironmentId()).size() == 0) {
             logger.info("Create default API Headers configuration for default environment");
-            apiHeaderService.initialize(GraviteeContext.getDefaultEnvironment());
+            apiHeaderService.initialize(
+                new ExecutionContext(executionContext.getOrganizationId(), GraviteeContext.getDefaultEnvironment())
+            );
         }
         return true;
     }

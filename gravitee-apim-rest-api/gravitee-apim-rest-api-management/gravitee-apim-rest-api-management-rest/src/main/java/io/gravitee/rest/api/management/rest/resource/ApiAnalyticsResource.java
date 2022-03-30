@@ -146,7 +146,7 @@ public class ApiAnalyticsResource extends AbstractResource {
 
             query.setAggregations(aggregationList);
         }
-        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeGroupBy(String api, AnalyticsParam analyticsParam) {
@@ -173,6 +173,6 @@ public class ApiAnalyticsResource extends AbstractResource {
 
             query.setGroups(rangeMap);
         }
-        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 }

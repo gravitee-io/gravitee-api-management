@@ -35,6 +35,8 @@ import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
@@ -116,27 +118,28 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String organizationId, String environmentId) {
+    public ApiEntity createWithImportedDefinition(final ExecutionContext executionContext, String apiDefinitionOrURL) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
             // Read the whole input API definition, and recalculate its ID
             ImportApiJsonNode apiJsonNode = recalculateApiDefinitionIds(
-                new ImportApiJsonNode(objectMapper.readTree(apiDefinition)),
-                environmentId
+                executionContext,
+                new ImportApiJsonNode(objectMapper.readTree(apiDefinition))
             );
 
             // check API consistency before import
             checkApiJsonConsistency(apiJsonNode);
 
             // import
-            UpdateApiEntity importedApi = convertToEntity(apiJsonNode.toString(), apiJsonNode, environmentId);
+            UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(
+                executionContext,
                 importedApi,
                 getAuthenticatedUsername(),
                 apiJsonNode.getJsonNode()
             );
-            createOrUpdateApiNestedEntities(createdApiEntity, apiJsonNode, organizationId, environmentId);
-            createPageAndMedia(createdApiEntity, apiJsonNode, environmentId);
+            createOrUpdateApiNestedEntities(executionContext, createdApiEntity, apiJsonNode);
+            createPageAndMedia(executionContext, createdApiEntity, apiJsonNode);
             return createdApiEntity;
         } catch (IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -145,29 +148,32 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public ApiEntity updateWithImportedDefinition(String urlApiId, String apiDefinitionOrURL, String organizationId, String environmentId) {
+    public ApiEntity updateWithImportedDefinition(final ExecutionContext executionContext, String urlApiId, String apiDefinitionOrURL) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
 
         try {
             // Read the whole input API definition, and recalculate its ID
             ImportApiJsonNode apiJsonNode = recalculateApiDefinitionIds(
+                executionContext,
                 new ImportApiJsonNode(objectMapper.readTree(apiDefinition)),
-                environmentId,
                 urlApiId
             );
 
             // ensure user has required permission to update target API
-            if (!isAuthenticated() || !(isAdmin() || permissionService.hasPermission(API_DEFINITION, apiJsonNode.getId(), UPDATE))) {
+            if (
+                !isAuthenticated() ||
+                !(isAdmin() || permissionService.hasPermission(executionContext, API_DEFINITION, apiJsonNode.getId(), UPDATE))
+            ) {
                 throw new ForbiddenAccessException();
             }
 
             // check API consistency before import
-            checkApiJsonConsistency(apiJsonNode, urlApiId, environmentId);
+            checkApiJsonConsistency(executionContext, apiJsonNode, urlApiId);
 
             // import
-            UpdateApiEntity importedApi = convertToEntity(apiJsonNode.toString(), apiJsonNode, environmentId);
-            ApiEntity updatedApiEntity = apiService.update(apiJsonNode.getId(), importedApi);
-            createOrUpdateApiNestedEntities(updatedApiEntity, apiJsonNode, organizationId, environmentId);
+            UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
+            ApiEntity updatedApiEntity = apiService.update(executionContext, apiJsonNode.getId(), importedApi);
+            createOrUpdateApiNestedEntities(executionContext, updatedApiEntity, apiJsonNode);
             return updatedApiEntity;
         } catch (IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -176,12 +182,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public ApiEntity duplicate(
-        final ApiEntity apiEntity,
-        final DuplicateApiEntity duplicateApiEntity,
-        String organizationId,
-        String environmentId
-    ) {
+    public ApiEntity duplicate(ExecutionContext executionContext, final ApiEntity apiEntity, final DuplicateApiEntity duplicateApiEntity) {
         requireNonNull(apiEntity, "Missing ApiEntity");
         final String apiId = apiEntity.getId();
         LOGGER.debug("Duplicate API {}", apiId);
@@ -211,14 +212,22 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 );
         }
 
-        final ApiEntity duplicatedApi = apiService.createWithApiDefinition(newApiEntity, getAuthenticatedUsername(), null);
+        final ApiEntity duplicatedApi = apiService.createWithApiDefinition(
+            executionContext,
+            newApiEntity,
+            getAuthenticatedUsername(),
+            null
+        );
 
         if (!duplicateApiEntity.getFilteredFields().contains("members")) {
             final Set<MembershipEntity> membershipsToDuplicate = membershipService.getMembershipsByReference(
                 io.gravitee.rest.api.model.MembershipReferenceType.API,
                 apiId
             );
-            RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.API);
+            RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(
+                executionContext.getOrganizationId(),
+                RoleScope.API
+            );
             if (primaryOwnerRole != null) {
                 String primaryOwnerRoleId = primaryOwnerRole.getId();
                 membershipsToDuplicate.forEach(
@@ -226,8 +235,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         String roleId = membership.getRoleId();
                         if (!primaryOwnerRoleId.equals(roleId)) {
                             membershipService.addRoleToMemberOnReference(
-                                organizationId,
-                                environmentId,
+                                executionContext,
                                 io.gravitee.rest.api.model.MembershipReferenceType.API,
                                 duplicatedApi.getId(),
                                 membership.getMemberType(),
@@ -241,18 +249,22 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains("pages")) {
-            final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build(), true, environmentId);
-            pageService.duplicatePages(pages, environmentId, duplicatedApi.getId());
+            final List<PageEntity> pages = pageService.search(
+                executionContext.getEnvironmentId(),
+                new PageQuery.Builder().api(apiId).build(),
+                true
+            );
+            pageService.duplicatePages(executionContext, pages, duplicatedApi.getId());
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
             planService
-                .findByApi(apiId)
+                .findByApi(executionContext, apiId)
                 .forEach(
                     plan -> {
                         plan.setId(plansIdsMap.get(plan.getId()));
                         plan.setApi(duplicatedApi.getId());
-                        planService.create(planConverter.toNewPlanEntity(plan, true));
+                        planService.create(executionContext, planConverter.toNewPlanEntity(plan, true));
                     }
                 );
         }
@@ -260,7 +272,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return duplicatedApi;
     }
 
-    private UpdateApiEntity convertToEntity(String apiDefinition, ImportApiJsonNode apiJsonNode, final String environmentId)
+    private UpdateApiEntity convertToEntity(final ExecutionContext executionContext, String apiDefinition, ImportApiJsonNode apiJsonNode)
         throws JsonProcessingException {
         final UpdateApiEntity importedApi = objectMapper
             // because definition could contains other values than the api itself (pages, members)
@@ -280,12 +292,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             Set<String> groupNames = new HashSet<>(importedApi.getGroups());
             importedApi.getGroups().clear();
             for (String name : groupNames) {
-                List<GroupEntity> groupEntities = groupService.findByName(environmentId, name);
+                List<GroupEntity> groupEntities = groupService.findByName(executionContext.getEnvironmentId(), name);
                 GroupEntity group;
                 if (groupEntities.isEmpty()) {
                     NewGroupEntity newGroupEntity = new NewGroupEntity();
                     newGroupEntity.setName(name);
-                    group = groupService.create(environmentId, newGroupEntity);
+                    group = groupService.create(executionContext, newGroupEntity);
                 } else {
                     group = groupEntities.get(0);
                 }
@@ -304,23 +316,23 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return importedApi;
     }
 
-    private void createPageAndMedia(ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode, String environmentId)
+    private void createPageAndMedia(final ExecutionContext executionContext, ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode)
         throws JsonProcessingException {
         for (ImportJsonNode media : apiJsonNode.getMedia()) {
             mediaService.createWithDefinition(createdApiEntity.getId(), media.toString());
         }
 
         List<PageEntity> search = pageService.search(
+            executionContext.getEnvironmentId(),
             new PageQuery.Builder()
                 .api(createdApiEntity.getId())
                 .name(SystemFolderType.ASIDE.folderName())
                 .type(PageType.SYSTEM_FOLDER)
-                .build(),
-            environmentId
+                .build()
         );
 
         if (search.isEmpty()) {
-            pageService.createAsideFolder(createdApiEntity.getId(), environmentId);
+            pageService.createAsideFolder(executionContext, createdApiEntity.getId());
         }
     }
 
@@ -338,31 +350,29 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private void createOrUpdateApiNestedEntities(
+        final ExecutionContext executionContext,
         ApiEntity createdOrUpdatedApiEntity,
-        ImportApiJsonNode apiJsonNode,
-        String organizationId,
-        String environmentId
+        ImportApiJsonNode apiJsonNode
     ) throws IOException {
-        createOrUpdateMembers(createdOrUpdatedApiEntity, apiJsonNode, organizationId, environmentId);
-        createOrUpdatePages(createdOrUpdatedApiEntity, apiJsonNode, environmentId);
-        createOrUpdatePlans(createdOrUpdatedApiEntity, apiJsonNode, environmentId);
-        createOrUpdateMetadata(createdOrUpdatedApiEntity, apiJsonNode);
+        createOrUpdateMembers(executionContext, createdOrUpdatedApiEntity, apiJsonNode);
+        createOrUpdatePages(executionContext, createdOrUpdatedApiEntity, apiJsonNode);
+        createOrUpdatePlans(executionContext, createdOrUpdatedApiEntity, apiJsonNode);
+        createOrUpdateMetadata(executionContext, createdOrUpdatedApiEntity, apiJsonNode);
     }
 
     private void createOrUpdateMembers(
+        final ExecutionContext executionContext,
         ApiEntity createdOrUpdatedApiEntity,
-        ImportApiJsonNode apiJsonNode,
-        String organizationId,
-        String environmentId
+        ImportApiJsonNode apiJsonNode
     ) throws JsonProcessingException {
         if (apiJsonNode.hasMembers()) {
             // get current members of the api
             Set<MemberToImport> membersAlreadyPresent = membershipService
-                .getMembersByReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId())
+                .getMembersByReference(executionContext, MembershipReferenceType.API, createdOrUpdatedApiEntity.getId())
                 .stream()
                 .map(
                     member -> {
-                        UserEntity userEntity = userService.findById(member.getId());
+                        UserEntity userEntity = userService.findById(executionContext, member.getId());
                         return new MemberToImport(
                             userEntity.getSource(),
                             userEntity.getSourceId(),
@@ -373,7 +383,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 )
                 .collect(toSet());
             // get the current PO
-            RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.API);
+            RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
             if (poRole != null) {
                 String poRoleId = poRole.getId();
                 MemberToImport currentPo = membersAlreadyPresent
@@ -395,7 +405,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             rolesToImport = new ArrayList<>();
                             memberToImport.setRoles(rolesToImport);
                         }
-                        Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(RoleScope.API, roleToAdd);
+                        Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(
+                            RoleScope.API,
+                            roleToAdd,
+                            executionContext.getOrganizationId()
+                        );
                         if (optRoleToAddEntity.isPresent()) {
                             rolesToImport.add(optRoleToAddEntity.get().getId());
                         } else {
@@ -441,6 +455,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     ) {
                         try {
                             UserEntity userEntity = userService.findBySource(
+                                executionContext,
                                 memberToImport.getSource(),
                                 memberToImport.getSourceId(),
                                 false
@@ -450,8 +465,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                                 role -> {
                                     try {
                                         membershipService.addRoleToMemberOnReference(
-                                            organizationId,
-                                            environmentId,
+                                            executionContext,
                                             MembershipReferenceType.API,
                                             createdOrUpdatedApiEntity.getId(),
                                             MembershipMemberType.USER,
@@ -492,14 +506,18 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     !(currentPo.getSource().equals(futurePO.getSource()) && currentPo.getSourceId().equals(futurePO.getSourceId()))
                 ) {
                     try {
-                        UserEntity userEntity = userService.findBySource(futurePO.getSource(), futurePO.getSourceId(), false);
+                        UserEntity userEntity = userService.findBySource(
+                            executionContext,
+                            futurePO.getSource(),
+                            futurePO.getSourceId(),
+                            false
+                        );
                         List<RoleEntity> roleEntity = null;
                         if (roleUsedInTransfert != null && !roleUsedInTransfert.isEmpty()) {
                             roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(toList());
                         }
                         membershipService.transferApiOwnership(
-                            organizationId,
-                            environmentId,
+                            executionContext,
                             createdOrUpdatedApiEntity.getId(),
                             new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
                             roleEntity
@@ -510,7 +528,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private void createOrUpdateMetadata(ApiEntity createdOrUpdatedApiEntity, ImportApiJsonNode apiJsonNode) {
+    private void createOrUpdateMetadata(
+        final ExecutionContext executionContext,
+        ApiEntity createdOrUpdatedApiEntity,
+        ImportApiJsonNode apiJsonNode
+    ) {
         try {
             for (ImportJsonNode metadataNode : apiJsonNode.getMetadata()) {
                 UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(
@@ -518,7 +540,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     UpdateApiMetadataEntity.class
                 );
                 updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
-                apiMetadataService.update(updateApiMetadataEntity);
+                apiMetadataService.update(executionContext, updateApiMetadataEntity);
             }
         } catch (Exception ex) {
             LOGGER.error("An error occurs while creating API metadata", ex);
@@ -526,35 +548,41 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private void createOrUpdatePlans(ApiEntity createdOrUpdatedApiEntity, ImportApiJsonNode apiJsonNode, String environmentId)
-        throws IOException {
+    private void createOrUpdatePlans(
+        final ExecutionContext executionContext,
+        ApiEntity createdOrUpdatedApiEntity,
+        ImportApiJsonNode apiJsonNode
+    ) throws IOException {
         if (apiJsonNode.hasPlans()) {
             Map<String, PlanEntity> existingPlans = planService
-                .findByApi(createdOrUpdatedApiEntity.getId())
+                .findByApi(executionContext, createdOrUpdatedApiEntity.getId())
                 .stream()
                 .collect(toMap(PlanEntity::getId, plan -> plan));
 
             List<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
 
-            findRemovedPlansIds(existingPlans.values(), plansToImport).forEach(planService::delete);
+            findRemovedPlansIds(existingPlans.values(), plansToImport).forEach(plan -> planService.delete(executionContext, plan));
 
             plansToImport.forEach(
                 planEntity -> {
                     planEntity.setApi(createdOrUpdatedApiEntity.getId());
-                    planService.createOrUpdatePlan(planEntity, environmentId);
+                    planService.createOrUpdatePlan(executionContext, planEntity);
                 }
             );
         }
     }
 
-    private void createOrUpdatePages(ApiEntity createdOrUpdatedApiEntity, ImportApiJsonNode apiJsonNode, String environmentId)
-        throws JsonProcessingException {
+    private void createOrUpdatePages(
+        final ExecutionContext executionContext,
+        ApiEntity createdOrUpdatedApiEntity,
+        ImportApiJsonNode apiJsonNode
+    ) throws JsonProcessingException {
         if (apiJsonNode.hasPages()) {
             List<PageEntity> pagesList = objectMapper.readValue(
                 apiJsonNode.getPages().toString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
             );
-            pageService.createOrUpdatePages(pagesList, environmentId, createdOrUpdatedApiEntity.getId());
+            pageService.createOrUpdatePages(executionContext, pagesList, createdOrUpdatedApiEntity.getId());
         }
     }
 
@@ -643,14 +671,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return plansToImport;
     }
 
-    private void checkApiJsonConsistency(ImportApiJsonNode apiJsonNode, String urlApiId, String environmentId) {
+    private void checkApiJsonConsistency(final ExecutionContext executionContext, ImportApiJsonNode apiJsonNode, String urlApiId) {
         if (urlApiId != null && !urlApiId.equals(apiJsonNode.getId())) {
             throw new ApiImportException(
                 String.format(
                     "Can't update API [%s] cause crossId [%s] already belongs to another API in environment [%s]",
                     urlApiId,
                     apiJsonNode.getCrossId(),
-                    environmentId
+                    executionContext.getEnvironmentId()
                 )
             );
         }
@@ -686,8 +714,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    protected ImportApiJsonNode recalculateApiDefinitionIds(ImportApiJsonNode apiJsonNode, String environmentId) {
-        return recalculateApiDefinitionIds(apiJsonNode, environmentId, null);
+    protected ImportApiJsonNode recalculateApiDefinitionIds(ExecutionContext executionContext, ImportApiJsonNode apiJsonNode) {
+        return recalculateApiDefinitionIds(executionContext, apiJsonNode, null);
     }
 
     /*
@@ -699,17 +727,21 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
      * If the API definition does not hold a cross ID, the matching entity IDs will be matched using
      * a predictable ID generation based on the target environment ID, the source API ID and the source entity ID
      */
-    protected ImportApiJsonNode recalculateApiDefinitionIds(ImportApiJsonNode apiJsonNode, String environmentId, String urlApiId) {
+    protected ImportApiJsonNode recalculateApiDefinitionIds(
+        ExecutionContext executionContext,
+        ImportApiJsonNode apiJsonNode,
+        String urlApiId
+    ) {
         /*
          * In case of an update, if the API definition ID is the same as the resource ID targeted by the update,
          * we don't apply any kind of ID transformation so that we don't break previous exports that don't hold
          * a cross ID
          */
         if (!apiJsonNode.hasId() || !apiJsonNode.getId().equals(urlApiId)) {
-            findApiByEnvironmentAndCrossId(environmentId, apiJsonNode.getCrossId())
+            findApiByEnvironmentAndCrossId(executionContext.getEnvironmentId(), apiJsonNode.getCrossId())
                 .ifPresentOrElse(
-                    api -> recalculateIdsFromCrossId(apiJsonNode, api),
-                    () -> recalculateIdsFromDefinitionIds(environmentId, apiJsonNode, urlApiId)
+                    api -> recalculateIdsFromCrossId(executionContext, apiJsonNode, api),
+                    () -> recalculateIdsFromDefinitionIds(executionContext.getEnvironmentId(), apiJsonNode, urlApiId)
                 );
         }
         return generateEmptyIds(apiJsonNode);
@@ -719,15 +751,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return crossId == null ? Optional.empty() : apiService.findByEnvironmentIdAndCrossId(environmentId, crossId);
     }
 
-    private void recalculateIdsFromCrossId(ImportApiJsonNode apiJsonNode, ApiEntity api) {
+    private void recalculateIdsFromCrossId(ExecutionContext executionContext, ImportApiJsonNode apiJsonNode, ApiEntity api) {
         apiJsonNode.setId(api.getId());
-        recalculatePlanIdsFromCrossIds(api, apiJsonNode.getPlans());
-        recalculatePageIdsFromCrossIds(api, apiJsonNode.getPages());
+        recalculatePlanIdsFromCrossIds(executionContext, api, apiJsonNode.getPlans());
+        recalculatePageIdsFromCrossIds(executionContext.getEnvironmentId(), api, apiJsonNode.getPages());
     }
 
-    private void recalculatePlanIdsFromCrossIds(ApiEntity api, List<ImportJsonNodeWithIds> plansNodes) {
+    private void recalculatePlanIdsFromCrossIds(ExecutionContext executionContext, ApiEntity api, List<ImportJsonNodeWithIds> plansNodes) {
         Map<String, PlanEntity> plansByCrossId = planService
-            .findByApi(api.getId())
+            .findByApi(executionContext, api.getId())
             .stream()
             .filter(plan -> plan.getCrossId() != null)
             .collect(toMap(PlanEntity::getCrossId, Function.identity()));
@@ -744,9 +776,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             );
     }
 
-    private void recalculatePageIdsFromCrossIds(ApiEntity api, List<ImportJsonNodeWithIds> pagesNodes) {
+    private void recalculatePageIdsFromCrossIds(String environmentId, ApiEntity api, List<ImportJsonNodeWithIds> pagesNodes) {
         Map<String, PageEntity> pagesByCrossId = pageService
-            .findByApi(api.getId())
+            .findByApi(environmentId, api.getId())
             .stream()
             .filter(page -> page.getCrossId() != null)
             .collect(toMap(PageEntity::getCrossId, Function.identity()));

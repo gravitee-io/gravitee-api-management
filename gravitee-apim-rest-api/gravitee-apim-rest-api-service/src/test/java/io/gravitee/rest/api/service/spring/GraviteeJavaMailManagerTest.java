@@ -66,18 +66,31 @@ public class GraviteeJavaMailManagerTest {
         assertNull(graviteeJavaMailManager.getMailSenderByReference(GraviteeContext.getCurrentContext()));
 
         // Initialize the field only when we get the mail sender for the first time.
-        JavaMailSender mailSender = graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        JavaMailSender mailSender = graviteeJavaMailManager.getOrCreateMailSender(
+            GraviteeContext.getExecutionContext(),
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
         assertNotNull(mailSender);
 
         // If we call this getter a second time, then we do not initialize anymore
-        JavaMailSender mailSender2 = graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        JavaMailSender mailSender2 = graviteeJavaMailManager.getOrCreateMailSender(
+            GraviteeContext.getExecutionContext(),
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
         assertSame(mailSender, mailSender2);
 
-        verify(parameterService, times(1)).find(Key.EMAIL_HOST, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        verify(parameterService, times(1)).find(Key.EMAIL_PORT, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        verify(parameterService, times(1)).find(Key.EMAIL_USERNAME, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        verify(parameterService, times(1)).find(Key.EMAIL_PASSWORD, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        verify(parameterService, times(1)).find(Key.EMAIL_PROTOCOL, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_HOST, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PORT, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_USERNAME, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PASSWORD, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PROTOCOL, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1))
             .findAll(
                 argThat(
@@ -87,7 +100,8 @@ public class GraviteeJavaMailManagerTest {
                         o.contains(Key.EMAIL_PROPERTIES_SSL_TRUST)
                 ),
                 eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
+                eq(ParameterReferenceType.ENVIRONMENT),
+                eq(GraviteeContext.getExecutionContext())
             );
     }
 
@@ -95,6 +109,7 @@ public class GraviteeJavaMailManagerTest {
     public void shouldSetFieldsOnEvent() {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender(
+            GraviteeContext.getExecutionContext(),
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );
@@ -123,12 +138,14 @@ public class GraviteeJavaMailManagerTest {
     public void shouldNotSetFieldsOnEventWithAnotherRef() {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender(
+            GraviteeContext.getExecutionContext(),
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );
 
         GraviteeContext.setCurrentEnvironment("ANOTHER_ENVIRONMENT");
         JavaMailSenderImpl otherMailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender(
+            GraviteeContext.getExecutionContext(),
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );

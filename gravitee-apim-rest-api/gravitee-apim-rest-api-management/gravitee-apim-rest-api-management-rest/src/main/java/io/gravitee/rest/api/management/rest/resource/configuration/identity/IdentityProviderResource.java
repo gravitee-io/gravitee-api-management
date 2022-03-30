@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -87,7 +88,7 @@ public class IdentityProviderResource extends AbstractResource {
             required = true
         ) @Valid @NotNull final UpdateIdentityProviderEntity updatedIdentityProvider
     ) {
-        return identityProviderService.update(identityProvider, updatedIdentityProvider);
+        return identityProviderService.update(GraviteeContext.getExecutionContext(), identityProvider, updatedIdentityProvider);
     }
 
     @DELETE
@@ -99,7 +100,7 @@ public class IdentityProviderResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.DELETE) })
     public Response deleteIdentityProvider(@PathParam("identityProvider") String identityProvider) {
-        identityProviderService.delete(identityProvider);
+        identityProviderService.delete(GraviteeContext.getExecutionContext(), identityProvider);
         return Response.noContent().build();
     }
 }

@@ -29,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.time.Instant;
@@ -65,11 +66,8 @@ public class ApplicationSubscribersResource extends AbstractResource {
         @QueryParam("statuses") List<SubscriptionStatus> statuses
     ) {
         String currentUser = getAuthenticatedUserOrNull();
-        Collection<ApplicationListItem> userApplications = applicationService.findByUser(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            currentUser
-        );
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Collection<ApplicationListItem> userApplications = applicationService.findByUser(executionContext, currentUser);
         Optional<ApplicationListItem> optionalApplication = userApplications
             .stream()
             .filter(a -> a.getId().equals(applicationId))
@@ -82,25 +80,25 @@ public class ApplicationSubscribersResource extends AbstractResource {
 
             ApplicationListItem application = optionalApplication.get();
             if (!application.getPrimaryOwner().getId().equals(currentUser)) {
-                Set<ApiEntity> userApis = this.apiService.findPublishedByUser(currentUser);
+                Set<ApiEntity> userApis = this.apiService.findPublishedByUser(executionContext, currentUser);
                 if (userApis == null || userApis.isEmpty()) {
-                    return createListResponse(Collections.emptyList(), paginationParam);
+                    return createListResponse(executionContext, Collections.emptyList(), paginationParam);
                 }
                 subscriptionQuery.setApis(userApis.stream().map(ApiEntity::getId).collect(Collectors.toList()));
             }
 
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(applicationId);
 
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery);
+            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
             List<Api> subscribersApis = subscriptions
                 .stream()
                 .map(SubscriptionEntity::getApi)
                 .distinct()
-                .map(api -> apiService.findById(api))
-                .map(apiMapper::convert)
+                .map(api -> apiService.findById(executionContext, api))
+                .map(api1 -> apiMapper.convert(executionContext, api1))
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());
-            return createListResponse(subscribersApis, paginationParam);
+            return createListResponse(executionContext, subscribersApis, paginationParam);
         }
         throw new ApplicationNotFoundException(applicationId);
     }
@@ -132,7 +130,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
         query.setRootField("application");
         query.setRootIdentifier(applicationId);
 
-        TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getExecutionContext(), query);
         if (analytics != null) {
             return analytics.getValues();
         }
