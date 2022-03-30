@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -99,7 +99,7 @@
         <httpclient.version>4.5.13</httpclient.version>
         <imageio.version>3.8.1</imageio.version>
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
-        <java-jwt.version>3.19.0</java-jwt.version>
+        <java-jwt.version>3.19.1</java-jwt.version>
         <javassist.version>3.28.0-GA</javassist.version>
         <jakarta.validation-api.version>2.0.2</jakarta.validation-api.version>
         <jakarta.annotation-api.version>1.3.5</jakarta.annotation-api.version>
@@ -873,8 +873,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine
-                    >@{argLine} --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED
+                    <argLine>@{argLine} --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED
                         --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens
                         java.base/java.util.stream=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED
                     </argLine>
