@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>
+				%date{yyyy-MM-dd HH:mm:ss.SSS} [%-5p] %c: %m%n
+			</Pattern>
+		</layout>
+	</appender>
+
+	<!-- only gravitee Logs in debug -->
+	<logger name="io.gravitee" level="debug" additivity="false">
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<!-- Root Logger -->
+	<root level="warn">
+		<appender-ref ref="CONSOLE" />
+	</root>
+
+</configuration>

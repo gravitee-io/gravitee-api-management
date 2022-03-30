@@ -1,0 +1,34 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "groups": [
+      {
+        "name": "duplicate",
+        "endpoints": [
+          {
+            "name": "endpoint1",
+            "target": "http://host1:8083/myapi"
+          }
+        ]
+      },
+      {
+        "name": "group2",
+        "endpoints": [
+          {
+            "name": "duplicate",
+            "target": "http://host1:8083/myapi"
+          }
+        ]
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}
