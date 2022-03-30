@@ -93,8 +93,9 @@ $cardIconWidth: 32px;
   }
 
   &__right {
-    width: 24px;
-    align-self: normal;
+    position: absolute;
+    top: 4px;
+    right: 4px;
 
     .error {
       color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');

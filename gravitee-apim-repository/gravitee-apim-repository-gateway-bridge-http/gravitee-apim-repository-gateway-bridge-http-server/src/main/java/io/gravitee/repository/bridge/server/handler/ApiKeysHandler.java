@@ -21,6 +21,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -56,6 +57,33 @@ public class ApiKeysHandler extends AbstractHandler {
             .executeBlocking(
                 promise -> {
                     try {
+                        promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
+                    } catch (TechnicalException te) {
+                        LOGGER.error("Unable to find the API Key", te);
+                        promise.fail(te);
+                    }
+                },
+                (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result)
+            );
+    }
+
+    /**
+     * Bridge clients >= 3.17 will call findByCriteria instead of search
+     * This is kept to ensure 0 downtime suring Gravitee upgrade running a 3.16 bridge client server and a 3.17 bridge server
+     * @deprecated
+     */
+    @Deprecated(since = "3.17.0", forRemoval = true)
+    public void search(RoutingContext ctx) {
+        final JsonObject searchPayload = ctx.getBodyAsJson();
+
+        // Parse criteria
+        final ApiKeyCriteria apiKeyCriteria = readCriteria(searchPayload);
+
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
                         List<io.gravitee.repository.management.model.ApiKey> apiKeys = apiKeyRepository.findByCriteria(apiKeyCriteria);
                         Map<String, Subscription> subscriptionsById = findSubscriptions(apiKeys);
                         promise.complete(
@@ -69,7 +97,7 @@ public class ApiKeysHandler extends AbstractHandler {
                         promise.fail(te);
                     }
                 },
-                (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result)
+                (Handler<AsyncResult<List<DeprecatedApiKey>>>) result -> handleResponse(ctx, result)
             );
     }
 
@@ -94,7 +122,7 @@ public class ApiKeysHandler extends AbstractHandler {
                         promise.fail(te);
                     }
                 },
-                (Handler<AsyncResult<Optional<io.gravitee.repository.management.model.ApiKey>>>) result -> handleResponse(ctx, result)
+                (Handler<AsyncResult<Optional<ApiKey>>>) result -> handleResponse(ctx, result)
             );
     }
 
@@ -129,7 +157,7 @@ public class ApiKeysHandler extends AbstractHandler {
         return subscriptionRepository.findByIdIn(subscriptionIds).stream().collect(toMap(Subscription::getId, Function.identity()));
     }
 
-    private Stream<ApiKey> getApiKeysDefinitionsFromModel(
+    private Stream<DeprecatedApiKey> getApiKeysDefinitionsFromModel(
         io.gravitee.repository.management.model.ApiKey apiKey,
         Map<String, Subscription> subscriptionsById
     ) {
@@ -138,16 +166,16 @@ public class ApiKeysHandler extends AbstractHandler {
             .stream()
             .map(subscriptionsById::get)
             .filter(Objects::nonNull)
-            .map(subscription -> new ApiKey(apiKey, subscription));
+            .map(subscription -> new DeprecatedApiKey(apiKey, subscription));
     }
 
-    static class ApiKey extends io.gravitee.repository.management.model.ApiKey {
+    private static class DeprecatedApiKey extends io.gravitee.repository.management.model.ApiKey {
 
         private final String plan;
         private final String api;
         private final String subscription;
 
-        public ApiKey(io.gravitee.repository.management.model.ApiKey key, Subscription subscription) {
+        public DeprecatedApiKey(io.gravitee.repository.management.model.ApiKey key, Subscription subscription) {
             super(key);
             this.plan = subscription.getPlan();
             this.api = subscription.getApi();

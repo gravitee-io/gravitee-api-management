@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.cache.task;
 
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
 
 import io.gravitee.gateway.handlers.api.definition.ApiKey;
@@ -25,7 +26,10 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.Subscription;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -79,8 +83,11 @@ public abstract class ApiKeyRefresher implements Callable<Result<Boolean>> {
 
     private List<ApiKey> findApiKeys(ApiKeyCriteria criteria) throws TechnicalException {
         List<io.gravitee.repository.management.model.ApiKey> apiKeys = apiKeyRepository.findByCriteria(criteria);
-        Map<String, Subscription> subscriptionsById = findSubscriptions(apiKeys);
+        if (apiKeys.isEmpty()) {
+            return emptyList();
+        }
 
+        Map<String, Subscription> subscriptionsById = findSubscriptions(apiKeys);
         return apiKeys.stream().flatMap(apiKey -> this.getApiKeysDefinitionsFromModel(apiKey, subscriptionsById)).collect(toList());
     }
 

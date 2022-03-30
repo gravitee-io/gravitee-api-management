@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
     slack: circleci/slack@4.4.4
-    secrethub: secrethub/cli@1.1.0
+    keeper: gravitee-io/keeper@0.6.0
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
     artifactory-orb: jfrog/artifactory-orb@1.0.1
@@ -101,13 +101,13 @@ commands:
     prepare-gpg:
         description: Prepare GPG command
         steps:
-            - secrethub/install
+            - keeper/install
             - run:
                   command: |
-                      secrethub read graviteeio/cicd/graviteebot/gpg/armor_format_pub_key -o pub.key
+                      ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_pub_key > pub.key
                       gpg --import pub.key
 
-                      secrethub read graviteeio/cicd/graviteebot/gpg/armor_format_private_key -o private.key
+                      ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key > private.key
                       # Need --batch to be able to import private key
                       gpg --import --batch private.key
 
@@ -146,14 +146,6 @@ parameters:
         type: string
         default: "gravitee-dry-run"
         description: "Maven ID of the Maven profile to use for a dry run ?"
-    secrethub_org:
-        type: string
-        default: "graviteeio"
-        description: "SecretHub Org to use to fetch secrets ?"
-    secrethub_repo:
-        type: string
-        default: "cicd"
-        description: "SecretHub Repo to use to fetch secrets ?"
     s3_bucket_name:
         type: string
         default: ""
@@ -176,11 +168,12 @@ jobs:
         docker:
             - image: cimg/openjdk:11.0
         resource_class: small
-        environment:
-            MAVEN_SETTINGS: "secrethub://graviteeio/cicd/graviteebot/infra/maven/gravitee.settings.xml"
         steps:
             - checkout
-            - secrethub/exec:
+            - keeper/env-export:
+                  secret-url: keeper://zy9yQmXus2_LRA0lkydEkw/custom_field/xml
+                  var-name: MAVEN_SETTINGS
+            - run:
                   command: echo $MAVEN_SETTINGS > .gravitee.settings.xml
             - restore_cache:
                   name: Restore Maven cache for compute-tag job
@@ -232,8 +225,8 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - secrethub/env-export:
-                  secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
+            - keeper/env-export:
+                  secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
                   var-name: SONAR_TOKEN
             - get-apim-version
             - run:
@@ -362,6 +355,12 @@ jobs:
             - setup_remote_docker
             - get-apim-tag
             - get-apim-version
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+                  var-name: AZURE_DOCKER_REGISTRY_USERNAME
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+                  var-name: AZURE_DOCKER_REGISTRY_PASSWORD
             - run:
                   name: Build & Publish Management API and Gateway Docker Image to Azure Registry
                   command: |
@@ -549,6 +548,12 @@ jobs:
                   at: .
             - setup_remote_docker
             - get-apim-tag
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+                  var-name: AZURE_DOCKER_REGISTRY_USERNAME
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+                  var-name: AZURE_DOCKER_REGISTRY_PASSWORD
             - run:
                   name: Build & Publish Web UI Docker Image to Azure Registry
                   command: |
@@ -594,11 +599,15 @@ jobs:
                   at: .
             - webui-install:
                   apim-ui-project: gravitee-apim-console-webui
-            - secrethub/exec:
-                  step-name: Running Chromatic
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
+            - run:
+                  name: Running Chromatic
                   # TODO:
                   #  - Handle npx chromatic command failure, make the job fails
                   #  - Create a new project in Chromatic and update the token
+                  #  - Move CHROMATIC_PROJECT_TOKEN token in keeper instead of env var
                   command: |
                       SB_URL=$(cd gravitee-apim-console-webui && npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-static | grep -o "View your Storybook at https:\/\/[0-9a-z-]*\.chromatic\.com" | grep -o "https:.*")
                       echo "export SB_URL=$SB_URL" >> $BASH_ENV
@@ -640,6 +649,15 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
+                  var-name: AZURE_APPLICATION_ID
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
+                  var-name: AZURE_TENANT
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
+                  var-name: AZURE_APPLICATION_SECRET
             - run:
                   name: Login into Azure Storage and upload dist
                   # TODO:
@@ -661,6 +679,9 @@ jobs:
             class: small
         steps:
             - checkout
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
             - gh/setup
             - run:
                   name: Edit Pull Request Description
@@ -714,6 +735,15 @@ jobs:
             - attach_workspace:
                   at: .
             - get-apim-tag
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
+                  var-name: AZURE_APPLICATION_ID
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
+                  var-name: AZURE_TENANT
+            - keeper/env-export:
+                  secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
+                  var-name: AZURE_APPLICATION_SECRET
             - run:
                   name: Install Kubectl
                   command: |
@@ -802,6 +832,12 @@ jobs:
             - add_ssh_keys:
                   fingerprints:
                       - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+                  var-name: GIT_USER_NAME
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+                  var-name: GIT_USER_EMAIL
             - run:
                   name: Git config
                   command: |
@@ -884,7 +920,12 @@ jobs:
         steps:
             - setup_remote_docker
             - checkout
-            - secrethub/install
+            - keeper/env-export:
+                  secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login
+                  var-name: DOCKERHUB_BOT_USER_NAME
+            - keeper/env-export:
+                  secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
+                  var-name: DOCKERHUB_BOT_USER_TOKEN
             - run:
                   name: "Parse GRAVITEEIO_VERSION to extract major, minor and patch version"
                   command: |
@@ -1075,13 +1116,6 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - test
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   filters:
                       branches:
                           only:
@@ -1100,10 +1134,6 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - Build Console Storybook
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
-                            var-name: GITHUB_TOKEN
             - webui-build:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
@@ -1111,24 +1141,10 @@ workflows:
                       - setup
             - console-webui-deploy-on-azure-storage:
                   context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-id
-                            var-name: AZURE_APPLICATION_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/tenant
-                            var-name: AZURE_TENANT
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-secret
-                            var-name: AZURE_APPLICATION_SECRET
                   requires:
                       - Build APIM Console
             - console-webui-comment-pr-after-deployment:
                   context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
-                            var-name: GITHUB_TOKEN
                   requires:
                       - console-webui-deploy-on-azure-storage
             - webui-publish-images-azure-registry:
@@ -1136,13 +1152,6 @@ workflows:
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   requires:
                       - Build APIM Console
                       - setup
@@ -1178,13 +1187,6 @@ workflows:
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
                   context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
                   requires:
                       - Build APIM Portal
                       - setup
@@ -1195,16 +1197,6 @@ workflows:
                               - /^\d+\.\d+\.x$/
             - deploy-on-azure-cluster:
                   context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-id
-                            var-name: AZURE_APPLICATION_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/tenant
-                            var-name: AZURE_TENANT
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-secret
-                            var-name: AZURE_APPLICATION_SECRET
                   requires:
                       - publish-images-azure-registry
                       - Build and publish APIM Console docker image
@@ -1233,13 +1225,6 @@ workflows:
                   enterprise_edition: false
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM CE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
-                            var-name: DOCKERHUB_BOT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
-                            var-name: DOCKERHUB_BOT_USER_TOKEN
             - publish_prod_docker_images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
                   docker_tag_as_latest: << pipeline.parameters.docker_tag_as_latest >>
@@ -1247,14 +1232,6 @@ workflows:
                   enterprise_edition: true
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-name
-                            var-name: DOCKERHUB_BOT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/infra/dockerhub-user-token
-                            var-name: DOCKERHUB_BOT_USER_TOKEN
-
     release:
         when:
             equal: [release, << pipeline.parameters.gio_action >>]
@@ -1316,13 +1293,6 @@ workflows:
                       - Publish APIM Console to artifactory
                       - Publish APIM Portal to artifactory
                   context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/git/user/name
-                            var-name: GIT_USER_NAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/git/user/email
-                            var-name: GIT_USER_EMAIL
 
     # ---
     # Workflow For APIM Orchestrated Nexus Staging

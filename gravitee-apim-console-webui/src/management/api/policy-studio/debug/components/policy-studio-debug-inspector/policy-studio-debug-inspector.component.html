@@ -54,11 +54,7 @@
             {{ conditionTreeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
           </mat-icon>
         </button>
-        <gv-icon
-          title="Conditional policy"
-          class="policy-studio-debug-inspector__tree-node__condition-icon"
-          shape="design:conditional"
-        ></gv-icon>
+        <mat-icon class="mat-icon-rtl-mirror policy-studio-debug-inspector__tree-node__condition-icon" svgIcon="gio:if"></mat-icon>
         {{ node.name }}
       </mat-tree-node>
     </mat-tree>
