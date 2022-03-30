@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.LogsService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -81,7 +82,7 @@ public class ApplicationLogsResource extends AbstractResource {
         logQuery.setField(param.getField());
         logQuery.setOrder(param.isOrder());
 
-        return logsService.findByApplication(application, logQuery);
+        return logsService.findByApplication(GraviteeContext.getExecutionContext(), application, logQuery);
     }
 
     @GET
@@ -96,7 +97,7 @@ public class ApplicationLogsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public ApplicationRequest getApplicationLog(@PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
-        return logsService.findApplicationLog(logId, timestamp);
+        return logsService.findApplicationLog(GraviteeContext.getExecutionContext(), logId, timestamp);
     }
 
     @GET
@@ -113,7 +114,7 @@ public class ApplicationLogsResource extends AbstractResource {
     public Response exportApplicationLogsAsCSV(@BeanParam LogsParam param) {
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getApplicationLogs(param);
         return Response
-            .ok(logsService.exportAsCsv(searchLogResponse))
+            .ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", application, System.currentTimeMillis()))
             .build();
     }

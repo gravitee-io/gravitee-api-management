@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.net.URI;
 import java.util.*;
@@ -99,7 +100,10 @@ public abstract class AbstractResource {
     }
 
     protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
-        return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, acls));
+        return (
+            isAuthenticated() &&
+            (isAdmin() || permissionService.hasPermission(GraviteeContext.getExecutionContext(), permission, referenceId, acls))
+        );
     }
 
     protected boolean canReadAPIConfiguration() {
@@ -190,7 +194,7 @@ public abstract class AbstractResource {
             final ApiQuery apiQuery = new ApiQuery();
             apiQuery.setGroups(new ArrayList<>(groups));
             apiQuery.setIds(Collections.singletonList(api));
-            final Collection<String> strings = apiService.searchIds(apiQuery);
+            final Collection<String> strings = apiService.searchIds(GraviteeContext.getExecutionContext(), apiQuery);
             final boolean canReadAPI = strings.contains(api);
             if (!canReadAPI) {
                 throw new ForbiddenAccessException();

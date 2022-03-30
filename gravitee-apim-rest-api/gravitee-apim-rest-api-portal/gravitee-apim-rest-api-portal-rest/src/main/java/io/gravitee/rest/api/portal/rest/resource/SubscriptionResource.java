@@ -25,6 +25,7 @@ import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -71,7 +72,7 @@ public class SubscriptionResource extends AbstractResource {
             Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
             if (include.contains(INCLUDE_KEYS)) {
                 List<Key> keys = apiKeyService
-                    .findBySubscription(subscriptionId)
+                    .findBySubscription(GraviteeContext.getExecutionContext(), subscriptionId)
                     .stream()
                     .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
                     .map(keyMapper::convert)
@@ -89,7 +90,7 @@ public class SubscriptionResource extends AbstractResource {
     public Response closeSubscription(@PathParam("subscriptionId") String subscriptionId) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         if (hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.DELETE)) {
-            subscriptionService.close(subscriptionId);
+            subscriptionService.close(GraviteeContext.getExecutionContext(), subscriptionId);
             return Response.noContent().build();
         }
         throw new ForbiddenAccessException();

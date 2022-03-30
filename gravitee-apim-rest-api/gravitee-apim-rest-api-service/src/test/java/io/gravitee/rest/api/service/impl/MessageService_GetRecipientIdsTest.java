@@ -32,7 +32,6 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
-import io.gravitee.rest.api.service.impl.MessageServiceImpl;
 import java.util.*;
 import org.junit.After;
 import org.junit.Before;
@@ -129,10 +128,10 @@ public class MessageService_GetRecipientIdsTest {
 
         messageService.getRecipientsId(GraviteeContext.getExecutionContext(), messageEntity);
 
-        verify(mockGroupService, never()).findById(eq(GraviteeContext.getExecutionContext().getEnvironmentId()), any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, never()).getMembershipsByReferencesAndRole(any(), any(), any());
-        verify(mockRoleService, never()).findByScopeAndName(any(), any());
+        verify(mockRoleService, never()).findByScopeAndName(any(), any(), any());
         verify(mockSubscriptionRepository, never()).search(any());
     }
 
@@ -144,7 +143,8 @@ public class MessageService_GetRecipientIdsTest {
         when(mockMembershipService.getMembershipsByReferenceAndRole(eq(MembershipReferenceType.ENVIRONMENT), eq("DEFAULT"), any()))
             .thenReturn(Collections.singleton(membership));
 
-        when(mockRoleService.findByScopeAndName(RoleScope.ENVIRONMENT, "API_PUBLISHER")).thenReturn(Optional.of(mock(RoleEntity.class)));
+        when(mockRoleService.findByScopeAndName(RoleScope.ENVIRONMENT, "API_PUBLISHER", GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Optional.of(mock(RoleEntity.class)));
 
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setChannel(MessageChannel.MAIL);
@@ -158,10 +158,11 @@ public class MessageService_GetRecipientIdsTest {
         assertNotNull("not null", recipientIds);
         assertEquals("size=1", 1, recipientIds.size());
         assertTrue("user=user-id", recipientIds.contains("user-id"));
-        verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
         verify(mockMembershipService, times(1)).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, never()).getMembershipsByReferencesAndRole(any(), any(), any());
-        verify(mockRoleService, times(1)).findByScopeAndName(RoleScope.ENVIRONMENT, "API_PUBLISHER");
+        verify(mockRoleService, times(1))
+            .findByScopeAndName(RoleScope.ENVIRONMENT, "API_PUBLISHER", GraviteeContext.getCurrentOrganization());
         verify(mockSubscriptionRepository, never()).search(any());
     }
 
@@ -183,10 +184,10 @@ public class MessageService_GetRecipientIdsTest {
 
         messageService.getRecipientsId(GraviteeContext.getExecutionContext(), api, messageEntity);
 
-        verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, never()).getMembershipsByReferencesAndRole(any(), any(), any());
-        verify(mockRoleService, never()).findByScopeAndName(any(), any());
+        verify(mockRoleService, never()).findByScopeAndName(any(), any(), any());
         verify(mockSubscriptionRepository, never()).search(any());
     }
 
@@ -196,7 +197,8 @@ public class MessageService_GetRecipientIdsTest {
         Subscription subscription = new Subscription();
         subscription.setApplication("app-id");
         when(mockSubscriptionRepository.search(any())).thenReturn(Collections.singletonList(subscription));
-        when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER")).thenReturn(Optional.of(mock(RoleEntity.class)));
+        when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER", GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Optional.of(mock(RoleEntity.class)));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setMemberId("user-id");
@@ -228,10 +230,10 @@ public class MessageService_GetRecipientIdsTest {
         assertNotNull("not null", recipientIds);
         assertEquals("size=1", 1, recipientIds.size());
         assertTrue("user=user-id", recipientIds.contains("user-id"));
-        verify(mockGroupService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
+        verify(mockGroupService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, times(1)).getMembershipsByReferencesAndRole(any(), any(), any());
-        verify(mockRoleService, times(1)).findByScopeAndName(RoleScope.APPLICATION, "OWNER");
+        verify(mockRoleService, times(1)).findByScopeAndName(RoleScope.APPLICATION, "OWNER", GraviteeContext.getCurrentOrganization());
         verify(mockSubscriptionRepository, times(1)).search(any());
     }
 
@@ -245,7 +247,8 @@ public class MessageService_GetRecipientIdsTest {
         Subscription subscription = new Subscription();
         subscription.setApplication(app.getId());
         when(mockSubscriptionRepository.search(any())).thenReturn(Collections.singletonList(subscription));
-        when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER")).thenReturn(Optional.of(mock(RoleEntity.class)));
+        when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER", GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Optional.of(mock(RoleEntity.class)));
 
         ApplicationListItem appListItem = new ApplicationListItem();
         appListItem.setId(app.getId());
@@ -294,7 +297,7 @@ public class MessageService_GetRecipientIdsTest {
         assertTrue("user=user-group-id", recipientIds.contains("user-group-id"));
         verify(mockMembershipService, never()).getMembershipsByReferenceAndRole(any(), any(), any());
         verify(mockMembershipService, times(2)).getMembershipsByReferencesAndRole(any(), any(), any());
-        verify(mockRoleService, times(1)).findByScopeAndName(RoleScope.APPLICATION, "OWNER");
+        verify(mockRoleService, times(1)).findByScopeAndName(RoleScope.APPLICATION, "OWNER", GraviteeContext.getCurrentOrganization());
         verify(mockSubscriptionRepository, times(1)).search(any());
     }
 
@@ -304,7 +307,8 @@ public class MessageService_GetRecipientIdsTest {
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setApplication("app-id");
         subscription.setSubscribedBy("user-id");
-        when(subscriptionService.findByApi("api-id")).thenReturn(Collections.singletonList(subscription));
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), "api-id"))
+            .thenReturn(Collections.singletonList(subscription));
 
         MembershipEntity membershipGroup = new MembershipEntity();
         membershipGroup.setId("membership-group-id");

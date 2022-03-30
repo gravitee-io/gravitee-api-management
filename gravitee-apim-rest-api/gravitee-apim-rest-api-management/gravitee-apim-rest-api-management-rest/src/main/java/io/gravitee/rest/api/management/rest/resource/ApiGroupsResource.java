@@ -58,6 +58,6 @@ public class ApiGroupsResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ) })
     public ApiGroupsWithMembersMap getApiGroupsWithMembers() {
-        return new ApiGroupsWithMembersMap(apiService.getGroupsWithMembers(GraviteeContext.getCurrentEnvironment(), apiId));
+        return new ApiGroupsWithMembersMap(apiService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId));
     }
 }

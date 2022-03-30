@@ -24,7 +24,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.VirtualHostService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
 import java.io.IOException;
@@ -67,18 +67,22 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
     private EnvironmentService environmentService;
 
     @Override
-    public Collection<VirtualHost> sanitizeAndValidate(Collection<VirtualHost> virtualHosts, String apiId) {
+    public Collection<VirtualHost> sanitizeAndValidate(
+        ExecutionContext executionContext,
+        Collection<VirtualHost> virtualHosts,
+        String apiId
+    ) {
         // Sanitize virtual hosts
         Collection<VirtualHost> sanitizedVirtualHosts = virtualHosts.stream().map(this::sanitize).collect(Collectors.toList());
 
         // validate domain restrictions
-        validateDomainRestrictions(sanitizedVirtualHosts);
+        validateDomainRestrictions(executionContext, sanitizedVirtualHosts);
 
         // Get all the API of the currentEnvironment, except the one to update
         Set<ApiEntity> apis = apiRepository
             .search(null)
             .stream()
-            .filter(api -> !api.getId().equals(apiId) && api.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
+            .filter(api -> !api.getId().equals(apiId) && api.getEnvironmentId().equals(executionContext.getEnvironmentId()))
             .map(this::convert)
             .collect(Collectors.toSet());
 
@@ -124,8 +128,8 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         return sanitizedVirtualHosts;
     }
 
-    private void validateDomainRestrictions(Collection<VirtualHost> virtualHosts) {
-        final EnvironmentEntity currentEnv = environmentService.findById(GraviteeContext.getCurrentEnvironment());
+    private void validateDomainRestrictions(ExecutionContext executionContext, Collection<VirtualHost> virtualHosts) {
+        final EnvironmentEntity currentEnv = environmentService.findById(executionContext.getEnvironmentId());
         final List<String> domainRestrictions = currentEnv.getDomainRestrictions();
         if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
             for (VirtualHost vHost : virtualHosts) {

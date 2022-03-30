@@ -50,7 +50,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         GroupEntity createdGroup = new GroupEntity();
         createdGroup.setId("my-group-id");
-        doReturn(createdGroup).when(groupService).create(eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(createdGroup).when(groupService).create(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget().request().post(Entity.json(newGroupEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());

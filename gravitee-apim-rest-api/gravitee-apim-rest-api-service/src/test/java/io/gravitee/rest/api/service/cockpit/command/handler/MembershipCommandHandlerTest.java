@@ -34,7 +34,6 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.observers.TestObserver;
 import java.util.List;
@@ -93,8 +92,8 @@ public class MembershipCommandHandlerTest {
         role.setScope(RoleScope.ENVIRONMENT);
         role.setName("ADMIN");
 
-        when(userService.findBySource(COCKPIT_SOURCE, membershipPayload.getUserId(), false)).thenReturn(user);
-        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "ADMIN")).thenReturn(Optional.of(role));
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false))).thenReturn(user);
+        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "ADMIN", "orga#1")).thenReturn(Optional.of(role));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
@@ -112,8 +111,7 @@ public class MembershipCommandHandlerTest {
 
         verify(membershipService)
             .updateRolesToMemberOnReference(
-                eq("orga#1"),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
                 membershipReference.capture(),
                 membershipMember.capture(),
                 membershipRoles.capture(),
@@ -153,8 +151,8 @@ public class MembershipCommandHandlerTest {
         role.setScope(RoleScope.ORGANIZATION);
         role.setName("ADMIN");
 
-        when(userService.findBySource(COCKPIT_SOURCE, membershipPayload.getUserId(), false)).thenReturn(user);
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN")).thenReturn(Optional.of(role));
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false))).thenReturn(user);
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", "orga#1")).thenReturn(Optional.of(role));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
@@ -172,8 +170,7 @@ public class MembershipCommandHandlerTest {
 
         verify(membershipService)
             .updateRolesToMemberOnReference(
-                eq("orga#1"),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
                 membershipReference.capture(),
                 membershipMember.capture(),
                 membershipRoles.capture(),
@@ -213,8 +210,8 @@ public class MembershipCommandHandlerTest {
         role.setScope(RoleScope.ENVIRONMENT);
         role.setName("USER");
 
-        when(userService.findBySource(COCKPIT_SOURCE, membershipPayload.getUserId(), false)).thenReturn(user);
-        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER")).thenReturn(Optional.of(role));
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false))).thenReturn(user);
+        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER", "orga#1")).thenReturn(Optional.of(role));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
@@ -232,8 +229,7 @@ public class MembershipCommandHandlerTest {
 
         verify(membershipService)
             .updateRolesToMemberOnReference(
-                eq("orga#1"),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
                 membershipReference.capture(),
                 membershipMember.capture(),
                 membershipRoles.capture(),
@@ -271,8 +267,7 @@ public class MembershipCommandHandlerTest {
         RoleEntity role = new RoleEntity();
         role.setId(UUID.random().toString());
 
-        when(userService.findBySource(COCKPIT_SOURCE, membershipPayload.getUserId(), false)).thenReturn(user);
-        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "UNKNOWN")).thenReturn(Optional.empty());
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false))).thenReturn(user);
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
@@ -294,7 +289,7 @@ public class MembershipCommandHandlerTest {
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
-        when(userService.findBySource(COCKPIT_SOURCE, membershipPayload.getUserId(), false))
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false)))
             .thenThrow(new UserNotFoundException(membershipPayload.getUserId()));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();

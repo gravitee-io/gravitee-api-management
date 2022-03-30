@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.quality.NewQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -25,9 +26,9 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface QualityRuleService {
-    QualityRuleEntity create(NewQualityRuleEntity newEntity);
-    void delete(String id);
-    QualityRuleEntity update(UpdateQualityRuleEntity updateEntity);
+    QualityRuleEntity create(ExecutionContext executionContext, NewQualityRuleEntity newEntity);
+    void delete(ExecutionContext executionContext, String id);
+    QualityRuleEntity update(ExecutionContext executionContext, UpdateQualityRuleEntity updateEntity);
     QualityRuleEntity findById(String id);
     List<QualityRuleEntity> findAll();
 }

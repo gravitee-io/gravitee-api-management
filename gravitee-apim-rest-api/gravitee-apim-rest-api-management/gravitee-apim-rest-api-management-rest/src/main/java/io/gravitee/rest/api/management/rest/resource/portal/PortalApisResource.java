@@ -95,24 +95,29 @@ public class PortalApisResource extends AbstractResource {
             final Collection<ApiEntity> apis;
             final ApiQuery apiQuery = new ApiQuery();
             if (isAdmin()) {
-                apis = apiService.search(apiQuery);
+                apis = apiService.search(GraviteeContext.getExecutionContext(), apiQuery);
             } else {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
                 if (isAuthenticated()) {
-                    apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, true);
-                } else if (configService.portalLoginForced(GraviteeContext.getCurrentEnvironment())) {
+                    apis = apiService.findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), apiQuery, true);
+                } else if (configService.portalLoginForced(GraviteeContext.getExecutionContext())) {
                     // if portal requires login, this endpoint should hide the APIS even PUBLIC ones
                     return Response.ok().entity(emptyList()).build();
                 } else {
                     apiQuery.setVisibility(PUBLIC);
-                    apis = apiService.search(apiQuery);
+                    apis = apiService.search(GraviteeContext.getExecutionContext(), apiQuery);
                 }
             }
 
             Map<String, Object> filters = new HashMap<>();
             filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
-            return Response.ok().entity(apiService.search(query, filters).stream().map(this::convert).collect(toList())).build();
+            return Response
+                .ok()
+                .entity(
+                    apiService.search(GraviteeContext.getExecutionContext(), query, filters).stream().map(this::convert).collect(toList())
+                )
+                .build();
         } catch (TechnicalException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
         }
@@ -152,8 +157,8 @@ public class PortalApisResource extends AbstractResource {
             apiItem.setVirtualHosts(api.getProxy().getVirtualHosts());
         }
 
-        if (ratingService.isEnabled()) {
-            final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(api.getId());
+        if (ratingService.isEnabled(GraviteeContext.getExecutionContext())) {
+            final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(GraviteeContext.getExecutionContext(), api.getId());
             apiItem.setRate(ratingSummary.getAverageRate());
             apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());
         }

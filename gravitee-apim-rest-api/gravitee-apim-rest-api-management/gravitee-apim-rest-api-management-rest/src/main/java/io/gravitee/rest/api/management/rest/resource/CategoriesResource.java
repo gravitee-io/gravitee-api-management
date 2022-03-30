@@ -64,11 +64,11 @@ public class CategoriesResource extends AbstractCategoryResource {
         // We should find a way to load total API only when necessary (ie. not while editing an API)
         Set<ApiEntity> apis;
         if (isAdmin()) {
-            apis = apiService.findAllByEnvironment(GraviteeContext.getCurrentEnvironment());
+            apis = apiService.findAllByEnvironment(GraviteeContext.getExecutionContext(), GraviteeContext.getCurrentEnvironment());
         } else if (isAuthenticated()) {
-            apis = apiService.findByUser(getAuthenticatedUser(), null, true);
+            apis = apiService.findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), null, true);
         } else {
-            apis = apiService.findByVisibility(Visibility.PUBLIC);
+            apis = apiService.findByVisibility(GraviteeContext.getExecutionContext(), Visibility.PUBLIC);
         }
 
         boolean All = hasPermission(
@@ -100,7 +100,7 @@ public class CategoriesResource extends AbstractCategoryResource {
     @Operation(summary = "Create a category", description = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE) })
     public CategoryEntity createCategory(@Valid @NotNull final NewCategoryEntity category) {
-        return categoryService.create(GraviteeContext.getCurrentEnvironment(), category);
+        return categoryService.create(GraviteeContext.getExecutionContext(), GraviteeContext.getCurrentEnvironment(), category);
     }
 
     @PUT
@@ -112,7 +112,7 @@ public class CategoriesResource extends AbstractCategoryResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE) })
     public List<CategoryEntity> updateCategories(@Valid @NotNull final List<UpdateCategoryEntity> categories) {
-        return categoryService.update(categories);
+        return categoryService.update(GraviteeContext.getExecutionContext(), categories);
     }
 
     @Path("{categoryId}")

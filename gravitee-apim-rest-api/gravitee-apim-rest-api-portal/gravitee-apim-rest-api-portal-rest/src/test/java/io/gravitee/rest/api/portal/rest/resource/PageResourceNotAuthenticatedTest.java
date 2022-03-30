@@ -105,10 +105,8 @@ public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveMetadataCleared() {
-        doReturn(true).when(accessControlService).canAccessApiFromPortal(anyString());
-        doReturn(true)
-            .when(accessControlService)
-            .canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any(PageEntity.class));
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), anyString());
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any(PageEntity.class));
 
         Response anotherResponse = target(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());

@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.observers.TestObserver;
 import java.util.HashMap;
@@ -80,10 +81,11 @@ public class UserCommandHandlerTest {
         additionalInformation.put("info2", "value2");
         userPayload.setAdditionalInformation(additionalInformation);
 
-        when(userService.findBySource("cockpit", sourceId, false)).thenThrow(new UserNotFoundException(sourceId));
+        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenThrow(new UserNotFoundException(sourceId));
 
         when(
             userService.create(
+                any(),
                 argThat(
                     newUser ->
                         newUser.getSourceId().equals(userPayload.getId()) &&
@@ -140,10 +142,11 @@ public class UserCommandHandlerTest {
         customFields.put("info2", "value2");
         existingCockpitUser.setCustomFields(customFields);
 
-        when(userService.findBySource("cockpit", sourceId, false)).thenReturn(existingCockpitUser);
+        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenReturn(existingCockpitUser);
 
         when(
             userService.update(
+                any(),
                 eq("apim_user#1"),
                 argThat(
                     updatedUser ->
@@ -175,8 +178,8 @@ public class UserCommandHandlerTest {
         userPayload.setId(sourceId);
         userPayload.setOrganizationId("orga#1");
 
-        when(userService.findBySource("cockpit", sourceId, false)).thenThrow(new UserNotFoundException(sourceId));
-        when(userService.create(any(NewExternalUserEntity.class), eq(false))).thenThrow(new RuntimeException("fake error"));
+        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenThrow(new UserNotFoundException(sourceId));
+        when(userService.create(any(), any(NewExternalUserEntity.class), eq(false))).thenThrow(new RuntimeException("fake error"));
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
@@ -193,8 +196,8 @@ public class UserCommandHandlerTest {
         userPayload.setId(sourceId);
         userPayload.setOrganizationId("orga#1");
 
-        when(userService.findBySource("cockpit", sourceId, false)).thenReturn(new UserEntity());
-        when(userService.update(any(), any(UpdateUserEntity.class))).thenThrow(new RuntimeException("fake error"));
+        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenReturn(new UserEntity());
+        when(userService.update(any(), any(), any(UpdateUserEntity.class))).thenThrow(new RuntimeException("fake error"));
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 

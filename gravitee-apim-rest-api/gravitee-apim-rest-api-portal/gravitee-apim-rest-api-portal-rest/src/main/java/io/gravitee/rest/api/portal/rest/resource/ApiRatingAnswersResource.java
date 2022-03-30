@@ -27,6 +27,7 @@ import io.gravitee.rest.api.portal.rest.model.RatingAnswerInput;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import java.util.Collection;
@@ -70,15 +71,22 @@ public class ApiRatingAnswersResource extends AbstractResource {
 
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            RatingEntity ratingEntity = ratingService.findById(ratingId);
+            RatingEntity ratingEntity = ratingService.findById(GraviteeContext.getExecutionContext(), ratingId);
             if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
                 NewRatingAnswerEntity ratingAnswerEntity = new NewRatingAnswerEntity();
                 ratingAnswerEntity.setComment(ratingAnswerInput.getComment());
                 ratingAnswerEntity.setRatingId(ratingId);
-                RatingEntity updatedRating = ratingService.createAnswer(ratingAnswerEntity);
-                return Response.status(Status.CREATED).entity(ratingMapper.convert(updatedRating, uriInfo)).build();
+                RatingEntity updatedRating = ratingService.createAnswer(GraviteeContext.getExecutionContext(), ratingAnswerEntity);
+                return Response
+                    .status(Status.CREATED)
+                    .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), updatedRating, uriInfo))
+                    .build();
             }
             throw new RatingNotFoundException(ratingId, apiId);
         }

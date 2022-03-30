@@ -82,7 +82,7 @@ public class ApiHeadersResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.CREATE) })
     public ApiHeaderEntity createApiHeader(@Valid @NotNull final NewApiHeaderEntity newApiHeaderEntity) {
-        return apiHeaderService.create(GraviteeContext.getCurrentEnvironment(), newApiHeaderEntity);
+        return apiHeaderService.create(GraviteeContext.getExecutionContext(), newApiHeaderEntity);
     }
 
     @Path("{id}")

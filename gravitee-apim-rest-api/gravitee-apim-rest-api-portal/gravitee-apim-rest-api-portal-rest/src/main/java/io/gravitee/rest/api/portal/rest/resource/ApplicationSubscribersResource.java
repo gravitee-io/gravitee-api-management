@@ -66,8 +66,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
     ) {
         String currentUser = getAuthenticatedUserOrNull();
         Collection<ApplicationListItem> userApplications = applicationService.findByUser(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             currentUser
         );
         Optional<ApplicationListItem> optionalApplication = userApplications
@@ -82,7 +81,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
 
             ApplicationListItem application = optionalApplication.get();
             if (!application.getPrimaryOwner().getId().equals(currentUser)) {
-                Set<ApiEntity> userApis = this.apiService.findPublishedByUser(currentUser);
+                Set<ApiEntity> userApis = this.apiService.findPublishedByUser(GraviteeContext.getExecutionContext(), currentUser);
                 if (userApis == null || userApis.isEmpty()) {
                     return createListResponse(Collections.emptyList(), paginationParam);
                 }
@@ -91,13 +90,16 @@ public class ApplicationSubscribersResource extends AbstractResource {
 
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(applicationId);
 
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery);
+            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(
+                GraviteeContext.getExecutionContext(),
+                subscriptionQuery
+            );
             List<Api> subscribersApis = subscriptions
                 .stream()
                 .map(SubscriptionEntity::getApi)
                 .distinct()
-                .map(api -> apiService.findById(api))
-                .map(apiMapper::convert)
+                .map(api -> apiService.findById(GraviteeContext.getExecutionContext(), api))
+                .map(api1 -> apiMapper.convert(GraviteeContext.getExecutionContext(), api1))
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());
             return createListResponse(subscribersApis, paginationParam);
@@ -132,7 +134,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
         query.setRootField("application");
         query.setRootIdentifier(applicationId);
 
-        TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getExecutionContext(), query);
         if (analytics != null) {
             return analytics.getValues();
         }

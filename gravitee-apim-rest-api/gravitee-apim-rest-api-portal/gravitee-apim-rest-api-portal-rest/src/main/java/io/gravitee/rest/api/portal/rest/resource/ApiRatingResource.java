@@ -27,6 +27,7 @@ import io.gravitee.rest.api.portal.rest.model.RatingInput;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import java.util.Collection;
@@ -62,12 +63,16 @@ public class ApiRatingResource extends AbstractResource {
         // FIXME: are we sure we need to fetch the api while the permission system alreay allowed the user to delete the rating ?
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            RatingEntity ratingEntity = ratingService.findById(ratingId);
+            RatingEntity ratingEntity = ratingService.findById(GraviteeContext.getExecutionContext(), ratingId);
 
             if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
-                ratingService.delete(ratingId);
+                ratingService.delete(GraviteeContext.getExecutionContext(), ratingId);
                 return Response.status(Status.NO_CONTENT).build();
             }
             throw new RatingNotFoundException(ratingId, apiId);
@@ -89,9 +94,13 @@ public class ApiRatingResource extends AbstractResource {
         }
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            RatingEntity ratingEntity = ratingService.findById(ratingId);
+            RatingEntity ratingEntity = ratingService.findById(GraviteeContext.getExecutionContext(), ratingId);
             if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
                 UpdateRatingEntity rating = new UpdateRatingEntity();
                 rating.setId(ratingId);
@@ -100,9 +109,12 @@ public class ApiRatingResource extends AbstractResource {
                 rating.setTitle(ratingInput.getTitle());
                 rating.setRate(ratingInput.getValue().byteValue());
 
-                RatingEntity updatedRating = ratingService.update(rating);
+                RatingEntity updatedRating = ratingService.update(GraviteeContext.getExecutionContext(), rating);
 
-                return Response.status(Status.OK).entity(ratingMapper.convert(updatedRating, uriInfo)).build();
+                return Response
+                    .status(Status.OK)
+                    .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), updatedRating, uriInfo))
+                    .build();
             }
             throw new RatingNotFoundException(ratingId, apiId);
         }

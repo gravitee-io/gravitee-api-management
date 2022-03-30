@@ -29,6 +29,7 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -67,7 +68,7 @@ public class ApplicationApiKeyModeUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    protected void processOneShotUpgrade() throws Exception {
+    protected void processOneShotUpgrade(ExecutionContext executionContext) throws Exception {
         List<String> apiKeyPlansIds = findAllApiKeyPlansId();
         Map<String, Long> apiKeySubscriptionsCountByApplication = countApiKeySubscriptionsByApplication(apiKeyPlansIds);
 

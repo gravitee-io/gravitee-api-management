@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -59,13 +60,13 @@ public class ApplicationApiKeyResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApplication(@PathParam("apikey") String apikey) {
-        ApiKeyEntity apiKeyEntity = apiKeyService.findById(apikey);
+        ApiKeyEntity apiKeyEntity = apiKeyService.findById(GraviteeContext.getExecutionContext(), apikey);
 
         if (apiKeyEntity.getApplication() == null || !apiKeyEntity.getApplication().getId().equals(application)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'key' parameter does not correspond to the application").build();
         }
 
-        apiKeyService.revoke(apiKeyEntity, true);
+        apiKeyService.revoke(GraviteeContext.getExecutionContext(), apiKeyEntity, true);
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

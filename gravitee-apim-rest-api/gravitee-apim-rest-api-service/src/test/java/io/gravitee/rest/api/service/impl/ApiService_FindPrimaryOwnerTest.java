@@ -33,7 +33,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.NoPrimaryOwnerGroupForUserException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -78,7 +77,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poGroupDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(PO_GROUP_ID, primaryOwner.getId());
         assertEquals("GROUP", primaryOwner.getType());
     }
@@ -91,7 +94,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poGroupDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER_PO_GROUP, primaryOwner.getId());
         assertEquals("GROUP", primaryOwner.getType());
     }
@@ -105,7 +112,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poGroupDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER, primaryOwner.getId());
         assertEquals("USER", primaryOwner.getType());
     }
@@ -118,7 +129,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poUserDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(PO_USER_ID, primaryOwner.getId());
         assertEquals("USER", primaryOwner.getType());
     }
@@ -131,7 +146,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poUserDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER, primaryOwner.getId());
         assertEquals("USER", primaryOwner.getType());
     }
@@ -144,7 +163,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = noPODefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER, primaryOwner.getId());
         assertEquals("USER", primaryOwner.getType());
     }
@@ -157,7 +180,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poGroupDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(PO_GROUP_ID, primaryOwner.getId());
         assertEquals("GROUP", primaryOwner.getType());
     }
@@ -170,7 +197,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poGroupDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER_PO_GROUP, primaryOwner.getId());
         assertEquals("GROUP", primaryOwner.getType());
     }
@@ -183,7 +214,7 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poGroupDefinition();
 
-        apiService.findPrimaryOwner(definition, CURRENT_USER);
+        apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
     }
 
     // GROUP + import with PO User
@@ -195,7 +226,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poUserDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(PO_GROUP_ID, primaryOwner.getId());
         assertEquals("GROUP", primaryOwner.getType());
     }
@@ -209,7 +244,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poUserDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER_PO_GROUP, primaryOwner.getId());
         assertEquals("GROUP", primaryOwner.getType());
     }
@@ -223,7 +262,7 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poUserDefinition();
 
-        apiService.findPrimaryOwner(definition, CURRENT_USER);
+        apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
     }
 
     @Test
@@ -234,7 +273,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poUserDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER_PO_GROUP, primaryOwner.getId());
         assertEquals("GROUP", primaryOwner.getType());
     }
@@ -247,7 +290,7 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poUserDefinition();
 
-        apiService.findPrimaryOwner(definition, CURRENT_USER);
+        apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
     }
 
     // GROUP + import with no PO
@@ -258,7 +301,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = noPODefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER_PO_GROUP, primaryOwner.getId());
         assertEquals("GROUP", primaryOwner.getType());
     }
@@ -270,7 +317,7 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = noPODefinition();
 
-        apiService.findPrimaryOwner(definition, CURRENT_USER);
+        apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
     }
 
     // USER + import with PO GROUP
@@ -281,7 +328,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poGroupDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER, primaryOwner.getId());
         assertEquals("USER", primaryOwner.getType());
     }
@@ -294,7 +345,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poUserDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(PO_USER_ID, primaryOwner.getId());
         assertEquals("USER", primaryOwner.getType());
     }
@@ -307,7 +362,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = poUserDefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER, primaryOwner.getId());
         assertEquals("USER", primaryOwner.getType());
     }
@@ -320,7 +379,11 @@ public class ApiService_FindPrimaryOwnerTest {
 
         JsonNode definition = noPODefinition();
 
-        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(definition, CURRENT_USER);
+        final PrimaryOwnerEntity primaryOwner = apiService.findPrimaryOwner(
+            GraviteeContext.getExecutionContext(),
+            definition,
+            CURRENT_USER
+        );
         assertEquals(CURRENT_USER, primaryOwner.getId());
         assertEquals("USER", primaryOwner.getType());
     }
@@ -343,7 +406,8 @@ public class ApiService_FindPrimaryOwnerTest {
     }
 
     private void setPrimaryOwnerMode(String mode) {
-        when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn(mode);
+        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
+            .thenReturn(mode);
     }
 
     private void addUserInPOGroup(String username, String poGroup) {
@@ -379,21 +443,20 @@ public class ApiService_FindPrimaryOwnerTest {
     private void defineUser(String username) {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(username);
-        when(userService.findById(username)).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), username)).thenReturn(userEntity);
     }
 
     private void defineGroup(String groupId) {
         GroupEntity groupEntity = new GroupEntity();
         groupEntity.setId(groupId);
-        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId)).thenReturn(groupEntity);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), groupId)).thenReturn(groupEntity);
     }
 
     private void setPoUserNonExisting() {
-        when(userService.findById(PO_USER_ID)).thenThrow(new UserNotFoundException(PO_USER_ID));
+        when(userService.findById(GraviteeContext.getExecutionContext(), PO_USER_ID)).thenThrow(new UserNotFoundException(PO_USER_ID));
     }
 
     private void setPoGroupNonExisting() {
-        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), PO_GROUP_ID))
-            .thenThrow(new GroupNotFoundException(PO_GROUP_ID));
+        when(groupService.findById(GraviteeContext.getExecutionContext(), PO_GROUP_ID)).thenThrow(new GroupNotFoundException(PO_GROUP_ID));
     }
 }

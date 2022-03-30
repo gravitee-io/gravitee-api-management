@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -27,27 +28,27 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface RatingService {
-    RatingEntity create(NewRatingEntity rating);
+    RatingEntity create(ExecutionContext executionContext, NewRatingEntity rating);
 
-    RatingEntity createAnswer(NewRatingAnswerEntity answer);
+    RatingEntity createAnswer(ExecutionContext executionContext, NewRatingAnswerEntity answer);
 
-    RatingEntity findById(String id);
+    RatingEntity findById(ExecutionContext executionContext, String id);
 
-    Page<RatingEntity> findByApi(String api, Pageable pageable);
+    Page<RatingEntity> findByApi(ExecutionContext executionContext, String api, Pageable pageable);
 
-    List<RatingEntity> findByApi(String api);
+    List<RatingEntity> findByApi(ExecutionContext executionContext, String api);
 
-    RatingSummaryEntity findSummaryByApi(String api);
+    RatingSummaryEntity findSummaryByApi(ExecutionContext executionContext, String api);
 
-    RatingEntity findByApiForConnectedUser(String api);
+    RatingEntity findByApiForConnectedUser(ExecutionContext executionContext, String api);
 
-    RatingEntity update(UpdateRatingEntity rating);
+    RatingEntity update(ExecutionContext executionContext, UpdateRatingEntity rating);
 
-    void delete(String id);
+    void delete(ExecutionContext executionContext, String id);
 
-    void deleteAnswer(String ratingId, String answerId);
+    void deleteAnswer(ExecutionContext executionContext, String ratingId, String answerId);
 
-    boolean isEnabled();
+    boolean isEnabled(ExecutionContext executionContext);
 
-    Set<String> findReferenceIdsOrderByRate(Collection<String> apis);
+    Set<String> findReferenceIdsOrderByRate(ExecutionContext executionContext, Collection<String> apis);
 }

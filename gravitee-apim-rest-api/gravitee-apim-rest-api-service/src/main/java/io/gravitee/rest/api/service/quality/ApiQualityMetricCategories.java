@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.quality;
 
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -30,7 +31,7 @@ public class ApiQualityMetricCategories implements ApiQualityMetric {
     }
 
     @Override
-    public boolean isValid(ApiEntity api, final String environmentId) {
+    public boolean isValid(ExecutionContext executionContext, ApiEntity api) {
         return api.getCategories() != null && !api.getCategories().isEmpty();
     }
 }

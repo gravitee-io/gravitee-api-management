@@ -122,11 +122,7 @@ public class ApplicationService_FindByUserTest {
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
-        Set<ApplicationListItem> apps = applicationService.findByUser(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            USERNAME
-        );
+        Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
         Assert.assertNotNull(apps);
         Assert.assertFalse("should find app", apps.isEmpty());
@@ -142,11 +138,7 @@ public class ApplicationService_FindByUserTest {
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID), null))
             .thenReturn(Collections.singleton(application));
 
-        Set<ApplicationListItem> apps = applicationService.findByUser(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            USERNAME
-        );
+        Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
         Assert.assertNotNull(apps);
         Assert.assertTrue("should not find app", apps.isEmpty());
@@ -202,11 +194,7 @@ public class ApplicationService_FindByUserTest {
         memberships.add(poGroupApp);
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(memberships);
 
-        Set<ApplicationListItem> apps = applicationService.findByUser(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            USERNAME
-        );
+        Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
         Assert.assertNotNull(apps);
         Assert.assertFalse("should find apps", apps.isEmpty());
@@ -242,8 +230,7 @@ public class ApplicationService_FindByUserTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         Set<ApplicationListItem> apps = applicationService.findByUser(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             USERNAME,
             new SortableImpl("name", true)
         );

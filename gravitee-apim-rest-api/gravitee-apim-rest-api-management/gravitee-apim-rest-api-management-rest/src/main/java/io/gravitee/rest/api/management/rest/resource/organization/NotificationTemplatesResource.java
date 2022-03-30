@@ -21,6 +21,7 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -68,10 +69,14 @@ public class NotificationTemplatesResource extends AbstractResource {
         @Parameter(description = "filter by notification hook") @QueryParam("hook") String hook
     ) {
         if (hook == null || scope == null) {
-            final Set<NotificationTemplateEntity> all = notificationTemplateService.findAll();
+            final Set<NotificationTemplateEntity> all = notificationTemplateService.findAll(GraviteeContext.getCurrentOrganization());
             return Response.ok(all).build();
         } else {
-            final Set<NotificationTemplateEntity> allByHookAndScope = notificationTemplateService.findByHookAndScope(hook, scope);
+            final Set<NotificationTemplateEntity> allByHookAndScope = notificationTemplateService.findByHookAndScope(
+                GraviteeContext.getCurrentOrganization(),
+                hook,
+                scope
+            );
             return Response.ok(allByHookAndScope).build();
         }
     }
@@ -90,7 +95,10 @@ public class NotificationTemplatesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_NOTIFICATION_TEMPLATES, acls = RolePermissionAction.CREATE) })
     public Response createNotificationTemplate(@Valid NotificationTemplateEntity newNotificationTemplateEntity) {
-        final NotificationTemplateEntity createdNotificationTemplate = notificationTemplateService.create(newNotificationTemplateEntity);
+        final NotificationTemplateEntity createdNotificationTemplate = notificationTemplateService.create(
+            GraviteeContext.getExecutionContext(),
+            newNotificationTemplateEntity
+        );
         if (createdNotificationTemplate != null) {
             return Response.ok(createdNotificationTemplate).build();
         }
@@ -141,7 +149,10 @@ public class NotificationTemplatesResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        final NotificationTemplateEntity updatedNotificationTemplate = notificationTemplateService.update(notificationTemplateEntityUpdate);
+        final NotificationTemplateEntity updatedNotificationTemplate = notificationTemplateService.update(
+            GraviteeContext.getExecutionContext(),
+            notificationTemplateEntityUpdate
+        );
         if (updatedNotificationTemplate != null) {
             return Response.ok(updatedNotificationTemplate).build();
         }

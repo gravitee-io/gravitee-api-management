@@ -31,8 +31,8 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
-import io.gravitee.rest.api.service.impl.RoleServiceImpl;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Test;
@@ -80,7 +80,11 @@ public class RoleService_UpdateTest {
             .thenReturn(roleMock);
         when(mockRoleRepository.findById("updated_mock_role")).thenReturn(Optional.of(roleMock));
 
-        RoleEntity entity = roleService.update(updateRoleEntityMock);
+        RoleEntity entity = roleService.update(
+            GraviteeContext.getExecutionContext(),
+            updateRoleEntityMock,
+            GraviteeContext.getCurrentOrganization()
+        );
 
         assertNotNull("no entoty created", entity);
         assertEquals("invalid id", "updated_mock_role", entity.getId());
@@ -102,7 +106,7 @@ public class RoleService_UpdateTest {
 
         when(mockRoleRepository.findById("updated_mock_role")).thenReturn(Optional.empty());
 
-        roleService.update(updateRoleEntityMock);
+        roleService.update(GraviteeContext.getExecutionContext(), updateRoleEntityMock, GraviteeContext.getCurrentOrganization());
 
         fail("should fail because not exists");
     }

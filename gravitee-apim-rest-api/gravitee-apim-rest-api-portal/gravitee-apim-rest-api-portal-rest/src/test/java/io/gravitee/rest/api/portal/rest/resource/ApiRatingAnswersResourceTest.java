@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -52,15 +53,17 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(mockApis)
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         RatingEntity ratingEntity = new RatingEntity();
         ratingEntity.setId(RATING);
         ratingEntity.setApi(API);
         ratingEntity.setComment(RATING);
         ratingEntity.setRate(Integer.valueOf(1).byteValue());
-        doReturn(ratingEntity).when(ratingService).findById(eq(RATING));
-        doReturn(ratingEntity).when(ratingService).createAnswer(any());
+        doReturn(ratingEntity).when(ratingService).findById(eq(GraviteeContext.getExecutionContext()), eq(RATING));
+        doReturn(ratingEntity).when(ratingService).createAnswer(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -130,7 +133,7 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
         rating.setId(RATING);
         rating.setValue(2);
 
-        doReturn(rating).when(ratingMapper).convert(any(), any());
+        doReturn(rating).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
         final Response response = target(API).path("ratings").path(RATING).path("answers").request().post(Entity.json(ratingAnswerInput));
         Rating updatedRatingResponse = response.readEntity(Rating.class);
         assertNotNull(updatedRatingResponse);

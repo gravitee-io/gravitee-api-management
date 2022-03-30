@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.NewEventEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -31,15 +32,22 @@ import java.util.function.Predicate;
  * @author Titouan COMPIEGNE
  */
 public interface EventService {
-    EventEntity findById(String id);
+    EventEntity findById(ExecutionContext executionContext, String id);
 
-    EventEntity create(final Set<String> environments, NewEventEntity event);
+    EventEntity create(ExecutionContext executionContext, final Set<String> environments, NewEventEntity event);
 
-    EventEntity create(final Set<String> environmentsIds, EventType type, String payload, Map<String, String> properties);
+    EventEntity create(
+        ExecutionContext executionContext,
+        final Set<String> environmentsIds,
+        EventType type,
+        String payload,
+        Map<String, String> properties
+    );
 
     void delete(String eventId);
 
     Page<EventEntity> search(
+        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -50,6 +58,7 @@ public interface EventService {
     );
 
     <T> Page<T> search(
+        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -61,6 +70,7 @@ public interface EventService {
     );
 
     <T> Page<T> search(
+        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -72,5 +82,5 @@ public interface EventService {
         final List<String> environmentsIds
     );
 
-    Collection<EventEntity> search(EventQuery query);
+    Collection<EventEntity> search(ExecutionContext executionContext, EventQuery query);
 }

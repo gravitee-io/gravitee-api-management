@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Date;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import java.util.Map;
  */
 public interface AuditService {
     void createApiAuditLog(
+        ExecutionContext executionContext,
         String apiId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
@@ -38,6 +40,7 @@ public interface AuditService {
     );
 
     void createApplicationAuditLog(
+        ExecutionContext executionContext,
         String applicationId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
@@ -47,6 +50,7 @@ public interface AuditService {
     );
 
     void createEnvironmentAuditLog(
+        ExecutionContext executionContext,
         final String environmentId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
@@ -56,6 +60,7 @@ public interface AuditService {
     );
 
     void createOrganizationAuditLog(
+        ExecutionContext executionContext,
         final String organization,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
@@ -65,6 +70,7 @@ public interface AuditService {
     );
 
     void createAuditLog(
+        ExecutionContext executionContext,
         Audit.AuditReferenceType referenceType,
         String referenceId,
         Map<Audit.AuditProperties, String> properties,
@@ -74,5 +80,5 @@ public interface AuditService {
         Object newValue
     );
 
-    MetadataPage<AuditEntity> search(AuditQuery query);
+    MetadataPage<AuditEntity> search(final ExecutionContext executionContext, AuditQuery query);
 }

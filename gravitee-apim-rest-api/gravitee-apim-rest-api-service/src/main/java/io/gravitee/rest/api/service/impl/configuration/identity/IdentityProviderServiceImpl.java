@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.configuration.identity.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
@@ -63,7 +64,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     private IdentityProviderActivationService identityProviderActivationService;
 
     @Override
-    public IdentityProviderEntity create(NewIdentityProviderEntity newIdentityProviderEntity) {
+    public IdentityProviderEntity create(ExecutionContext executionContext, NewIdentityProviderEntity newIdentityProviderEntity) {
         try {
             LOGGER.debug("Create identity provider {}", newIdentityProviderEntity);
 
@@ -75,7 +76,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             }
 
             IdentityProvider identityProvider = convert(newIdentityProviderEntity);
-            identityProvider.setOrganizationId(GraviteeContext.getCurrentOrganization());
+            identityProvider.setOrganizationId(executionContext.getOrganizationId());
 
             // If provider is a social type, we must ensure required parameters
             if (identityProvider.getType() == IdentityProviderType.GOOGLE || identityProvider.getType() == IdentityProviderType.GITHUB) {
@@ -89,15 +90,17 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             IdentityProvider createdIdentityProvider = identityProviderRepository.create(identityProvider);
 
             identityProviderActivationService.activateIdpOnTargets(
+                executionContext,
                 createdIdentityProvider.getId(),
                 new IdentityProviderActivationService.ActivationTarget(
-                    GraviteeContext.getCurrentOrganization(),
+                    executionContext.getOrganizationId(),
                     IdentityProviderActivationReferenceType.ORGANIZATION
                 )
             );
 
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentOrganization(),
+                executionContext,
+                executionContext.getOrganizationId(),
                 singletonMap(IDENTITY_PROVIDER, createdIdentityProvider.getId()),
                 IdentityProvider.AuditEvent.IDENTITY_PROVIDER_CREATED,
                 createdIdentityProvider.getUpdatedAt(),
@@ -113,7 +116,11 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     }
 
     @Override
-    public IdentityProviderEntity update(String id, UpdateIdentityProviderEntity updateIdentityProvider) {
+    public IdentityProviderEntity update(
+        ExecutionContext executionContext,
+        String id,
+        UpdateIdentityProviderEntity updateIdentityProvider
+    ) {
         try {
             LOGGER.debug("Update identity provider {}", updateIdentityProvider);
 
@@ -124,7 +131,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             }
 
             //TODO: Find a way to validate mapping expression
-            IdentityProvider identityProvider = convert(updateIdentityProvider);
+            IdentityProvider identityProvider = convert(executionContext, updateIdentityProvider);
 
             final IdentityProvider idpToUpdate = optIdentityProvider.get();
             identityProvider.setId(id);
@@ -136,7 +143,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             // Audit
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentOrganization(),
+                executionContext,
+                executionContext.getOrganizationId(),
                 singletonMap(IDENTITY_PROVIDER, id),
                 IdentityProvider.AuditEvent.IDENTITY_PROVIDER_UPDATED,
                 identityProvider.getUpdatedAt(),
@@ -170,7 +178,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     }
 
     @Override
-    public void delete(String id) {
+    public void delete(ExecutionContext executionContext, String id) {
         try {
             LOGGER.debug("Delete identity provider: {}", id);
 
@@ -183,7 +191,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             identityProviderRepository.delete(id);
 
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentOrganization(),
+                executionContext,
+                executionContext.getOrganizationId(),
                 Collections.singletonMap(IDENTITY_PROVIDER, id),
                 IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DELETED,
                 new Date(),
@@ -191,7 +200,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                 null
             );
 
-            identityProviderActivationService.deactivateIdpOnAllTargets(id);
+            identityProviderActivationService.deactivateIdpOnAllTargets(executionContext, id);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete an identity provider using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete an identity provider using its ID " + id, ex);
@@ -214,10 +223,10 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     }
 
     @Override
-    public Set<IdentityProviderEntity> findAll() {
+    public Set<IdentityProviderEntity> findAll(ExecutionContext executionContext) {
         try {
             return identityProviderRepository
-                .findAllByOrganizationId(GraviteeContext.getCurrentOrganization())
+                .findAllByOrganizationId(executionContext.getOrganizationId())
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
@@ -338,7 +347,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         return identityProviderEntity;
     }
 
-    private IdentityProvider convert(UpdateIdentityProviderEntity updateIdentityProvider) {
+    private IdentityProvider convert(ExecutionContext executionContext, UpdateIdentityProviderEntity updateIdentityProvider) {
         IdentityProvider identityProvider = new IdentityProvider();
 
         identityProvider.setName(updateIdentityProvider.getName());
@@ -382,7 +391,11 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                                         .forEach(
                                             organizationRoleName -> {
                                                 // Ensure that the role is existing
-                                                roleService.findByScopeAndName(RoleScope.ORGANIZATION, organizationRoleName);
+                                                roleService.findByScopeAndName(
+                                                    RoleScope.ORGANIZATION,
+                                                    organizationRoleName,
+                                                    executionContext.getOrganizationId()
+                                                );
                                                 lstRoles.add(
                                                     io.gravitee.repository.management.model.RoleScope.ORGANIZATION.name() +
                                                     ":" +
@@ -399,7 +412,11 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                                                 // Ensure that the role is existing
                                                 environmentRoles.forEach(
                                                     environmentRoleName -> {
-                                                        roleService.findByScopeAndName(RoleScope.ENVIRONMENT, environmentRoleName);
+                                                        roleService.findByScopeAndName(
+                                                            RoleScope.ENVIRONMENT,
+                                                            environmentRoleName,
+                                                            executionContext.getOrganizationId()
+                                                        );
                                                         lstRoles.add(
                                                             io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() +
                                                             ":" +

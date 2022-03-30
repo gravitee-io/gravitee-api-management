@@ -66,7 +66,7 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
 
         ApiMetadataEntity createdMetadata = new ApiMetadataEntity();
         createdMetadata.setKey("my-metadata-id");
-        when(apiMetadataService.create(any())).thenReturn(createdMetadata);
+        when(apiMetadataService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdMetadata);
 
         final Response response = envTarget().path(API).path("metadata").request().post(Entity.json(newMetadata));
         assertEquals(CREATED_201, response.getStatus());
@@ -74,7 +74,7 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
             envTarget().path(API).path("metadata").path("my-metadata-id").getUri().toString(),
             response.getHeaders().getFirst(HttpHeaders.LOCATION)
         );
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
     @Test
@@ -83,6 +83,6 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
 
         Response response = envTarget().path(API).path("metadata").path(metadata).request().delete();
         assertEquals(NO_CONTENT_204, response.getStatus());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 }

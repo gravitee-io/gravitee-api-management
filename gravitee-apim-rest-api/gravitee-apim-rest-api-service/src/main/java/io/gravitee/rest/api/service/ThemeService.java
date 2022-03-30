@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.theme.NewThemeEntity;
 import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.model.theme.UpdateThemeEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
 /**
@@ -26,16 +27,16 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ThemeService {
-    Set<ThemeEntity> findAll();
-    ThemeEntity findById(String themeId);
-    ThemeEntity create(NewThemeEntity theme);
-    ThemeEntity update(UpdateThemeEntity theme);
-    void delete(String themeId);
-    ThemeEntity findEnabled();
-    ThemeEntity resetToDefaultTheme(String themeId);
-    PictureEntity getLogo(String themeId);
-    PictureEntity getOptionalLogo(String themeId);
-    PictureEntity getBackgroundImage(String themeId);
-    void updateDefaultTheme();
-    PictureEntity getFavicon(String themeId);
+    Set<ThemeEntity> findAll(final ExecutionContext executionContext);
+    ThemeEntity findById(final ExecutionContext executionContext, String themeId);
+    ThemeEntity create(final ExecutionContext executionContext, NewThemeEntity theme);
+    ThemeEntity update(final ExecutionContext executionContext, UpdateThemeEntity theme);
+    void delete(final ExecutionContext executionContext, String themeId);
+    ThemeEntity findEnabled(final ExecutionContext executionContext);
+    ThemeEntity resetToDefaultTheme(final ExecutionContext executionContext, String themeId);
+    PictureEntity getLogo(final ExecutionContext executionContext, String themeId);
+    PictureEntity getOptionalLogo(final ExecutionContext executionContext, String themeId);
+    PictureEntity getBackgroundImage(final ExecutionContext executionContext, String themeId);
+    void updateDefaultTheme(final ExecutionContext executionContext);
+    PictureEntity getFavicon(final ExecutionContext executionContext, String themeId);
 }

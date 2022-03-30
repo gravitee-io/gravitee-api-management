@@ -80,7 +80,7 @@ public class ApiMembersResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApiMembersPermissions() {
-        final ApiEntity apiEntity = apiService.findById(api);
+        final ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), api);
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String userId = getAuthenticatedUser();
@@ -90,7 +90,7 @@ public class ApiMembersResource extends AbstractResource {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                permissions = membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), apiEntity, userId);
+                permissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), apiEntity, userId);
             }
         }
         return Response.ok(permissions).build();
@@ -110,9 +110,9 @@ public class ApiMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ) })
     public List<MembershipListItem> getApiMembers() {
-        apiService.findById(api);
+        apiService.findById(GraviteeContext.getExecutionContext(), api);
         return membershipService
-            .getMembersByReference(MembershipReferenceType.API, api)
+            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, api)
             .stream()
             .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
             .map(MembershipListItem::new)
@@ -136,7 +136,7 @@ public class ApiMembersResource extends AbstractResource {
             throw new SinglePrimaryOwnerException(RoleScope.API);
         }
 
-        apiService.findById(api);
+        apiService.findById(GraviteeContext.getExecutionContext(), api);
 
         MembershipService.MembershipReference reference = new MembershipService.MembershipReference(MembershipReferenceType.API, api);
         MembershipService.MembershipMember member = new MembershipService.MembershipMember(
@@ -149,30 +149,18 @@ public class ApiMembersResource extends AbstractResource {
         MemberEntity membership = null;
         if (apiMembership.getId() != null) {
             MemberEntity userMember = membershipService.getUserMember(
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.API,
                 api,
                 apiMembership.getId()
             );
             if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
                 membership =
-                    membershipService.updateRoleToMemberOnReference(
-                        GraviteeContext.getCurrentOrganization(),
-                        GraviteeContext.getCurrentEnvironment(),
-                        reference,
-                        member,
-                        role
-                    );
+                    membershipService.updateRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
             }
         }
         if (membership == null) {
-            membershipService.addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                reference,
-                member,
-                role
-            );
+            membershipService.addRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
         }
 
         return Response.status(Response.Status.CREATED).build();
@@ -191,14 +179,15 @@ public class ApiMembersResource extends AbstractResource {
         List<RoleEntity> newRoles = new ArrayList<>();
 
         if (transferOwnership.getPoRole() != null) {
-            roleService.findByScopeAndName(RoleScope.API, transferOwnership.getPoRole()).ifPresent(newRoles::add);
+            roleService
+                .findByScopeAndName(RoleScope.API, transferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
+                .ifPresent(newRoles::add);
         }
 
-        apiService.findById(api);
+        apiService.findById(GraviteeContext.getExecutionContext(), api);
 
         membershipService.transferApiOwnership(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             api,
             new MembershipService.MembershipMember(
                 transferOwnership.getId(),
@@ -217,16 +206,15 @@ public class ApiMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteApiMember(@Parameter(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
-        apiService.findById(api);
+        apiService.findById(GraviteeContext.getExecutionContext(), api);
         try {
-            userService.findById(userId);
+            userService.findById(GraviteeContext.getExecutionContext(), userId);
         } catch (UserNotFoundException unfe) {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
         membershipService.deleteReferenceMember(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             MembershipReferenceType.API,
             api,
             MembershipMemberType.USER,

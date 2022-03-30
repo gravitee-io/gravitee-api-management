@@ -64,7 +64,7 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<DateHistogramQuery> queryCaptor = ArgumentCaptor.forClass(DateHistogramQuery.class);
-        Mockito.verify(analyticsService).execute(eq(GraviteeContext.getCurrentOrganization()), queryCaptor.capture());
+        Mockito.verify(analyticsService).execute(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture());
         final DateHistogramQuery query = queryCaptor.getValue();
         assertEquals(0, query.getFrom());
         assertEquals(100, query.getTo());
@@ -97,7 +97,7 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<GroupByQuery> queryCaptor = ArgumentCaptor.forClass(GroupByQuery.class);
-        Mockito.verify(analyticsService).execute(eq(GraviteeContext.getCurrentOrganization()), queryCaptor.capture());
+        Mockito.verify(analyticsService).execute(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture());
         final GroupByQuery query = queryCaptor.getValue();
         assertEquals(0, query.getFrom());
         assertEquals(100, query.getTo());

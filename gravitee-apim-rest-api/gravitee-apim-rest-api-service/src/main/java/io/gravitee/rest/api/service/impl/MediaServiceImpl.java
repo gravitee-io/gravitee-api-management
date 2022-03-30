@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.security.MessageDigest;
@@ -157,8 +158,8 @@ public class MediaServiceImpl implements MediaService {
     }
 
     @Override
-    public Long getMediaMaxSize(final String environmentId) {
-        return Long.valueOf(configService.getPortalSettings(environmentId).getPortal().getUploadMedia().getMaxSizeInOctet());
+    public Long getMediaMaxSize(final ExecutionContext executionContext) {
+        return Long.valueOf(configService.getPortalSettings(executionContext).getPortal().getUploadMedia().getMaxSizeInOctet());
     }
 
     @Override

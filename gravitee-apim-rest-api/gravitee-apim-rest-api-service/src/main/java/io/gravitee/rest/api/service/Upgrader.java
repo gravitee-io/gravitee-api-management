@@ -15,12 +15,14 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.rest.api.service.common.ExecutionContext;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface Upgrader {
-    boolean upgrade();
+    boolean upgrade(ExecutionContext executionContext);
 
     int getOrder();
 }

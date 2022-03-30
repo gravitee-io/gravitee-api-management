@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -136,12 +137,14 @@ public class Api1_25VersionSerializer extends ApiSerializer {
         if (!filteredFieldsList.contains("members")) {
             Set<MemberEntity> memberEntities = applicationContext
                 .getBean(MembershipService.class)
-                .getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
+                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiEntity.getId());
             List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
             if (memberEntities != null) {
                 memberEntities.forEach(
                     m -> {
-                        UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
+                        UserEntity userEntity = applicationContext
+                            .getBean(UserService.class)
+                            .findById(GraviteeContext.getExecutionContext(), m.getId());
                         if (userEntity != null) {
                             Member member = new Member();
                             member.setRole(m.getRoles().get(0).getName());
@@ -157,7 +160,9 @@ public class Api1_25VersionSerializer extends ApiSerializer {
 
         //plans
         if (!filteredFieldsList.contains("plans")) {
-            Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
+            Set<PlanEntity> plans = applicationContext
+                .getBean(PlanService.class)
+                .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
             Set<PlanEntityBefore_3_00> plansToAdd = plans == null
                 ? Collections.emptySet()
                 : plans

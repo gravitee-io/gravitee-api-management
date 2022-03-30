@@ -71,7 +71,7 @@ public class GroupResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public GroupEntity getGroup() {
-        return groupService.findById(GraviteeContext.getCurrentEnvironment(), group);
+        return groupService.findById(GraviteeContext.getExecutionContext(), group);
     }
 
     @DELETE
@@ -81,7 +81,7 @@ public class GroupResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE) })
     public Response deleteGroup() {
         checkRights();
-        groupService.delete(GraviteeContext.getCurrentEnvironment(), group);
+        groupService.delete(GraviteeContext.getExecutionContext(), group);
         return Response.noContent().build();
     }
 
@@ -106,6 +106,7 @@ public class GroupResource extends AbstractResource {
         // check if user is a 'simple group admin' or a platform admin
         if (
             !permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
                 RolePermission.ENVIRONMENT_GROUP,
                 GraviteeContext.getCurrentEnvironment(),
                 CREATE,
@@ -125,7 +126,7 @@ public class GroupResource extends AbstractResource {
                 updateGroupEntity.getRoles().put(RoleScope.APPLICATION, groupEntity.getRoles().get(RoleScope.APPLICATION));
             }
         }
-        return groupService.update(GraviteeContext.getCurrentEnvironment(), group, updateGroupEntity);
+        return groupService.update(GraviteeContext.getExecutionContext(), group, updateGroupEntity);
     }
 
     @GET
@@ -157,7 +158,7 @@ public class GroupResource extends AbstractResource {
     public GroupEntity addGroupMember(@QueryParam("type") String type) {
         final GroupEntity groupEntity = checkRights();
 
-        groupService.associate(group, type);
+        groupService.associate(GraviteeContext.getExecutionContext(), group, type);
 
         return groupEntity;
     }

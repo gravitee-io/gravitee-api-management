@@ -56,7 +56,7 @@ public class RoleUserResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.DELETE) })
     public void deleteRoleForUser(@PathParam("scope") RoleScope scope, @PathParam("role") String role, @PathParam("userId") String userId) {
-        final Optional<RoleEntity> roleToRemove = roleService.findByScopeAndName(scope, role);
+        final Optional<RoleEntity> roleToRemove = roleService.findByScopeAndName(scope, role, GraviteeContext.getCurrentOrganization());
         if (roleToRemove.isPresent()) {
             String roleId = roleToRemove.get().getId();
             if (RoleScope.ORGANIZATION.equals(scope)) {

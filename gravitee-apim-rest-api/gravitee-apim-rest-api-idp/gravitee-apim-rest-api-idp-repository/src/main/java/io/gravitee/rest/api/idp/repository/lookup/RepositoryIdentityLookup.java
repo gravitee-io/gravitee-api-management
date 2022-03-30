@@ -22,6 +22,7 @@ import io.gravitee.rest.api.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.rest.api.idp.repository.lookup.spring.RepositoryIdentityLookupConfiguration;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -49,7 +50,14 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     @Override
     public io.gravitee.rest.api.idp.api.identity.User retrieve(IdentityReference identityReference) {
         try {
-            return new RepositoryUser(userService.findBySource(identityReference.getSource(), identityReference.getReference(), false));
+            return new RepositoryUser(
+                userService.findBySource(
+                    GraviteeContext.getExecutionContext(),
+                    identityReference.getSource(),
+                    identityReference.getReference(),
+                    false
+                )
+            );
         } catch (UserNotFoundException te) {
             LOGGER.error("Unexpected error while looking for a user with id " + identityReference.getReference(), te);
         }
@@ -75,7 +83,7 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     @Override
     public Collection<User> search(String query) {
         return userService
-            .search(query, new PageableImpl(1, 20))
+            .search(GraviteeContext.getExecutionContext(), query, new PageableImpl(1, 20))
             .getContent()
             .stream()
             .map(RepositoryUser::new)

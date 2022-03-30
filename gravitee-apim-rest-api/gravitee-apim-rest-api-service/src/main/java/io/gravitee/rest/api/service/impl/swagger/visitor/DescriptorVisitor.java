@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.visitor;
 
+import io.gravitee.rest.api.service.common.ExecutionContext;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface DescriptorVisitor<T, D> extends Visitor {
-    T visit(D descriptor);
+    T visit(ExecutionContext executionContext, D descriptor);
 }

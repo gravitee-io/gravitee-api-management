@@ -28,8 +28,9 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.Collections;
@@ -102,7 +103,7 @@ public class PageService_UpdateTest {
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenReturn(page1);
 
-        pageService.update(PAGE_ID, existingPage);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId"), PAGE_ID, existingPage);
 
         verify(pageRepository).update(argThat(pageToUpdate -> PAGE_ID.equals(pageToUpdate.getId()) && pageToUpdate.getUpdatedAt() != null));
 
@@ -120,7 +121,7 @@ public class PageService_UpdateTest {
         when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
         when(page1.getContent()).thenReturn("some");
         when(existingPage.getContent()).thenReturn("awesome");
-        pageService.update(PAGE_ID, existingPage);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId"), PAGE_ID, existingPage);
 
         verify(pageRepository).update(argThat(pageToUpdate -> PAGE_ID.equals(pageToUpdate.getId()) && pageToUpdate.getUpdatedAt() != null));
 
@@ -137,7 +138,7 @@ public class PageService_UpdateTest {
         when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
         when(page1.getReferenceId()).thenReturn("envId");
         when(existingPage.getName()).thenReturn("awesome");
-        pageService.update(PAGE_ID, existingPage);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId"), PAGE_ID, existingPage);
 
         verify(pageRepository).update(argThat(pageToUpdate -> PAGE_ID.equals(pageToUpdate.getId()) && pageToUpdate.getUpdatedAt() != null));
 
@@ -158,7 +159,7 @@ public class PageService_UpdateTest {
         when(page1.getVisibility()).thenReturn("PUBLIC");
         when(existingPage.getName()).thenReturn("awesome");
         when(existingPage.getVisibility()).thenReturn(Visibility.PUBLIC);
-        pageService.update(PAGE_ID, existingPage);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId"), PAGE_ID, existingPage);
 
         verify(pageRepository).update(argThat(pageToUpdate -> PAGE_ID.equals(pageToUpdate.getId()) && pageToUpdate.getUpdatedAt() != null));
 
@@ -200,7 +201,7 @@ public class PageService_UpdateTest {
         updatePageEntity.setOrder(2);
         updatePageEntity.setVisibility(Visibility.PUBLIC);
 
-        pageService.update(PAGE_ID, updatePageEntity);
+        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
         verify(pageRepository, times(4))
             .update(
@@ -257,7 +258,7 @@ public class PageService_UpdateTest {
         updatePageEntity.setOrder(1);
         updatePageEntity.setVisibility(Visibility.PUBLIC);
 
-        pageService.update("3", updatePageEntity);
+        pageService.update(GraviteeContext.getExecutionContext(), "3", updatePageEntity);
 
         verify(pageRepository, times(4))
             .update(
@@ -284,7 +285,7 @@ public class PageService_UpdateTest {
     public void shouldNotUpdateBecauseNotExists() throws TechnicalException {
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.empty());
 
-        pageService.update(PAGE_ID, existingPage);
+        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 
         verify(pageRepository, never()).update(any());
     }
@@ -296,7 +297,7 @@ public class PageService_UpdateTest {
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenThrow(TechnicalException.class);
 
-        pageService.update(PAGE_ID, existingPage);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId"), PAGE_ID, existingPage);
 
         verify(pageRepository, never()).update(any());
     }
@@ -329,7 +330,7 @@ public class PageService_UpdateTest {
         updatedPage.setVisibility("PUBLIC");
         doReturn(updatedPage).when(pageRepository).update(any());
 
-        pageService.update(PAGE_ID, updatePageEntity);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"), PAGE_ID, updatePageEntity);
 
         verify(pageRepository).update(argThat(p -> p.isPublished() == linkPage.isPublished()));
         verify(pageRevisionService, times(0)).create(any());
@@ -410,7 +411,7 @@ public class PageService_UpdateTest {
         updatedPage.setVisibility("PUBLIC");
         doReturn(updatedPage).when(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID)));
 
-        pageService.update(PAGE_ID, updatePageEntity);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"), PAGE_ID, updatePageEntity);
         // neither content nor name are updated
         verify(pageRevisionService, times(0)).create(any());
 
@@ -439,7 +440,7 @@ public class PageService_UpdateTest {
         updateTranslation.setConfiguration(new HashMap<String, String>());
         updateTranslation.setOrder(1);
 
-        pageService.update("TRANSLATION_ID", updateTranslation);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"), "TRANSLATION_ID", updateTranslation);
     }
 
     @Test(expected = PageActionException.class)
@@ -465,7 +466,7 @@ public class PageService_UpdateTest {
         updateTranslation.setParentId("SYS_FOLDER");
         updateTranslation.setOrder(1);
 
-        pageService.update("TRANSLATION_ID", updateTranslation);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"), "TRANSLATION_ID", updateTranslation);
     }
 
     @Test(expected = PageActionException.class)
@@ -491,7 +492,7 @@ public class PageService_UpdateTest {
         updateTranslation.setParentId("ROOT");
         updateTranslation.setOrder(1);
 
-        pageService.update("TRANSLATION_ID", updateTranslation);
+        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"), "TRANSLATION_ID", updateTranslation);
     }
 
     @Test(expected = PageContentUnsafeException.class)
@@ -504,10 +505,10 @@ public class PageService_UpdateTest {
         when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
         when(page1.getReferenceId()).thenReturn(API_ID);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean()))
             .thenReturn(content);
 
-        pageService.update(PAGE_ID, existingPage);
+        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 
         verify(pageRepository, never()).update(any());
     }
@@ -525,10 +526,10 @@ public class PageService_UpdateTest {
 
         when(pageRepository.update(any())).thenReturn(page1);
 
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean()))
             .thenThrow(new TemplateProcessingException(new TemplateException(null)));
 
-        pageService.update(PAGE_ID, existingPage);
+        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 
         verify(pageRepository).update(any());
     }
@@ -573,12 +574,12 @@ public class PageService_UpdateTest {
         PlanEntity plan = mock(PlanEntity.class);
         when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
         when(plan.getStatus()).thenReturn(planStatus);
-        when(planService.findByApi(API_ID)).thenReturn(Sets.newSet(plan));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newSet(plan));
 
-        pageService.update(PAGE_ID, updatePageEntity);
+        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
         verify(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID) && !p.isPublished()));
-        verify(planService).findByApi(argThat(p -> p.equals(API_ID)));
+        verify(planService).findByApi(eq(GraviteeContext.getExecutionContext()), argThat(p -> p.equals(API_ID)));
     }
 
     @Test(expected = PageUsedByCategoryException.class)
@@ -601,9 +602,9 @@ public class PageService_UpdateTest {
 
         when(categoryService.findByPage(PAGE_ID)).thenReturn(Collections.singletonList(new CategoryEntity()));
 
-        pageService.update(PAGE_ID, updatePageEntity);
+        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(planService).findByApi(argThat(p -> p.equals(API_ID)));
+        verify(planService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
@@ -636,10 +637,10 @@ public class PageService_UpdateTest {
         PlanEntity plan = mock(PlanEntity.class);
         when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
         when(plan.getStatus()).thenReturn(planStatus);
-        when(planService.findByApi(API_ID)).thenReturn(Sets.newSet(plan));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newSet(plan));
 
-        pageService.update(PAGE_ID, updatePageEntity);
+        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(planService).findByApi(argThat(p -> p.equals(API_ID)));
+        verify(planService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
     }
 }

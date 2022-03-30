@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,7 @@ public class DefaultInstallationUpgrader implements Upgrader, Ordered {
     private InstallationService installationService;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         final InstallationEntity installation = installationService.getOrInitialize();
         logger.info("Current installation id is [{}]", installation.getId());
         return true;

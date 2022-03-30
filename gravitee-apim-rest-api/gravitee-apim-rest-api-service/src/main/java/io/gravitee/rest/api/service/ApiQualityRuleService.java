@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.quality.ApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.NewApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateApiQualityRuleEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -26,6 +27,6 @@ import java.util.List;
  */
 public interface ApiQualityRuleService {
     List<ApiQualityRuleEntity> findByApi(String api);
-    ApiQualityRuleEntity create(NewApiQualityRuleEntity newEntity);
-    ApiQualityRuleEntity update(UpdateApiQualityRuleEntity updateEntity);
+    ApiQualityRuleEntity create(ExecutionContext executionContext, NewApiQualityRuleEntity newEntity);
+    ApiQualityRuleEntity update(ExecutionContext executionContext, UpdateApiQualityRuleEntity updateEntity);
 }

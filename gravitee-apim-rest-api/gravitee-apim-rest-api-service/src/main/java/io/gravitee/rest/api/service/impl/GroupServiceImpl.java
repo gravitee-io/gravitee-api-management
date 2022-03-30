@@ -39,7 +39,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -108,10 +108,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     private ApiConverter apiConverter;
 
     @Override
-    public List<GroupEntity> findAll(final String environmentId) {
+    public List<GroupEntity> findAll(ExecutionContext executionContext) {
         try {
             logger.debug("Find all groups");
-            Set<Group> all = groupRepository.findAllByEnvironment(environmentId);
+            Set<Group> all = groupRepository.findAllByEnvironment(executionContext.getEnvironmentId());
             logger.debug("Find all groups - DONE");
             final List<GroupEntity> groups = all
                 .stream()
@@ -119,12 +119,25 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toList());
 
-            populateGroupFlags(groups);
+            populateGroupFlags(executionContext, groups);
 
-            if (permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, environmentId, CREATE, UPDATE, DELETE)) {
+            if (
+                permissionService.hasPermission(
+                    executionContext,
+                    RolePermission.ENVIRONMENT_GROUP,
+                    executionContext.getEnvironmentId(),
+                    CREATE,
+                    UPDATE,
+                    DELETE
+                )
+            ) {
                 groups.forEach(groupEntity -> groupEntity.setManageable(true));
             } else {
-                Optional<RoleEntity> optGroupAdminSystemRole = roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name());
+                Optional<RoleEntity> optGroupAdminSystemRole = roleService.findByScopeAndName(
+                    RoleScope.GROUP,
+                    SystemRole.ADMIN.name(),
+                    executionContext.getOrganizationId()
+                );
                 if (optGroupAdminSystemRole.isPresent()) {
                     List<String> groupIds = membershipService
                         .getMembershipsByMemberAndReferenceAndRole(
@@ -163,9 +176,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
     }
 
-    private void populateGroupFlags(final List<GroupEntity> groups) {
+    private void populateGroupFlags(ExecutionContext executionContext, final List<GroupEntity> groups) {
         RoleEntity apiPORole = roleService
-            .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+            .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
             .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
 
         groups.forEach(
@@ -207,21 +220,22 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public GroupEntity create(final String environmentId, NewGroupEntity group) {
+    public GroupEntity create(ExecutionContext executionContext, NewGroupEntity group) {
         try {
             logger.debug("create {}", group);
-            if (!this.findByName(environmentId, group.getName()).isEmpty()) {
+            if (!this.findByName(executionContext.getEnvironmentId(), group.getName()).isEmpty()) {
                 throw new GroupNameAlreadyExistsException(group.getName());
             }
             Group newGroup = this.map(group);
             newGroup.setId(UuidString.generateRandom());
-            newGroup.setEnvironmentId(environmentId);
+            newGroup.setEnvironmentId(executionContext.getEnvironmentId());
             newGroup.setCreatedAt(new Date());
             newGroup.setUpdatedAt(newGroup.getCreatedAt());
             GroupEntity grp = this.map(groupRepository.create(newGroup));
             // Audit
             auditService.createEnvironmentAuditLog(
-                environmentId,
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(GROUP, newGroup.getId()),
                 GROUP_CREATED,
                 newGroup.getCreatedAt(),
@@ -237,11 +251,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public GroupEntity update(final String environmentId, String groupId, UpdateGroupEntity group) {
+    public GroupEntity update(ExecutionContext executionContext, String groupId, UpdateGroupEntity group) {
         try {
             logger.debug("update {}", group);
-            GroupEntity updatedGroupEntity = this.findById(environmentId, groupId);
-            Group previousGroup = this.map(updatedGroupEntity, environmentId);
+            GroupEntity updatedGroupEntity = this.findById(executionContext, groupId);
+            Group previousGroup = this.map(updatedGroupEntity, executionContext.getEnvironmentId());
             updatedGroupEntity.setName(group.getName());
             updatedGroupEntity.setUpdatedAt(new Date());
             updatedGroupEntity.setEventRules(group.getEventRules());
@@ -252,14 +266,15 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             updatedGroupEntity.setEmailInvitation(group.isEmailInvitation());
             updatedGroupEntity.setDisableMembershipNotifications(group.isDisableMembershipNotifications());
 
-            Group updatedGroup = this.map(updatedGroupEntity, environmentId);
+            Group updatedGroup = this.map(updatedGroupEntity, executionContext.getEnvironmentId());
             GroupEntity grp = this.map(groupRepository.update(updatedGroup));
             logger.debug("update {} - DONE", grp);
 
-            updateDefaultRoles(groupId, updatedGroupEntity.getRoles(), group.getRoles());
+            updateDefaultRoles(executionContext, groupId, updatedGroupEntity.getRoles(), group.getRoles());
 
             // Audit
             auditService.createEnvironmentAuditLog(
+                executionContext,
                 updatedGroup.getEnvironmentId(),
                 Collections.singletonMap(GROUP, groupId),
                 GROUP_UPDATED,
@@ -267,7 +282,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 previousGroup,
                 updatedGroup
             );
-            return findById(environmentId, groupId);
+            return findById(executionContext, groupId);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to update a group";
             logger.error(error, ex);
@@ -275,8 +290,12 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
     }
 
-    private void updateDefaultRoles(String groupId, Map<RoleScope, String> formerRoles, Map<RoleScope, String> newRoles)
-        throws TechnicalException {
+    private void updateDefaultRoles(
+        ExecutionContext executionContext,
+        String groupId,
+        Map<RoleScope, String> formerRoles,
+        Map<RoleScope, String> newRoles
+    ) throws TechnicalException {
         RoleScope[] groupRoleScopes = { RoleScope.API, RoleScope.APPLICATION };
         for (RoleScope roleScope : groupRoleScopes) {
             if (
@@ -291,7 +310,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     )
                 )
             ) {
-                removeOldDefaultRole(groupId, MembershipReferenceType.valueOf(roleScope.name()));
+                removeOldDefaultRole(executionContext, groupId, MembershipReferenceType.valueOf(roleScope.name()));
             }
 
             if (
@@ -300,26 +319,18 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 !SystemRole.PRIMARY_OWNER.name().equals(newRoles.get(roleScope)) &&
                 (formerRoles == null || (formerRoles != null && !newRoles.get(roleScope).equals(formerRoles.get(roleScope))))
             ) {
-                addNewDefaultRole(groupId, newRoles.get(roleScope), roleScope);
+                addNewDefaultRole(executionContext, groupId, newRoles.get(roleScope), roleScope);
             }
         }
     }
 
-    private void removeOldDefaultRole(String groupId, MembershipReferenceType referenceType) {
-        membershipService.deleteReferenceMember(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            referenceType,
-            null,
-            MembershipMemberType.GROUP,
-            groupId
-        );
+    private void removeOldDefaultRole(ExecutionContext executionContext, String groupId, MembershipReferenceType referenceType) {
+        membershipService.deleteReferenceMember(executionContext, referenceType, null, MembershipMemberType.GROUP, groupId);
     }
 
-    private void addNewDefaultRole(String groupId, String newRole, RoleScope roleScope) {
+    private void addNewDefaultRole(ExecutionContext executionContext, String groupId, String newRole, RoleScope roleScope) {
         membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            executionContext,
             new MembershipService.MembershipReference(MembershipReferenceType.valueOf(roleScope.name()), null),
             new MembershipService.MembershipMember(groupId, null, MembershipMemberType.GROUP),
             new MembershipService.MembershipRole(roleScope, newRole)
@@ -327,7 +338,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public GroupEntity findById(final String environmentId, String groupId) {
+    public GroupEntity findById(ExecutionContext executionContext, String groupId) {
         try {
             logger.debug("findById {}", groupId);
             Optional<Group> group = groupRepository.findById(groupId);
@@ -337,10 +348,23 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.debug("findById {} - DONE", group.get());
             GroupEntity groupEntity = this.map(group.get());
 
-            if (permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, environmentId, CREATE, UPDATE, DELETE)) {
+            if (
+                permissionService.hasPermission(
+                    executionContext,
+                    RolePermission.ENVIRONMENT_GROUP,
+                    executionContext.getEnvironmentId(),
+                    CREATE,
+                    UPDATE,
+                    DELETE
+                )
+            ) {
                 groupEntity.setManageable(true);
             } else {
-                Optional<RoleEntity> optGroupAdminSystemRole = roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name());
+                Optional<RoleEntity> optGroupAdminSystemRole = roleService.findByScopeAndName(
+                    RoleScope.GROUP,
+                    SystemRole.ADMIN.name(),
+                    executionContext.getOrganizationId()
+                );
                 if (optGroupAdminSystemRole.isPresent()) {
                     List<String> groupIds = membershipService
                         .getMembershipsByMemberAndReferenceAndRole(
@@ -364,7 +388,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public void associate(String groupId, String associationType) {
+    public void associate(final ExecutionContext executionContext, String groupId, String associationType) {
         try {
             if ("api".equalsIgnoreCase(associationType)) {
                 apiRepository
@@ -381,7 +405,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                                     api.getGroups().add(groupId);
                                     try {
                                         apiRepository.update(api);
-                                        triggerUpdateNotification(api);
+                                        triggerUpdateNotification(executionContext, api);
                                     } catch (TechnicalException e) {
                                         e.printStackTrace();
                                     }
@@ -472,7 +496,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public void delete(final String environmentId, String groupId) {
+    public void delete(ExecutionContext executionContext, String groupId) {
         try {
             logger.debug("delete {}", groupId);
             Optional<Group> group = groupRepository.findById(groupId);
@@ -481,7 +505,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
 
             RoleEntity apiPORole = roleService
-                .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+                .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
 
             final long apiCount = membershipService
@@ -498,24 +522,19 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
 
             //remove all members
-            membershipService.deleteReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipReferenceType.GROUP,
-                groupId
-            );
+            membershipService.deleteReference(executionContext, MembershipReferenceType.GROUP, groupId);
 
             //remove all applications or apis
             Date updatedDate = new Date();
             apiRepository
-                .search(new ApiCriteria.Builder().environmentId(environmentId).groups(groupId).build())
+                .search(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build())
                 .forEach(
                     api -> {
                         api.getGroups().remove(groupId);
                         api.setUpdatedAt(updatedDate);
                         try {
                             apiRepository.update(api);
-                            triggerUpdateNotification(api);
+                            triggerUpdateNotification(executionContext, api);
                         } catch (TechnicalException ex) {
                             logger.error("An error occurs while trying to delete a group", ex);
                             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
@@ -561,7 +580,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             // Audit
             auditService.createEnvironmentAuditLog(
-                environmentId,
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(GROUP, groupId),
                 GROUP_DELETED,
                 new Date(),
@@ -881,24 +901,23 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public void deleteUserFromGroup(final String environmentId, String groupId, String username) {
+    public void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username) {
         //check if user exist
-        this.userService.findById(username);
+        this.userService.findById(executionContext, username);
 
         eventManager.publishEvent(
             ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
             new ApplicationAlertMembershipEvent(Collections.emptySet(), Collections.singleton(groupId))
         );
         membershipService.deleteReferenceMember(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            executionContext,
             MembershipReferenceType.GROUP,
             groupId,
             MembershipMemberType.USER,
             username
         );
 
-        GroupEntity existingGroup = this.findById(environmentId, groupId);
+        GroupEntity existingGroup = this.findById(executionContext, groupId);
         if (existingGroup.getApiPrimaryOwner() != null && existingGroup.getApiPrimaryOwner().equals(username)) {
             updateApiPrimaryOwner(groupId, username);
         }
@@ -916,9 +935,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public int getNumberOfMembers(String groupId) {
+    public int getNumberOfMembers(ExecutionContext executionContext, String groupId) {
         return (
-            membershipService.getMembersByReference(MembershipReferenceType.GROUP, groupId).size() +
+            membershipService.getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId).size() +
             invitationService.findByReference(InvitationReferenceType.GROUP, groupId).size()
         );
     }
@@ -939,12 +958,13 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
     }
 
-    private void triggerUpdateNotification(Api api) {
+    private void triggerUpdateNotification(ExecutionContext executionContext, Api api) {
         ApiEntity apiEntity = apiConverter.toApiEntity(api);
         notifierService.trigger(
+            executionContext,
             ApiHook.API_UPDATED,
             api.getId(),
-            new NotificationParamsBuilder().api(apiEntity).user(userService.findById(getAuthenticatedUsername())).build()
+            new NotificationParamsBuilder().api(apiEntity).user(userService.findById(executionContext, getAuthenticatedUsername())).build()
         );
     }
 }

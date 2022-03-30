@@ -28,12 +28,10 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
@@ -71,6 +69,7 @@ public class MembershipService_GetMembersTest {
             .thenReturn(Collections.emptySet());
 
         Set<MemberEntity> members = membershipService.getMembersByReferenceAndRole(
+            GraviteeContext.getExecutionContext(),
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             API_ID,
             "PRIMARY_OWNER"
@@ -108,9 +107,10 @@ public class MembershipService_GetMembersTest {
             )
         )
             .thenReturn(Collections.singleton(membership));
-        when(userService.findByIds(memberIds, false)).thenReturn(userEntities);
+        when(userService.findByIds(GraviteeContext.getExecutionContext(), memberIds, false)).thenReturn(userEntities);
         when(roleService.findById("API_PRIMARY_OWNER")).thenReturn(po);
         Set<MemberEntity> members = membershipService.getMembersByReferenceAndRole(
+            GraviteeContext.getExecutionContext(),
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             API_ID,
             "API_PRIMARY_OWNER"
@@ -120,7 +120,7 @@ public class MembershipService_GetMembersTest {
         Assert.assertFalse("members must not be empty", members.isEmpty());
         verify(membershipRepository, times(1))
             .findByReferencesAndRoleId(MembershipReferenceType.API, Collections.singletonList(API_ID), "API_PRIMARY_OWNER");
-        verify(userService, times(1)).findByIds(memberIds, false);
+        verify(userService, times(1)).findByIds(GraviteeContext.getExecutionContext(), memberIds, false);
     }
 
     @Test
@@ -144,9 +144,10 @@ public class MembershipService_GetMembersTest {
         when(roleService.findById("API_PRIMARY_OWNER")).thenReturn(po);
         when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.API, Collections.singletonList(API_ID), null))
             .thenReturn(Collections.singleton(membership));
-        when(userService.findByIds(memberIds, false)).thenReturn(userEntities);
+        when(userService.findByIds(GraviteeContext.getExecutionContext(), memberIds, false)).thenReturn(userEntities);
 
         Set<MemberEntity> members = membershipService.getMembersByReferenceAndRole(
+            GraviteeContext.getExecutionContext(),
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             API_ID,
             null
@@ -156,6 +157,6 @@ public class MembershipService_GetMembersTest {
         Assert.assertFalse("members must not be empty", members.isEmpty());
         verify(membershipRepository, times(1))
             .findByReferencesAndRoleId(MembershipReferenceType.API, Collections.singletonList(API_ID), null);
-        verify(userService, times(1)).findByIds(memberIds, false);
+        verify(userService, times(1)).findByIds(GraviteeContext.getExecutionContext(), memberIds, false);
     }
 }

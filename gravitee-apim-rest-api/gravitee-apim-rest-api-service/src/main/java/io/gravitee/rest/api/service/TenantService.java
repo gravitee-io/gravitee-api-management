@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.NewTenantEntity;
 import io.gravitee.rest.api.model.TenantEntity;
 import io.gravitee.rest.api.model.TenantReferenceType;
 import io.gravitee.rest.api.model.UpdateTenantEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -30,9 +31,19 @@ public interface TenantService {
 
     TenantEntity findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType);
 
-    List<TenantEntity> create(List<NewTenantEntity> tenants, String referenceId, TenantReferenceType referenceType);
+    List<TenantEntity> create(
+        ExecutionContext executionContext,
+        List<NewTenantEntity> tenants,
+        String referenceId,
+        TenantReferenceType referenceType
+    );
 
-    List<TenantEntity> update(List<UpdateTenantEntity> tenants, String referenceId, TenantReferenceType referenceType);
+    List<TenantEntity> update(
+        ExecutionContext executionContext,
+        List<UpdateTenantEntity> tenants,
+        String referenceId,
+        TenantReferenceType referenceType
+    );
 
-    void delete(String tenantId, String referenceId, TenantReferenceType referenceType);
+    void delete(ExecutionContext executionContext, String tenantId, String referenceId, TenantReferenceType referenceType);
 }

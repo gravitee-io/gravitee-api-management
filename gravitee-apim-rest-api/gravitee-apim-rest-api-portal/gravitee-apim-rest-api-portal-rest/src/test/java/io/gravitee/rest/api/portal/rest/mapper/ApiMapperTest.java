@@ -120,10 +120,12 @@ public class ApiMapperTest {
         RatingSummaryEntity ratingSummaryEntity = new RatingSummaryEntity();
         ratingSummaryEntity.setAverageRate(Double.valueOf(4.2));
         ratingSummaryEntity.setNumberOfRatings(10);
-        doReturn(true).when(ratingService).isEnabled();
-        doReturn(ratingSummaryEntity).when(ratingService).findSummaryByApi(API_ID);
+        doReturn(true).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
+        doReturn(ratingSummaryEntity).when(ratingService).findSummaryByApi(GraviteeContext.getExecutionContext(), API_ID);
 
-        doReturn(true).when(parameterService).findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        doReturn(true)
+            .when(parameterService)
+            .findAsBoolean(GraviteeContext.getExecutionContext(), Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
         apiEntity.setProxy(proxy);
@@ -131,7 +133,7 @@ public class ApiMapperTest {
         apiEntity.setUpdatedAt(nowDate);
 
         // Test
-        Api responseApi = apiMapper.convert(apiEntity);
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntity);
         assertNotNull(responseApi);
 
         assertNull(responseApi.getPages());
@@ -181,15 +183,17 @@ public class ApiMapperTest {
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
         apiEntity.setProxy(proxy);
 
-        doReturn(false).when(ratingService).isEnabled();
+        doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
         apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
-        doReturn(false).when(parameterService).findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        doReturn(false)
+            .when(parameterService)
+            .findAsBoolean(GraviteeContext.getExecutionContext(), Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
 
         apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
 
         // Test
-        Api responseApi = apiMapper.convert(apiEntity);
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntity);
         assertNotNull(responseApi);
 
         assertNull(responseApi.getPages());

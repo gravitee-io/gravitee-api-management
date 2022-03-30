@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ public class ApiLoggingConditionUpgrader implements Upgrader, Ordered {
     private ObjectMapper objectMapper;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         InstallationEntity installation = installationService.getOrInitialize();
         if (isStatus(installation, SUCCESS)) {
             LOGGER.info("Skipping {} execution cause it has already been successfully executed", this.getClass().getSimpleName());

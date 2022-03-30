@@ -83,8 +83,8 @@ public class PageResourceTest extends AbstractResourceTest {
 
         doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
-        doReturn(true).when(accessControlService).canAccessApiFromPortal(anyString());
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), anyString());
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -128,7 +128,7 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetPageBecauseOfGroupService() {
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
 
         Response response = target(PUBLISHED_PAGE).request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
@@ -173,7 +173,7 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetPageContentBecauseOfGroupService() {
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
 
         Response response = target(PUBLISHED_PAGE).path("content").request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());

@@ -61,12 +61,11 @@ public class ApplicationService_FindByUserAndNameTest {
     @Test
     public void shouldNotFindByNameWhenNull() throws Exception {
         Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus(
+            GraviteeContext.getExecutionContext(),
             "myUser",
             false,
             null,
-            "ACTIVE",
-            GraviteeContext.getCurrentEnvironment(),
-            GraviteeContext.getCurrentOrganization()
+            "ACTIVE"
         );
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
@@ -76,12 +75,11 @@ public class ApplicationService_FindByUserAndNameTest {
     @Test
     public void shouldNotFindByNameWhenEmpty() throws Exception {
         Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus(
+            GraviteeContext.getExecutionContext(),
             "myUser",
             false,
             "",
-            "ACTIVE",
-            GraviteeContext.getCurrentEnvironment(),
-            GraviteeContext.getCurrentOrganization()
+            "ACTIVE"
         );
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
@@ -92,12 +90,11 @@ public class ApplicationService_FindByUserAndNameTest {
     public void shouldNotFindByName() throws Exception {
         when(applicationRepository.search(any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
         Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus(
+            GraviteeContext.getExecutionContext(),
             "myUser",
             true,
             "a",
-            "ACTIVE",
-            GraviteeContext.getCurrentEnvironment(),
-            GraviteeContext.getCurrentOrganization()
+            "ACTIVE"
         );
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
@@ -115,12 +112,11 @@ public class ApplicationService_FindByUserAndNameTest {
 
         // call
         Set<ApplicationListItem> resultSet = applicationService.findByUserAndNameAndStatus(
+            GraviteeContext.getExecutionContext(),
             "myUser",
             false,
             "random search",
-            "ACTIVE",
-            GraviteeContext.getCurrentEnvironment(),
-            GraviteeContext.getCurrentOrganization()
+            "ACTIVE"
         );
 
         // check applicationRepository search has not been called, and so it returns empty
@@ -133,14 +129,7 @@ public class ApplicationService_FindByUserAndNameTest {
         when(applicationRepository.search(any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
         // call
-        applicationService.findByUserAndNameAndStatus(
-            "myUser",
-            true,
-            "random search",
-            "ACTIVE",
-            GraviteeContext.getCurrentEnvironment(),
-            GraviteeContext.getCurrentOrganization()
-        );
+        applicationService.findByUserAndNameAndStatus(GraviteeContext.getExecutionContext(), "myUser", true, "random search", "ACTIVE");
 
         // check membership hasn't been retrieved
         verify(membershipService, never()).getMembershipsByMemberAndReference(any(), any(), any());
@@ -169,14 +158,7 @@ public class ApplicationService_FindByUserAndNameTest {
             .thenReturn(memberships);
 
         // call
-        applicationService.findByUserAndNameAndStatus(
-            "myUser",
-            false,
-            "random search",
-            "ACTIVE",
-            GraviteeContext.getCurrentEnvironment(),
-            GraviteeContext.getCurrentOrganization()
-        );
+        applicationService.findByUserAndNameAndStatus(GraviteeContext.getExecutionContext(), "myUser", false, "random search", "ACTIVE");
 
         // check applicationRepository search has been called with applications
         ArgumentCaptor<ApplicationCriteria> queryCaptor = ArgumentCaptor.forClass(ApplicationCriteria.class);

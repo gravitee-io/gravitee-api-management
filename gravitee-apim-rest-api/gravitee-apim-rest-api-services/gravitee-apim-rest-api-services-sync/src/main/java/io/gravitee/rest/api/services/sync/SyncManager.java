@@ -263,7 +263,7 @@ public class SyncManager {
         EnvironmentEntity environmentEntity = this.environmentService.findById(api.getEnvironmentId());
         GraviteeContext.setCurrentOrganization(environmentEntity.getOrganizationId());
 
-        apiEntity.setPrimaryOwner(apiService.getPrimaryOwner(api.getId()));
+        apiEntity.setPrimaryOwner(apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId()));
 
         return apiEntity;
     }

@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import io.gravitee.rest.api.service.cockpit.command.CockpitCommandService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.BridgeCommandFactory;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
@@ -69,7 +70,10 @@ public class CockpitPromotionServiceTest {
         when(cockpitCommandService.send(any())).thenReturn(environmentsMultiReply);
 
         // When
-        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID);
+        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = cockpitPromotionService.listPromotionTargets(
+            ORGANIZATION_ID,
+            GraviteeContext.getCurrentEnvironment()
+        );
 
         // Then
         assertThat(listCockpitReply).isNotNull();
@@ -125,7 +129,10 @@ public class CockpitPromotionServiceTest {
         when(cockpitCommandService.send(any())).thenReturn(environmentsMultiReply);
 
         // When
-        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID);
+        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = cockpitPromotionService.listPromotionTargets(
+            ORGANIZATION_ID,
+            GraviteeContext.getCurrentEnvironment()
+        );
 
         // Then
         assertThat(listCockpitReply).isNotNull();
@@ -143,7 +150,10 @@ public class CockpitPromotionServiceTest {
 
         when(cockpitCommandService.send(any())).thenReturn(reply);
 
-        final CockpitReply<PromotionEntity> result = cockpitPromotionService.processPromotion(new PromotionEntity());
+        final CockpitReply<PromotionEntity> result = cockpitPromotionService.processPromotion(
+            GraviteeContext.getExecutionContext(),
+            new PromotionEntity()
+        );
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(CockpitReplyStatus.ERROR);
@@ -160,7 +170,10 @@ public class CockpitPromotionServiceTest {
 
         final PromotionEntity promotionEntity = new PromotionEntity();
 
-        final CockpitReply<PromotionEntity> result = cockpitPromotionService.processPromotion(promotionEntity);
+        final CockpitReply<PromotionEntity> result = cockpitPromotionService.processPromotion(
+            GraviteeContext.getExecutionContext(),
+            promotionEntity
+        );
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(CockpitReplyStatus.SUCCEEDED);

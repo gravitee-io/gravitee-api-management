@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.plan.PlanQuery;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
 
@@ -29,32 +30,32 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface PlanService {
-    PlanEntity findById(String plan);
+    PlanEntity findById(ExecutionContext executionContext, String plan);
 
-    Set<PlanEntity> findByIdIn(Set<String> ids);
+    Set<PlanEntity> findByIdIn(ExecutionContext executionContext, Set<String> ids);
 
-    Set<PlanEntity> findByApi(String api);
+    Set<PlanEntity> findByApi(ExecutionContext executionContext, String api);
 
-    List<PlanEntity> search(PlanQuery query);
+    List<PlanEntity> search(ExecutionContext executionContext, PlanQuery query);
 
-    PlanEntity create(NewPlanEntity plan);
+    PlanEntity create(ExecutionContext executionContext, NewPlanEntity plan);
 
-    PlanEntity update(UpdatePlanEntity plan);
-    PlanEntity update(UpdatePlanEntity plan, boolean fromImport);
+    PlanEntity update(ExecutionContext executionContext, UpdatePlanEntity plan);
+    PlanEntity update(ExecutionContext executionContext, UpdatePlanEntity plan, boolean fromImport);
 
-    PlanEntity close(String plan, String username);
+    PlanEntity close(ExecutionContext executionContext, String plan, String username);
 
-    void delete(String plan);
+    void delete(ExecutionContext executionContext, String plan);
 
-    PlanEntity publish(String plan);
+    PlanEntity publish(ExecutionContext executionContext, String plan);
 
-    PlanEntity deprecate(String plan);
+    PlanEntity deprecate(ExecutionContext executionContext, String plan);
 
-    PlanEntity deprecate(String plan, boolean allowStaging);
+    PlanEntity deprecate(ExecutionContext executionContext, String plan, boolean allowStaging);
 
     PlansConfigurationEntity getConfiguration();
 
-    PlanEntity createOrUpdatePlan(PlanEntity planEntity, final String environmentId);
+    PlanEntity createOrUpdatePlan(ExecutionContext executionContext, PlanEntity planEntity);
 
     boolean anyPlanMismatchWithApi(List<String> planIds, String apiId);
 }

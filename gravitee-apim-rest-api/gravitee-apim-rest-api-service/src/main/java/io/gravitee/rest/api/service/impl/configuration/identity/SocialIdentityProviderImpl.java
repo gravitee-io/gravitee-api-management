@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.configuration.identity.github.GitHubIdentityPr
 import io.gravitee.rest.api.model.configuration.identity.google.GoogleIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.oidc.OIDCIdentityProviderEntity;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -60,7 +61,10 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
     private IdentityProviderActivationService identityProviderActivationService;
 
     @Override
-    public Set<SocialIdentityProviderEntity> findAll(IdentityProviderActivationService.ActivationTarget target) {
+    public Set<SocialIdentityProviderEntity> findAll(
+        final ExecutionContext executionContext,
+        IdentityProviderActivationService.ActivationTarget target
+    ) {
         try {
             Set<String> allIdpByTarget = identityProviderActivationService
                 .findAllByTarget(target)
@@ -69,7 +73,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
                 .collect(Collectors.toSet());
 
             Stream<IdentityProviderEntity> identityProviderEntityStream = identityProviderService
-                .findAll()
+                .findAll(executionContext)
                 .stream()
                 .filter(idp -> allIdpByTarget.contains(idp.getId()));
 

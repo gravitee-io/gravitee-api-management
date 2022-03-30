@@ -27,11 +27,11 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Test;
@@ -84,7 +84,7 @@ public class PlanService_CloseTest {
     public void shouldNotCloseBecauseNotFound() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
 
-        planService.close(PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
@@ -92,14 +92,14 @@ public class PlanService_CloseTest {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.close(PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCloseBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.close(PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
     }
 
     @Test
@@ -110,17 +110,18 @@ public class PlanService_CloseTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+            .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
-        verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
-        verify(subscriptionService, never()).process(any(), any());
+        verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -131,16 +132,17 @@ public class PlanService_CloseTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+            .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
-        verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
+        verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
 
     @Test
@@ -151,17 +153,18 @@ public class PlanService_CloseTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+            .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
-        planService.close(PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
-        verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
-        verify(subscriptionService, never()).process(any(), any());
+        verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -171,15 +174,16 @@ public class PlanService_CloseTest {
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+            .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
-        verify(subscriptionService, never()).process(any(), any());
+        verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 }

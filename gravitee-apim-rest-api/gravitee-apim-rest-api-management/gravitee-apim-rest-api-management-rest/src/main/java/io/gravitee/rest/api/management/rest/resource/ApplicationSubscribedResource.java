@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -82,12 +83,12 @@ public class ApplicationSubscribedResource extends AbstractResource {
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApplication(application);
 
-        Collection<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery);
+        Collection<SubscriptionEntity> subscriptions = subscriptionService.search(GraviteeContext.getExecutionContext(), subscriptionQuery);
         return subscriptions
             .stream()
             .map(SubscriptionEntity::getApi)
             .distinct()
-            .map(api -> apiService.findById(api))
+            .map(api -> apiService.findById(GraviteeContext.getExecutionContext(), api))
             .map(apiEntity -> new SubscribedApi(apiEntity.getId(), apiEntity.getName()))
             .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
             .collect(Collectors.toList());

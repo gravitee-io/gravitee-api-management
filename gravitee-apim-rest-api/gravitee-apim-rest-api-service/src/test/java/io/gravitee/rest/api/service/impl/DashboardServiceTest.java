@@ -38,7 +38,6 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.DashboardService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DashboardNotFoundException;
-import io.gravitee.rest.api.service.impl.DashboardServiceImpl;
 import java.util.Date;
 import java.util.List;
 import org.junit.Test;
@@ -176,7 +175,7 @@ public class DashboardServiceTest {
         d.setOrder(0);
         when(dashboardRepository.findByReferenceType(PLATFORM.name())).thenReturn(singletonList(d));
 
-        final DashboardEntity dashboardEntity = dashboardService.create(newDashboardEntity);
+        final DashboardEntity dashboardEntity = dashboardService.create(GraviteeContext.getExecutionContext(), newDashboardEntity);
 
         assertNotNull(dashboardEntity.getId());
         assertEquals("NAME", dashboardEntity.getName());
@@ -213,6 +212,7 @@ public class DashboardServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_CREATED),
@@ -246,7 +246,7 @@ public class DashboardServiceTest {
         when(dashboardRepository.update(any())).thenReturn(updatedDashboard);
         when(dashboardRepository.findById(DASHBOARD_ID)).thenReturn(of(updatedDashboard));
 
-        final DashboardEntity dashboardEntity = dashboardService.update(updateDashboardEntity);
+        final DashboardEntity dashboardEntity = dashboardService.update(GraviteeContext.getExecutionContext(), updateDashboardEntity);
 
         assertNotNull(dashboardEntity.getId());
         assertEquals("NAME", dashboardEntity.getName());
@@ -283,6 +283,7 @@ public class DashboardServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_UPDATED),
@@ -299,7 +300,7 @@ public class DashboardServiceTest {
 
         when(dashboardRepository.findById(DASHBOARD_ID)).thenReturn(empty());
 
-        dashboardService.update(updateDashboardEntity);
+        dashboardService.update(GraviteeContext.getExecutionContext(), updateDashboardEntity);
     }
 
     @Test
@@ -307,11 +308,12 @@ public class DashboardServiceTest {
         final Dashboard dashboard = mock(Dashboard.class);
         when(dashboardRepository.findById(DASHBOARD_ID)).thenReturn(of(dashboard));
 
-        dashboardService.delete(DASHBOARD_ID);
+        dashboardService.delete(GraviteeContext.getExecutionContext(), DASHBOARD_ID);
 
         verify(dashboardRepository, times(1)).delete(DASHBOARD_ID);
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_DELETED),

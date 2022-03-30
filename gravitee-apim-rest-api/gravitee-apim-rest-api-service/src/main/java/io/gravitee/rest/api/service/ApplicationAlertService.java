@@ -21,10 +21,11 @@ import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 public interface ApplicationAlertService {
-    AlertTriggerEntity create(final String environmentId, String applicationId, NewAlertTriggerEntity alert);
+    AlertTriggerEntity create(ExecutionContext executionContext, String applicationId, NewAlertTriggerEntity alert);
 
     List<AlertTriggerEntity> findByApplication(String applicationId);
 
@@ -34,9 +35,9 @@ public interface ApplicationAlertService {
 
     AlertStatusEntity getStatus();
 
-    void addMemberToApplication(final String environment, String applicationId, String email);
+    void addMemberToApplication(ExecutionContext executionContext, String applicationId, String email);
 
-    void deleteMemberFromApplication(final String environment, String applicationId, String email);
+    void deleteMemberFromApplication(ExecutionContext executionContext, String applicationId, String email);
 
     void deleteAll(String applicationId);
 

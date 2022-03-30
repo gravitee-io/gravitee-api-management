@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -65,7 +66,7 @@ public class RoleResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ) })
     public RoleEntity getRole(@PathParam("scope") RoleScope scope, @PathParam("role") String role) {
-        Optional<RoleEntity> optRole = roleService.findByScopeAndName(scope, role);
+        Optional<RoleEntity> optRole = roleService.findByScopeAndName(scope, role, GraviteeContext.getCurrentOrganization());
         if (optRole.isPresent()) {
             return optRole.get();
         } else {
@@ -90,7 +91,7 @@ public class RoleResource extends AbstractResource {
         @PathParam("role") String role,
         @Valid @NotNull final UpdateRoleEntity entity
     ) {
-        return roleService.update(entity);
+        return roleService.update(GraviteeContext.getExecutionContext(), entity, GraviteeContext.getCurrentOrganization());
     }
 
     @DELETE
@@ -105,7 +106,16 @@ public class RoleResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.DELETE) })
     public void deleteRole(@PathParam("scope") RoleScope scope, @PathParam("role") String role) {
-        roleService.findByScopeAndName(scope, role).ifPresent(roleToDelete -> roleService.delete(roleToDelete.getId()));
+        roleService
+            .findByScopeAndName(scope, role, GraviteeContext.getCurrentOrganization())
+            .ifPresent(
+                roleToDelete ->
+                    roleService.delete(
+                        GraviteeContext.getExecutionContext(),
+                        roleToDelete.getId(),
+                        GraviteeContext.getCurrentOrganization()
+                    )
+            );
     }
 
     @Path("/users")

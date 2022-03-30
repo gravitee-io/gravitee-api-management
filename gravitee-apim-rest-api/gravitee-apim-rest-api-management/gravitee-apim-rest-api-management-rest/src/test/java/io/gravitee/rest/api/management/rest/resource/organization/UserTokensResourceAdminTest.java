@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Date;
 import java.util.List;
 import javax.ws.rs.client.Entity;
@@ -67,11 +68,11 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
     public void shouldNotCreateTokenWhenNoName() {
         NewTokenEntity newToken = new NewTokenEntity();
 
-        when(tokenService.create(newToken, USER_ID)).thenReturn(new TokenEntity());
+        when(tokenService.create(GraviteeContext.getExecutionContext(), newToken, USER_ID)).thenReturn(new TokenEntity());
         final Response response = envTarget().request().post(Entity.json(newToken));
 
         assertThat(response.getStatus()).isEqualTo(400);
-        verify(tokenService, never()).create(newToken, USER_ID);
+        verify(tokenService, never()).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
     @Test
@@ -79,11 +80,11 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         NewTokenEntity newToken = new NewTokenEntity();
         newToken.setName("");
 
-        when(tokenService.create(newToken, USER_ID)).thenReturn(new TokenEntity());
+        when(tokenService.create(GraviteeContext.getExecutionContext(), newToken, USER_ID)).thenReturn(new TokenEntity());
         final Response response = envTarget().request().post(Entity.json(newToken));
 
         assertThat(response.getStatus()).isEqualTo(400);
-        verify(tokenService, never()).create(newToken, USER_ID);
+        verify(tokenService, never()).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
     @Test
@@ -91,11 +92,11 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         NewTokenEntity newToken = new NewTokenEntity();
         newToken.setName("It's a name greater than 64 chars in order to test the validation part");
 
-        when(tokenService.create(newToken, USER_ID)).thenReturn(new TokenEntity());
+        when(tokenService.create(GraviteeContext.getExecutionContext(), newToken, USER_ID)).thenReturn(new TokenEntity());
         final Response response = envTarget().request().post(Entity.json(newToken));
 
         assertThat(response.getStatus()).isEqualTo(400);
-        verify(tokenService, never()).create(newToken, USER_ID);
+        verify(tokenService, never()).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
     @Test
@@ -103,11 +104,11 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         NewTokenEntity newToken = new NewTokenEntity();
         newToken.setName("My Token");
 
-        when(tokenService.create(newToken, USER_ID)).thenReturn(new TokenEntity());
+        when(tokenService.create(GraviteeContext.getExecutionContext(), newToken, USER_ID)).thenReturn(new TokenEntity());
         final Response response = envTarget().request().post(Entity.json(newToken));
 
         assertThat(response.getStatus()).isEqualTo(201);
-        verify(tokenService, times(1)).create(newToken, USER_ID);
+        verify(tokenService, times(1)).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
     @Test
@@ -115,7 +116,7 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         final Response response = envTarget().path(TOKEN_ID).request().delete();
 
         assertThat(response.getStatus()).isEqualTo(204);
-        verify(tokenService, times(1)).revoke(TOKEN_ID);
+        verify(tokenService, times(1)).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
     }
 
     private TokenEntity fakeToken(String name) {

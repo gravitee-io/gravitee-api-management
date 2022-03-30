@@ -70,6 +70,7 @@ public class ApisResource extends AbstractResource<Api, String> {
     @RequirePortalAuth
     public Response listCategories(@BeanParam ApisParam apisParam) {
         Set<CategoryEntity> categories = filteringService.listCategories(
+            GraviteeContext.getExecutionContext(),
             getAuthenticatedUserOrNull(),
             convert(apisParam.getFilter()),
             convert(apisParam.getExcludedFilter())
@@ -122,7 +123,11 @@ public class ApisResource extends AbstractResource<Api, String> {
         @BeanParam PaginationParam paginationParam
     ) {
         try {
-            Collection<String> apisList = filteringService.searchApis(getAuthenticatedUserOrNull(), query);
+            Collection<String> apisList = filteringService.searchApis(
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUserOrNull(),
+                query
+            );
             return createListResponse(new ArrayList<>(apisList), paginationParam);
         } catch (TechnicalException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
@@ -140,19 +145,20 @@ public class ApisResource extends AbstractResource<Api, String> {
             return Collections.emptyList();
         }
         final boolean apiShowTagsInApiHeaders = parameterService.findAsBoolean(
+            GraviteeContext.getExecutionContext(),
             Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
             ParameterReferenceType.ENVIRONMENT
         );
 
         ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(pageContent);
-        Collection<ApiEntity> apiEntities = apiService.search(apiQuery);
+        Collection<ApiEntity> apiEntities = apiService.search(GraviteeContext.getExecutionContext(), apiQuery);
         Comparator<String> orderingComparator = Comparator.comparingInt(pageContent::indexOf);
         return apiEntities
             .stream()
             .map(
                 apiEntity -> {
-                    Api api = apiMapper.convert(apiEntity);
+                    Api api = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntity);
                     return addApiLinks(api);
                 }
             )
@@ -206,6 +212,7 @@ public class ApisResource extends AbstractResource<Api, String> {
 
     private Collection<String> findApisForCurrentUser(ApisParam apisParam, ApiQuery apiQuery) {
         return filteringService.filterApis(
+            GraviteeContext.getExecutionContext(),
             getAuthenticatedUserOrNull(),
             convert(apisParam.getFilter()),
             convert(apisParam.getExcludedFilter()),

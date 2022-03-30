@@ -101,12 +101,12 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiService).findById(API);
+        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
 
-        when(accessControlService.canAccessApiFromPortal(API)).thenReturn(true);
-        when(accessControlService.canAccessApiFromPortal(mockApi)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), mockApi)).thenReturn(true);
 
-        doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any(), eq(GraviteeContext.getCurrentEnvironment()));
+        doReturn(Arrays.asList(new PageEntity())).when(pageService).search(eq(GraviteeContext.getCurrentEnvironment()), any());
 
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("A");
@@ -120,9 +120,11 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         plan3.setId("C");
         plan3.setStatus(PlanStatus.CLOSED);
 
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);
+        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3)))
+            .when(planService)
+            .findByApi(GraviteeContext.getExecutionContext(), API);
 
-        doReturn(new Api()).when(apiMapper).convert(any());
+        doReturn(new Api()).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any());
     }
@@ -132,7 +134,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         // Useful for plans
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
         // For pages
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
         callResourceAndCheckResult(1, 2);
     }
 
@@ -141,7 +143,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         // Useful for plans
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
         // For pages
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
         callResourceAndCheckResult(0, 0);
     }
 

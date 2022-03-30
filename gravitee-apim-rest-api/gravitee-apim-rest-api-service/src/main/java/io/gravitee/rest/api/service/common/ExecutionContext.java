@@ -42,6 +42,10 @@ public class ExecutionContext {
         return environmentId.orElseThrow(() -> new EnvironmentNotFoundException(null));
     }
 
+    public boolean hasEnvironmentId() {
+        return environmentId.isPresent();
+    }
+
     public GraviteeContext.ReferenceContext getReferenceContext() {
         if (environmentId.isPresent()) {
             return new GraviteeContext.ReferenceContext(environmentId.get(), GraviteeContext.ReferenceContextType.ENVIRONMENT);

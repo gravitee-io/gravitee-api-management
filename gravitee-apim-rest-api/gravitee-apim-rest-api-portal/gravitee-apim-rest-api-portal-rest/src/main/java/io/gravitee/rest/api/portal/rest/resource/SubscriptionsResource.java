@@ -101,11 +101,14 @@ public class SubscriptionsResource extends AbstractResource {
                 );
                 newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
             }
-            SubscriptionEntity createdSubscription = subscriptionService.create(newSubscriptionEntity);
+            SubscriptionEntity createdSubscription = subscriptionService.create(
+                GraviteeContext.getExecutionContext(),
+                newSubscriptionEntity
+            );
 
             // For consumer convenience, fetch the keys just after the subscription has been created.
             List<Key> keys = apiKeyService
-                .findBySubscription(createdSubscription.getId())
+                .findBySubscription(GraviteeContext.getExecutionContext(), createdSubscription.getId())
                 .stream()
                 .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
                 .map(keyMapper::convert)
@@ -134,8 +137,7 @@ public class SubscriptionsResource extends AbstractResource {
 
         if (applicationId == null) {
             final Set<ApplicationListItem> applications = applicationService.findByUser(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 getAuthenticatedUser()
             );
             if (applications == null || applications.isEmpty()) {
@@ -173,16 +175,17 @@ public class SubscriptionsResource extends AbstractResource {
                 }
             );
 
-        Metadata metadata = subscriptionService.getMetadata(metadataQuery);
+        Metadata metadata = subscriptionService.getMetadata(GraviteeContext.getExecutionContext(), metadataQuery);
 
         return createListResponse(subscriptionList, paginationParam, metadata.toMap(), paginationParam.hasPagination());
     }
 
     private Collection<SubscriptionEntity> fetchSubscriptions(PaginationParam paginationParam, SubscriptionQuery query) {
         if (paginationParam.hasPagination()) {
-            return subscriptionService.search(query);
+            return subscriptionService.search(GraviteeContext.getExecutionContext(), query);
         } else {
             final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(
+                GraviteeContext.getExecutionContext(),
                 query,
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
             );

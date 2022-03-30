@@ -66,7 +66,7 @@ public class ApplicationLogsResource extends AbstractResource {
         @BeanParam LogsParam logsParam
     ) {
         //Does application exists ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
 
@@ -101,7 +101,7 @@ public class ApplicationLogsResource extends AbstractResource {
         logQuery.setField(logsParam.getField());
         logQuery.setOrder(!"DESC".equals(logsParam.getOrder()));
 
-        return logsService.findByApplication(applicationId, logQuery);
+        return logsService.findByApplication(GraviteeContext.getExecutionContext(), applicationId, logQuery);
     }
 
     @GET
@@ -114,9 +114,9 @@ public class ApplicationLogsResource extends AbstractResource {
         @QueryParam("timestamp") Long timestamp
     ) {
         //Does application exists ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
-        ApplicationRequest applicationLogs = logsService.findApplicationLog(logId, timestamp);
+        ApplicationRequest applicationLogs = logsService.findApplicationLog(GraviteeContext.getExecutionContext(), logId, timestamp);
 
         return Response.ok(logMapper.convert(applicationLogs)).build();
     }
@@ -130,10 +130,10 @@ public class ApplicationLogsResource extends AbstractResource {
         @BeanParam LogsParam logsParam
     ) {
         //Does application exists ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
         return Response
-            .ok(logsService.exportAsCsv(searchLogResponse))
+            .ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
             .header(
                 HttpHeaders.CONTENT_DISPOSITION,
                 format("attachment;filename=logs-%s-%s.csv", applicationId, System.currentTimeMillis())

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -51,11 +52,12 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
     private ApiService apiService;
 
     @Override
-    public List<TopApiEntity> findAll() {
+    public List<TopApiEntity> findAll(final ExecutionContext executionContext) {
         LOGGER.debug("Find all top APIs");
         final List<ApiEntity> apis = parameterService.findAll(
+            executionContext,
             PORTAL_TOP_APIS,
-            apiId -> apiService.findById(apiId),
+            apiId -> apiService.findById(executionContext, apiId),
             apiService::exists,
             ParameterReferenceType.ENVIRONMENT
         );
@@ -79,20 +81,28 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
     }
 
     @Override
-    public List<TopApiEntity> create(final NewTopApiEntity topApi) {
-        final List<String> existingTopApis = parameterService.findAll(PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT);
+    public List<TopApiEntity> create(final ExecutionContext executionContext, final NewTopApiEntity topApi) {
+        final List<String> existingTopApis = parameterService.findAll(
+            executionContext,
+            PORTAL_TOP_APIS,
+            ParameterReferenceType.ENVIRONMENT
+        );
         if (existingTopApis.contains(topApi.getApi())) {
             throw new IllegalArgumentException("The API is already defined on top APIs");
         }
         ArrayList<String> newTopApis = new ArrayList<>(existingTopApis);
         newTopApis.add(topApi.getApi());
-        parameterService.save(PORTAL_TOP_APIS, newTopApis, ParameterReferenceType.ENVIRONMENT);
-        return findAll();
+        parameterService.save(executionContext, PORTAL_TOP_APIS, newTopApis, ParameterReferenceType.ENVIRONMENT);
+        return findAll(executionContext);
     }
 
     @Override
-    public List<TopApiEntity> update(final List<UpdateTopApiEntity> topApis) {
-        final List<String> existingTopApis = parameterService.findAll(PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT);
+    public List<TopApiEntity> update(final ExecutionContext executionContext, final List<UpdateTopApiEntity> topApis) {
+        final List<String> existingTopApis = parameterService.findAll(
+            executionContext,
+            PORTAL_TOP_APIS,
+            ParameterReferenceType.ENVIRONMENT
+        );
         final List<String> updatingTopApis = topApis.stream().map(UpdateTopApiEntity::getApi).collect(toList());
         if (
             existingTopApis.size() != updatingTopApis.size() ||
@@ -102,19 +112,21 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
             throw new IllegalArgumentException("Invalid content to update");
         }
         parameterService.save(
+            executionContext,
             PORTAL_TOP_APIS,
             topApis.stream().sorted(comparing(UpdateTopApiEntity::getOrder)).map(UpdateTopApiEntity::getApi).collect(toList()),
             ParameterReferenceType.ENVIRONMENT
         );
-        return findAll();
+        return findAll(executionContext);
     }
 
     @Override
-    public void delete(final String apiId) {
-        final List<TopApiEntity> topApis = findAll();
+    public void delete(final ExecutionContext executionContext, final String apiId) {
+        final List<TopApiEntity> topApis = findAll(executionContext);
         if (!topApis.isEmpty()) {
             topApis.removeIf(topApiEntity -> apiId.equals(topApiEntity.getApi()));
             parameterService.save(
+                executionContext,
                 PORTAL_TOP_APIS,
                 topApis.stream().sorted(comparing(TopApiEntity::getOrder)).map(TopApiEntity::getApi).collect(toList()),
                 ParameterReferenceType.ENVIRONMENT

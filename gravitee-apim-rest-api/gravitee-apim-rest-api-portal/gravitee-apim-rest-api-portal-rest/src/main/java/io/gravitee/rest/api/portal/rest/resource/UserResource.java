@@ -72,12 +72,15 @@ public class UserResource extends AbstractResource {
     public Response getCurrentUser() {
         final String authenticatedUser = getAuthenticatedUser();
         try {
-            UserEntity userEntity = userService.findByIdWithRoles(authenticatedUser);
+            UserEntity userEntity = userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), authenticatedUser);
             User currentUser = userMapper.convert(userEntity);
-            boolean withManagement = (authenticatedUser != null && permissionService.hasManagementRights(authenticatedUser));
+            boolean withManagement =
+                (
+                    authenticatedUser != null &&
+                    permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), authenticatedUser)
+                );
             if (withManagement) {
-                Management managementConfig =
-                    this.configService.getConsoleSettings(GraviteeContext.getCurrentOrganization()).getManagement();
+                Management managementConfig = this.configService.getConsoleSettings(GraviteeContext.getExecutionContext()).getManagement();
                 if (managementConfig != null && managementConfig.getUrl() != null) {
                     UserConfig userConfig = new UserConfig();
                     userConfig.setManagementUrl(managementConfig.getUrl());
@@ -100,7 +103,7 @@ public class UserResource extends AbstractResource {
         if (!getAuthenticatedUser().equals(user.getId())) {
             throw new UnauthorizedAccessException();
         }
-        UserEntity existingUser = userService.findById(getAuthenticatedUser());
+        UserEntity existingUser = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
 
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
         // if avatar starts with "http" ignore it because it is not the right format
@@ -122,7 +125,7 @@ public class UserResource extends AbstractResource {
         }
         updateUserEntity.setCustomFields(user.getCustomFields());
 
-        UserEntity updatedUser = userService.update(user.getId(), updateUserEntity);
+        UserEntity updatedUser = userService.update(GraviteeContext.getExecutionContext(), user.getId(), updateUserEntity);
 
         final User currentUser = userMapper.convert(updatedUser);
         currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getUpdatedAt()));
@@ -132,8 +135,8 @@ public class UserResource extends AbstractResource {
     @GET
     @Path("avatar")
     public Response getCurrentUserAvatar(@Context Request request) {
-        String userId = userService.findById(getAuthenticatedUser()).getId();
-        PictureEntity picture = userService.getPicture(userId);
+        String userId = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser()).getId();
+        PictureEntity picture = userService.getPicture(GraviteeContext.getExecutionContext(), userId);
 
         if (picture == null) {
             return Response.ok().build();

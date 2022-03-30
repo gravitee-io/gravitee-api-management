@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiInformation;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,9 +51,13 @@ public class ApiInformationsResource extends AbstractResource {
     public Response getApiInformations(@Context Request request, @PathParam("apiId") String apiId) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            List<ApiHeaderEntity> all = apiService.getPortalHeaders(apiId);
+            List<ApiHeaderEntity> all = apiService.getPortalHeaders(GraviteeContext.getExecutionContext(), apiId);
             List<ApiInformation> information = all
                 .stream()
                 .map(

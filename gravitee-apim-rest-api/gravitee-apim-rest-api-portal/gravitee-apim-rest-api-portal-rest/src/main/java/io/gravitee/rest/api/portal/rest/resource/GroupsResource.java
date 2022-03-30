@@ -58,7 +58,7 @@ public class GroupsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response findAll(@BeanParam PaginationParam paginationParam) {
         List<Group> groups = groupService
-            .findAll(GraviteeContext.getCurrentEnvironment())
+            .findAll(GraviteeContext.getExecutionContext())
             .stream()
             .map(group -> new Group().id(group.getId()).name(group.getName()))
             .collect(Collectors.toList());
@@ -71,17 +71,17 @@ public class GroupsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getMembersByGroupId(@PathParam("groupId") String groupId, @BeanParam PaginationParam paginationParam) {
         //check that group exists
-        groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId);
+        groupService.findById(GraviteeContext.getExecutionContext(), groupId);
 
         List<Member> groupsMembers = membershipService
-            .getMembersByReference(MembershipReferenceType.GROUP, groupId)
+            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, groupId)
             .stream()
             .filter(
                 groupMemberEntity ->
                     groupMemberEntity != null &&
                     groupMemberEntity.getRoles().stream().anyMatch(role -> role.getScope().equals(RoleScope.APPLICATION))
             )
-            .map(groupMemberEntity -> memberMapper.convert(groupMemberEntity, uriInfo))
+            .map(groupMemberEntity -> memberMapper.convert(GraviteeContext.getExecutionContext(), groupMemberEntity, uriInfo))
             .collect(toList());
 
         return createListResponse(groupsMembers, paginationParam);

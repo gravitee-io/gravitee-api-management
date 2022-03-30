@@ -16,10 +16,8 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
@@ -29,8 +27,6 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.swagger.annotations.ApiParam;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
@@ -65,8 +61,8 @@ public class ApplicationKeysResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response renewSharedKey() {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
-        final Key createdKey = keyMapper.convert(apiKeyService.renew(applicationEntity));
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
+        final Key createdKey = keyMapper.convert(apiKeyService.renew(GraviteeContext.getExecutionContext(), applicationEntity));
         return Response.status(Response.Status.CREATED).entity(createdKey).build();
     }
 
@@ -75,12 +71,12 @@ public class ApplicationKeysResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response revokeKeySubscription(@PathParam("apiKey") String apiKey) {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
-        ApiKeyEntity apiKeyEntity = apiKeyService.findById(apiKey);
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
+        ApiKeyEntity apiKeyEntity = apiKeyService.findById(GraviteeContext.getExecutionContext(), apiKey);
         if (!apiKeyEntity.getApplication().equals(applicationEntity)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'keyId' parameter does not correspond to the application").build();
         }
-        apiKeyService.revoke(apiKeyEntity, true);
+        apiKeyService.revoke(GraviteeContext.getExecutionContext(), apiKeyEntity, true);
 
         return Response.noContent().build();
     }

@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.validator.ValidNewPreRegisterUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -75,7 +76,7 @@ public class UsersResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public UserPageResult getAllUsers(@Parameter(name = "q") @QueryParam("q") String query, @Valid @BeanParam Pageable pageable) {
-        Page<UserEntity> users = userService.search(query, pageable.toPageable());
+        Page<UserEntity> users = userService.search(GraviteeContext.getExecutionContext(), query, pageable.toPageable());
         return new UserPageResult(users, pageable.getSize());
     }
 
@@ -89,7 +90,7 @@ public class UsersResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createUser(@ValidNewPreRegisterUser NewPreRegisterUserEntity newPreRegisterUserEntity) {
-        UserEntity newUser = userService.create(newPreRegisterUserEntity);
+        UserEntity newUser = userService.create(GraviteeContext.getExecutionContext(), newPreRegisterUserEntity);
         if (newUser != null) {
             return Response.ok().entity(newUser).build();
         }

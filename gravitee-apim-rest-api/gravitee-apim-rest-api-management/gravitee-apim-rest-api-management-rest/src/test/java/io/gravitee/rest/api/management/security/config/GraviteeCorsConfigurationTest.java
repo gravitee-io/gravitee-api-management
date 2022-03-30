@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,22 +52,31 @@ public class GraviteeCorsConfigurationTest {
     public void setUp() {
         reset(parameterService, eventManager);
 
-        when(parameterService.find(Key.CONSOLE_HTTP_CORS_MAX_AGE, REFERENCE_ID, REFERENCE_TYPE)).thenReturn("10");
+        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_MAX_AGE, REFERENCE_ID, REFERENCE_TYPE))
+            .thenReturn("10");
     }
 
     @Test
     public void shouldConstructAndInitializeFields() {
-        when(parameterService.find(Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(null);
+        when(
+            parameterService.find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, REFERENCE_ID, REFERENCE_TYPE)
+        )
+            .thenReturn(null);
 
         graviteeCorsConfiguration = new GraviteeCorsConfiguration(parameterService, eventManager, REFERENCE_ID);
 
         verify(eventManager, times(1)).subscribeForEvents(graviteeCorsConfiguration, Key.class);
 
-        verify(parameterService, times(1)).find(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, REFERENCE_ID, REFERENCE_TYPE);
-        verify(parameterService, times(1)).find(Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, REFERENCE_ID, REFERENCE_TYPE);
-        verify(parameterService, times(1)).find(Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, REFERENCE_ID, REFERENCE_TYPE);
-        verify(parameterService, times(1)).find(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS, REFERENCE_ID, REFERENCE_TYPE);
-        verify(parameterService, times(1)).find(Key.CONSOLE_HTTP_CORS_MAX_AGE, REFERENCE_ID, REFERENCE_TYPE);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, REFERENCE_ID, REFERENCE_TYPE);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, REFERENCE_ID, REFERENCE_TYPE);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, REFERENCE_ID, REFERENCE_TYPE);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS, REFERENCE_ID, REFERENCE_TYPE);
+        verify(parameterService, times(1))
+            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_MAX_AGE, REFERENCE_ID, REFERENCE_TYPE);
 
         assertNotNull(graviteeCorsConfiguration.getAllowedMethods());
         assertEquals(1, graviteeCorsConfiguration.getAllowedMethods().size());

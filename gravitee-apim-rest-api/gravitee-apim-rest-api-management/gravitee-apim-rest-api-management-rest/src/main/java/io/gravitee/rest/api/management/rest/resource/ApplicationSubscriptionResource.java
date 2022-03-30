@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -97,7 +98,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     public Response closeApplicationSubscription() {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
         if (subscriptionEntity.getApplication().equals(application)) {
-            return Response.ok(convert(subscriptionService.close(subscription))).build();
+            return Response.ok(convert(subscriptionService.close(GraviteeContext.getExecutionContext(), subscription))).build();
         }
 
         return Response.status(Response.Status.FORBIDDEN).build();
@@ -124,15 +125,15 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(subscriptionEntity.getSubscribedBy(), true).getDisplayName()
+                userService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getSubscribedBy(), true).getDisplayName()
             )
         );
 
-        PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
+        PlanEntity plan = planService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         subscription.getPlan().setSecurity(plan.getSecurity());
 
-        ApiEntity api = apiService.findById(subscriptionEntity.getApi());
+        ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getApi());
         subscription.setApi(
             new Subscription.Api(
                 api.getId(),

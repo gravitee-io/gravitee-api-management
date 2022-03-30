@@ -16,10 +16,17 @@
 package io.gravitee.rest.api.service.cockpit.services;
 
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 
 public interface CockpitApiPermissionChecker {
-    Optional<String> checkCreatePermission(String userId, String environmentId, DeploymentMode mode);
+    Optional<String> checkCreatePermission(ExecutionContext executionContext, String userId, String environmentId, DeploymentMode mode);
 
-    Optional<String> checkUpdatePermission(String userId, String environmentId, String apiId, DeploymentMode mode);
+    Optional<String> checkUpdatePermission(
+        ExecutionContext executionContext,
+        String userId,
+        String environmentId,
+        String apiId,
+        DeploymentMode mode
+    );
 }

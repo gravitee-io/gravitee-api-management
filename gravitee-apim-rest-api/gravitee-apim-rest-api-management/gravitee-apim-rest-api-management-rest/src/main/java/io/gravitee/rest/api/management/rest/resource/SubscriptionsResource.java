@@ -66,7 +66,11 @@ public class SubscriptionsResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Set<Subscription> getUserSubscriptions(@QueryParam("application") String application, @QueryParam("plan") String plan) {
-        return subscriptionService.findByApplicationAndPlan(application, plan).stream().map(this::convert).collect(Collectors.toSet());
+        return subscriptionService
+            .findByApplicationAndPlan(GraviteeContext.getExecutionContext(), application, plan)
+            .stream()
+            .map(this::convert)
+            .collect(Collectors.toSet());
     }
 
     private Subscription convert(SubscriptionEntity subscriptionEntity) {
@@ -83,7 +87,7 @@ public class SubscriptionsResource {
         subscription.setStatus(subscriptionEntity.getStatus());
 
         ApplicationEntity application = applicationService.findById(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             subscriptionEntity.getApplication()
         );
         subscription.setApplication(
@@ -98,7 +102,7 @@ public class SubscriptionsResource {
             )
         );
 
-        PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
+        PlanEntity plan = planService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());

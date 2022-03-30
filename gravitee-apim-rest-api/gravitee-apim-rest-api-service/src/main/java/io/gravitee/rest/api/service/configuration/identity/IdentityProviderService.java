@@ -19,8 +19,8 @@ import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
-import java.util.Set;
 import java.util.Set;
 
 /**
@@ -28,15 +28,15 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface IdentityProviderService {
-    IdentityProviderEntity create(NewIdentityProviderEntity identityProvider);
+    IdentityProviderEntity create(ExecutionContext executionContext, NewIdentityProviderEntity identityProvider);
 
-    IdentityProviderEntity update(String id, UpdateIdentityProviderEntity identityProvider);
+    IdentityProviderEntity update(ExecutionContext executionContext, String id, UpdateIdentityProviderEntity identityProvider);
 
     IdentityProviderEntity findById(String id);
 
-    void delete(String id);
+    void delete(ExecutionContext executionContext, String id);
 
-    Set<IdentityProviderEntity> findAll();
+    Set<IdentityProviderEntity> findAll(ExecutionContext executionContext);
 
     /**
      * Transform an inline roleMapping definition to a roleMappingEntity

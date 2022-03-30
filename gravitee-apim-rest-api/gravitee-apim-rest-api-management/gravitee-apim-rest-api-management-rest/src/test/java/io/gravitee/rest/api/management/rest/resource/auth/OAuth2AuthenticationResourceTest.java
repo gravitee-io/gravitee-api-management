@@ -199,10 +199,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         userEntity.setSourceId("janedoe@example.com");
         userEntity.setPicture("http://example.com/janedoe/me.jpg");
 
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString())).thenReturn(userEntity);
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), anyString())).thenReturn(userEntity);
 
         //mock DB user connect
-        when(userService.connect(userEntity.getId())).thenReturn(userEntity);
+        when(userService.connect(any(), eq(userEntity.getId()))).thenReturn(userEntity);
 
         // -- CALL
 
@@ -211,7 +211,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).connect(userEntity.getSourceId());
+        verify(userService, times(1)).connect(any(), eq(userEntity.getSourceId()));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -274,8 +274,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserCreation(identityProvider, userInfo, createdUser);
 
         //mock DB user connect
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), any())).thenReturn(createdUser);
-        when(userService.connect("janedoe@example.com")).thenReturn(createdUser);
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any())).thenReturn(createdUser);
+        when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(createdUser);
 
         // -- CALL
 
@@ -284,8 +284,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any());
-        verify(userService, times(1)).connect("janedoe@example.com");
+        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any(), any());
+        verify(userService, times(1)).connect(any(), eq("janedoe@example.com"));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -316,12 +316,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         //user.setFirstname("Jane");
         //user.setLastname("Doe");
 
-        when(userService.update(eq(user.getId()), refEq(updateUserEntity))).thenReturn(user);
+        when(userService.update(eq(GraviteeContext.getExecutionContext()), eq(user.getId()), refEq(updateUserEntity))).thenReturn(user);
         return updateUserEntity;
     }
 
     private void mockUserCreation(SocialIdentityProviderEntity socialIdentityProviderEntity, String userInfo, UserEntity createdUser) {
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(refEq(socialIdentityProviderEntity), eq(userInfo)))
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), refEq(socialIdentityProviderEntity), eq(userInfo)))
             .thenReturn(createdUser);
     }
 
@@ -371,8 +371,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(0)).createOrUpdateUserFromSocialIdentityProvider(any(), any());
-        verify(userService, times(0)).connect(anyString());
+        verify(userService, times(0)).createOrUpdateUserFromSocialIdentityProvider(any(), any(), any());
+        verify(userService, times(0)).connect(any(), anyString());
 
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
 
@@ -394,7 +394,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
         // mock processUser to throw EmailRequiredException
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), any())).thenThrow(new EmailRequiredException("email"));
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), any(), any())).thenThrow(new EmailRequiredException("email"));
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
@@ -402,10 +402,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any());
+        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any(), any());
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        verify(userService, times(0)).connect(anyString());
+        verify(userService, times(0)).connect(any(), anyString());
 
         // verify jwt token not present
         assertFalse(response.getCookies().containsKey(HttpHeaders.AUTHORIZATION));
@@ -472,7 +472,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfoBody));
 
         //mock DB find user by name
-        when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+        when(userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE_OAUTH2, "janedoe@example.com", false))
             .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
@@ -481,12 +481,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserCreation(identityProvider, userInfoBody, createdUser);
 
         //mock group search and association
-        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Example group"))
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "Example group"))
             .thenReturn(mockGroupEntity("group_id_1", "Example group"));
-        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "soft user"))
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "soft user"))
             .thenReturn(mockGroupEntity("group_id_2", "soft user"));
-        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Others")).thenReturn(mockGroupEntity("group_id_3", "Others"));
-        when(groupService.findById(GraviteeContext.getCurrentEnvironment(), "Api consumer"))
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "Others")).thenReturn(mockGroupEntity("group_id_3", "Others"));
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "Api consumer"))
             .thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
         // mock role to add from roleMapping
@@ -498,6 +498,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             )
             .when(userService)
             .computeRolesToAddUser(
+                eq(GraviteeContext.getExecutionContext()),
                 eq("janedoe@example.com"),
                 eq(identityProvider.getRoleMappings()),
                 eq(userInfoBody),
@@ -508,14 +509,14 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         RoleEntity roleApiUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "ADMIN");
 
-        when(roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION))
+        when(roleService.findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API, RoleScope.APPLICATION))
             .thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
 
         //mock DB update user picture
         UpdateUserEntity updateUserEntity = mockUpdateUserPicture(createdUser);
 
         //mock DB user connect
-        when(userService.connect("janedoe@example.com")).thenReturn(createdUser);
+        when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(createdUser);
 
         // -- CALL
 
@@ -524,9 +525,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(refEq(identityProvider), anyString());
+        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), anyString());
 
-        verify(userService, times(1)).connect("janedoe@example.com");
+        verify(userService, times(1)).connect(any(), eq("janedoe@example.com"));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -552,7 +553,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfo));
 
         //mock DB find user by name
-        when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+        when(userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE_OAUTH2, "janedoe@example.com", false))
             .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
@@ -564,7 +565,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         UpdateUserEntity updateUserEntity = mockUpdateUserPicture(createdUser);
 
         //mock DB user connect
-        when(userService.connect("janedoe@example.com")).thenReturn(createdUser);
+        when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(createdUser);
 
         // -- CALL
 
@@ -573,15 +574,14 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(refEq(identityProvider), anyString());
+        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), anyString());
 
-        verify(userService, times(1)).connect("janedoe@example.com");
+        verify(userService, times(1)).connect(any(), eq("janedoe@example.com"));
 
         //verify group creations
         verify(membershipService, times(0))
             .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(GraviteeContext.getExecutionContext()),
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class)
@@ -611,7 +611,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfo));
 
         //mock DB find user by name
-        when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+        when(userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE_OAUTH2, "janedoe@example.com", false))
             .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock group search and association
@@ -625,7 +625,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserCreation(identityProvider, userInfo, createdUser);
 
         //mock DB user connect
-        when(userService.connect(createdUser.getId())).thenReturn(createdUser);
+        when(userService.connect(any(), eq(createdUser.getId()))).thenReturn(createdUser);
 
         // -- CALL
 
@@ -634,16 +634,15 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(refEq(identityProvider), anyString());
+        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), anyString());
 
-        verify(userService, times(0)).update(any(String.class), any(UpdateUserEntity.class));
-        verify(userService, times(1)).connect(anyString());
+        verify(userService, times(0)).update(eq(GraviteeContext.getExecutionContext()), any(String.class), any(UpdateUserEntity.class));
+        verify(userService, times(1)).connect(any(), anyString());
 
         //verify group creations
         verify(membershipService, times(0))
             .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(GraviteeContext.getExecutionContext()),
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class)
@@ -668,7 +667,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         //mock oauth2 user info call
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), any())).thenThrow(new ExpressionEvaluationException("error"));
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), any(), any()))
+            .thenThrow(new ExpressionEvaluationException("error"));
 
         // -- CALL
 
@@ -677,8 +677,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any());
-        verify(userService, times(0)).connect(anyString());
+        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any(), any());
+        verify(userService, times(0)).connect(any(), anyString());
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
 

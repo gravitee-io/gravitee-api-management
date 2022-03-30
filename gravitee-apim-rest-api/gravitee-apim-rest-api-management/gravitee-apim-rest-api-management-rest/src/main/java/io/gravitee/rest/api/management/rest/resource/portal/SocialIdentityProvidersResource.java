@@ -68,6 +68,7 @@ public class SocialIdentityProvidersResource extends AbstractResource {
     public List<SocialIdentityProviderEntity> getSocialIdentityProviders() {
         return socialIdentityProviderService
             .findAll(
+                GraviteeContext.getExecutionContext(),
                 new IdentityProviderActivationService.ActivationTarget(
                     GraviteeContext.getCurrentOrganization(),
                     IdentityProviderActivationReferenceType.ORGANIZATION

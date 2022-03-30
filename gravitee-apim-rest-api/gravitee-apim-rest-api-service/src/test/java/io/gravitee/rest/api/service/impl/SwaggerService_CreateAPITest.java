@@ -37,7 +37,6 @@ import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.OAIPolicyOperationVisitor;
@@ -353,7 +352,7 @@ public class SwaggerService_CreateAPITest {
     }
 
     protected SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        return swaggerService.createAPI(swaggerDescriptor);
+        return swaggerService.createAPI(GraviteeContext.getExecutionContext(), swaggerDescriptor);
     }
 
     @Test

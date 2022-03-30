@@ -28,7 +28,7 @@ import io.gravitee.rest.api.model.api.header.NewApiHeaderEntity;
 import io.gravitee.rest.api.model.api.header.UpdateApiHeaderEntity;
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiHeaderNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -54,13 +54,13 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     AuditService auditService;
 
     @Override
-    public ApiHeaderEntity create(final String environmentId, NewApiHeaderEntity newEntity) {
+    public ApiHeaderEntity create(final ExecutionContext executionContext, NewApiHeaderEntity newEntity) {
         try {
-            int order = apiHeaderRepository.findAllByEnvironment(environmentId).size() + 1;
+            int order = apiHeaderRepository.findAllByEnvironment(executionContext.getEnvironmentId()).size() + 1;
 
             ApiHeader apiHeader = new ApiHeader();
             apiHeader.setId(UuidString.generateRandom());
-            apiHeader.setEnvironmentId(environmentId);
+            apiHeader.setEnvironmentId(executionContext.getEnvironmentId());
             apiHeader.setName(newEntity.getName());
             apiHeader.setValue(newEntity.getValue());
             apiHeader.setOrder(order);
@@ -68,7 +68,8 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
             apiHeader.setUpdatedAt(apiHeader.getCreatedAt());
 
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(API_HEADER, apiHeader.getId()),
                 API_HEADER_CREATED,
                 apiHeader.getCreatedAt(),
@@ -84,7 +85,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     }
 
     @Override
-    public void delete(final String environmentId, String apiHeaderId) {
+    public void delete(ExecutionContext executionContext, String apiHeaderId) {
         try {
             Optional<ApiHeader> optionalApiHeader = apiHeaderRepository.findById(apiHeaderId);
             if (!optionalApiHeader.isPresent()) {
@@ -94,7 +95,8 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
             apiHeaderRepository.delete(apiHeaderId);
 
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(API_HEADER, apiHeaderId),
                 API_HEADER_DELETED,
                 new Date(),
@@ -104,11 +106,11 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             //reorder headers
             int currentOrder = 1;
-            for (ApiHeaderEntity apiHeaderEntity : this.findAll(environmentId)) {
+            for (ApiHeaderEntity apiHeaderEntity : this.findAll(executionContext.getEnvironmentId())) {
                 if (apiHeaderEntity.getOrder() != currentOrder) {
                     UpdateApiHeaderEntity updateEntity = convert(apiHeaderEntity);
                     updateEntity.setOrder(currentOrder);
-                    this.update(environmentId, updateEntity);
+                    this.update(executionContext, updateEntity);
                     break;
                 }
                 currentOrder++;
@@ -120,7 +122,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     }
 
     @Override
-    public ApiHeaderEntity update(final String environmentId, UpdateApiHeaderEntity updateEntity) {
+    public ApiHeaderEntity update(ExecutionContext executionContext, UpdateApiHeaderEntity updateEntity) {
         try {
             Optional<ApiHeader> optionalApiHeader = apiHeaderRepository.findById(updateEntity.getId());
             if (!optionalApiHeader.isPresent()) {
@@ -134,12 +136,13 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             if (updatedHeader.getOrder() != updateEntity.getOrder()) {
                 updatedHeader.setOrder(updateEntity.getOrder());
-                reorderAndSave(environmentId, updatedHeader);
+                reorderAndSave(executionContext.getEnvironmentId(), updatedHeader);
                 return convert(updatedHeader);
             } else {
                 ApiHeader header = apiHeaderRepository.update(updatedHeader);
                 auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     singletonMap(API_HEADER, header.getId()),
                     API_HEADER_UPDATED,
                     header.getUpdatedAt(),
@@ -195,20 +198,20 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     }
 
     @Override
-    public void initialize(String environmentId) {
+    public void initialize(final ExecutionContext executionContext) {
         NewApiHeaderEntity h = new NewApiHeaderEntity();
 
         h.setName("api.version");
         h.setValue("${api.version}");
-        create(environmentId, h);
+        create(executionContext, h);
 
         h.setName("api.owner");
         h.setValue("${api.primaryOwner.displayName}");
-        create(environmentId, h);
+        create(executionContext, h);
 
         h.setName("api.publishedAt");
         h.setValue("${(api.deployedAt?date)!}");
-        create(environmentId, h);
+        create(executionContext, h);
     }
 
     private ApiHeaderEntity convert(ApiHeader apiHeader) {

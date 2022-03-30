@@ -70,17 +70,17 @@ public class ApiPagesResource extends AbstractResource {
     ) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        if (accessControlService.canAccessApiFromPortal(apiId)) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
             Stream<Page> pageStream = pageService
                 .search(
+                    GraviteeContext.getCurrentEnvironment(),
                     new PageQuery.Builder().api(apiId).homepage(homepage).published(true).build(),
-                    acceptedLocale,
-                    GraviteeContext.getCurrentEnvironment()
+                    acceptedLocale
                 )
                 .stream()
-                .filter(page -> accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), apiId, page))
+                .filter(page -> accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), apiId, page))
                 .map(pageMapper::convert)
                 .map(page -> this.addPageLink(apiId, page));
 

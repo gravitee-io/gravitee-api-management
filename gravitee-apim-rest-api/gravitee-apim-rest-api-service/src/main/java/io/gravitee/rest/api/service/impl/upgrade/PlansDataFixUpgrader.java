@@ -30,7 +30,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.*;
 import org.slf4j.Logger;
@@ -86,7 +86,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    protected void processOneShotUpgrade() throws Exception {
+    protected void processOneShotUpgrade(ExecutionContext executionContext) throws Exception {
         for (Api api : apiRepository.findAll()) {
             io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                 api.getDefinition(),
@@ -94,7 +94,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
             );
 
             if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion()) {
-                fixApiPlans(api, apiDefinition);
+                fixApiPlans(executionContext, api, apiDefinition);
             }
         }
         if (!anomalyFound) {
@@ -102,7 +102,8 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
         }
     }
 
-    protected void fixApiPlans(Api api, io.gravitee.definition.model.Api apiDefinition) throws Exception {
+    protected void fixApiPlans(ExecutionContext executionContext, Api api, io.gravitee.definition.model.Api apiDefinition)
+        throws Exception {
         Set<Plan> apiPlans = planRepository.findByApi(api.getId());
         List<io.gravitee.definition.model.Plan> definitionPlans = apiDefinition.getPlans();
 
@@ -134,7 +135,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
 
         // notify API owner by email
         if (!dryRun && notifyApiOwner) {
-            sendEmailToApiOwner(api, createdPlans, closedPlans);
+            sendEmailToApiOwner(executionContext, api, createdPlans, closedPlans);
         }
     }
 
@@ -230,25 +231,25 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
         return apiPlansIds.size() != definitionPlansIds.size() || !definitionPlansIds.containsAll(apiPlansIds);
     }
 
-    protected void sendEmailToApiOwner(Api api, List<Plan> createdPlans, List<Plan> closedPlans) {
-        getApiOwnerEmail(api)
+    protected void sendEmailToApiOwner(ExecutionContext executionContext, Api api, List<Plan> createdPlans, List<Plan> closedPlans) {
+        getApiOwnerEmail(executionContext, api)
             .ifPresent(
                 apiOwnerEmail -> {
                     LOGGER.debug("Sending report email to api {} owner", api.getId());
                     emailService.sendAsyncEmailNotification(
+                        executionContext,
                         new EmailNotificationBuilder()
                             .params(Map.of("api", api, "closedPlans", closedPlans, "createdPlans", createdPlans))
                             .to(apiOwnerEmail)
                             .template(EmailNotificationBuilder.EmailTemplate.API_PLANS_DATA_FIXED)
-                            .build(),
-                        GraviteeContext.getCurrentContext()
+                            .build()
                     );
                 }
             );
     }
 
-    private Optional<String> getApiOwnerEmail(Api api) {
-        return Optional.ofNullable(apiService.getPrimaryOwner(api.getId()).getEmail());
+    private Optional<String> getApiOwnerEmail(ExecutionContext executionContext, Api api) {
+        return Optional.ofNullable(apiService.getPrimaryOwner(executionContext, api.getId()).getEmail());
     }
 
     private void logWarningHeaderBlock() {

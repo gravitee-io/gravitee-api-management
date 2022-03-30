@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.notifiers;
 
 import io.gravitee.repository.management.model.GenericNotificationConfig;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,15 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface EmailNotifierService {
-    void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params);
-    List<String> getMails(final GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params);
+    void trigger(
+        ExecutionContext executionContext,
+        final Hook hook,
+        GenericNotificationConfig genericNotificationConfig,
+        final Map<String, Object> params
+    );
+    List<String> getMails(
+        ExecutionContext executionContext,
+        final GenericNotificationConfig genericNotificationConfig,
+        final Map<String, Object> params
+    );
 }

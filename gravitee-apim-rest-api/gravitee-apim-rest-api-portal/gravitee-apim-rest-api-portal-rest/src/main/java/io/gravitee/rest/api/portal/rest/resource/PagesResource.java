@@ -68,12 +68,12 @@ public class PagesResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Stream<Page> pageStream = pageService
             .search(
+                GraviteeContext.getCurrentEnvironment(),
                 new PageQuery.Builder().homepage(homepage).published(true).build(),
-                acceptedLocale,
-                GraviteeContext.getCurrentEnvironment()
+                acceptedLocale
             )
             .stream()
-            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity))
+            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity))
             .map(pageMapper::convert)
             .map(this::addPageLink);
 

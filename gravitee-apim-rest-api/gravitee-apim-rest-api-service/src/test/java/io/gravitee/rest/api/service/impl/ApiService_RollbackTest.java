@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.api.RollbackApiEntity;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -53,9 +53,18 @@ public class ApiService_RollbackTest {
     public void rollback_should_create_rollback_api_audit_log() {
         RollbackApiEntity rollbackApiEntity = new RollbackApiEntity();
 
-        apiService.rollback("my-api-id", rollbackApiEntity);
+        apiService.rollback(GraviteeContext.getExecutionContext(), "my-api-id", rollbackApiEntity);
 
-        verify(auditService, times(1)).createApiAuditLog(eq("my-api-id"), anyMap(), same(API_ROLLBACKED), any(), isNull(), isNull());
+        verify(auditService, times(1))
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("my-api-id"),
+                anyMap(),
+                same(API_ROLLBACKED),
+                any(),
+                isNull(),
+                isNull()
+            );
     }
 
     @Test
@@ -63,8 +72,9 @@ public class ApiService_RollbackTest {
         RollbackApiEntity rollbackApiEntity = new RollbackApiEntity();
         when(objectMapper.writeValueAsString(rollbackApiEntity)).thenReturn("my-serialized-api");
 
-        apiService.rollback("my-api-id", rollbackApiEntity);
+        apiService.rollback(GraviteeContext.getExecutionContext(), "my-api-id", rollbackApiEntity);
 
-        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition("my-api-id", "my-serialized-api", "DEFAULT", "DEFAULT");
+        verify(apiDuplicatorService, times(1))
+            .updateWithImportedDefinition(GraviteeContext.getExecutionContext(), "my-api-id", "my-serialized-api");
     }
 }

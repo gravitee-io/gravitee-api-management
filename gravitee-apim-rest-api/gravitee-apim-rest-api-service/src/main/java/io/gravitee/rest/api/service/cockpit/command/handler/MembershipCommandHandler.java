@@ -31,7 +31,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.reactivex.Single;
 import java.util.Collections;
@@ -67,7 +67,6 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
     @Override
     public Single<MembershipReply> handle(MembershipCommand command) {
         MembershipPayload membershipPayload = command.getPayload();
-        GraviteeContext.setCurrentOrganization(membershipPayload.getOrganizationId());
 
         try {
             RoleScope roleScope;
@@ -81,8 +80,13 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
                 return Single.just(new MembershipReply(command.getId(), CommandStatus.ERROR));
             }
 
-            final UserEntity userEntity = userService.findBySource(COCKPIT_SOURCE, membershipPayload.getUserId(), false);
-            final RoleEntity roleEntity = findRole(roleScope, membershipPayload.getRole());
+            ExecutionContext executionContext = new ExecutionContext(
+                membershipPayload.getOrganizationId(),
+                membershipReferenceType.equals(MembershipReferenceType.ENVIRONMENT) ? membershipPayload.getReferenceId() : null
+            );
+
+            final UserEntity userEntity = userService.findBySource(executionContext, COCKPIT_SOURCE, membershipPayload.getUserId(), false);
+            final RoleEntity roleEntity = findRole(executionContext.getOrganizationId(), roleScope, membershipPayload.getRole());
             final MembershipService.MembershipReference membershipReference = new MembershipService.MembershipReference(
                 membershipReferenceType,
                 membershipPayload.getReferenceId()
@@ -98,9 +102,7 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
             );
 
             membershipService.updateRolesToMemberOnReference(
-                // FIXME: I think both these values aren't defined in this context
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
                 membershipReference,
                 membershipMember,
                 Collections.singletonList(membershipRole),
@@ -128,19 +130,17 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
                 e
             );
             return Single.just(new MembershipReply(command.getId(), CommandStatus.ERROR));
-        } finally {
-            GraviteeContext.cleanContext();
         }
     }
 
-    private RoleEntity findRole(RoleScope roleScope, String roleName) {
+    private RoleEntity findRole(String organizationId, RoleScope roleScope, String roleName) {
         // Need to map cockpit role to apim role (ORGANIZATION_PRIMARY_OWNER | ORGANIZATION_OWNER -> ADMIN, ENVIRONMENT_PRIMARY_OWNER | ENVIRONMENT_OWNER -> ADMIN).
         final String mappedRoleName = roleName
             .replace(roleScope.name() + "_", "")
             .replace("PRIMARY_OWNER", "ADMIN")
             .replace("OWNER", "ADMIN");
 
-        final Optional<RoleEntity> role = roleService.findByScopeAndName(roleScope, mappedRoleName);
+        final Optional<RoleEntity> role = roleService.findByScopeAndName(roleScope, mappedRoleName, organizationId);
 
         if (!role.isPresent()) {
             throw new RoleNotFoundException(roleScope, mappedRoleName);

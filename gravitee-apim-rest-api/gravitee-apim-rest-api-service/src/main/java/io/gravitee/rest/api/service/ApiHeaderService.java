@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.api.header.NewApiHeaderEntity;
 import io.gravitee.rest.api.model.api.header.UpdateApiHeaderEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -25,13 +26,13 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApiHeaderService {
-    ApiHeaderEntity create(final String environmentId, NewApiHeaderEntity newEntity);
+    ApiHeaderEntity create(ExecutionContext executionContext, NewApiHeaderEntity newEntity);
 
-    void delete(final String environmentId, String apiHeaderId);
+    void delete(ExecutionContext executionContext, String apiHeaderId);
 
-    ApiHeaderEntity update(final String environmentId, UpdateApiHeaderEntity updateEntity);
+    ApiHeaderEntity update(ExecutionContext executionContext, UpdateApiHeaderEntity updateEntity);
 
     List<ApiHeaderEntity> findAll(final String environmentId);
 
-    void initialize(String environmentId);
+    void initialize(ExecutionContext executionContext);
 }

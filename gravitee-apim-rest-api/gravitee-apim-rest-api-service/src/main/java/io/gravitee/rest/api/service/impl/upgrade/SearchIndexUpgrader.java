@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.ArrayList;
@@ -68,7 +69,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     private final Map<String, String> organizationIdByEnvironmentIdMap = new ConcurrentHashMap<>();
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         ExecutorService executorService = Executors.newFixedThreadPool(
             Runtime.getRuntime().availableProcessors() * 2,
             new ThreadFactory() {
@@ -85,7 +86,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
         // index APIs
         apiService
-            .findAllLight()
+            .findAllLight(executionContext)
             .stream()
             .forEach(
                 apiEntity -> {
@@ -102,12 +103,12 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                         }
                     );
 
-                    futures.add(runApiIndexationAsync(apiEntity, environmentId, organizationId, executorService));
+                    futures.add(runApiIndexationAsync(executionContext, apiEntity, environmentId, organizationId, executorService));
                 }
             );
 
         // index users
-        futures.add(runUsersIndexationAsync());
+        futures.add(runUsersIndexationAsync(executionContext));
 
         CompletableFuture<Void> future = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
@@ -123,6 +124,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     }
 
     private CompletableFuture runApiIndexationAsync(
+        ExecutionContext executionContext,
         ApiEntity apiEntity,
         String environmentId,
         String organizationId,
@@ -131,14 +133,12 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         return CompletableFuture.runAsync(
             () -> {
                 try {
-                    GraviteeContext.setCurrentEnvironment(environmentId);
-                    GraviteeContext.setCurrentOrganization(organizationId);
-
                     // API
-                    searchEngineService.index(apiEntity, true, false);
+                    searchEngineService.index(executionContext, apiEntity, true, false);
 
                     // Pages
                     List<PageEntity> apiPages = pageService.search(
+                        environmentId,
                         new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
                         true
                     );
@@ -151,8 +151,12 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                                     !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
                                     !PageType.LINK.name().equals(page.getType())
                                 ) {
-                                    pageService.transformSwagger(page, apiEntity.getId());
-                                    searchEngineService.index(page, true, false);
+                                    pageService.transformSwagger(
+                                        new ExecutionContext(environmentId, organizationId),
+                                        page,
+                                        apiEntity.getId()
+                                    );
+                                    searchEngineService.index(executionContext, page, true, false);
                                 }
                             } catch (Exception ignored) {}
                         }
@@ -165,16 +169,17 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         );
     }
 
-    private CompletableFuture runUsersIndexationAsync() {
+    private CompletableFuture runUsersIndexationAsync(ExecutionContext executionContext) {
         return CompletableFuture.runAsync(
             () -> {
                 // Index users
                 Page<UserEntity> users = userService.search(
+                    executionContext,
                     new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
                     new PageableImpl(1, Integer.MAX_VALUE)
                 );
 
-                users.getContent().forEach(userEntity -> searchEngineService.index(userEntity, true, false));
+                users.getContent().forEach(userEntity -> searchEngineService.index(executionContext, userEntity, true, false));
             }
         );
     }

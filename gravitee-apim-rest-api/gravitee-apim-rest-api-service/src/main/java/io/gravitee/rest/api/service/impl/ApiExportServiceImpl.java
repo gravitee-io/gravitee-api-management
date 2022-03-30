@@ -19,11 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.ApiExportService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
@@ -72,9 +72,14 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     }
 
     @Override
-    public String exportAsJson(final String apiId, String exportVersion, String... filteredFields) {
-        ApiEntity apiEntity = apiService.findById(apiId);
-        generateAndSaveCrossId(apiEntity);
+    public String exportAsJson(
+        final ExecutionContext executionContext,
+        final String apiId,
+        String exportVersion,
+        String... filteredFields
+    ) {
+        ApiEntity apiEntity = apiService.findById(executionContext, apiId);
+        generateAndSaveCrossId(executionContext, apiEntity);
         // set metadata for serialize process
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, exportVersion);
@@ -89,26 +94,28 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         return "";
     }
 
-    private void generateAndSaveCrossId(ApiEntity api) {
+    private void generateAndSaveCrossId(ExecutionContext executionContext, ApiEntity api) {
         if (StringUtils.isEmpty(api.getCrossId())) {
             api.setCrossId(UuidString.generateRandom());
-            apiService.update(api.getId(), apiConverter.toUpdateApiEntity(api));
+            apiService.update(executionContext, api.getId(), apiConverter.toUpdateApiEntity(api));
         }
-        planService.findByApi(api.getId()).forEach(this::generateAndSaveCrossId);
-        pageService.findByApi(api.getId()).forEach(this::generateAndSaveCrossId);
+        planService.findByApi(executionContext, api.getId()).forEach(plan -> generateAndSaveCrossId(executionContext, plan));
+        pageService
+            .findByApi(executionContext.getEnvironmentId(), api.getId())
+            .forEach(page -> generateAndSaveCrossId(executionContext, page));
     }
 
-    private void generateAndSaveCrossId(PlanEntity plan) {
+    private void generateAndSaveCrossId(ExecutionContext executionContext, PlanEntity plan) {
         if (StringUtils.isEmpty(plan.getCrossId())) {
             plan.setCrossId(UuidString.generateRandom());
-            planService.update(planConverter.toUpdatePlanEntity(plan));
+            planService.update(executionContext, planConverter.toUpdatePlanEntity(plan));
         }
     }
 
-    private void generateAndSaveCrossId(PageEntity page) {
+    private void generateAndSaveCrossId(ExecutionContext executionContext, PageEntity page) {
         if (StringUtils.isEmpty(page.getCrossId())) {
             page.setCrossId(UuidString.generateRandom());
-            pageService.update(page.getId(), pageConverter.toUpdatePageEntity(page));
+            pageService.update(executionContext, page.getId(), pageConverter.toUpdatePageEntity(page));
         }
     }
 }

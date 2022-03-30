@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.quality.ApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.NewApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateApiQualityRuleEntity;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -72,7 +73,7 @@ public class ApiQualityRulesResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.CREATE) })
     public ApiQualityRuleEntity createApiQualityRule(@Valid @NotNull final NewApiQualityRuleEntity apiQualityRuleEntity) {
         apiQualityRuleEntity.setApi(api);
-        return apiQualityRuleService.create(apiQualityRuleEntity);
+        return apiQualityRuleService.create(GraviteeContext.getExecutionContext(), apiQualityRuleEntity);
     }
 
     @Path("{qualityRule}")
@@ -90,6 +91,6 @@ public class ApiQualityRulesResource extends AbstractResource {
     ) {
         apiQualityRuleEntity.setApi(api);
         apiQualityRuleEntity.setQualityRule(qualityRule);
-        return apiQualityRuleService.update(apiQualityRuleEntity);
+        return apiQualityRuleService.update(GraviteeContext.getExecutionContext(), apiQualityRuleEntity);
     }
 }

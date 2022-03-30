@@ -34,7 +34,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.Collections;
@@ -136,25 +135,19 @@ public class ApiService_DeleteTest {
         when(api.getLifecycleState()).thenReturn(LifecycleState.STARTED);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        apiService.delete(API_ID);
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
     }
 
     @Test
     public void shouldDeleteBecauseNoPlan() throws TechnicalException {
         when(api.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(planService.findByApi(API_ID)).thenReturn(Collections.emptySet());
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
 
-        apiService.delete(API_ID);
-        verify(membershipService, times(1))
-            .deleteReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipReferenceType.API,
-                API_ID
-            );
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
+        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
-        verify(apiMetadataService, times(1)).deleteAllByApi(API_ID);
+        verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
     }
 
     @Test(expected = ApiNotDeletableException.class)
@@ -162,16 +155,10 @@ public class ApiService_DeleteTest {
         when(api.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(planEntity.getStatus()).thenReturn(PlanStatus.PUBLISHED);
-        when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
 
-        apiService.delete(API_ID);
-        verify(membershipService, times(1))
-            .deleteReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipReferenceType.API,
-                API_ID
-            );
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
+        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
     }
 
     @Test
@@ -180,18 +167,12 @@ public class ApiService_DeleteTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getStatus()).thenReturn(PlanStatus.CLOSED);
-        when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
 
-        apiService.delete(API_ID);
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
 
-        verify(planService, times(1)).delete(PLAN_ID);
-        verify(membershipService, times(1))
-            .deleteReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipReferenceType.API,
-                API_ID
-            );
+        verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
     }
 
     @Test
@@ -200,20 +181,14 @@ public class ApiService_DeleteTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getStatus()).thenReturn(PlanStatus.STAGING);
-        when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
 
-        apiService.delete(API_ID);
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
 
-        verify(planService, times(1)).delete(PLAN_ID);
+        verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(apiQualityRuleRepository, times(1)).deleteByApi(API_ID);
-        verify(membershipService, times(1))
-            .deleteReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipReferenceType.API,
-                API_ID
-            );
+        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
-        verify(apiMetadataService, times(1)).deleteAllByApi(API_ID);
+        verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
     }
 }

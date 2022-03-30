@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.notification.NewPortalNotificationEntity;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
 import java.util.List;
 
@@ -29,7 +29,7 @@ public interface PortalNotificationService {
 
     PortalNotificationEntity findById(String notificationId);
 
-    void create(Hook hook, List<String> users, Object param);
+    void create(ExecutionContext executionContext, Hook hook, List<String> users, Object param);
 
     void delete(String notificationId);
 

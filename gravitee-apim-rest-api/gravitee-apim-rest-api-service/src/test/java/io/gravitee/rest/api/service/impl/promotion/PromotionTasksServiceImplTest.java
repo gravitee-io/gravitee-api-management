@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import java.util.*;
@@ -78,9 +79,25 @@ public class PromotionTasksServiceImplTest {
     public void shouldNotGetPromotionTasksWhenNothingFromDb() {
         when(promotionService.search(any(), any(), any())).thenReturn(new Page<>(emptyList(), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", CREATE)).thenReturn(true);
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", UPDATE)).thenReturn(true);
-        final List<TaskEntity> result = cut.getPromotionTasks("org#1");
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(CREATE)
+            )
+        )
+            .thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(UPDATE)
+            )
+        )
+            .thenReturn(true);
+        final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
 
         assertThat(result).isEmpty();
     }
@@ -88,10 +105,26 @@ public class PromotionTasksServiceImplTest {
     @Test
     public void shouldNotGetPromotionTasksIfDoesNotHavePermissions() {
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", CREATE)).thenReturn(false);
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", UPDATE)).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(CREATE)
+            )
+        )
+            .thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(UPDATE)
+            )
+        )
+            .thenReturn(false);
 
-        final List<TaskEntity> result = cut.getPromotionTasks("org#1");
+        final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).isEmpty();
     }
 
@@ -118,14 +151,30 @@ public class PromotionTasksServiceImplTest {
             )
         )
             .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", UPDATE)).thenReturn(true);
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", CREATE)).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(UPDATE)
+            )
+        )
+            .thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(CREATE)
+            )
+        )
+            .thenReturn(false);
 
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
         when(apiService.exists("api#target")).thenReturn(true);
 
-        final List<TaskEntity> result = cut.getPromotionTasks("org#1");
+        final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(1);
         Map<String, Object> taskData = (Map<String, Object>) result.get(0).getData();
         assertThat(taskData.get("apiName")).isEqualTo("API Name");
@@ -160,12 +209,28 @@ public class PromotionTasksServiceImplTest {
             )
         )
             .thenReturn(new Page<>(emptyList(), 0, 0, 0));
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", CREATE)).thenReturn(true);
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", UPDATE)).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(CREATE)
+            )
+        )
+            .thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(UPDATE)
+            )
+        )
+            .thenReturn(false);
 
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
-        final List<TaskEntity> result = cut.getPromotionTasks("org#1");
+        final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(1);
         Map<String, Object> taskData = (Map<String, Object>) result.get(0).getData();
         assertThat(taskData.get("apiName")).isEqualTo("API Name");
@@ -202,13 +267,29 @@ public class PromotionTasksServiceImplTest {
             )
         )
             .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", CREATE)).thenReturn(true);
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", UPDATE)).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(CREATE)
+            )
+        )
+            .thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(UPDATE)
+            )
+        )
+            .thenReturn(false);
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
         when(apiService.exists("api#target")).thenReturn(false);
 
-        final List<TaskEntity> result = cut.getPromotionTasks("org#1");
+        final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(1);
         Map<String, Object> taskData = (Map<String, Object>) result.get(0).getData();
         assertThat(taskData.get("apiName")).isEqualTo("API Name");
@@ -245,15 +326,31 @@ public class PromotionTasksServiceImplTest {
             )
         )
             .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", UPDATE)).thenReturn(true);
-        when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", CREATE)).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(UPDATE)
+            )
+        )
+            .thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(CREATE)
+            )
+        )
+            .thenReturn(false);
 
         when(objectMapper.readValue(promotionEntity1.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
         when(objectMapper.readValue(promotionEntity2.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
         when(apiService.exists("api#target")).thenReturn(true);
 
-        final List<TaskEntity> result = cut.getPromotionTasks("org#1");
+        final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(2);
     }
 

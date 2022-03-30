@@ -85,7 +85,7 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
         page.setPublished(true);
         page.setVisibility(Visibility.PUBLIC);
         doReturn(page).when(pageService).findById(any(), any());
-        doReturn(false).when(configService).portalLoginForced(GraviteeContext.getCurrentEnvironment());
+        doReturn(false).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
         //        final Response response = envTarget(PAGE_NAME).request().get();
         //
         //        assertNotNull("Response should be present", response);
@@ -98,7 +98,7 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
         page.setPublished(true);
         page.setVisibility(Visibility.PUBLIC);
         doReturn(page).when(pageService).findById(any(), any());
-        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getCurrentEnvironment());
+        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
         //        final Response response = envTarget(PAGE_NAME).request().get();
         //
         //        assertNotNull("Response should be present", response);

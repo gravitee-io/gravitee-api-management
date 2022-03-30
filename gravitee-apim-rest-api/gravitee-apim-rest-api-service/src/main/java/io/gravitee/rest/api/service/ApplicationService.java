@@ -32,56 +32,45 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApplicationService {
-    ApplicationEntity findById(final String environment, String applicationId);
+    ApplicationEntity findById(final ExecutionContext executionContext, String applicationId);
 
-    default Set<ApplicationListItem> findByIds(final ExecutionContext context, List<String> applicationIds) {
-        return this.findByIds(context.getOrganizationId(), context.getEnvironmentId(), applicationIds);
+    Set<ApplicationListItem> findByIds(final ExecutionContext executionContext, Collection<String> applicationIds);
+
+    default Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username) {
+        return findByUser(executionContext, username, null);
     }
 
-    @Deprecated
-    Set<ApplicationListItem> findByIds(final String organizationId, final String environmentId, Collection<String> applicationIds);
-
-    default Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username) {
-        return findByUser(organizationId, environmentId, username, null);
-    }
-
-    Set<ApplicationListItem> findByUser(final String organizationId, final String environmentId, String username, Sortable sortable);
+    Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable);
 
     Set<ApplicationListItem> findByUserAndNameAndStatus(
+        final ExecutionContext executionContext,
         String username,
         boolean isAdminUser,
         String name,
-        String status,
-        final String environmentId,
-        final String organizationId
+        String status
     );
 
     Set<ApplicationListItem> findByOrganization(String organizationId);
 
-    Set<ApplicationListItem> findByGroups(final String organizationId, List<String> groupId);
+    Set<ApplicationListItem> findByGroups(ExecutionContext executionContext, List<String> groupId);
 
-    Set<ApplicationListItem> findByGroupsAndStatus(final String organizationId, List<String> groupId, String status);
+    Set<ApplicationListItem> findByGroupsAndStatus(ExecutionContext executionContext, List<String> groupId, String status);
 
-    Set<ApplicationListItem> findAll(final String organizationId, final String environmentId);
+    Set<ApplicationListItem> findAll(final ExecutionContext executionContext);
 
-    Set<ApplicationListItem> findByStatus(final String organizationId, final String environmentId, String status);
+    Set<ApplicationListItem> findByStatus(final ExecutionContext executionContext, String status);
 
-    ApplicationEntity create(final String environmentId, NewApplicationEntity application, String username);
+    ApplicationEntity create(final ExecutionContext executionContext, NewApplicationEntity application, String username);
 
-    ApplicationEntity update(
-        final String organizationId,
-        final String environmentId,
-        String applicationId,
-        UpdateApplicationEntity application
-    );
+    ApplicationEntity update(final ExecutionContext executionContext, String applicationId, UpdateApplicationEntity application);
 
-    ApplicationEntity renewClientSecret(final String organizationId, final String environmentId, String applicationId);
+    ApplicationEntity renewClientSecret(final ExecutionContext executionContext, String applicationId);
 
-    ApplicationEntity restore(String applicationId);
+    ApplicationEntity restore(final ExecutionContext executionContext, String applicationId);
 
-    void archive(String applicationId);
+    void archive(final ExecutionContext executionContext, String applicationId);
 
-    InlinePictureEntity getPicture(final String environmentId, String apiId);
+    InlinePictureEntity getPicture(final ExecutionContext executionContext, String apiId);
 
-    InlinePictureEntity getBackground(final String environmentId, String application);
+    InlinePictureEntity getBackground(final ExecutionContext executionContext, String application);
 }

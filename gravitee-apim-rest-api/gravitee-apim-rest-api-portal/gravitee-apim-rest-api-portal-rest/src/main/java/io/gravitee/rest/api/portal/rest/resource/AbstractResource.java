@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import java.awt.*;
@@ -104,7 +105,7 @@ public abstract class AbstractResource<T, K> {
     }
 
     protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
-        return isAuthenticated() && (permissionService.hasPermission(permission, referenceId, acls));
+        return isAuthenticated() && (permissionService.hasPermission(GraviteeContext.getExecutionContext(), permission, referenceId, acls));
     }
 
     String checkAndScaleImage(final String encodedPicture) {

@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.ApiQualityRule;
 import io.gravitee.rest.api.model.quality.*;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.Collections;
@@ -64,7 +65,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     }
 
     @Override
-    public ApiQualityRuleEntity create(NewApiQualityRuleEntity newEntity) {
+    public ApiQualityRuleEntity create(ExecutionContext executionContext, NewApiQualityRuleEntity newEntity) {
         try {
             final Optional<ApiQualityRule> optionalApiQualityRule = apiQualityRuleRepository.findById(
                 newEntity.getApi(),
@@ -75,7 +76,8 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             }
             final ApiQualityRule apiQualityRule = convert(newEntity);
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
                 ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED,
                 apiQualityRule.getCreatedAt(),
@@ -91,7 +93,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     }
 
     @Override
-    public ApiQualityRuleEntity update(UpdateApiQualityRuleEntity updateEntity) {
+    public ApiQualityRuleEntity update(ExecutionContext executionContext, UpdateApiQualityRuleEntity updateEntity) {
         try {
             final Optional<ApiQualityRule> optionalApiQualityRule = apiQualityRuleRepository.findById(
                 updateEntity.getApi(),
@@ -102,7 +104,8 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             }
             final ApiQualityRule apiQualityRule = apiQualityRuleRepository.update(convert(updateEntity));
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
                 ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED,
                 apiQualityRule.getUpdatedAt(),

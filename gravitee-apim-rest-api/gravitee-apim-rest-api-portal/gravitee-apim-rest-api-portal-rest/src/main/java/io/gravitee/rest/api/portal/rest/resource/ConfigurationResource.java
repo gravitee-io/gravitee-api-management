@@ -81,8 +81,8 @@ public class ConfigurationResource extends AbstractResource {
         return Response
             .ok(
                 configMapper.convert(
-                    configService.getPortalSettings(GraviteeContext.getCurrentEnvironment()),
-                    configService.getConsoleSettings(GraviteeContext.getCurrentOrganization())
+                    configService.getPortalSettings(GraviteeContext.getExecutionContext()),
+                    configService.getConsoleSettings(GraviteeContext.getExecutionContext())
                 )
             )
             .build();
@@ -93,7 +93,7 @@ public class ConfigurationResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response listCustomUserFields() {
-        List<CustomUserFieldEntity> fields = customUserFieldService.listAllFields();
+        List<CustomUserFieldEntity> fields = customUserFieldService.listAllFields(GraviteeContext.getExecutionContext());
         if (fields != null) {
             return Response.ok().entity(fields).build();
         }
@@ -107,6 +107,7 @@ public class ConfigurationResource extends AbstractResource {
     public Response getPortalIdentityProviders(@BeanParam PaginationParam paginationParam) {
         List<IdentityProvider> identities = socialIdentityProviderService
             .findAll(
+                GraviteeContext.getExecutionContext(),
                 new IdentityProviderActivationService.ActivationTarget(
                     GraviteeContext.getCurrentEnvironment(),
                     IdentityProviderActivationReferenceType.ENVIRONMENT
@@ -145,7 +146,7 @@ public class ConfigurationResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> portalLinks = new HashMap<>();
         pageService
-            .search(new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build(), acceptedLocale, GraviteeContext.getCurrentEnvironment())
+            .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build(), acceptedLocale)
             .stream()
             .filter(PageEntity::isPublished)
             .forEach(
@@ -165,9 +166,9 @@ public class ConfigurationResource extends AbstractResource {
                     // for pages into folders
                     pageService
                         .search(
+                            GraviteeContext.getCurrentEnvironment(),
                             new PageQuery.Builder().parent(systemFolder.getId()).build(),
-                            acceptedLocale,
-                            GraviteeContext.getCurrentEnvironment()
+                            acceptedLocale
                         )
                         .stream()
                         .filter(PageEntity::isPublished)
@@ -195,14 +196,14 @@ public class ConfigurationResource extends AbstractResource {
 
     private List<Link> getLinksFromFolder(PageEntity folder, String acceptedLocale) {
         return pageService
-            .search(new PageQuery.Builder().parent(folder.getId()).build(), acceptedLocale, GraviteeContext.getCurrentEnvironment())
+            .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().parent(folder.getId()).build(), acceptedLocale)
             .stream()
             .filter(
                 p -> {
                     if (PageType.FOLDER.name().equals(p.getType()) || PageType.MARKDOWN_TEMPLATE.name().equals(p.getType())) {
                         return false;
                     }
-                    return accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), p);
+                    return accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), p);
                 }
             )
             .map(ConfigurationResource::convertToLink)
@@ -230,7 +231,9 @@ public class ConfigurationResource extends AbstractResource {
     @Path("applications/types")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getEnabledApplicationTypes() {
-        ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes();
+        ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes(
+            GraviteeContext.getExecutionContext()
+        );
         return Response.ok(convert(enabledApplicationTypes)).build();
     }
 
@@ -243,7 +246,7 @@ public class ConfigurationResource extends AbstractResource {
                 new ConfigurationApplicationRolesResponse()
                 .data(
                         roleService
-                            .findByScope(RoleScope.APPLICATION)
+                            .findByScope(RoleScope.APPLICATION, GraviteeContext.getCurrentOrganization())
                             .stream()
                             .map(
                                 roleEntity ->

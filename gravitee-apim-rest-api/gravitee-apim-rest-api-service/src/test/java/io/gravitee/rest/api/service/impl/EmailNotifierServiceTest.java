@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.*;
 import io.gravitee.rest.api.service.notifiers.impl.EmailNotifierServiceImpl;
 import java.util.Collections;
@@ -57,28 +58,28 @@ public class EmailNotifierServiceTest {
 
     @Test
     public void shouldNotSendEmailIfNoConfig() {
-        service.trigger(ApiHook.API_STARTED, null, null);
-        verify(mockEmailService, never()).sendAsyncEmailNotification(any(), any());
-        verify(mockEmailService, never()).sendEmailNotification(any());
+        service.trigger(GraviteeContext.getExecutionContext(), ApiHook.API_STARTED, null, null);
+        verify(mockEmailService, never()).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+        verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
 
-        service.trigger(ApiHook.API_STARTED, new GenericNotificationConfig(), null);
-        verify(mockEmailService, never()).sendAsyncEmailNotification(any(), any());
-        verify(mockEmailService, never()).sendEmailNotification(any());
+        service.trigger(GraviteeContext.getExecutionContext(), ApiHook.API_STARTED, new GenericNotificationConfig(), null);
+        verify(mockEmailService, never()).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+        verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
 
         GenericNotificationConfig cfg = new GenericNotificationConfig();
         cfg.setConfig("");
-        service.trigger(ApiHook.API_STARTED, cfg, null);
-        verify(mockEmailService, never()).sendAsyncEmailNotification(any(), any());
-        verify(mockEmailService, never()).sendEmailNotification(any());
+        service.trigger(GraviteeContext.getExecutionContext(), ApiHook.API_STARTED, cfg, null);
+        verify(mockEmailService, never()).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+        verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
     public void shouldNotSendEmailIfNoHook() {
         GenericNotificationConfig cfg = new GenericNotificationConfig();
         cfg.setConfig("test@mail.com");
-        service.trigger(null, cfg, null);
-        verify(mockEmailService, never()).sendAsyncEmailNotification(any(), any());
-        verify(mockEmailService, never()).sendEmailNotification(any());
+        service.trigger(GraviteeContext.getExecutionContext(), null, cfg, null);
+        verify(mockEmailService, never()).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+        verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -96,18 +97,18 @@ public class EmailNotifierServiceTest {
         for (ApiHook hook : ApiHook.values()) {
             if (!ApiHook.MESSAGE.equals(hook)) {
                 reset(mockEmailService);
-                service.trigger(hook, cfg, params);
+                service.trigger(GraviteeContext.getExecutionContext(), hook, cfg, params);
                 verify(mockEmailService, times(1))
                     .sendAsyncEmailNotification(
+                        eq(GraviteeContext.getExecutionContext()),
                         argThat(
                             notification ->
                                 notification.getTo() != null &&
                                 notification.getTo().length == 1 &&
                                 notification.getTo()[0].equals("test@mail.com")
-                        ),
-                        any()
+                        )
                     );
-                verify(mockEmailService, never()).sendEmailNotification(any());
+                verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
             }
         }
     }
@@ -125,18 +126,18 @@ public class EmailNotifierServiceTest {
         params.put((NotificationParamsBuilder.PARAM_PLAN), plan);
         for (ApplicationHook hook : ApplicationHook.values()) {
             reset(mockEmailService);
-            service.trigger(hook, cfg, params);
+            service.trigger(GraviteeContext.getExecutionContext(), hook, cfg, params);
             verify(mockEmailService, times(1))
                 .sendAsyncEmailNotification(
+                    eq(GraviteeContext.getExecutionContext()),
                     argThat(
                         notification ->
                             notification.getTo() != null &&
                             notification.getTo().length == 1 &&
                             notification.getTo()[0].equals("test@mail.com")
-                    ),
-                    any()
+                    )
                 );
-            verify(mockEmailService, never()).sendEmailNotification(any());
+            verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
         }
     }
 
@@ -147,18 +148,18 @@ public class EmailNotifierServiceTest {
         for (PortalHook hook : PortalHook.values()) {
             if (!PortalHook.MESSAGE.equals(hook) && !PortalHook.GROUP_INVITATION.equals(hook)) {
                 reset(mockEmailService);
-                service.trigger(hook, cfg, Collections.emptyMap());
+                service.trigger(GraviteeContext.getExecutionContext(), hook, cfg, Collections.emptyMap());
                 verify(mockEmailService, times(1))
                     .sendAsyncEmailNotification(
+                        eq(GraviteeContext.getExecutionContext()),
                         argThat(
                             notification ->
                                 notification.getTo() != null &&
                                 notification.getTo().length == 1 &&
                                 notification.getTo()[0].equals("test@mail.com")
-                        ),
-                        any()
+                        )
                     );
-                verify(mockEmailService, never()).sendEmailNotification(any());
+                verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
             }
         }
     }
@@ -179,23 +180,24 @@ public class EmailNotifierServiceTest {
         params.put((NotificationParamsBuilder.PARAM_API), api);
         params.put((NotificationParamsBuilder.PARAM_PLAN), plan);
 
-        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any())).thenReturn("primary@owner.com");
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), anyString(), any()))
+            .thenReturn("primary@owner.com");
 
         for (ApplicationHook hook : ApplicationHook.values()) {
             reset(mockEmailService);
-            service.trigger(hook, cfg, params);
+            service.trigger(GraviteeContext.getExecutionContext(), hook, cfg, params);
             verify(mockEmailService, times(1))
                 .sendAsyncEmailNotification(
+                    eq(GraviteeContext.getExecutionContext()),
                     argThat(
                         notification ->
                             notification.getTo() != null &&
                             notification.getTo().length == 2 &&
                             notification.getTo()[0].equals("test@mail.com") &&
                             notification.getTo()[1].equals("primary@owner.com")
-                    ),
-                    any()
+                    )
                 );
-            verify(mockEmailService, never()).sendEmailNotification(any());
+            verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
         }
     }
 
@@ -211,7 +213,7 @@ public class EmailNotifierServiceTest {
         params.put((NotificationParamsBuilder.PARAM_API), api);
         params.put((NotificationParamsBuilder.PARAM_PLAN), plan);
 
-        List<String> mails = service.getMails(cfg, params);
+        List<String> mails = service.getMails(GraviteeContext.getExecutionContext(), cfg, params);
         assertNotNull(mails);
         assertFalse(mails.isEmpty());
         assertThat(mails, CoreMatchers.hasItem(cfg.getConfig()));
@@ -221,7 +223,7 @@ public class EmailNotifierServiceTest {
     public void shouldHaveEmptyEmailList() {
         GenericNotificationConfig cfg = new GenericNotificationConfig();
         Map<String, Object> params = new HashMap<>();
-        List<String> mails = service.getMails(cfg, params);
+        List<String> mails = service.getMails(GraviteeContext.getExecutionContext(), cfg, params);
         assertNotNull(mails);
         assertTrue(mails.isEmpty());
     }
@@ -229,7 +231,7 @@ public class EmailNotifierServiceTest {
     @Test
     public void shouldHaveEmptyEmailList_NoConfig() {
         Map<String, Object> params = new HashMap<>();
-        List<String> mails = service.getMails(null, params);
+        List<String> mails = service.getMails(GraviteeContext.getExecutionContext(), null, params);
         assertNotNull(mails);
         assertTrue(mails.isEmpty());
     }

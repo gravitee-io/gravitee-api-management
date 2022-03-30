@@ -120,6 +120,7 @@ public class EnvironmentResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateEnvironmentIdentities(List<IdentityProviderActivationEntity> identityProviderActivations) {
         this.identityProviderActivationService.updateTargetIdp(
+                GraviteeContext.getExecutionContext(),
                 new IdentityProviderActivationService.ActivationTarget(
                     GraviteeContext.getCurrentEnvironment(),
                     IdentityProviderActivationReferenceType.ENVIRONMENT
@@ -160,7 +161,7 @@ public class EnvironmentResource extends AbstractResource {
                 }
             } else {
                 permissions.putAll(
-                    membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), environmentEntity, username)
+                    membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), environmentEntity, username)
                 );
             }
         }

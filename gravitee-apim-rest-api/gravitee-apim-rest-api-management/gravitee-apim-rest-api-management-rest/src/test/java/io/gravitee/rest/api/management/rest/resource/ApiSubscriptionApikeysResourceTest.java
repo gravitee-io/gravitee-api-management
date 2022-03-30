@@ -24,11 +24,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
-import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
@@ -61,7 +57,7 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
         ApiKeyEntity apiKeyFromService = new ApiKeyEntity();
         apiKeyFromService.setId("test-id");
         List<ApiKeyEntity> apiKeysFromService = List.of(apiKeyFromService);
-        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(apiKeysFromService);
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(apiKeysFromService);
 
         Response response = envTarget().request().get();
 
@@ -76,7 +72,7 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
         ApiKeyEntity renewedApiKey = new ApiKeyEntity();
         renewedApiKey.setId("test-id");
 
-        when(apiKeyService.renew(any(), any())).thenReturn(renewedApiKey);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(), any())).thenReturn(renewedApiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
@@ -102,6 +98,6 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
 
         ApplicationEntity application = new ApplicationEntity();
         application.setApiKeyMode(apiKeyMode);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
     }
 }

@@ -30,7 +30,6 @@ import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundException;
-import io.gravitee.rest.api.service.impl.NotificationTemplateServiceImpl;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.util.Date;
@@ -138,7 +137,7 @@ public class NotificationTemplateServiceTest {
         )
             .thenReturn(Sets.newSet(temp1, temp2));
 
-        final Set<NotificationTemplateEntity> all = notificationTemplateService.findAll();
+        final Set<NotificationTemplateEntity> all = notificationTemplateService.findAll(GraviteeContext.getCurrentOrganization());
         assertNotNull(all);
         assertEquals(2, all.size());
     }
@@ -158,6 +157,7 @@ public class NotificationTemplateServiceTest {
             .thenReturn(Sets.newSet(temp1));
 
         final Set<NotificationTemplateEntity> byType = notificationTemplateService.findByType(
+            GraviteeContext.getCurrentOrganization(),
             io.gravitee.rest.api.model.notification.NotificationTemplateType.PORTAL
         );
         assertNotNull(byType);
@@ -175,10 +175,11 @@ public class NotificationTemplateServiceTest {
 
         when(notificationTemplateRepository.create(any())).thenReturn(notificationTemplate);
 
-        notificationTemplateService.create(newNotificationTemplateEntity);
+        notificationTemplateService.create(GraviteeContext.getExecutionContext(), newNotificationTemplateEntity);
         verify(notificationTemplateRepository, times(1)).create(any());
         verify(auditService, times(1))
             .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentOrganization()),
                 any(),
                 eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_CREATED),
@@ -202,10 +203,11 @@ public class NotificationTemplateServiceTest {
         when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(toUpdate));
         when(notificationTemplateRepository.update(any())).thenReturn(notificationTemplate);
 
-        notificationTemplateService.update(updatingNotificationTemplateEntity);
+        notificationTemplateService.update(GraviteeContext.getExecutionContext(), updatingNotificationTemplateEntity);
         verify(notificationTemplateRepository, times(1)).update(any());
         verify(auditService, times(1))
             .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentOrganization()),
                 any(),
                 eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),

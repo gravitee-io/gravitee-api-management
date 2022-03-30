@@ -96,7 +96,7 @@ public class ApplicationAlertsResource extends AbstractResource {
         final NewAlertTriggerEntity newAlertTriggerEntity = alertMapper.convert(alertInput);
 
         final AlertTriggerEntity alert = applicationAlertService.create(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             applicationId,
             newAlertTriggerEntity
         );

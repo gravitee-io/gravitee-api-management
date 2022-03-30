@@ -55,15 +55,15 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiService).findById(API);
+        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
 
         PageEntity markdownTemplate = new PageEntity();
         markdownTemplate.setType(PageType.MARKDOWN_TEMPLATE.name());
         doReturn(Arrays.asList(new PageEntity(), markdownTemplate))
             .when(pageService)
-            .search(any(), isNull(), eq(GraviteeContext.getCurrentEnvironment()));
+            .search(eq(GraviteeContext.getCurrentEnvironment()), any(), isNull());
 
-        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), eq(API), any(PageEntity.class)))
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class)))
             .thenAnswer(
                 invocationOnMock -> {
                     PageEntity page = invocationOnMock.getArgument(2);
@@ -80,7 +80,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        when(accessControlService.canAccessApiFromPortal(API)).thenReturn(false);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
 
         //test
         final Response response = target(API).path("pages").request().get();
@@ -99,7 +99,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApiPages() {
-        when(accessControlService.canAccessApiFromPortal(API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
 
         final Response response = target(API).path("pages").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -114,8 +114,8 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoApiPage() {
-        when(accessControlService.canAccessApiFromPortal(API)).thenReturn(true);
-        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), eq(API), any())).thenReturn(false);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any())).thenReturn(false);
 
         final Builder request = target(API).path("pages").request();
 

@@ -84,22 +84,22 @@ public class ApiResource extends AbstractResource {
     public Response getApiByApiId(@PathParam("apiId") String apiId, @QueryParam("include") List<String> include) {
         String username = getAuthenticatedUserOrNull();
 
-        if (accessControlService.canAccessApiFromPortal(apiId)) {
-            ApiEntity apiEntity = apiService.findById(apiId);
-            Api api = apiMapper.convert(apiEntity);
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
+            ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), apiId);
+            Api api = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntity);
 
             if (include.contains(INCLUDE_PAGES)) {
                 List<Page> pages = pageService
-                    .search(new PageQuery.Builder().api(apiId).published(true).build(), GraviteeContext.getCurrentEnvironment())
+                    .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(apiId).published(true).build())
                     .stream()
-                    .filter(page -> accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), page))
+                    .filter(page -> accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), page))
                     .map(pageMapper::convert)
                     .collect(Collectors.toList());
                 api.setPages(pages);
             }
             if (include.contains(INCLUDE_PLANS)) {
                 List<Plan> plans = planService
-                    .findByApi(apiId)
+                    .findByApi(GraviteeContext.getExecutionContext(), apiId)
                     .stream()
                     .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
                     .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))
@@ -112,10 +112,22 @@ public class ApiResource extends AbstractResource {
             api.links(
                 apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), apiEntity.getUpdatedAt())
             );
-            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)) {
+            if (
+                !parameterService.findAsBoolean(
+                    GraviteeContext.getExecutionContext(),
+                    Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ) {
                 api.setLabels(new ArrayList<>());
             }
-            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)) {
+            if (
+                !parameterService.findAsBoolean(
+                    GraviteeContext.getExecutionContext(),
+                    Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ) {
                 api.setCategories(new ArrayList<>());
             }
             return Response.ok(api).build();
@@ -132,9 +144,14 @@ public class ApiResource extends AbstractResource {
         apiQuery.setIds(Collections.singletonList(apiId));
 
         // Do not filter on visibility to display the picture on subscription screen even if the API is no more published
-        Collection<ApiEntity> userApis = apiService.findByUser(getAuthenticatedUserOrNull(), apiQuery, true);
+        Collection<ApiEntity> userApis = apiService.findByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery,
+            true
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            InlinePictureEntity image = apiService.getPicture(apiId);
+            InlinePictureEntity image = apiService.getPicture(GraviteeContext.getExecutionContext(), apiId);
             return createPictureResponse(request, image);
         }
         throw new ApiNotFoundException(apiId);
@@ -146,9 +163,13 @@ public class ApiResource extends AbstractResource {
     public Response getBackgroundByApiId(@Context Request request, @PathParam("apiId") String apiId) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            InlinePictureEntity image = apiService.getBackground(apiId);
+            InlinePictureEntity image = apiService.getBackground(GraviteeContext.getExecutionContext(), apiId);
 
             return createPictureResponse(request, image);
         }
@@ -164,9 +185,9 @@ public class ApiResource extends AbstractResource {
         Map<String, List<CategorizedLinks>> apiLinks = new HashMap<>();
         pageService
             .search(
+                GraviteeContext.getCurrentEnvironment(),
                 new PageQuery.Builder().api(apiId).type(PageType.SYSTEM_FOLDER).build(),
-                acceptedLocale,
-                GraviteeContext.getCurrentEnvironment()
+                acceptedLocale
             )
             .stream()
             .filter(PageEntity::isPublished)
@@ -187,9 +208,9 @@ public class ApiResource extends AbstractResource {
                     // for pages into folders
                     pageService
                         .search(
+                            GraviteeContext.getCurrentEnvironment(),
                             new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build(),
-                            acceptedLocale,
-                            GraviteeContext.getCurrentEnvironment()
+                            acceptedLocale
                         )
                         .stream()
                         .filter(PageEntity::isPublished)
@@ -218,12 +239,12 @@ public class ApiResource extends AbstractResource {
     private List<Link> getLinksFromFolder(PageEntity folder, String apiId, String acceptedLocale) {
         return pageService
             .search(
+                GraviteeContext.getCurrentEnvironment(),
                 new PageQuery.Builder().api(apiId).parent(folder.getId()).build(),
-                acceptedLocale,
-                GraviteeContext.getCurrentEnvironment()
+                acceptedLocale
             )
             .stream()
-            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity))
+            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity))
             .filter(p -> !PageType.FOLDER.name().equals(p.getType()) && !PageType.MARKDOWN_TEMPLATE.name().equals(p.getType()))
             .map(
                 p -> {

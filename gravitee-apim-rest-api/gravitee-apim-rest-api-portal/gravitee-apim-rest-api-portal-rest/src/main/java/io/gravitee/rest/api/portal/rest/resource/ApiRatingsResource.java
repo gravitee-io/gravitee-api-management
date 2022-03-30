@@ -32,6 +32,7 @@ import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.*;
 import java.util.stream.Stream;
@@ -70,21 +71,25 @@ public class ApiRatingsResource extends AbstractResource {
     ) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             List<Rating> ratings;
             if (mine != null && mine == true) {
-                RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(apiId);
+                RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(GraviteeContext.getExecutionContext(), apiId);
                 if (ratingEntity != null) {
-                    ratings = Arrays.asList(ratingMapper.convert(ratingEntity, uriInfo));
+                    ratings = Arrays.asList(ratingMapper.convert(GraviteeContext.getExecutionContext(), ratingEntity, uriInfo));
                 } else {
                     ratings = Collections.emptyList();
                 }
             } else {
-                final List<RatingEntity> ratingEntities = ratingService.findByApi(apiId);
+                final List<RatingEntity> ratingEntities = ratingService.findByApi(GraviteeContext.getExecutionContext(), apiId);
                 Stream<Rating> ratingStream = ratingEntities
                     .stream()
-                    .map((RatingEntity ratingEntity) -> ratingMapper.convert(ratingEntity, uriInfo));
+                    .map((RatingEntity ratingEntity) -> ratingMapper.convert(GraviteeContext.getExecutionContext(), ratingEntity, uriInfo));
                 if (order != null) {
                     ratingStream = ratingStream.sorted(new RatingComparator(order));
                 }
@@ -106,16 +111,23 @@ public class ApiRatingsResource extends AbstractResource {
         }
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             NewRatingEntity rating = new NewRatingEntity();
             rating.setApi(apiId);
             rating.setComment(ratingInput.getComment());
             rating.setTitle(ratingInput.getTitle());
             rating.setRate(ratingInput.getValue().byteValue());
-            RatingEntity createdRating = ratingService.create(rating);
+            RatingEntity createdRating = ratingService.create(GraviteeContext.getExecutionContext(), rating);
 
-            return Response.status(Status.CREATED).entity(ratingMapper.convert(createdRating, uriInfo)).build();
+            return Response
+                .status(Status.CREATED)
+                .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), createdRating, uriInfo))
+                .build();
         }
         throw new ApiNotFoundException(apiId);
     }

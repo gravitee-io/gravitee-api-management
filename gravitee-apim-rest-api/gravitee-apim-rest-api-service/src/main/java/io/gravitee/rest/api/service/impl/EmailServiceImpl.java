@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.EmailNotification;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -74,9 +75,10 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     private String templatesPath;
 
     @Override
-    public void sendEmailNotification(final EmailNotification emailNotification) {
-        final GraviteeContext.ReferenceContext context = GraviteeContext.getCurrentContext();
+    public void sendEmailNotification(ExecutionContext executionContext, final EmailNotification emailNotification) {
+        final GraviteeContext.ReferenceContext context = executionContext.getReferenceContext();
         this.sendEmailNotification(
+                executionContext,
                 emailNotification,
                 context.getReferenceId(),
                 ParameterReferenceType.valueOf(context.getReferenceType().name())
@@ -84,11 +86,12 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     }
 
     private void sendEmailNotification(
+        ExecutionContext executionContext,
         final EmailNotification emailNotification,
         String referenceId,
         ParameterReferenceType referenceType
     ) {
-        Map<Key, String> mailParameters = getMailSenderConfiguration(referenceId, referenceType);
+        Map<Key, String> mailParameters = getMailSenderConfiguration(executionContext, referenceId, referenceType);
 
         if (
             Boolean.parseBoolean(mailParameters.get(EMAIL_ENABLED)) &&
@@ -96,7 +99,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
             emailNotification.getTo().length > 0
         ) {
             try {
-                JavaMailSender mailSender = mailManager.getOrCreateMailSender(referenceId, referenceType);
+                JavaMailSender mailSender = mailManager.getOrCreateMailSender(executionContext, referenceId, referenceType);
                 final MimeMessageHelper mailMessage = new MimeMessageHelper(
                     mailSender.createMimeMessage(),
                     true,
@@ -104,10 +107,12 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 );
 
                 String emailSubject = notificationTemplateService.resolveTemplateWithParam(
+                    executionContext.getOrganizationId(),
                     emailNotification.getTemplate() + ".EMAIL.TITLE",
                     emailNotification.getParams()
                 );
                 String content = notificationTemplateService.resolveTemplateWithParam(
+                    executionContext.getOrganizationId(),
                     emailNotification.getTemplate() + ".EMAIL",
                     emailNotification.getParams()
                 );
@@ -164,11 +169,12 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
     @Override
     @Async
-    public void sendAsyncEmailNotification(final EmailNotification emailNotification, GraviteeContext.ReferenceContext context) {
+    public void sendAsyncEmailNotification(ExecutionContext executionContext, final EmailNotification emailNotification) {
         sendEmailNotification(
+            executionContext,
             emailNotification,
-            context.getReferenceId(),
-            ParameterReferenceType.valueOf(context.getReferenceType().name())
+            executionContext.getReferenceContext().getReferenceId(),
+            ParameterReferenceType.valueOf(executionContext.getReferenceContext().getReferenceType().name())
         );
     }
 
@@ -231,9 +237,13 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         return matcher.group(1).toLowerCase();
     }
 
-    private Map<Key, String> getMailSenderConfiguration(String referenceId, ParameterReferenceType referenceType) {
+    private Map<Key, String> getMailSenderConfiguration(
+        ExecutionContext executionContext,
+        String referenceId,
+        ParameterReferenceType referenceType
+    ) {
         return parameterService
-            .findAll(Arrays.asList(EMAIL_ENABLED, EMAIL_SUBJECT, EMAIL_FROM), referenceId, referenceType)
+            .findAll(Arrays.asList(EMAIL_ENABLED, EMAIL_SUBJECT, EMAIL_FROM), referenceId, referenceType, executionContext)
             .entrySet()
             .stream()
             .collect(Collectors.toMap(e -> Key.findByKey(e.getKey()), e -> e.getValue().isEmpty() ? "" : e.getValue().get(0)));

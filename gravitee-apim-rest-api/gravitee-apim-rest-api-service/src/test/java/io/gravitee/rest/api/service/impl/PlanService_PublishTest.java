@@ -26,10 +26,10 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Test;
@@ -87,7 +87,7 @@ public class PlanService_PublishTest {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.publish(PLAN_ID);
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
@@ -95,14 +95,14 @@ public class PlanService_PublishTest {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.publish(PLAN_ID);
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotPublishBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.publish(PLAN_ID);
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     public void shouldPublishWithExistingKeylessPlan() throws TechnicalException {
@@ -118,9 +118,10 @@ public class PlanService_PublishTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+            .thenReturn(Collections.singleton(subscription));
 
-        planService.publish(PLAN_ID);
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test(expected = KeylessPlanAlreadyPublishedException.class)
@@ -137,7 +138,7 @@ public class PlanService_PublishTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
 
-        planService.publish(PLAN_ID);
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test
@@ -148,9 +149,9 @@ public class PlanService_PublishTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
-        planService.publish(PLAN_ID);
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
         verify(planRepository, times(1)).update(plan);
@@ -165,13 +166,13 @@ public class PlanService_PublishTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(apiEntity.getGraviteeDefinitionVersion()).thenReturn(DefinitionVersion.V2.getLabel());
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
-        planService.publish(PLAN_ID);
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
         verify(planRepository, times(1)).update(plan);
-        verify(apiService).update(anyString(), any());
+        verify(apiService).update(eq(GraviteeContext.getExecutionContext()), anyString(), any());
     }
 
     @Test
@@ -184,14 +185,14 @@ public class PlanService_PublishTest {
         when(plan.getGeneralConditions()).thenReturn(GC_PAGE_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
         PageEntity page = mock(PageEntity.class);
         when(page.getId()).thenReturn(GC_PAGE_ID);
         when(page.isPublished()).thenReturn(true);
         when(pageService.findById(page.getId())).thenReturn(page);
 
-        planService.publish(PLAN_ID);
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
         verify(planRepository, times(1)).update(plan);
@@ -212,6 +213,6 @@ public class PlanService_PublishTest {
         when(page.isPublished()).thenReturn(false);
         when(pageService.findById(page.getId())).thenReturn(page);
 
-        planService.publish(PLAN_ID);
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 }

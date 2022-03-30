@@ -95,33 +95,23 @@ public class ApplicationsResource extends AbstractResource {
         if (query != null && !query.trim().isEmpty()) {
             applications =
                 applicationService.findByUserAndNameAndStatus(
+                    GraviteeContext.getExecutionContext(),
                     getAuthenticatedUser(),
                     isAdmin(),
                     query,
-                    status,
-                    GraviteeContext.getCurrentEnvironment(),
-                    GraviteeContext.getCurrentOrganization()
+                    status
                 );
         } else if (isAdmin()) {
             applications =
                 group != null
                     ? applicationService.findByGroupsAndStatus(
-                        GraviteeContext.getCurrentOrganization(),
+                        GraviteeContext.getExecutionContext(),
                         Collections.singletonList(group),
                         status
                     )
-                    : applicationService.findByStatus(
-                        GraviteeContext.getCurrentOrganization(),
-                        GraviteeContext.getCurrentEnvironment(),
-                        status
-                    );
+                    : applicationService.findByStatus(GraviteeContext.getExecutionContext(), status);
         } else {
-            applications =
-                applicationService.findByUser(
-                    GraviteeContext.getCurrentOrganization(),
-                    GraviteeContext.getCurrentEnvironment(),
-                    getAuthenticatedUser()
-                );
+            applications = applicationService.findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
             if (group != null && !group.isEmpty()) {
                 applications =
                     applications
@@ -199,7 +189,7 @@ public class ApplicationsResource extends AbstractResource {
         }
 
         ApplicationEntity newApplication = applicationService.create(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             application,
             getAuthenticatedUser()
         );

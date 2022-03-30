@@ -36,7 +36,7 @@ import io.gravitee.rest.api.model.log.extended.Response;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.*;
@@ -104,7 +104,7 @@ public class LogsServiceImpl implements LogsService {
     private ParameterService parameterService;
 
     @Override
-    public SearchLogResponse<ApiRequestItem> findByApi(String api, LogQuery query) {
+    public SearchLogResponse<ApiRequestItem> findByApi(final ExecutionContext executionContext, String api, LogQuery query) {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
@@ -136,10 +136,10 @@ public class LogsServiceImpl implements LogsService {
                             String plan = logItem.getPlan();
 
                             if (application != null) {
-                                metadata.computeIfAbsent(application, getApplicationMetadata(application));
+                                metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
                             }
                             if (plan != null) {
-                                metadata.computeIfAbsent(plan, getPlanMetadata(plan));
+                                metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
                             }
                         }
                     );
@@ -155,13 +155,21 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public ApiRequest findApiLog(String id, Long timestamp) {
+    public ApiRequest findApiLog(final ExecutionContext executionContext, String id, Long timestamp) {
         try {
             final ExtendedLog log = logRepository.findById(id, timestamp);
-            if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ORGANIZATION)) {
-                auditService.createApiAuditLog(log.getApi(), Collections.singletonMap(REQUEST_ID, id), LOG_READ, new Date(), null, null);
+            if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ORGANIZATION)) {
+                auditService.createApiAuditLog(
+                    executionContext,
+                    log.getApi(),
+                    Collections.singletonMap(REQUEST_ID, id),
+                    LOG_READ,
+                    new Date(),
+                    null,
+                    null
+                );
             }
-            return toApiRequest(log);
+            return toApiRequest(executionContext, log);
         } catch (AnalyticsException ae) {
             logger.error("Unable to retrieve log: " + id, ae);
             throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);
@@ -169,7 +177,11 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public SearchLogResponse<ApplicationRequestItem> findByApplication(String application, LogQuery query) {
+    public SearchLogResponse<ApplicationRequestItem> findByApplication(
+        ExecutionContext executionContext,
+        String application,
+        LogQuery query
+    ) {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
@@ -201,10 +213,10 @@ public class LogsServiceImpl implements LogsService {
                             String plan = logItem.getPlan();
 
                             if (api != null) {
-                                metadata.computeIfAbsent(api, getAPIMetadata(api));
+                                metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
                             }
                             if (plan != null) {
-                                metadata.computeIfAbsent(plan, getPlanMetadata(plan));
+                                metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
                             }
                         }
                     );
@@ -220,7 +232,7 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public SearchLogResponse<PlatformRequestItem> findPlatform(LogQuery query) {
+    public SearchLogResponse<PlatformRequestItem> findPlatform(final ExecutionContext executionContext, LogQuery query) {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
@@ -253,13 +265,13 @@ public class LogsServiceImpl implements LogsService {
                             String plan = logItem.getPlan();
 
                             if (api != null) {
-                                metadata.computeIfAbsent(api, getAPIMetadata(api));
+                                metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
                             }
                             if (application != null) {
-                                metadata.computeIfAbsent(application, getApplicationMetadata(application));
+                                metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
                             }
                             if (plan != null) {
-                                metadata.computeIfAbsent(plan, getPlanMetadata(plan));
+                                metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
                             }
                         }
                     );
@@ -275,9 +287,9 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public ApplicationRequest findApplicationLog(String id, Long timestamp) {
+    public ApplicationRequest findApplicationLog(ExecutionContext executionContext, String id, Long timestamp) {
         try {
-            return toApplicationRequest(logRepository.findById(id, timestamp));
+            return toApplicationRequest(executionContext, logRepository.findById(id, timestamp));
         } catch (AnalyticsException ae) {
             logger.error("Unable to retrieve log: " + id, ae);
             if (ae.getMessage().equals("Request [" + id + "] does not exist")) {
@@ -287,7 +299,7 @@ public class LogsServiceImpl implements LogsService {
         }
     }
 
-    private Function<String, Map<String, String>> getAPIMetadata(String api) {
+    private Function<String, Map<String, String>> getAPIMetadata(ExecutionContext executionContext, String api) {
         return s -> {
             Map<String, String> metadata = new HashMap<>();
 
@@ -296,7 +308,7 @@ public class LogsServiceImpl implements LogsService {
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApiEntity apiEntity = apiService.findById(api);
+                    ApiEntity apiEntity = apiService.findById(executionContext, api);
                     metadata.put(METADATA_NAME, apiEntity.getName());
                     metadata.put(METADATA_VERSION, apiEntity.getVersion());
                     if (ApiLifecycleState.ARCHIVED.equals(apiEntity.getLifecycleState())) {
@@ -312,7 +324,7 @@ public class LogsServiceImpl implements LogsService {
         };
     }
 
-    private Function<String, Map<String, String>> getApplicationMetadata(String application) {
+    private Function<String, Map<String, String>> getApplicationMetadata(final ExecutionContext executionContext, String application) {
         return s -> {
             Map<String, String> metadata = new HashMap<>();
 
@@ -321,7 +333,7 @@ public class LogsServiceImpl implements LogsService {
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+                    ApplicationEntity applicationEntity = applicationService.findById(executionContext, application);
                     metadata.put(METADATA_NAME, applicationEntity.getName());
                     if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
                         metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
@@ -336,7 +348,7 @@ public class LogsServiceImpl implements LogsService {
         };
     }
 
-    private Function<String, Map<String, String>> getPlanMetadata(String plan) {
+    private Function<String, Map<String, String>> getPlanMetadata(ExecutionContext executionContext, String plan) {
         return s -> {
             Map<String, String> metadata = new HashMap<>();
             try {
@@ -344,7 +356,7 @@ public class LogsServiceImpl implements LogsService {
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    PlanEntity planEntity = planService.findById(plan);
+                    PlanEntity planEntity = planService.findById(executionContext, plan);
                     metadata.put(METADATA_NAME, planEntity.getName());
                 }
             } catch (PlanNotFoundException anfe) {
@@ -355,12 +367,12 @@ public class LogsServiceImpl implements LogsService {
         };
     }
 
-    private Function<String, Map<String, String>> getGatewayMetadata(String gateway) {
+    private Function<String, Map<String, String>> getGatewayMetadata(ExecutionContext executionContext, String gateway) {
         return s -> {
             Map<String, String> metadata = new HashMap<>();
 
             try {
-                InstanceEntity instance = instanceService.findById(gateway);
+                InstanceEntity instance = instanceService.findById(executionContext, gateway);
                 metadata.put("hostname", instance.getHostname());
                 metadata.put("ip", instance.getIp());
                 if (instance.getTenant() != null) {
@@ -374,10 +386,10 @@ public class LogsServiceImpl implements LogsService {
         };
     }
 
-    private String getSubscription(io.gravitee.repository.log.model.ExtendedLog log) {
+    private String getSubscription(ExecutionContext executionContext, ExtendedLog log) {
         if ("API_KEY".equals(log.getSecurityType())) {
             try {
-                ApiKeyEntity key = apiKeyService.findByKeyAndApi(log.getSecurityToken(), log.getApi());
+                ApiKeyEntity key = apiKeyService.findByKeyAndApi(executionContext, log.getSecurityToken(), log.getApi());
                 if (key != null) {
                     return key
                         .getSubscriptions()
@@ -391,9 +403,10 @@ public class LogsServiceImpl implements LogsService {
                 // wrong apikey
             }
         } else if (log.getPlan() != null && log.getApplication() != null) {
-            PlanEntity plan = planService.findById(log.getPlan());
+            PlanEntity plan = planService.findById(executionContext, log.getPlan());
             if (!PlanSecurityType.API_KEY.equals(plan.getSecurity()) && !PlanSecurityType.KEY_LESS.equals(plan.getSecurity())) {
                 Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
+                    executionContext,
                     log.getApplication(),
                     log.getPlan()
                 );
@@ -406,7 +419,7 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public String exportAsCsv(final SearchLogResponse<?> searchLogResponse) {
+    public String exportAsCsv(ExecutionContext executionContext, final SearchLogResponse<?> searchLogResponse) {
         if (searchLogResponse.getLogs() == null || searchLogResponse.getLogs().isEmpty()) {
             return "";
         }
@@ -428,7 +441,11 @@ public class LogsServiceImpl implements LogsService {
         sb.append(separator);
         sb.append("Plan");
         sb.append(separator);
-        final boolean userEnabled = parameterService.findAsBoolean(Key.LOGGING_USER_DISPLAYED, ParameterReferenceType.ORGANIZATION);
+        final boolean userEnabled = parameterService.findAsBoolean(
+            executionContext,
+            Key.LOGGING_USER_DISPLAYED,
+            ParameterReferenceType.ORGANIZATION
+        );
 
         //get the first item to define the type of export
         if (searchLogResponse.getLogs().get(0) instanceof ApiRequestItem) {
@@ -608,7 +625,7 @@ public class LogsServiceImpl implements LogsService {
         return req;
     }
 
-    private ApiRequest toApiRequest(io.gravitee.repository.log.model.ExtendedLog log) {
+    private ApiRequest toApiRequest(final ExecutionContext executionContext, io.gravitee.repository.log.model.ExtendedLog log) {
         ApiRequest req = new ApiRequest();
         req.setId(log.getId());
         req.setApi(log.getApi());
@@ -630,7 +647,7 @@ public class LogsServiceImpl implements LogsService {
         req.setUri(log.getUri());
         req.setMessage(log.getMessage());
         req.setGateway(log.getGateway());
-        req.setSubscription(getSubscription(log));
+        req.setSubscription(getSubscription(executionContext, log));
         req.setHost(log.getHost());
         req.setSecurityType(log.getSecurityType());
         req.setSecurityToken(log.getSecurityToken());
@@ -647,13 +664,13 @@ public class LogsServiceImpl implements LogsService {
         String gateway = log.getGateway();
 
         if (application != null) {
-            metadata.computeIfAbsent(application, getApplicationMetadata(application));
+            metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
         }
         if (plan != null) {
-            metadata.computeIfAbsent(plan, getPlanMetadata(plan));
+            metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
         }
         if (gateway != null) {
-            metadata.computeIfAbsent(gateway, getGatewayMetadata(gateway));
+            metadata.computeIfAbsent(gateway, getGatewayMetadata(executionContext, gateway));
         }
 
         req.setMetadata(metadata);
@@ -689,7 +706,7 @@ public class LogsServiceImpl implements LogsService {
         return response;
     }
 
-    private ApplicationRequest toApplicationRequest(io.gravitee.repository.log.model.ExtendedLog log) {
+    private ApplicationRequest toApplicationRequest(ExecutionContext executionContext, ExtendedLog log) {
         ApplicationRequest req = new ApplicationRequest();
         req.setId(log.getId());
         req.setTransactionId(log.getTransactionId());
@@ -716,13 +733,13 @@ public class LogsServiceImpl implements LogsService {
         String gateway = log.getGateway();
 
         if (api != null) {
-            metadata.computeIfAbsent(api, getAPIMetadata(api));
+            metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
         }
         if (plan != null) {
-            metadata.computeIfAbsent(plan, getPlanMetadata(plan));
+            metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
         }
         if (gateway != null) {
-            metadata.computeIfAbsent(gateway, getGatewayMetadata(gateway));
+            metadata.computeIfAbsent(gateway, getGatewayMetadata(executionContext, gateway));
         }
 
         req.setMetadata(metadata);

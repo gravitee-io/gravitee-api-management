@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 
@@ -36,60 +37,83 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 public interface ApiService {
-    ApiEntity findById(String apiId);
+    ApiEntity findById(ExecutionContext executionContext, String apiId);
 
     Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId);
 
-    Set<ApiEntity> findAllByEnvironment(String environment);
+    Set<ApiEntity> findAllByEnvironment(ExecutionContext executionContext, String environment);
 
-    Set<ApiEntity> findByEnvironmentAndIdIn(String environment, Set<String> ids);
+    Set<ApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, String environment, Set<String> ids);
 
-    default Set<ApiEntity> findAllLightByEnvironment(String environmentId) {
-        return findAllLightByEnvironment(environmentId, true);
+    default Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, String environmentId) {
+        return findAllLightByEnvironment(executionContext, environmentId, true);
     }
 
-    Set<ApiEntity> findAllLightByEnvironment(String environmentId, boolean excludeDefinition);
+    Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, String environmentId, boolean excludeDefinition);
 
-    Set<ApiEntity> findAllLight();
+    Set<ApiEntity> findAllLight(ExecutionContext executionContext);
 
-    Page<ApiEntity> findByUser(String userId, ApiQuery apiQuery, Sortable sortable, Pageable pageable, boolean portal);
+    Page<ApiEntity> findByUser(
+        ExecutionContext executionContext,
+        String userId,
+        ApiQuery apiQuery,
+        Sortable sortable,
+        Pageable pageable,
+        boolean portal
+    );
 
-    Set<ApiEntity> findByUser(String userId, ApiQuery apiQuery, boolean portal);
+    Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal);
 
-    Page<ApiEntity> findPublishedByUser(String userId, ApiQuery apiQuery, Sortable sortable, Pageable pageable);
+    Page<ApiEntity> findPublishedByUser(
+        ExecutionContext executionContext,
+        String userId,
+        ApiQuery apiQuery,
+        Sortable sortable,
+        Pageable pageable
+    );
 
-    Set<ApiEntity> findPublishedByUser(String userId);
+    Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId);
 
-    default Set<String> findIdsByUser(String userId, ApiQuery apiQuery, boolean portal) {
-        return findIdsByUser(userId, apiQuery, null, portal);
+    default Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
+        return findIdsByUser(executionContext, userId, apiQuery, null, portal);
     }
 
-    Set<String> findIdsByUser(String userId, ApiQuery apiQuery, Sortable sortable, boolean portal);
+    Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, Sortable sortable, boolean portal);
 
-    Set<ApiEntity> findPublishedByUser(String userId, ApiQuery apiQuery);
+    Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
 
-    Set<String> findPublishedIdsByUser(String userId, ApiQuery apiQuery);
+    Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
 
-    default Set<String> findPublishedIdsByUser(String userId) {
-        return findPublishedIdsByUser(userId, null);
+    default Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId) {
+        return findPublishedIdsByUser(executionContext, userId, null);
     }
 
-    Set<ApiEntity> findByVisibility(Visibility visibility);
+    Set<ApiEntity> findByVisibility(ExecutionContext executionContext, Visibility visibility);
 
-    ApiEntity create(NewApiEntity api, String userId);
-    ApiEntity createFromSwagger(SwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
-    ApiEntity createWithApiDefinition(UpdateApiEntity api, String userId, JsonNode apiDefinition);
+    ApiEntity create(ExecutionContext executionContext, NewApiEntity api, String userId);
+    ApiEntity createFromSwagger(
+        ExecutionContext executionContext,
+        SwaggerApiEntity api,
+        String userId,
+        ImportSwaggerDescriptorEntity swaggerDescriptor
+    );
+    ApiEntity createWithApiDefinition(ExecutionContext executionContext, UpdateApiEntity api, String userId, JsonNode apiDefinition);
 
-    ApiEntity update(String apiId, UpdateApiEntity api);
-    ApiEntity update(String apiId, UpdateApiEntity api, boolean checkPlans);
+    ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api);
+    ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api, boolean checkPlans);
 
-    ApiEntity updateFromSwagger(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor);
+    ApiEntity updateFromSwagger(
+        ExecutionContext executionContext,
+        String apiId,
+        SwaggerApiEntity swaggerApiEntity,
+        ImportSwaggerDescriptorEntity swaggerDescriptor
+    );
 
-    void delete(String apiId);
+    void delete(ExecutionContext executionContext, String apiId);
 
-    ApiEntity start(String apiId, String userId);
+    ApiEntity start(ExecutionContext executionContext, String apiId, String userId);
 
-    ApiEntity stop(String apiId, String userId);
+    ApiEntity stop(ExecutionContext executionContext, String apiId, String userId);
 
     /**
      * Check if the API is "out of sync" or not. In this case, user is able to deploy it.
@@ -97,71 +121,92 @@ public interface ApiService {
      * - API definition has been updated and is different from the currently deployed API
      * - A plan has been updated for the API
      *
+     * @param executionContext
      * @param apiId
      * @return
      */
-    boolean isSynchronized(String apiId);
+    boolean isSynchronized(ExecutionContext executionContext, String apiId);
 
-    ApiEntity deploy(String apiId, String userId, EventType eventType, ApiDeploymentEntity apiDeploymentEntity);
+    ApiEntity deploy(
+        ExecutionContext executionContext,
+        String apiId,
+        String userId,
+        EventType eventType,
+        ApiDeploymentEntity apiDeploymentEntity
+    );
 
-    ApiEntity rollback(String apiId, RollbackApiEntity api);
+    ApiEntity rollback(ExecutionContext executionContext, String apiId, RollbackApiEntity api);
 
-    String exportAsJson(String apiId, String exportVersion, String... filteredFields);
+    String exportAsJson(ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields);
 
-    InlinePictureEntity getPicture(String apiId);
+    InlinePictureEntity getPicture(ExecutionContext executionContext, String apiId);
 
-    void deleteCategoryFromAPIs(String categoryId);
+    void deleteCategoryFromAPIs(ExecutionContext executionContext, String categoryId);
 
-    void deleteTagFromAPIs(String tagId);
+    void deleteTagFromAPIs(ExecutionContext executionContext, String tagId);
 
-    ApiModelEntity findByIdForTemplates(String apiId, boolean decodeTemplate);
+    ApiModelEntity findByIdForTemplates(ExecutionContext executionContext, String apiId, boolean decodeTemplate);
 
-    default ApiModelEntity findByIdForTemplates(String apiId) {
-        return findByIdForTemplates(apiId, false);
+    default ApiModelEntity findByIdForTemplates(ExecutionContext executionContext, String apiId) {
+        return findByIdForTemplates(executionContext, apiId, false);
     }
 
     boolean exists(String apiId);
 
-    ApiEntity importPathMappingsFromPage(ApiEntity apiEntity, String page, DefinitionVersion definitionVersion);
+    ApiEntity importPathMappingsFromPage(
+        ExecutionContext executionContext,
+        ApiEntity apiEntity,
+        String page,
+        DefinitionVersion definitionVersion
+    );
 
     Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
 
-    Page<ApiEntity> search(ApiQuery query, Sortable sortable, Pageable pageable);
+    Page<ApiEntity> search(ExecutionContext executionContext, ApiQuery query, Sortable sortable, Pageable pageable);
 
-    Collection<ApiEntity> search(ApiQuery query);
+    Collection<ApiEntity> search(ExecutionContext executionContext, ApiQuery query);
 
-    Collection<String> searchIds(ApiQuery query);
+    Collection<String> searchIds(ExecutionContext executionContext, ApiQuery query);
 
-    default Collection<String> searchIds(String query, Map<String, Object> filters) throws TechnicalException {
-        return searchIds(query, filters, null);
+    default Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters)
+        throws TechnicalException {
+        return searchIds(executionContext, query, filters, null);
     }
 
-    Collection<String> searchIds(String query, Map<String, Object> filters, Sortable sortable) throws TechnicalException;
+    Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters, Sortable sortable)
+        throws TechnicalException;
 
-    Page<ApiEntity> search(String query, Map<String, Object> filters, Sortable sortable, Pageable pageable);
+    Page<ApiEntity> search(
+        ExecutionContext executionContext,
+        String query,
+        Map<String, Object> filters,
+        Sortable sortable,
+        Pageable pageable
+    );
 
-    Collection<ApiEntity> search(String query, Map<String, Object> filters) throws TechnicalException;
+    Collection<ApiEntity> search(ExecutionContext executionContext, String query, Map<String, Object> filters) throws TechnicalException;
 
-    List<ApiHeaderEntity> getPortalHeaders(String apiId);
+    List<ApiHeaderEntity> getPortalHeaders(ExecutionContext executionContext, String apiId);
 
-    ApiEntity askForReview(String apiId, String userId, ReviewEntity reviewEntity);
-    ApiEntity acceptReview(String apiId, String userId, ReviewEntity reviewEntity);
-    ApiEntity rejectReview(String apiId, String userId, ReviewEntity reviewEntity);
+    ApiEntity askForReview(ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
+    ApiEntity acceptReview(ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
+    ApiEntity rejectReview(ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
 
-    InlinePictureEntity getBackground(String apiId);
+    InlinePictureEntity getBackground(ExecutionContext executionContext, String apiId);
 
-    ApiEntity migrate(String api);
+    ApiEntity migrate(ExecutionContext executionContext, String api);
 
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
 
-    ApiEntity fetchMetadataForApi(ApiEntity apiEntity);
+    ApiEntity fetchMetadataForApi(ExecutionContext executionContext, ApiEntity apiEntity);
 
-    PrimaryOwnerEntity getPrimaryOwner(String apiId) throws TechnicalManagementException;
+    PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String apiId) throws TechnicalManagementException;
 
-    void addGroup(String api, String group);
-    void removeGroup(String api, String group);
+    void addGroup(ExecutionContext executionContext, String api, String group);
+    void removeGroup(ExecutionContext executionContext, String api, String group);
 
-    Map<String, List<GroupMemberEntity>> getGroupsWithMembers(String environmentId, String apiId) throws TechnicalManagementException;
+    Map<String, List<GroupMemberEntity>> getGroupsWithMembers(ExecutionContext executionContext, String apiId)
+        throws TechnicalManagementException;
 
     boolean canManageApi(RoleEntity role);
 
@@ -169,5 +214,5 @@ public interface ApiService {
 
     Map<String, Long> countPublishedByUserGroupedByCategories(String userId);
 
-    void calculateEntrypoints(String environment, ApiEntity api);
+    void calculateEntrypoints(ExecutionContext executionContext, String environment, ApiEntity api);
 }

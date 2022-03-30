@@ -105,6 +105,7 @@ public class OrganizationResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateOrganizationIdentities(Set<IdentityProviderActivationEntity> identityProviderActivations) {
         this.identityProviderActivationService.updateTargetIdp(
+                GraviteeContext.getExecutionContext(),
                 new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION),
                 identityProviderActivations
                     .stream()
@@ -133,7 +134,11 @@ public class OrganizationResource extends AbstractResource {
     @ApiResponse(responseCode = "204", description = "Organization successfully updated")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response update(UpdateOrganizationEntity organizationEntity) {
-        OrganizationEntity updatedOrganization = organizationService.update(GraviteeContext.getCurrentOrganization(), organizationEntity);
+        OrganizationEntity updatedOrganization = organizationService.update(
+            GraviteeContext.getExecutionContext(),
+            GraviteeContext.getCurrentOrganization(),
+            organizationEntity
+        );
         return Response.ok(updatedOrganization).status(204).build();
     }
 

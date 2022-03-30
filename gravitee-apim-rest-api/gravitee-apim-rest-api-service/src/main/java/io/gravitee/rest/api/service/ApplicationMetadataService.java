@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -29,9 +30,9 @@ public interface ApplicationMetadataService {
 
     ApplicationMetadataEntity findByIdAndApplication(String metadataId, String applicationId);
 
-    ApplicationMetadataEntity create(final String environmentId, NewApplicationMetadataEntity metadata);
+    ApplicationMetadataEntity create(ExecutionContext executionContext, NewApplicationMetadataEntity metadata);
 
-    ApplicationMetadataEntity update(final String environmentId, UpdateApplicationMetadataEntity metadata);
+    ApplicationMetadataEntity update(ExecutionContext executionContext, UpdateApplicationMetadataEntity metadata);
 
-    void delete(String metadataId, String application);
+    void delete(ExecutionContext executionContext, String metadataId, String application);
 }

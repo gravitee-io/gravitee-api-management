@@ -31,7 +31,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldAlreadyExistException;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldException;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldNotFoundException;
-import io.gravitee.rest.api.service.impl.CustomUserFieldsServiceImpl;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -96,10 +95,19 @@ public class CustomUserFieldsServiceTest {
         when(customUserFieldsRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
         ArgumentCaptor<CustomUserField> fieldCaptor = ArgumentCaptor.forClass(CustomUserField.class);
 
-        CustomUserFieldEntity createdEntity = service.create(newFieldEntity);
+        CustomUserFieldEntity createdEntity = service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
 
         verify(customUserFieldsRepository).create(fieldCaptor.capture());
-        verify(auditService).createOrganizationAuditLog(eq(GraviteeContext.getCurrentOrganization()), anyMap(), any(), any(), any(), any());
+        verify(auditService)
+            .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(GraviteeContext.getCurrentOrganization()),
+                anyMap(),
+                any(),
+                any(),
+                any(),
+                any()
+            );
 
         assertEquals("CustomUserField.key", newFieldEntity.getKey().toLowerCase(), createdEntity.getKey());
         assertEquals("CustomUserField.label", newFieldEntity.getLabel(), createdEntity.getLabel());
@@ -134,7 +142,7 @@ public class CustomUserFieldsServiceTest {
         newFieldEntity.setValues(Arrays.asList("test"));
         when(customUserFieldsRepository.findById(anyString(), anyString(), any())).thenReturn(Optional.of(mock(CustomUserField.class)));
 
-        service.create(newFieldEntity);
+        service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
 
         verify(customUserFieldsRepository, never()).create(any());
     }
@@ -147,7 +155,7 @@ public class CustomUserFieldsServiceTest {
         newFieldEntity.setRequired(true);
         newFieldEntity.setValues(Arrays.asList("test"));
 
-        service.create(newFieldEntity);
+        service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
 
         verify(customUserFieldsRepository, never()).create(any());
     }
@@ -162,7 +170,7 @@ public class CustomUserFieldsServiceTest {
         newFieldEntity.setRequired(true);
         newFieldEntity.setValues(Arrays.asList("test"));
 
-        service.create(newFieldEntity);
+        service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
 
         verify(customUserFieldsRepository, never()).create(any());
     }
@@ -192,10 +200,19 @@ public class CustomUserFieldsServiceTest {
         when(customUserFieldsRepository.update(any())).thenAnswer(i -> i.getArguments()[0]);
         ArgumentCaptor<CustomUserField> fieldCaptor = ArgumentCaptor.forClass(CustomUserField.class);
 
-        CustomUserFieldEntity updatedEntity = service.update(toUpdateFieldEntity);
+        CustomUserFieldEntity updatedEntity = service.update(GraviteeContext.getExecutionContext(), toUpdateFieldEntity);
 
         verify(customUserFieldsRepository).update(fieldCaptor.capture());
-        verify(auditService).createOrganizationAuditLog(eq(GraviteeContext.getCurrentOrganization()), anyMap(), any(), any(), any(), any());
+        verify(auditService)
+            .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(GraviteeContext.getCurrentOrganization()),
+                anyMap(),
+                any(),
+                any(),
+                any(),
+                any()
+            );
 
         assertEquals("updatedCustomField.key", toUpdateFieldEntity.getKey().toLowerCase(), updatedEntity.getKey());
         assertEquals("updatedCustomField.label", toUpdateFieldEntity.getLabel(), updatedEntity.getLabel());
@@ -219,20 +236,36 @@ public class CustomUserFieldsServiceTest {
 
     @Test(expected = CustomUserFieldNotFoundException.class)
     public void shouldNotUpdateField_NotFound() throws Exception {
-        service.update(mock(CustomUserFieldEntity.class));
+        service.update(GraviteeContext.getExecutionContext(), mock(CustomUserFieldEntity.class));
 
         verify(customUserFieldsRepository, never()).update(any());
         verify(auditService, never())
-            .createOrganizationAuditLog(GraviteeContext.getCurrentOrganization(), anyMap(), any(), any(), any(), any());
+            .createOrganizationAuditLog(
+                GraviteeContext.getExecutionContext(),
+                GraviteeContext.getCurrentOrganization(),
+                anyMap(),
+                any(),
+                any(),
+                any(),
+                any()
+            );
     }
 
     @Test
     public void shouldNotDeleteField_NotExist() throws Exception {
-        service.delete("unknown");
+        service.delete(GraviteeContext.getExecutionContext(), "unknown");
 
         verify(customUserFieldsRepository, never()).delete(anyString(), anyString(), any());
         verify(auditService, never())
-            .createOrganizationAuditLog(eq(GraviteeContext.getCurrentOrganization()), anyMap(), any(), any(), any(), any());
+            .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(GraviteeContext.getCurrentOrganization()),
+                anyMap(),
+                any(),
+                any(),
+                any(),
+                any()
+            );
     }
 
     @Test
@@ -243,11 +276,20 @@ public class CustomUserFieldsServiceTest {
         when(fieldMock.getReferenceType()).thenReturn(REF_TYPE);
         when(customUserFieldsRepository.findById(anyString(), anyString(), any())).thenReturn(Optional.of(fieldMock));
 
-        service.delete("validKEY"); // no issue with upper case here, we want to test the sanitizer on the key
+        service.delete(GraviteeContext.getExecutionContext(), "validKEY"); // no issue with upper case here, we want to test the sanitizer on the key
 
         verify(customUserFieldsRepository).delete("validkey", ORG_ID, REF_TYPE);
-        verify(auditService).createOrganizationAuditLog(eq(GraviteeContext.getCurrentOrganization()), anyMap(), any(), any(), any(), any());
-        verify(ueUserMetadataService).deleteAllByCustomFieldId("validkey", ORG_ID, REF_TYPE);
+        verify(auditService)
+            .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(GraviteeContext.getCurrentOrganization()),
+                anyMap(),
+                any(),
+                any(),
+                any(),
+                any()
+            );
+        verify(ueUserMetadataService).deleteAllByCustomFieldId(GraviteeContext.getExecutionContext(), "validkey", ORG_ID, REF_TYPE);
     }
 
     @Test
@@ -261,7 +303,7 @@ public class CustomUserFieldsServiceTest {
         when(customUserFieldsRepository.findByReferenceIdAndReferenceType(ORG_ID, REF_TYPE))
             .thenReturn(Arrays.asList(existingField1, existingField2));
 
-        List<CustomUserFieldEntity> entities = service.listAllFields();
+        List<CustomUserFieldEntity> entities = service.listAllFields(GraviteeContext.getExecutionContext());
 
         verify(customUserFieldsRepository).findByReferenceIdAndReferenceType(ORG_ID, REF_TYPE);
         assertNotNull("Fields", entities);

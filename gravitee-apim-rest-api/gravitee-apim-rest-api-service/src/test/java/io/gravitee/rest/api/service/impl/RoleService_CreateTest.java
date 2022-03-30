@@ -29,8 +29,8 @@ import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RoleReservedNameException;
-import io.gravitee.rest.api.service.impl.RoleServiceImpl;
 import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,7 +68,7 @@ public class RoleService_CreateTest {
         when(roleMock.getPermissions()).thenReturn(new int[] { 3008 });
         when(mockRoleRepository.create(any())).thenReturn(roleMock);
 
-        RoleEntity entity = roleService.create(newRoleEntityMock);
+        RoleEntity entity = roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
 
         assertNotNull("no entoty created", entity);
         assertEquals("invalid id", "new_mock_role", entity.getId());
@@ -88,7 +88,7 @@ public class RoleService_CreateTest {
         when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
         when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { 'X' }));
 
-        roleService.create(newRoleEntityMock);
+        roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
 
         fail("should fail earlier");
     }
@@ -98,7 +98,7 @@ public class RoleService_CreateTest {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("admin");
 
-        roleService.create(newRoleEntityMock);
+        roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
 
         fail("should fail earlier");
     }

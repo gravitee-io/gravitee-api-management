@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Date;
@@ -74,7 +75,7 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newToken));
 
         assertThat(response.getStatus()).isEqualTo(403);
-        verify(tokenService, never()).create(newToken, USER_ID);
+        verify(tokenService, never()).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
     @Test
@@ -82,7 +83,7 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
         final Response response = envTarget().path(TOKEN_ID).request().delete();
 
         assertThat(response.getStatus()).isEqualTo(403);
-        verify(tokenService, never()).revoke(TOKEN_ID);
+        verify(tokenService, never()).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
     }
 
     private TokenEntity fakeToken(String name) {

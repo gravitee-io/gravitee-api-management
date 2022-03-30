@@ -65,7 +65,7 @@ public class ScheduledAutoFetchService extends AbstractService implements Runnab
     @Override
     public void run() {
         LOGGER.debug("Auto Fetch #{} started at {}", counter.incrementAndGet(), Instant.now());
-        pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
+        pageService.execAutoFetch(GraviteeContext.getExecutionContext());
         LOGGER.debug("Auto Fetch #{} ended at {}", counter.get(), Instant.now());
     }
 }

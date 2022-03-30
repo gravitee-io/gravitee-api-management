@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.QualityRuleService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.QualityRuleNotFoundException;
@@ -88,12 +89,13 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     }
 
     @Override
-    public QualityRuleEntity create(NewQualityRuleEntity newEntity) {
+    public QualityRuleEntity create(ExecutionContext executionContext, NewQualityRuleEntity newEntity) {
         try {
             final QualityRule qualityRule = convert(newEntity);
             final QualityRule createdQualityRule = qualityRuleRepository.create(qualityRule);
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(QUALITY_RULE, createdQualityRule.getId()),
                 QualityRule.AuditEvent.QUALITY_RULE_CREATED,
                 qualityRule.getCreatedAt(),
@@ -108,7 +110,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     }
 
     @Override
-    public QualityRuleEntity update(UpdateQualityRuleEntity updateEntity) {
+    public QualityRuleEntity update(ExecutionContext executionContext, UpdateQualityRuleEntity updateEntity) {
         try {
             final Optional<QualityRule> optionalQualityRule = qualityRuleRepository.findById(updateEntity.getId());
             if (!optionalQualityRule.isPresent()) {
@@ -116,7 +118,8 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             }
             final QualityRule qualityRule = qualityRuleRepository.update(convert(updateEntity, optionalQualityRule.get()));
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 singletonMap(QUALITY_RULE, qualityRule.getId()),
                 QUALITY_RULE_UPDATED,
                 qualityRule.getUpdatedAt(),
@@ -131,7 +134,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     }
 
     @Override
-    public void delete(final String qualityRule) {
+    public void delete(ExecutionContext executionContext, final String qualityRule) {
         try {
             final Optional<QualityRule> qualityRuleOptional = qualityRuleRepository.findById(qualityRule);
             if (qualityRuleOptional.isPresent()) {
@@ -139,7 +142,8 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 // delete all reference on api quality rule
                 apiQualityRuleRepository.deleteByQualityRule(qualityRule);
                 auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(QUALITY_RULE, qualityRule),
                     QualityRule.AuditEvent.QUALITY_RULE_DELETED,
                     new Date(),

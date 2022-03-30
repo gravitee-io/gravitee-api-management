@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,13 +69,13 @@ public class ApiPlansResource extends AbstractResource {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
 
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(username, apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(GraviteeContext.getExecutionContext(), username, apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            ApiEntity apiEntity = apiService.findById(apiId);
+            ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), apiId);
 
             if (Visibility.PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(API_PLAN, apiId, READ)) {
                 List<Plan> plans = planService
-                    .findByApi(apiId)
+                    .findByApi(GraviteeContext.getExecutionContext(), apiId)
                     .stream()
                     .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
                     .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))

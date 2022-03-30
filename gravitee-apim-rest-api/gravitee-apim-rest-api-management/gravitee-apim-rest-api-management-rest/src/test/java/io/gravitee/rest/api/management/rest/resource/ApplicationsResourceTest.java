@@ -59,7 +59,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         returnedApp.setId("my-beautiful-application");
         doReturn(returnedApp)
             .when(applicationService)
-            .create(eq(GraviteeContext.getCurrentEnvironment()), any(NewApplicationEntity.class), eq(JerseySpringTest.USER_NAME));
+            .create(eq(GraviteeContext.getExecutionContext()), any(NewApplicationEntity.class), eq(JerseySpringTest.USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(appEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -76,7 +76,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         createdApplication.setId("my-beautiful-application");
         doReturn(createdApplication)
             .when(applicationService)
-            .create(eq(GraviteeContext.getCurrentEnvironment()), any(NewApplicationEntity.class), eq(USER_NAME));
+            .create(eq(GraviteeContext.getExecutionContext()), any(NewApplicationEntity.class), eq(USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(newApplicationEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());

@@ -74,7 +74,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         PlanEntity createdPlanEntity = new PlanEntity();
         createdPlanEntity.setId("new-plan-id");
-        when(planService.create(any())).thenReturn(createdPlanEntity);
+        when(planService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdPlanEntity);
 
         final Response response = envTarget().path(API).path("plans").request().post(Entity.json(newPlanEntity));
         assertEquals(CREATED_201, response.getStatus());
@@ -94,14 +94,14 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closed-plan-id");
-        when(apiService.findById(API)).thenReturn(api);
-        when(planService.findById(PLAN)).thenReturn(existingPlan);
-        when(planService.close(any(), any())).thenReturn(closedPlan);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
+        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
+        when(planService.close(eq(GraviteeContext.getExecutionContext()), any(), any())).thenReturn(closedPlan);
 
         final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
 
         assertEquals(OK_200, response.getStatus());
-        verify(apiService, never()).update(eq(API), any());
+        verify(apiService, never()).update(eq(GraviteeContext.getExecutionContext()), eq(API), any());
     }
 
     @Test
@@ -114,15 +114,15 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("plan-1");
-        when(apiService.findById(API)).thenReturn(api);
-        when(planService.findById(PLAN)).thenReturn(existingPlan);
-        when(planService.close(any(), any())).thenReturn(closedPlan);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
+        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
+        when(planService.close(eq(GraviteeContext.getExecutionContext()), any(), any())).thenReturn(closedPlan);
         when(apiConverter.toUpdateApiEntity(any())).thenReturn(new UpdateApiEntity());
 
         final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
 
         assertEquals(OK_200, response.getStatus());
-        verify(apiService, times(1)).update(eq(API), any());
+        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API), any());
     }
 
     @Test
@@ -133,13 +133,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         existingPlan.setName(PLAN);
         existingPlan.setApi(API);
 
-        when(apiService.findById(API)).thenReturn(api);
-        when(planService.findById(PLAN)).thenReturn(existingPlan);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
+        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
 
         final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
 
         assertEquals(OK_200, response.getStatus());
-        verify(apiService, never()).update(eq(API), any());
+        verify(apiService, never()).update(eq(GraviteeContext.getExecutionContext()), eq(API), any());
     }
 
     @Test
@@ -150,14 +150,14 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         existingPlan.setName(PLAN);
         existingPlan.setApi(API);
 
-        when(apiService.findById(API)).thenReturn(api);
-        when(planService.findById(PLAN)).thenReturn(existingPlan);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
+        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
         when(apiConverter.toUpdateApiEntity(any())).thenReturn(new UpdateApiEntity());
 
         final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
 
         assertEquals(OK_200, response.getStatus());
-        verify(apiService, times(1)).update(eq(API), any());
+        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API), any());
     }
 
     private ApiEntity getApi(DefinitionVersion version) {

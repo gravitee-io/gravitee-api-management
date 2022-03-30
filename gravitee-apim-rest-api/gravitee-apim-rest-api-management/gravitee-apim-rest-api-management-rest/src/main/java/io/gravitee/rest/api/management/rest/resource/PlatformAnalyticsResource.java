@@ -95,22 +95,28 @@ public class PlatformAnalyticsResource extends AbstractResource {
                 fieldName = "application";
                 ids =
                     applicationService
-                        .findByUser(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
-                            getAuthenticatedUser()
-                        )
+                        .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
                         .stream()
-                        .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
+                        .filter(
+                            app ->
+                                permissionService.hasPermission(
+                                    GraviteeContext.getExecutionContext(),
+                                    APPLICATION_ANALYTICS,
+                                    app.getId(),
+                                    READ
+                                )
+                        )
                         .map(ApplicationListItem::getId)
                         .collect(Collectors.toList());
             } else {
                 fieldName = "api";
                 ids =
                     apiService
-                        .findByUser(getAuthenticatedUser(), null, false)
+                        .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), null, false)
                         .stream()
-                        .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
+                        .filter(
+                            api -> permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_ANALYTICS, api.getId(), READ)
+                        )
                         .map(ApiEntity::getId)
                         .collect(Collectors.toList());
             }
@@ -193,7 +199,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
             query.setAggregations(aggregationList);
         }
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeGroupBy(AnalyticsParam analyticsParam, String extraFilter) {
@@ -219,7 +225,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
             query.setGroups(rangeMap);
         }
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private void addExtraFilter(AbstractQuery query, String extraFilter) {

@@ -76,7 +76,7 @@ public class ApplicationMetadataResource extends AbstractResource {
         NewApplicationMetadataEntity newApplicationMetadataEntity = this.referenceMetadataMapper.convert(metadata, applicationId);
 
         final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             newApplicationMetadataEntity
         );
         return Response
@@ -113,7 +113,7 @@ public class ApplicationMetadataResource extends AbstractResource {
         return Response
             .ok(
                 this.referenceMetadataMapper.convert(
-                        metadataService.update(GraviteeContext.getCurrentEnvironment(), updateApplicationMetadataEntity)
+                        metadataService.update(GraviteeContext.getExecutionContext(), updateApplicationMetadataEntity)
                     )
             )
             .build();
@@ -126,7 +126,7 @@ public class ApplicationMetadataResource extends AbstractResource {
         @PathParam("applicationId") String applicationId,
         @PathParam("metadataId") String metadataId
     ) {
-        metadataService.delete(metadataId, applicationId);
+        metadataService.delete(GraviteeContext.getExecutionContext(), metadataId, applicationId);
         return Response.noContent().build();
     }
 }

@@ -160,7 +160,7 @@ public class CategoryResource extends AbstractCategoryResource {
             throw new BadRequestException("Invalid image format");
         }
 
-        CategoryEntity categoryEntity = categoryService.update(categoryId, category);
+        CategoryEntity categoryEntity = categoryService.update(GraviteeContext.getExecutionContext(), categoryId, category);
         setPictures(categoryEntity, false);
 
         return Response.ok(categoryEntity).build();
@@ -172,6 +172,6 @@ public class CategoryResource extends AbstractCategoryResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.DELETE) })
     public void deleteCategory() {
-        categoryService.delete(categoryId);
+        categoryService.delete(GraviteeContext.getExecutionContext(), categoryId);
     }
 }

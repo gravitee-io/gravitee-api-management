@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.configuration.dictionary;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
 /**
@@ -25,21 +26,21 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface DictionaryService {
-    DictionaryEntity create(NewDictionaryEntity dictionary);
+    DictionaryEntity create(ExecutionContext executionContext, NewDictionaryEntity dictionary);
 
-    DictionaryEntity update(String id, UpdateDictionaryEntity dictionary);
+    DictionaryEntity update(ExecutionContext executionContext, String id, UpdateDictionaryEntity dictionary);
 
     DictionaryEntity findById(String id);
 
-    void delete(String id);
+    void delete(ExecutionContext executionContext, String id);
 
-    Set<DictionaryEntity> findAll();
+    Set<DictionaryEntity> findAll(ExecutionContext executionContext);
 
-    DictionaryEntity deploy(String id);
+    DictionaryEntity deploy(ExecutionContext executionContext, String id);
 
-    DictionaryEntity undeploy(String id);
+    DictionaryEntity undeploy(ExecutionContext executionContext, String id);
 
-    DictionaryEntity start(String id);
+    DictionaryEntity start(ExecutionContext executionContext, String id);
 
-    DictionaryEntity stop(String id);
+    DictionaryEntity stop(ExecutionContext executionContext, String id);
 }

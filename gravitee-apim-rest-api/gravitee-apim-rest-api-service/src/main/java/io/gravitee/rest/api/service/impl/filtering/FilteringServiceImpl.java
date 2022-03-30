@@ -25,7 +25,7 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.*;
@@ -91,27 +91,32 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     }
 
     @Override
-    public Collection<String> filterApis(final Set<String> apis, final FilterType filterType, final FilterType excludedFilterType) {
+    public Collection<String> filterApis(
+        ExecutionContext executionContext,
+        final Set<String> apis,
+        final FilterType filterType,
+        final FilterType excludedFilterType
+    ) {
         final FilterType filter = excludedFilterType == null ? filterType : excludedFilterType;
         final boolean excluded = excludedFilterType != null;
         if (filter != null) {
             switch (filter) {
                 case MINE:
                     if (isAuthenticated()) {
-                        return getCurrentUserSubscribedApis(apis, excluded);
+                        return getCurrentUserSubscribedApis(executionContext, apis, excluded);
                     } else {
                         return Collections.emptyList();
                     }
                 case STARRED:
-                    if (ratingService.isEnabled()) {
-                        return getRatedApis(apis, excluded);
+                    if (ratingService.isEnabled(executionContext)) {
+                        return getRatedApis(executionContext, apis, excluded);
                     } else {
                         return Collections.emptyList();
                     }
                 case TRENDINGS:
                     return getApisOrderByNumberOfSubscriptions(apis, excluded);
                 case FEATURED:
-                    return getTopApis(apis, excluded);
+                    return getTopApis(executionContext, apis, excluded);
                 case ALL:
                 default:
                     break;
@@ -123,31 +128,42 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     }
 
     @Override
-    public Collection<String> filterApis(String userId, FilterType filterType, FilterType excludedFilterType, ApiQuery apiQuery) {
-        Set<String> apis = this.apiService.findPublishedIdsByUser(userId, apiQuery);
-        return this.filterApis(apis, filterType, excludedFilterType);
+    public Collection<String> filterApis(
+        ExecutionContext executionContext,
+        String userId,
+        FilterType filterType,
+        FilterType excludedFilterType,
+        ApiQuery apiQuery
+    ) {
+        Set<String> apis = this.apiService.findPublishedIdsByUser(executionContext, userId, apiQuery);
+        return this.filterApis(executionContext, apis, filterType, excludedFilterType);
     }
 
     @Override
-    public Collection<String> searchApis(String userId, String query) throws TechnicalException {
-        Set<String> apis = apiService.findPublishedIdsByUser(userId);
+    public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query) throws TechnicalException {
+        Set<String> apis = apiService.findPublishedIdsByUser(executionContext, userId);
 
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apis);
 
-        return apiService.searchIds(query, filters);
+        return apiService.searchIds(executionContext, query, filters);
     }
 
     @Override
-    public Set<CategoryEntity> listCategories(String userId, FilterType filterType, FilterType excludedFilterType) {
-        Set<String> apisForUser = this.apiService.findPublishedIdsByUser(userId);
-        Collection<String> apis = this.filterApis(apisForUser, filterType, excludedFilterType);
-        return this.apiService.listCategories(apis, GraviteeContext.getCurrentEnvironment());
+    public Set<CategoryEntity> listCategories(
+        ExecutionContext executionContext,
+        String userId,
+        FilterType filterType,
+        FilterType excludedFilterType
+    ) {
+        Set<String> apisForUser = this.apiService.findPublishedIdsByUser(executionContext, userId);
+        Collection<String> apis = this.filterApis(executionContext, apisForUser, filterType, excludedFilterType);
+        return this.apiService.listCategories(apis, executionContext.getEnvironmentId());
     }
 
-    private Collection<String> getTopApis(Set<String> apis, boolean excluded) {
+    private Collection<String> getTopApis(ExecutionContext executionContext, Set<String> apis, boolean excluded) {
         Map<String, Integer> topApiIdAndOrderMap = topApiService
-            .findAll()
+            .findAll(executionContext)
             .stream()
             .collect(Collectors.toMap(TopApiEntity::getApi, TopApiEntity::getOrder));
 
@@ -168,8 +184,8 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         }
     }
 
-    private Collection<String> getRatedApis(Set<String> apis, boolean excluded) {
-        Set<String> ratings = ratingService.findReferenceIdsOrderByRate(apis);
+    private Collection<String> getRatedApis(ExecutionContext executionContext, Set<String> apis, boolean excluded) {
+        Set<String> ratings = ratingService.findReferenceIdsOrderByRate(executionContext, apis);
 
         if (excluded) {
             // remove apis rated to apis already sorted by name
@@ -182,14 +198,10 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         }
     }
 
-    private Collection<String> getCurrentUserSubscribedApis(Set<String> apis, boolean excluded) {
+    private Collection<String> getCurrentUserSubscribedApis(ExecutionContext executionContext, Set<String> apis, boolean excluded) {
         //get Current user applications
         List<String> currentUserApplicationsId = applicationService
-            .findByUser(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                getAuthenticatedUser().getUsername()
-            )
+            .findByUser(executionContext, getAuthenticatedUser().getUsername())
             .stream()
             .map(ApplicationListItem::getId)
             .collect(Collectors.toList());
@@ -198,7 +210,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApplications(currentUserApplicationsId);
         List<String> subscribedApis = subscriptionService
-            .search(subscriptionQuery)
+            .search(executionContext, subscriptionQuery)
             .stream()
             .map(SubscriptionEntity::getApi)
             .distinct()

@@ -122,11 +122,7 @@ public class ApplicationService_FindByIdsTest {
         doReturn(new LinkedHashSet<>(Arrays.asList(app1, app2))).when(applicationRepository).findByIds(APPLICATION_IDS);
         doReturn(2).when(primaryOwners).size();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            APPLICATION_IDS
-        );
+        final Set<ApplicationListItem> applications = applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
@@ -136,11 +132,7 @@ public class ApplicationService_FindByIdsTest {
     public void shouldThrowsIfNoPrimaryOwner() throws TechnicalException {
         doReturn(new LinkedHashSet<>(Arrays.asList(app1, app2))).when(applicationRepository).findByIds(APPLICATION_IDS);
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            APPLICATION_IDS
-        );
+        final Set<ApplicationListItem> applications = applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));

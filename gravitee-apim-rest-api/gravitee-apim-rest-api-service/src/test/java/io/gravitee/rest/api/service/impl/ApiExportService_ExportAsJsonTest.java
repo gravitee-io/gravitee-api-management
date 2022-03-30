@@ -23,6 +23,7 @@ import com.google.common.io.Resources;
 import io.gravitee.definition.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.io.IOException;
 import java.net.URL;
@@ -204,8 +205,9 @@ public class ApiExportService_ExportAsJsonTest extends ApiExportService_ExportAs
         apiEntity.setPaths(null);
         apiEntity.setProxy(proxy);
 
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
         String jsonForExport = apiExportService.exportAsJson(
+            GraviteeContext.getExecutionContext(),
             API_ID,
             ApiSerializer.Version.V_1_15.getVersion(),
             SystemRole.PRIMARY_OWNER.name()

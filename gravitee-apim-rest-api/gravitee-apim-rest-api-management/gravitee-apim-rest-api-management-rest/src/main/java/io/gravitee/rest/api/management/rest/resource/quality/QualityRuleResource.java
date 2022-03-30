@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
 import io.gravitee.rest.api.service.QualityRuleService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -86,7 +87,7 @@ public class QualityRuleResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.UPDATE) })
     public QualityRuleEntity updateQualityRule(@Valid @NotNull final UpdateQualityRuleEntity updateQualityRuleEntity) {
         updateQualityRuleEntity.setId(id);
-        return qualityRuleService.update(updateQualityRuleEntity);
+        return qualityRuleService.update(GraviteeContext.getExecutionContext(), updateQualityRuleEntity);
     }
 
     @DELETE
@@ -100,6 +101,6 @@ public class QualityRuleResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.DELETE) })
     public void deleteQualityRule() {
-        qualityRuleService.delete(id);
+        qualityRuleService.delete(GraviteeContext.getExecutionContext(), id);
     }
 }

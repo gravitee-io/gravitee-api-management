@@ -111,10 +111,7 @@ public class ApplicationMetadataResource extends AbstractResource {
         // prevent creation of a metadata on an another APPLICATION
         metadata.setApplicationId(application);
 
-        final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(
-            GraviteeContext.getCurrentEnvironment(),
-            metadata
-        );
+        final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(GraviteeContext.getExecutionContext(), metadata);
         return Response.created(this.getLocationHeader(applicationMetadataEntity.getKey())).entity(applicationMetadataEntity).build();
     }
 
@@ -140,7 +137,7 @@ public class ApplicationMetadataResource extends AbstractResource {
         // prevent update of a metadata on an another APPLICATION
         metadata.setApplicationId(application);
 
-        return Response.ok(metadataService.update(GraviteeContext.getCurrentEnvironment(), metadata)).build();
+        return Response.ok(metadataService.update(GraviteeContext.getExecutionContext(), metadata)).build();
     }
 
     @DELETE
@@ -153,7 +150,7 @@ public class ApplicationMetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationMetadata(@PathParam("metadata") String metadata) {
-        metadataService.delete(metadata, application);
+        metadataService.delete(GraviteeContext.getExecutionContext(), metadata, application);
         return Response.noContent().build();
     }
 }

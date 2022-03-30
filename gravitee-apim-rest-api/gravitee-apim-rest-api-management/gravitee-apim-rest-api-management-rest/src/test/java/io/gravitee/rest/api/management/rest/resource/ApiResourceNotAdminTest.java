@@ -25,17 +25,15 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.repository.management.model.Role;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
-import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -108,7 +106,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
         mockApi.setProxy(proxy);
         mockApi.setUpdatedAt(new Date());
-        doReturn(mockApi).when(apiService).findById(API);
+        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
     }
 
     @After
@@ -263,7 +261,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
             .thenReturn(Sets.newSet(membershipEntity));
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
-        when(apiService.searchIds(any())).thenReturn(Collections.singletonList(mockApi.getId()));
+        when(apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.singletonList(mockApi.getId()));
 
         final Response response = envTarget(API + "/state").request().get();
 

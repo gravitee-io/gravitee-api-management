@@ -78,7 +78,7 @@ public class ApiMediaResource extends AbstractResource {
     ) throws IOException {
         final String mediaId;
 
-        if (fileDetail.getSize() > this.mediaService.getMediaMaxSize(GraviteeContext.getCurrentEnvironment())) {
+        if (fileDetail.getSize() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
             throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
             MediaEntity mediaEntity = new MediaEntity();

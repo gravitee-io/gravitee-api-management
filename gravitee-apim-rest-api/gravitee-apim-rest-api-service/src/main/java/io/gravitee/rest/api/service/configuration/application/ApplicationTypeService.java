@@ -22,9 +22,10 @@ package io.gravitee.rest.api.service.configuration.application;
 
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface ApplicationTypeService {
-    ApplicationTypesEntity getEnabledApplicationTypes();
+    ApplicationTypesEntity getEnabledApplicationTypes(ExecutionContext executionContext);
 
     ApplicationTypeEntity getApplicationType(String typeId);
 }

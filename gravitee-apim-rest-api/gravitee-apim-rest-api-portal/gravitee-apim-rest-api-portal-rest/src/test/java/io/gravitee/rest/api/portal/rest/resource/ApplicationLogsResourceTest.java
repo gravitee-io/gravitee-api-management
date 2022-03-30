@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.LogsResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,7 +75,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         metadata.put(APPLICATION, appMetadata);
         searchResponse.setMetadata(metadata);
 
-        doReturn(searchResponse).when(logsService).findByApplication(eq(APPLICATION), any());
+        doReturn(searchResponse).when(logsService).findByApplication(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION), any());
 
         doReturn(new Log()).when(logMapper).convert(any(ApplicationRequestItem.class));
         doReturn(new Log()).when(logMapper).convert(any(ApplicationRequest.class));
@@ -96,7 +97,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<LogQuery> logQueryCaptor = ArgumentCaptor.forClass(LogQuery.class);
-        Mockito.verify(logsService).findByApplication(eq(APPLICATION), logQueryCaptor.capture());
+        Mockito.verify(logsService).findByApplication(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION), logQueryCaptor.capture());
         final LogQuery logQuery = logQueryCaptor.getValue();
         assertEquals(APPLICATION, logQuery.getField());
         assertEquals(0, logQuery.getFrom());
@@ -122,7 +123,9 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
     public void shouldGetNoLogAndNoLink() {
         SearchLogResponse<ApplicationRequestItem> emptySearchResponse = new SearchLogResponse<>(0);
         emptySearchResponse.setLogs(Collections.emptyList());
-        doReturn(emptySearchResponse).when(logsService).findByApplication(eq(APPLICATION), any());
+        doReturn(emptySearchResponse)
+            .when(logsService)
+            .findByApplication(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION), any());
 
         final Response response = target(APPLICATION)
             .path("logs")
@@ -148,13 +151,13 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
     public void shouldGetLog() {
         final ApplicationRequest toBeReturned = new ApplicationRequest();
         toBeReturned.setId(LOG);
-        doReturn(toBeReturned).when(logsService).findApplicationLog(eq(LOG), any());
+        doReturn(toBeReturned).when(logsService).findApplicationLog(eq(GraviteeContext.getExecutionContext()), eq(LOG), any());
 
         final Response response = target(APPLICATION).path("logs").path(LOG).queryParam("timestamp", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(logMapper).convert(toBeReturned);
-        Mockito.verify(logsService).findApplicationLog(LOG, 1L);
+        Mockito.verify(logsService).findApplicationLog(GraviteeContext.getExecutionContext(), LOG, 1L);
 
         Log Log = response.readEntity(Log.class);
         assertNotNull(Log);
@@ -162,7 +165,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldExportLogs() {
-        doReturn("EXPORT").when(logsService).exportAsCsv(any());
+        doReturn("EXPORT").when(logsService).exportAsCsv(eq(GraviteeContext.getExecutionContext()), any());
         final Response response = target(APPLICATION)
             .path("logs")
             .path("_export")
@@ -177,7 +180,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
             .post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(logsService).exportAsCsv(searchResponse);
+        Mockito.verify(logsService).exportAsCsv(GraviteeContext.getExecutionContext(), searchResponse);
 
         String exportString = response.readEntity(String.class);
         assertEquals("EXPORT", exportString);

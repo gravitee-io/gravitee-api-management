@@ -126,7 +126,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public int create(final ExecutionContext context, String apiId, MessageEntity message) {
+    public int create(final ExecutionContext executionContext, String apiId, MessageEntity message) {
         assertMessageNotEmpty(message);
         try {
             Optional<Api> optionalApi = apiRepository.findById(apiId);
@@ -135,9 +135,9 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             }
             Api api = optionalApi.get();
 
-            int msgSize = send(context, api, message, getRecipientsId(context, api, message));
+            int msgSize = send(executionContext, api, message, getRecipientsId(executionContext, api, message));
 
-            auditService.createApiAuditLog(apiId, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
+            auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
             return msgSize;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get create a message", ex);
@@ -146,35 +146,43 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     @Override
-    public int create(final ExecutionContext context, MessageEntity message) {
+    public int create(final ExecutionContext executionContext, MessageEntity message) {
         assertMessageNotEmpty(message);
 
-        int msgSize = send(context, null, message, getRecipientsId(context, message));
+        int msgSize = send(executionContext, null, message, getRecipientsId(executionContext, message));
 
-        auditService.createEnvironmentAuditLog(context.getEnvironmentId(), Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
+        auditService.createEnvironmentAuditLog(
+            executionContext,
+            executionContext.getEnvironmentId(),
+            Collections.emptyMap(),
+            MESSAGE_SENT,
+            new Date(),
+            null,
+            message
+        );
         return msgSize;
     }
 
-    private int send(ExecutionContext context, Api api, MessageEntity message, Set<String> recipientsId) {
+    private int send(ExecutionContext executionContext, Api api, MessageEntity message, Set<String> recipientsId) {
         switch (message.getChannel()) {
             case MAIL:
-                Set<String> mails = getRecipientsEmails(recipientsId);
+                Set<String> mails = getRecipientsEmails(executionContext, recipientsId);
                 if (!mails.isEmpty()) {
                     emailService.sendAsyncEmailNotification(
+                        executionContext,
                         new EmailNotificationBuilder()
                             .to(EmailService.DEFAULT_MAIL_TO)
                             .bcc(mails.toArray(new String[0]))
                             .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_GENERIC_MESSAGE)
                             .param("message", message.getText())
                             .param("messageSubject", message.getTitle())
-                            .build(),
-                        context.getReferenceContext()
+                            .build()
                     );
                 }
                 return mails.size();
             case PORTAL:
                 Hook hook = api == null ? PortalHook.MESSAGE : ApiHook.MESSAGE;
-                portalNotificationService.create(hook, new ArrayList<>(recipientsId), getPortalParams(api, message));
+                portalNotificationService.create(executionContext, hook, new ArrayList<>(recipientsId), getPortalParams(api, message));
                 return recipientsId.size();
             case HTTP:
                 if (!httpEnabled) {
@@ -205,7 +213,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                     HttpMethod.POST,
                     url,
                     message.getParams(),
-                    getPostMessage(api, message),
+                    getPostMessage(executionContext, api, message, executionContext.getOrganizationId()),
                     Boolean.valueOf(message.isUseSystemProxy())
                 );
                 return 1;
@@ -241,7 +249,8 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 for (String roleName : recipientEntity.getRoleValues()) {
                     Optional<RoleEntity> optRole = roleService.findByScopeAndName(
                         RoleScope.valueOf(recipientEntity.getRoleScope()),
-                        roleName
+                        roleName,
+                        context.getOrganizationId()
                     );
                     if (optRole.isPresent()) {
                         recipientIds.addAll(
@@ -274,7 +283,11 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
                 // Get members of the applications (direct members and group members)
                 for (String roleName : recipientEntity.getRoleValues()) {
-                    Optional<RoleEntity> optRole = roleService.findByScopeAndName(RoleScope.APPLICATION, roleName);
+                    Optional<RoleEntity> optRole = roleService.findByScopeAndName(
+                        RoleScope.APPLICATION,
+                        roleName,
+                        context.getOrganizationId()
+                    );
                     if (optRole.isPresent()) {
                         // get all directs members
                         recipientIds.addAll(
@@ -291,7 +304,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
                         recipientIds.addAll(this.getIndirectMemberIds(context, applicationIds, optRole.get()));
                     } else if (roleName.equals(API_SUBSCRIBERS)) {
-                        Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(api.getId());
+                        Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(context, api.getId());
                         List<String> subscribersId = subscriptions
                             .stream()
                             .map(SubscriptionEntity::getSubscribedBy)
@@ -333,13 +346,13 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             .collect(Collectors.toSet());
     }
 
-    private Set<String> getRecipientsEmails(Set<String> recipientsId) {
+    private Set<String> getRecipientsEmails(ExecutionContext executionContext, Set<String> recipientsId) {
         if (recipientsId.isEmpty()) {
             return Collections.emptySet();
         }
 
         Set<String> emails = userService
-            .findByIds(new ArrayList<>(recipientsId))
+            .findByIds(executionContext, new ArrayList<>(recipientsId))
             .stream()
             .filter(userEntity -> !StringUtils.isEmpty(userEntity.getEmail()))
             .map(UserEntity::getEmail)
@@ -380,15 +393,20 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         return params;
     }
 
-    private String getPostMessage(Api api, MessageEntity message) {
+    private String getPostMessage(ExecutionContext executionContext, Api api, MessageEntity message, String organizationId) {
         if (message.getText() == null || api == null) {
             return message.getText();
         }
 
-        ApiModelEntity apiEntity = apiService.findByIdForTemplates(api.getId());
+        ApiModelEntity apiEntity = apiService.findByIdForTemplates(executionContext, api.getId());
         Map<String, Object> model = new HashMap<>();
         model.put("api", apiEntity);
 
-        return this.notificationTemplateService.resolveInlineTemplateWithParam(new Date().toString(), message.getText(), model);
+        return this.notificationTemplateService.resolveInlineTemplateWithParam(
+                organizationId,
+                new Date().toString(),
+                message.getText(),
+                model
+            );
     }
 }

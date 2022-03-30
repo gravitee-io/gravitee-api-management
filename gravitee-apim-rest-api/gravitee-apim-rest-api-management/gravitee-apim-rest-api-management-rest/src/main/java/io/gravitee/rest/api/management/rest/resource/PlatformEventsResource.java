@@ -83,15 +83,16 @@ public class PlatformEventsResource extends AbstractResource {
             properties.put(
                 Event.EventProperties.API_ID.getValue(),
                 apiService
-                    .findByUser(getAuthenticatedUser(), null, false)
+                    .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), null, false)
                     .stream()
-                    .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
+                    .filter(api -> permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_ANALYTICS, api.getId(), READ))
                     .map(ApiEntity::getId)
                     .collect(Collectors.joining(","))
             );
         }
 
         Page<EventEntity> events = eventService.search(
+            GraviteeContext.getExecutionContext(),
             eventSearchParam.getEventTypeListParam(),
             properties,
             eventSearchParam.getFrom(),
@@ -114,7 +115,7 @@ public class PlatformEventsResource extends AbstractResource {
                         // Retrieve additional data
                         String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
                         try {
-                            ApiEntity api = apiService.findById(apiId);
+                            ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), apiId);
                             properties1.put("api_name", api.getName());
                             properties1.put("api_version", api.getVersion());
                         } catch (ApiNotFoundException anfe) {

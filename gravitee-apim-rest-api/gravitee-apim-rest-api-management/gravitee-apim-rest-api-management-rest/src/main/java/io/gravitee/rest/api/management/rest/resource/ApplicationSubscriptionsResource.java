@@ -101,7 +101,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             newSubscriptionEntity = new NewSubscriptionEntity();
         }
 
-        PlanEntity planEntity = planService.findById(plan);
+        PlanEntity planEntity = planService.findById(GraviteeContext.getExecutionContext(), plan);
 
         if (
             planEntity.isCommentRequired() && (newSubscriptionEntity.getRequest() == null || newSubscriptionEntity.getRequest().isEmpty())
@@ -111,7 +111,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
         newSubscriptionEntity.setApplication(application);
         newSubscriptionEntity.setPlan(plan);
-        Subscription subscription = convert(subscriptionService.create(newSubscriptionEntity));
+        Subscription subscription = convert(subscriptionService.create(GraviteeContext.getExecutionContext(), newSubscriptionEntity));
         return Response
             .created(this.getRequestUriBuilder().path(subscription.getId()).replaceQueryParam("plan", null).build())
             .entity(subscription)
@@ -146,6 +146,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         boolean expandApiKeys = expand != null && expand.contains("keys");
         boolean expandPlanSecurity = expand != null && expand.contains("security");
         Page<SubscriptionEntity> subscriptions = subscriptionService.search(
+            GraviteeContext.getExecutionContext(),
             subscriptionQuery,
             pageable.toPageable(),
             expandApiKeys,
@@ -161,7 +162,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             .withApis(true)
             .withApplications(true)
             .withPlans(true);
-        result.setMetadata(subscriptionService.getMetadata(subscriptionMetadataQuery).toMap());
+        result.setMetadata(subscriptionService.getMetadata(GraviteeContext.getExecutionContext(), subscriptionMetadataQuery).toMap());
         return result;
     }
 
@@ -186,15 +187,15 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(subscriptionEntity.getSubscribedBy(), true).getDisplayName()
+                userService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getSubscribedBy(), true).getDisplayName()
             )
         );
 
-        PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
+        PlanEntity plan = planService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         subscription.getPlan().setSecurity(plan.getSecurity());
 
-        ApiEntity api = apiService.findById(subscriptionEntity.getApi());
+        ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getApi());
         subscription.setApi(
             new Subscription.Api(
                 api.getId(),

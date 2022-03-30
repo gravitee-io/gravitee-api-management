@@ -34,6 +34,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -109,10 +111,11 @@ public class ApiPlansResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        ApiEntity apiEntity = apiService.findById(api);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiEntity apiEntity = apiService.findById(executionContext, api);
 
         return planService
-            .findByApi(api)
+            .findByApi(executionContext, api)
             .stream()
             .filter(
                 plan ->
@@ -143,7 +146,7 @@ public class ApiPlansResource extends AbstractResource {
         newPlanEntity.setApi(api);
         newPlanEntity.setType(PlanType.API);
 
-        PlanEntity planEntity = planService.create(newPlanEntity);
+        PlanEntity planEntity = planService.create(GraviteeContext.getExecutionContext(), newPlanEntity);
 
         return Response.created(this.getLocationHeader(planEntity.getId())).entity(planEntity).build();
     }
@@ -175,12 +178,13 @@ public class ApiPlansResource extends AbstractResource {
         // Force ID
         updatePlanEntity.setId(plan);
 
-        PlanEntity planEntity = planService.findById(plan);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        PlanEntity planEntity = planService.findById(executionContext, plan);
         if (!planEntity.getApi().contains(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        planEntity = planService.update(updatePlanEntity);
+        planEntity = planService.update(executionContext, updatePlanEntity);
         return Response.ok(planEntity).build();
     }
 
@@ -195,8 +199,9 @@ public class ApiPlansResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApiPlan(@PathParam("plan") String plan) {
-        if (Visibility.PUBLIC.equals(apiService.findById(api).getVisibility()) || hasPermission(API_PLAN, api, READ)) {
-            PlanEntity planEntity = planService.findById(plan);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (Visibility.PUBLIC.equals(apiService.findById(executionContext, api).getVisibility()) || hasPermission(API_PLAN, api, READ)) {
+            PlanEntity planEntity = planService.findById(executionContext, plan);
             if (!planEntity.getApi().equals(api)) {
                 return Response
                     .status(Response.Status.BAD_REQUEST)
@@ -217,14 +222,15 @@ public class ApiPlansResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = API_PLAN, acls = DELETE) })
     public Response deleteApiPlan(@PathParam("plan") String plan) {
-        PlanEntity planEntity = planService.findById(plan);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        PlanEntity planEntity = planService.findById(executionContext, plan);
         if (!planEntity.getApi().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        planService.delete(plan);
+        planService.delete(executionContext, plan);
 
-        removePlanFromApiDefinition(plan, api);
+        removePlanFromApiDefinition(executionContext, plan, api);
 
         return Response.noContent().build();
     }
@@ -241,14 +247,15 @@ public class ApiPlansResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
     public Response closeApiPlan(@PathParam("plan") String plan) {
-        PlanEntity planEntity = planService.findById(plan);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        PlanEntity planEntity = planService.findById(executionContext, plan);
         if (!planEntity.getApi().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        PlanEntity closedPlan = planService.close(plan, getAuthenticatedUser());
+        PlanEntity closedPlan = planService.close(executionContext, plan, getAuthenticatedUser());
 
-        removePlanFromApiDefinition(plan, api);
+        removePlanFromApiDefinition(executionContext, plan, api);
 
         return Response.ok(closedPlan).build();
     }
@@ -265,12 +272,13 @@ public class ApiPlansResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
     public Response publishApiPlan(@PathParam("plan") String plan) {
-        PlanEntity planEntity = planService.findById(plan);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        PlanEntity planEntity = planService.findById(executionContext, plan);
         if (!planEntity.getApi().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        return Response.ok(planService.publish(plan)).build();
+        return Response.ok(planService.publish(executionContext, plan)).build();
     }
 
     @POST
@@ -305,12 +313,13 @@ public class ApiPlansResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
     public Response deprecateApiPlan(@PathParam("plan") String plan) {
-        PlanEntity planEntity = planService.findById(plan);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        PlanEntity planEntity = planService.findById(executionContext, plan);
         if (!planEntity.getApi().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        return Response.ok(planService.deprecate(plan)).build();
+        return Response.ok(planService.deprecate(executionContext, plan)).build();
     }
 
     private PlanEntity filterSensitiveData(PlanEntity entity) {
@@ -339,10 +348,10 @@ public class ApiPlansResource extends AbstractResource {
         return filtered;
     }
 
-    private void removePlanFromApiDefinition(String planId, String apiId) {
+    private void removePlanFromApiDefinition(final ExecutionContext executionContext, String planId, String apiId) {
         // Remove plan from api definition
         if (apiId != null) {
-            ApiEntity api = apiService.findById(apiId);
+            ApiEntity api = apiService.findById(executionContext, apiId);
             if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
                 List<io.gravitee.definition.model.Plan> plans = api
                     .getPlans()
@@ -354,7 +363,7 @@ public class ApiPlansResource extends AbstractResource {
                 updateApiEntity.setPlans(plans);
 
                 if (api.getPlans().size() != updateApiEntity.getPlans().size()) {
-                    apiService.update(apiId, updateApiEntity);
+                    apiService.update(executionContext, apiId, updateApiEntity);
                 }
             }
         }

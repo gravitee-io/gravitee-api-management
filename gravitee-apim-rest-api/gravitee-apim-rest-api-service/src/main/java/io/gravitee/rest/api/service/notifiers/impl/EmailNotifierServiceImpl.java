@@ -15,16 +15,13 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
-import static io.gravitee.rest.api.service.notification.ApiHook.*;
-
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
-import java.io.IOException;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +47,12 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
     private NotificationTemplateService notificationTemplateService;
 
     @Override
-    public void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
+    public void trigger(
+        ExecutionContext executionContext,
+        final Hook hook,
+        GenericNotificationConfig genericNotificationConfig,
+        final Map<String, Object> params
+    ) {
         if (
             genericNotificationConfig == null ||
             genericNotificationConfig.getConfig() == null ||
@@ -65,14 +67,18 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             return;
         }
 
-        String[] mails = getMails(genericNotificationConfig, params).toArray(new String[0]);
+        String[] mails = getMails(executionContext, genericNotificationConfig, params).toArray(new String[0]);
         emailService.sendAsyncEmailNotification(
-            new EmailNotificationBuilder().to(mails).template(emailTemplate).params(params).build(),
-            GraviteeContext.getCurrentContext()
+            executionContext,
+            new EmailNotificationBuilder().to(mails).template(emailTemplate).params(params).build()
         );
     }
 
-    public List<String> getMails(final GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
+    public List<String> getMails(
+        ExecutionContext executionContext,
+        final GenericNotificationConfig genericNotificationConfig,
+        final Map<String, Object> params
+    ) {
         if (
             genericNotificationConfig == null ||
             genericNotificationConfig.getConfig() == null ||
@@ -87,7 +93,13 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         for (String mail : mails) {
             if (!mail.isEmpty()) {
                 if (mail.contains("$")) {
-                    String tmpMail = this.notificationTemplateService.resolveInlineTemplateWithParam(mail, mail, params);
+                    String tmpMail =
+                        this.notificationTemplateService.resolveInlineTemplateWithParam(
+                                executionContext.getOrganizationId(),
+                                mail,
+                                mail,
+                                params
+                            );
                     if (!tmpMail.isEmpty()) {
                         result.add(tmpMail);
                     }

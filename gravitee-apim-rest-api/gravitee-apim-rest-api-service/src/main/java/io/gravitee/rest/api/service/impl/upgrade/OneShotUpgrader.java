@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.service.impl.upgrade.UpgradeStatus.*;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public abstract class OneShotUpgrader implements Upgrader, Ordered {
 
     private String installationStatusKey;
 
-    protected abstract void processOneShotUpgrade() throws Exception;
+    protected abstract void processOneShotUpgrade(ExecutionContext executionContext) throws Exception;
 
     public OneShotUpgrader(String installationStatusKey) {
         super();
@@ -54,7 +55,7 @@ public abstract class OneShotUpgrader implements Upgrader, Ordered {
     }
 
     @Override
-    public final boolean upgrade() {
+    public final boolean upgrade(ExecutionContext executionContext) {
         if (!isEnabled()) {
             LOGGER.info("Skipping {} execution cause it's not enabled in configuration", this.getClass().getSimpleName());
             return false;
@@ -80,7 +81,7 @@ public abstract class OneShotUpgrader implements Upgrader, Ordered {
         try {
             LOGGER.info("Starting {} execution with dry-run {}", this.getClass().getSimpleName(), isDryRun() ? "enabled" : "disabled");
             setExecutionStatus(installation, RUNNING);
-            processOneShotUpgrade();
+            processOneShotUpgrade(executionContext);
             setExecutionStatus(installation, isDryRun() ? DRY_SUCCESS : SUCCESS);
         } catch (Throwable e) {
             LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);

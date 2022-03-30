@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.TaskEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -24,7 +25,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface TaskService {
-    List<TaskEntity> findAll(String userId);
+    List<TaskEntity> findAll(ExecutionContext executionContext, String userId);
 
-    Metadata getMetadata(List<TaskEntity> tasks);
+    Metadata getMetadata(ExecutionContext executionContext, List<TaskEntity> tasks);
 }

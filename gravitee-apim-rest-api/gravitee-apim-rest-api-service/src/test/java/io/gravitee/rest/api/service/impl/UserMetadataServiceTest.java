@@ -45,7 +45,6 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.UserMetadataService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.UserMetadataServiceImpl;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -115,7 +114,10 @@ public class UserMetadataServiceTest {
         newUserMetadataEntity.setName(metadataName);
         newUserMetadataEntity.setValue(METADATA_VALUE);
 
-        final UserMetadataEntity createdUserMetadata = userMetadataService.create(newUserMetadataEntity);
+        final UserMetadataEntity createdUserMetadata = userMetadataService.create(
+            GraviteeContext.getExecutionContext(),
+            newUserMetadataEntity
+        );
 
         assertEquals("new-metadata", createdUserMetadata.getKey());
         assertEquals(MetadataFormat.STRING, createdUserMetadata.getFormat());
@@ -138,6 +140,7 @@ public class UserMetadataServiceTest {
             .build();
         verify(auditService)
             .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq(properties),
                 eq(METADATA_CREATED),
@@ -157,7 +160,10 @@ public class UserMetadataServiceTest {
         updateUserMetadataEntity.setValue(METADATA_VALUE + "updated");
         when(metadataRepository.update(any())).thenAnswer(a -> a.getArgument(0));
 
-        final UserMetadataEntity updatedUserMetadata = userMetadataService.update(updateUserMetadataEntity);
+        final UserMetadataEntity updatedUserMetadata = userMetadataService.update(
+            GraviteeContext.getExecutionContext(),
+            updateUserMetadataEntity
+        );
 
         assertEquals(toUserMetadata.getKey(), updatedUserMetadata.getKey());
         assertEquals(MetadataFormat.STRING, updatedUserMetadata.getFormat());
@@ -181,6 +187,7 @@ public class UserMetadataServiceTest {
             .build();
         verify(auditService)
             .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq(properties),
                 eq(METADATA_UPDATED),
@@ -232,7 +239,7 @@ public class UserMetadataServiceTest {
         when(metadataRepository.findById(FIELD_KEY, USER_ID_WITH_META, USER)).thenReturn(of(md));
         when(metadataRepository.findById(FIELD_KEY, USER_ID_WITHOUT_META, USER)).thenReturn(empty());
 
-        userMetadataService.deleteAllByCustomFieldId(FIELD_KEY, REF_ID, REF_TYPE);
+        userMetadataService.deleteAllByCustomFieldId(GraviteeContext.getExecutionContext(), FIELD_KEY, REF_ID, REF_TYPE);
 
         verify(metadataRepository).delete(FIELD_KEY, USER_ID_WITH_META, USER);
         verify(metadataRepository, never()).delete(FIELD_KEY, USER_ID_WITHOUT_META, USER);

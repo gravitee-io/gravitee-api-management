@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.configuration.application.registration.Initial
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -125,6 +126,7 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
         }
 
         ClientRegistrationProviderEntity newClientRegistrationProvider = clientRegistrationService.create(
+            GraviteeContext.getExecutionContext(),
             newClientRegistrationProviderEntity
         );
 

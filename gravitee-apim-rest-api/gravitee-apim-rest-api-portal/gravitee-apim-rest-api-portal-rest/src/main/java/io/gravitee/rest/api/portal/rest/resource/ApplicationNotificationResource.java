@@ -54,7 +54,7 @@ public class ApplicationNotificationResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ) })
     public Response get(@PathParam("applicationId") String applicationId) {
         //Does application exists ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         final PortalNotificationConfigEntity portalConfig = portalNotificationConfigService.findById(
             getAuthenticatedUser(),
@@ -79,7 +79,7 @@ public class ApplicationNotificationResource extends AbstractResource {
         @NotNull(message = "Input must not be null.") NotificationInput notification
     ) {
         //Does application exists ?
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         final PortalNotificationConfigEntity portalConfig = portalNotificationConfigService.findById(
             getAuthenticatedUser(),

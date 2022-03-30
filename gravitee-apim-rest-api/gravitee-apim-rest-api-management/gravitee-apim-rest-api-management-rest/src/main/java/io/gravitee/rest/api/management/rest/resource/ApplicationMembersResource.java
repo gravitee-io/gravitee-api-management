@@ -89,7 +89,7 @@ public class ApplicationMembersResource extends AbstractResource {
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String username = getAuthenticatedUser();
-            final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+            final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), application);
             if (isAdmin()) {
                 final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() };
                 for (ApplicationPermission perm : ApplicationPermission.values()) {
@@ -97,7 +97,7 @@ public class ApplicationMembersResource extends AbstractResource {
                 }
             } else {
                 permissions =
-                    membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), applicationEntity, username);
+                    membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), applicationEntity, username);
             }
         }
         return Response.ok(permissions).build();
@@ -117,9 +117,9 @@ public class ApplicationMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
     public List<MembershipListItem> getApplicationMembers() {
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        applicationService.findById(GraviteeContext.getExecutionContext(), application);
         return membershipService
-            .getMembersByReference(MembershipReferenceType.APPLICATION, application)
+            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, application)
             .stream()
             .map(MembershipListItem::new)
             .sorted(Comparator.comparing(MembershipListItem::getId))
@@ -145,7 +145,7 @@ public class ApplicationMembersResource extends AbstractResource {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
 
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        applicationService.findById(GraviteeContext.getExecutionContext(), application);
 
         MembershipService.MembershipReference reference = new MembershipService.MembershipReference(
             MembershipReferenceType.APPLICATION,
@@ -164,30 +164,18 @@ public class ApplicationMembersResource extends AbstractResource {
         MemberEntity membership = null;
         if (applicationMembership.getId() != null) {
             MemberEntity userMember = membershipService.getUserMember(
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.APPLICATION,
                 application,
                 applicationMembership.getId()
             );
             if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
                 membership =
-                    membershipService.updateRoleToMemberOnReference(
-                        GraviteeContext.getCurrentOrganization(),
-                        GraviteeContext.getCurrentEnvironment(),
-                        reference,
-                        member,
-                        role
-                    );
+                    membershipService.updateRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
             }
         }
         if (membership == null) {
-            membershipService.addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                reference,
-                member,
-                role
-            );
+            membershipService.addRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
         }
 
         return Response.status(Response.Status.CREATED).build();
@@ -200,16 +188,15 @@ public class ApplicationMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationMember(@Parameter(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        applicationService.findById(GraviteeContext.getExecutionContext(), application);
         try {
-            userService.findById(userId);
+            userService.findById(GraviteeContext.getExecutionContext(), userId);
         } catch (UserNotFoundException unfe) {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
         membershipService.deleteReferenceMember(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             MembershipReferenceType.APPLICATION,
             application,
             MembershipMemberType.USER,
@@ -229,17 +216,20 @@ public class ApplicationMembersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
     public Response transferApplicationOwnership(@Valid @NotNull TransferOwnership transferOwnership) {
         List<RoleEntity> newRoles = new ArrayList<>();
-        Optional<RoleEntity> optNewPORole = roleService.findByScopeAndName(RoleScope.APPLICATION, transferOwnership.getPoRole());
+        Optional<RoleEntity> optNewPORole = roleService.findByScopeAndName(
+            RoleScope.APPLICATION,
+            transferOwnership.getPoRole(),
+            GraviteeContext.getCurrentOrganization()
+        );
         if (optNewPORole.isPresent()) {
             newRoles.add(optNewPORole.get());
         } else {
             //it doesn't matter
         }
 
-        applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+        applicationService.findById(GraviteeContext.getExecutionContext(), application);
         membershipService.transferApplicationOwnership(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             application,
             new MembershipService.MembershipMember(transferOwnership.getId(), transferOwnership.getReference(), MembershipMemberType.USER),
             newRoles

@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.ZoneOffset;
 import javax.ws.rs.core.UriInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +41,12 @@ public class MemberMapper {
     @Autowired
     private UserService userService;
 
-    public Member convert(MemberEntity member, UriInfo uriInfo) {
+    public Member convert(ExecutionContext executionContext, MemberEntity member, UriInfo uriInfo) {
         final Member memberItem = new Member();
 
         memberItem.setCreatedAt(member.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
 
-        UserEntity userEntity = userService.findById(member.getId());
+        UserEntity userEntity = userService.findById(executionContext, member.getId());
         User memberUser = userMapper.convert(userEntity);
         memberUser.setLinks(
             userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt())

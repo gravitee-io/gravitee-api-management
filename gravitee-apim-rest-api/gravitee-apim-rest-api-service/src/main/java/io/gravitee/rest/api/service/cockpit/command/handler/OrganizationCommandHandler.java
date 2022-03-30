@@ -24,6 +24,7 @@ import io.gravitee.cockpit.api.command.organization.OrganizationReply;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,11 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
             newOrganization.setDescription(organizationPayload.getDescription());
             newOrganization.setDomainRestrictions(organizationPayload.getDomainRestrictions());
 
-            final OrganizationEntity organization = organizationService.createOrUpdate(organizationPayload.getId(), newOrganization);
+            final OrganizationEntity organization = organizationService.createOrUpdate(
+                GraviteeContext.getExecutionContext(),
+                organizationPayload.getId(),
+                newOrganization
+            );
             logger.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.SUCCEEDED));
         } catch (Exception e) {

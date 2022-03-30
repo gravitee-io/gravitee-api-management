@@ -33,7 +33,6 @@ import io.gravitee.rest.api.service.QualityMetricsService;
 import io.gravitee.rest.api.service.QualityRuleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiQualityMetricsDisableException;
-import io.gravitee.rest.api.service.impl.QualityMetricsServiceImpl;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricCategories;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLogo;
@@ -83,22 +82,43 @@ public class QualityMetricsServiceTest {
 
     @Test(expected = ApiQualityMetricsDisableException.class)
     public void shouldThrowExceptionIfDisabled() {
-        when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.FALSE);
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.FALSE);
         ApiEntity api = mock(ApiEntity.class);
 
-        srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
+        srv.getMetrics(GraviteeContext.getExecutionContext(), api);
 
         fail();
     }
 
     @Test
     public void shouldReturnEmptyEntityWithoutConfiguration() {
-        when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
-        when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class)))
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.TRUE);
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                anyList(),
+                any(Function.class),
+                any(ParameterReferenceType.class)
+            )
+        )
             .thenReturn(Collections.emptyMap());
         ApiEntity api = mock(ApiEntity.class);
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
+        ApiQualityMetricsEntity metrics = srv.getMetrics(GraviteeContext.getExecutionContext(), api);
 
         assertEquals(1, metrics.getScore(), 0);
         assertTrue(metrics.getMetricsPassed().isEmpty());
@@ -106,16 +126,31 @@ public class QualityMetricsServiceTest {
 
     @Test
     public void shouldScore50Percent() {
-        when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
-        when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                anyList(),
+                any(Function.class),
+                any(ParameterReferenceType.class)
+            )
+        )
+            .thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
-        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.FALSE);
+        when(apiQualityMetricLogo.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.FALSE);
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
+        ApiQualityMetricsEntity metrics = srv.getMetrics(GraviteeContext.getExecutionContext(), api);
 
         assertEquals(0.5, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
@@ -125,16 +160,31 @@ public class QualityMetricsServiceTest {
 
     @Test
     public void shouldScore100Percent() {
-        when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
-        when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                anyList(),
+                any(Function.class),
+                any(ParameterReferenceType.class)
+            )
+        )
+            .thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
-        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricLogo.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.TRUE);
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
+        ApiQualityMetricsEntity metrics = srv.getMetrics(GraviteeContext.getExecutionContext(), api);
 
         assertEquals(1, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
@@ -144,16 +194,31 @@ public class QualityMetricsServiceTest {
 
     @Test
     public void shouldScore33Percent() {
-        when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(2));
-        when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                anyList(),
+                any(Function.class),
+                any(ParameterReferenceType.class)
+            )
+        )
+            .thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
-        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.FALSE);
+        when(apiQualityMetricLogo.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.FALSE);
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
+        ApiQualityMetricsEntity metrics = srv.getMetrics(GraviteeContext.getExecutionContext(), api);
 
         assertEquals(0.33, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
@@ -163,15 +228,30 @@ public class QualityMetricsServiceTest {
 
     @Test
     public void shouldScore100PercentWithManualRules() {
-        when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
-        when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                anyList(),
+                any(Function.class),
+                any(ParameterReferenceType.class)
+            )
+        )
+            .thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn("apiID");
-        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricLogo.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.TRUE);
 
         final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
         when(qualityRule.getId()).thenReturn("1");
@@ -184,7 +264,7 @@ public class QualityMetricsServiceTest {
         when(apiQualityRule.isChecked()).thenReturn(true);
         when(apiQualityRuleService.findByApi("apiID")).thenReturn(singletonList(apiQualityRule));
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
+        ApiQualityMetricsEntity metrics = srv.getMetrics(GraviteeContext.getExecutionContext(), api);
 
         assertEquals(1, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
@@ -195,15 +275,30 @@ public class QualityMetricsServiceTest {
 
     @Test
     public void shouldScore50PercentWithManualRules() {
-        when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
-        when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(map);
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                anyList(),
+                any(Function.class),
+                any(ParameterReferenceType.class)
+            )
+        )
+            .thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn("apiID");
-        when(apiQualityMetricLogo.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricCategories.isValid(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricLogo.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Boolean.TRUE);
 
         final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
         when(qualityRule.getId()).thenReturn("1");
@@ -216,7 +311,7 @@ public class QualityMetricsServiceTest {
         when(apiQualityRule.isChecked()).thenReturn(false);
         when(apiQualityRuleService.findByApi("apiID")).thenReturn(singletonList(apiQualityRule));
 
-        ApiQualityMetricsEntity metrics = srv.getMetrics(api, GraviteeContext.getCurrentEnvironment());
+        ApiQualityMetricsEntity metrics = srv.getMetrics(GraviteeContext.getExecutionContext(), api);
 
         assertEquals(0.5, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());

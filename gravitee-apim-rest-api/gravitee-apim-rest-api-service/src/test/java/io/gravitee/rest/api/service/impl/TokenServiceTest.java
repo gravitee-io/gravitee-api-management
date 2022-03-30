@@ -39,7 +39,6 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
-import io.gravitee.rest.api.service.impl.TokenServiceImpl;
 import java.util.*;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -195,10 +194,11 @@ public class TokenServiceTest {
 
         when(tokenRepository.create(any())).thenReturn(token);
 
-        tokenService.create(newToken, USER_ID);
+        tokenService.create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
 
         verify(auditService)
             .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 anyMap(),
                 eq(TOKEN_CREATED),
@@ -217,15 +217,16 @@ public class TokenServiceTest {
 
         when(tokenRepository.findByReference(eq(USER.name()), eq(USER_ID))).thenReturn(singletonList(token));
 
-        tokenService.create(newToken, USER_ID);
+        tokenService.create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
     @Test
     public void shouldRevoke() throws TechnicalException {
-        tokenService.revoke(TOKEN_ID);
+        tokenService.revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
 
         verify(auditService)
             .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 anyMap(),
                 eq(TOKEN_DELETED),
@@ -240,10 +241,11 @@ public class TokenServiceTest {
     public void shouldRevokeByUser() throws TechnicalException {
         when(tokenRepository.findByReference(eq(USER.name()), eq(USER_ID))).thenReturn(singletonList(token));
 
-        tokenService.revokeByUser(USER_ID);
+        tokenService.revokeByUser(GraviteeContext.getExecutionContext(), USER_ID);
 
         verify(auditService)
             .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 anyMap(),
                 eq(TOKEN_DELETED),

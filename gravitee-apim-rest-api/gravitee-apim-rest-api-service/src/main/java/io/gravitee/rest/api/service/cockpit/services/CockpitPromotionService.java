@@ -17,13 +17,14 @@ package io.gravitee.rest.api.service.cockpit.services;
 
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 public interface CockpitPromotionService {
-    CockpitReply<List<PromotionTargetEntity>> listPromotionTargets(String organizationId);
-    CockpitReply<PromotionEntity> requestPromotion(PromotionEntity promotionEntity);
-    CockpitReply<PromotionEntity> processPromotion(PromotionEntity promotionEntity);
+    CockpitReply<List<PromotionTargetEntity>> listPromotionTargets(String organizationId, String environmentId);
+    CockpitReply<PromotionEntity> requestPromotion(ExecutionContext executionContext, PromotionEntity promotionEntity);
+    CockpitReply<PromotionEntity> processPromotion(ExecutionContext executionContext, PromotionEntity promotionEntity);
 }

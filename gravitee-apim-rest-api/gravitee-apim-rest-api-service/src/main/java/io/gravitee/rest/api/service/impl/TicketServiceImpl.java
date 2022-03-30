@@ -35,7 +35,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
@@ -90,29 +90,30 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     @Inject
     private TicketRepository ticketRepository;
 
-    private boolean isEnabled(String referenceId, ParameterReferenceType referenceType) {
+    private boolean isEnabled(ExecutionContext executionContext, String referenceId, ParameterReferenceType referenceType) {
         if (referenceType == ParameterReferenceType.ENVIRONMENT) {
-            return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, referenceId, referenceType);
+            return parameterService.findAsBoolean(executionContext, Key.PORTAL_SUPPORT_ENABLED, referenceId, referenceType);
         }
-        return parameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, referenceId, referenceType);
+        return parameterService.findAsBoolean(executionContext, Key.CONSOLE_SUPPORT_ENABLED, referenceId, referenceType);
     }
 
     @Override
     public TicketEntity create(
+        final ExecutionContext executionContext,
         final String userId,
         final NewTicketEntity ticketEntity,
         final String referenceId,
         final ParameterReferenceType referenceType
     ) {
         try {
-            if (!isEnabled(referenceId, referenceType)) {
+            if (!isEnabled(executionContext, referenceId, referenceType)) {
                 throw new SupportUnavailableException();
             }
             LOGGER.info("Creating a support ticket: {}", ticketEntity);
 
             final Map<String, Object> parameters = new HashMap<>();
 
-            final UserEntity user = userService.findById(userId);
+            final UserEntity user = userService.findById(executionContext, userId);
             if (user.getEmail() == null) {
                 throw new EmailRequiredException(userId);
             }
@@ -129,7 +130,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
                 }
                 emailTo = emailMetadata.getValue();
             } else {
-                api = apiService.findByIdForTemplates(ticketEntity.getApi(), true);
+                api = apiService.findByIdForTemplates(executionContext, ticketEntity.getApi(), true);
                 final String apiMetadataEmailSupport = api.getMetadata().get(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
                 if (apiMetadataEmailSupport == null) {
                     throw new IllegalStateException("The support email API metadata has not been found");
@@ -143,7 +144,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             }
 
             if (ticketEntity.getApplication() != null && !ticketEntity.getApplication().isEmpty()) {
-                applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), ticketEntity.getApplication());
+                applicationEntity = applicationService.findById(executionContext, ticketEntity.getApplication());
                 parameters.put("application", applicationEntity);
             } else {
                 applicationEntity = null;
@@ -153,6 +154,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             parameters.put("ticketSubject", ticketEntity.getSubject());
             final String fromName = user.getFirstname() == null ? user.getEmail() : user.getFirstname() + ' ' + user.getLastname();
             emailService.sendEmailNotification(
+                executionContext,
                 new EmailNotificationBuilder()
                     .replyTo(user.getEmail())
                     .fromName(fromName)
@@ -162,7 +164,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
                     .params(parameters)
                     .build()
             );
-            sendUserNotification(user, api, applicationEntity);
+            sendUserNotification(executionContext, user, api, applicationEntity);
 
             Ticket ticket = convert(ticketEntity);
             ticket.setId(UuidString.generateRandom());
@@ -179,7 +181,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     }
 
     @Override
-    public Page<TicketEntity> search(TicketQuery query, Sortable sortable, Pageable pageable) {
+    public Page<TicketEntity> search(final ExecutionContext executionContext, TicketQuery query, Sortable sortable, Pageable pageable) {
         try {
             LOGGER.debug("search tickets");
 
@@ -194,7 +196,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             List<TicketEntity> entities = tickets
                 .getContent()
                 .stream()
-                .map(this::getApiNameAndApplicationName)
+                .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
                 .map(this::convert)
                 .collect(Collectors.toList());
 
@@ -208,11 +210,11 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     }
 
     @Override
-    public TicketEntity findById(String ticketId) {
+    public TicketEntity findById(final ExecutionContext executionContext, String ticketId) {
         try {
             return ticketRepository
                 .findById(ticketId)
-                .map(this::getApiNameAndApplicationName)
+                .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
                 .map(this::convert)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         } catch (TechnicalException ex) {
@@ -221,14 +223,21 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         }
     }
 
-    private void sendUserNotification(final UserEntity user, final ApiModelEntity api, final ApplicationEntity application) {
+    private void sendUserNotification(
+        ExecutionContext executionContext,
+        final UserEntity user,
+        final ApiModelEntity api,
+        final ApplicationEntity application
+    ) {
         notifierService.trigger(
+            executionContext,
             PortalHook.NEW_SUPPORT_TICKET,
             new NotificationParamsBuilder().user(user).api(api).application(application).build()
         );
 
         if (api != null) {
             notifierService.trigger(
+                executionContext,
                 ApiHook.NEW_SUPPORT_TICKET,
                 api.getId(),
                 new NotificationParamsBuilder().user(user).api(api).application(application).build()
@@ -237,6 +246,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
 
         if (application != null) {
             notifierService.trigger(
+                executionContext,
                 ApplicationHook.NEW_SUPPORT_TICKET,
                 application.getId(),
                 new NotificationParamsBuilder().user(user).api(api).application(application).build()
@@ -275,16 +285,16 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         return ticket;
     }
 
-    private Ticket getApiNameAndApplicationName(Ticket ticket) {
+    private Ticket getApiNameAndApplicationName(final ExecutionContext executionContext, Ticket ticket) {
         //Retrieve application name
         if (StringUtils.isNotEmpty(ticket.getApplication())) {
-            ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), ticket.getApplication());
+            ApplicationEntity application = applicationService.findById(executionContext, ticket.getApplication());
             ticket.setApplication(application.getName());
         }
 
         //Retrieve api name
         if (StringUtils.isNotEmpty(ticket.getApi())) {
-            ApiEntity api = apiService.findById(ticket.getApi());
+            ApiEntity api = apiService.findById(executionContext, ticket.getApi());
             ticket.setApi(api.getName());
         }
 

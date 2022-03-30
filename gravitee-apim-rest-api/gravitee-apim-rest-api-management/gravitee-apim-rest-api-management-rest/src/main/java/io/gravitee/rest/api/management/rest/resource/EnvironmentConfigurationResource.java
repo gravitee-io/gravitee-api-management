@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.configuration.spel.SpelService;
@@ -175,7 +176,9 @@ public class EnvironmentConfigurationResource {
     @Operation(summary = "Get the list of enabled application types")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getEnabledApplicationTypes() {
-        ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes();
+        ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes(
+            GraviteeContext.getExecutionContext()
+        );
         return Response.ok(enabledApplicationTypes.getData()).build();
     }
 

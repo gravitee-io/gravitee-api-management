@@ -34,11 +34,11 @@ import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GraviteeDescriptorService;
 import io.gravitee.rest.api.service.PageRevisionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,8 +92,6 @@ public class PageService_ImportDirectoryTest {
     public void shouldImportDirectory() throws Exception {
         // We mock the validateSafeContent method because the fetcher keeps sending the same json descriptor which is
         // not a swagger valid document (and modify the fetcher mock to produce valid desc is overkill)
-        when(pageService.validateSafeContent(any(), any())).thenReturn(new ArrayList<>());
-
         PageSourceEntity pageSource = new PageSourceEntity();
         pageSource.setType("type");
         pageSource.setConfiguration(mapper.readTree("{}"));
@@ -125,12 +123,12 @@ public class PageService_ImportDirectoryTest {
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
 
-        List<PageEntity> pageEntities = pageService.importFiles(pageEntity, GraviteeContext.getCurrentEnvironment());
+        List<PageEntity> pageEntities = pageService.importFiles(new ExecutionContext("DEFAULT", "envId"), pageEntity);
 
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());
 
-        verify(searchEngineService, times(8)).index(any(), eq(false));
+        verify(searchEngineService, times(8)).index(any(), any(), eq(false));
         // //////////////////////
         // check Folder creation
         // //////////////////////

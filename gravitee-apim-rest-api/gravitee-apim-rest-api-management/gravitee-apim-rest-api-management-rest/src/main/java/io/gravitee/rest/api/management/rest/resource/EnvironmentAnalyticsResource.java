@@ -106,23 +106,22 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 fieldName = APPLICATION_FIELD;
                 ids =
                     applicationService
-                        .findByUser(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
-                            getAuthenticatedUser()
-                        )
+                        .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
                         .stream()
                         .map(ApplicationListItem::getId)
-                        .filter(appId -> permissionService.hasPermission(APPLICATION_ANALYTICS, appId, READ))
+                        .filter(
+                            appId ->
+                                permissionService.hasPermission(GraviteeContext.getExecutionContext(), APPLICATION_ANALYTICS, appId, READ)
+                        )
                         .collect(Collectors.toList());
             } else {
                 fieldName = API_FIELD;
                 ids =
                     apiService
-                        .findByUser(getAuthenticatedUser(), null, false)
+                        .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), null, false)
                         .stream()
                         .map(ApiEntity::getId)
-                        .filter(apiId -> permissionService.hasPermission(API_ANALYTICS, apiId, READ))
+                        .filter(apiId -> permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_ANALYTICS, apiId, READ))
                         .collect(Collectors.toList());
             }
 
@@ -173,24 +172,18 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         switch (analyticsParam.getField()) {
             case API_FIELD:
                 if (isAdmin()) {
-                    return buildCountStat(apiService.search(new ApiQuery()).size());
+                    return buildCountStat(apiService.search(GraviteeContext.getExecutionContext(), new ApiQuery()).size());
                 } else {
-                    return buildCountStat(apiService.findByUser(getAuthenticatedUser(), new ApiQuery(), false).size());
+                    return buildCountStat(
+                        apiService.findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), new ApiQuery(), false).size()
+                    );
                 }
             case APPLICATION_FIELD:
                 if (isAdmin()) {
-                    return buildCountStat(
-                        applicationService.findAll(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment()).size()
-                    );
+                    return buildCountStat(applicationService.findAll(GraviteeContext.getExecutionContext()).size());
                 } else {
                     return buildCountStat(
-                        applicationService
-                            .findByUser(
-                                GraviteeContext.getCurrentOrganization(),
-                                GraviteeContext.getCurrentEnvironment(),
-                                getAuthenticatedUser()
-                            )
-                            .size()
+                        applicationService.findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser()).size()
                     );
                 }
             default:
@@ -233,7 +226,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
             query.setAggregations(aggregationList);
         }
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeGroupBy(AnalyticsParam analyticsParam, String extraFilter) {
@@ -271,15 +264,15 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                     return getTopHitsAnalytics(api -> api.getLifecycleState().name());
                 }
             default:
-                return analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+                return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
         }
     }
 
     @NotNull
     private TopHitsAnalytics getTopHitsAnalytics(Function<ApiEntity, String> groupingByFunction) {
         Set<ApiEntity> apis = isAdmin()
-            ? new HashSet<>(apiService.search(new ApiQuery()))
-            : apiService.findByUser(getAuthenticatedUser(), new ApiQuery(), false);
+            ? new HashSet<>(apiService.search(GraviteeContext.getExecutionContext(), new ApiQuery()))
+            : apiService.findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), new ApiQuery(), false);
         Map<String, Long> collect = apis.stream().collect(Collectors.groupingBy(groupingByFunction, Collectors.counting()));
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
         topHitsAnalytics.setValues(collect);

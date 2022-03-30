@@ -24,6 +24,7 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.runner.RunWith;
@@ -42,7 +43,7 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
     }
 
     protected SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        return swaggerService.createAPI(swaggerDescriptor, this.getDefinitionVersion());
+        return swaggerService.createAPI(GraviteeContext.getExecutionContext(), swaggerDescriptor, this.getDefinitionVersion());
     }
 
     @Override

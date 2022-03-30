@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.search;
 
 import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.query.Query;
 
@@ -25,17 +26,17 @@ import io.gravitee.rest.api.service.search.query.Query;
  * @author GraviteeSource Team
  */
 public interface SearchEngineService {
-    default void index(Indexable source, boolean locally) {
-        index(source, locally, true);
+    default void index(ExecutionContext executionContext, Indexable source, boolean locally) {
+        index(executionContext, source, locally, true);
     }
 
-    void index(Indexable source, boolean locally, boolean commit);
+    void index(ExecutionContext executionContext, Indexable source, boolean locally, boolean commit);
 
-    void delete(Indexable source);
+    void delete(ExecutionContext executionContext, Indexable source);
 
     void commit();
 
-    SearchResult search(Query<? extends Indexable> query);
+    SearchResult search(ExecutionContext executionContext, Query<? extends Indexable> query);
 
-    void process(CommandSearchIndexerEntity content);
+    void process(ExecutionContext executionContext, CommandSearchIndexerEntity content);
 }

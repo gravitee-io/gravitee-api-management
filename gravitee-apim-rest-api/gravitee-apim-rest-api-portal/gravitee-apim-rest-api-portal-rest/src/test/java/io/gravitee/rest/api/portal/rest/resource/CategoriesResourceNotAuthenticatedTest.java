@@ -17,7 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.common.http.HttpStatusCode;
@@ -89,7 +89,7 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
         resetAllMocks();
 
         Set<ApiEntity> mockApis = new HashSet<>();
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         CategoryEntity category1 = new CategoryEntity();
         category1.setId("1");
@@ -113,7 +113,7 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
             .when(apiService)
             .countPublishedByUserGroupedByCategories(any());
 
-        doReturn(false).when(ratingService).isEnabled();
+        doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
         Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
     }

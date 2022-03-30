@@ -29,7 +29,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIDescriptorVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
@@ -101,16 +101,16 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
     }
 
     @Override
-    public SwaggerApiEntity convert(OAIDescriptor descriptor) {
+    public SwaggerApiEntity convert(ExecutionContext executionContext, OAIDescriptor descriptor) {
         if (descriptor == null || descriptor.getSpecification() == null) {
             return null;
         }
 
-        return visit(descriptor.getSpecification());
+        return visit(executionContext, descriptor.getSpecification());
     }
 
     @Override
-    public SwaggerApiEntity visit(OpenAPI oai) {
+    public SwaggerApiEntity visit(ExecutionContext executionContext, OpenAPI oai) {
         final SwaggerApiEntity apiEntity = new SwaggerApiEntity();
 
         // Name
@@ -203,7 +203,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
                 Set<String> groupIdsToImport = xGraviteeIODefinition
                     .getGroups()
                     .stream()
-                    .flatMap(group -> groupService.findByName(GraviteeContext.getCurrentEnvironment(), group).stream())
+                    .flatMap(group -> groupService.findByName(executionContext.getEnvironmentId(), group).stream())
                     .map(GroupEntity::getId)
                     .collect(Collectors.toSet());
                 apiEntity.setGroups(groupIdsToImport);
@@ -259,7 +259,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
             // Tags
             if (xGraviteeIODefinition.getTags() != null && !xGraviteeIODefinition.getTags().isEmpty()) {
                 final Map<String, String> tagMap = tagService
-                    .findByReference(GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION)
+                    .findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION)
                     .stream()
                     .collect(toMap(TagEntity::getId, TagEntity::getName));
                 final Set<String> tagIdToAdd = xGraviteeIODefinition

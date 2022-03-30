@@ -21,8 +21,7 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.PlansResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -64,9 +64,11 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PUBLIC);
-        doReturn(mockApi).when(apiService).findById(API);
+        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(mockApis)
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         plan1 = new PlanEntity();
         plan1.setId("A");
@@ -86,7 +88,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         planWrongStatus.setValidation(PlanValidationType.MANUAL);
         planWrongStatus.setStatus(PlanStatus.STAGING);
 
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, planWrongStatus))).when(planService).findByApi(API);
+        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, planWrongStatus)))
+            .when(planService)
+            .findByApi(GraviteeContext.getExecutionContext(), API);
 
         when(planMapper.convert(any())).thenCallRealMethod();
     }
@@ -96,7 +100,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(emptySet())
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         //test
         final Response response = target(API).path("plans").request().get();
@@ -192,9 +198,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PRIVATE);
-        doReturn(mockApi).when(apiService).findById(API);
+        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = target(API).path("plans").request().get();
         assertEquals(OK_200, response.getStatus());

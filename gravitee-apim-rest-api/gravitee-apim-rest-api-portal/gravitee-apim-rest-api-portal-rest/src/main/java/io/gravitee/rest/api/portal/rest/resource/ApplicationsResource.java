@@ -129,14 +129,14 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
         }
 
         ApplicationEntity createdApplicationEntity = applicationService.create(
-            GraviteeContext.getCurrentEnvironment(),
+            GraviteeContext.getExecutionContext(),
             newApplicationEntity,
             getAuthenticatedUser()
         );
 
         return Response
             .created(this.getLocationHeader(createdApplicationEntity.getId()))
-            .entity(applicationMapper.convert(createdApplicationEntity, uriInfo))
+            .entity(applicationMapper.convert(GraviteeContext.getExecutionContext(), createdApplicationEntity, uriInfo))
             .build();
     }
 
@@ -155,12 +155,7 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
     ) {
         Supplier<Stream<ApplicationListItem>> appSupplier = () -> {
             Stream<ApplicationListItem> appStream = applicationService
-                .findByUser(
-                    GraviteeContext.getCurrentOrganization(),
-                    GraviteeContext.getCurrentEnvironment(),
-                    getAuthenticatedUser(),
-                    applicationsOrderParam.toSortable()
-                )
+                .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), applicationsOrderParam.toSortable())
                 .stream();
             if (forSubscription) {
                 appStream =
@@ -198,7 +193,13 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
             .stream()
             .filter(
                 app ->
-                    permissionService.hasPermission(userId, RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.READ)
+                    permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        userId,
+                        RolePermission.APPLICATION_SUBSCRIPTION,
+                        app.getId(),
+                        RolePermissionAction.READ
+                    )
             )
             .map(ApplicationListItem::getId)
             .collect(Collectors.toList());
@@ -208,7 +209,7 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
         query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
 
         final Map<String, List<Subscription>> subscriptions = subscriptionService
-            .search(query)
+            .search(GraviteeContext.getExecutionContext(), query)
             .stream()
             .map(subscriptionMapper::convert)
             .collect(groupingBy(Subscription::getApplication));
@@ -227,7 +228,11 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
             .stream()
             .map(
                 applicationListItem -> {
-                    Application application = applicationMapper.convert(applicationListItem, uriInfo);
+                    Application application = applicationMapper.convert(
+                        GraviteeContext.getExecutionContext(),
+                        applicationListItem,
+                        uriInfo
+                    );
                     return addApplicationLinks(application);
                 }
             )

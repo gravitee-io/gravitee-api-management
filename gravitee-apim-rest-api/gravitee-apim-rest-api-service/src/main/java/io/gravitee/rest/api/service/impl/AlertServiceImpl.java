@@ -158,7 +158,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     public AlertStatusEntity getStatus() {
         AlertStatusEntity status = new AlertStatusEntity();
 
-        status.setEnabled(parameterService.findAsBoolean(Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION));
+        status.setEnabled(
+            parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)
+        );
         status.setPlugins(triggerProviderManager.findAll().size());
 
         return status;
@@ -577,14 +579,26 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         EmailNotifierConfiguration configuration = new EmailNotifierConfiguration();
 
         if (host == null) {
-            configuration.setHost(parameterService.find(Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION));
-            final String emailPort = parameterService.find(Key.EMAIL_PORT, ParameterReferenceType.ORGANIZATION);
+            configuration.setHost(
+                parameterService.find(GraviteeContext.getExecutionContext(), Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION)
+            );
+            final String emailPort = parameterService.find(
+                GraviteeContext.getExecutionContext(),
+                Key.EMAIL_PORT,
+                ParameterReferenceType.ORGANIZATION
+            );
             if (emailPort != null) {
                 configuration.setPort(Integer.parseInt(emailPort));
             }
-            configuration.setUsername(parameterService.find(Key.EMAIL_USERNAME, ParameterReferenceType.ORGANIZATION));
-            configuration.setPassword(parameterService.find(Key.EMAIL_PASSWORD, ParameterReferenceType.ORGANIZATION));
-            configuration.setStartTLSEnabled(parameterService.findAsBoolean(Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION));
+            configuration.setUsername(
+                parameterService.find(GraviteeContext.getExecutionContext(), Key.EMAIL_USERNAME, ParameterReferenceType.ORGANIZATION)
+            );
+            configuration.setPassword(
+                parameterService.find(GraviteeContext.getExecutionContext(), Key.EMAIL_PASSWORD, ParameterReferenceType.ORGANIZATION)
+            );
+            configuration.setStartTLSEnabled(
+                parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION)
+            );
         } else {
             configuration.setHost(host);
             configuration.setPort(Integer.parseInt(port));
@@ -612,7 +626,11 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     private void checkAlert() {
         if (
-            !parameterService.findAsBoolean(Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION) ||
+            !parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.ALERT_ENABLED,
+                ParameterReferenceType.ORGANIZATION
+            ) ||
             triggerProviderManager.findAll().isEmpty()
         ) {
             throw new AlertUnavailableException();
@@ -771,7 +789,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApiEntity apiEntity = apiService.findById(api);
+                    ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), api);
                     metadata = mapper.convertValue(apiEntity, Map.class);
                     metadata.put("id", api);
                     metadata.put("primaryOwner", mapper.convertValue(apiEntity.getPrimaryOwner(), Map.class));
@@ -805,7 +823,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), application);
+                    ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), application);
                     metadata = mapper.convertValue(applicationEntity, Map.class);
                     metadata.remove("picture");
                 }
@@ -821,7 +839,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             Map<String, Object> metadata = new HashMap<>();
 
             try {
-                PlanEntity planEntity = planService.findById(plan);
+                PlanEntity planEntity = planService.findById(GraviteeContext.getExecutionContext(), plan);
                 metadata = mapper.convertValue(planEntity, Map.class);
             } catch (PlanNotFoundException anfe) {
                 metadata.put(METADATA_DELETED, Boolean.TRUE.toString());

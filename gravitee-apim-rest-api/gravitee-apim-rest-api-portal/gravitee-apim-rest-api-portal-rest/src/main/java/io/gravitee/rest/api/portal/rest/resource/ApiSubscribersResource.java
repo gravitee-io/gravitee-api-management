@@ -68,7 +68,7 @@ public class ApiSubscribersResource extends AbstractResource {
         String currentUser = getAuthenticatedUserOrNull();
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(currentUser, apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(GraviteeContext.getExecutionContext(), currentUser, apiQuery);
         Optional<ApiEntity> optionalApi = userApis.stream().filter(a -> a.getId().equals(apiId)).findFirst();
         if (optionalApi.isPresent()) {
             SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
@@ -79,11 +79,7 @@ public class ApiSubscribersResource extends AbstractResource {
             ApiEntity api = optionalApi.get();
             if (!api.getPrimaryOwner().getId().equals(currentUser)) {
                 Set<ApplicationListItem> userApplications =
-                    this.applicationService.findByUser(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
-                            currentUser
-                        );
+                    this.applicationService.findByUser(GraviteeContext.getExecutionContext(), currentUser);
                 if (userApplications == null || userApplications.isEmpty()) {
                     return createListResponse(Collections.emptyList(), paginationParam);
                 }
@@ -92,13 +88,16 @@ public class ApiSubscribersResource extends AbstractResource {
 
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(apiId);
 
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery);
+            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(
+                GraviteeContext.getExecutionContext(),
+                subscriptionQuery
+            );
             List<Application> subscribersApplication = subscriptions
                 .stream()
                 .map(SubscriptionEntity::getApplication)
                 .distinct()
-                .map(application -> applicationService.findById(GraviteeContext.getCurrentEnvironment(), application))
-                .map(application -> applicationMapper.convert(application, uriInfo))
+                .map(application -> applicationService.findById(GraviteeContext.getExecutionContext(), application))
+                .map(application -> applicationMapper.convert(GraviteeContext.getExecutionContext(), application, uriInfo))
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());
             return createListResponse(subscribersApplication, paginationParam);
@@ -136,7 +135,7 @@ public class ApiSubscribersResource extends AbstractResource {
         query.setRootIdentifier(apiId);
 
         try {
-            final TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getCurrentOrganization(), query);
+            final TopHitsAnalytics analytics = analyticsService.execute(GraviteeContext.getExecutionContext(), query);
             if (analytics != null) {
                 return analytics.getValues();
             }

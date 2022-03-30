@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
@@ -39,7 +40,7 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
     private IdentityProviderActivationService identityProviderActivationService;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         // initialize roles.
         final ActivationTarget defaultEnvTarget = new ActivationTarget(
             GraviteeContext.getDefaultEnvironment(),
@@ -55,11 +56,16 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
             this.identityProviderActivationService.findAllByTarget(defaultEnvTarget).isEmpty()
         ) {
             logger.info("    No activation found. Active all idp on all target by default if enabled.");
-            this.identityProviderService.findAll()
+            this.identityProviderService.findAll(executionContext)
                 .forEach(
                     idp -> {
                         if (idp.isEnabled()) {
-                            this.identityProviderActivationService.activateIdpOnTargets(idp.getId(), defaultOrgTarget, defaultEnvTarget);
+                            this.identityProviderActivationService.activateIdpOnTargets(
+                                    executionContext,
+                                    idp.getId(),
+                                    defaultOrgTarget,
+                                    defaultEnvTarget
+                                );
                         }
                     }
                 );

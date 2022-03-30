@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.model.TicketInput;
 import io.gravitee.rest.api.portal.rest.model.TicketsResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -59,7 +60,8 @@ public class TicketsResourceTest extends AbstractResourceTest {
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         verify(ticketMapper).convert(input);
-        verify(ticketService).create(eq(USER_NAME), any(), eq("DEFAULT"), eq(ParameterReferenceType.ENVIRONMENT));
+        verify(ticketService)
+            .create(eq(GraviteeContext.getExecutionContext()), eq(USER_NAME), any(), eq("DEFAULT"), eq(ParameterReferenceType.ENVIRONMENT));
     }
 
     @Test
@@ -72,7 +74,7 @@ public class TicketsResourceTest extends AbstractResourceTest {
         ArgumentCaptor<TicketQuery> queryCaptor = ArgumentCaptor.forClass(TicketQuery.class);
         ArgumentCaptor<SortableImpl> sortableCaptor = ArgumentCaptor.forClass(SortableImpl.class);
 
-        when(ticketService.search(queryCaptor.capture(), sortableCaptor.capture(), any()))
+        when(ticketService.search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture(), sortableCaptor.capture(), any()))
             .thenReturn(new Page<>(singletonList(ticketEntity), 1, 1, 1));
 
         Response response = target()
@@ -94,6 +96,7 @@ public class TicketsResourceTest extends AbstractResourceTest {
 
         verify(ticketService, Mockito.times(1))
             .search(
+                eq(GraviteeContext.getExecutionContext()),
                 any(),
                 argThat(o -> o.getField().equals("subject") && !o.isAscOrder()),
                 argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10)
@@ -112,7 +115,8 @@ public class TicketsResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<TicketQuery> queryCaptor = ArgumentCaptor.forClass(TicketQuery.class);
 
-        when(ticketService.search(queryCaptor.capture(), any(), any())).thenReturn(new Page<>(singletonList(ticketEntity), 1, 1, 1));
+        when(ticketService.search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture(), any(), any()))
+            .thenReturn(new Page<>(singletonList(ticketEntity), 1, 1, 1));
 
         Response response = target().queryParam("apiId", "apiId").request().get();
 
@@ -122,7 +126,13 @@ public class TicketsResourceTest extends AbstractResourceTest {
         assertEquals("Criteria user", USER_NAME, query.getFromUser());
         assertEquals("Criteria api", "apiId", query.getApi());
 
-        verify(ticketService, Mockito.times(1)).search(any(), isNull(), argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10));
+        verify(ticketService, Mockito.times(1))
+            .search(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                isNull(),
+                argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10)
+            );
 
         TicketsResponse ticketsResponse = response.readEntity(TicketsResponse.class);
         assertEquals("Ticket list had not the good size", 1, ticketsResponse.getData().size());

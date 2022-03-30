@@ -43,7 +43,6 @@ import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
-import io.gravitee.rest.api.service.impl.TicketServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import java.util.*;
@@ -115,72 +114,130 @@ public class TicketServiceTest {
 
     @Test(expected = SupportUnavailableException.class)
     public void shouldNotCreateIfSupportDisabled() {
-        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.FALSE);
-        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
-        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        when(
+            mockParameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.CONSOLE_SUPPORT_ENABLED,
+                REFERENCE_ID,
+                REFERENCE_TYPE
+            )
+        )
+            .thenReturn(Boolean.FALSE);
+        ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
+        verify(mockNotifierService, never())
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = SupportUnavailableException.class)
     public void shouldNotCreateIfSupportForPortalDisabled() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, ParameterReferenceType.ENVIRONMENT))
+        when(
+            mockParameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PORTAL_SUPPORT_ENABLED,
+                REFERENCE_ID,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
             .thenReturn(Boolean.FALSE);
-        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, ParameterReferenceType.ENVIRONMENT);
-        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        ticketService.create(
+            GraviteeContext.getExecutionContext(),
+            USERNAME,
+            newTicketEntity,
+            REFERENCE_ID,
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(mockNotifierService, never())
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = EmailRequiredException.class)
     public void shouldNotCreateIfUserEmailIsMissing() {
-        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
-        when(userService.findById(USERNAME)).thenReturn(user);
+        when(
+            mockParameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.CONSOLE_SUPPORT_ENABLED,
+                REFERENCE_ID,
+                REFERENCE_TYPE
+            )
+        )
+            .thenReturn(Boolean.TRUE);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
 
-        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
-        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
+        verify(mockNotifierService, never())
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportIsMissing() {
-        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
-        when(userService.findById(USERNAME)).thenReturn(user);
+        when(
+            mockParameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.CONSOLE_SUPPORT_ENABLED,
+                REFERENCE_ID,
+                REFERENCE_TYPE
+            )
+        )
+            .thenReturn(Boolean.TRUE);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
-        when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
+        when(apiService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
 
-        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
-        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
+        verify(mockNotifierService, never())
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportHasNotBeenChanged() {
-        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
+        when(
+            mockParameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.CONSOLE_SUPPORT_ENABLED,
+                REFERENCE_ID,
+                REFERENCE_TYPE
+            )
+        )
+            .thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
 
-        when(userService.findById(USERNAME)).thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
-        when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
+        when(apiService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
 
         final Map<String, String> metadata = new HashMap<>();
         metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, DefaultMetadataUpgrader.DEFAULT_METADATA_EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
-        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
-        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
+        verify(mockNotifierService, never())
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateIfRepositoryThrowTechnicalException() throws TechnicalException {
-        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
+        when(
+            mockParameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.CONSOLE_SUPPORT_ENABLED,
+                REFERENCE_ID,
+                REFERENCE_TYPE
+            )
+        )
+            .thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
         when(newTicketEntity.getContent()).thenReturn(EMAIL_CONTENT);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
 
-        when(userService.findById(USERNAME)).thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
         when(user.getLastname()).thenReturn(USER_LASTNAME);
-        when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(apiService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
         when(ticketRepository.create(any())).thenThrow(new TechnicalException());
 
@@ -188,24 +245,32 @@ public class TicketServiceTest {
         metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
-        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
+        ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
     }
 
     @Test
     public void shouldCreateWithApi() throws TechnicalException {
-        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
+        when(
+            mockParameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.CONSOLE_SUPPORT_ENABLED,
+                REFERENCE_ID,
+                REFERENCE_TYPE
+            )
+        )
+            .thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
         when(newTicketEntity.getContent()).thenReturn(EMAIL_CONTENT);
 
-        when(userService.findById(USERNAME)).thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
         when(user.getLastname()).thenReturn(USER_LASTNAME);
-        when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(apiService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
         Ticket ticketToCreate = new Ticket();
         ticketToCreate.setId("generatedId");
@@ -221,10 +286,17 @@ public class TicketServiceTest {
         metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
-        TicketEntity createdTicket = ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
+        TicketEntity createdTicket = ticketService.create(
+            GraviteeContext.getExecutionContext(),
+            USERNAME,
+            newTicketEntity,
+            REFERENCE_ID,
+            REFERENCE_TYPE
+        );
 
         verify(emailService)
             .sendEmailNotification(
+                GraviteeContext.getExecutionContext(),
                 new EmailNotificationBuilder()
                     .replyTo(USER_EMAIL)
                     .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
@@ -247,7 +319,8 @@ public class TicketServiceTest {
                     )
                     .build()
             );
-        verify(mockNotifierService, times(1)).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        verify(mockNotifierService, times(1))
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
 
         assertEquals("Invalid saved ticket id", createdTicket.getId(), ticketToCreate.getId());
         assertEquals("Invalid saved ticket api", createdTicket.getApi(), ticketToCreate.getApi());
@@ -281,13 +354,14 @@ public class TicketServiceTest {
 
         when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class)))
             .thenReturn(new Page<>(ticketList, 0, 20, 20));
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(appEntity);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(appEntity);
 
         TicketQuery query = new TicketQuery();
         query.setFromUser("fromUser");
 
         Page<TicketEntity> searchResult = ticketService.search(
+            GraviteeContext.getExecutionContext(),
             query,
             new SortableImpl("subject", true),
             new PageableImpl(1, Integer.MAX_VALUE)
@@ -322,7 +396,12 @@ public class TicketServiceTest {
         TicketQuery query = new TicketQuery();
         query.setFromUser("fromUser");
 
-        ticketService.search(query, new SortableImpl("subject", true), new PageableImpl(1, Integer.MAX_VALUE));
+        ticketService.search(
+            GraviteeContext.getExecutionContext(),
+            query,
+            new SortableImpl("subject", true),
+            new PageableImpl(1, Integer.MAX_VALUE)
+        );
     }
 
     @Test
@@ -342,10 +421,10 @@ public class TicketServiceTest {
         appEntity.setName("appName");
 
         when(ticketRepository.findById("ticket1")).thenReturn(Optional.of(ticket));
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(appEntity);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(appEntity);
 
-        TicketEntity ticketEntity = ticketService.findById("ticket1");
+        TicketEntity ticketEntity = ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
 
         assertEquals("ticket1", ticketEntity.getId());
         assertEquals("apiName", ticketEntity.getApi());
@@ -370,13 +449,13 @@ public class TicketServiceTest {
 
         when(ticketRepository.findById("ticket1")).thenThrow(new TechnicalException());
 
-        ticketService.findById("ticket1");
+        ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
     }
 
     @Test(expected = TicketNotFoundException.class)
     public void shouldThrowNotFoundExceptionWhenNoTicket() throws TechnicalException {
         when(ticketRepository.findById("ticket1")).thenReturn(Optional.empty());
 
-        ticketService.findById("ticket1");
+        ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
     }
 }

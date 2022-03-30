@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -75,7 +76,7 @@ public class IdentityProvidersResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<IdentityProviderListItem> getIdentityProviders() {
         return identityProviderService
-            .findAll()
+            .findAll(GraviteeContext.getExecutionContext())
             .stream()
             .map(
                 identityProvider -> {
@@ -109,7 +110,10 @@ public class IdentityProvidersResource extends AbstractResource {
     public Response createIdentityProvider(
         @Parameter(name = "identity-provider", required = true) @Valid @NotNull NewIdentityProviderEntity newIdentityProviderEntity
     ) {
-        IdentityProviderEntity newIdentityProvider = identityProviderService.create(newIdentityProviderEntity);
+        IdentityProviderEntity newIdentityProvider = identityProviderService.create(
+            GraviteeContext.getExecutionContext(),
+            newIdentityProviderEntity
+        );
 
         if (newIdentityProvider != null) {
             return Response.created(this.getLocationHeader(newIdentityProvider.getId())).entity(newIdentityProvider).build();

@@ -71,8 +71,7 @@ public class RoleUsersResourceTest extends AbstractResourceTest {
         Mockito
             .verify(membershipService)
             .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(GraviteeContext.getExecutionContext()),
                 memberShipRefCaptor.capture(),
                 memberShipUserCaptor.capture(),
                 memberShipRoleCaptor.capture()

@@ -21,7 +21,6 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -29,7 +28,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
@@ -100,7 +98,7 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public List<ApiKeyEntity> getApiKeysForApiSubscription() {
-        return apiKeyService.findBySubscription(subscription);
+        return apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), subscription);
     }
 
     @POST
@@ -120,7 +118,11 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
     ) {
         if (
             StringUtils.isNotEmpty(customApiKey) &&
-            !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            !parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
         ) {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
         }
@@ -131,7 +133,7 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
         }
         checkApplicationApiKeyModeAllowed(subscriptionEntity.getApplication());
 
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscriptionEntity, customApiKey);
+        ApiKeyEntity apiKeyEntity = apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity, customApiKey);
 
         URI location = URI.create(uriInfo.getPath().replace("_renew", apiKeyEntity.getId()));
         return Response.created(location).entity(apiKeyEntity).build();
@@ -148,7 +150,7 @@ public class ApiSubscriptionApiKeysResource extends AbstractResource {
     }
 
     private void checkApplicationApiKeyModeAllowed(String applicationId) {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         if (applicationEntity == null) {
             throw new ApplicationNotFoundException(applicationId);
         }

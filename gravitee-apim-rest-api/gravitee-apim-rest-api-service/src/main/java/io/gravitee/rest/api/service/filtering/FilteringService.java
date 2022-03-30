@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.Set;
 
@@ -27,18 +28,29 @@ public interface FilteringService {
 
     Collection<String> getApplicationsOrderByNumberOfSubscriptions(final Collection<String> ids, Order order);
 
-    Collection<String> filterApis(final Set<String> apis, final FilterType filterType, final FilterType excludedFilterType);
+    Collection<String> filterApis(
+        ExecutionContext executionContext,
+        final Set<String> apis,
+        final FilterType filterType,
+        final FilterType excludedFilterType
+    );
 
     Collection<String> filterApis(
+        ExecutionContext executionContext,
         final String userId,
         final FilterType filterType,
         final FilterType excludedFilterType,
         final ApiQuery apiQuery
     );
 
-    Collection<String> searchApis(final String userId, final String query) throws TechnicalException;
+    Collection<String> searchApis(ExecutionContext executionContext, final String userId, final String query) throws TechnicalException;
 
-    Set<CategoryEntity> listCategories(final String userId, final FilterType filterType, final FilterType excludedFilterType);
+    Set<CategoryEntity> listCategories(
+        ExecutionContext executionContext,
+        final String userId,
+        final FilterType filterType,
+        final FilterType excludedFilterType
+    );
 
     enum FilterType {
         ALL,

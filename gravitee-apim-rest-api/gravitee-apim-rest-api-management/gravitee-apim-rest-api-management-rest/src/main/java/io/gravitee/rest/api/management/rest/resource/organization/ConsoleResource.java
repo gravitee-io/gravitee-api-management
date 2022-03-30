@@ -66,7 +66,7 @@ public class ConsoleResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public ConsoleConfigEntity getConsoleConfig() {
-        return configService.getConsoleConfig(GraviteeContext.getCurrentOrganization());
+        return configService.getConsoleConfig(GraviteeContext.getExecutionContext());
     }
 
     @Deprecated
@@ -82,7 +82,7 @@ public class ConsoleResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
     public Response saveConsoleConfig(@Parameter(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
-        configService.save(GraviteeContext.getCurrentOrganization(), consoleSettingsEntity);
+        configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
         return Response.ok().entity(consoleSettingsEntity).build();
     }
 }
