@@ -22,6 +22,8 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.Collection;
 import java.util.List;
@@ -83,7 +85,7 @@ public class HttpSubscriptionRepository extends AbstractRepository implements Su
     }
 
     @Override
-    public List<Subscription> findByIdIn(Collection<String> ids) {
-        throw new IllegalStateException();
+    public List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException {
+        return blockingGet(post("/subscriptions/_findByIds", BodyCodecs.list(Subscription.class)).send(ids)).payload();
     }
 }

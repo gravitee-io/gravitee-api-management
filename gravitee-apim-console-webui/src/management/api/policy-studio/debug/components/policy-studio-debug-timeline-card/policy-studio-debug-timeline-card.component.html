@@ -46,6 +46,12 @@
   <div class="policy-studio-debug-timeline-card__right">
     <div>
       <mat-icon
+        *ngIf="timelineCardVM.condition"
+        [class.error]="timelineStep.executionStatus === 'ERROR'"
+        [class.skipped]="timelineStep.executionStatus === 'SKIPPED'"
+        svgIcon="gio:if"
+      ></mat-icon>
+      <mat-icon
         *ngIf="timelineCardVM.rightIcon"
         [class.error]="timelineStep.executionStatus === 'ERROR'"
         [class.skipped]="timelineStep.executionStatus === 'SKIPPED'"

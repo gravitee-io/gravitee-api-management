@@ -15,17 +15,14 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -50,16 +47,13 @@ import org.mockito.MockitoAnnotations;
  * @author GraviteeSource Team
  */
 @RunWith(VertxUnitRunner.class)
-public class ApiKeysHandlerTest {
+public class SubscriptionsHandlerTest {
 
     @Mock
     private SubscriptionRepository subscriptionRepository;
 
-    @Mock
-    private ApiKeyRepository apiKeyRepository;
-
     @InjectMocks
-    private final ApiKeysHandler apiKeysHandler = new ApiKeysHandler();
+    private final SubscriptionsHandler subscriptionsHandler = new SubscriptionsHandler();
 
     private WebClient client;
     private Vertx vertx;
@@ -72,8 +66,7 @@ public class ApiKeysHandlerTest {
         Router router = Router.router(vertx);
 
         router.route().handler(BodyHandler.create());
-        router.post("/_search").handler(apiKeysHandler::search);
-        router.post("/_findByCriteria").handler(apiKeysHandler::findByCriteria);
+        router.post("/_findByIds").handler(subscriptionsHandler::findByIds);
 
         int port = getRandomPort();
 
@@ -96,35 +89,25 @@ public class ApiKeysHandlerTest {
     }
 
     @Test
-    public void searchShouldRespondWithApiAndPlanAndSubscriptionProperties(TestContext context) throws TechnicalException {
-        Subscription subscription = new Subscription();
-        subscription.setId("subscription-id");
-        subscription.setApi("subscription-api-id");
-        subscription.setPlan("subscription-plan-id");
-
-        ApiKey apiKey = new ApiKey();
-        apiKey.setSubscriptions(List.of("subscription-id"));
-
-        when(apiKeyRepository.findByCriteria(any())).thenReturn(List.of(apiKey));
-        when(subscriptionRepository.findByIdIn(argThat(ids -> apiKey.getSubscriptions().containsAll(ids))))
-            .thenReturn(List.of(subscription));
+    public void findByIds_should_return_subscription_list(TestContext context) throws TechnicalException {
+        when(subscriptionRepository.findByIdIn(List.of("id1", "idX", "id4")))
+            .thenReturn(List.of(buildSubscription("sub-id1"), buildSubscription("sub-idX"), buildSubscription("sub-id4")));
 
         Async async = context.async();
 
         client
-            .post("/_search")
+            .post("/_findByIds")
             .expect(ResponsePredicate.SC_OK)
             .expect(ResponsePredicate.JSON)
             .as(BodyCodec.jsonArray())
-            .sendJsonObject(new JsonObject())
+            .sendJson(List.of("id1", "idX", "id4"))
             .onSuccess(
                 response -> {
                     JsonArray responseBody = response.body();
-                    context.assertEquals(1, responseBody.size());
-                    JsonObject responseApiKey = responseBody.getJsonObject(0);
-                    context.assertEquals("subscription-id", responseApiKey.getString("subscription"));
-                    context.assertEquals("subscription-api-id", responseApiKey.getString("api"));
-                    context.assertEquals("subscription-plan-id", responseApiKey.getString("plan"));
+                    context.assertEquals(3, responseBody.size());
+                    context.assertEquals("sub-id1", responseBody.getJsonObject(0).getString("id"));
+                    context.assertEquals("sub-idX", responseBody.getJsonObject(1).getString("id"));
+                    context.assertEquals("sub-id4", responseBody.getJsonObject(2).getString("id"));
                     async.complete();
                 }
             )
@@ -137,32 +120,30 @@ public class ApiKeysHandlerTest {
     }
 
     @Test
-    public void findByCriteriaShouldRespondWithSubscriptionList(TestContext context) throws TechnicalException {
-        ApiKey apiKey = new ApiKey();
-        apiKey.setSubscriptions(List.of("subscription-id1", "subscription-id2"));
-
-        when(apiKeyRepository.findByCriteria(any())).thenReturn(List.of(apiKey));
-
+    public void findByIds_with_empty_id_list_returns_http_500_server_error(TestContext context) {
         Async async = context.async();
 
         client
-            .post("/_findByCriteria")
-            .expect(ResponsePredicate.SC_OK)
-            .expect(ResponsePredicate.JSON)
-            .as(BodyCodec.jsonArray())
-            .sendJsonObject(new JsonObject())
-            .onSuccess(
-                response -> {
-                    JsonArray responseBody = response.body();
-                    context.assertEquals(1, responseBody.size());
-                    JsonObject responseApiKey = responseBody.getJsonObject(0);
-                    context.assertEquals("[subscription-id1, subscription-id2]", responseApiKey.getString("subscriptions"));
-                    context.assertNull(responseApiKey.getString("subscription"));
-                    context.assertNull(responseApiKey.getString("api"));
-                    context.assertNull(responseApiKey.getString("plan"));
+            .post("/_findByIds")
+            .expect(ResponsePredicate.SC_INTERNAL_SERVER_ERROR)
+            .sendJson(List.of())
+            .onSuccess(response -> async.complete())
+            .onFailure(
+                err -> {
+                    context.fail(err);
                     async.complete();
                 }
-            )
+            );
+    }
+
+    @Test
+    public void findByIds_without_id_list_returns_http_500_server_error(TestContext context) {
+        Async async = context.async();
+        client
+            .post("/_findByIds")
+            .expect(ResponsePredicate.SC_INTERNAL_SERVER_ERROR)
+            .send()
+            .onSuccess(response -> async.complete())
             .onFailure(
                 err -> {
                     context.fail(err);
@@ -176,5 +157,11 @@ public class ApiKeysHandlerTest {
         int port = socket.getLocalPort();
         socket.close();
         return port;
+    }
+
+    private Subscription buildSubscription(String id) {
+        Subscription subscription = new Subscription();
+        subscription.setId(id);
+        return subscription;
     }
 }
