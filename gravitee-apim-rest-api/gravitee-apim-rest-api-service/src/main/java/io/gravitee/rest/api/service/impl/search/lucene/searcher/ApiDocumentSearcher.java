@@ -94,13 +94,12 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     };
 
     private BooleanQuery.Builder buildApiQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
-        BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
-        BooleanQuery envCriteria = buildEnvCriteria(executionContext);
+        BooleanQuery.Builder apiQuery = new BooleanQuery.Builder()
+        .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER);
 
-        // Search in API fields
-        apiQuery
-            .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER)
-            .add(envCriteria, BooleanClause.Occur.FILTER);
+        if (executionContext.hasEnvironmentId()) {
+            apiQuery.add(buildEnvCriteria(executionContext), BooleanClause.Occur.FILTER);
+        }
 
         filterQuery.ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.FILTER));
 
