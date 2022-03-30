@@ -1,0 +1,58 @@
+{
+  "id" : "my-api",
+  "name" : "my-team-api",
+  "version" : "undefined",
+  "gravitee" : "1.0.0",
+  "flow_mode" : "DEFAULT",
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/team"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false,
+    "groups" : [ {
+      "name" : "default",
+      "endpoints" : [ {
+        "name" : "endpoint_0",
+        "target" : "http://host1:8083/myapi",
+        "weight" : 1,
+        "backup" : false,
+        "type" : "http",
+        "inherit" : true
+      }, {
+        "name" : "endpoint_1",
+        "target" : "http://host2:8083/myapi",
+        "weight" : 1,
+        "backup" : false,
+        "type" : "http",
+        "http" : {
+          "connectTimeout" : 4000,
+          "idleTimeout" : 50000,
+          "keepAlive" : true,
+          "readTimeout" : 9000,
+          "pipelining" : false,
+          "maxConcurrentConnections" : 90,
+          "useCompression" : true,
+          "followRedirects" : false
+        }
+      } ],
+      "load_balancing" : {
+        "type" : "ROUND_ROBIN"
+      },
+      "http" : {
+        "connectTimeout" : 5000,
+        "idleTimeout" : 60000,
+        "keepAlive" : true,
+        "readTimeout" : 10000,
+        "pipelining" : false,
+        "maxConcurrentConnections" : 100,
+        "useCompression" : true,
+        "followRedirects" : true
+      }
+    } ]
+  },
+  "paths" : {
+    "/*" : [ ]
+  },
+  "properties" : [ ]
+}

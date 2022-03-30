@@ -1,0 +1,13 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team"
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

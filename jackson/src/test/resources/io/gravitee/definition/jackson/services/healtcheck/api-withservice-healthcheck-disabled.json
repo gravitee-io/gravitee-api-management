@@ -1,0 +1,31 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "groups": [
+      {
+        "name": "group-default",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://localhost:8083/myapi",
+            "healthcheck": true
+          }
+        ]
+      }],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  },
+
+  "services": {
+    "health-check": {
+      "enabled": false
+    }
+  }
+}
