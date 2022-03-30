@@ -35,7 +35,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import java.util.Collections;
 import java.util.Optional;
@@ -112,9 +111,9 @@ public class ApiService_FindByIdTest {
         po.setMemberId(USER_NAME);
         when(membershipService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), MembershipReferenceType.API, API_ID))
             .thenReturn(po);
-        when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(mock(UserEntity.class));
 
-        final ApiEntity apiEntity = apiService.findById(API_ID);
+        final ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
 
         assertNotNull(apiEntity);
     }
@@ -123,13 +122,13 @@ public class ApiService_FindByIdTest {
     public void shouldNotFindByNameBecauseNotExists() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiService.findById(API_ID);
+        apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByNameBecauseTechnicalException() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
-        apiService.findById(API_ID);
+        apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
     }
 }

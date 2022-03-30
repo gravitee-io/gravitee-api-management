@@ -24,11 +24,10 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,18 +56,18 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
     }
 
     @Override
-    public void delete(final String metadataId, final String apiId) {
-        delete(metadataId, API, apiId);
+    public void delete(final ExecutionContext executionContext, final String metadataId, final String apiId) {
+        delete(executionContext, metadataId, API, apiId);
     }
 
     @Override
-    public void deleteAllByApi(String apiId) {
+    public void deleteAllByApi(final ExecutionContext executionContext, String apiId) {
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, false);
-        allMetadata.stream().forEach(referenceMetadataEntity -> delete(referenceMetadataEntity.getKey(), API, apiId));
+        allMetadata.stream().forEach(referenceMetadataEntity -> delete(executionContext, referenceMetadataEntity.getKey(), API, apiId));
     }
 
     @Override
-    public List<ApiMetadataEntity> create(List<ApiMetadataEntity> apiMetadata, String apiId) {
+    public List<ApiMetadataEntity> create(final ExecutionContext executionContext, List<ApiMetadataEntity> apiMetadata, String apiId) {
         if (apiMetadata == null || apiMetadata.isEmpty()) {
             return emptyList();
         }
@@ -85,39 +84,39 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
                     return newMD;
                 }
             )
-            .map(this::create)
+            .map(newApiMetadataEntity -> create(executionContext, newApiMetadataEntity))
             .collect(toList());
     }
 
     @Override
-    public ApiMetadataEntity create(final NewApiMetadataEntity metadataEntity) {
-        return convert(
-            create(metadataEntity, API, metadataEntity.getApiId(), true, GraviteeContext.getCurrentEnvironment()),
-            metadataEntity.getApiId()
-        );
+    public ApiMetadataEntity create(final ExecutionContext executionContext, final NewApiMetadataEntity metadataEntity) {
+        return convert(create(executionContext, metadataEntity, API, metadataEntity.getApiId(), true), metadataEntity.getApiId());
     }
 
     @Override
-    public ApiMetadataEntity update(final UpdateApiMetadataEntity metadataEntity) {
+    public ApiMetadataEntity update(final ExecutionContext executionContext, final UpdateApiMetadataEntity metadataEntity) {
         ApiMetadataEntity apiMetadataEntity = convert(
-            update(metadataEntity, API, metadataEntity.getApiId(), true, GraviteeContext.getCurrentEnvironment()),
+            update(executionContext, metadataEntity, API, metadataEntity.getApiId(), true),
             metadataEntity.getApiId()
         );
-        ApiEntity apiEntity = apiService.fetchMetadataForApi(apiService.findById(apiMetadataEntity.getApiId()));
-        searchEngineService.index(apiEntity, false);
+        ApiEntity apiEntity = apiService.fetchMetadataForApi(
+            executionContext,
+            apiService.findById(executionContext, apiMetadataEntity.getApiId())
+        );
+        searchEngineService.index(executionContext, apiEntity, false);
         return apiMetadataEntity;
     }
 
     @Override
     protected void checkReferenceMetadataFormat(
+        ExecutionContext executionContext,
         MetadataFormat format,
         String value,
         MetadataReferenceType referenceType,
-        String referenceId,
-        final String environmentId
+        String referenceId
     ) {
-        final ApiEntity apiEntity = apiService.findById(referenceId);
-        metadataService.checkMetadataFormat(format, value, referenceType, apiEntity);
+        final ApiEntity apiEntity = apiService.findById(executionContext, referenceId);
+        metadataService.checkMetadataFormat(executionContext, format, value, referenceType, apiEntity);
     }
 
     private ApiMetadataEntity convert(ReferenceMetadataEntity m, String apiId) {

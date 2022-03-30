@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singletonList;
-import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.assertj.core.util.Sets.newHashSet;
 import static org.junit.Assert.assertEquals;
@@ -33,8 +32,8 @@ import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EntrypointService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
-import io.gravitee.rest.api.service.impl.EntrypointServiceImpl;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -102,7 +101,12 @@ public class EntrypointServiceTest {
         final NewEntryPointEntity entrypoint = new NewEntryPointEntity();
         entrypoint.setValue(VALUE);
         entrypoint.setTags(TAGS);
-        final EntrypointEntity entrypointEntity = entrypointService.create(entrypoint, REFERENCE_ID, REFERENCE_TYPE);
+        final EntrypointEntity entrypointEntity = entrypointService.create(
+            GraviteeContext.getExecutionContext(),
+            entrypoint,
+            REFERENCE_ID,
+            REFERENCE_TYPE
+        );
         assertEquals(ID, entrypointEntity.getId());
         assertEquals(VALUE, entrypointEntity.getValue());
         assertNotNull(entrypointEntity.getTags());
@@ -115,7 +119,12 @@ public class EntrypointServiceTest {
         entrypoint.setId(ID);
         entrypoint.setValue(NEW_VALUE);
         entrypoint.setTags(NEW_TAGS);
-        final EntrypointEntity entrypointEntity = entrypointService.update(entrypoint, REFERENCE_ID, REFERENCE_TYPE);
+        final EntrypointEntity entrypointEntity = entrypointService.update(
+            GraviteeContext.getExecutionContext(),
+            entrypoint,
+            REFERENCE_ID,
+            REFERENCE_TYPE
+        );
         assertEquals(ID, entrypointEntity.getId());
         assertEquals(NEW_VALUE, entrypointEntity.getValue());
         assertNotNull(entrypointEntity.getTags());
@@ -128,7 +137,12 @@ public class EntrypointServiceTest {
         entrypoint.setId(ID);
         entrypoint.setValue(NEW_VALUE);
         entrypoint.setTags(TAGS);
-        final EntrypointEntity entrypointEntity = entrypointService.update(entrypoint, REFERENCE_ID, REFERENCE_TYPE);
+        final EntrypointEntity entrypointEntity = entrypointService.update(
+            GraviteeContext.getExecutionContext(),
+            entrypoint,
+            REFERENCE_ID,
+            REFERENCE_TYPE
+        );
         assertEquals(ID, entrypointEntity.getId());
         assertEquals(NEW_VALUE, entrypointEntity.getValue());
         assertNotNull(entrypointEntity.getTags());
@@ -137,7 +151,7 @@ public class EntrypointServiceTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        entrypointService.delete(ID, REFERENCE_ID, REFERENCE_TYPE);
+        entrypointService.delete(GraviteeContext.getExecutionContext(), ID, REFERENCE_ID, REFERENCE_TYPE);
         verify(entrypointRepository).delete(ID);
     }
 
@@ -153,11 +167,11 @@ public class EntrypointServiceTest {
     public void shouldNotUpdate() {
         final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
         entrypoint.setId(UNKNOWN_ID);
-        entrypointService.update(entrypoint, REFERENCE_ID, REFERENCE_TYPE);
+        entrypointService.update(GraviteeContext.getExecutionContext(), entrypoint, REFERENCE_ID, REFERENCE_TYPE);
     }
 
     @Test(expected = EntrypointNotFoundException.class)
     public void shouldNotDelete() {
-        entrypointService.delete(UNKNOWN_ID, REFERENCE_ID, REFERENCE_TYPE);
+        entrypointService.delete(GraviteeContext.getExecutionContext(), UNKNOWN_ID, REFERENCE_ID, REFERENCE_TYPE);
     }
 }

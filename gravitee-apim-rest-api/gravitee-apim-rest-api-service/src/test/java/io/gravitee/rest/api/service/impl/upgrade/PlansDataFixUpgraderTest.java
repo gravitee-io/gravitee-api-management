@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +65,7 @@ public class PlansDataFixUpgraderTest {
     public void upgrade_should_not_run_cause_not_enabled() {
         ReflectionTestUtils.setField(upgrader, "enabled", false);
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertFalse(success);
         verifyNoInteractions(installationService);
@@ -75,7 +76,7 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         mockInstallationWithExecutionStatus("SUCCESS");
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertFalse(success);
         verify(installationService, never()).setAdditionalInformation(any());
@@ -86,7 +87,7 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         mockInstallationWithExecutionStatus("RUNNING");
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertFalse(success);
         verify(installationService, never()).setAdditionalInformation(any());
@@ -96,9 +97,9 @@ public class PlansDataFixUpgraderTest {
     public void upgrade_should_run_and_set_failure_status_on_exception() throws Exception {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doThrow(new Exception("test exception")).when(upgrader).processOneShotUpgrade();
+        doThrow(new Exception("test exception")).when(upgrader).processOneShotUpgrade(GraviteeContext.getExecutionContext());
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertFalse(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
@@ -110,9 +111,9 @@ public class PlansDataFixUpgraderTest {
     public void upgrade_should_run_and_set_success_status() throws Exception {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).processOneShotUpgrade();
+        doNothing().when(upgrader).processOneShotUpgrade(GraviteeContext.getExecutionContext());
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertTrue(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
@@ -125,9 +126,9 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         ReflectionTestUtils.setField(upgrader, "dryRun", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).processOneShotUpgrade();
+        doNothing().when(upgrader).processOneShotUpgrade(GraviteeContext.getExecutionContext());
 
-        boolean success = upgrader.upgrade();
+        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
 
         assertTrue(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
@@ -138,7 +139,7 @@ public class PlansDataFixUpgraderTest {
     @Test
     public void fixPlansData_should_fix_only_v2_apis() throws Exception {
         ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
-        doNothing().when(upgrader).fixApiPlans(any(), any());
+        doNothing().when(upgrader).fixApiPlans(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         Api apiv1_1 = new Api();
         apiv1_1.setId("api1");
@@ -154,12 +155,12 @@ public class PlansDataFixUpgraderTest {
         apiv2_2.setDefinition("{\"gravitee\": \"2.0.0\"}");
         when(apiRepository.findAll()).thenReturn(Set.of(apiv1_1, apiv2_1, apiv1_2, apiv2_2));
 
-        upgrader.processOneShotUpgrade();
+        upgrader.processOneShotUpgrade(GraviteeContext.getExecutionContext());
 
-        verify(upgrader, times(1)).fixApiPlans(same(apiv2_1), any());
-        verify(upgrader, times(1)).fixApiPlans(same(apiv2_2), any());
-        verify(upgrader, never()).fixApiPlans(same(apiv1_1), any());
-        verify(upgrader, never()).fixApiPlans(same(apiv1_2), any());
+        verify(upgrader, times(1)).fixApiPlans(eq(GraviteeContext.getExecutionContext()), same(apiv2_1), any());
+        verify(upgrader, times(1)).fixApiPlans(eq(GraviteeContext.getExecutionContext()), same(apiv2_2), any());
+        verify(upgrader, never()).fixApiPlans(eq(GraviteeContext.getExecutionContext()), same(apiv1_1), any());
+        verify(upgrader, never()).fixApiPlans(eq(GraviteeContext.getExecutionContext()), same(apiv1_2), any());
     }
 
     @Test
@@ -222,11 +223,11 @@ public class PlansDataFixUpgraderTest {
         Api api = new Api();
         api.setId("my-api-id");
 
-        when(apiService.getPrimaryOwner("my-api-id")).thenReturn(new PrimaryOwnerEntity());
+        when(apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id")).thenReturn(new PrimaryOwnerEntity());
 
-        upgrader.sendEmailToApiOwner(api, Collections.emptyList(), Collections.emptyList());
+        upgrader.sendEmailToApiOwner(GraviteeContext.getExecutionContext(), api, Collections.emptyList(), Collections.emptyList());
 
-        verify(apiService, times(1)).getPrimaryOwner("my-api-id");
+        verify(apiService, times(1)).getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id");
     }
 
     @Test
@@ -236,22 +237,22 @@ public class PlansDataFixUpgraderTest {
 
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity();
         primaryOwner.setEmail("primary-owner-email");
-        when(apiService.getPrimaryOwner("my-api-id")).thenReturn(primaryOwner);
+        when(apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id")).thenReturn(primaryOwner);
 
         List<Plan> createdPlans = new ArrayList<>();
         List<Plan> closedPlans = new ArrayList<>();
-        upgrader.sendEmailToApiOwner(api, createdPlans, closedPlans);
+        upgrader.sendEmailToApiOwner(GraviteeContext.getExecutionContext(), api, createdPlans, closedPlans);
 
         verify(emailService, times(1))
             .sendAsyncEmailNotification(
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(
                     notification ->
                         notification.getTo()[0].equals("primary-owner-email") &&
                         notification.getParams().get("api") == api &&
                         notification.getParams().get("createdPlans") == createdPlans &&
                         notification.getParams().get("closedPlans") == closedPlans
-                ),
-                any()
+                )
             );
     }
 

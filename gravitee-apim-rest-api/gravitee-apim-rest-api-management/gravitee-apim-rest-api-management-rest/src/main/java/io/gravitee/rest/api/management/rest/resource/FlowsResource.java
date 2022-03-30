@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.OrganizationFlowConfiguration;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -79,6 +80,6 @@ public class FlowsResource extends AbstractResource {
     @Path("flow-schema")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPlatformFlowSchemaForm() {
-        return Response.ok(flowService.getPlatformFlowSchemaForm()).build();
+        return Response.ok(flowService.getPlatformFlowSchemaForm(GraviteeContext.getExecutionContext())).build();
     }
 }

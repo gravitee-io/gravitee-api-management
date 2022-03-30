@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateTagNameException;
 import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
@@ -98,17 +99,27 @@ public class TagServiceImpl extends AbstractService implements TagService {
     }
 
     @Override
-    public TagEntity create(NewTagEntity tag, String referenceId, TagReferenceType referenceType) {
-        return create(singletonList(tag), referenceId, referenceType).get(0);
+    public TagEntity create(final ExecutionContext executionContext, NewTagEntity tag, String referenceId, TagReferenceType referenceType) {
+        return create(executionContext, singletonList(tag), referenceId, referenceType).get(0);
     }
 
     @Override
-    public TagEntity update(UpdateTagEntity tag, String referenceId, TagReferenceType referenceType) {
-        return update(singletonList(tag), referenceId, referenceType).get(0);
+    public TagEntity update(
+        final ExecutionContext executionContext,
+        UpdateTagEntity tag,
+        String referenceId,
+        TagReferenceType referenceType
+    ) {
+        return update(executionContext, singletonList(tag), referenceId, referenceType).get(0);
     }
 
     @Override
-    public List<TagEntity> create(final List<NewTagEntity> tagEntities, String referenceId, TagReferenceType referenceType) {
+    public List<TagEntity> create(
+        final ExecutionContext executionContext,
+        final List<NewTagEntity> tagEntities,
+        String referenceId,
+        TagReferenceType referenceType
+    ) {
         // First we prevent the duplicate tag name
         final List<String> tagNames = tagEntities.stream().map(NewTagEntity::getName).collect(toList());
 
@@ -128,7 +139,8 @@ public class TagServiceImpl extends AbstractService implements TagService {
                     Tag tag = convert(tagEntity, referenceId, referenceType);
                     savedTags.add(convert(tagRepository.create(tag)));
                     auditService.createOrganizationAuditLog(
-                        GraviteeContext.getCurrentOrganization(),
+                        executionContext,
+                        executionContext.getOrganizationId(),
                         Collections.singletonMap(TAG, tag.getId()),
                         TAG_CREATED,
                         new Date(),
@@ -145,7 +157,12 @@ public class TagServiceImpl extends AbstractService implements TagService {
     }
 
     @Override
-    public List<TagEntity> update(final List<UpdateTagEntity> tagEntities, String referenceId, TagReferenceType referenceType) {
+    public List<TagEntity> update(
+        final ExecutionContext executionContext,
+        final List<UpdateTagEntity> tagEntities,
+        String referenceId,
+        TagReferenceType referenceType
+    ) {
         final List<TagEntity> savedTags = new ArrayList<>(tagEntities.size());
         tagEntities.forEach(
             tagEntity -> {
@@ -162,7 +179,8 @@ public class TagServiceImpl extends AbstractService implements TagService {
                         tag.setReferenceType(existingTag.getReferenceType());
                         savedTags.add(convert(tagRepository.update(tag)));
                         auditService.createOrganizationAuditLog(
-                            GraviteeContext.getCurrentOrganization(),
+                            executionContext,
+                            executionContext.getOrganizationId(),
                             Collections.singletonMap(TAG, tag.getId()),
                             TAG_UPDATED,
                             new Date(),
@@ -180,15 +198,16 @@ public class TagServiceImpl extends AbstractService implements TagService {
     }
 
     @Override
-    public void delete(final String tagId, String referenceId, TagReferenceType referenceType) {
+    public void delete(final ExecutionContext executionContext, final String tagId, String referenceId, TagReferenceType referenceType) {
         try {
             Optional<Tag> tagOptional = tagRepository.findByIdAndReference(tagId, referenceId, repoTagReferenceType(referenceType));
             if (tagOptional.isPresent()) {
                 tagRepository.delete(tagId);
                 // delete all reference on APIs
-                apiService.deleteTagFromAPIs(tagId);
+                apiService.deleteTagFromAPIs(executionContext, tagId);
                 auditService.createOrganizationAuditLog(
-                    GraviteeContext.getCurrentOrganization(),
+                    executionContext,
+                    executionContext.getOrganizationId(),
                     Collections.singletonMap(TAG, tagId),
                     TAG_DELETED,
                     new Date(),

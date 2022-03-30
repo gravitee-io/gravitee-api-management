@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.Permission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
 
 /**
@@ -30,17 +31,17 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 public interface RoleService {
-    RoleEntity create(NewRoleEntity role);
-    void createOrUpdateSystemRoles(String organizationId);
-    void delete(String roleId);
-    List<RoleEntity> findAll();
+    RoleEntity create(ExecutionContext executionContext, final NewRoleEntity roleEntity);
+    void createOrUpdateSystemRoles(ExecutionContext executionContext, String organizationId);
+    void delete(ExecutionContext executionContext, String roleId);
+    List<RoleEntity> findAllByOrganization(String organizationId);
     RoleEntity findById(String roleId);
-    List<RoleEntity> findByScope(RoleScope scope);
-    Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name);
-    List<RoleEntity> findDefaultRoleByScopes(RoleScope... scopes);
+    List<RoleEntity> findByScope(RoleScope scope, String organizationId);
+    Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name, String organizationId);
+    List<RoleEntity> findDefaultRoleByScopes(String organizationId, RoleScope... scopes);
     boolean hasPermission(Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls);
-    void initialize(String organizationId);
-    RoleEntity update(UpdateRoleEntity role);
+    void initialize(ExecutionContext executionContext, String organizationId);
+    RoleEntity update(ExecutionContext executionContext, UpdateRoleEntity role);
     RoleScope findScopeByMembershipReferenceType(MembershipReferenceType type);
     RoleEntity findPrimaryOwnerRoleByOrganization(String organizationId, RoleScope roleScope);
 }

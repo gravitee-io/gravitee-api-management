@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.DashboardEntity;
 import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.service.DashboardService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -45,25 +46,25 @@ public class DefaultDashboardsUpgrader implements Upgrader, Ordered {
     private DashboardService dashboardService;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         final List<DashboardEntity> dashboards = dashboardService.findAll();
         if (dashboards == null || dashboards.isEmpty()) {
-            checkAndCreateDashboard(PLATFORM);
-            checkAndCreateDashboard(API);
-            checkAndCreateDashboard(APPLICATION);
+            checkAndCreateDashboard(executionContext, PLATFORM);
+            checkAndCreateDashboard(executionContext, API);
+            checkAndCreateDashboard(executionContext, APPLICATION);
         }
         return true;
     }
 
-    private void checkAndCreateDashboard(final DashboardReferenceType referenceType) {
+    private void checkAndCreateDashboard(ExecutionContext executionContext, final DashboardReferenceType referenceType) {
         LOGGER.info("    No default {}'s dashboards, creating default ones...", referenceType);
-        createDashboard(referenceType, "Global");
-        createDashboard(referenceType, "Geo");
-        createDashboard(referenceType, "User");
+        createDashboard(executionContext, referenceType, "Global");
+        createDashboard(executionContext, referenceType, "Geo");
+        createDashboard(executionContext, referenceType, "User");
         LOGGER.info("    Added default {}'s dashboards with success", referenceType);
     }
 
-    private void createDashboard(final DashboardReferenceType referenceType, final String prefixName) {
+    private void createDashboard(ExecutionContext executionContext, final DashboardReferenceType referenceType, final String prefixName) {
         final NewDashboardEntity dashboard = new NewDashboardEntity();
         dashboard.setName(prefixName + " dashboard");
         dashboard.setReferenceId("DEFAULT");
@@ -75,7 +76,7 @@ public class DefaultDashboardsUpgrader implements Upgrader, Ordered {
         } catch (final Exception e) {
             LOGGER.error("Error while trying to create a dashboard from the definition path: " + filePath, e);
         }
-        dashboardService.create(dashboard);
+        dashboardService.create(executionContext, dashboard);
     }
 
     @Override

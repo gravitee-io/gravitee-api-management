@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.InstanceListItem;
 import io.gravitee.rest.api.model.InstanceQuery;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -26,8 +27,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface InstanceService {
-    Page<InstanceListItem> search(InstanceQuery query);
-    InstanceEntity findById(String instance);
-    InstanceEntity findByEvent(String event);
-    List<InstanceEntity> findAllStarted();
+    Page<InstanceListItem> search(ExecutionContext executionContext, InstanceQuery query);
+    InstanceEntity findById(ExecutionContext executionContext, String instance);
+    InstanceEntity findByEvent(ExecutionContext executionContext, String event);
+    List<InstanceEntity> findAllStarted(ExecutionContext executionContext);
 }

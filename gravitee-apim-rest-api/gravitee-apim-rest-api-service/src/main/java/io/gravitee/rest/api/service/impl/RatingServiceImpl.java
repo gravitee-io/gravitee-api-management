@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException;
 import io.gravitee.rest.api.service.exceptions.RatingAlreadyExistsException;
@@ -78,8 +79,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     private ApiService apiService;
 
     @Override
-    public RatingEntity create(final NewRatingEntity ratingEntity) {
-        if (!isEnabled()) {
+    public RatingEntity create(ExecutionContext executionContext, final NewRatingEntity ratingEntity) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -93,6 +94,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             }
             Rating rating = ratingRepository.create(convert(ratingEntity));
             auditService.createApiAuditLog(
+                executionContext,
                 rating.getReferenceId(),
                 null,
                 Rating.RatingEvent.RATING_CREATED,
@@ -102,12 +104,13 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             );
 
             notifierService.trigger(
+                executionContext,
                 ApiHook.NEW_RATING,
                 rating.getReferenceId(),
-                new NotificationParamsBuilder().api(apiService.findById(rating.getReferenceId())).build()
+                new NotificationParamsBuilder().api(apiService.findById(executionContext, rating.getReferenceId())).build()
             );
 
-            return convert(rating);
+            return convert(executionContext, rating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create rating on api {}", ratingEntity.getApi(), ex);
             throw new TechnicalManagementException("An error occurred while trying to create rating on api " + ratingEntity.getApi(), ex);
@@ -115,12 +118,12 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public RatingEntity createAnswer(final NewRatingAnswerEntity answerEntity) {
-        if (!isEnabled()) {
+    public RatingEntity createAnswer(ExecutionContext executionContext, final NewRatingAnswerEntity answerEntity) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Rating rating = findModelById(answerEntity.getRatingId());
+            final Rating rating = findModelById(executionContext, answerEntity.getRatingId());
 
             final RatingAnswer ratingAnswer = new RatingAnswer();
             ratingAnswer.setId(UuidString.generateRandom());
@@ -130,6 +133,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             ratingAnswer.setCreatedAt(new Date());
             ratingAnswerRepository.create(ratingAnswer);
             auditService.createApiAuditLog(
+                executionContext,
                 rating.getReferenceId(),
                 null,
                 RatingAnswer.RatingAnswerEvent.RATING_ANSWER_CREATED,
@@ -139,12 +143,13 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             );
 
             notifierService.trigger(
+                executionContext,
                 ApiHook.NEW_RATING_ANSWER,
                 rating.getReferenceId(),
-                new NotificationParamsBuilder().api(apiService.findById(rating.getReferenceId())).build()
+                new NotificationParamsBuilder().api(apiService.findById(executionContext, rating.getReferenceId())).build()
             );
 
-            return convert(rating);
+            return convert(executionContext, rating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create a rating answer on rating {}", answerEntity.getRatingId(), ex);
             throw new TechnicalManagementException(
@@ -155,13 +160,13 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public RatingEntity findById(String id) {
-        return convert(findModelById(id));
+    public RatingEntity findById(ExecutionContext executionContext, String id) {
+        return convert(executionContext, findModelById(executionContext, id));
     }
 
     @Override
-    public Page<RatingEntity> findByApi(final String api, final Pageable pageable) {
-        if (!isEnabled()) {
+    public Page<RatingEntity> findByApi(ExecutionContext executionContext, final String api, final Pageable pageable) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -170,7 +175,11 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 RatingReferenceType.API,
                 new PageableBuilder().pageNumber(pageable.pageNumber() - 1).pageSize(pageable.pageSize()).build()
             );
-            final List<RatingEntity> ratingEntities = pageRating.getContent().stream().map(this::convert).collect(toList());
+            final List<RatingEntity> ratingEntities = pageRating
+                .getContent()
+                .stream()
+                .map(rating -> convert(executionContext, rating))
+                .collect(toList());
             return new Page<>(
                 ratingEntities,
                 pageRating.getPageNumber(),
@@ -184,13 +193,13 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public List<RatingEntity> findByApi(String api) {
-        if (!isEnabled()) {
+    public List<RatingEntity> findByApi(ExecutionContext executionContext, String api) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
             final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
-            final List<RatingEntity> ratingEntities = ratings.stream().map(this::convert).collect(toList());
+            final List<RatingEntity> ratingEntities = ratings.stream().map(rating -> convert(executionContext, rating)).collect(toList());
             return ratingEntities;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find ratings for api {}", api, ex);
@@ -199,8 +208,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public RatingSummaryEntity findSummaryByApi(final String api) {
-        if (!isEnabled()) {
+    public RatingSummaryEntity findSummaryByApi(ExecutionContext executionContext, final String api) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -221,8 +230,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public Set<String> findReferenceIdsOrderByRate(Collection<String> apis) {
-        if (!isEnabled()) {
+    public Set<String> findReferenceIdsOrderByRate(ExecutionContext executionContext, Collection<String> apis) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -234,8 +243,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public RatingEntity findByApiForConnectedUser(final String api) {
-        if (!isEnabled()) {
+    public RatingEntity findByApiForConnectedUser(ExecutionContext executionContext, final String api) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -245,7 +254,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 getAuthenticatedUsername()
             );
             if (ratingOptional.isPresent()) {
-                return convert(ratingOptional.get());
+                return convert(executionContext, ratingOptional.get());
             }
             return null;
         } catch (final TechnicalException ex) {
@@ -257,12 +266,12 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public RatingEntity update(final UpdateRatingEntity ratingEntity) {
-        if (!isEnabled()) {
+    public RatingEntity update(ExecutionContext executionContext, final UpdateRatingEntity ratingEntity) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Rating rating = findModelById(ratingEntity.getId());
+            final Rating rating = findModelById(executionContext, ratingEntity.getId());
             final Rating oldRating = new Rating(rating);
             if (!rating.getReferenceId().equals(ratingEntity.getApi())) {
                 throw new RatingNotFoundException(ratingEntity.getId(), ratingEntity.getApi());
@@ -280,6 +289,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             }
             Rating updatedRating = ratingRepository.update(rating);
             auditService.createApiAuditLog(
+                executionContext,
                 rating.getReferenceId(),
                 null,
                 Rating.RatingEvent.RATING_UPDATED,
@@ -287,7 +297,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 oldRating,
                 updatedRating
             );
-            return convert(updatedRating);
+            return convert(executionContext, updatedRating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to update rating {}", ratingEntity.getId(), ex);
             throw new TechnicalManagementException("An error occurred while trying to update rating " + ratingEntity.getId(), ex);
@@ -295,14 +305,22 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public void delete(final String id) {
-        if (!isEnabled()) {
+    public void delete(ExecutionContext executionContext, final String id) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
-            Rating rating = findModelById(id);
+            Rating rating = findModelById(executionContext, id);
             ratingRepository.delete(id);
-            auditService.createApiAuditLog(rating.getReferenceId(), null, Rating.RatingEvent.RATING_DELETED, new Date(), rating, null);
+            auditService.createApiAuditLog(
+                executionContext,
+                rating.getReferenceId(),
+                null,
+                Rating.RatingEvent.RATING_DELETED,
+                new Date(),
+                rating,
+                null
+            );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete rating {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete rating " + id, ex);
@@ -310,14 +328,15 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public void deleteAnswer(final String ratingId, final String answerId) {
-        if (!isEnabled()) {
+    public void deleteAnswer(ExecutionContext executionContext, final String ratingId, final String answerId) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
-            Rating rating = findModelById(ratingId);
+            Rating rating = findModelById(executionContext, ratingId);
             ratingAnswerRepository.delete(answerId);
             auditService.createApiAuditLog(
+                executionContext,
                 rating.getReferenceId(),
                 null,
                 RatingAnswer.RatingAnswerEvent.RATING_ANSWER_DELETED,
@@ -332,12 +351,12 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
-    public boolean isEnabled() {
-        return parameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED, ParameterReferenceType.ENVIRONMENT);
+    public boolean isEnabled(ExecutionContext executionContext) {
+        return parameterService.findAsBoolean(executionContext, Key.PORTAL_RATING_ENABLED, ParameterReferenceType.ENVIRONMENT);
     }
 
-    private Rating findModelById(String id) {
-        if (!isEnabled()) {
+    private Rating findModelById(ExecutionContext executionContext, String id) {
+        if (!isEnabled(executionContext)) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -352,10 +371,10 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         }
     }
 
-    private RatingEntity convert(final Rating rating) {
+    private RatingEntity convert(ExecutionContext executionContext, final Rating rating) {
         final RatingEntity ratingEntity = new RatingEntity();
 
-        final UserEntity user = userService.findById(rating.getUser());
+        final UserEntity user = userService.findById(executionContext, rating.getUser());
         ratingEntity.setUser(user.getId());
         ratingEntity.setUserDisplayName(user.getDisplayName());
         ratingEntity.setId(rating.getId());
@@ -376,7 +395,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                             ratingAnswer -> {
                                 final RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
                                 ratingAnswerEntity.setId(ratingAnswer.getId());
-                                final UserEntity userAnswer = userService.findById(ratingAnswer.getUser());
+                                final UserEntity userAnswer = userService.findById(executionContext, ratingAnswer.getUser());
                                 ratingAnswerEntity.setUser(userAnswer.getId());
 
                                 if (userAnswer.getFirstname() != null && userAnswer.getLastname() != null) {

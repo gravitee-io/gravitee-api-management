@@ -24,7 +24,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import java.io.IOException;
@@ -78,7 +78,7 @@ public class InstanceServiceImpl implements InstanceService {
     }
 
     @Override
-    public Page<InstanceListItem> search(InstanceQuery query) {
+    public Page<InstanceListItem> search(ExecutionContext executionContext, InstanceQuery query) {
         List<EventType> types;
 
         if (query.isIncludeStopped()) {
@@ -89,6 +89,7 @@ public class InstanceServiceImpl implements InstanceService {
 
         ExpiredPredicate filter = new ExpiredPredicate(Duration.ofSeconds(unknownExpireAfterInSec));
         return eventService.search(
+            executionContext,
             types,
             query.getProperties(),
             query.getFrom(),
@@ -119,17 +120,17 @@ public class InstanceServiceImpl implements InstanceService {
                 }
             },
             filter,
-            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
+            Collections.singletonList(executionContext.getEnvironmentId())
         );
     }
 
     @Override
-    public InstanceEntity findById(String instanceId) {
+    public InstanceEntity findById(final ExecutionContext executionContext, String instanceId) {
         final EventQuery query = new EventQuery();
         query.setId(instanceId);
         query.setTypes(instancesAllState);
 
-        final Collection<EventEntity> events = eventService.search(query);
+        final Collection<EventEntity> events = eventService.search(executionContext, query);
         if (events == null || events.isEmpty()) {
             throw new InstanceNotFoundException(instanceId);
         }
@@ -138,11 +139,11 @@ public class InstanceServiceImpl implements InstanceService {
     }
 
     @Override
-    public InstanceEntity findByEvent(String eventId) {
+    public InstanceEntity findByEvent(ExecutionContext executionContext, String eventId) {
         try {
             LOGGER.debug("Find instance by event ID: {}", eventId);
 
-            EventEntity event = eventService.findById(eventId);
+            EventEntity event = eventService.findById(executionContext, eventId);
             List<String> environments = extractProperty(event, Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue());
 
             List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
@@ -154,13 +155,13 @@ public class InstanceServiceImpl implements InstanceService {
     }
 
     @Override
-    public List<InstanceEntity> findAllStarted() {
+    public List<InstanceEntity> findAllStarted(final ExecutionContext executionContext) {
         LOGGER.debug("Find started instances by event");
 
         final EventQuery query = new EventQuery();
         query.setTypes(instancesRunningOnly);
 
-        Collection<EventEntity> events = eventService.search(query);
+        Collection<EventEntity> events = eventService.search(executionContext, query);
 
         return events
             .stream()

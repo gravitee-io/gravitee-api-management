@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
@@ -38,6 +39,7 @@ import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import io.gravitee.rest.api.service.impl.search.lucene.SearchEngineIndexer;
 import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.search.query.Query;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -94,7 +96,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
-    public void index(Indexable source, boolean locally, boolean commit) {
+    public void index(ExecutionContext executionContext, Indexable source, boolean locally, boolean commit) {
         indexLocally(source, commit);
 
         if (!locally) {
@@ -103,19 +105,19 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             content.setId(source.getId());
             content.setClazz(source.getClass().getName());
 
-            sendCommands(content);
+            sendCommands(executionContext, content);
         }
     }
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
-    public void delete(Indexable source) {
+    public void delete(ExecutionContext executionContext, Indexable source) {
         CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
         content.setAction(ACTION_DELETE);
         content.setId(source.getId());
         content.setClazz(source.getClass().getName());
 
-        sendCommands(content);
+        sendCommands(executionContext, content);
     }
 
     @Override
@@ -128,7 +130,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     }
 
     @Override
-    public void process(CommandSearchIndexerEntity content) {
+    public void process(ExecutionContext executionContext, CommandSearchIndexerEntity content) {
         if (ACTION_DELETE.equals(content.getAction())) {
             try {
                 Indexable source = createInstance(content.getClazz());
@@ -141,35 +143,35 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 );
             }
         } else if (ACTION_INDEX.equals(content.getAction())) {
-            Indexable source = getSource(content.getClazz(), content.getId());
+            Indexable source = getSource(executionContext, content.getClazz(), content.getId());
             if (source != null) {
                 indexLocally(source, true);
             }
         }
     }
 
-    private void sendCommands(CommandSearchIndexerEntity content) {
+    private void sendCommands(final ExecutionContext executionContext, CommandSearchIndexerEntity content) {
         try {
             NewCommandEntity msg = new NewCommandEntity();
             msg.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
             msg.setTo(MessageRecipient.MANAGEMENT_APIS.name());
             msg.setTtlInSeconds(60);
             msg.setContent(mapper.writeValueAsString(content));
-            commandService.send(msg);
+            commandService.send(executionContext, msg);
         } catch (JsonProcessingException e) {
             logger.error("Unexpected error while sending a message", e);
         }
     }
 
-    private Indexable getSource(String clazz, String id) {
+    private Indexable getSource(final ExecutionContext executionContext, String clazz, String id) {
         try {
             if (ApiEntity.class.getName().equals(clazz)) {
-                ApiEntity apiEntity = apiService.findById(id);
-                return apiService.fetchMetadataForApi(apiEntity);
+                ApiEntity apiEntity = apiService.findById(executionContext, id);
+                return apiService.fetchMetadataForApi(executionContext, apiEntity);
             } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
                 return pageService.findById(id);
             } else if (UserEntity.class.getName().equals(clazz)) {
-                return userService.findById(id);
+                return userService.findById(executionContext, id);
             }
         } catch (final AbstractNotFoundException nfe) {
             // ignore not found exception because may be due to synchronization not yet processed by DBs
@@ -221,7 +223,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     }
 
     @Override
-    public SearchResult search(io.gravitee.rest.api.service.search.query.Query<? extends Indexable> query) {
+    public SearchResult search(final ExecutionContext executionContext, Query<? extends Indexable> query) {
         Optional<SearchResult> results = searchers
             .stream()
             .filter(searcher -> searcher.handle(query.getRoot()))
@@ -235,13 +237,13 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                                 .filter(s -> s.handle(PageEntity.class))
                                 .findFirst();
                             if (pageDocumentSearcher.isPresent()) {
-                                SearchResult apiReferences = pageDocumentSearcher.get().searchReference(query);
+                                SearchResult apiReferences = pageDocumentSearcher.get().searchReference(executionContext, query);
                                 if (!apiReferences.getDocuments().isEmpty()) {
                                     query.setIds(apiReferences.getDocuments());
                                 }
                             }
                         }
-                        return Optional.of(searcher.search(query));
+                        return Optional.of(searcher.search(executionContext, query));
                     } catch (TechnicalException te) {
                         logger.error("Unexpected error while searching a document", te);
                         return Optional.empty();

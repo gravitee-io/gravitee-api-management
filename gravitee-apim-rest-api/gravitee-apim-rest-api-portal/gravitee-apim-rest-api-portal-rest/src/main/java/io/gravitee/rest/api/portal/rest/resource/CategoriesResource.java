@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
@@ -27,7 +26,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
@@ -36,7 +34,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import org.checkerframework.checker.units.qual.Time;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -70,7 +67,7 @@ public class CategoriesResource extends AbstractResource {
             .map(c -> categoryMapper.convert(c, uriInfo.getBaseUriBuilder()))
             .collect(Collectors.toList());
 
-        return createListResponse(categoriesList, paginationParam);
+        return createListResponse(GraviteeContext.getExecutionContext(), categoriesList, paginationParam);
     }
 
     @Path("{categoryId}")

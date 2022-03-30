@@ -28,6 +28,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -58,16 +60,21 @@ public class ApiRatingResource extends AbstractResource {
     @Operation(summary = "List ratings for an API")
     @Produces(MediaType.APPLICATION_JSON)
     public Page<RatingEntity> getApiRating(@Min(1) @QueryParam("pageNumber") int pageNumber, @QueryParam("pageSize") int pageSize) {
-        final ApiEntity apiEntity = apiService.findById(api);
-        if (PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(RolePermission.API_RATING, api, RolePermissionAction.READ)) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final ApiEntity apiEntity = apiService.findById(executionContext, api);
+        if (
+            PUBLIC.equals(apiEntity.getVisibility()) ||
+            hasPermission(executionContext, RolePermission.API_RATING, api, RolePermissionAction.READ)
+        ) {
             final Page<RatingEntity> ratingEntityPage = ratingService.findByApi(
+                executionContext,
                 api,
                 new PageableBuilder().pageNumber(pageNumber).pageSize(pageSize).build()
             );
             final List<RatingEntity> filteredRatings = ratingEntityPage
                 .getContent()
                 .stream()
-                .map(ratingEntity -> filterPermission(api, ratingEntity))
+                .map(ratingEntity -> filterPermission(executionContext, api, ratingEntity))
                 .collect(toList());
             return new Page<>(
                 filteredRatings,
@@ -88,9 +95,13 @@ public class ApiRatingResource extends AbstractResource {
         if (!isAuthenticated()) {
             return null;
         }
-        final ApiEntity apiEntity = apiService.findById(api);
-        if (PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(RolePermission.API_RATING, api, RolePermissionAction.READ)) {
-            return filterPermission(api, ratingService.findByApiForConnectedUser(api));
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final ApiEntity apiEntity = apiService.findById(executionContext, api);
+        if (
+            PUBLIC.equals(apiEntity.getVisibility()) ||
+            hasPermission(executionContext, RolePermission.API_RATING, api, RolePermissionAction.READ)
+        ) {
+            return filterPermission(executionContext, api, ratingService.findByApiForConnectedUser(executionContext, api));
         } else {
             throw new UnauthorizedAccessException();
         }
@@ -101,9 +112,13 @@ public class ApiRatingResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public RatingSummaryEntity getApiRatingSummaryByApi() {
-        final ApiEntity apiEntity = apiService.findById(api);
-        if (PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(RolePermission.API_RATING, api, RolePermissionAction.READ)) {
-            return ratingService.findSummaryByApi(api);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final ApiEntity apiEntity = apiService.findById(executionContext, api);
+        if (
+            PUBLIC.equals(apiEntity.getVisibility()) ||
+            hasPermission(executionContext, RolePermission.API_RATING, api, RolePermissionAction.READ)
+        ) {
+            return ratingService.findSummaryByApi(executionContext, api);
         } else {
             throw new UnauthorizedAccessException();
         }
@@ -119,7 +134,11 @@ public class ApiRatingResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE) })
     public RatingEntity createApiRating(@Valid @NotNull final NewRatingEntity rating) {
         rating.setApi(api);
-        return filterPermission(api, ratingService.create(rating));
+        return filterPermission(
+            GraviteeContext.getExecutionContext(),
+            api,
+            ratingService.create(GraviteeContext.getExecutionContext(), rating)
+        );
     }
 
     @Path("{rating}")
@@ -134,7 +153,11 @@ public class ApiRatingResource extends AbstractResource {
     public RatingEntity updateApiRating(@PathParam("rating") String rating, @Valid @NotNull final UpdateRatingEntity ratingEntity) {
         ratingEntity.setId(rating);
         ratingEntity.setApi(api);
-        return filterPermission(api, ratingService.update(ratingEntity));
+        return filterPermission(
+            GraviteeContext.getExecutionContext(),
+            api,
+            ratingService.update(GraviteeContext.getExecutionContext(), ratingEntity)
+        );
     }
 
     @Path("{rating}")
@@ -146,7 +169,7 @@ public class ApiRatingResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.DELETE) })
     public void deleteApiRating(@PathParam("rating") String rating) {
-        ratingService.delete(rating);
+        ratingService.delete(GraviteeContext.getExecutionContext(), rating);
     }
 
     @Path("{rating}/answers")
@@ -160,7 +183,11 @@ public class ApiRatingResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.CREATE) })
     public RatingEntity createApiRatingAnswer(@PathParam("rating") String rating, @Valid @NotNull final NewRatingAnswerEntity answer) {
         answer.setRatingId(rating);
-        return filterPermission(api, ratingService.createAnswer(answer));
+        return filterPermission(
+            GraviteeContext.getExecutionContext(),
+            api,
+            ratingService.createAnswer(GraviteeContext.getExecutionContext(), answer)
+        );
     }
 
     @Path("{rating}/answers/{answer}")
@@ -172,11 +199,11 @@ public class ApiRatingResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE) })
     public void deleteApiRatingAnswer(@PathParam("rating") String rating, @PathParam("answer") String answer) {
-        ratingService.deleteAnswer(rating, answer);
+        ratingService.deleteAnswer(GraviteeContext.getExecutionContext(), rating, answer);
     }
 
-    private RatingEntity filterPermission(final String api, final RatingEntity ratingEntity) {
-        if (!hasPermission(RolePermission.API_RATING_ANSWER, api, RolePermissionAction.READ) && ratingEntity != null) {
+    private RatingEntity filterPermission(ExecutionContext executionContext, final String api, final RatingEntity ratingEntity) {
+        if (!hasPermission(executionContext, RolePermission.API_RATING_ANSWER, api, RolePermissionAction.READ) && ratingEntity != null) {
             ratingEntity.setAnswers(null);
         }
         return ratingEntity;

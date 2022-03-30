@@ -60,14 +60,14 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
 
         PortalSettingsEntity portalConfigEntity = new PortalSettingsEntity();
         ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
-        doReturn(portalConfigEntity).when(configService).getPortalSettings(GraviteeContext.getCurrentEnvironment());
-        doReturn(consoleSettingsEntity).when(configService).getConsoleSettings(GraviteeContext.getCurrentOrganization());
+        doReturn(portalConfigEntity).when(configService).getPortalSettings(GraviteeContext.getExecutionContext());
+        doReturn(consoleSettingsEntity).when(configService).getConsoleSettings(GraviteeContext.getExecutionContext());
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(configMapper).convert(portalConfigEntity, consoleSettingsEntity);
-        Mockito.verify(configService).getPortalSettings(GraviteeContext.getCurrentEnvironment());
-        Mockito.verify(configService).getConsoleSettings(GraviteeContext.getCurrentOrganization());
+        Mockito.verify(configService).getPortalSettings(GraviteeContext.getExecutionContext());
+        Mockito.verify(configService).getConsoleSettings(GraviteeContext.getExecutionContext());
     }
 
     @Test
@@ -119,10 +119,10 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(any(PageQuery.class), isNull(), eq(GraviteeContext.getCurrentEnvironment())))
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), isNull()))
             .thenAnswer(
                 (Answer<List<PageEntity>>) invocation -> {
-                    PageQuery pq = invocation.getArgument(0);
+                    PageQuery pq = invocation.getArgument(1);
                     if (PageType.SYSTEM_FOLDER.equals(pq.getType())) {
                         return Arrays.asList(sysFolder);
                     } else if ("SYS_FOLDER".equals(pq.getParent())) {
@@ -134,7 +134,7 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
                 }
             );
 
-        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(true);
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
 
         final Response response = target("/links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -216,7 +216,7 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         data.add(web);
 
         typesEntity.setData(data);
-        when(applicationTypeService.getEnabledApplicationTypes()).thenReturn(typesEntity);
+        when(applicationTypeService.getEnabledApplicationTypes(GraviteeContext.getExecutionContext())).thenReturn(typesEntity);
 
         final Response response = target().path("applications").path("types").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -239,7 +239,8 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         appRoleEntity.setDefaultRole(true);
         appRoleEntity.setName("appRole");
         appRoleEntity.setSystem(false);
-        when(roleService.findByScope(RoleScope.APPLICATION)).thenReturn(Collections.singletonList(appRoleEntity));
+        when(roleService.findByScope(RoleScope.APPLICATION, GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Collections.singletonList(appRoleEntity));
 
         final Response response = target().path("applications").path("roles").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

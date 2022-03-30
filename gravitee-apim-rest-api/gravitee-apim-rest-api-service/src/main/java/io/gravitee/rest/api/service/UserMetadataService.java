@@ -19,6 +19,7 @@ import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
 import io.gravitee.rest.api.model.NewUserMetadataEntity;
 import io.gravitee.rest.api.model.UpdateUserMetadataEntity;
 import io.gravitee.rest.api.model.UserMetadataEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -26,8 +27,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface UserMetadataService {
-    UserMetadataEntity create(NewUserMetadataEntity metadata);
-    UserMetadataEntity update(UpdateUserMetadataEntity metadata);
+    UserMetadataEntity create(ExecutionContext executionContext, NewUserMetadataEntity metadata);
+    UserMetadataEntity update(ExecutionContext executionContext, UpdateUserMetadataEntity metadata);
     List<UserMetadataEntity> findAllByUserId(String userId);
-    void deleteAllByCustomFieldId(String key, String refId, CustomUserFieldReferenceType refType);
+    void deleteAllByCustomFieldId(ExecutionContext executionContext, String key, String refId, CustomUserFieldReferenceType refType);
 }

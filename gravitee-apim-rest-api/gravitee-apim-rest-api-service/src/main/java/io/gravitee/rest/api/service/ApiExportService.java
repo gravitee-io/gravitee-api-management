@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.rest.api.service.common.ExecutionContext;
+
 public interface ApiExportService {
-    String exportAsJson(String apiId, String exportVersion, String... filteredFields);
+    String exportAsJson(ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields);
 }

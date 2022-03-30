@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
@@ -68,8 +69,9 @@ public class CategoryResource extends AbstractCategoryResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public CategoryEntity getCategory() {
-        boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
-        CategoryEntity category = categoryService.findById(categoryId, GraviteeContext.getCurrentEnvironment());
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        boolean canShowCategory = hasPermission(executionContext, RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
+        CategoryEntity category = categoryService.findById(categoryId, executionContext.getEnvironmentId());
 
         if (!canShowCategory && category.isHidden()) {
             throw new UnauthorizedAccessException();
@@ -93,7 +95,11 @@ public class CategoryResource extends AbstractCategoryResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCategoryPicture(@Context Request request) throws CategoryNotFoundException {
-        return getImageResponse(request, categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), categoryId));
+        return getImageResponse(
+            GraviteeContext.getExecutionContext(),
+            request,
+            categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), categoryId)
+        );
     }
 
     @GET
@@ -106,11 +112,15 @@ public class CategoryResource extends AbstractCategoryResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCategoryBackground(@Context Request request) throws CategoryNotFoundException {
-        return getImageResponse(request, categoryService.getBackground(GraviteeContext.getCurrentEnvironment(), categoryId));
+        return getImageResponse(
+            GraviteeContext.getExecutionContext(),
+            request,
+            categoryService.getBackground(GraviteeContext.getCurrentEnvironment(), categoryId)
+        );
     }
 
-    private Response getImageResponse(Request request, InlinePictureEntity image) {
-        boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
+    private Response getImageResponse(final ExecutionContext executionContext, Request request, InlinePictureEntity image) {
+        boolean canShowCategory = hasPermission(executionContext, RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
         CategoryEntity category = categoryService.findById(categoryId, GraviteeContext.getCurrentEnvironment());
 
         if (!canShowCategory && category.isHidden()) {
@@ -160,7 +170,7 @@ public class CategoryResource extends AbstractCategoryResource {
             throw new BadRequestException("Invalid image format");
         }
 
-        CategoryEntity categoryEntity = categoryService.update(categoryId, category);
+        CategoryEntity categoryEntity = categoryService.update(GraviteeContext.getExecutionContext(), categoryId, category);
         setPictures(categoryEntity, false);
 
         return Response.ok(categoryEntity).build();
@@ -172,6 +182,6 @@ public class CategoryResource extends AbstractCategoryResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.DELETE) })
     public void deleteCategory() {
-        categoryService.delete(categoryId);
+        categoryService.delete(GraviteeContext.getExecutionContext(), categoryId);
     }
 }

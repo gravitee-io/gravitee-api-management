@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.configuration.application.registration.ClientR
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -94,7 +95,11 @@ public class ClientRegistrationProviderResource extends AbstractResource {
             required = true
         ) @Valid @NotNull final UpdateClientRegistrationProviderEntity updatedClientRegistrationProvider
     ) {
-        return clientRegistrationService.update(clientRegistrationProvider, updatedClientRegistrationProvider);
+        return clientRegistrationService.update(
+            GraviteeContext.getExecutionContext(),
+            clientRegistrationProvider,
+            updatedClientRegistrationProvider
+        );
     }
 
     @DELETE
@@ -106,7 +111,7 @@ public class ClientRegistrationProviderResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.DELETE) })
     public Response deleteClientRegistrationProvider(@PathParam("clientRegistrationProvider") String clientRegistrationProvider) {
-        clientRegistrationService.delete(clientRegistrationProvider);
+        clientRegistrationService.delete(GraviteeContext.getExecutionContext(), clientRegistrationProvider);
         return Response.noContent().build();
     }
 }

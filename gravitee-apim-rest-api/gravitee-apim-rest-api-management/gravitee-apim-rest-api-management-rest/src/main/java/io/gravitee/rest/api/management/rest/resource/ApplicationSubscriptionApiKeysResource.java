@@ -86,7 +86,7 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public List<ApiKeyEntity> getApiKeysForApplicationSubscription() {
-        return apiKeyService.findBySubscription(subscription);
+        return apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), subscription);
     }
 
     @POST
@@ -103,7 +103,7 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractResource {
     public Response renewApiKeyForApplicationSubscription() {
         checkApplicationApiKeyModeAllowed(application);
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscriptionEntity);
+        ApiKeyEntity apiKeyEntity = apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity);
         URI location = URI.create(uriInfo.getPath().replace("_renew", apiKeyEntity.getId()));
         return Response.created(location).entity(apiKeyEntity).build();
     }
@@ -115,7 +115,7 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractResource {
     }
 
     private void checkApplicationApiKeyModeAllowed(String applicationId) {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getCurrentEnvironment(), applicationId);
+        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         if (applicationEntity == null) {
             throw new ApplicationNotFoundException(applicationId);
         }

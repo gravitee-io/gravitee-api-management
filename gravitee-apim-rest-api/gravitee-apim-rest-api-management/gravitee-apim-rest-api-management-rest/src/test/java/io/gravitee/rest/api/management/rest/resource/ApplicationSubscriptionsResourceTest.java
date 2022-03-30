@@ -28,6 +28,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
@@ -59,16 +60,16 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         newSubscriptionEntity.setPlan(PLAN);
         newSubscriptionEntity.setRequest("request");
 
-        when(planService.findById(any())).thenReturn(mock(PlanEntity.class));
+        when(planService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(PlanEntity.class));
 
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
         createdSubscription.setId(SUBSCRIPTION);
-        when(subscriptionService.create(any())).thenReturn(createdSubscription);
-        when(userService.findById(any(), anyBoolean())).thenReturn(mock(UserEntity.class));
+        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdSubscription);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
 
         ApiEntity foundApi = new ApiEntity();
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
-        when(apiService.findById(any())).thenReturn(foundApi);
+        when(apiService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(foundApi);
 
         final Response response = envTarget()
             .path(APPLICATION)
@@ -87,9 +88,9 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
     public void shouldGetSubscriptions_expandingSecurity() {
         reset(apiService, planService, subscriptionService, userService);
 
-        when(subscriptionService.search(any(), any(), eq(false), eq(true)))
+        when(subscriptionService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false), eq(true)))
             .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
-        when(subscriptionService.getMetadata(any())).thenReturn(mock(Metadata.class));
+        when(subscriptionService.getMetadata(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(Metadata.class));
 
         final Response response = envTarget().path(APPLICATION).path("subscriptions").queryParam("expand", "security").request().get();
 
@@ -100,6 +101,6 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         ArrayNode data = (ArrayNode) responseBody.get("data");
         assertEquals(1, data.size());
 
-        verify(subscriptionService, times(1)).search(any(), any(), eq(false), eq(true));
+        verify(subscriptionService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false), eq(true));
     }
 }

@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.promotion.PromotionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.promotion.PromotionService;
@@ -77,17 +78,17 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
     }
 
     @Override
-    public List<TaskEntity> getPromotionTasks(String organizationId) {
-        List<EnvironmentEntity> environments = environmentService.findByOrganization(organizationId);
+    public List<TaskEntity> getPromotionTasks(final ExecutionContext executionContext) {
+        List<EnvironmentEntity> environments = environmentService.findByOrganization(executionContext.getOrganizationId());
 
         List<EnvironmentEntity> environmentsWithCreationPermissions = environments
             .stream()
-            .filter(environment -> permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), CREATE))
+            .filter(environment -> permissionService.hasPermission(executionContext, ENVIRONMENT_API, environment.getId(), CREATE))
             .collect(toList());
 
         List<EnvironmentEntity> environmentsWithUpdatePermissions = environments
             .stream()
-            .filter(environment -> permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), UPDATE))
+            .filter(environment -> permissionService.hasPermission(executionContext, ENVIRONMENT_API, environment.getId(), UPDATE))
             .collect(toList());
 
         List<TaskEntity> tasks = new ArrayList<>();

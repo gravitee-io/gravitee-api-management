@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,6 +30,6 @@ import io.gravitee.rest.api.model.analytics.query.*;
 public interface AnalyticsService {
     StatsAnalytics execute(StatsQuery query);
     HitsAnalytics execute(CountQuery query);
-    HistogramAnalytics execute(final String organizationId, DateHistogramQuery query);
-    TopHitsAnalytics execute(final String organizationId, GroupByQuery query);
+    HistogramAnalytics execute(ExecutionContext executionContext, DateHistogramQuery query);
+    TopHitsAnalytics execute(ExecutionContext executionContext, GroupByQuery query);
 }

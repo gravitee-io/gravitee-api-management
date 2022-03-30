@@ -31,7 +31,7 @@ import io.gravitee.rest.api.model.NewMetadataEntity;
 import io.gravitee.rest.api.model.UpdateMetadataEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -88,7 +88,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
-    public MetadataEntity create(final NewMetadataEntity metadataEntity) {
+    public MetadataEntity create(final ExecutionContext executionContext, final NewMetadataEntity metadataEntity) {
         // if no format defined, we just set String format
         if (metadataEntity.getFormat() == null) {
             metadataEntity.setFormat(MetadataFormat.STRING);
@@ -106,7 +106,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             }
 
             checkMetadataValue(metadataEntity.getValue());
-            checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue());
+            checkMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue());
             final Metadata metadata = convert(metadataEntity);
             final Date now = new Date();
             metadata.setCreatedAt(now);
@@ -115,7 +115,8 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             // Audit
             // FIXME: Use OrganizationAuditLog?
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 singletonMap(METADATA, metadata.getKey()),
                 METADATA_CREATED,
                 metadata.getCreatedAt(),
@@ -130,7 +131,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
-    public MetadataEntity update(final UpdateMetadataEntity metadataEntity) {
+    public MetadataEntity update(final ExecutionContext executionContext, final UpdateMetadataEntity metadataEntity) {
         try {
             // First we prevent the duplicate metadata name
             final Optional<Metadata> optionalMetadata = metadataRepository
@@ -147,7 +148,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             }
 
             checkMetadataValue(metadataEntity.getValue());
-            checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue());
+            checkMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue());
 
             final Metadata metadata = convert(metadataEntity);
             final Date now = new Date();
@@ -156,7 +157,8 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             // Audit
             // FIXME: Use OrganizationAuditLog?
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 singletonMap(METADATA, metadata.getKey()),
                 METADATA_UPDATED,
                 metadata.getCreatedAt(),
@@ -178,7 +180,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
-    public void delete(final String key) {
+    public void delete(final ExecutionContext executionContext, final String key) {
         try {
             final Optional<Metadata> optMetadata = metadataRepository.findById(key, DEFAULT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
             if (optMetadata.isPresent()) {
@@ -186,7 +188,8 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                 // Audit
                 // FIXME: Use OrganizationAuditLog?
                 auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     singletonMap(METADATA, key),
                     METADATA_DELETED,
                     new Date(),
@@ -200,6 +203,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                     metadataRepository.delete(key, metadata.getReferenceId(), metadata.getReferenceType());
                     // Audit
                     auditService.createApiAuditLog(
+                        executionContext,
                         metadata.getReferenceId(),
                         singletonMap(METADATA, key),
                         METADATA_DELETED,
@@ -232,12 +236,13 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
-    public void checkMetadataFormat(MetadataFormat format, String value) {
-        checkMetadataFormat(format, value, null, null);
+    public void checkMetadataFormat(ExecutionContext executionContext, MetadataFormat format, String value) {
+        checkMetadataFormat(executionContext, format, value, null, null);
     }
 
     @Override
     public void checkMetadataFormat(
+        ExecutionContext executionContext,
         final MetadataFormat format,
         final String value,
         final MetadataReferenceType referenceType,
@@ -248,6 +253,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             if (entity != null && !isBlank(value) && value.startsWith("${")) {
                 decodedValue =
                     this.notificationTemplateService.resolveInlineTemplateWithParam(
+                            executionContext.getOrganizationId(),
                             value,
                             new StringReader(value),
                             singletonMap(referenceType.name().toLowerCase(), entity)

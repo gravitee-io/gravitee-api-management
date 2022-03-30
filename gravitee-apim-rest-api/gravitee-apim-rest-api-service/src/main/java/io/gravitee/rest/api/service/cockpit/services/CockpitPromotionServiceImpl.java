@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import io.gravitee.rest.api.service.cockpit.command.CockpitCommandService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.BridgeCommandFactory;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -57,8 +58,8 @@ public class CockpitPromotionServiceImpl implements CockpitPromotionService {
     }
 
     @Override
-    public CockpitReply<List<PromotionTargetEntity>> listPromotionTargets(String organizationId) {
-        final BridgeCommand listEnvironmentCommand = this.bridgeCommandFactory.createListEnvironmentCommand();
+    public CockpitReply<List<PromotionTargetEntity>> listPromotionTargets(String organizationId, String environmentId) {
+        final BridgeCommand listEnvironmentCommand = this.bridgeCommandFactory.createListEnvironmentCommand(organizationId, environmentId);
         BridgeReply bridgeReply = cockpitCommandService.send(listEnvironmentCommand);
 
         if (bridgeReply.getCommandStatus() != CommandStatus.SUCCEEDED) {
@@ -100,7 +101,7 @@ public class CockpitPromotionServiceImpl implements CockpitPromotionService {
     }
 
     @Override
-    public CockpitReply<PromotionEntity> requestPromotion(PromotionEntity promotionEntity) {
+    public CockpitReply<PromotionEntity> requestPromotion(ExecutionContext executionContext, PromotionEntity promotionEntity) {
         String serializedPromotion = null;
         try {
             serializedPromotion = objectMapper.writeValueAsString(promotionEntity);
@@ -109,7 +110,12 @@ public class CockpitPromotionServiceImpl implements CockpitPromotionService {
         }
 
         final BridgeCommand promoteApiCommand =
-            this.bridgeCommandFactory.createPromoteApiCommand(promotionEntity.getTargetEnvCockpitId(), serializedPromotion);
+            this.bridgeCommandFactory.createPromoteApiCommand(
+                    executionContext.getOrganizationId(),
+                    executionContext.getEnvironmentId(),
+                    promotionEntity.getTargetEnvCockpitId(),
+                    serializedPromotion
+                );
         BridgeReply bridgeReply = cockpitCommandService.send(promoteApiCommand);
 
         if (bridgeReply.getCommandStatus() != CommandStatus.SUCCEEDED) {
@@ -121,7 +127,7 @@ public class CockpitPromotionServiceImpl implements CockpitPromotionService {
     }
 
     @Override
-    public CockpitReply<PromotionEntity> processPromotion(PromotionEntity promotionEntity) {
+    public CockpitReply<PromotionEntity> processPromotion(ExecutionContext executionContext, PromotionEntity promotionEntity) {
         String serializedPromotion = null;
         try {
             serializedPromotion = objectMapper.writeValueAsString(promotionEntity);
@@ -130,7 +136,12 @@ public class CockpitPromotionServiceImpl implements CockpitPromotionService {
         }
 
         final BridgeCommand processPromotionCommand =
-            this.bridgeCommandFactory.createProcessPromotionCommand(promotionEntity.getSourceEnvCockpitId(), serializedPromotion);
+            this.bridgeCommandFactory.createProcessPromotionCommand(
+                    executionContext.getOrganizationId(),
+                    executionContext.getEnvironmentId(),
+                    promotionEntity.getSourceEnvCockpitId(),
+                    serializedPromotion
+                );
         final BridgeReply bridgeReply = cockpitCommandService.send(processPromotionCommand);
 
         if (bridgeReply.getCommandStatus() != CommandStatus.SUCCEEDED) {

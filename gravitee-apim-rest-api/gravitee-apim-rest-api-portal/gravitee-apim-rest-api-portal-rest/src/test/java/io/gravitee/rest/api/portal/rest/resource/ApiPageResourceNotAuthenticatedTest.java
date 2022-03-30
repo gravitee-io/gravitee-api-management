@@ -99,9 +99,11 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiService).findById(API);
+        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(isNull(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(mockApis)
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), isNull(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         mockPage = new PageEntity();
         mockPage.setPublished(true);
@@ -121,10 +123,10 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveMetadataCleared() {
-        doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
         doReturn(true)
             .when(accessControlService)
-            .canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), eq(API), any(PageEntity.class));
+            .canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class));
 
         Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());

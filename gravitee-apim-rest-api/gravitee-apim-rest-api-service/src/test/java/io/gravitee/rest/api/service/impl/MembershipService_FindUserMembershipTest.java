@@ -32,7 +32,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +66,7 @@ public class MembershipService_FindUserMembershipTest {
     @Test
     public void shouldGetEmptyResultForEnvironmentType() {
         List<UserMembership> references = membershipService.findUserMembership(
+            GraviteeContext.getExecutionContext(),
             io.gravitee.rest.api.model.MembershipReferenceType.ENVIRONMENT,
             USER_ID
         );
@@ -75,7 +76,7 @@ public class MembershipService_FindUserMembershipTest {
 
     @Test
     public void shouldGetEmptyResultIfNoApiNorGroups() throws Exception {
-        when(mockRoleService.findByScope(any())).thenReturn(Collections.emptyList());
+        when(mockRoleService.findByScope(any(), any())).thenReturn(Collections.emptyList());
         when(
             mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
                 eq(USER_ID),
@@ -88,6 +89,7 @@ public class MembershipService_FindUserMembershipTest {
         doReturn(Collections.emptySet()).when(mockGroupService).findByUser(USER_ID);
 
         List<UserMembership> references = membershipService.findUserMembership(
+            GraviteeContext.getExecutionContext(),
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             USER_ID
         );
@@ -101,7 +103,7 @@ public class MembershipService_FindUserMembershipTest {
         roleEntity.setId("role");
         roleEntity.setName("PO");
         roleEntity.setScope(RoleScope.API);
-        when(mockRoleService.findByScope(any())).thenReturn(Collections.singletonList(roleEntity));
+        when(mockRoleService.findByScope(any(), any())).thenReturn(Collections.singletonList(roleEntity));
         Membership mApi = mock(Membership.class);
         when(mApi.getReferenceId()).thenReturn("api-id1");
         when(mApi.getRoleId()).thenReturn("role");
@@ -117,6 +119,7 @@ public class MembershipService_FindUserMembershipTest {
         doReturn(Collections.emptySet()).when(mockGroupService).findByUser(USER_ID);
 
         List<UserMembership> references = membershipService.findUserMembership(
+            GraviteeContext.getExecutionContext(),
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             USER_ID
         );
@@ -129,7 +132,7 @@ public class MembershipService_FindUserMembershipTest {
 
     @Test
     public void shouldGetApiWithOnlyGroups() throws Exception {
-        when(mockRoleService.findByScope(any())).thenReturn(Collections.emptyList());
+        when(mockRoleService.findByScope(any(), any())).thenReturn(Collections.emptyList());
         Membership mGroup = mock(Membership.class);
         when(mGroup.getReferenceId()).thenReturn("api-id2");
 
@@ -155,6 +158,7 @@ public class MembershipService_FindUserMembershipTest {
         doReturn(new HashSet<>(asList(group1))).when(mockGroupService).findByUser(USER_ID);
 
         List<UserMembership> references = membershipService.findUserMembership(
+            GraviteeContext.getExecutionContext(),
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             USER_ID
         );
@@ -171,7 +175,7 @@ public class MembershipService_FindUserMembershipTest {
         roleEntity.setId("role");
         roleEntity.setName("PO");
         roleEntity.setScope(RoleScope.API);
-        when(mockRoleService.findByScope(any())).thenReturn(Collections.singletonList(roleEntity));
+        when(mockRoleService.findByScope(any(), any())).thenReturn(Collections.singletonList(roleEntity));
         Membership mApi = mock(Membership.class);
         when(mApi.getReferenceId()).thenReturn("api-id1");
         when(mApi.getRoleId()).thenReturn("role");
@@ -202,6 +206,7 @@ public class MembershipService_FindUserMembershipTest {
         doReturn(new HashSet<>(asList(group1))).when(mockGroupService).findByUser(USER_ID);
 
         List<UserMembership> references = membershipService.findUserMembership(
+            GraviteeContext.getExecutionContext(),
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             USER_ID
         );
@@ -224,7 +229,7 @@ public class MembershipService_FindUserMembershipTest {
         roleApp.setId("roleApp");
         roleApp.setName("PO");
         roleApp.setScope(RoleScope.API);
-        when(mockRoleService.findAll()).thenReturn(asList(roleApi, roleApp));
+        when(mockRoleService.findAllByOrganization(any())).thenReturn(asList(roleApi, roleApp));
 
         Membership mApi = mock(Membership.class);
         when(mApi.getReferenceId()).thenReturn("api-id1");
@@ -247,6 +252,7 @@ public class MembershipService_FindUserMembershipTest {
             .thenReturn(Sets.newHashSet(mApi, mApp));
 
         List<UserMembership> references = membershipService.findUserMembershipBySource(
+            GraviteeContext.getExecutionContext(),
             io.gravitee.rest.api.model.MembershipReferenceType.GROUP,
             USER_ID,
             "oauth2"

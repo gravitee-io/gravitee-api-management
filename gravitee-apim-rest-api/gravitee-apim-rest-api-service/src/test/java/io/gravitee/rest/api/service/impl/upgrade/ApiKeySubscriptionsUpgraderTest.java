@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +59,7 @@ public class ApiKeySubscriptionsUpgraderTest {
 
         when(apiKeyRepository.findAll()).thenReturn(keys);
 
-        upgrader.processOneShotUpgrade();
+        upgrader.processOneShotUpgrade(GraviteeContext.getExecutionContext());
 
         verify(apiKeyRepository, times(1)).findAll();
         verify(apiKeyRepository, times(8)).update(argThat(keys::contains));

@@ -61,15 +61,6 @@ public class PromotionResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "Promotion not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response processPromotion(boolean accepted) {
-        return Response
-            .ok(
-                promotionService.processPromotion(
-                    GraviteeContext.getCurrentOrganization(),
-                    GraviteeContext.getCurrentEnvironment(),
-                    promotion,
-                    accepted
-                )
-            )
-            .build();
+        return Response.ok(promotionService.processPromotion(GraviteeContext.getExecutionContext(), promotion, accepted)).build();
     }
 }

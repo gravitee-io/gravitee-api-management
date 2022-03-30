@@ -26,18 +26,16 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -72,7 +70,7 @@ public class ApiService_DeleteCategoryTest {
 
         when(apiConverter.toApiEntity(any())).thenReturn(new ApiEntity());
 
-        apiService.deleteCategoryFromAPIs(categoryId);
+        apiService.deleteCategoryFromAPIs(GraviteeContext.getExecutionContext(), categoryId);
 
         verify(apiRepository, times(1)).update(firstOrphan);
         verify(apiRepository, times(1)).update(secondOrphan);

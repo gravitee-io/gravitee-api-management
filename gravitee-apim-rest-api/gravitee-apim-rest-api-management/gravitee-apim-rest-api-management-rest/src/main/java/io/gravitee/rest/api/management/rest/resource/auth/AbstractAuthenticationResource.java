@@ -92,7 +92,7 @@ abstract class AbstractAuthenticationResource {
         final String accessToken,
         final String idToken
     ) {
-        UserEntity user = userService.connect(userId);
+        UserEntity user = userService.connect(GraviteeContext.getExecutionContext(), userId);
         return this.connectUserInternal(user, state, servletResponse, accessToken, idToken);
     }
 

@@ -62,18 +62,18 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiService).findById(API);
+        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
 
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
-        doReturn(mockApis).when(apiService).findByUser(any(), any(), eq(true));
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
+        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true));
 
         Api api = new Api();
         api.setId(API);
-        doReturn(api).when(apiMapper).convert(any());
+        doReturn(api).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any());
-        doReturn(new Rating()).when(ratingMapper).convert(any(), any());
+        doReturn(new Rating()).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         pagePublished.setType("SWAGGER");
         pagePublished.setLastModificationDate(Date.from(Instant.now()));
         pagePublished.setContent("some page content");
-        doReturn(Arrays.asList(pagePublished)).when(pageService).search(any(), eq(GraviteeContext.getCurrentEnvironment()));
+        doReturn(Arrays.asList(pagePublished)).when(pageService).search(eq(GraviteeContext.getCurrentEnvironment()), any());
 
         // mock plans
         PlanEntity plan1 = new PlanEntity();
@@ -122,11 +122,13 @@ public class ApiResourceTest extends AbstractResourceTest {
         plan3.setValidation(PlanValidationType.MANUAL);
         plan3.setStatus(PlanStatus.CLOSED);
 
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);
+        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3)))
+            .when(planService)
+            .findByApi(GraviteeContext.getExecutionContext(), API);
 
         // For pages
-        doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pagePublished);
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pagePublished);
         // For plans
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
 
@@ -152,7 +154,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(false).when(accessControlService).canAccessApiFromPortal(API);
+        doReturn(false).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
 
         // test
         final Response response = target(API).request().get();
@@ -177,7 +179,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
-        doReturn(mockImage).when(apiService).getPicture(API);
+        doReturn(mockImage).when(apiService).getPicture(GraviteeContext.getExecutionContext(), API);
 
         // test
         final Response response = target(API).path("picture").request().get();
@@ -190,7 +192,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findByUser(any(), any(), eq(true));
+        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true));
 
         // test
         final Response response = target(API).path("picture").request().get();
@@ -257,10 +259,10 @@ public class ApiResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(any(PageQuery.class), isNull(), eq(GraviteeContext.getCurrentEnvironment())))
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), isNull()))
             .thenAnswer(
                 (Answer<List<PageEntity>>) invocation -> {
-                    PageQuery pq = invocation.getArgument(0);
+                    PageQuery pq = invocation.getArgument(1);
                     if (PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
                         return Collections.singletonList(sysFolder);
                     } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
@@ -272,7 +274,7 @@ public class ApiResourceTest extends AbstractResourceTest {
                 }
             );
 
-        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(true);
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
 
         final Response response = target(API).path("links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

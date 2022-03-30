@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
 import java.net.URI;
@@ -69,7 +70,11 @@ public class UsersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response registerUser(@Valid @NotNull(message = "Input must not be null.") RegisterUserInput registerUserInput) {
-        UserEntity newUser = userService.register(userMapper.convert(registerUserInput), registerUserInput.getConfirmationPageUrl());
+        UserEntity newUser = userService.register(
+            GraviteeContext.getExecutionContext(),
+            userMapper.convert(registerUserInput),
+            registerUserInput.getConfirmationPageUrl()
+        );
         if (newUser != null) {
             return Response.ok().entity(userMapper.convert(newUser)).build();
         }
@@ -84,7 +89,10 @@ public class UsersResource extends AbstractResource {
     public Response finalizeRegistration(
         @Valid @NotNull(message = "Input must not be null.") FinalizeRegistrationInput finalizeRegistrationInput
     ) {
-        UserEntity newUser = userService.finalizeRegistration(userMapper.convert(finalizeRegistrationInput));
+        UserEntity newUser = userService.finalizeRegistration(
+            GraviteeContext.getExecutionContext(),
+            userMapper.convert(finalizeRegistrationInput)
+        );
         if (newUser != null) {
             return Response.ok().entity(userMapper.convert(newUser)).build();
         }
@@ -97,7 +105,11 @@ public class UsersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response resetUserPassword(@NotNull(message = "Input must not be null.") @Valid ResetUserPasswordInput resetUserPasswordInput) {
         try {
-            userService.resetPasswordFromSourceId(resetUserPasswordInput.getUsername(), resetUserPasswordInput.getResetPageUrl());
+            userService.resetPasswordFromSourceId(
+                GraviteeContext.getExecutionContext(),
+                resetUserPasswordInput.getUsername(),
+                resetUserPasswordInput.getResetPageUrl()
+            );
         } catch (PasswordAlreadyResetException e) {
             throw e;
         } catch (AbstractManagementException e) {
@@ -113,7 +125,10 @@ public class UsersResource extends AbstractResource {
     public Response changeUserPassword(
         @NotNull(message = "Input must not be null.") @Valid ChangeUserPasswordInput changeUserPasswordInput
     ) {
-        UserEntity newUser = userService.finalizeResetPassword(userMapper.convert(changeUserPasswordInput));
+        UserEntity newUser = userService.finalizeResetPassword(
+            GraviteeContext.getExecutionContext(),
+            userMapper.convert(changeUserPasswordInput)
+        );
         if (newUser != null) {
             return Response.ok().entity(userMapper.convert(newUser)).build();
         }
@@ -148,13 +163,13 @@ public class UsersResource extends AbstractResource {
             .collect(Collectors.toList());
 
         // No pagination, because userService did it already
-        return createListResponse(users, paginationParam, false);
+        return createListResponse(GraviteeContext.getExecutionContext(), users, paginationParam, false);
     }
 
     @GET
     @Path("/{userId}/avatar")
     public Response getUserAvatar(@Context Request request, @PathParam("userId") String userId) {
-        PictureEntity picture = userService.getPicture(userId);
+        PictureEntity picture = userService.getPicture(GraviteeContext.getExecutionContext(), userId);
 
         if (picture == null) {
             return Response.ok().build();

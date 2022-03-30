@@ -17,11 +17,13 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.core.Response;
 import org.junit.Test;
 
@@ -42,7 +44,7 @@ public class ApplicationResourceAdminTest extends AbstractResourceTest {
 
         ApplicationEntity restored = new ApplicationEntity();
         restored.setId("my-beautiful-application");
-        doReturn(restored).when(applicationService).restore(any());
+        doReturn(restored).when(applicationService).restore(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget("_restore").request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

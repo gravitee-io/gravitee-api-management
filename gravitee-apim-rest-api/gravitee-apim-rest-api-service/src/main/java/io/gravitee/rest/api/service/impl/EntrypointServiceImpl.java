@@ -28,7 +28,7 @@ import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EntrypointService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -90,11 +90,17 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     }
 
     @Override
-    public EntrypointEntity create(final NewEntryPointEntity entrypointEntity, String referenceId, EntrypointReferenceType referenceType) {
+    public EntrypointEntity create(
+        ExecutionContext executionContext,
+        final NewEntryPointEntity entrypointEntity,
+        String referenceId,
+        EntrypointReferenceType referenceType
+    ) {
         try {
             final Entrypoint entrypoint = convert(entrypointEntity, referenceId, referenceType);
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
             auditService.createOrganizationAuditLog(
+                executionContext,
                 referenceId,
                 Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
                 ENTRYPOINT_CREATED,
@@ -111,6 +117,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
 
     @Override
     public EntrypointEntity update(
+        ExecutionContext executionContext,
         final UpdateEntryPointEntity entrypointEntity,
         String referenceId,
         EntrypointReferenceType referenceType
@@ -128,6 +135,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 entrypoint.setReferenceType(existingEntrypoint.getReferenceType());
                 final EntrypointEntity savedEntryPoint = convert(entrypointRepository.update(entrypoint));
                 auditService.createOrganizationAuditLog(
+                    executionContext,
                     referenceId,
                     Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
                     ENTRYPOINT_UPDATED,
@@ -146,7 +154,12 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     }
 
     @Override
-    public void delete(final String entrypointId, String referenceId, EntrypointReferenceType referenceType) {
+    public void delete(
+        ExecutionContext executionContext,
+        final String entrypointId,
+        String referenceId,
+        EntrypointReferenceType referenceType
+    ) {
         try {
             Optional<Entrypoint> entrypointOptional = entrypointRepository.findByIdAndReference(
                 entrypointId,
@@ -156,6 +169,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
             if (entrypointOptional.isPresent()) {
                 entrypointRepository.delete(entrypointId);
                 auditService.createOrganizationAuditLog(
+                    executionContext,
                     referenceId,
                     Collections.singletonMap(ENTRYPOINT, entrypointId),
                     ENTRYPOINT_DELETED,

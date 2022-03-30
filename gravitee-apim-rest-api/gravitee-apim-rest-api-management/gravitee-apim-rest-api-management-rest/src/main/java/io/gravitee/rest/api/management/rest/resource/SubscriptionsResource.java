@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -66,10 +67,15 @@ public class SubscriptionsResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Set<Subscription> getUserSubscriptions(@QueryParam("application") String application, @QueryParam("plan") String plan) {
-        return subscriptionService.findByApplicationAndPlan(application, plan).stream().map(this::convert).collect(Collectors.toSet());
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        return subscriptionService
+            .findByApplicationAndPlan(executionContext, application, plan)
+            .stream()
+            .map(subscriptionEntity -> convert(executionContext, subscriptionEntity))
+            .collect(Collectors.toSet());
     }
 
-    private Subscription convert(SubscriptionEntity subscriptionEntity) {
+    private Subscription convert(ExecutionContext executionContext, SubscriptionEntity subscriptionEntity) {
         Subscription subscription = new Subscription();
 
         subscription.setId(subscriptionEntity.getId());
@@ -82,10 +88,7 @@ public class SubscriptionsResource {
         subscription.setReason(subscriptionEntity.getReason());
         subscription.setStatus(subscriptionEntity.getStatus());
 
-        ApplicationEntity application = applicationService.findById(
-            GraviteeContext.getCurrentEnvironment(),
-            subscriptionEntity.getApplication()
-        );
+        ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());
         subscription.setApplication(
             new Subscription.Application(
                 application.getId(),
@@ -98,7 +101,7 @@ public class SubscriptionsResource {
             )
         );
 
-        PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
+        PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());

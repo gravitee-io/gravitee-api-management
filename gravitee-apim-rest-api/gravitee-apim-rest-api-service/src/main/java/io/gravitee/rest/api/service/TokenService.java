@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ import java.util.List;
 public interface TokenService {
     List<TokenEntity> findByUser(String userId);
     Token findByToken(String token);
-    TokenEntity create(NewTokenEntity token, String userId);
-    void revokeByUser(String userId);
-    void revoke(String tokenId);
+    TokenEntity create(ExecutionContext executionContext, NewTokenEntity token, String userId);
+    void revokeByUser(ExecutionContext executionContext, String userId);
+    void revoke(ExecutionContext executionContext, String tokenId);
 }

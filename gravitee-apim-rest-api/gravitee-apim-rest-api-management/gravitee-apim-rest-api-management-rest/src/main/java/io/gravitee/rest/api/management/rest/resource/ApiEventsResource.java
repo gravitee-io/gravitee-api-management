@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -83,7 +84,7 @@ public class ApiEventsResource extends AbstractResource {
         final EventQuery query = new EventQuery();
         query.setApi(api);
         return eventService
-            .search(query)
+            .search(GraviteeContext.getExecutionContext(), query)
             .stream()
             .filter(event -> eventTypeListParam.contains(event.getType()))
             .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
@@ -107,11 +108,13 @@ public class ApiEventsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
     public EventEntityPage searchApiEvents(@Parameter @BeanParam EventSearchParam eventSearchParam) {
-        ApiEntity apiEntity = apiService.findById(api);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiEntity apiEntity = apiService.findById(executionContext, api);
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), Arrays.asList(api));
         final Page<EventEntity> apiEvents = eventService.search(
+            executionContext,
             eventSearchParam.getEventTypeListParam(),
             properties,
             eventSearchParam.getFrom(),

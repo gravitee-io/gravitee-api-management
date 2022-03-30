@@ -65,7 +65,7 @@ public class PortalResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public PortalConfigEntity getPortalConfig() {
-        return configService.getPortalConfig(GraviteeContext.getCurrentEnvironment());
+        return configService.getPortalConfig(GraviteeContext.getExecutionContext());
     }
 
     @POST
@@ -81,7 +81,7 @@ public class PortalResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
     @Deprecated
     public Response savePortalConfig(@Parameter(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
-        configService.save(GraviteeContext.getCurrentEnvironment(), portalSettingsEntity);
+        configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
         return Response.ok().entity(portalSettingsEntity).build();
     }
 

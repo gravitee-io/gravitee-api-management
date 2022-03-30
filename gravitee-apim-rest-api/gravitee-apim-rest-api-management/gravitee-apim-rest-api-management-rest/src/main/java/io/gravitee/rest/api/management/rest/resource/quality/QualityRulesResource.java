@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.quality.NewQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.service.QualityRuleService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -64,7 +65,10 @@ public class QualityRulesResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<QualityRuleEntity> getQualityRules() {
-        if (!hasPermission(RolePermission.ENVIRONMENT_QUALITY_RULE, RolePermissionAction.READ) && !canReadAPIConfiguration()) {
+        if (
+            !hasPermission(GraviteeContext.getExecutionContext(), RolePermission.ENVIRONMENT_QUALITY_RULE, RolePermissionAction.READ) &&
+            !canReadAPIConfiguration()
+        ) {
             throw new ForbiddenAccessException();
         }
         return qualityRuleService.findAll();
@@ -85,7 +89,7 @@ public class QualityRulesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.CREATE) })
     public QualityRuleEntity createQualityRule(@Valid @NotNull final NewQualityRuleEntity newQualityRuleEntity) {
-        return qualityRuleService.create(newQualityRuleEntity);
+        return qualityRuleService.create(GraviteeContext.getExecutionContext(), newQualityRuleEntity);
     }
 
     @Path("{id}")

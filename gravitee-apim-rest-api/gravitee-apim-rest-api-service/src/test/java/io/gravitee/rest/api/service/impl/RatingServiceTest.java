@@ -37,9 +37,9 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RatingAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
-import io.gravitee.rest.api.service.impl.RatingServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.Date;
 import org.junit.AfterClass;
@@ -126,10 +126,17 @@ public class RatingServiceTest {
         when(rating.getRate()).thenReturn(RATE);
         when(rating.getUser()).thenReturn(USER);
 
-        when(userService.findById(USER)).thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER)).thenReturn(user);
         when(user.getId()).thenReturn(USER);
 
-        when(mockParameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(
+            mockParameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PORTAL_RATING_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.TRUE);
     }
 
     @AfterClass
@@ -153,8 +160,9 @@ public class RatingServiceTest {
         when(newRatingEntity.getApi()).thenReturn(API_ID);
         when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(of(rating));
 
-        ratingService.create(newRatingEntity);
-        verify(mockNotifierService, never()).trigger(eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
+        ratingService.create(GraviteeContext.getExecutionContext(), newRatingEntity);
+        verify(mockNotifierService, never())
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
     }
 
     @Test
@@ -166,7 +174,7 @@ public class RatingServiceTest {
         when(newRatingEntity.getRate()).thenReturn(RATE);
         when(newRatingEntity.getTitle()).thenReturn(TITLE);
 
-        final RatingEntity ratingEntity = ratingService.create(newRatingEntity);
+        final RatingEntity ratingEntity = ratingService.create(GraviteeContext.getExecutionContext(), newRatingEntity);
 
         assertEquals(USER, ratingEntity.getUser());
         assertEquals(API_ID, ratingEntity.getApi());
@@ -174,8 +182,9 @@ public class RatingServiceTest {
         assertEquals(COMMENT, ratingEntity.getComment());
         assertEquals(RATE, ratingEntity.getRate(), 0);
         assertEquals(ratingEntity.getCreatedAt(), ratingEntity.getUpdatedAt());
-        verify(mockNotifierService, times(1)).trigger(eq(ApiHook.NEW_RATING), eq(API_ID), any());
-        verify(mockNotifierService, never()).trigger(eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
+        verify(mockNotifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING), eq(API_ID), any());
+        verify(mockNotifierService, never())
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
     }
 
     @Test(expected = RatingNotFoundException.class)
@@ -183,9 +192,10 @@ public class RatingServiceTest {
         when(newRatingAnswerEntity.getRatingId()).thenReturn(UNKNOWN_RATING_ID);
         when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
 
-        ratingService.createAnswer(newRatingAnswerEntity);
-        verify(mockNotifierService, times(1)).trigger(eq(ApiHook.NEW_RATING), eq(API_ID), any());
-        verify(mockNotifierService, never()).trigger(eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
+        ratingService.createAnswer(GraviteeContext.getExecutionContext(), newRatingAnswerEntity);
+        verify(mockNotifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING), eq(API_ID), any());
+        verify(mockNotifierService, never())
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
     }
 
     @Test
@@ -200,7 +210,7 @@ public class RatingServiceTest {
         when(newRatingAnswerEntity.getComment()).thenReturn(COMMENT);
         when(ratingRepository.findById(RATING_ID)).thenReturn(of(rating));
 
-        final RatingEntity ratingEntity = ratingService.createAnswer(newRatingAnswerEntity);
+        final RatingEntity ratingEntity = ratingService.createAnswer(GraviteeContext.getExecutionContext(), newRatingAnswerEntity);
 
         verify(ratingAnswerRepository).create(any(RatingAnswer.class));
 
@@ -213,7 +223,8 @@ public class RatingServiceTest {
         assertEquals(ANSWER, ratingEntity.getAnswers().get(0).getComment());
         assertEquals(USER, ratingEntity.getAnswers().get(0).getUser());
         assertNotNull(ratingEntity.getAnswers().get(0).getCreatedAt());
-        verify(mockNotifierService, times(1)).trigger(eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
+        verify(mockNotifierService, times(1))
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
     }
 
     @Test
@@ -236,7 +247,7 @@ public class RatingServiceTest {
         )
             .thenReturn(pageRating);
 
-        final Page<RatingEntity> pageRatingEntity = ratingService.findByApi(API_ID, pageable);
+        final Page<RatingEntity> pageRatingEntity = ratingService.findByApi(GraviteeContext.getExecutionContext(), API_ID, pageable);
 
         assertEquals(1, pageRatingEntity.getPageNumber());
         assertEquals(10, pageRatingEntity.getPageElements());
@@ -253,14 +264,14 @@ public class RatingServiceTest {
     @Test
     public void shouldNotFindByApiForConnectedUser() throws TechnicalException {
         when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(empty());
-        assertNull(ratingService.findByApiForConnectedUser(API_ID));
+        assertNull(ratingService.findByApiForConnectedUser(GraviteeContext.getExecutionContext(), API_ID));
     }
 
     @Test
     public void shouldFindByApiForConnectedUser() throws TechnicalException {
         when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(of(rating));
 
-        final RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(API_ID);
+        final RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(GraviteeContext.getExecutionContext(), API_ID);
 
         assertEquals(USER, ratingEntity.getUser());
         assertEquals(API_ID, ratingEntity.getApi());
@@ -275,7 +286,7 @@ public class RatingServiceTest {
         when(updateRatingEntity.getId()).thenReturn(UNKNOWN_RATING_ID);
         when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
 
-        ratingService.update(updateRatingEntity);
+        ratingService.update(GraviteeContext.getExecutionContext(), updateRatingEntity);
     }
 
     @Test
@@ -287,7 +298,7 @@ public class RatingServiceTest {
         when(updateRatingEntity.getRate()).thenReturn(RATE);
         when(ratingRepository.findById(RATING_ID)).thenReturn(of(rating));
 
-        ratingService.update(updateRatingEntity);
+        ratingService.update(GraviteeContext.getExecutionContext(), updateRatingEntity);
 
         verify(rating).setUpdatedAt(any(Date.class));
         verify(rating).setRate(RATE);
@@ -298,13 +309,13 @@ public class RatingServiceTest {
     public void shouldNotDeleteBecauseUnknownRating() throws TechnicalException {
         when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
 
-        ratingService.delete(UNKNOWN_RATING_ID);
+        ratingService.delete(GraviteeContext.getExecutionContext(), UNKNOWN_RATING_ID);
     }
 
     @Test
     public void shouldDelete() throws TechnicalException {
         when(ratingRepository.findById(RATING_ID)).thenReturn(of(rating));
-        ratingService.delete(RATING_ID);
+        ratingService.delete(GraviteeContext.getExecutionContext(), RATING_ID);
         verify(ratingRepository).delete(RATING_ID);
     }
 
@@ -312,7 +323,7 @@ public class RatingServiceTest {
     public void shouldFindSummaryByApiWithNoRatings() throws TechnicalException {
         when(ratingRepository.findByReferenceIdAndReferenceType(API_ID, RatingReferenceType.API)).thenReturn(emptyList());
 
-        final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(API_ID);
+        final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(GraviteeContext.getExecutionContext(), API_ID);
         assertEquals(API_ID, ratingSummary.getApi());
         assertEquals(0, ratingSummary.getNumberOfRatings());
         assertNull(ratingSummary.getAverageRate());
@@ -326,7 +337,7 @@ public class RatingServiceTest {
 
         when(ratingRepository.findByReferenceIdAndReferenceType(API_ID, RatingReferenceType.API)).thenReturn(asList(rating, r));
 
-        final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(API_ID);
+        final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(GraviteeContext.getExecutionContext(), API_ID);
         assertEquals(API_ID, ratingSummary.getApi());
         assertEquals(2, ratingSummary.getNumberOfRatings());
         assertEquals(3.5, ratingSummary.getAverageRate(), 0);

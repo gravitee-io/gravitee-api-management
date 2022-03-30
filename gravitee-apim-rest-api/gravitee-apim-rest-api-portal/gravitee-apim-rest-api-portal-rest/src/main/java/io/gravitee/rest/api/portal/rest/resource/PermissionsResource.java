@@ -58,31 +58,32 @@ public class PermissionsResource extends AbstractResource {
         if (apiId != null) {
             ApiQuery apiQuery = new ApiQuery();
             apiQuery.setIds(Collections.singletonList(apiId));
-            Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+            Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUserOrNull(),
+                apiQuery
+            );
             ApiEntity apiEntity = publishedByUser
                 .stream()
                 .filter(a -> a.getId().equals(apiId))
                 .findFirst()
                 .orElseThrow(() -> new ApiNotFoundException(apiId));
             Map<String, char[]> permissions;
-            permissions = membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), apiEntity, userId);
+            permissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), apiEntity, userId);
 
             return Response.ok(permissions).build();
         } else if (applicationId != null) {
             ApplicationListItem applicationListItem = applicationService
-                .findByUser(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), getAuthenticatedUser())
+                .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
                 .stream()
                 .filter(a -> a.getId().equals(applicationId))
                 .findFirst()
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
-            ApplicationEntity application = applicationService.findById(
-                GraviteeContext.getCurrentEnvironment(),
-                applicationListItem.getId()
-            );
+            ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), applicationListItem.getId());
 
             Map<String, char[]> permissions;
-            permissions = membershipService.getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), application, userId);
+            permissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), application, userId);
 
             return Response.ok(permissions).build();
         }

@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import java.math.BigDecimal;
@@ -58,7 +59,7 @@ public class ApiMapper {
     @Autowired
     private ParameterService parameterService;
 
-    public Api convert(ApiEntity api) {
+    public Api convert(ExecutionContext executionContext, ApiEntity api) {
         final Api apiItem = new Api();
         apiItem.setDescription(api.getDescription());
 
@@ -93,8 +94,8 @@ public class ApiMapper {
         apiItem.setPages(null);
         apiItem.setPlans(null);
 
-        if (ratingService.isEnabled()) {
-            final RatingSummaryEntity ratingSummaryEntity = ratingService.findSummaryByApi(api.getId());
+        if (ratingService.isEnabled(executionContext)) {
+            final RatingSummaryEntity ratingSummaryEntity = ratingService.findSummaryByApi(executionContext, api.getId());
             RatingSummary ratingSummary = new RatingSummary()
                 .average(ratingSummaryEntity.getAverageRate())
                 .count(BigDecimal.valueOf(ratingSummaryEntity.getNumberOfRatings()));
@@ -111,7 +112,7 @@ public class ApiMapper {
         apiItem.setVersion(api.getVersion());
 
         boolean isCategoryModeEnabled =
-            this.parameterService.findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+            this.parameterService.findAsBoolean(executionContext, Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
         if (isCategoryModeEnabled && api.getCategories() != null) {
             apiItem.setCategories(
                 api
@@ -120,7 +121,7 @@ public class ApiMapper {
                     .filter(
                         categoryId -> {
                             try {
-                                categoryService.findNotHiddenById(categoryId, GraviteeContext.getCurrentEnvironment());
+                                categoryService.findNotHiddenById(categoryId, executionContext.getEnvironmentId());
                                 return true;
                             } catch (CategoryNotFoundException v) {
                                 return false;

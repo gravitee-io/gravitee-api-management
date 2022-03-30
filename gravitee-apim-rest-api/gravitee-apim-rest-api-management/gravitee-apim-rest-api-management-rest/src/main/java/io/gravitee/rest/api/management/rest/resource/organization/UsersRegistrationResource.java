@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -67,7 +68,7 @@ public class UsersRegistrationResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response registerUser(@Valid NewExternalUserEntity newExternalUserEntity) {
-        UserEntity newUser = userService.register(newExternalUserEntity);
+        UserEntity newUser = userService.register(GraviteeContext.getExecutionContext(), newExternalUserEntity);
         if (newUser != null) {
             return Response.ok().entity(newUser).build();
         }
@@ -85,7 +86,7 @@ public class UsersRegistrationResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response finalizeUserRegistration(@Valid RegisterUserEntity registerUserEntity) {
-        UserEntity newUser = userService.finalizeRegistration(registerUserEntity);
+        UserEntity newUser = userService.finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
         if (newUser != null) {
             return Response.ok().entity(newUser).build();
         }

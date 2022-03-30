@@ -31,7 +31,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.*;
 import java.util.function.Function;
@@ -125,7 +125,12 @@ public abstract class AbstractReferenceMetadataService {
         }
     }
 
-    protected void delete(final String metadataId, final MetadataReferenceType referenceType, final String referenceId) {
+    protected void delete(
+        final ExecutionContext executionContext,
+        final String metadataId,
+        final MetadataReferenceType referenceType,
+        final String referenceId
+    ) {
         LOGGER.debug("Delete metadata by id {} and reference {} / {}", metadataId, referenceType, referenceId);
         try {
             // prevent deletion of a metadata not in the given reference
@@ -133,7 +138,7 @@ public abstract class AbstractReferenceMetadataService {
             if (optMetadata.isPresent()) {
                 metadataRepository.delete(metadataId, referenceId, referenceType);
                 // Audit
-                createReferenceAuditLog(referenceType, referenceId, optMetadata.get(), null, METADATA_DELETED);
+                createReferenceAuditLog(executionContext, referenceType, referenceId, optMetadata.get(), null, METADATA_DELETED);
             } else {
                 if (referenceType.equals(MetadataReferenceType.APPLICATION)) {
                     throw new ApplicationMetadataNotFoundException(referenceId, metadataId);
@@ -151,17 +156,17 @@ public abstract class AbstractReferenceMetadataService {
     }
 
     protected ReferenceMetadataEntity create(
+        final ExecutionContext executionContext,
         final NewReferenceMetadataEntity metadataEntity,
         final MetadataReferenceType referenceType,
         final String referenceId,
-        final boolean withDefaults,
-        final String environmentId
+        final boolean withDefaults
     ) {
         // if no format defined, we just set String format
         if (metadataEntity.getFormat() == null) {
             metadataEntity.setFormat(MetadataFormat.STRING);
         }
-        checkReferenceMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId, environmentId);
+        checkReferenceMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
         // First we prevent the duplicate metadata name
         final Optional<ReferenceMetadataEntity> optionalMetadata = findAllByReference(referenceType, referenceId, withDefaults)
             .stream()
@@ -179,7 +184,7 @@ public abstract class AbstractReferenceMetadataService {
             metadata.setUpdatedAt(now);
             metadataRepository.create(metadata);
             // Audit
-            createReferenceAuditLog(referenceType, referenceId, null, metadata, METADATA_CREATED);
+            createReferenceAuditLog(executionContext, referenceType, referenceId, null, metadata, METADATA_CREATED);
             return convert(metadata);
         } catch (TechnicalException ex) {
             final String message =
@@ -190,14 +195,15 @@ public abstract class AbstractReferenceMetadataService {
     }
 
     protected abstract void checkReferenceMetadataFormat(
+        ExecutionContext executionContext,
         MetadataFormat format,
         String value,
         MetadataReferenceType referenceType,
-        String referenceId,
-        final String environmentId
+        String referenceId
     );
 
     private void createReferenceAuditLog(
+        ExecutionContext executionContext,
         MetadataReferenceType referenceType,
         String referenceId,
         Metadata oldMetadata,
@@ -209,6 +215,7 @@ public abstract class AbstractReferenceMetadataService {
         switch (referenceType) {
             case API:
                 auditService.createApiAuditLog(
+                    executionContext,
                     referenceId,
                     Collections.singletonMap(METADATA, key),
                     auditEvent,
@@ -219,6 +226,7 @@ public abstract class AbstractReferenceMetadataService {
                 break;
             case APPLICATION:
                 auditService.createApplicationAuditLog(
+                    executionContext,
                     referenceId,
                     Collections.singletonMap(METADATA, key),
                     auditEvent,
@@ -229,7 +237,8 @@ public abstract class AbstractReferenceMetadataService {
                 break;
             case USER:
                 auditService.createOrganizationAuditLog(
-                    GraviteeContext.getCurrentOrganization(),
+                    executionContext,
+                    executionContext.getOrganizationId(),
                     Maps.<Audit.AuditProperties, String>builder().put(USER, referenceId).put(METADATA, key).build(),
                     auditEvent,
                     updatedAt,
@@ -241,13 +250,13 @@ public abstract class AbstractReferenceMetadataService {
     }
 
     protected ReferenceMetadataEntity update(
+        final ExecutionContext executionContext,
         final UpdateReferenceMetadataEntity metadataEntity,
         final MetadataReferenceType referenceType,
         final String referenceId,
-        final boolean withDefaults,
-        final String environmentId
+        final boolean withDefaults
     ) {
-        checkReferenceMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId, environmentId);
+        checkReferenceMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
         try {
             final Optional<Metadata> referenceMetadata = metadataRepository.findById(metadataEntity.getKey(), referenceId, referenceType);
 
@@ -258,13 +267,13 @@ public abstract class AbstractReferenceMetadataService {
                 metadata.setUpdatedAt(now);
                 savedMetadata = metadataRepository.update(metadata);
                 // Audit
-                createReferenceAuditLog(referenceType, referenceId, referenceMetadata.get(), metadata, METADATA_UPDATED);
+                createReferenceAuditLog(executionContext, referenceType, referenceId, referenceMetadata.get(), metadata, METADATA_UPDATED);
             } else {
                 metadata.setCreatedAt(now);
                 metadata.setUpdatedAt(now);
                 savedMetadata = metadataRepository.create(metadata);
                 // Audit
-                createReferenceAuditLog(referenceType, referenceId, null, metadata, METADATA_CREATED);
+                createReferenceAuditLog(executionContext, referenceType, referenceId, null, metadata, METADATA_CREATED);
             }
             final ReferenceMetadataEntity referenceMetadataEntity = convert(savedMetadata);
             if (withDefaults) {

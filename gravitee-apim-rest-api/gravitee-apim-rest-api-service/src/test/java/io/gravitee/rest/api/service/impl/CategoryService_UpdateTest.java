@@ -29,7 +29,6 @@ import io.gravitee.rest.api.model.UpdateCategoryEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
-import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -62,13 +61,21 @@ public class CategoryService_UpdateTest {
         when(mockCategory.getId()).thenReturn("unknown");
         when(mockCategoryRepository.findById("unknown")).thenReturn(Optional.empty());
 
-        List<CategoryEntity> list = categoryService.update(singletonList(mockCategory));
+        List<CategoryEntity> list = categoryService.update(GraviteeContext.getExecutionContext(), singletonList(mockCategory));
 
         assertTrue(list.isEmpty());
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, never()).update(any());
         verify(mockAuditService, never())
-            .createEnvironmentAuditLog(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(CATEGORY_UPDATED), any(), any(), any());
+            .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                eq(CATEGORY_UPDATED),
+                any(),
+                any(),
+                any()
+            );
     }
 
     @Test(expected = CategoryNotFoundException.class)
@@ -76,12 +83,20 @@ public class CategoryService_UpdateTest {
         UpdateCategoryEntity mockCategory = mock(UpdateCategoryEntity.class);
         when(mockCategoryRepository.findById("unknown")).thenReturn(Optional.empty());
 
-        categoryService.update("unknown", mockCategory);
+        categoryService.update(GraviteeContext.getExecutionContext(), "unknown", mockCategory);
 
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, never()).update(any());
         verify(mockAuditService, never())
-            .createEnvironmentAuditLog(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(CATEGORY_UPDATED), any(), any(), any());
+            .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                eq(CATEGORY_UPDATED),
+                any(),
+                any(),
+                any()
+            );
     }
 
     @Test
@@ -102,7 +117,7 @@ public class CategoryService_UpdateTest {
         when(updatedCategory.getCreatedAt()).thenReturn(new Date(9876543210L));
         when(mockCategoryRepository.update(argThat(cat -> cat.getUpdatedAt() != null))).thenReturn(updatedCategory);
 
-        List<CategoryEntity> list = categoryService.update(singletonList(mockCategory));
+        List<CategoryEntity> list = categoryService.update(GraviteeContext.getExecutionContext(), singletonList(mockCategory));
 
         assertFalse(list.isEmpty());
         assertEquals("one element", 1, list.size());
@@ -117,7 +132,15 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, times(1)).update(any());
         verify(mockAuditService, times(1))
-            .createEnvironmentAuditLog(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(CATEGORY_UPDATED), any(), any(), any());
+            .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                eq(CATEGORY_UPDATED),
+                any(),
+                any(),
+                any()
+            );
     }
 
     @Test
@@ -138,7 +161,7 @@ public class CategoryService_UpdateTest {
         when(updatedCategory.getCreatedAt()).thenReturn(new Date(9876543210L));
         when(mockCategoryRepository.update(argThat(cat -> cat.getUpdatedAt() != null))).thenReturn(updatedCategory);
 
-        CategoryEntity category = categoryService.update("category-id", mockCategory);
+        CategoryEntity category = categoryService.update(GraviteeContext.getExecutionContext(), "category-id", mockCategory);
 
         assertNotNull(category);
         assertEquals("Id", "category-id", category.getId());
@@ -152,6 +175,14 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, times(1)).update(any());
         verify(mockAuditService, times(1))
-            .createEnvironmentAuditLog(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(CATEGORY_UPDATED), any(), any(), any());
+            .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                any(),
+                eq(CATEGORY_UPDATED),
+                any(),
+                any(),
+                any()
+            );
     }
 }

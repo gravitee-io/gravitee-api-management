@@ -28,6 +28,8 @@ import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -64,7 +66,7 @@ public class PortalNotificationSettingsResource extends AbstractResource {
                 PortalNotificationDefaultReferenceId.DEFAULT.name()
             )
         );
-        if (hasPermission(ENVIRONMENT_NOTIFICATION, CREATE, UPDATE, DELETE)) {
+        if (hasPermission(GraviteeContext.getExecutionContext(), ENVIRONMENT_NOTIFICATION, CREATE, UPDATE, DELETE)) {
             settings.addAll(
                 genericNotificationConfigService.findByReference(
                     NotificationReferenceType.PORTAL,
@@ -83,9 +85,15 @@ public class PortalNotificationSettingsResource extends AbstractResource {
         if (!NotificationReferenceType.PORTAL.name().equals(config.getReferenceType())) {
             throw new ForbiddenAccessException();
         }
-        if (config.getConfigType().equals(NotificationConfigType.GENERIC) && hasPermission(ENVIRONMENT_NOTIFICATION, CREATE)) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (
+            config.getConfigType().equals(NotificationConfigType.GENERIC) &&
+            hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, CREATE)
+        ) {
             return genericNotificationConfigService.create(config);
-        } else if (config.getConfigType().equals(NotificationConfigType.PORTAL) && hasPermission(ENVIRONMENT_NOTIFICATION, READ)) {
+        } else if (
+            config.getConfigType().equals(NotificationConfigType.PORTAL) && hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, READ)
+        ) {
             return portalNotificationConfigService.save(convert(config));
         }
         throw new ForbiddenAccessException();

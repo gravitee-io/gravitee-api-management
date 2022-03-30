@@ -21,7 +21,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +44,23 @@ public class PermissionServiceImpl extends AbstractService implements Permission
     UserService userService;
 
     @Override
-    public boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
-        return hasPermission(getAuthenticatedUsername(), permission, referenceId, acls);
+    public boolean hasPermission(
+        final ExecutionContext executionContext,
+        RolePermission permission,
+        String referenceId,
+        RolePermissionAction... acls
+    ) {
+        return hasPermission(executionContext, getAuthenticatedUsername(), permission, referenceId, acls);
     }
 
     @Override
-    public boolean hasPermission(String userId, RolePermission permission, String referenceId, RolePermissionAction... acls) {
+    public boolean hasPermission(
+        final ExecutionContext executionContext,
+        String userId,
+        RolePermission permission,
+        String referenceId,
+        RolePermissionAction... acls
+    ) {
         MembershipReferenceType membershipReferenceType;
         switch (permission.getScope()) {
             case API:
@@ -61,13 +72,13 @@ public class PermissionServiceImpl extends AbstractService implements Permission
             case ENVIRONMENT:
                 membershipReferenceType = MembershipReferenceType.ENVIRONMENT;
                 if (referenceId == null) {
-                    referenceId = GraviteeContext.getCurrentEnvironment();
+                    referenceId = executionContext.getEnvironmentId();
                 }
                 break;
             case ORGANIZATION:
                 membershipReferenceType = MembershipReferenceType.ORGANIZATION;
                 if (referenceId == null) {
-                    referenceId = GraviteeContext.getCurrentOrganization();
+                    referenceId = executionContext.getOrganizationId();
                 }
                 break;
             default:
@@ -75,7 +86,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
         }
 
         Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
-            GraviteeContext.getCurrentEnvironment(),
+            executionContext,
             membershipReferenceType,
             referenceId,
             userId
@@ -87,13 +98,13 @@ public class PermissionServiceImpl extends AbstractService implements Permission
     }
 
     @Override
-    public boolean hasManagementRights(String userId) {
-        UserEntity user = userService.findByIdWithRoles(userId);
+    public boolean hasManagementRights(final ExecutionContext executionContext, String userId) {
+        UserEntity user = userService.findByIdWithRoles(executionContext, userId);
         boolean hasManagementRights = this.hasRelevantManagementRole(user);
 
         if (!hasManagementRights) {
             Set<RoleEntity> userApisRole = membershipService
-                .findUserMembership(MembershipReferenceType.API, userId)
+                .findUserMembership(executionContext, MembershipReferenceType.API, userId)
                 .stream()
                 .map(UserMembership::getReference)
                 .distinct()

@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.PortalNotification;
 import io.gravitee.rest.api.model.notification.NewPortalNotificationEntity;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.service.PortalNotificationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -76,10 +77,18 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
     }
 
     @Override
-    public void create(Hook hook, List<String> users, Object params) {
+    public void create(ExecutionContext executionContext, Hook hook, List<String> users, Object params) {
         try {
-            final String title = notificationTemplateService.resolveTemplateWithParam(hook.getTemplate() + ".PORTAL.TITLE", params);
-            final String content = notificationTemplateService.resolveTemplateWithParam(hook.getTemplate() + ".PORTAL", params);
+            final String title = notificationTemplateService.resolveTemplateWithParam(
+                executionContext.getOrganizationId(),
+                hook.getTemplate() + ".PORTAL.TITLE",
+                params
+            );
+            final String content = notificationTemplateService.resolveTemplateWithParam(
+                executionContext.getOrganizationId(),
+                hook.getTemplate() + ".PORTAL",
+                params
+            );
 
             List<NewPortalNotificationEntity> notifications = new ArrayList<>(users.size());
             users.forEach(

@@ -40,8 +40,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
-import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -155,9 +153,10 @@ public class ApiService_CreateTest {
 
     @Before
     public void setUp() {
-        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any()))
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
             .thenReturn("toDecode=decoded-value");
-        when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn("USER");
+        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
+            .thenReturn("USER");
         reset(searchEngineService);
     }
 
@@ -175,15 +174,15 @@ public class ApiService_CreateTest {
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
-        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
 
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
 
-        final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
+        final ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
     @Test(expected = ApiAlreadyExistsException.class)
@@ -194,7 +193,7 @@ public class ApiService_CreateTest {
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
 
-        apiService.create(newApi, USER_NAME);
+        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -206,7 +205,7 @@ public class ApiService_CreateTest {
         when(newApi.getDescription()).thenReturn("Ma description");
         //        when(userService.findByUsername(USER_NAME, false)).thenReturn(new UserEntity());
 
-        apiService.create(newApi, USER_NAME);
+        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
     }
 
     @Test
@@ -222,16 +221,25 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn("/context");
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
-        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
-        final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
+        final ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         assertNotNull(apiEntity.getPaths());
 
         verify(apiRepository, times(1)).create(any());
-        verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(Api.AuditEvent.API_CREATED), any(), eq(null), any());
+        verify(auditService, times(1))
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                any(),
+                eq(Api.AuditEvent.API_CREATED),
+                any(),
+                eq(null),
+                any()
+            );
     }
 
     @Test
@@ -247,9 +255,9 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn("/context");
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
-        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
-        apiService.create(newApi, USER_NAME);
+        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         verify(genericNotificationConfigService, times(1))
             .create(argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)));
@@ -268,12 +276,13 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn("/context");
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
-        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
-        apiService.create(newApi, USER_NAME);
+        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         verify(apiMetadataService, times(1))
             .create(
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(
                     newApiMetadataEntity ->
                         newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
@@ -295,11 +304,11 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn("/context");
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
-        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
-        apiService.create(newApi, USER_NAME);
+        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
     @Test
@@ -315,14 +324,13 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn("/context");
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
-        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
-        apiService.create(newApi, USER_NAME);
+        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getExecutionContext(),
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())

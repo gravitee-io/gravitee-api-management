@@ -35,11 +35,11 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.DebugApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoCompatibleInstanceException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoValidPlanException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import io.gravitee.rest.api.service.impl.DebugApiServiceImpl;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -78,19 +78,20 @@ public class DebugApiServiceTest {
 
         ApiEntity apiEntity = mock(ApiEntity.class);
         when(apiEntity.getReferenceId()).thenReturn(ENVIRONMENT_ID);
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
-        when(instanceService.findAllStarted()).thenReturn(List.of(getAnInstanceEntity()));
+        when(instanceService.findAllStarted(GraviteeContext.getExecutionContext())).thenReturn(List.of(getAnInstanceEntity()));
     }
 
     @Test
     public void debug_shouldCallEventServiceWithSpecificProperties() {
         DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
 
-        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+        debugApiService.debug(GraviteeContext.getExecutionContext(), API_ID, USER_ID, debugApiEntity);
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(eventService).create(any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+        verify(eventService)
+            .create(eq(GraviteeContext.getExecutionContext()), any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
 
         assertThat(propertiesCaptor.getValue())
@@ -110,13 +111,14 @@ public class DebugApiServiceTest {
         oldInstance.setId("instance#old");
         oldInstance.setStartedAt(new Date(1000));
 
-        when(instanceService.findAllStarted()).thenReturn(List.of(youngInstance, oldInstance));
+        when(instanceService.findAllStarted(GraviteeContext.getExecutionContext())).thenReturn(List.of(youngInstance, oldInstance));
 
         DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
-        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+        debugApiService.debug(GraviteeContext.getExecutionContext(), API_ID, USER_ID, debugApiEntity);
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(eventService).create(any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+        verify(eventService)
+            .create(eq(GraviteeContext.getExecutionContext()), any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
 
         assertThat(propertiesCaptor.getValue()).contains(entry(Event.EventProperties.GATEWAY_ID.getValue(), "instance#young"));
@@ -126,14 +128,14 @@ public class DebugApiServiceTest {
     public void debug_shouldThrowIfApiHasOnlyDeprecatedPlan() {
         DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.DEPRECATED, DefinitionVersion.V2);
 
-        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+        debugApiService.debug(GraviteeContext.getExecutionContext(), API_ID, USER_ID, debugApiEntity);
     }
 
     @Test(expected = DebugApiInvalidDefinitionVersionException.class)
     public void debug_shouldThrowIfApiDefinitionIsNotV2() {
         DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V1);
 
-        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+        debugApiService.debug(GraviteeContext.getExecutionContext(), API_ID, USER_ID, debugApiEntity);
     }
 
     @Test(expected = DebugApiNoCompatibleInstanceException.class)
@@ -141,11 +143,11 @@ public class DebugApiServiceTest {
         InstanceEntity instanceEntity = getAnInstanceEntity();
         instanceEntity.setTags(List.of("internal"));
 
-        when(instanceService.findAllStarted()).thenReturn(List.of(instanceEntity));
+        when(instanceService.findAllStarted(GraviteeContext.getExecutionContext())).thenReturn(List.of(instanceEntity));
 
         DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
         debugApiEntity.setTags(Set.of("external"));
-        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+        debugApiService.debug(GraviteeContext.getExecutionContext(), API_ID, USER_ID, debugApiEntity);
     }
 
     @Test(expected = DebugApiNoCompatibleInstanceException.class)
@@ -156,10 +158,10 @@ public class DebugApiServiceTest {
         pluginEntity.setId("rate-limit");
         instanceEntity.setPlugins(Set.of(pluginEntity));
 
-        when(instanceService.findAllStarted()).thenReturn(List.of(instanceEntity));
+        when(instanceService.findAllStarted(GraviteeContext.getExecutionContext())).thenReturn(List.of(instanceEntity));
 
         DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
-        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+        debugApiService.debug(GraviteeContext.getExecutionContext(), API_ID, USER_ID, debugApiEntity);
     }
 
     @Test
@@ -178,12 +180,13 @@ public class DebugApiServiceTest {
 
         DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
         try {
-            debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+            debugApiService.debug(GraviteeContext.getExecutionContext(), API_ID, USER_ID, debugApiEntity);
         } catch (InvalidDataException e) {
             assertNotNull(e);
         }
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(eventService, times(0)).create(any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+        verify(eventService, times(0))
+            .create(eq(GraviteeContext.getExecutionContext()), any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
     }
 

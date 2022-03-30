@@ -24,6 +24,8 @@ import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -55,11 +57,17 @@ public class SubscriptionKeysResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response renewKeySubscription(@PathParam("subscriptionId") String subscriptionId) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
-            hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.UPDATE) ||
-            hasPermission(RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
+            hasPermission(
+                executionContext,
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                subscriptionEntity.getApplication(),
+                RolePermissionAction.UPDATE
+            ) ||
+            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
         ) {
-            final Key createdKey = keyMapper.convert(apiKeyService.renew(subscriptionEntity));
+            final Key createdKey = keyMapper.convert(apiKeyService.renew(executionContext, subscriptionEntity));
             return Response.status(Response.Status.CREATED).entity(createdKey).build();
         }
         throw new ForbiddenAccessException();
@@ -70,11 +78,17 @@ public class SubscriptionKeysResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response revokeKeySubscription(@PathParam("subscriptionId") String subscriptionId, @PathParam("apiKey") String apiKey) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
-            hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.UPDATE) ||
-            hasPermission(RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
+            hasPermission(
+                executionContext,
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                subscriptionEntity.getApplication(),
+                RolePermissionAction.UPDATE
+            ) ||
+            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
         ) {
-            ApiKeyEntity apiKeyEntity = apiKeyService.findByKeyAndApi(apiKey, subscriptionEntity.getApi());
+            ApiKeyEntity apiKeyEntity = apiKeyService.findByKeyAndApi(executionContext, apiKey, subscriptionEntity.getApi());
             if (!apiKeyEntity.hasSubscription(subscriptionId)) {
                 return Response
                     .status(Response.Status.BAD_REQUEST)
@@ -82,7 +96,7 @@ public class SubscriptionKeysResource extends AbstractResource {
                     .build();
             }
 
-            apiKeyService.revoke(apiKeyEntity, true);
+            apiKeyService.revoke(executionContext, apiKeyEntity, true);
 
             return Response.noContent().build();
         }

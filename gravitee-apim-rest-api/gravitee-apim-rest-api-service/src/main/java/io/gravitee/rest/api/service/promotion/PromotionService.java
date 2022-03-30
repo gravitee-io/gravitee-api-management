@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionQuery;
 import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -38,11 +39,17 @@ public interface PromotionService {
      */
     List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId);
 
-    PromotionEntity promote(final String sourceEnvironmentId, String api, PromotionRequestEntity promotionRequest, String userId);
+    PromotionEntity promote(
+        ExecutionContext executionContext,
+        final String sourceEnvironmentId,
+        String api,
+        PromotionRequestEntity promotionRequest,
+        String userId
+    );
 
     PromotionEntity createOrUpdate(PromotionEntity promotionEntity);
 
     Page<PromotionEntity> search(PromotionQuery query, Sortable sortable, Pageable pageable);
 
-    PromotionEntity processPromotion(final String organizationId, final String environmentId, String promotion, boolean accepted);
+    PromotionEntity processPromotion(ExecutionContext executionContext, String promotion, boolean accepted);
 }

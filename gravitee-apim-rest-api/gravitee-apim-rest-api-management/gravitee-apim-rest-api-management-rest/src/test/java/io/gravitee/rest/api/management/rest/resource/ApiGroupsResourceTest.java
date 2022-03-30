@@ -22,14 +22,11 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.GroupMemberEntity;
 import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.IOException;
 import java.security.Principal;
@@ -102,12 +99,12 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
     public void shouldReturn500IfTechnicalException() {
         ApiEntity api = Mockito.mock(ApiEntity.class);
 
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
         when(roleService.hasPermission(any(), eq(ApiPermission.MEMBER), eq(new RolePermissionAction[] { RolePermissionAction.READ })))
             .thenReturn(true);
 
-        when(apiService.getGroupsWithMembers(ENVIRONMENT, API_ID)).thenThrow(new TechnicalManagementException());
+        when(apiService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID)).thenThrow(new TechnicalManagementException());
 
         Response response = envTarget(API_ID).path("groups").request().get();
 
@@ -124,15 +121,15 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
     public void shouldReturnGroupsIfGranted() {
         ApiEntity api = Mockito.mock(ApiEntity.class);
 
-        when(apiService.findById(API_ID)).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
         Map<String, char[]> userPermissions = Map.of(ApiPermission.MEMBER.name(), "R".toCharArray());
 
-        when(membershipService.getUserMemberPermissions(ENVIRONMENT, api, USER_NAME)).thenReturn(userPermissions);
+        when(membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), api, USER_NAME)).thenReturn(userPermissions);
 
         when(roleService.hasPermission(eq(userPermissions), any(), any())).thenReturn(true);
 
-        when(apiService.getGroupsWithMembers(ENVIRONMENT, API_ID))
+        when(apiService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID))
             .thenReturn(Map.of(UuidString.generateRandom(), List.of(new GroupMemberEntity())));
 
         Response response = envTarget(API_ID).path("groups").request().get();

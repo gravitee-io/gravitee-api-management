@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.QualityMetricsService;
 import io.gravitee.rest.api.service.QualityRuleService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiQualityMetricsDisableException;
 import io.gravitee.rest.api.service.quality.ApiQualityMetric;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
@@ -64,7 +65,7 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
         return Collections.unmodifiableMap(map);
     }
 
-    private Map<String, Integer> getWeights() {
+    private Map<String, Integer> getWeights(ExecutionContext executionContext) {
         List<Key> keys = apiQualityMetricLoader
             .getApiQualityMetrics()
             .stream()
@@ -73,7 +74,7 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
 
         return Collections.unmodifiableMap(
             parameterService
-                .findAll(keys, Integer::parseInt, ParameterReferenceType.ENVIRONMENT)
+                .findAll(executionContext, keys, Integer::parseInt, ParameterReferenceType.ENVIRONMENT)
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0)))
@@ -81,17 +82,17 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
     }
 
     @Override
-    public boolean isApiMetricsEnabled() {
-        return parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT);
+    public boolean isApiMetricsEnabled(ExecutionContext executionContext) {
+        return parameterService.findAsBoolean(executionContext, Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override
-    public ApiQualityMetricsEntity getMetrics(ApiEntity apiEntity, final String environmentId) {
-        if (!isApiMetricsEnabled()) {
+    public ApiQualityMetricsEntity getMetrics(final ExecutionContext executionContext, ApiEntity apiEntity) {
+        if (!isApiMetricsEnabled(executionContext)) {
             throw new ApiQualityMetricsDisableException();
         }
 
-        Map<String, Integer> weights = getWeights()
+        Map<String, Integer> weights = getWeights(executionContext)
             .entrySet()
             .stream()
             .filter(e -> e.getValue() > 0)
@@ -107,7 +108,7 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
         } else {
             Map<String, ApiQualityMetric> apiMetrics = getApiMetricsMap();
             for (Map.Entry<String, Integer> weight : weights.entrySet()) {
-                boolean passed = apiMetrics.get(weight.getKey()).isValid(apiEntity, environmentId);
+                boolean passed = apiMetrics.get(weight.getKey()).isValid(executionContext, apiEntity);
                 result.getMetricsPassed().put(weight.getKey(), passed);
                 score += weight.getValue() * (passed ? 1 : 0);
                 maxScore += weight.getValue();

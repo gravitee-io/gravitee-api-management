@@ -26,12 +26,12 @@ import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -95,7 +95,7 @@ public class ApplicationApiKeyModeUpgraderTest {
                 )
             );
 
-        upgrader.processOneShotUpgrade();
+        upgrader.processOneShotUpgrade(GraviteeContext.getExecutionContext());
 
         // all applications have been searched
         verify(applicationRepository, times(1)).findAll();

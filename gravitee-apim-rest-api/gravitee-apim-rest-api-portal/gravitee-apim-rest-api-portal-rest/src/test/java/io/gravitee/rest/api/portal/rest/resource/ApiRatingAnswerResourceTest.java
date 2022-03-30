@@ -27,13 +27,11 @@ import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Rating;
-import io.gravitee.rest.api.portal.rest.model.RatingAnswerInput;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,7 +57,9 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(mockApis)
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         RatingEntity ratingEntity = new RatingEntity();
         ratingEntity.setId(RATING);
@@ -69,8 +69,8 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
         RatingAnswerEntity answer = new RatingAnswerEntity();
         answer.setId(ANSWER);
         ratingEntity.setAnswers(Arrays.asList(answer));
-        doReturn(ratingEntity).when(ratingService).findById(eq(RATING));
-        doReturn(ratingEntity).when(ratingService).createAnswer(any());
+        doReturn(ratingEntity).when(ratingService).findById(eq(GraviteeContext.getExecutionContext()), eq(RATING));
+        doReturn(ratingEntity).when(ratingService).createAnswer(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test

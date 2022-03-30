@@ -44,7 +44,7 @@ public class ApiQualityMetricCategoriesTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getCategories()).thenReturn(Collections.singleton("category"));
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertTrue(valid);
     }
@@ -54,7 +54,7 @@ public class ApiQualityMetricCategoriesTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getCategories()).thenReturn(Collections.emptySet());
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertFalse(valid);
     }
@@ -64,7 +64,7 @@ public class ApiQualityMetricCategoriesTest {
         ApiEntity api = mock(ApiEntity.class);
         when(api.getCategories()).thenReturn(null);
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertFalse(valid);
     }

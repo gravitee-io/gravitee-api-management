@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -45,18 +46,22 @@ public class DefaultRolesUpgrader implements Upgrader, Ordered {
     private RoleService roleService;
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade(ExecutionContext executionContext) {
         // initialize roles.
-        if (roleService.findAll().isEmpty()) {
-            roleService.initialize(GraviteeContext.getDefaultOrganization());
+        if (roleService.findAllByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
+            roleService.initialize(executionContext, GraviteeContext.getDefaultOrganization());
         } else {
-            Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(RoleScope.API, "REVIEWER");
+            Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
+                RoleScope.API,
+                "REVIEWER",
+                executionContext.getOrganizationId()
+            );
             if (!optionalRole.isPresent()) {
                 logger.info("     - <API> REVIEWER");
-                roleService.create(DefaultRoleEntityDefinition.ROLE_API_REVIEWER);
+                roleService.create(executionContext, DefaultRoleEntityDefinition.ROLE_API_REVIEWER);
             }
         }
-        roleService.createOrUpdateSystemRoles(GraviteeContext.getDefaultOrganization());
+        roleService.createOrUpdateSystemRoles(executionContext, GraviteeContext.getDefaultOrganization());
 
         return true;
     }

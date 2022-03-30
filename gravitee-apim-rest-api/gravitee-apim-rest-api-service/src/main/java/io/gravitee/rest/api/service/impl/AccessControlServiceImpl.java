@@ -21,10 +21,9 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
@@ -58,25 +57,29 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
     private PermissionService permissionService;
 
     @Override
-    public boolean canAccessApiFromPortal(ApiEntity apiEntity) {
+    public boolean canAccessApiFromPortal(ExecutionContext executionContext, ApiEntity apiEntity) {
         if (PUBLIC.equals(apiEntity.getVisibility())) {
             return true;
         } else if (isAuthenticated()) {
             final ApiQuery apiQuery = new ApiQuery();
             apiQuery.setIds(Collections.singletonList(apiEntity.getId()));
-            Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(getAuthenticatedUser().getUsername(), apiQuery);
+            Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(
+                executionContext,
+                getAuthenticatedUser().getUsername(),
+                apiQuery
+            );
             return publishedByUser.contains(apiEntity);
         }
         return false;
     }
 
     @Override
-    public boolean canAccessApiFromPortal(String apiId) {
-        ApiEntity apiEntity = apiService.findById(apiId);
-        return canAccessApiFromPortal(apiEntity);
+    public boolean canAccessApiFromPortal(ExecutionContext executionContext, String apiId) {
+        ApiEntity apiEntity = apiService.findById(executionContext, apiId);
+        return canAccessApiFromPortal(executionContext, apiEntity);
     }
 
-    private boolean canAccessPage(ApiEntity apiEntity, PageEntity pageEntity, final String environmentId) {
+    private boolean canAccessPage(final ExecutionContext executionContext, ApiEntity apiEntity, PageEntity pageEntity) {
         if (!pageEntity.isPublished()) {
             return false;
         }
@@ -96,7 +99,7 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             return true;
         } else {
             Set<GroupEntity> userGroups = groupService.findByUser(getAuthenticatedUsername());
-            Set<RoleEntity> contextualUserRoles = getContextualUserRoles(apiEntity, environmentId);
+            Set<RoleEntity> contextualUserRoles = getContextualUserRoles(executionContext, apiEntity, executionContext.getEnvironmentId());
 
             return accessControls
                 .stream()
@@ -118,54 +121,38 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
     }
 
     @Override
-    public boolean canAccessPageFromPortal(final String environmentId, PageEntity pageEntity) {
-        return canAccessPageFromPortal(environmentId, null, pageEntity);
+    public boolean canAccessPageFromPortal(final ExecutionContext executionContext, PageEntity pageEntity) {
+        return canAccessPageFromPortal(executionContext, null, pageEntity);
     }
 
     @Override
-    public boolean canAccessPageFromPortal(final String environmentId, String apiId, PageEntity pageEntity) {
+    public boolean canAccessPageFromPortal(final ExecutionContext executionContext, String apiId, PageEntity pageEntity) {
         if (PageType.SYSTEM_FOLDER.name().equals(pageEntity.getType()) || PageType.MARKDOWN_TEMPLATE.name().equals(pageEntity.getType())) {
             return false;
         }
         if (apiId != null) {
-            final ApiEntity apiEntity = apiService.findById(apiId);
-            return canAccessPage(apiEntity, pageEntity, environmentId);
+            final ApiEntity apiEntity = apiService.findById(executionContext, apiId);
+            return canAccessPage(executionContext, apiEntity, pageEntity);
         }
-        return canAccessPage(null, pageEntity, environmentId);
+        return canAccessPage(executionContext, null, pageEntity);
     }
 
     @Override
-    public boolean canAccessPageFromConsole(final String environmentId, ApiEntity apiEntity, PageEntity pageEntity) {
-        if (canAccessPage(apiEntity, pageEntity, environmentId)) {
+    public boolean canAccessPageFromConsole(final ExecutionContext executionContext, ApiEntity apiEntity, PageEntity pageEntity) {
+        if (canAccessPage(executionContext, apiEntity, pageEntity)) {
             return true;
         } else {
-            return canEditApiPage(apiEntity);
+            return canEditApiPage(executionContext, apiEntity);
         }
     }
 
-    private boolean canEditEnvPage() {
-        return (
-            isAuthenticated() &&
-            (
-                isAdmin() ||
-                permissionService.hasPermission(
-                    RolePermission.ENVIRONMENT_DOCUMENTATION,
-                    null,
-                    RolePermissionAction.UPDATE,
-                    RolePermissionAction.CREATE,
-                    RolePermissionAction.DELETE
-                )
-            )
-        );
-    }
-
-    private boolean canEditApiPage(ApiEntity api) {
+    private boolean canEditApiPage(final ExecutionContext executionContext, ApiEntity api) {
         if (api == null) {
             return false;
         }
         boolean canEditApiPage = false;
         MemberEntity member = membershipService.getUserMember(
-            GraviteeContext.getCurrentEnvironment(),
+            executionContext,
             MembershipReferenceType.API,
             api.getId(),
             getAuthenticatedUsername()
@@ -175,12 +162,7 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             while (!canEditApiPage && groupIdIterator.hasNext()) {
                 String groupId = groupIdIterator.next();
                 member =
-                    membershipService.getUserMember(
-                        GraviteeContext.getCurrentEnvironment(),
-                        MembershipReferenceType.GROUP,
-                        groupId,
-                        getAuthenticatedUsername()
-                    );
+                    membershipService.getUserMember(executionContext, MembershipReferenceType.GROUP, groupId, getAuthenticatedUsername());
                 canEditApiPage = canEditApiPage(member);
             }
         } else {
@@ -203,7 +185,7 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
         );
     }
 
-    private Set<RoleEntity> getContextualUserRoles(ApiEntity api, final String environmentId) {
+    private Set<RoleEntity> getContextualUserRoles(final ExecutionContext executionContext, ApiEntity api, final String environmentId) {
         if (api != null) {
             Set<RoleEntity> roles =
                 this.membershipService.getRoles(
@@ -219,7 +201,7 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
                     .forEach(
                         groupId -> {
                             MemberEntity member = membershipService.getUserMember(
-                                GraviteeContext.getCurrentEnvironment(),
+                                executionContext,
                                 MembershipReferenceType.GROUP,
                                 groupId,
                                 getAuthenticatedUsername()

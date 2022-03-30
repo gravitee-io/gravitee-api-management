@@ -71,7 +71,7 @@ public class GroupsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroups() {
-        return Response.ok(groupService.findAll(GraviteeContext.getCurrentEnvironment())).build();
+        return Response.ok(groupService.findAll(GraviteeContext.getExecutionContext())).build();
     }
 
     @POST
@@ -82,7 +82,7 @@ public class GroupsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal Server Error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE) })
     public Response createGroup(@Parameter(name = "group", required = true) @Valid @NotNull final NewGroupEntity newGroupEntity) {
-        GroupEntity groupEntity = groupService.create(GraviteeContext.getCurrentEnvironment(), newGroupEntity);
+        GroupEntity groupEntity = groupService.create(GraviteeContext.getExecutionContext(), newGroupEntity);
         if (groupEntity != null) {
             return Response.created(this.getLocationHeader(groupEntity.getId())).entity(groupEntity).build();
         }

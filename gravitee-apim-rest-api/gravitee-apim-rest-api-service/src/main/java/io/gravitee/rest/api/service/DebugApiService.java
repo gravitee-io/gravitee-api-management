@@ -17,7 +17,8 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.DebugApiEntity;
 import io.gravitee.rest.api.model.EventEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface DebugApiService {
-    EventEntity debug(String apiId, String userId, DebugApiEntity debugApiEntity);
+    EventEntity debug(ExecutionContext executionContext, String apiId, String userId, DebugApiEntity debugApiEntity);
 }

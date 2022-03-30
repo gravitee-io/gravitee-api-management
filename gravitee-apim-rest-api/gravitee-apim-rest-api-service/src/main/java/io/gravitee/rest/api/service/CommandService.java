@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandQuery;
 import io.gravitee.rest.api.model.command.NewCommandEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -25,8 +26,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface CommandService {
-    void send(NewCommandEntity message);
-    List<CommandEntity> search(CommandQuery query);
+    void send(ExecutionContext executionContext, NewCommandEntity message);
+    List<CommandEntity> search(ExecutionContext executionContext, CommandQuery query);
     void ack(String messageId);
     void delete(String commandId);
 }

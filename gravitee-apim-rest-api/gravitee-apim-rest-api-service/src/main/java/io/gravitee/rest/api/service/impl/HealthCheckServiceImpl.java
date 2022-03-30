@@ -34,7 +34,6 @@ import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogram
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeQuery;
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeResponse;
 import io.gravitee.rest.api.model.InstanceEntity;
-import io.gravitee.rest.api.model.InstanceListItem;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.Timestamp;
@@ -45,6 +44,7 @@ import io.gravitee.rest.api.model.healthcheck.*;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import java.util.*;
@@ -164,17 +164,17 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     @Override
-    public ApiMetrics getAvailability(String api, String field) {
+    public ApiMetrics getAvailability(ExecutionContext executionContext, String api, String field) {
         logger.debug("Run health availability query for API '{}'", api);
 
         try {
-            ApiEntity apiEntity = apiService.findById(api);
+            ApiEntity apiEntity = apiService.findById(executionContext, api);
 
             AvailabilityResponse response = healthCheckRepository.query(
                 QueryBuilders.availability().api(api).field(AvailabilityQuery.Field.valueOf(field)).build()
             );
 
-            return convert(apiEntity, response.getEndpointAvailabilities(), field);
+            return convert(executionContext, apiEntity, response.getEndpointAvailabilities(), field);
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while searching for health data.", ex);
             return null;
@@ -182,17 +182,17 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     @Override
-    public ApiMetrics getResponseTime(String api, String field) {
+    public ApiMetrics getResponseTime(ExecutionContext executionContext, String api, String field) {
         logger.debug("Run health response-time query for API '{}'", api);
 
         try {
-            ApiEntity apiEntity = apiService.findById(api);
+            ApiEntity apiEntity = apiService.findById(executionContext, api);
 
             AverageResponseTimeResponse response = healthCheckRepository.query(
                 QueryBuilders.responseTime().api(api).field(AverageResponseTimeQuery.Field.valueOf(field)).build()
             );
 
-            return convert(apiEntity, response.getEndpointResponseTimes(), field);
+            return convert(executionContext, apiEntity, response.getEndpointResponseTimes(), field);
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while searching for health data.", ex);
             return null;
@@ -200,7 +200,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     @Override
-    public SearchLogResponse findByApi(String api, LogQuery query, Boolean transition) {
+    public SearchLogResponse findByApi(ExecutionContext executionContext, String api, LogQuery query, Boolean transition) {
         logger.debug("Run health logs query for API '{}'", api);
 
         try {
@@ -217,7 +217,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                     .build()
             );
 
-            return convert(response);
+            return convert(executionContext, response);
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while searching for health data.", ex);
             return null;
@@ -235,7 +235,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         }
     }
 
-    private SearchLogResponse convert(LogsResponse response) {
+    private SearchLogResponse convert(ExecutionContext executionContext, LogsResponse response) {
         SearchLogResponse searchLogResponseResponse = new SearchLogResponse(response.getSize());
 
         // Transform repository logs
@@ -251,7 +251,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                     logItem -> {
                         String gateway = logItem.getGateway();
                         if (gateway != null) {
-                            metadata.computeIfAbsent(gateway, this::getGatewayMetadata);
+                            metadata.computeIfAbsent(gateway, gateway1 -> getGatewayMetadata(executionContext, gateway1));
                         }
                     }
                 );
@@ -262,7 +262,12 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         return searchLogResponseResponse;
     }
 
-    private <T extends Number> ApiMetrics<T> convert(ApiEntity api, List<FieldBucket<T>> response, String field) {
+    private <T extends Number> ApiMetrics<T> convert(
+        final ExecutionContext executionContext,
+        ApiEntity api,
+        List<FieldBucket<T>> response,
+        String field
+    ) {
         ApiMetrics<T> apiMetrics = new ApiMetrics<>();
 
         // Set endpoint availability (unknown endpoints are removed)
@@ -343,7 +348,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                         if (field.equalsIgnoreCase("endpoint")) {
                             metadata.put(name, getEndpointMetadata(api, name));
                         } else if (field.equalsIgnoreCase("gateway")) {
-                            metadata.put(name, getGatewayMetadata(name));
+                            metadata.put(name, getGatewayMetadata(executionContext, name));
                         }
                     }
                 }
@@ -442,11 +447,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         return metadata;
     }
 
-    private Map<String, String> getGatewayMetadata(String gateway) {
+    private Map<String, String> getGatewayMetadata(ExecutionContext executionContext, String gateway) {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            InstanceEntity instance = instanceService.findById(gateway);
+            InstanceEntity instance = instanceService.findById(executionContext, gateway);
             metadata.put("hostname", instance.getHostname());
             metadata.put("ip", instance.getIp());
             if (instance.getTenant() != null) {

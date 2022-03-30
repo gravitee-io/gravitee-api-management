@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.CustomUserFieldEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -23,8 +24,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface CustomUserFieldService {
-    CustomUserFieldEntity create(CustomUserFieldEntity newFieldEntity);
-    CustomUserFieldEntity update(CustomUserFieldEntity updateFieldEntity);
-    void delete(String key);
-    List<CustomUserFieldEntity> listAllFields();
+    CustomUserFieldEntity create(final ExecutionContext executionContext, CustomUserFieldEntity newFieldEntity);
+    CustomUserFieldEntity update(final ExecutionContext executionContext, CustomUserFieldEntity updateFieldEntity);
+    void delete(final ExecutionContext executionContext, String key);
+    List<CustomUserFieldEntity> listAllFields(final ExecutionContext executionContext);
 }

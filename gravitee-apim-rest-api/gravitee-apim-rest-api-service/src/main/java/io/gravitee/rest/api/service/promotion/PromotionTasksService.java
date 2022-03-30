@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.promotion;
 
 import io.gravitee.rest.api.model.TaskEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -23,5 +24,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface PromotionTasksService {
-    List<TaskEntity> getPromotionTasks(String organizationId);
+    List<TaskEntity> getPromotionTasks(ExecutionContext executionContext);
 }

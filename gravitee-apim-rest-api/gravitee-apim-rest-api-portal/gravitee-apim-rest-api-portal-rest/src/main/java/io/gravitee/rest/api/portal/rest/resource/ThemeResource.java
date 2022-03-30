@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ThemeService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import javax.ws.rs.GET;
@@ -43,7 +44,7 @@ public class ThemeResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalTheme() {
-        ThemeEntity theme = themeService.findEnabled();
+        ThemeEntity theme = themeService.findEnabled(GraviteeContext.getExecutionContext());
         if (theme.getId() != null) {
             String themeURL = PortalApiLinkHelper.themeURL(uriInfo.getBaseUriBuilder(), theme.getId());
             return Response.ok(themeMapper.convert(theme, themeURL)).build();
@@ -54,13 +55,13 @@ public class ThemeResource extends AbstractResource {
     @GET
     @Path("{themeId}/logo")
     public Response getLogo(@PathParam("themeId") String id, @Context Request request) {
-        return this.buildPictureResponse(themeService.getLogo(id), request);
+        return this.buildPictureResponse(themeService.getLogo(GraviteeContext.getExecutionContext(), id), request);
     }
 
     @GET
     @Path("{themeId}/optionalLogo")
     public Response getOptionalLogo(@PathParam("themeId") String id, @Context Request request) {
-        PictureEntity optionalLogo = themeService.getOptionalLogo(id);
+        PictureEntity optionalLogo = themeService.getOptionalLogo(GraviteeContext.getExecutionContext(), id);
         if (optionalLogo != null) {
             return this.buildPictureResponse(optionalLogo, request);
         }
@@ -70,13 +71,13 @@ public class ThemeResource extends AbstractResource {
     @GET
     @Path("{themeId}/backgroundImage")
     public Response getBackgroundImage(@PathParam("themeId") String id, @Context Request request) {
-        return this.buildPictureResponse(themeService.getBackgroundImage(id), request);
+        return this.buildPictureResponse(themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), id), request);
     }
 
     @GET
     @Path("{themeId}/favicon")
     public Response getFavicon(@PathParam("themeId") String id, @Context Request request) {
-        return this.buildPictureResponse(themeService.getFavicon(id), request);
+        return this.buildPictureResponse(themeService.getFavicon(GraviteeContext.getExecutionContext(), id), request);
     }
 
     private Response buildPictureResponse(PictureEntity picture, @Context Request request) {

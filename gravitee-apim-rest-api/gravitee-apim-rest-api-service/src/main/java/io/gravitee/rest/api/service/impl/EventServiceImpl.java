@@ -29,7 +29,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -60,14 +60,14 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     private UserService userService;
 
     @Override
-    public EventEntity findById(String id) {
+    public EventEntity findById(ExecutionContext executionContext, String id) {
         try {
             LOGGER.debug("Find event by ID: {}", id);
 
             Optional<Event> event = eventRepository.findById(id);
 
             if (event.isPresent()) {
-                return convert(event.get());
+                return convert(executionContext, event.get());
             }
 
             throw new EventNotFoundException(id);
@@ -78,7 +78,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity create(final Set<String> environmentsIds, NewEventEntity newEventEntity) {
+    public EventEntity create(ExecutionContext executionContext, final Set<String> environmentsIds, NewEventEntity newEventEntity) {
         String hostAddress = "";
         try {
             hostAddress = InetAddress.getLocalHost().getHostAddress();
@@ -95,7 +95,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             Event createdEvent = eventRepository.create(event);
 
-            return convert(createdEvent);
+            return convert(executionContext, createdEvent);
         } catch (UnknownHostException e) {
             LOGGER.error("An error occurs while getting the server IP address", e);
             throw new TechnicalManagementException("An error occurs while getting the server IP address", e);
@@ -109,12 +109,18 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity create(final Set<String> environmentsIds, EventType type, String payload, Map<String, String> properties) {
+    public EventEntity create(
+        ExecutionContext executionContext,
+        final Set<String> environmentsIds,
+        EventType type,
+        String payload,
+        Map<String, String> properties
+    ) {
         NewEventEntity event = new NewEventEntity();
         event.setType(type);
         event.setPayload(payload);
         event.setProperties(properties);
-        return create(environmentsIds, event);
+        return create(executionContext, environmentsIds, event);
     }
 
     @Override
@@ -130,6 +136,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     @Override
     public Page<EventEntity> search(
+        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -157,13 +164,18 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
         Page<Event> pageEvent = eventRepository.search(builder.build(), new PageableBuilder().pageNumber(page).pageSize(size).build());
 
-        List<EventEntity> content = pageEvent.getContent().stream().map(this::convert).collect(Collectors.toList());
+        List<EventEntity> content = pageEvent
+            .getContent()
+            .stream()
+            .map(event -> convert(executionContext, event))
+            .collect(Collectors.toList());
 
         return new Page<>(content, pageEvent.getPageNumber(), (int) pageEvent.getPageElements(), pageEvent.getTotalElements());
     }
 
     @Override
     public <T> Page<T> search(
+        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -173,11 +185,12 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         Function<EventEntity, T> mapper,
         final List<String> environmentsIds
     ) {
-        return search(eventTypes, properties, from, to, page, size, mapper, (T t) -> true, environmentsIds);
+        return search(executionContext, eventTypes, properties, from, to, page, size, mapper, (T t) -> true, environmentsIds);
     }
 
     @Override
     public <T> Page<T> search(
+        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -188,7 +201,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         Predicate<T> filter,
         final List<String> environmentsIds
     ) {
-        Page<EventEntity> result = search(eventTypes, properties, from, to, page, size, environmentsIds);
+        Page<EventEntity> result = search(executionContext, eventTypes, properties, from, to, page, size, environmentsIds);
         return new Page<>(
             result.getContent().stream().map(mapper).filter(filter).collect(Collectors.toList()),
             page,
@@ -198,15 +211,15 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public Collection<EventEntity> search(final EventQuery query) {
+    public Collection<EventEntity> search(ExecutionContext executionContext, final EventQuery query) {
         LOGGER.debug("Search APIs by {}", query);
-        return convert(eventRepository.search(queryToCriteria(query).build()));
+        return convert(executionContext, eventRepository.search(queryToCriteria(executionContext, query).build()));
     }
 
-    private EventCriteria.Builder queryToCriteria(EventQuery query) {
+    private EventCriteria.Builder queryToCriteria(ExecutionContext executionContext, EventQuery query) {
         final EventCriteria.Builder builder = new EventCriteria.Builder()
         // FIXME: Move this environments filter to EventQuery
-            .environments(Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
+            .environments(Collections.singletonList(executionContext.getEnvironmentId()));
         if (query == null) {
             return builder;
         }
@@ -233,11 +246,11 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         return builder;
     }
 
-    private Set<EventEntity> convert(List<Event> events) {
-        return events.stream().map(this::convert).collect(Collectors.toSet());
+    private Set<EventEntity> convert(ExecutionContext executionContext, List<Event> events) {
+        return events.stream().map(event -> convert(executionContext, event)).collect(Collectors.toSet());
     }
 
-    private EventEntity convert(Event event) {
+    private EventEntity convert(ExecutionContext executionContext, Event event) {
         EventEntity eventEntity = new EventEntity();
         eventEntity.setId(event.getId());
         eventEntity.setType(io.gravitee.rest.api.model.EventType.valueOf(event.getType().toString()));
@@ -252,7 +265,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             final String userId = event.getProperties().get(Event.EventProperties.USER.getValue());
             if (userId != null && !userId.isEmpty()) {
                 try {
-                    eventEntity.setUser(userService.findById(userId));
+                    eventEntity.setUser(userService.findById(executionContext, userId));
                 } catch (UserNotFoundException unfe) {
                     UserEntity user = new UserEntity();
                     user.setSource("system");

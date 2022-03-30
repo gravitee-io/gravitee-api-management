@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -33,72 +34,101 @@ public interface ParameterService {
     /**
      * Find parameter for current context
      */
-    String find(Key key, ParameterReferenceType referenceType);
+    String find(ExecutionContext executionContext, Key key, ParameterReferenceType referenceType);
 
     /**
      * Find parameter for a specific context
      */
-    String find(Key key, String referenceId, ParameterReferenceType referenceType);
+    String find(ExecutionContext executionContext, Key key, String referenceId, ParameterReferenceType referenceType);
 
     /**
      * Find parameter as boolean for current context
      */
-    boolean findAsBoolean(Key key, ParameterReferenceType referenceType);
+    boolean findAsBoolean(ExecutionContext executionContext, Key key, ParameterReferenceType referenceType);
 
     /**
      * Find parameter as boolean for a specific context
      */
-    boolean findAsBoolean(Key key, String referenceId, ParameterReferenceType referenceType);
+    boolean findAsBoolean(ExecutionContext executionContext, Key key, String referenceId, ParameterReferenceType referenceType);
 
     /**
      * Find parameter as list for current context
      */
-    List<String> findAll(Key key, ParameterReferenceType referenceType);
+    List<String> findAll(ExecutionContext executionContext, Key key, ParameterReferenceType referenceType);
 
     /**
      * Find parameter as list for a specific context
      */
-    List<String> findAll(Key key, String referenceId, ParameterReferenceType referenceType);
+    List<String> findAll(Key key, String referenceId, ParameterReferenceType referenceType, ExecutionContext executionContext);
 
     /**
      * Find list of parameters for current context
      */
-    Map<String, List<String>> findAll(List<Key> keys, ParameterReferenceType referenceType);
+    Map<String, List<String>> findAll(ExecutionContext executionContext, List<Key> keys, ParameterReferenceType referenceType);
 
     /**
      * Find list of parameters for a specific context
      */
-    Map<String, List<String>> findAll(List<Key> keys, String referenceId, ParameterReferenceType referenceType);
+    Map<String, List<String>> findAll(
+        List<Key> keys,
+        String referenceId,
+        ParameterReferenceType referenceType,
+        ExecutionContext executionContext
+    );
 
     /**
      * Find parameter as list with mapper for current context
      */
-    <T> List<T> findAll(Key key, Function<String, T> mapper, ParameterReferenceType referenceType);
+    <T> List<T> findAll(ExecutionContext executionContext, Key key, Function<String, T> mapper, ParameterReferenceType referenceType);
 
     /**
      * Find parameter as list with mapper for a specific context
      */
-    <T> List<T> findAll(Key key, Function<String, T> mapper, String referenceId, ParameterReferenceType referenceType);
+    <T> List<T> findAll(
+        ExecutionContext executionContext,
+        Key key,
+        Function<String, T> mapper,
+        String referenceId,
+        ParameterReferenceType referenceType
+    );
 
     /**
      * Find list of parameters with mapper for current context
      */
-    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, ParameterReferenceType referenceType);
+    <T> Map<String, List<T>> findAll(
+        ExecutionContext executionContext,
+        List<Key> keys,
+        Function<String, T> mapper,
+        ParameterReferenceType referenceType
+    );
 
     /**
      * Find list of parameters with mapper for a specific context
      */
-    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, String referenceId, ParameterReferenceType referenceType);
+    <T> Map<String, List<T>> findAll(
+        ExecutionContext executionContext,
+        List<Key> keys,
+        Function<String, T> mapper,
+        String referenceId,
+        ParameterReferenceType referenceType
+    );
 
     /**
      * Find parameter as list with filter and mapper for current context
      */
-    <T> List<T> findAll(Key key, Function<String, T> mapper, Predicate<String> filter, ParameterReferenceType referenceType);
+    <T> List<T> findAll(
+        ExecutionContext executionContext,
+        Key key,
+        Function<String, T> mapper,
+        Predicate<String> filter,
+        ParameterReferenceType referenceType
+    );
 
     /**
      * Find parameter as list with filter and mapper for a specific context
      */
     <T> List<T> findAll(
+        ExecutionContext executionContext,
         Key key,
         Function<String, T> mapper,
         Predicate<String> filter,
@@ -110,6 +140,7 @@ public interface ParameterService {
      * Find list of parameters with filter and mapper for current context
      */
     <T> Map<String, List<T>> findAll(
+        ExecutionContext executionContext,
         List<Key> keys,
         Function<String, T> mapper,
         Predicate<String> filter,
@@ -120,6 +151,7 @@ public interface ParameterService {
      * Find list of parameters with filter and mapper for a specific context
      */
     <T> Map<String, List<T>> findAll(
+        ExecutionContext executionContext,
         List<Key> keys,
         Function<String, T> mapper,
         Predicate<String> filter,
@@ -130,30 +162,42 @@ public interface ParameterService {
     /**
      * Save parameter for current context
      */
-    Parameter save(Key key, String value, ParameterReferenceType referenceType);
+    Parameter save(ExecutionContext executionContext, Key key, String value, ParameterReferenceType referenceType);
 
     /**
      * Save parameter for a specific context
      */
-    Parameter save(Key key, String value, String referenceId, ParameterReferenceType referenceType);
+    Parameter save(ExecutionContext executionContext, Key key, String value, String referenceId, ParameterReferenceType referenceType);
 
     /**
      * Save parameter as list for current context
      */
-    Parameter save(Key key, List<String> value, ParameterReferenceType referenceType);
+    Parameter save(ExecutionContext executionContext, Key key, List<String> value, ParameterReferenceType referenceType);
 
     /**
      * Save parameter as list for a specific context
      */
-    Parameter save(Key key, List<String> value, String referenceId, ParameterReferenceType referenceType);
+    Parameter save(
+        ExecutionContext executionContext,
+        Key key,
+        List<String> value,
+        String referenceId,
+        ParameterReferenceType referenceType
+    );
 
     /**
      * Save parameter as map for current context
      */
-    Parameter save(Key key, Map<String, String> values, ParameterReferenceType referenceType);
+    Parameter save(ExecutionContext executionContext, Key key, Map<String, String> values, ParameterReferenceType referenceType);
 
     /**
      * Save parameter as map for a specific context
      */
-    Parameter save(Key key, Map<String, String> values, String referenceId, ParameterReferenceType referenceType);
+    Parameter save(
+        ExecutionContext executionContext,
+        Key key,
+        Map<String, String> values,
+        String referenceId,
+        ParameterReferenceType referenceType
+    );
 }

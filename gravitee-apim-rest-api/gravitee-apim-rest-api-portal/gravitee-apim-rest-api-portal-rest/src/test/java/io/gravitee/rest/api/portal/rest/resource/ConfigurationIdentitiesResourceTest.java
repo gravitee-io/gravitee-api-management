@@ -81,16 +81,16 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
             )
         )
             .when(socialIdentityProviderService)
-            .findAll(any());
+            .findAll(eq(GraviteeContext.getExecutionContext()), any());
 
         PortalSettingsEntity configEntity = new PortalSettingsEntity();
-        doReturn(configEntity).when(configService).getPortalSettings(GraviteeContext.getCurrentEnvironment());
+        doReturn(configEntity).when(configService).getPortalSettings(GraviteeContext.getExecutionContext());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         verify(identityProviderMapper, times(4)).convert(any());
-        verify(socialIdentityProviderService).findAll(any());
+        verify(socialIdentityProviderService).findAll(eq(GraviteeContext.getExecutionContext()), any());
 
         ConfigurationIdentitiesResponse configurationIdentitiesResponse = response.readEntity(ConfigurationIdentitiesResponse.class);
         assertEquals(4, configurationIdentitiesResponse.getData().size());

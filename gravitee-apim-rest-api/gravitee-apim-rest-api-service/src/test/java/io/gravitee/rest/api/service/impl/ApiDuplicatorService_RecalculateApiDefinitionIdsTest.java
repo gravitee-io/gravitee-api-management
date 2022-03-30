@@ -30,6 +30,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
@@ -82,7 +84,10 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
                 .add(mapper.createObjectNode().put("id", "my-plan-id-2"))
         );
 
-        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "uat");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(
+            new ExecutionContext("default", "uat"),
+            new ImportApiJsonNode(apiDefinition)
+        );
 
         assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.getId());
         assertEquals("3ce45391-1777-3424-b4cb-2811b1281cea", newApiDefinition.getPlans().get(0).getId());
@@ -100,10 +105,12 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
                 .add(mapper.createObjectNode().put("id", "plan-id-1").put("crossId", "plan-cross-id-1"))
                 .add(mapper.createObjectNode().put("id", "plan-id-2").put("crossId", "plan-cross-id-2"))
         );
-
         when(apiService.findByEnvironmentIdAndCrossId("uat", "api-cross-id")).thenReturn(Optional.empty());
 
-        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "uat");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(
+            new ExecutionContext("default", "uat"),
+            new ImportApiJsonNode(apiDefinition)
+        );
 
         assertEquals("6bcde800-d5ae-3215-8413-cae196f9edfc", newApiDefinition.getId());
         assertEquals("9e0bf9bc-137b-39d3-9e6a-3de94ac3788c", newApiDefinition.getPlans().get(0).getId());
@@ -135,9 +142,15 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
         secondMatchingPlan.setId("plan-id-2");
 
         when(apiService.findByEnvironmentIdAndCrossId("dev", "api-cross-id")).thenReturn(Optional.of(matchingApi));
-        when(planService.findByApi("api-id-1")).thenReturn(Set.of(firstMatchingPlan, secondMatchingPlan));
 
-        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "dev");
+        ExecutionContext executionContext = new ExecutionContext("default", "dev");
+
+        when(planService.findByApi(executionContext, "api-id-1")).thenReturn(Set.of(firstMatchingPlan, secondMatchingPlan));
+
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(
+            executionContext,
+            new ImportApiJsonNode(apiDefinition)
+        );
 
         assertEquals("api-id-1", newApiDefinition.getId());
         assertEquals("plan-id-1", newApiDefinition.getPlans().get(0).getId());
@@ -180,9 +193,12 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
         page.setCrossId("page-cross-id");
 
         when(apiService.findByEnvironmentIdAndCrossId("dev", "api-cross-id")).thenReturn(Optional.of(matchingApi));
-        when(pageService.findByApi("api-id-1")).thenReturn(List.of(rootFolder, nestedFolder, page));
+        when(pageService.findByApi("dev", "api-id-1")).thenReturn(List.of(rootFolder, nestedFolder, page));
 
-        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "dev");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(
+            new ExecutionContext("default", "dev"),
+            new ImportApiJsonNode(apiDefinition)
+        );
 
         assertEquals("api-id-1", newApiDefinition.getId());
         assertEquals(3, newApiDefinition.getPages().size());
@@ -207,7 +223,10 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
                 .add(mapper.createObjectNode().put("id", "page-id").put("parentId", "nested-folder-id"))
         );
 
-        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "uat");
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(
+            new ExecutionContext("default", "uat"),
+            new ImportApiJsonNode(apiDefinition)
+        );
 
         assertEquals("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38", newApiDefinition.getId());
         assertEquals(3, newApiDefinition.getPages().size());
@@ -250,12 +269,17 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
         PageEntity matchingPage = new PageEntity();
         matchingPage.setId("page-id-1");
         matchingPage.setCrossId("page-cross-id");
-
         when(apiService.findByEnvironmentIdAndCrossId("dev", "api-cross-id")).thenReturn(Optional.of(matchingApi));
-        when(pageService.findByApi("api-id-1")).thenReturn(List.of(matchingPage));
-        when(planService.findByApi("api-id-1")).thenReturn(Set.of(matchingPlan));
+        when(pageService.findByApi("dev", "api-id-1")).thenReturn(List.of(matchingPage));
 
-        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(new ImportApiJsonNode(apiDefinition), "dev");
+        ExecutionContext executionContext = new ExecutionContext("default", "dev");
+
+        when(planService.findByApi(executionContext, "api-id-1")).thenReturn(Set.of(matchingPlan));
+
+        ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(
+            executionContext,
+            new ImportApiJsonNode(apiDefinition)
+        );
 
         assertEquals("api-id-1", newApiDefinition.getId());
         assertEquals("plan-id-1", newApiDefinition.getPlans().get(0).getId());
@@ -284,8 +308,8 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
         );
 
         ImportApiJsonNode newApiDefinition = apiDuplicatorService.recalculateApiDefinitionIds(
-            new ImportApiJsonNode(apiDefinition),
-            "default"
+            new ExecutionContext("default", "default"),
+            new ImportApiJsonNode(apiDefinition)
         );
 
         assertEquals("ed5fbfe2-9cab-3306-9e51-24721d5b6e82", newApiDefinition.getId());

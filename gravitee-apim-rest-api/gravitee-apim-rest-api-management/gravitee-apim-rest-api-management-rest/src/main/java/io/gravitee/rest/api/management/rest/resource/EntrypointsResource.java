@@ -127,7 +127,12 @@ public class EntrypointsResource extends AbstractResource {
         }
     )
     public EntrypointEntity createEntrypoint(@Valid @NotNull final NewEntryPointEntity entrypoint) {
-        return entrypointService.create(entrypoint, GraviteeContext.getCurrentOrganization(), EntrypointReferenceType.ORGANIZATION);
+        return entrypointService.create(
+            GraviteeContext.getExecutionContext(),
+            entrypoint,
+            GraviteeContext.getCurrentOrganization(),
+            EntrypointReferenceType.ORGANIZATION
+        );
     }
 
     @PUT
@@ -150,7 +155,12 @@ public class EntrypointsResource extends AbstractResource {
         }
     )
     public EntrypointEntity updateEntrypoint(@Valid @NotNull final UpdateEntryPointEntity entrypoint) {
-        return entrypointService.update(entrypoint, GraviteeContext.getCurrentOrganization(), EntrypointReferenceType.ORGANIZATION);
+        return entrypointService.update(
+            GraviteeContext.getExecutionContext(),
+            entrypoint,
+            GraviteeContext.getCurrentOrganization(),
+            EntrypointReferenceType.ORGANIZATION
+        );
     }
 
     @Path("{entrypoint}")
@@ -169,6 +179,11 @@ public class EntrypointsResource extends AbstractResource {
         }
     )
     public void deleteEntrypoint(@PathParam("entrypoint") String entrypoint) {
-        entrypointService.delete(entrypoint, GraviteeContext.getCurrentOrganization(), EntrypointReferenceType.ORGANIZATION);
+        entrypointService.delete(
+            GraviteeContext.getExecutionContext(),
+            entrypoint,
+            GraviteeContext.getCurrentOrganization(),
+            EntrypointReferenceType.ORGANIZATION
+        );
     }
 }

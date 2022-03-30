@@ -18,8 +18,10 @@ package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import io.gravitee.rest.api.service.search.query.Query;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.index.Term;
@@ -43,7 +45,7 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
     protected static final String FIELD_TYPE_VALUE = "user";
 
     @Override
-    public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
+    public SearchResult search(ExecutionContext executionContext, Query query) throws TechnicalException {
         QueryParser parser = new MultiFieldQueryParser(
             new String[] { "displayname", "displayname_reverted", "email", "reference" },
             analyzer
@@ -79,10 +81,7 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
                 new TermQuery(new Term(FIELD_REFERENCE_TYPE, GraviteeContext.ReferenceContextType.ORGANIZATION.name())),
                 BooleanClause.Occur.MUST
             );
-            orgCriteria.add(
-                new TermQuery(new Term(FIELD_REFERENCE_ID, GraviteeContext.getCurrentOrganization())),
-                BooleanClause.Occur.MUST
-            );
+            orgCriteria.add(new TermQuery(new Term(FIELD_REFERENCE_ID, executionContext.getOrganizationId())), BooleanClause.Occur.MUST);
 
             userQuery.add(orgCriteria.build(), BooleanClause.Occur.FILTER);
 

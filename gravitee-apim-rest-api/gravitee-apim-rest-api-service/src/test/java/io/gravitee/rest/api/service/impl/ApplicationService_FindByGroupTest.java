@@ -24,7 +24,6 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
 import java.util.Set;
 import org.junit.Test;
@@ -52,7 +51,7 @@ public class ApplicationService_FindByGroupTest {
     @Test
     public void shouldTryFindByGroup() throws Exception {
         Set<ApplicationListItem> set = applicationService.findByGroups(
-            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getExecutionContext(),
             Collections.singletonList(GROUP_ID)
         );
         assertNotNull(set);

@@ -25,6 +25,7 @@ import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -66,14 +67,15 @@ public class PagesResource extends AbstractResource {
         @QueryParam("parent") String parent
     ) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Stream<Page> pageStream = pageService
             .search(
+                GraviteeContext.getCurrentEnvironment(),
                 new PageQuery.Builder().homepage(homepage).published(true).build(),
-                acceptedLocale,
-                GraviteeContext.getCurrentEnvironment()
+                acceptedLocale
             )
             .stream()
-            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity))
+            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(executionContext, pageEntity))
             .map(pageMapper::convert)
             .map(this::addPageLink);
 
@@ -95,7 +97,7 @@ public class PagesResource extends AbstractResource {
             pages = pageStream.collect(Collectors.toList());
         }
         pages.sort(Comparator.comparingInt(Page::getOrder));
-        return createListResponse(pages, paginationParam);
+        return createListResponse(executionContext, pages, paginationParam);
     }
 
     private List<String> getAncestors(Map<String, Page> pages, Page page) {

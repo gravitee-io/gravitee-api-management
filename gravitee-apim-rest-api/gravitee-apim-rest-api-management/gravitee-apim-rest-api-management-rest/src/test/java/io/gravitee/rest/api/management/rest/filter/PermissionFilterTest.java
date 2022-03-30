@@ -92,7 +92,7 @@ public class PermissionFilterTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
         Principal user = () -> USERNAME;
-        when(apiService.findById(api.getId())).thenReturn(api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), api.getId())).thenReturn(api);
         when(securityContext.getUserPrincipal()).thenReturn(user);
         Permission perm = mock(Permission.class);
         when(perm.value()).thenReturn(RolePermission.API_ANALYTICS);
@@ -112,12 +112,12 @@ public class PermissionFilterTest {
         when(roleService.hasPermission(any(), any(), any())).thenReturn(false);
 
         try {
-            permissionFilter.filter(permissions, containerRequestContext);
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
         } catch (ForbiddenAccessException e) {
-            verify(apiService, times(1)).findById(api.getId());
-            verify(applicationService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
+            verify(apiService, times(1)).findById(GraviteeContext.getExecutionContext(), api.getId());
+            verify(applicationService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
             verify(roleService, times(1)).hasPermission(any(), any(), any());
-            verify(membershipService, times(1)).getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), api, USERNAME);
+            verify(membershipService, times(1)).getUserMemberPermissions(GraviteeContext.getExecutionContext(), api, USERNAME);
             verify(membershipService, never()).getRoles(any(), any(), any(), any());
             throw e;
         }
@@ -130,11 +130,11 @@ public class PermissionFilterTest {
         ApiEntity api = initApiMocks();
         when(roleService.hasPermission(any(), any(), any())).thenReturn(true);
 
-        permissionFilter.filter(permissions, containerRequestContext);
-        verify(apiService, times(1)).findById(api.getId());
-        verify(applicationService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
+        permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+        verify(apiService, times(1)).findById(GraviteeContext.getExecutionContext(), api.getId());
+        verify(applicationService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
         verify(roleService, times(1)).hasPermission(any(), any(), any());
-        verify(membershipService, times(1)).getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), api, USERNAME);
+        verify(membershipService, times(1)).getUserMemberPermissions(GraviteeContext.getExecutionContext(), api, USERNAME);
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
     }
 
@@ -145,7 +145,7 @@ public class PermissionFilterTest {
         ApplicationEntity application = new ApplicationEntity();
         application.setId(APPLICATION_ID);
         Principal user = () -> USERNAME;
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), application.getId())).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), application.getId())).thenReturn(application);
         when(securityContext.getUserPrincipal()).thenReturn(user);
         Permission perm = mock(Permission.class);
         when(perm.value()).thenReturn(RolePermission.APPLICATION_ANALYTICS);
@@ -165,12 +165,12 @@ public class PermissionFilterTest {
         when(roleService.hasPermission(any(), any(), any())).thenReturn(false);
 
         try {
-            permissionFilter.filter(permissions, containerRequestContext);
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
         } catch (ForbiddenAccessException e) {
-            verify(applicationService, times(1)).findById(GraviteeContext.getCurrentEnvironment(), application.getId());
-            verify(apiService, never()).findById(any());
+            verify(applicationService, times(1)).findById(GraviteeContext.getExecutionContext(), application.getId());
+            verify(apiService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
             verify(roleService, times(1)).hasPermission(any(), any(), any());
-            verify(membershipService, times(1)).getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), application, USERNAME);
+            verify(membershipService, times(1)).getUserMemberPermissions(GraviteeContext.getExecutionContext(), application, USERNAME);
             verify(membershipService, never()).getRoles(any(), any(), any(), any());
             throw e;
         }
@@ -183,11 +183,11 @@ public class PermissionFilterTest {
         ApplicationEntity application = initApplicationMocks();
         when(roleService.hasPermission(any(), any(), any())).thenReturn(true);
 
-        permissionFilter.filter(permissions, containerRequestContext);
-        verify(apiService, never()).findById(any());
-        verify(applicationService, times(1)).findById(GraviteeContext.getCurrentEnvironment(), application.getId());
+        permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+        verify(apiService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
+        verify(applicationService, times(1)).findById(GraviteeContext.getExecutionContext(), application.getId());
         verify(roleService, times(1)).hasPermission(any(), any(), any());
-        verify(membershipService, times(1)).getUserMemberPermissions(GraviteeContext.getCurrentEnvironment(), application, USERNAME);
+        verify(membershipService, times(1)).getUserMemberPermissions(GraviteeContext.getExecutionContext(), application, USERNAME);
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
     }
 
@@ -212,22 +212,17 @@ public class PermissionFilterTest {
         when(roleService.hasPermission(any(), any(), any())).thenReturn(false);
 
         try {
-            permissionFilter.filter(permissions, containerRequestContext);
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
         } catch (ForbiddenAccessException e) {
-            verify(applicationService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
-            verify(apiService, never()).findById(any());
+            verify(applicationService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
+            verify(apiService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
             verify(roleService, times(1)).hasPermission(any(), any(), any());
             verify(membershipService, never())
-                .getUserMemberPermissions(eq(GraviteeContext.getCurrentEnvironment()), any(ApiEntity.class), any());
+                .getUserMemberPermissions(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class), any());
             verify(membershipService, never())
-                .getUserMemberPermissions(eq(GraviteeContext.getCurrentEnvironment()), any(ApplicationEntity.class), any());
+                .getUserMemberPermissions(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class), any());
             verify(membershipService, times(1))
-                .getUserMemberPermissions(
-                    eq(GraviteeContext.getCurrentEnvironment()),
-                    eq(MembershipReferenceType.ENVIRONMENT),
-                    any(),
-                    any()
-                );
+                .getUserMemberPermissions(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.ENVIRONMENT), any(), any());
             throw e;
         }
 
@@ -239,16 +234,15 @@ public class PermissionFilterTest {
         initManagementMocks();
         when(roleService.hasPermission(any(), any(), any())).thenReturn(true);
 
-        permissionFilter.filter(permissions, containerRequestContext);
+        permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
 
-        verify(applicationService, never()).findById(eq(GraviteeContext.getCurrentEnvironment()), any());
-        verify(apiService, never()).findById(any());
+        verify(applicationService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
+        verify(apiService, never()).findById(eq(GraviteeContext.getExecutionContext()), any());
         verify(roleService, times(1)).hasPermission(any(), any(), any());
+        verify(membershipService, never()).getUserMemberPermissions(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class), any());
         verify(membershipService, never())
-            .getUserMemberPermissions(eq(GraviteeContext.getCurrentEnvironment()), any(ApiEntity.class), any());
-        verify(membershipService, never())
-            .getUserMemberPermissions(eq(GraviteeContext.getCurrentEnvironment()), any(ApplicationEntity.class), any());
+            .getUserMemberPermissions(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class), any());
         verify(membershipService, times(1))
-            .getUserMemberPermissions(eq(GraviteeContext.getCurrentEnvironment()), eq(MembershipReferenceType.ENVIRONMENT), any(), any());
+            .getUserMemberPermissions(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.ENVIRONMENT), any(), any());
     }
 }

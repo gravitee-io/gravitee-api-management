@@ -19,6 +19,7 @@ import io.gravitee.repository.management.model.DashboardReferenceType;
 import io.gravitee.rest.api.model.DashboardEntity;
 import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -29,7 +30,7 @@ public interface DashboardService {
     List<DashboardEntity> findAll();
     List<DashboardEntity> findByReferenceType(DashboardReferenceType referenceType);
     DashboardEntity findById(String dashboardId);
-    DashboardEntity create(NewDashboardEntity dashboard);
-    DashboardEntity update(UpdateDashboardEntity dashboard);
-    void delete(String dashboardId);
+    DashboardEntity create(ExecutionContext executionContext, NewDashboardEntity dashboard);
+    DashboardEntity update(ExecutionContext executionContext, UpdateDashboardEntity dashboard);
+    void delete(ExecutionContext executionContext, String dashboardId);
 }

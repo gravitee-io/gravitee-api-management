@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
@@ -130,7 +131,8 @@ public class GroupMembersResource extends AbstractResource {
     )
     public PagedResult<GroupMemberEntity> getGroupMembers(@Valid @BeanParam Pageable pageable) {
         //check that group exists
-        groupService.findById(GraviteeContext.getCurrentEnvironment(), group);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        groupService.findById(executionContext, group);
 
         io.gravitee.rest.api.model.common.Pageable commonPageable = null;
 
@@ -138,7 +140,12 @@ public class GroupMembersResource extends AbstractResource {
             commonPageable = pageable.toPageable();
         }
 
-        Page<MemberEntity> membersPage = membershipService.getMembersByReference(MembershipReferenceType.GROUP, group, commonPageable);
+        Page<MemberEntity> membersPage = membershipService.getMembersByReference(
+            executionContext,
+            MembershipReferenceType.GROUP,
+            group,
+            commonPageable
+        );
 
         Map<String, List<MemberEntity>> members = membersPage
             .getContent()
@@ -179,10 +186,12 @@ public class GroupMembersResource extends AbstractResource {
     )
     public Response addOrUpdateGroupMember(@Valid @NotNull final List<GroupMembership> memberships) {
         // Check that group exists
-        final GroupEntity groupEntity = groupService.findById(GraviteeContext.getCurrentEnvironment(), group);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final GroupEntity groupEntity = groupService.findById(executionContext, group);
 
         // check if user is a 'simple group admin' or a platform admin
         final boolean hasPermission = permissionService.hasPermission(
+            executionContext,
             ENVIRONMENT_GROUP,
             GraviteeContext.getCurrentEnvironment(),
             CREATE,
@@ -191,7 +200,11 @@ public class GroupMembersResource extends AbstractResource {
         );
         if (!hasPermission) {
             if (groupEntity.getMaxInvitation() != null) {
-                final Set<MemberEntity> members = membershipService.getMembersByReference(MembershipReferenceType.GROUP, group);
+                final Set<MemberEntity> members = membershipService.getMembersByReference(
+                    executionContext,
+                    MembershipReferenceType.GROUP,
+                    group
+                );
                 final long membershipsToAddSize = memberships
                     .stream()
                     .map(GroupMembership::getId)
@@ -202,7 +215,7 @@ public class GroupMembersResource extends AbstractResource {
                         }
                     )
                     .count();
-                if ((groupService.getNumberOfMembers(group) + membershipsToAddSize) > groupEntity.getMaxInvitation()) {
+                if ((groupService.getNumberOfMembers(executionContext, group) + membershipsToAddSize) > groupEntity.getMaxInvitation()) {
                     throw new GroupMembersLimitationExceededException(groupEntity.getMaxInvitation());
                 }
             }
@@ -245,7 +258,7 @@ public class GroupMembersResource extends AbstractResource {
                 Map<RoleScope, RoleEntity> roleEntities = new HashMap<>();
                 for (MemberRoleEntity item : membership.getRoles()) {
                     roleService
-                        .findByScopeAndName(item.getRoleScope(), item.getRoleName())
+                        .findByScopeAndName(item.getRoleScope(), item.getRoleName(), GraviteeContext.getCurrentOrganization())
                         .ifPresent(roleEntity -> roleEntities.put(item.getRoleScope(), roleEntity));
                 }
 
@@ -256,15 +269,17 @@ public class GroupMembersResource extends AbstractResource {
                 if (apiRoleEntity != null && !apiRoleEntity.equals(previousApiRole)) {
                     String roleName = apiRoleEntity.getName();
                     if (!hasPermission && groupEntity.isLockApiRole()) {
-                        final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(RoleScope.API);
+                        final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(
+                            GraviteeContext.getCurrentOrganization(),
+                            RoleScope.API
+                        );
                         if (defaultRoles != null && !defaultRoles.isEmpty()) {
                             roleName = defaultRoles.get(0).getName();
                         }
                     }
                     updatedMembership =
                         membershipService.addRoleToMemberOnReference(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
+                            executionContext,
                             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
                             new MembershipService.MembershipMember(
                                 membership.getId(),
@@ -293,15 +308,17 @@ public class GroupMembersResource extends AbstractResource {
                 if (applicationRoleEntity != null && !applicationRoleEntity.equals(previousApplicationRole)) {
                     String roleName = applicationRoleEntity.getName();
                     if (!hasPermission && groupEntity.isLockApplicationRole()) {
-                        final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(RoleScope.APPLICATION);
+                        final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(
+                            GraviteeContext.getCurrentOrganization(),
+                            RoleScope.APPLICATION
+                        );
                         if (defaultRoles != null && !defaultRoles.isEmpty()) {
                             roleName = defaultRoles.get(0).getName();
                         }
                     }
                     updatedMembership =
                         membershipService.addRoleToMemberOnReference(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
+                            executionContext,
                             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
                             new MembershipService.MembershipMember(
                                 membership.getId(),
@@ -324,8 +341,7 @@ public class GroupMembersResource extends AbstractResource {
                 if (groupRoleEntity != null && !groupRoleEntity.equals(previousGroupRole)) {
                     updatedMembership =
                         membershipService.addRoleToMemberOnReference(
-                            GraviteeContext.getCurrentOrganization(),
-                            GraviteeContext.getCurrentEnvironment(),
+                            executionContext,
                             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
                             new MembershipService.MembershipMember(
                                 membership.getId(),
@@ -376,11 +392,11 @@ public class GroupMembersResource extends AbstractResource {
 
                 // Send notification
                 if (previousApiRole == null && previousApplicationRole == null && previousGroupRole == null && updatedMembership != null) {
-                    UserEntity userEntity = this.userService.findById(updatedMembership.getId());
+                    UserEntity userEntity = this.userService.findById(executionContext, updatedMembership.getId());
                     Map<String, Object> params = new HashMap<>();
                     params.put("group", groupEntity);
                     params.put("user", userEntity);
-                    this.notifierService.trigger(GROUP_INVITATION, params);
+                    this.notifierService.trigger(executionContext, GROUP_INVITATION, params);
                 }
             }
         }

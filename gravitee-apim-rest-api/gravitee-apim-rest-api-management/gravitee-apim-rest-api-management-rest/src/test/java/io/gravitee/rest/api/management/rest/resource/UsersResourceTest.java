@@ -17,12 +17,14 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -50,7 +52,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         newPreRegisterUserEntity.setEmail("mail@fake.fake");
         newPreRegisterUserEntity.setService(true);
 
-        when(userService.create(any())).thenReturn(new UserEntity());
+        when(userService.create(any(), any())).thenReturn(new UserEntity());
 
         final Response response = orgTarget().request().post(Entity.json(newPreRegisterUserEntity));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -61,7 +63,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
         newPreRegisterUserEntity.setService(true);
 
-        when(userService.create(any())).thenReturn(new UserEntity());
+        when(userService.create(any(), any())).thenReturn(new UserEntity());
 
         final Response response = orgTarget().request().post(Entity.json(newPreRegisterUserEntity));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -72,7 +74,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
         newPreRegisterUserEntity.setEmail("mail@fake.fake");
 
-        when(userService.create(any())).thenReturn(new UserEntity());
+        when(userService.create(any(), any())).thenReturn(new UserEntity());
 
         final Response response = orgTarget().request().post(Entity.json(newPreRegisterUserEntity));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

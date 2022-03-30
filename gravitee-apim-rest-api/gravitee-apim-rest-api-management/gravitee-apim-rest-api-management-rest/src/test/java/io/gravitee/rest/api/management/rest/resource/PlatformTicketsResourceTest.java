@@ -19,9 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +28,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.TicketEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -63,7 +62,7 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldFindTicket() {
-        when(ticketService.findById(any(String.class))).thenReturn(fakeTicketEntity);
+        when(ticketService.findById(eq(GraviteeContext.getExecutionContext()), any(String.class))).thenReturn(fakeTicketEntity);
 
         Response ticket = envTarget(TICKET).request().get();
 
@@ -72,7 +71,8 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFindTicket() {
-        when(ticketService.findById(any(String.class))).thenThrow(new TicketNotFoundException("id"));
+        when(ticketService.findById(eq(GraviteeContext.getExecutionContext()), any(String.class)))
+            .thenThrow(new TicketNotFoundException("id"));
 
         Response ticket = envTarget(TICKET).request().get();
 
@@ -84,7 +84,7 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
         ArgumentCaptor<TicketQuery> queryCaptor = ArgumentCaptor.forClass(TicketQuery.class);
         ArgumentCaptor<SortableImpl> sortableCaptor = ArgumentCaptor.forClass(SortableImpl.class);
 
-        when(ticketService.search(queryCaptor.capture(), sortableCaptor.capture(), any()))
+        when(ticketService.search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture(), sortableCaptor.capture(), any()))
             .thenReturn(new Page<>(singletonList(fakeTicketEntity), 1, 1, 1));
 
         Response response = envTarget().queryParam("page", 1).queryParam("size", 10).queryParam("order", "-subject").request().get();
@@ -99,6 +99,7 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
 
         verify(ticketService, Mockito.times(1))
             .search(
+                eq(GraviteeContext.getExecutionContext()),
                 any(),
                 argThat(o -> o.getField().equals("subject") && !o.isAscOrder()),
                 argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10)
@@ -109,7 +110,8 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
     public void shouldSearchTicketsWithoutSorting() {
         ArgumentCaptor<TicketQuery> queryCaptor = ArgumentCaptor.forClass(TicketQuery.class);
 
-        when(ticketService.search(queryCaptor.capture(), any(), any())).thenReturn(new Page<>(singletonList(fakeTicketEntity), 1, 1, 1));
+        when(ticketService.search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture(), any(), any()))
+            .thenReturn(new Page<>(singletonList(fakeTicketEntity), 1, 1, 1));
 
         Response response = envTarget().queryParam("page", 1).queryParam("size", 10).request().get();
 
@@ -117,6 +119,12 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
         TicketQuery query = queryCaptor.getValue();
         assertEquals("Query user", USER_NAME, query.getFromUser());
 
-        verify(ticketService, Mockito.times(1)).search(any(), isNull(), argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10));
+        verify(ticketService, Mockito.times(1))
+            .search(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                isNull(),
+                argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10)
+            );
     }
 }

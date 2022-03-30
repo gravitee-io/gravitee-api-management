@@ -17,12 +17,13 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.ApiQualityMetricsEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface QualityMetricsService {
-    ApiQualityMetricsEntity getMetrics(ApiEntity apiEntity, final String environmentId);
-    boolean isApiMetricsEnabled();
+    ApiQualityMetricsEntity getMetrics(ExecutionContext executionContext, ApiEntity apiEntity);
+    boolean isApiMetricsEnabled(ExecutionContext executionContext);
 }

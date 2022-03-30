@@ -38,7 +38,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.AlertHook;
 import io.gravitee.rest.api.service.notification.HookScope;
@@ -93,8 +93,8 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     }
 
     @Override
-    public AlertTriggerEntity create(final String environmentId, String applicationId, NewAlertTriggerEntity alert) {
-        final ApplicationEntity application = applicationService.findById(environmentId, applicationId);
+    public AlertTriggerEntity create(ExecutionContext executionContext, String applicationId, NewAlertTriggerEntity alert) {
+        final ApplicationEntity application = applicationService.findById(executionContext, applicationId);
 
         alert.setName(generateAlertName(application, alert));
         alert.setReferenceType(AlertReferenceType.APPLICATION);
@@ -104,26 +104,31 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         alert.setDampening(Dampening.strictCount(1));
         alert.setFilters(combineFilters(applicationId, alert.getFilters()));
 
-        final List<String> recipients = getNotificationRecipients(application.getId(), application.getGroups());
+        final List<String> recipients = getNotificationRecipients(executionContext, application.getId(), application.getGroups());
         if (!CollectionUtils.isEmpty(recipients)) {
-            alert.setNotifications(combineNotifications(alert.getNotifications(), createNotification(alert.getType(), recipients)));
+            alert.setNotifications(
+                combineNotifications(
+                    alert.getNotifications(),
+                    createNotification(alert.getType(), recipients, executionContext.getOrganizationId())
+                )
+            );
         }
 
         return alertService.create(alert);
     }
 
-    private List<Notification> createNotification(String alertType) {
-        return createNotification(alertType, new ArrayList<>());
+    private List<Notification> createNotification(String alertType, String organizationId) {
+        return createNotification(alertType, new ArrayList<>(), organizationId);
     }
 
-    private List<Notification> createNotification(String alertType, List<String> recipients) {
+    private List<Notification> createNotification(String alertType, List<String> recipients, String organizationId) {
         try {
             Notification notification = new Notification();
             notification.setType(DEFAULT_EMAIL_NOTIFIER);
             ObjectNode configuration = mapper.createObjectNode();
             configuration.put("from", emailFrom);
             configuration.put("to", String.join(",", recipients));
-            generateNotificationBodyFromTemplate(configuration, alertType);
+            generateNotificationBodyFromTemplate(configuration, alertType, organizationId);
             notification.setPeriods(emptyList());
 
             notification.setConfiguration(mapper.writeValueAsString(configuration));
@@ -168,20 +173,20 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     }
 
     @Override
-    public void addMemberToApplication(final String environmentId, String applicationId, String email) {
+    public void addMemberToApplication(ExecutionContext executionContext, String applicationId, String email) {
         if (StringUtils.isEmpty(email)) {
             return;
         }
 
         // check existence of application
-        applicationService.findById(environmentId, applicationId);
+        applicationService.findById(executionContext, applicationId);
 
         alertService
             .findByReference(AlertReferenceType.APPLICATION, applicationId)
             .forEach(
                 trigger -> {
                     if (trigger.getNotifications() == null) {
-                        trigger.setNotifications(createNotification(trigger.getType()));
+                        trigger.setNotifications(createNotification(trigger.getType(), executionContext.getOrganizationId()));
                     }
                     final Optional<Notification> notificationOpt = trigger
                         .getNotifications()
@@ -207,7 +212,9 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                             );
                         }
                     } else {
-                        trigger.setNotifications(createNotification(trigger.getType(), singletonList(email)));
+                        trigger.setNotifications(
+                            createNotification(trigger.getType(), singletonList(email), executionContext.getOrganizationId())
+                        );
                     }
                     alertService.update(convert(trigger));
                 }
@@ -215,20 +222,20 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     }
 
     @Override
-    public void deleteMemberFromApplication(final String environmentId, String applicationId, String email) {
+    public void deleteMemberFromApplication(ExecutionContext executionContext, String applicationId, String email) {
         if (StringUtils.isEmpty(email)) {
             return;
         }
 
         // check existence of application
-        applicationService.findById(environmentId, applicationId);
+        applicationService.findById(executionContext, applicationId);
 
         alertService
             .findByReference(AlertReferenceType.APPLICATION, applicationId)
             .forEach(
                 trigger -> {
                     if (trigger.getNotifications() == null) {
-                        trigger.setNotifications(createNotification(trigger.getType()));
+                        trigger.setNotifications(createNotification(trigger.getType(), executionContext.getOrganizationId()));
                     }
 
                     final Optional<Notification> notificationOpt = trigger
@@ -280,11 +287,11 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     @Override
     @Async
     public void handleEvent(Event<ApplicationAlertEventType, Object> event) {
+        final NotificationTemplateEvent notificationEvent = (NotificationTemplateEvent) event.content();
+        final NotificationTemplateEntity notificationTemplate = notificationEvent.getNotificationTemplateEntity();
+        final String organizationId = notificationEvent.getOrganizationId();
         switch (event.type()) {
             case NOTIFICATION_TEMPLATE_UPDATE:
-                final NotificationTemplateEvent notificationEvent = (NotificationTemplateEvent) event.content();
-                final NotificationTemplateEntity notificationTemplate = notificationEvent.getNotificationTemplateEntity();
-                final String organizationId = notificationEvent.getOrganizationId();
                 if (notificationTemplate.getHook().equals(AlertHook.CONSUMER_HTTP_STATUS.name())) {
                     updateAllAlertsBody(organizationId, STATUS_ALERT, notificationTemplate.getContent(), notificationTemplate.getTitle());
                 } else if (notificationTemplate.getHook().equals(AlertHook.CONSUMER_RESPONSE_TIME.name())) {
@@ -297,26 +304,18 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                 }
                 break;
             case APPLICATION_MEMBERSHIP_UPDATE:
-                updateAlertsRecipients(
-                    (ApplicationAlertMembershipEvent) event.content(),
-                    // FIXME: remove this calls to getCurrentXXXX
-                    GraviteeContext.getCurrentOrganization(),
-                    GraviteeContext.getCurrentEnvironment()
-                );
+                updateAlertsRecipients((ApplicationAlertMembershipEvent) event.content(), organizationId);
                 break;
         }
     }
 
-    private void updateAlertsRecipients(
-        ApplicationAlertMembershipEvent alertMembershipEvent,
-        final String organizationId,
-        final String environmentId
-    ) {
+    private void updateAlertsRecipients(ApplicationAlertMembershipEvent alertMembershipEvent, final String organizationId) {
         // get all applications ids to update
         final Set<String> applicationIds = new HashSet<>(alertMembershipEvent.getApplicationIds());
+        ExecutionContext executionContext = new ExecutionContext(organizationId, null);
         if (!CollectionUtils.isEmpty(alertMembershipEvent.getGroupIds())) {
             applicationService
-                .findByGroups(organizationId, new ArrayList<>(alertMembershipEvent.getGroupIds()))
+                .findByGroups(executionContext, new ArrayList<>(alertMembershipEvent.getGroupIds()))
                 .stream()
                 .map(ApplicationListItem::getId)
                 .forEach(applicationIds::add);
@@ -324,9 +323,14 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
         // get recipients for each application
         final Map<String, List<String>> recipientsByApplicationId = applicationService
-            .findByIds(organizationId, environmentId, new ArrayList<>(applicationIds))
+            .findByIds(executionContext, new ArrayList<>(applicationIds))
             .stream()
-            .collect(Collectors.toMap(ApplicationListItem::getId, app -> getNotificationRecipients(app.getId(), app.getGroups())));
+            .collect(
+                Collectors.toMap(
+                    ApplicationListItem::getId,
+                    app -> getNotificationRecipients(executionContext, app.getId(), app.getGroups())
+                )
+            );
 
         // apply new recipients to each AlertTrigger related to applications to update
         alertService
@@ -334,7 +338,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             .forEach(
                 trigger -> {
                     if (trigger.getNotifications() == null) {
-                        trigger.setNotifications(createNotification(trigger.getType()));
+                        trigger.setNotifications(createNotification(trigger.getType(), organizationId));
                     }
 
                     updateTriggerNotification(trigger, recipientsByApplicationId.get(trigger.getReferenceId()));
@@ -355,7 +359,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             .forEach(
                 trigger -> {
                     if (trigger.getNotifications() == null) {
-                        trigger.setNotifications(createNotification(trigger.getType()));
+                        trigger.setNotifications(createNotification(trigger.getType(), organizationId));
                     }
 
                     updateTriggerNotification(trigger, body, subject);
@@ -367,7 +371,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         return String.format("%s - %s", alert.getType(), application.getId());
     }
 
-    private List<String> getNotificationRecipients(String applicationId, Set<String> groupIds) {
+    private List<String> getNotificationRecipients(ExecutionContext executionContext, String applicationId, Set<String> groupIds) {
         final List<String> members = membershipService
             .getMembershipsByReference(MembershipReferenceType.APPLICATION, applicationId)
             .stream()
@@ -389,14 +393,14 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         }
 
         return userService
-            .findByIds(members)
+            .findByIds(executionContext, members)
             .stream()
             .map(UserEntity::getEmail)
             .filter(mail -> !StringUtils.isEmpty(mail))
             .collect(Collectors.toList());
     }
 
-    private void generateNotificationBodyFromTemplate(ObjectNode configuration, String alertType) {
+    private void generateNotificationBodyFromTemplate(ObjectNode configuration, String alertType, String organizationId) {
         final Consumer<NotificationTemplateEntity> templateConsumer = template -> {
             configuration.put("subject", template.getTitle());
             configuration.put("body", template.getContent());
@@ -404,13 +408,13 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
         if (STATUS_ALERT.equals(alertType)) {
             notificationTemplateService
-                .findByHookAndScope(AlertHook.CONSUMER_HTTP_STATUS.name(), HookScope.TEMPLATES_FOR_ALERT.name())
+                .findByHookAndScope(organizationId, AlertHook.CONSUMER_HTTP_STATUS.name(), HookScope.TEMPLATES_FOR_ALERT.name())
                 .stream()
                 .findFirst()
                 .ifPresent(templateConsumer);
         } else if (RESPONSE_TIME_ALERT.equals(alertType)) {
             notificationTemplateService
-                .findByHookAndScope(AlertHook.CONSUMER_RESPONSE_TIME.name(), HookScope.TEMPLATES_FOR_ALERT.name())
+                .findByHookAndScope(organizationId, AlertHook.CONSUMER_RESPONSE_TIME.name(), HookScope.TEMPLATES_FOR_ALERT.name())
                 .stream()
                 .findFirst()
                 .ifPresent(templateConsumer);

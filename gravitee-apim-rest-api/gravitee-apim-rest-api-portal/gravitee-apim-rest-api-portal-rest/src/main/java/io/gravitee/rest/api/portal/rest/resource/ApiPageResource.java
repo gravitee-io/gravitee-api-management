@@ -62,13 +62,13 @@ public class ApiPageResource extends AbstractResource {
     ) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        if (accessControlService.canAccessApiFromPortal(apiId)) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
             PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
-            if (accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), apiId, pageEntity)) {
-                pageService.transformSwagger(pageEntity, apiId);
+            if (accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), apiId, pageEntity)) {
+                pageService.transformSwagger(GraviteeContext.getExecutionContext(), pageEntity, apiId);
 
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                     pageEntity.getMetadata().clear();
@@ -101,10 +101,10 @@ public class ApiPageResource extends AbstractResource {
     public Response getPageContentByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        if (accessControlService.canAccessApiFromPortal(apiId)) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             PageEntity pageEntity = pageService.findById(pageId, null);
-            if (accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), apiId, pageEntity)) {
-                pageService.transformSwagger(pageEntity, apiId);
+            if (accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), apiId, pageEntity)) {
+                pageService.transformSwagger(GraviteeContext.getExecutionContext(), pageEntity, apiId);
                 return Response.ok(pageEntity.getContent()).build();
             } else {
                 throw new UnauthorizedAccessException();

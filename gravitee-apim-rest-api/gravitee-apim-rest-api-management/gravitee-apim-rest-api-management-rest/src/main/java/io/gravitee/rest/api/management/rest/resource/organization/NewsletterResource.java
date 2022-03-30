@@ -22,13 +22,13 @@ import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -66,10 +66,10 @@ public class NewsletterResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response subscribeNewsletterToCurrentUser(@Valid @NotNull final String email) {
-        UserEntity userEntity = userService.findById(getAuthenticatedUser());
+        UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
         UpdateUserEntity user = new UpdateUserEntity(userEntity);
         user.setNewsletter(true);
-        return ok(userService.update(userEntity.getId(), user, email)).build();
+        return ok(userService.update(GraviteeContext.getExecutionContext(), userEntity.getId(), user, email)).build();
     }
 
     @GET

@@ -22,8 +22,8 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,43 +39,49 @@ public interface SubscriptionService {
      */
     SubscriptionEntity findById(String subscription);
 
-    Collection<SubscriptionEntity> findByApplicationAndPlan(String application, String plan);
+    Collection<SubscriptionEntity> findByApplicationAndPlan(ExecutionContext executionContext, String application, String plan);
 
-    Collection<SubscriptionEntity> findByApi(String api);
+    Collection<SubscriptionEntity> findByApi(ExecutionContext executionContext, String api);
 
-    Collection<SubscriptionEntity> findByPlan(String plan);
+    Collection<SubscriptionEntity> findByPlan(ExecutionContext executionContext, String plan);
 
-    SubscriptionEntity create(NewSubscriptionEntity newSubscriptionEntity);
+    SubscriptionEntity create(ExecutionContext executionContext, NewSubscriptionEntity newSubscriptionEntity);
 
-    SubscriptionEntity create(NewSubscriptionEntity newSubscriptionEntity, String customApiKey);
+    SubscriptionEntity create(ExecutionContext executionContext, NewSubscriptionEntity newSubscriptionEntity, String customApiKey);
 
-    SubscriptionEntity update(UpdateSubscriptionEntity subscription);
+    SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription);
 
     SubscriptionEntity updateDaysToExpirationOnLastNotification(String subscriptionId, Integer value);
 
-    SubscriptionEntity update(UpdateSubscriptionEntity subscription, String clientId);
+    SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription, String clientId);
 
-    SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String userId);
+    SubscriptionEntity process(ExecutionContext executionContext, ProcessSubscriptionEntity processSubscription, String userId);
 
-    SubscriptionEntity pause(String subscription);
+    SubscriptionEntity pause(ExecutionContext executionContext, String subscription);
 
-    SubscriptionEntity resume(String subscription);
+    SubscriptionEntity resume(ExecutionContext executionContext, String subscription);
 
-    SubscriptionEntity restore(String subscription);
+    SubscriptionEntity restore(ExecutionContext executionContext, String subscription);
 
-    SubscriptionEntity close(String subscription);
+    SubscriptionEntity close(ExecutionContext executionContext, String subscription);
 
-    void delete(String subscription);
+    void delete(ExecutionContext executionContext, String subscription);
 
-    Collection<SubscriptionEntity> search(SubscriptionQuery query);
+    Collection<SubscriptionEntity> search(ExecutionContext executionContext, SubscriptionQuery query);
 
-    Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable);
+    Page<SubscriptionEntity> search(ExecutionContext executionContext, SubscriptionQuery query, Pageable pageable);
 
-    Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable, boolean fillApiKeys, boolean fillPlansSecurityType);
+    Page<SubscriptionEntity> search(
+        ExecutionContext executionContext,
+        SubscriptionQuery query,
+        Pageable pageable,
+        boolean fillApiKeys,
+        boolean fillPlansSecurityType
+    );
 
-    Metadata getMetadata(SubscriptionMetadataQuery query);
+    Metadata getMetadata(ExecutionContext executionContext, SubscriptionMetadataQuery query);
 
-    SubscriptionEntity transfer(TransferSubscriptionEntity transferSubscription, String userId);
+    SubscriptionEntity transfer(ExecutionContext executionContext, TransferSubscriptionEntity transferSubscription, String userId);
 
     String exportAsCsv(Collection<SubscriptionEntity> subscriptions, Map<String, Map<String, Object>> metadata);
 

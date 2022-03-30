@@ -25,6 +25,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -113,9 +115,10 @@ public class ApiMetadataResource extends AbstractResource {
         // prevent creation of a metadata on an another API
         metadata.setApiId(api);
 
-        final ApiMetadataEntity apiMetadataEntity = metadataService.create(metadata);
-        ApiEntity apiEntity = apiService.fetchMetadataForApi(apiService.findById(api));
-        searchEngineService.index(apiEntity, false);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final ApiMetadataEntity apiMetadataEntity = metadataService.create(executionContext, metadata);
+        ApiEntity apiEntity = apiService.fetchMetadataForApi(executionContext, apiService.findById(executionContext, api));
+        searchEngineService.index(executionContext, apiEntity, false);
         return Response.created(this.getLocationHeader(apiMetadataEntity.getKey())).entity(apiMetadataEntity).build();
     }
 
@@ -138,7 +141,7 @@ public class ApiMetadataResource extends AbstractResource {
         // prevent update of a metadata on an another API
         metadata.setApiId(api);
 
-        return Response.ok(metadataService.update(metadata)).build();
+        return Response.ok(metadataService.update(GraviteeContext.getExecutionContext(), metadata)).build();
     }
 
     @DELETE
@@ -148,9 +151,12 @@ public class ApiMetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.DELETE) })
     public Response deleteApiMetadata(@PathParam("metadata") String metadata) {
-        metadataService.delete(metadata, api);
-        ApiEntity apiEntity = apiService.fetchMetadataForApi(apiService.findById(api));
-        searchEngineService.index(apiEntity, false);
+        metadataService.delete(GraviteeContext.getExecutionContext(), metadata, api);
+        ApiEntity apiEntity = apiService.fetchMetadataForApi(
+            GraviteeContext.getExecutionContext(),
+            apiService.findById(GraviteeContext.getExecutionContext(), api)
+        );
+        searchEngineService.index(GraviteeContext.getExecutionContext(), apiEntity, false);
         return Response.noContent().build();
     }
 }

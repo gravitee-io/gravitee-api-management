@@ -31,7 +31,6 @@ import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiQualityRuleNotFoundException;
-import io.gravitee.rest.api.service.impl.ApiQualityRuleServiceImpl;
 import java.util.Date;
 import java.util.List;
 import org.junit.Test;
@@ -93,7 +92,10 @@ public class ApiQualityRuleServiceTest {
         createdApiQualityRule.setUpdatedAt(new Date());
         when(apiQualityRuleRepository.create(any())).thenReturn(createdApiQualityRule);
 
-        final ApiQualityRuleEntity apiQualityRuleEntity = apiQualityRuleService.create(newApiQualityRuleEntity);
+        final ApiQualityRuleEntity apiQualityRuleEntity = apiQualityRuleService.create(
+            GraviteeContext.getExecutionContext(),
+            newApiQualityRuleEntity
+        );
 
         assertEquals(API_ID, apiQualityRuleEntity.getApi());
         assertEquals(QUALITY_RULE_ID, apiQualityRuleEntity.getQualityRule());
@@ -119,6 +121,7 @@ public class ApiQualityRuleServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(API_QUALITY_RULE, API_ID)),
                 eq(ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED),
@@ -144,7 +147,10 @@ public class ApiQualityRuleServiceTest {
         when(apiQualityRuleRepository.update(any())).thenReturn(updatedApiQualityRule);
         when(apiQualityRuleRepository.findById(API_ID, QUALITY_RULE_ID)).thenReturn(of(updatedApiQualityRule));
 
-        final ApiQualityRuleEntity apiQualityRuleEntity = apiQualityRuleService.update(updateApiQualityRuleEntity);
+        final ApiQualityRuleEntity apiQualityRuleEntity = apiQualityRuleService.update(
+            GraviteeContext.getExecutionContext(),
+            updateApiQualityRuleEntity
+        );
 
         assertEquals(API_ID, apiQualityRuleEntity.getApi());
         assertEquals(QUALITY_RULE_ID, apiQualityRuleEntity.getQualityRule());
@@ -170,6 +176,7 @@ public class ApiQualityRuleServiceTest {
             );
         verify(auditService, times(1))
             .createEnvironmentAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(API_QUALITY_RULE, API_ID)),
                 eq(ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED),
@@ -187,6 +194,6 @@ public class ApiQualityRuleServiceTest {
 
         when(apiQualityRuleRepository.findById(API_ID, QUALITY_RULE_ID)).thenReturn(empty());
 
-        apiQualityRuleService.update(updateApiQualityRuleEntity);
+        apiQualityRuleService.update(GraviteeContext.getExecutionContext(), updateApiQualityRuleEntity);
     }
 }

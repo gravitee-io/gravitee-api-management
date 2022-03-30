@@ -39,6 +39,7 @@ import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.util.*;
@@ -88,7 +89,15 @@ public class SubscriptionsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createSubscription(@Valid @NotNull(message = "Input must not be null.") SubscriptionInput subscriptionInput) {
-        if (hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionInput.getApplication(), RolePermissionAction.CREATE)) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (
+            hasPermission(
+                executionContext,
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                subscriptionInput.getApplication(),
+                RolePermissionAction.CREATE
+            )
+        ) {
             NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
             newSubscriptionEntity.setApplication(subscriptionInput.getApplication());
             newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
@@ -101,11 +110,11 @@ public class SubscriptionsResource extends AbstractResource {
                 );
                 newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
             }
-            SubscriptionEntity createdSubscription = subscriptionService.create(newSubscriptionEntity);
+            SubscriptionEntity createdSubscription = subscriptionService.create(executionContext, newSubscriptionEntity);
 
             // For consumer convenience, fetch the keys just after the subscription has been created.
             List<Key> keys = apiKeyService
-                .findBySubscription(createdSubscription.getId())
+                .findBySubscription(executionContext, createdSubscription.getId())
                 .stream()
                 .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
                 .map(keyMapper::convert)
@@ -132,24 +141,21 @@ public class SubscriptionsResource extends AbstractResource {
         query.setApplication(applicationId);
         query.setStatuses(statuses);
 
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (applicationId == null) {
-            final Set<ApplicationListItem> applications = applicationService.findByUser(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                getAuthenticatedUser()
-            );
+            final Set<ApplicationListItem> applications = applicationService.findByUser(executionContext, getAuthenticatedUser());
             if (applications == null || applications.isEmpty()) {
-                return createListResponse(emptyList(), paginationParam, paginationParam.hasPagination());
+                return createListResponse(executionContext, emptyList(), paginationParam, paginationParam.hasPagination());
             }
             query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toSet()));
-        } else if (!hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)) {
+        } else if (!hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();
         }
 
         final Collection<SubscriptionEntity> subscriptions = fetchSubscriptions(paginationParam, query);
 
         if (subscriptions.isEmpty()) {
-            return createListResponse(subscriptions, paginationParam, null, paginationParam.hasPagination());
+            return createListResponse(executionContext, subscriptions, paginationParam, null, paginationParam.hasPagination());
         }
 
         final List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::convert).collect(Collectors.toList());
@@ -173,16 +179,17 @@ public class SubscriptionsResource extends AbstractResource {
                 }
             );
 
-        Metadata metadata = subscriptionService.getMetadata(metadataQuery);
+        Metadata metadata = subscriptionService.getMetadata(executionContext, metadataQuery);
 
-        return createListResponse(subscriptionList, paginationParam, metadata.toMap(), paginationParam.hasPagination());
+        return createListResponse(executionContext, subscriptionList, paginationParam, metadata.toMap(), paginationParam.hasPagination());
     }
 
     private Collection<SubscriptionEntity> fetchSubscriptions(PaginationParam paginationParam, SubscriptionQuery query) {
         if (paginationParam.hasPagination()) {
-            return subscriptionService.search(query);
+            return subscriptionService.search(GraviteeContext.getExecutionContext(), query);
         } else {
             final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(
+                GraviteeContext.getExecutionContext(),
                 query,
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
             );

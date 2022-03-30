@@ -23,8 +23,6 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
@@ -64,7 +62,7 @@ public class GroupMemberResource extends AbstractResource {
         }
     )
     public Response deleteGroupMember(@PathParam("member") String userId) {
-        groupService.deleteUserFromGroup(GraviteeContext.getCurrentEnvironment(), group, userId);
+        groupService.deleteUserFromGroup(GraviteeContext.getExecutionContext(), group, userId);
 
         return Response.ok().build();
     }

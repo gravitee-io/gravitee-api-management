@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -57,6 +58,6 @@ public class ApiEventResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
     public Response getEvent() {
-        return Response.ok(eventService.findById(eventId)).build();
+        return Response.ok(eventService.findById(GraviteeContext.getExecutionContext(), eventId)).build();
     }
 }

@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -53,7 +54,7 @@ public class ApplicationMapper {
     @Autowired
     private GroupService groupService;
 
-    public Application convert(ApplicationListItem applicationListItem, UriInfo uriInfo) {
+    public Application convert(ExecutionContext executionContext, ApplicationListItem applicationListItem, UriInfo uriInfo) {
         final Application application = new Application();
         application.setApplicationType(applicationListItem.getType());
         application.setCreatedAt(applicationListItem.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
@@ -63,7 +64,7 @@ public class ApplicationMapper {
         if (groupEntities != null && !groupEntities.isEmpty()) {
             List<Group> groups = groupEntities
                 .stream()
-                .map(groupId -> groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId))
+                .map(groupId -> groupService.findById(executionContext, groupId))
                 .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
                 .collect(Collectors.toList());
             application.setGroups(groups);
@@ -71,7 +72,7 @@ public class ApplicationMapper {
         application.setId(applicationListItem.getId());
         application.setName(applicationListItem.getName());
 
-        UserEntity primaryOwnerUserEntity = userService.findById(applicationListItem.getPrimaryOwner().getId());
+        UserEntity primaryOwnerUserEntity = userService.findById(executionContext, applicationListItem.getPrimaryOwner().getId());
         User owner = userMapper.convert(primaryOwnerUserEntity);
         owner.setLinks(
             userMapper.computeUserLinks(
@@ -112,7 +113,7 @@ public class ApplicationMapper {
         return applicationLinks;
     }
 
-    public Application convert(ApplicationEntity applicationEntity, UriInfo uriInfo) {
+    public Application convert(ExecutionContext executionContext, ApplicationEntity applicationEntity, UriInfo uriInfo) {
         final Application application = new Application();
 
         application.setApplicationType(applicationEntity.getType());
@@ -123,7 +124,7 @@ public class ApplicationMapper {
         if (groupEntities != null && !groupEntities.isEmpty()) {
             List<Group> groups = groupEntities
                 .stream()
-                .map(groupId -> groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId))
+                .map(groupId -> groupService.findById(executionContext, groupId))
                 .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
                 .collect(Collectors.toList());
             application.setGroups(groups);
@@ -132,7 +133,7 @@ public class ApplicationMapper {
         application.setId(applicationEntity.getId());
         application.setName(applicationEntity.getName());
 
-        UserEntity primaryOwnerUserEntity = userService.findById(applicationEntity.getPrimaryOwner().getId());
+        UserEntity primaryOwnerUserEntity = userService.findById(executionContext, applicationEntity.getPrimaryOwner().getId());
         User owner = userMapper.convert(primaryOwnerUserEntity);
         owner.setLinks(
             userMapper.computeUserLinks(

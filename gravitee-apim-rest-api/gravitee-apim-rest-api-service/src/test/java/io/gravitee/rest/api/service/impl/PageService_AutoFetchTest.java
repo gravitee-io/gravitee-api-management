@@ -99,7 +99,7 @@ public class PageService_AutoFetchTest {
         when(mockPage.getSource()).thenReturn(null);
         when(pageRepository.search(any())).thenReturn(Arrays.asList(mockPage));
 
-        long pages = pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
+        long pages = pageService.execAutoFetch(GraviteeContext.getExecutionContext());
         assertEquals(0, pages);
 
         verify(pageRepository, times(0)).update(any());
@@ -126,7 +126,7 @@ public class PageService_AutoFetchTest {
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
 
-        long pages = pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
+        long pages = pageService.execAutoFetch(GraviteeContext.getExecutionContext());
         assertEquals(0, pages);
 
         verify(pageRepository, times(0)).update(any());
@@ -159,7 +159,7 @@ public class PageService_AutoFetchTest {
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
 
-        long pages = pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
+        long pages = pageService.execAutoFetch(GraviteeContext.getExecutionContext());
         assertEquals(1, pages);
 
         verify(pageRepository, times(1)).update(any());
@@ -188,7 +188,7 @@ public class PageService_AutoFetchTest {
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         PageService_MockSinglePageFetcherConfiguration.forceCronValue("* 10 * * * *");
 
-        long pages = pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
+        long pages = pageService.execAutoFetch(GraviteeContext.getExecutionContext());
         assertEquals(0, pages);
 
         verify(pageRepository, times(0)).update(any());
@@ -234,7 +234,7 @@ public class PageService_AutoFetchTest {
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
         when(graviteeDescriptorService.read(anyString())).thenCallRealMethod();
 
-        pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
+        pageService.execAutoFetch(GraviteeContext.getExecutionContext());
         verify(pageRepository, times(11)).update(any());
     }
 }

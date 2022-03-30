@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.CustomUserFieldEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.CustomUserFieldService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -71,7 +72,7 @@ public class CustomUserFieldsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCustomUserFields() {
-        List<CustomUserFieldEntity> fields = fieldService.listAllFields();
+        List<CustomUserFieldEntity> fields = fieldService.listAllFields(GraviteeContext.getExecutionContext());
         return Response.ok().entity(fields).build();
     }
 
@@ -88,7 +89,7 @@ public class CustomUserFieldsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createCustomUserField(@Valid CustomUserFieldEntity newCustomUserFieldEntity) {
-        CustomUserFieldEntity newField = fieldService.create(newCustomUserFieldEntity);
+        CustomUserFieldEntity newField = fieldService.create(GraviteeContext.getExecutionContext(), newCustomUserFieldEntity);
         if (newField != null) {
             return Response.created(URI.create(uriInfo.getPath() + "/" + newField.getKey())).entity(newField).build();
         }
@@ -114,7 +115,7 @@ public class CustomUserFieldsResource extends AbstractResource {
             throw new CustomUserFieldException(key, "update");
         }
 
-        CustomUserFieldEntity updatedField = fieldService.update(toUpdateFieldEntity);
+        CustomUserFieldEntity updatedField = fieldService.update(GraviteeContext.getExecutionContext(), toUpdateFieldEntity);
         if (updatedField != null) {
             return Response.ok().entity(updatedField).build();
         }
@@ -132,7 +133,7 @@ public class CustomUserFieldsResource extends AbstractResource {
     @ApiResponse(responseCode = "204", description = "Custom User Field deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response deleteCustomUserField(@PathParam("key") String key) {
-        fieldService.delete(key);
+        fieldService.delete(GraviteeContext.getExecutionContext(), key);
         return Response.noContent().build();
     }
 }

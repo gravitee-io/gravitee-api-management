@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.command.CommandQuery;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.model.command.NewCommandEntity;
 import io.gravitee.rest.api.service.CommandService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.Message2RecipientNotFoundException;
@@ -55,14 +56,16 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
     Node node;
 
     @Override
-    public void send(NewCommandEntity messageEntity) {
+    public void send(ExecutionContext executionContext, NewCommandEntity messageEntity) {
         if (messageEntity.getTo() == null || messageEntity.getTo().isEmpty()) {
             throw new Message2RecipientNotFoundException();
         }
 
         Command command = new Command();
         command.setId(UuidString.generateRandom());
-        command.setEnvironmentId(GraviteeContext.getCurrentEnvironmentOrDefault());
+        command.setEnvironmentId(
+            executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : GraviteeContext.getDefaultEnvironment()
+        );
         command.setFrom(node.id());
         command.setTo(messageEntity.getTo());
         command.setTags(convert(messageEntity.getTags()));
@@ -83,7 +86,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
     }
 
     @Override
-    public List<CommandEntity> search(CommandQuery query) {
+    public List<CommandEntity> search(ExecutionContext executionContext, CommandQuery query) {
         //convert tags
         String[] tags = null;
         if (query.getTags() != null) {
@@ -92,7 +95,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         CommandCriteria criteria = new CommandCriteria.Builder()
             .to(query.getTo())
             .tags(tags)
-            .environmentId(GraviteeContext.getCurrentEnvironment())
+            .environmentId(executionContext.getEnvironmentId())
             .build();
         return commandRepository.search(criteria).stream().map(this::map).collect(Collectors.toList());
     }

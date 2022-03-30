@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
@@ -127,7 +128,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
 
     private void update(Collection<DynamicProperty> dynamicProperties) {
         // Get latest changes
-        ApiEntity latestApi = apiService.findById(api.getId());
+        ApiEntity latestApi = apiService.findById(GraviteeContext.getExecutionContext(), api.getId());
 
         List<Property> properties = (latestApi.getProperties() != null)
             ? latestApi.getProperties().getProperties()
@@ -167,10 +168,10 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             }
             latestApi.setProperties(apiProperties);
 
-            boolean isSync = apiService.isSynchronized(api.getId());
+            boolean isSync = apiService.isSynchronized(GraviteeContext.getExecutionContext(), api.getId());
 
             // Update API
-            apiService.update(latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi));
+            apiService.update(GraviteeContext.getExecutionContext(), latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi));
 
             // Do not deploy if there are manual changes to push
             if (isSync) {
@@ -178,7 +179,13 @@ public class DynamicPropertyUpdater implements Handler<Long> {
                 if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
                     ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
                     deployEntity.setDeploymentLabel("Dynamic properties sync");
-                    apiService.deploy(latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API, deployEntity);
+                    apiService.deploy(
+                        GraviteeContext.getExecutionContext(),
+                        latestApi.getId(),
+                        "dynamic-property-updater",
+                        EventType.PUBLISH_API,
+                        deployEntity
+                    );
                 }
             }
         }

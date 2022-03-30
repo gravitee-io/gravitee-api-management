@@ -24,6 +24,8 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -68,13 +70,14 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response reactivateApiKeyForApiSubscription() {
-        ApiKeyEntity apiKeyEntity = apiKeyService.findById(apikey);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
 
         if (!apiKeyEntity.hasSubscription(subscription)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("api key in path does not correspond to the subscription").build();
         }
 
-        ApiKeyEntity reactivated = apiKeyService.reactivate(apiKeyEntity);
+        ApiKeyEntity reactivated = apiKeyService.reactivate(executionContext, apiKeyEntity);
         return Response.ok().entity(reactivated).build();
     }
 
@@ -83,13 +86,14 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
     @Operation(summary = "Revoke API key", description = "User must have the API_SUBSCRIPTION:DELETE permission to use this service")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApiSubscription() {
-        ApiKeyEntity apiKeyEntity = apiKeyService.findById(apikey);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
 
         if (!apiKeyEntity.hasSubscription(subscription)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("api key in path does not correspond to the subscription").build();
         }
 
-        apiKeyService.revoke(apiKeyEntity, true);
+        apiKeyService.revoke(executionContext, apiKeyEntity, true);
         return Response.noContent().build();
     }
 
@@ -113,7 +117,7 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
                 .build();
         }
 
-        ApiKeyEntity updatedKeyEntity = apiKeyService.update(apiKey);
+        ApiKeyEntity updatedKeyEntity = apiKeyService.update(GraviteeContext.getExecutionContext(), apiKey);
         return Response.ok(updatedKeyEntity).build();
     }
 }

@@ -25,6 +25,8 @@ import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,14 +66,20 @@ public class SubscriptionResource extends AbstractResource {
         @QueryParam("include") List<String> include
     ) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
-            hasPermission(RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.READ) ||
-            hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.READ)
+            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.READ) ||
+            hasPermission(
+                executionContext,
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                subscriptionEntity.getApplication(),
+                RolePermissionAction.READ
+            )
         ) {
             Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
             if (include.contains(INCLUDE_KEYS)) {
                 List<Key> keys = apiKeyService
-                    .findBySubscription(subscriptionId)
+                    .findBySubscription(executionContext, subscriptionId)
                     .stream()
                     .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
                     .map(keyMapper::convert)
@@ -88,8 +96,16 @@ public class SubscriptionResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response closeSubscription(@PathParam("subscriptionId") String subscriptionId) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
-        if (hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.DELETE)) {
-            subscriptionService.close(subscriptionId);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (
+            hasPermission(
+                executionContext,
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                subscriptionEntity.getApplication(),
+                RolePermissionAction.DELETE
+            )
+        ) {
+            subscriptionService.close(executionContext, subscriptionId);
             return Response.noContent().build();
         }
         throw new ForbiddenAccessException();

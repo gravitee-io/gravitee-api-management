@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -69,7 +70,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
         doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
 
         Set<ApiEntity> mockApis = new HashSet<>();
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         doReturn(Map.of(CATEGORY_ID, 1L)).when(apiService).countPublishedByUserGroupedByCategories(USER_NAME);
 

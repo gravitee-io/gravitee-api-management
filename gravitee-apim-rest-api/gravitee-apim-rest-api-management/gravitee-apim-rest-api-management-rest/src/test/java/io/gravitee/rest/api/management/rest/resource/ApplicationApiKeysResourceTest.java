@@ -23,11 +23,9 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.reactivex.Single;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.Response;
-import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,7 +53,7 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
         apiKeys.get(0).setId("apikey-1");
         apiKeys.get(1).setId("apikey-2");
 
-        when(apiKeyService.findByApplication(APPLICATION_ID)).thenReturn(apiKeys);
+        when(apiKeyService.findByApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(apiKeys);
 
         Response response = envTarget().request().get();
 
@@ -72,7 +70,7 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId("my-api-key");
-        when(apiKeyService.renew(any(ApplicationEntity.class))).thenReturn(apiKey);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class))).thenReturn(apiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
@@ -85,18 +83,18 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId("my-api-key");
-        when(apiKeyService.renew(any(ApplicationEntity.class))).thenReturn(apiKey);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class))).thenReturn(apiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
-        verify(apiKeyService, times(1)).renew(applicationEntity);
+        verify(apiKeyService, times(1)).renew(GraviteeContext.getExecutionContext(), applicationEntity);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
     }
 
     private ApplicationEntity mockExistingApplication(ApiKeyMode apiKeyMode) {
         ApplicationEntity application = new ApplicationEntity();
         application.setApiKeyMode(apiKeyMode);
-        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         return application;
     }
 }

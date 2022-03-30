@@ -135,15 +135,15 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
             .filter(subscription -> !notifiedSubscriptionIds.contains(subscription.getId()))
             .forEach(
                 subscription -> {
-                    ApiEntity api = apiService.findById(subscription.getApi());
-                    PlanEntity plan = planService.findById(subscription.getPlan());
+                    ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), subscription.getApi());
+                    PlanEntity plan = planService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
 
                     findEmailsToNotify(subscription, application)
                         .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, apiKey));
                 }
             );
 
-        apiKeyService.updateDaysToExpirationOnLastNotification(apiKey, daysToExpiration);
+        apiKeyService.updateDaysToExpirationOnLastNotification(GraviteeContext.getExecutionContext(), apiKey, daysToExpiration);
     }
 
     private Set<String> notifySubscriptionsExpirations(Instant now, Integer daysToExpiration) {
@@ -163,10 +163,10 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     }
 
     private void notifySubscriptionExpiration(Integer daysToExpiration, SubscriptionEntity subscription) {
-        ApiEntity api = apiService.findById(subscription.getApi());
-        PlanEntity plan = planService.findById(subscription.getPlan());
+        ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), subscription.getApi());
+        PlanEntity plan = planService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
 
-        ApplicationEntity application = applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication());
+        ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), subscription.getApplication());
 
         findEmailsToNotify(subscription, application)
             .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, null));
@@ -204,7 +204,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         query.setEndingAtAfter(expirationStartingTime);
         query.setEndingAtBefore(expirationStartingTime + cronPeriodInMs);
 
-        return subscriptionService.search(query);
+        return subscriptionService.search(GraviteeContext.getExecutionContext(), query);
     }
 
     @VisibleForTesting
@@ -216,13 +216,13 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         query.setExpireAfter(expirationStartingTime);
         query.setExpireBefore(expirationStartingTime + cronPeriodInMs);
 
-        return apiKeyService.search(query);
+        return apiKeyService.search(GraviteeContext.getExecutionContext(), query);
     }
 
     @VisibleForTesting
     Set<String> findEmailsToNotify(SubscriptionEntity subscription, ApplicationEntity application) {
         Set<String> emails = new HashSet<>();
-        emails.add(userService.findById(subscription.getSubscribedBy()).getEmail());
+        emails.add(userService.findById(GraviteeContext.getExecutionContext(), subscription.getSubscribedBy()).getEmail());
         emails.add(application.getPrimaryOwner().getEmail());
 
         // Email can be null, in that case we can't send a notification so just remove it
@@ -246,6 +246,6 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
             .param(NotificationParamsBuilder.PARAM_API_KEY, apiKey)
             .build();
 
-        emailService.sendAsyncEmailNotification(emailNotification, context);
+        emailService.sendAsyncEmailNotification(GraviteeContext.getExecutionContext(), emailNotification);
     }
 }

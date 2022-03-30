@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.model.TokenReferenceType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.TokenService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
@@ -71,7 +72,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     }
 
     @Override
-    public TokenEntity create(NewTokenEntity newToken, String user) {
+    public TokenEntity create(final ExecutionContext executionContext, NewTokenEntity newToken, String user) {
         try {
             // check if name already exists
             final List<TokenEntity> tokens = findByUser(user);
@@ -83,7 +84,8 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             final String decodedToken = UUID.toString(UUID.random());
             final Token token = convert(newToken, TokenReferenceType.USER, user, passwordEncoder.encode(decodedToken));
             auditService.createOrganizationAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(TOKEN, token.getId()),
                 TOKEN_CREATED,
                 token.getCreatedAt(),
@@ -99,19 +101,20 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     }
 
     @Override
-    public void revokeByUser(String userId) {
+    public void revokeByUser(final ExecutionContext executionContext, String userId) {
         final List<TokenEntity> tokens = findByUser(userId);
-        tokens.forEach(token -> revoke(token.getId()));
+        tokens.forEach(token -> revoke(executionContext, token.getId()));
     }
 
     @Override
-    public void revoke(String tokenId) {
+    public void revoke(final ExecutionContext executionContext, String tokenId) {
         try {
             Optional<Token> tokenOptional = tokenRepository.findById(tokenId);
             if (tokenOptional.isPresent()) {
                 tokenRepository.delete(tokenId);
                 auditService.createOrganizationAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(TOKEN, tokenId),
                     TOKEN_DELETED,
                     new Date(),

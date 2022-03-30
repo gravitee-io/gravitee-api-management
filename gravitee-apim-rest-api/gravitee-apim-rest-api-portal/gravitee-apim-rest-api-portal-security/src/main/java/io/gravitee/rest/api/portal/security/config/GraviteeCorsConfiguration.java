@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -54,7 +55,14 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
         this.setAllowedMethods(getPropertiesAsList(Key.PORTAL_HTTP_CORS_ALLOW_METHODS, "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
         this.setExposedHeaders(getPropertiesAsList(Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS, DEFAULT_CSRF_HEADER_NAME));
         this.setMaxAge(
-                Long.valueOf(parameterService.find(Key.PORTAL_HTTP_CORS_MAX_AGE, environmentId, ParameterReferenceType.ENVIRONMENT))
+                Long.valueOf(
+                    parameterService.find(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PORTAL_HTTP_CORS_MAX_AGE,
+                        environmentId,
+                        ParameterReferenceType.ENVIRONMENT
+                    )
+                )
             );
     }
 
@@ -82,7 +90,12 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
     }
 
     private List<String> getPropertiesAsList(final Key propertyKey, final String defaultValue) {
-        String property = parameterService.find(propertyKey, environmentId, ParameterReferenceType.ENVIRONMENT);
+        String property = parameterService.find(
+            GraviteeContext.getExecutionContext(),
+            propertyKey,
+            environmentId,
+            ParameterReferenceType.ENVIRONMENT
+        );
         if (property == null) {
             property = defaultValue;
         }

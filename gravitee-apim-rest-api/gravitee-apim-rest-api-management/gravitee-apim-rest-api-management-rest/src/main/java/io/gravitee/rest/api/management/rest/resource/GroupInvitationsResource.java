@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InvitationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
@@ -93,9 +94,11 @@ public class GroupInvitationsResource extends AbstractResource {
     )
     public InvitationEntity createGroupInvitation(@Valid @NotNull final NewInvitationEntity invitationEntity) {
         // Check that group exists
-        final GroupEntity groupEntity = groupService.findById(GraviteeContext.getCurrentEnvironment(), group);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final GroupEntity groupEntity = groupService.findById(executionContext, group);
         // check if user is a 'simple group admin' or a platform admin
         final boolean hasPermission = permissionService.hasPermission(
+            executionContext,
             RolePermission.ENVIRONMENT_GROUP,
             GraviteeContext.getCurrentEnvironment(),
             CREATE,
@@ -103,7 +106,10 @@ public class GroupInvitationsResource extends AbstractResource {
             DELETE
         );
         if (!hasPermission) {
-            if (groupEntity.getMaxInvitation() != null && groupService.getNumberOfMembers(group) >= groupEntity.getMaxInvitation()) {
+            if (
+                groupEntity.getMaxInvitation() != null &&
+                groupService.getNumberOfMembers(executionContext, group) >= groupEntity.getMaxInvitation()
+            ) {
                 throw new GroupMembersLimitationExceededException(groupEntity.getMaxInvitation());
             }
             if (!groupEntity.isEmailInvitation()) {
@@ -113,7 +119,7 @@ public class GroupInvitationsResource extends AbstractResource {
 
         invitationEntity.setReferenceType(GROUP);
         invitationEntity.setReferenceId(group);
-        return invitationService.create(invitationEntity);
+        return invitationService.create(executionContext, invitationEntity);
     }
 
     @Path("{invitation}")

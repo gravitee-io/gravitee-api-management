@@ -46,6 +46,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.providers.User;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -115,30 +116,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public MemberEntity addRoleToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
         String memberId,
         String role
     ) {
-        return addRoleToMemberOnReference(
-            organizationId,
-            environmentId,
-            referenceType,
-            referenceId,
-            memberType,
-            memberId,
-            role,
-            DEFAULT_SOURCE
-        );
+        return addRoleToMemberOnReference(executionContext, referenceType, referenceId, memberType, memberId, role, DEFAULT_SOURCE);
     }
 
     @Override
     public MemberEntity addRoleToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
@@ -148,42 +138,43 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     ) {
         RoleEntity roleToAdd = roleService.findById(role);
         return _addRoleToMemberOnReference(
+            executionContext,
             new MembershipReference(referenceType, referenceId),
             new MembershipMember(memberId, null, memberType),
             new MembershipRole(roleToAdd.getScope(), roleToAdd.getName()),
             source,
             true,
-            false,
-            environmentId,
-            organizationId
+            false
         );
     }
 
     @Override
     public MemberEntity addRoleToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReference reference,
         MembershipMember member,
         MembershipRole role
     ) {
-        return _addRoleToMemberOnReference(reference, member, role, DEFAULT_SOURCE, true, false, environmentId, organizationId);
+        return _addRoleToMemberOnReference(executionContext, reference, member, role, DEFAULT_SOURCE, true, false);
     }
 
     private MemberEntity _addRoleToMemberOnReference(
+        ExecutionContext executionContext,
         MembershipReference reference,
         MembershipMember member,
         MembershipRole role,
         String source,
         boolean notify,
-        boolean update,
-        final String environmentId,
-        final String organizationId
+        boolean update
     ) {
         try {
             LOGGER.debug("Add a new member for {} {}", reference.getType(), reference.getId());
 
-            Optional<RoleEntity> optRoleEntity = roleService.findByScopeAndName(role.getScope(), role.getName());
+            Optional<RoleEntity> optRoleEntity = roleService.findByScopeAndName(
+                role.getScope(),
+                role.getName(),
+                executionContext.getOrganizationId()
+            );
             if (optRoleEntity.isPresent()) {
                 RoleEntity roleEntity = optRoleEntity.get();
 
@@ -201,8 +192,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
                     if (!similarMemberships.isEmpty()) {
                         if (update) {
-                            UserEntity userEntity = findUserFromMembershipMember(member, organizationId, environmentId);
-                            return getUserMember(environmentId, reference.getType(), reference.getId(), userEntity.getId());
+                            UserEntity userEntity = findUserFromMembershipMember(executionContext, member);
+                            return getUserMember(executionContext, reference.getType(), reference.getId(), userEntity.getId());
                         } else {
                             throw new MembershipAlreadyExistsException(
                                 member.getMemberId(),
@@ -216,7 +207,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 Date updateDate = new Date();
                 MemberEntity userMember = null;
                 if (member.getMemberType() == MembershipMemberType.USER) {
-                    UserEntity userEntity = findUserFromMembershipMember(member, organizationId, environmentId);
+                    UserEntity userEntity = findUserFromMembershipMember(executionContext, member);
                     io.gravitee.repository.management.model.Membership membership = new io.gravitee.repository.management.model.Membership(
                         UuidString.generateRandom(),
                         userEntity.getId(),
@@ -229,10 +220,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membership.setCreatedAt(updateDate);
                     membership.setUpdatedAt(updateDate);
                     membershipRepository.create(membership);
-                    createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership, environmentId, organizationId);
+                    createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
 
                     if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
-                        applicationAlertService.addMemberToApplication(environmentId, reference.getId(), userEntity.getEmail());
+                        applicationAlertService.addMemberToApplication(executionContext, reference.getId(), userEntity.getEmail());
                     }
 
                     Set<io.gravitee.repository.management.model.Membership> userRolesOnReference = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -249,33 +240,30 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         !userEntity.getEmail().isEmpty();
                     if (shouldNotify) {
                         if (MembershipReferenceType.GROUP.equals(reference.getType())) {
-                            final GroupEntity group = groupService.findById(environmentId, reference.getId());
+                            final GroupEntity group = groupService.findById(executionContext, reference.getId());
                             shouldNotify = !group.isDisableMembershipNotifications();
                         } else if (MembershipReferenceType.API.equals(reference.getType())) {
-                            final ApiEntity api = apiService.findById(reference.getId());
+                            final ApiEntity api = apiService.findById(executionContext, reference.getId());
                             shouldNotify = !api.isDisableMembershipNotifications();
                         } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
-                            final ApplicationEntity application = applicationService.findById(environmentId, reference.getId());
+                            final ApplicationEntity application = applicationService.findById(executionContext, reference.getId());
                             shouldNotify = !application.isDisableMembershipNotifications();
                         }
                     }
 
                     if (shouldNotify) {
                         EmailNotification emailNotification = buildEmailNotification(
+                            executionContext,
                             userEntity,
                             reference.getType(),
-                            reference.getId(),
-                            environmentId
+                            reference.getId()
                         );
                         if (emailNotification != null) {
-                            GraviteeContext.ReferenceContext context = environmentId != null
-                                ? new GraviteeContext.ReferenceContext(environmentId, GraviteeContext.ReferenceContextType.ENVIRONMENT)
-                                : new GraviteeContext.ReferenceContext(organizationId, GraviteeContext.ReferenceContextType.ORGANIZATION);
-                            emailService.sendAsyncEmailNotification(emailNotification, context);
+                            emailService.sendAsyncEmailNotification(executionContext, emailNotification);
                         }
                     }
 
-                    userMember = getUserMember(environmentId, reference.getType(), reference.getId(), userEntity.getId());
+                    userMember = getUserMember(executionContext, reference.getType(), reference.getId(), userEntity.getId());
                 } else {
                     io.gravitee.repository.management.model.Membership membership = new io.gravitee.repository.management.model.Membership(
                         UuidString.generateRandom(),
@@ -289,7 +277,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membership.setCreatedAt(updateDate);
                     membership.setUpdatedAt(updateDate);
                     membershipRepository.create(membership);
-                    createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership, environmentId, organizationId);
+                    createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
                 }
 
                 roles.invalidate(reference.getType().name() + reference.getId() + member.getMemberType() + member.getMemberId());
@@ -308,12 +296,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     private void createAuditLog(
+        ExecutionContext executionContext,
         Audit.AuditEvent event,
         Date date,
         io.gravitee.repository.management.model.Membership oldValue,
-        io.gravitee.repository.management.model.Membership newValue,
-        final String environmentId,
-        final String organizationId
+        io.gravitee.repository.management.model.Membership newValue
     ) {
         io.gravitee.repository.management.model.MembershipReferenceType referenceType = oldValue != null
             ? oldValue.getReferenceType()
@@ -325,29 +312,53 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         properties.put(Audit.AuditProperties.USER, username);
         switch (referenceType) {
             case API:
-                auditService.createApiAuditLog(referenceId, properties, event, date, oldValue, newValue);
+                auditService.createApiAuditLog(executionContext, referenceId, properties, event, date, oldValue, newValue);
                 break;
             case APPLICATION:
-                auditService.createApplicationAuditLog(referenceId, properties, event, date, oldValue, newValue);
+                auditService.createApplicationAuditLog(executionContext, referenceId, properties, event, date, oldValue, newValue);
                 break;
             case GROUP:
                 properties.put(Audit.AuditProperties.GROUP, referenceId);
-                auditService.createEnvironmentAuditLog(environmentId, properties, event, date, oldValue, newValue);
+                auditService.createEnvironmentAuditLog(
+                    executionContext,
+                    executionContext.getEnvironmentId(),
+                    properties,
+                    event,
+                    date,
+                    oldValue,
+                    newValue
+                );
                 break;
             case ENVIRONMENT:
-                auditService.createEnvironmentAuditLog(environmentId, properties, event, date, oldValue, newValue);
+                auditService.createEnvironmentAuditLog(
+                    executionContext,
+                    executionContext.getEnvironmentId(),
+                    properties,
+                    event,
+                    date,
+                    oldValue,
+                    newValue
+                );
                 break;
             case ORGANIZATION:
-                auditService.createOrganizationAuditLog(organizationId, properties, event, date, oldValue, newValue);
+                auditService.createOrganizationAuditLog(
+                    executionContext,
+                    executionContext.getOrganizationId(),
+                    properties,
+                    event,
+                    date,
+                    oldValue,
+                    newValue
+                );
                 break;
         }
     }
 
     private EmailNotification buildEmailNotification(
+        ExecutionContext executionContext,
         UserEntity user,
         MembershipReferenceType referenceType,
-        String referenceId,
-        final String environmentId
+        String referenceId
     ) {
         EmailNotificationBuilder.EmailTemplate template = null;
         Map<String, Object> params = null;
@@ -355,17 +366,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder();
         switch (referenceType) {
             case APPLICATION:
-                ApplicationEntity applicationEntity = applicationService.findById(environmentId, referenceId);
+                ApplicationEntity applicationEntity = applicationService.findById(executionContext, referenceId);
                 template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_APPLICATION_MEMBER_SUBSCRIPTION;
                 params = paramsBuilder.application(applicationEntity).user(user).build();
                 break;
             case API:
-                ApiEntity apiEntity = apiService.findById(referenceId);
+                ApiEntity apiEntity = apiService.findById(executionContext, referenceId);
                 template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_API_MEMBER_SUBSCRIPTION;
                 params = paramsBuilder.api(apiEntity).user(user).build();
                 break;
             case GROUP:
-                groupEntity = groupService.findById(environmentId, referenceId);
+                groupEntity = groupService.findById(executionContext, referenceId);
                 template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_GROUP_MEMBER_SUBSCRIPTION;
                 params = paramsBuilder.group(groupEntity).user(user).build();
                 break;
@@ -400,6 +411,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     private void fillMemberUserInformation(
+        final ExecutionContext executionContext,
         Set<io.gravitee.repository.management.model.Membership> memberships,
         List<MemberEntity> members
     ) {
@@ -411,7 +423,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(MemberEntity::getId)
                 .collect(toList());
             if (userIds != null && userIds.size() > 0) {
-                userEntities.addAll(userService.findByIds(userIds, false));
+                userEntities.addAll(userService.findByIds(executionContext, userIds, false));
             }
 
             final Set<GroupEntity> groupEntities = new HashSet<>();
@@ -457,17 +469,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
-    private UserEntity findUserFromMembershipMember(MembershipMember member, final String organizationId, final String environmentId) {
+    private UserEntity findUserFromMembershipMember(ExecutionContext executionContext, MembershipMember member) {
         UserEntity userEntity;
         if (member.getMemberId() != null) {
-            userEntity = userService.findById(member.getMemberId());
+            userEntity = userService.findById(executionContext, member.getMemberId());
         } else {
             // We have a user reference, meaning that the user is coming from an external system
             // User does not exist so we are looking into defined providers
             Optional<io.gravitee.rest.api.model.providers.User> providerUser = identityService.findByReference(member.getReference());
             if (providerUser.isPresent()) {
                 User identityUser = providerUser.get();
-                userEntity = findOrCreateUser(identityUser, organizationId, environmentId);
+                userEntity = findOrCreateUser(executionContext, identityUser);
             } else {
                 throw new UserNotFoundException(member.getReference());
             }
@@ -475,10 +487,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         return userEntity;
     }
 
-    private UserEntity findOrCreateUser(User identityUser, final String organizationId, final String environmentId) {
+    private UserEntity findOrCreateUser(ExecutionContext executionContext, User identityUser) {
         UserEntity userEntity;
         try {
-            userEntity = userService.findBySource(identityUser.getSource(), identityUser.getSourceId(), false);
+            userEntity = userService.findBySource(executionContext, identityUser.getSource(), identityUser.getSourceId(), false);
         } catch (UserNotFoundException unfe) {
             // The user is not yet registered in repository
             // Information will be updated after the first connection of the user
@@ -490,22 +502,21 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             newUser.setSourceId(identityUser.getSourceId());
             newUser.setPicture(identityUser.getPicture());
             if (identityUser.getRoles() == null || identityUser.getRoles().isEmpty()) {
-                userEntity = userService.create(newUser, true);
+                userEntity = userService.create(executionContext, newUser, true);
             } else {
-                userEntity = userService.create(newUser, false);
+                userEntity = userService.create(executionContext, newUser, false);
                 for (Map.Entry<String, String> role : identityUser.getRoles().entrySet()) {
                     MembershipReferenceType membershipReferenceType = MembershipReferenceType.valueOf(role.getKey());
                     MembershipReference reference = null;
                     if (membershipReferenceType == MembershipReferenceType.ORGANIZATION) {
-                        reference = new MembershipReference(membershipReferenceType, organizationId);
+                        reference = new MembershipReference(membershipReferenceType, executionContext.getOrganizationId());
                     } else if (membershipReferenceType == MembershipReferenceType.ENVIRONMENT) {
-                        reference = new MembershipReference(membershipReferenceType, environmentId);
+                        reference = new MembershipReference(membershipReferenceType, executionContext.getEnvironmentId());
                     }
 
                     if (reference != null) {
                         this.addRoleToMemberOnReference(
-                                organizationId,
-                                environmentId,
+                                executionContext,
                                 reference,
                                 new MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
                                 new MembershipRole(RoleScope.valueOf(role.getKey()), role.getValue())
@@ -560,13 +571,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public void deleteMembership(final String organizationId, final String environmentId, String membershipId) {
+    public void deleteMembership(ExecutionContext executionContext, String membershipId) {
         try {
             Optional<io.gravitee.repository.management.model.Membership> membership = membershipRepository.findById(membershipId);
             if (membership.isPresent()) {
                 LOGGER.debug("Delete membership {}", membership.get());
                 membershipRepository.delete(membershipId);
-                createAuditLog(MEMBERSHIP_DELETED, new Date(), membership.get(), null, environmentId, organizationId);
+                createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership.get(), null);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete membership {}", membershipId, ex);
@@ -575,12 +586,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public void deleteReference(
-        final String organizationId,
-        final String environmentId,
-        MembershipReferenceType referenceType,
-        String referenceId
-    ) {
+    public void deleteReference(ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId) {
         try {
             Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByReferenceAndRoleId(
                 convert(referenceType),
@@ -591,7 +597,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 for (io.gravitee.repository.management.model.Membership membership : memberships) {
                     LOGGER.debug("Delete membership {}", membership.getId());
                     membershipRepository.delete(membership.getId());
-                    createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null, environmentId, organizationId);
+                    createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
                 }
             }
         } catch (TechnicalException ex) {
@@ -605,20 +611,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public void deleteReferenceMember(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
         String memberId
     ) {
-        deleteReferenceMemberBySource(organizationId, environmentId, referenceType, referenceId, memberType, memberId, null);
+        deleteReferenceMemberBySource(executionContext, referenceType, referenceId, memberType, memberId, null);
     }
 
     @Override
     public void deleteReferenceMemberBySource(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         MembershipMemberType memberType,
@@ -626,7 +630,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String sourceId
     ) {
         try {
-            final Optional<RoleEntity> optApiPORole = roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name());
+            final Optional<RoleEntity> optApiPORole = roleService.findByScopeAndName(
+                RoleScope.API,
+                PRIMARY_OWNER.name(),
+                executionContext.getOrganizationId()
+            );
             Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 memberId,
                 convert(memberType),
@@ -638,16 +646,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     if (sourceId == null || membership.getSource().equals(sourceId)) {
                         LOGGER.debug("Delete membership {}", membership.getId());
                         membershipRepository.delete(membership.getId());
-                        createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null, environmentId, organizationId);
+                        createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
                     }
 
                     if (MembershipReferenceType.APPLICATION.equals(referenceType) && MembershipMemberType.USER.equals(memberType)) {
                         UserEntity userEntity = findUserFromMembershipMember(
-                            new MembershipMember(memberId, null, memberType),
-                            organizationId,
-                            environmentId
+                            executionContext,
+                            new MembershipMember(memberId, null, memberType)
                         );
-                        applicationAlertService.deleteMemberFromApplication(environmentId, referenceId, userEntity.getEmail());
+                        applicationAlertService.deleteMemberFromApplication(executionContext, referenceId, userEntity.getEmail());
                     }
 
                     //if the API Primary owner of a group has been deleted, we must update the apiPrimaryOwnerField of this group
@@ -684,9 +691,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public List<UserMembership> findUserMembershipBySource(MembershipReferenceType type, String userId, String sourceId) {
+    public List<UserMembership> findUserMembershipBySource(
+        ExecutionContext executionContext,
+        MembershipReferenceType type,
+        String userId,
+        String sourceId
+    ) {
         try {
-            Map<String, RoleEntity> roleMap = roleService.findAll().stream().collect(Collectors.toMap(RoleEntity::getId, r -> r));
+            Map<String, RoleEntity> roleMap = roleService
+                .findAllByOrganization(executionContext.getOrganizationId())
+                .stream()
+                .collect(Collectors.toMap(RoleEntity::getId, r -> r));
             HashMap<Integer, UserMembership> userMembershipMap = new HashMap<>();
             membershipRepository
                 .findByMemberIdAndMemberTypeAndReferenceTypeAndSource(
@@ -726,7 +741,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public List<UserMembership> findUserMembership(MembershipReferenceType type, String userId) {
+    public List<UserMembership> findUserMembership(ExecutionContext executionContext, MembershipReferenceType type, String userId) {
         if (
             type == null ||
             (
@@ -739,7 +754,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
         try {
             Map<String, RoleEntity> roleMap = roleService
-                .findByScope(roleService.findScopeByMembershipReferenceType(type))
+                .findByScope(roleService.findScopeByMembershipReferenceType(type), executionContext.getOrganizationId())
                 .stream()
                 .collect(Collectors.toMap(RoleEntity::getId, r -> r));
             HashMap<Integer, UserMembership> userMembershipMap = new HashMap<>();
@@ -848,54 +863,79 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public Page<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId, Pageable pageable) {
-        return this.getMembersByReferenceAndRole(referenceType, referenceId, null, pageable);
+    public Page<MemberEntity> getMembersByReference(
+        final ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        Pageable pageable
+    ) {
+        return getMembersByReference(executionContext, referenceType, referenceId, null, pageable);
     }
 
     @Override
-    public Set<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId) {
-        return new HashSet<>(this.getMembersByReferenceAndRole(referenceType, referenceId, null, null).getContent());
+    public Set<MemberEntity> getMembersByReference(
+        final ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId
+    ) {
+        return this.getMembersByReferenceAndRole(executionContext, referenceType, referenceId, null);
     }
 
     @Override
     public Page<MemberEntity> getMembersByReference(
+        final ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         String role,
         Pageable pageable
     ) {
-        return this.getMembersByReferenceAndRole(referenceType, referenceId, role, pageable);
+        return this.getMembersByReferenceAndRole(executionContext, referenceType, referenceId, role, pageable);
     }
 
     @Override
-    public Set<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId, String role) {
-        return new HashSet<>(this.getMembersByReferenceAndRole(referenceType, referenceId, role, null).getContent());
+    public Set<MemberEntity> getMembersByReference(
+        final ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String role
+    ) {
+        return this.getMembersByReferenceAndRole(executionContext, referenceType, referenceId, role);
     }
 
     @Override
     public Page<MemberEntity> getMembersByReferenceAndRole(
+        final ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         String role,
         Pageable pageable
     ) {
-        return this.getMembersByReferencesAndRole(referenceType, Collections.singletonList(referenceId), role, pageable);
+        return this.getMembersByReferencesAndRole(executionContext, referenceType, Collections.singletonList(referenceId), role, pageable);
     }
 
     @Override
-    public Set<MemberEntity> getMembersByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, String role) {
-        return new HashSet<>(
-            this.getMembersByReferencesAndRole(referenceType, Collections.singletonList(referenceId), role, null).getContent()
-        );
+    public Set<MemberEntity> getMembersByReferenceAndRole(
+        final ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String role
+    ) {
+        return new HashSet<>(getMembersByReference(executionContext, referenceType, referenceId, role, null).getContent());
     }
 
     @Override
-    public Set<MemberEntity> getMembersByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role) {
-        return new HashSet<>(this.getMembersByReferencesAndRole(referenceType, referenceIds, role, null).getContent());
+    public Set<MemberEntity> getMembersByReferencesAndRole(
+        final ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        List<String> referenceIds,
+        String role
+    ) {
+        return new HashSet<>(this.getMembersByReferencesAndRole(executionContext, referenceType, referenceIds, role, null).getContent());
     }
 
     @Override
     public Page<MemberEntity> getMembersByReferencesAndRole(
+        final ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         List<String> referenceIds,
         String role,
@@ -928,7 +968,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
 
             List<MemberEntity> members = new ArrayList<>(results.values());
-            fillMemberUserInformation(memberships, members);
+            fillMemberUserInformation(executionContext, memberships, members);
             return paginate(results.values(), pageable);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get members for {} {}", referenceType, referenceIds, ex);
@@ -1205,7 +1245,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public MemberEntity getUserMember(
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         String userId
@@ -1222,10 +1262,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             Set<String> entityGroups = new HashSet<>();
             switch (referenceType) {
                 case API:
-                    entityGroups = apiService.findById(referenceId).getGroups();
+                    entityGroups = apiService.findById(executionContext, referenceId).getGroups();
                     break;
                 case APPLICATION:
-                    entityGroups = applicationService.findById(environmentId, referenceId).getGroups();
+                    entityGroups = applicationService.findById(executionContext, referenceId).getGroups();
                     break;
                 default:
                     break;
@@ -1236,7 +1276,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
 
             MemberEntity memberEntity = new MemberEntity();
-            UserEntity userEntity = userService.findById(userId);
+            UserEntity userEntity = userService.findById(executionContext, userId);
             memberEntity.setCreatedAt(userEntity.getCreatedAt());
             memberEntity.setDisplayName(userEntity.getDisplayName());
             memberEntity.setEmail(userEntity.getEmail());
@@ -1272,7 +1312,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                             .map(io.gravitee.repository.management.model.Membership::getRoleId)
                             .map(roleService::findById)
                             .filter(role -> role.getScope().name().equals(referenceType.name()))
-                            .map(role -> role.isApiPrimaryOwner() ? mapApiPrimaryOwnerRoleToGroupRole(referenceId, group, role) : role)
+                            .map(
+                                role ->
+                                    role.isApiPrimaryOwner()
+                                        ? mapApiPrimaryOwnerRoleToGroupRole(executionContext, referenceId, group, role)
+                                        : role
+                            )
                             .filter(Objects::nonNull)
                             .collect(Collectors.toSet())
                     );
@@ -1295,16 +1340,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
-    private RoleEntity mapApiPrimaryOwnerRoleToGroupRole(String apiId, String groupId, RoleEntity role) {
-        PrimaryOwnerEntity apiPrimaryOwner = apiService.getPrimaryOwner(apiId);
+    private RoleEntity mapApiPrimaryOwnerRoleToGroupRole(ExecutionContext executionContext, String apiId, String groupId, RoleEntity role) {
+        PrimaryOwnerEntity apiPrimaryOwner = apiService.getPrimaryOwner(executionContext, apiId);
         if (apiPrimaryOwner.getId().equals(groupId)) {
             return role;
         }
 
-        GroupEntity userGroup = groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId);
+        GroupEntity userGroup = groupService.findById(executionContext, groupId);
         String groupApiRole = userGroup.getRoles().get(RoleScope.API);
 
-        return groupApiRole == null ? null : roleService.findByScopeAndName(RoleScope.API, groupApiRole).orElse(null);
+        return groupApiRole == null
+            ? null
+            : roleService.findByScopeAndName(RoleScope.API, groupApiRole, executionContext.getOrganizationId()).orElse(null);
     }
 
     private Map<String, char[]> computeGlobalPermissions(Set<RoleEntity> userRoles) {
@@ -1341,12 +1388,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public Map<String, char[]> getUserMemberPermissions(
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReferenceType referenceType,
         String referenceId,
         String userId
     ) {
-        MemberEntity member = this.getUserMember(environmentId, referenceType, referenceId, userId);
+        MemberEntity member = this.getUserMember(executionContext, referenceType, referenceId, userId);
         if (member != null) {
             return member.getPermissions();
         }
@@ -1354,23 +1401,23 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public Map<String, char[]> getUserMemberPermissions(final String environmentId, ApiEntity api, String userId) {
-        return getUserMemberPermissions(environmentId, MembershipReferenceType.API, api.getId(), userId);
+    public Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, ApiEntity api, String userId) {
+        return getUserMemberPermissions(executionContext, MembershipReferenceType.API, api.getId(), userId);
     }
 
     @Override
-    public Map<String, char[]> getUserMemberPermissions(final String environmentId, ApplicationEntity application, String userId) {
-        return getUserMemberPermissions(environmentId, MembershipReferenceType.APPLICATION, application.getId(), userId);
+    public Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, ApplicationEntity application, String userId) {
+        return getUserMemberPermissions(executionContext, MembershipReferenceType.APPLICATION, application.getId(), userId);
     }
 
     @Override
-    public Map<String, char[]> getUserMemberPermissions(final String environmentId, GroupEntity group, String userId) {
-        return getUserMemberPermissions(environmentId, MembershipReferenceType.GROUP, group.getId(), userId);
+    public Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, GroupEntity group, String userId) {
+        return getUserMemberPermissions(executionContext, MembershipReferenceType.GROUP, group.getId(), userId);
     }
 
     @Override
-    public Map<String, char[]> getUserMemberPermissions(final String environmentId, EnvironmentEntity environment, String userId) {
-        return getUserMemberPermissions(environmentId, MembershipReferenceType.ENVIRONMENT, environment.getId(), userId);
+    public Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, EnvironmentEntity environment, String userId) {
+        return getUserMemberPermissions(executionContext, MembershipReferenceType.ENVIRONMENT, environment.getId(), userId);
     }
 
     @Override
@@ -1475,64 +1522,51 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public void transferApiOwnership(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         String apiId,
         MembershipMember member,
         List<RoleEntity> newPrimaryOwnerRoles
     ) {
-        this.transferOwnership(
-                MembershipReferenceType.API,
-                RoleScope.API,
-                apiId,
-                member,
-                newPrimaryOwnerRoles,
-                organizationId,
-                environmentId
-            );
+        this.transferOwnership(executionContext, MembershipReferenceType.API, RoleScope.API, apiId, member, newPrimaryOwnerRoles);
     }
 
     @Override
     public void transferApplicationOwnership(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         String applicationId,
         MembershipMember member,
         List<RoleEntity> newPrimaryOwnerRoles
     ) {
         this.transferOwnership(
+                executionContext,
                 MembershipReferenceType.APPLICATION,
                 RoleScope.APPLICATION,
                 applicationId,
                 member,
-                newPrimaryOwnerRoles,
-                organizationId,
-                environmentId
+                newPrimaryOwnerRoles
             );
     }
 
     private void transferOwnership(
+        ExecutionContext executionContext,
         MembershipReferenceType membershipReferenceType,
         RoleScope roleScope,
         String itemId,
         MembershipMember member,
-        List<RoleEntity> newPrimaryOwnerRoles,
-        final String organizationId,
-        final String environmentId
+        List<RoleEntity> newPrimaryOwnerRoles
     ) {
         List<RoleEntity> newRoles;
         if (newPrimaryOwnerRoles == null || newPrimaryOwnerRoles.isEmpty()) {
-            newRoles = roleService.findDefaultRoleByScopes(roleScope);
+            newRoles = roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), roleScope);
         } else {
             newRoles = newPrimaryOwnerRoles;
         }
 
-        MembershipEntity primaryOwner = this.getPrimaryOwner(organizationId, membershipReferenceType, itemId);
+        MembershipEntity primaryOwner = this.getPrimaryOwner(executionContext.getOrganizationId(), membershipReferenceType, itemId);
         // Set the new primary owner
         MemberEntity newPrimaryOwnerMember =
             this.addRoleToMemberOnReference(
-                    organizationId,
-                    environmentId,
+                    executionContext,
                     new MembershipReference(membershipReferenceType, itemId),
                     new MembershipMember(member.getMemberId(), member.getReference(), member.getMemberType()),
                     new MembershipRole(roleScope, PRIMARY_OWNER.name())
@@ -1540,10 +1574,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
         //If the new PO is a group and the reference is an API, add the group as a member of the API
         if (membershipReferenceType == MembershipReferenceType.API && member.getMemberType() == MembershipMemberType.GROUP) {
-            apiService.addGroup(itemId, member.getMemberId());
+            apiService.addGroup(executionContext, itemId, member.getMemberId());
         }
 
-        RoleEntity poRoleEntity = roleService.findPrimaryOwnerRoleByOrganization(organizationId, roleScope);
+        RoleEntity poRoleEntity = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), roleScope);
         if (poRoleEntity != null) {
             // if the new primary owner is a user, remove its previous role
             if (member.getMemberType() == MembershipMemberType.USER) this.getRoles(
@@ -1574,8 +1608,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 // set the new role
                 for (RoleEntity newRole : newRoles) {
                     this.addRoleToMemberOnReference(
-                            organizationId,
-                            environmentId,
+                            executionContext,
                             new MembershipReference(membershipReferenceType, itemId),
                             new MembershipMember(primaryOwner.getMemberId(), null, primaryOwner.getMemberType()),
                             new MembershipRole(roleScope, newRole.getName())
@@ -1583,20 +1616,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 }
             } else if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
                 // remove this group from the api's group list
-                apiService.removeGroup(itemId, primaryOwner.getId());
+                apiService.removeGroup(executionContext, itemId, primaryOwner.getId());
             }
         }
     }
 
     @Override
     public MemberEntity updateRoleToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReference reference,
         MembershipMember member,
         MembershipRole role
     ) {
-        return updateRolesToMemberOnReference(organizationId, environmentId, reference, member, singleton(role), null, true)
+        return updateRolesToMemberOnReference(executionContext, reference, member, singleton(role), null, true)
             .stream()
             .findFirst()
             .orElse(null);
@@ -1604,8 +1636,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public List<MemberEntity> updateRolesToMemberOnReference(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReference reference,
         MembershipMember member,
         Collection<MembershipRole> roles,
@@ -1621,11 +1652,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         reference.getId()
                     );
             if (existingMemberships != null && !existingMemberships.isEmpty()) {
-                existingMemberships.forEach(membership -> this.deleteMembership(organizationId, environmentId, membership.getId()));
+                existingMemberships.forEach(membership -> this.deleteMembership(executionContext, membership.getId()));
             }
             return roles
                 .stream()
-                .map(role -> _addRoleToMemberOnReference(reference, member, role, source, notify, false, environmentId, organizationId))
+                .map(role -> _addRoleToMemberOnReference(executionContext, reference, member, role, source, notify, false))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update member for {} {}", reference.getType(), reference.getId(), ex);
@@ -1638,8 +1669,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public List<MemberEntity> updateRolesToMemberOnReferenceBySource(
-        final String organizationId,
-        final String environmentId,
+        ExecutionContext executionContext,
         MembershipReference reference,
         MembershipMember member,
         Collection<MembershipRole> roles,
@@ -1647,7 +1677,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     ) {
         return roles
             .stream()
-            .map(role -> _addRoleToMemberOnReference(reference, member, role, source, false, true, environmentId, organizationId))
+            .map(role -> _addRoleToMemberOnReference(executionContext, reference, member, role, source, false, true))
             .collect(Collectors.toList());
     }
 }

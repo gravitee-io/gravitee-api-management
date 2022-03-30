@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -77,21 +78,23 @@ public class PlatformEventsResource extends AbstractResource {
         eventSearchParam.validate();
 
         Map<String, Object> properties = new HashMap<>();
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (eventSearchParam.getApiIdsParam() != null && !eventSearchParam.getApiIdsParam().isEmpty()) {
             properties.put(Event.EventProperties.API_ID.getValue(), eventSearchParam.getApiIdsParam());
         } else if (!isAdmin()) {
             properties.put(
                 Event.EventProperties.API_ID.getValue(),
                 apiService
-                    .findByUser(getAuthenticatedUser(), null, false)
+                    .findByUser(executionContext, getAuthenticatedUser(), null, false)
                     .stream()
-                    .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
+                    .filter(api -> permissionService.hasPermission(executionContext, API_ANALYTICS, api.getId(), READ))
                     .map(ApiEntity::getId)
                     .collect(Collectors.joining(","))
             );
         }
 
         Page<EventEntity> events = eventService.search(
+            executionContext,
             eventSearchParam.getEventTypeListParam(),
             properties,
             eventSearchParam.getFrom(),
@@ -114,7 +117,7 @@ public class PlatformEventsResource extends AbstractResource {
                         // Retrieve additional data
                         String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
                         try {
-                            ApiEntity api = apiService.findById(apiId);
+                            ApiEntity api = apiService.findById(executionContext, apiId);
                             properties1.put("api_name", api.getName());
                             properties1.put("api_version", api.getVersion());
                         } catch (ApiNotFoundException anfe) {

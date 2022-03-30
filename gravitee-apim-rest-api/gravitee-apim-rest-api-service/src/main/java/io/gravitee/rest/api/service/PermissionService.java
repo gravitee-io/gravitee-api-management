@@ -17,15 +17,27 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface PermissionService {
-    boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls);
+    boolean hasPermission(
+        final ExecutionContext executionContext,
+        RolePermission permission,
+        String referenceId,
+        RolePermissionAction... acls
+    );
 
-    boolean hasPermission(String userId, RolePermission permission, String referenceId, RolePermissionAction... acls);
+    boolean hasPermission(
+        final ExecutionContext executionContext,
+        String userId,
+        RolePermission permission,
+        String referenceId,
+        RolePermissionAction... acls
+    );
 
-    boolean hasManagementRights(String userId);
+    boolean hasManagementRights(ExecutionContext executionContext, String userId);
 }

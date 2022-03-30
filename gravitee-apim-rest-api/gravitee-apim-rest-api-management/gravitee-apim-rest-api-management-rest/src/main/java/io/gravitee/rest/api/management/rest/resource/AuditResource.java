@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -91,7 +92,7 @@ public class AuditResource extends AbstractResource {
             query.setEvents(Collections.singletonList(param.getEvent()));
         }
 
-        return new AuditEntityMetadataPage(auditService.search(query));
+        return new AuditEntityMetadataPage(auditService.search(GraviteeContext.getExecutionContext(), query));
     }
 
     @Path("/events")

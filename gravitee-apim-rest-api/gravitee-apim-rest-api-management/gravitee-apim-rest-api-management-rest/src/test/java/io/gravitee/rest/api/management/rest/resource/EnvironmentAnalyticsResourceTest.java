@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
@@ -67,10 +66,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApp() {
-        when(
-            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
-        )
-            .thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "date_histo")
@@ -89,10 +85,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApp() {
-        when(
-            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
-        )
-            .thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "group_by")
@@ -111,10 +104,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApp() {
-        when(
-            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
-        )
-            .thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "count")
@@ -132,10 +122,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApp() {
-        when(
-            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
-        )
-            .thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "stats")
@@ -154,7 +141,8 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(any(), eq(null), eq(false))).thenReturn(Collections.emptySet());
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+            .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "date_histo")
@@ -173,7 +161,8 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(any(), eq(null), eq(false))).thenReturn(Collections.emptySet());
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+            .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "group_by")
@@ -192,7 +181,8 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(any(), eq(null), eq(false))).thenReturn(Collections.emptySet());
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+            .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "count")
@@ -210,7 +200,8 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(any(), eq(null), eq(false))).thenReturn(Collections.emptySet());
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+            .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
             .queryParam("type", "stats")
@@ -232,8 +223,10 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApiEntity api = new ApiEntity();
         api.setId("apiId");
 
-        when(apiService.findByUser(any(), any(), eq(false))).thenReturn(Collections.singleton(api));
-        when(permissionService.hasPermission(API_ANALYTICS, api.getId(), READ)).thenReturn(true);
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false)))
+            .thenReturn(Collections.singleton(api));
+        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(API_ANALYTICS), eq(api.getId()), eq(READ)))
+            .thenReturn(true);
 
         Response response = envTarget()
             .queryParam("type", "count")
@@ -255,11 +248,11 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApplicationListItem app = new ApplicationListItem();
         app.setId("appId");
 
+        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.singleton(app));
         when(
-            applicationService.findByUser(eq(GraviteeContext.getCurrentOrganization()), eq(GraviteeContext.getCurrentEnvironment()), any())
+            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ANALYTICS), eq(app.getId()), eq(READ))
         )
-            .thenReturn(Collections.singleton(app));
-        when(permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ)).thenReturn(true);
+            .thenReturn(true);
 
         Response response = envTarget()
             .queryParam("type", "count")

@@ -33,7 +33,6 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.EventServiceImpl;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -108,7 +107,11 @@ public class EventServiceTest {
         when(newEvent.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(newEvent.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        final EventEntity eventEntity = eventService.create(Collections.singleton(GraviteeContext.getCurrentEnvironment()), newEvent);
+        final EventEntity eventEntity = eventService.create(
+            GraviteeContext.getExecutionContext(),
+            Collections.singleton(GraviteeContext.getCurrentEnvironment()),
+            newEvent
+        );
 
         assertNotNull(eventEntity);
         assertEquals(EventType.PUBLISH_API.toString(), eventEntity.getType().toString());
@@ -124,7 +127,7 @@ public class EventServiceTest {
 
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
 
-        final EventEntity eventEntity = eventService.findById(EVENT_ID);
+        final EventEntity eventEntity = eventService.findById(GraviteeContext.getExecutionContext(), EVENT_ID);
 
         assertNotNull(eventEntity);
     }
@@ -133,14 +136,14 @@ public class EventServiceTest {
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
         when(eventRepository.findById(any(String.class))).thenThrow(TechnicalException.class);
 
-        eventService.findById(EVENT_ID);
+        eventService.findById(GraviteeContext.getExecutionContext(), EVENT_ID);
     }
 
     @Test(expected = EventNotFoundException.class)
     public void shouldNotFindByNameBecauseNotExists() throws TechnicalException {
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
 
-        eventService.findById(EVENT_ID);
+        eventService.findById(GraviteeContext.getExecutionContext(), EVENT_ID);
     }
 
     @Test
@@ -169,6 +172,7 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
+            GraviteeContext.getExecutionContext(),
             Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
             null,
             1420070400000L,
@@ -212,6 +216,7 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
+            GraviteeContext.getExecutionContext(),
             Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
             null,
             1420070400000L,
@@ -254,6 +259,7 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
+            GraviteeContext.getExecutionContext(),
             Arrays.asList(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
             null,
             1420070400000L,
@@ -299,6 +305,7 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
+            GraviteeContext.getExecutionContext(),
             null,
             values,
             1420070400000L,
@@ -345,6 +352,7 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
+            GraviteeContext.getExecutionContext(),
             Arrays.asList(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
             values,
             1420070400000L,
@@ -378,6 +386,7 @@ public class EventServiceTest {
 
         // test without predicate
         Page<Map<String, String>> page = eventService.search(
+            GraviteeContext.getExecutionContext(),
             Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
             Collections.EMPTY_MAP,
             0,
@@ -399,6 +408,7 @@ public class EventServiceTest {
         // test with predicate
         page =
             eventService.search(
+                GraviteeContext.getExecutionContext(),
                 Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
                 Collections.EMPTY_MAP,
                 0,

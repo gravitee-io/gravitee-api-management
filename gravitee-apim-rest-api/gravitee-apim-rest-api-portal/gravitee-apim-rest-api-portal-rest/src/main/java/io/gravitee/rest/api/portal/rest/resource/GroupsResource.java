@@ -29,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,12 +58,13 @@ public class GroupsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response findAll(@BeanParam PaginationParam paginationParam) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         List<Group> groups = groupService
-            .findAll(GraviteeContext.getCurrentEnvironment())
+            .findAll(executionContext)
             .stream()
             .map(group -> new Group().id(group.getId()).name(group.getName()))
             .collect(Collectors.toList());
-        return createListResponse(groups, paginationParam);
+        return createListResponse(executionContext, groups, paginationParam);
     }
 
     @GET
@@ -71,19 +73,20 @@ public class GroupsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getMembersByGroupId(@PathParam("groupId") String groupId, @BeanParam PaginationParam paginationParam) {
         //check that group exists
-        groupService.findById(GraviteeContext.getCurrentEnvironment(), groupId);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        groupService.findById(executionContext, groupId);
 
         List<Member> groupsMembers = membershipService
-            .getMembersByReference(MembershipReferenceType.GROUP, groupId)
+            .getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId)
             .stream()
             .filter(
                 groupMemberEntity ->
                     groupMemberEntity != null &&
                     groupMemberEntity.getRoles().stream().anyMatch(role -> role.getScope().equals(RoleScope.APPLICATION))
             )
-            .map(groupMemberEntity -> memberMapper.convert(groupMemberEntity, uriInfo))
+            .map(groupMemberEntity -> memberMapper.convert(executionContext, groupMemberEntity, uriInfo))
             .collect(toList());
 
-        return createListResponse(groupsMembers, paginationParam);
+        return createListResponse(executionContext, groupsMembers, paginationParam);
     }
 }

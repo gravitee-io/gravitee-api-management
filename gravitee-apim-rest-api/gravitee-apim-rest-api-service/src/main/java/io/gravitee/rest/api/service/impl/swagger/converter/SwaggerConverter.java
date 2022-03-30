@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.converter;
 
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
 
 /**
@@ -22,5 +23,5 @@ import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
  * @author GraviteeSource Team
  */
 public interface SwaggerConverter<S extends SwaggerDescriptor, T> {
-    T convert(S descriptor);
+    T convert(ExecutionContext executionContext, S descriptor);
 }

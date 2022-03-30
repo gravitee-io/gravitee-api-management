@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PageRevisionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -94,7 +95,8 @@ public class PageService_ImportDescriptorTest {
     public void shouldImportDescriptor() throws Exception {
         // We mock the validateSafeContent method because the fetcher keeps sending the same json descriptor which is
         // not a swagger valid document (and modify the fetcher mock to produce valid desc is overkill)
-        when(pageService.validateSafeContent(any(), any())).thenReturn(new ArrayList<>());
+        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId");
+        when(pageService.validateSafeContent(eq(executionContext), any(), any())).thenReturn(new ArrayList<>());
 
         PageSourceEntity pageSource = new PageSourceEntity();
         pageSource.setType("type");
@@ -126,7 +128,7 @@ public class PageService_ImportDescriptorTest {
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
         when(graviteeDescriptorService.read(anyString())).thenCallRealMethod();
 
-        List<PageEntity> pageEntities = pageService.importFiles(pageEntity, GraviteeContext.getCurrentEnvironment());
+        List<PageEntity> pageEntities = pageService.importFiles(executionContext, pageEntity);
 
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());

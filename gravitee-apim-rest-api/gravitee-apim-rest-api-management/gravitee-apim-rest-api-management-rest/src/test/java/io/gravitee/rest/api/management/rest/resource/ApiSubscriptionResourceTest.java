@@ -20,11 +20,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -81,9 +78,9 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         fakeApplicationEntity.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
         fakeApplicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(fakeUserEntity));
 
-        when(userService.findById(any(), anyBoolean())).thenReturn(fakeUserEntity);
-        when(planService.findById(any())).thenReturn(fakePlanEntity);
-        when(applicationService.findById(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(fakeApplicationEntity);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(fakeUserEntity);
+        when(planService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakePlanEntity);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeApplicationEntity);
     }
 
     @Test
@@ -92,7 +89,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         processSubscriptionEntity.setId(SUBSCRIPTION_ID);
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        when(subscriptionService.process(any(ProcessSubscriptionEntity.class), any())).thenReturn(fakeSubscriptionEntity);
+        when(subscriptionService.process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any()))
+            .thenReturn(fakeSubscriptionEntity);
 
         Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
@@ -105,7 +103,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         processSubscriptionEntity.setId("badId");
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        when(subscriptionService.process(any(ProcessSubscriptionEntity.class), any())).thenReturn(fakeSubscriptionEntity);
+        when(subscriptionService.process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any()))
+            .thenReturn(fakeSubscriptionEntity);
 
         Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
@@ -118,7 +117,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         processSubscriptionEntity.setId(SUBSCRIPTION_ID);
         processSubscriptionEntity.setCustomApiKey("customApiKey;^");
 
-        when(subscriptionService.process(any(ProcessSubscriptionEntity.class), any())).thenReturn(fakeSubscriptionEntity);
+        when(subscriptionService.process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any()))
+            .thenReturn(fakeSubscriptionEntity);
 
         Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 

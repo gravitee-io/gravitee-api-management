@@ -20,8 +20,8 @@ import static org.mockito.Mockito.*;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.services.search.ScheduledSearchIndexerService;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
@@ -48,12 +48,12 @@ public class ScheduledSearchIndexerServiceTest {
 
     @Test
     public void shouldDoNothing() {
-        when(commandService.search(any())).thenReturn(Collections.emptyList());
+        when(commandService.search(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptyList());
 
         service.run();
 
         verify(commandService, never()).ack(anyString());
-        verify(searchEngineService, never()).process(any());
+        verify(searchEngineService, never()).process(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -66,11 +66,11 @@ public class ScheduledSearchIndexerServiceTest {
         delete.setId("deleteid");
         delete.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
         delete.setContent("{\"id\":\"2\"}");
-        when(commandService.search(any())).thenReturn(Arrays.asList(delete, insert));
+        when(commandService.search(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Arrays.asList(delete, insert));
 
         service.run();
 
         verify(commandService, times(2)).ack(anyString());
-        verify(searchEngineService, times(2)).process(any());
+        verify(searchEngineService, times(2)).process(eq(GraviteeContext.getExecutionContext()), any());
     }
 }

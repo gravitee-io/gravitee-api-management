@@ -28,9 +28,9 @@ import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.exceptions.BadOrganizationException;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
-import io.gravitee.rest.api.service.impl.EnvironmentServiceImpl;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -95,8 +95,9 @@ public class EnvironmentService_CreateTest {
                 )
             );
         verify(mockEnvironmentRepository, never()).update(any());
-        verify(mockAPIHeaderService, times(1)).initialize("env_id");
-        verify(mockPageService, times(1)).initialize("env_id");
+        ExecutionContext executionContext = new ExecutionContext("DEFAULT", "env_id");
+        verify(mockAPIHeaderService, times(1)).initialize(executionContext);
+        verify(mockPageService, times(1)).initialize(executionContext);
     }
 
     @Test
@@ -130,8 +131,9 @@ public class EnvironmentService_CreateTest {
                 )
             );
         verify(mockEnvironmentRepository, never()).create(any());
-        verify(mockAPIHeaderService, never()).initialize("env_id");
-        verify(mockPageService, never()).initialize("env_id");
+        ExecutionContext executionContext = new ExecutionContext("DEFAULT", "env_id");
+        verify(mockAPIHeaderService, never()).initialize(executionContext);
+        verify(mockPageService, never()).initialize(executionContext);
     }
 
     @Test(expected = OrganizationNotFoundException.class)

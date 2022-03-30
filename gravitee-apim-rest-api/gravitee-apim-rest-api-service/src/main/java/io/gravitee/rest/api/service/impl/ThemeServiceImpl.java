@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.theme.*;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ThemeService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateThemeNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -71,11 +72,11 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     private String themesPath;
 
     @Override
-    public Set<ThemeEntity> findAll() {
+    public Set<ThemeEntity> findAll(final ExecutionContext executionContext) {
         try {
-            LOGGER.debug("Find all themes by reference: " + GraviteeContext.getCurrentEnvironment());
+            LOGGER.debug("Find all themes by reference: " + executionContext.getEnvironmentId());
             return themeRepository
-                .findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ThemeReferenceType.ENVIRONMENT.name())
+                .findByReferenceIdAndReferenceType(executionContext.getEnvironmentId(), ThemeReferenceType.ENVIRONMENT.name())
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
@@ -86,11 +87,11 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public ThemeEntity findById(String themeId) {
-        return convert(this.findByIdWithoutConvert(themeId));
+    public ThemeEntity findById(final ExecutionContext executionContext, String themeId) {
+        return convert(this.findByIdWithoutConvert(executionContext, themeId));
     }
 
-    private Theme findByIdWithoutConvert(String themeId) {
+    private Theme findByIdWithoutConvert(final ExecutionContext executionContext, String themeId) {
         try {
             LOGGER.debug("Find theme by ID: {}", themeId);
             Optional<Theme> optTheme = themeRepository.findById(themeId);
@@ -100,9 +101,9 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             }
 
             Theme theme = optTheme.get();
-            if (!theme.getReferenceId().equals(GraviteeContext.getCurrentEnvironment())) {
+            if (!theme.getReferenceId().equals(executionContext.getEnvironmentId())) {
                 LOGGER.warn(
-                    "Theme is not in current environment " + GraviteeContext.getCurrentEnvironment() + " actual:" + theme.getReferenceId()
+                    "Theme is not in current environment " + executionContext.getEnvironmentId() + " actual:" + theme.getReferenceId()
                 );
                 throw new ThemeNotFoundException(themeId);
             }
@@ -114,17 +115,18 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public ThemeEntity create(final NewThemeEntity themeEntity) {
+    public ThemeEntity create(final ExecutionContext executionContext, final NewThemeEntity themeEntity) {
         // First we prevent the duplicate name
         try {
-            if (this.findByName(themeEntity.getName(), null).isPresent()) {
+            if (this.findByName(executionContext, themeEntity.getName(), null).isPresent()) {
                 throw new DuplicateThemeNameException(themeEntity.getName());
             }
 
-            Theme theme = themeRepository.create(convert(themeEntity));
+            Theme theme = themeRepository.create(convert(executionContext, themeEntity));
 
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(THEME, theme.getId()),
                 THEME_CREATED,
                 theme.getCreatedAt(),
@@ -140,17 +142,17 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         }
     }
 
-    private Optional<ThemeEntity> findByName(String name, String excludedId) {
-        return findAll().stream().filter(t -> !t.getId().equals(excludedId) && t.getName().equals(name)).findAny();
+    private Optional<ThemeEntity> findByName(final ExecutionContext executionContext, String name, String excludedId) {
+        return findAll(executionContext).stream().filter(t -> !t.getId().equals(excludedId) && t.getName().equals(name)).findAny();
     }
 
     @Override
-    public ThemeEntity update(final UpdateThemeEntity updateThemeEntity) {
+    public ThemeEntity update(final ExecutionContext executionContext, final UpdateThemeEntity updateThemeEntity) {
         try {
             final Optional<Theme> themeOptional = themeRepository.findById(updateThemeEntity.getId());
             if (themeOptional.isPresent()) {
                 final Theme theme = new Theme(themeOptional.get());
-                if (this.findByName(theme.getName(), theme.getId()).isPresent()) {
+                if (this.findByName(executionContext, theme.getName(), theme.getId()).isPresent()) {
                     throw new DuplicateThemeNameException(theme.getName());
                 }
 
@@ -158,7 +160,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 final Date now = new Date();
                 theme.setUpdatedAt(now);
                 theme.setReferenceType(ThemeReferenceType.ENVIRONMENT.name());
-                theme.setReferenceId(GraviteeContext.getCurrentEnvironment());
+                theme.setReferenceId(executionContext.getEnvironmentId());
 
                 if (updateThemeEntity.getName() != null) {
                     theme.setName(updateThemeEntity.getName());
@@ -188,7 +190,8 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
                 final ThemeEntity savedTheme = convert(themeRepository.update(theme));
                 auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(THEME, theme.getId()),
                     THEME_UPDATED,
                     new Date(),
@@ -205,7 +208,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 newTheme.setOptionalLogo(updateThemeEntity.getOptionalLogo());
                 newTheme.setFavicon(updateThemeEntity.getFavicon());
                 newTheme.setEnabled(updateThemeEntity.isEnabled());
-                return create(newTheme);
+                return create(executionContext, newTheme);
             }
         } catch (TechnicalException | JsonProcessingException ex) {
             final String error = "An error occurred while trying to update theme " + updateThemeEntity;
@@ -215,13 +218,14 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public void delete(String themeId) {
+    public void delete(final ExecutionContext executionContext, String themeId) {
         try {
             Optional<Theme> themeOptional = themeRepository.findById(themeId);
             if (themeOptional.isPresent()) {
                 themeRepository.delete(themeId);
                 auditService.createEnvironmentAuditLog(
-                    GraviteeContext.getCurrentEnvironment(),
+                    executionContext,
+                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(THEME, themeId),
                     THEME_DELETED,
                     new Date(),
@@ -237,11 +241,11 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public ThemeEntity findEnabled() {
+    public ThemeEntity findEnabled(final ExecutionContext executionContext) {
         try {
             LOGGER.debug("Find all themes by reference type");
             Optional<Theme> themeEnabled = themeRepository
-                .findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ThemeReferenceType.ENVIRONMENT.name())
+                .findByReferenceIdAndReferenceType(executionContext.getEnvironmentId(), ThemeReferenceType.ENVIRONMENT.name())
                 .stream()
                 .filter(theme -> theme.isEnabled())
                 .findFirst();
@@ -270,10 +274,10 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public void updateDefaultTheme() {
+    public void updateDefaultTheme(final ExecutionContext executionContext) {
         try {
             final Set<Theme> themes = themeRepository.findByReferenceIdAndReferenceType(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext.getEnvironmentId(),
                 ThemeReferenceType.ENVIRONMENT.name()
             );
 
@@ -289,7 +293,8 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                                 theme.setUpdatedAt(new Date());
                                 this.themeRepository.update(themeUpdate);
                                 auditService.createEnvironmentAuditLog(
-                                    GraviteeContext.getCurrentEnvironment(),
+                                    executionContext,
+                                    executionContext.getEnvironmentId(),
                                     Collections.singletonMap(THEME, theme.getId()),
                                     THEME_UPDATED,
                                     new Date(),
@@ -318,9 +323,9 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public PictureEntity getFavicon(String themeId) {
+    public PictureEntity getFavicon(final ExecutionContext executionContext, String themeId) {
         try {
-            final String favicon = findEnabled().getFavicon();
+            final String favicon = findEnabled(executionContext).getFavicon();
             if (favicon != null) {
                 return convertToPicture(favicon);
             }
@@ -374,20 +379,21 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public ThemeEntity resetToDefaultTheme(String themeId) {
+    public ThemeEntity resetToDefaultTheme(final ExecutionContext executionContext, String themeId) {
         try {
             LOGGER.debug("Reset to default theme by ID: {}", themeId);
-            final ThemeEntity previousTheme = findEnabled();
+            final ThemeEntity previousTheme = findEnabled(executionContext);
             themeRepository.delete(DEFAULT_THEME_ID);
             auditService.createEnvironmentAuditLog(
-                GraviteeContext.getCurrentEnvironment(),
+                executionContext,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(THEME, themeId),
                 THEME_RESET,
                 new Date(),
                 previousTheme,
                 null
             );
-            return findEnabled();
+            return findEnabled(executionContext);
         } catch (Exception ex) {
             final String error = "Error while trying to reset a default theme";
             LOGGER.error(error, ex);
@@ -396,9 +402,9 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public PictureEntity getLogo(String themeId) {
+    public PictureEntity getLogo(final ExecutionContext executionContext, String themeId) {
         try {
-            final String logo = findEnabled().getLogo();
+            final String logo = findEnabled(executionContext).getLogo();
             if (logo != null) {
                 return convertToPicture(logo);
             }
@@ -409,9 +415,9 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public PictureEntity getOptionalLogo(String themeId) {
+    public PictureEntity getOptionalLogo(final ExecutionContext executionContext, String themeId) {
         try {
-            final String optionalLogo = findEnabled().getOptionalLogo();
+            final String optionalLogo = findEnabled(executionContext).getOptionalLogo();
             if (optionalLogo != null) {
                 return convertToPicture(optionalLogo);
             }
@@ -422,9 +428,9 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     @Override
-    public PictureEntity getBackgroundImage(String themeId) {
+    public PictureEntity getBackgroundImage(final ExecutionContext executionContext, String themeId) {
         try {
-            final String backgroundImage = findEnabled().getBackgroundImage();
+            final String backgroundImage = findEnabled(executionContext).getBackgroundImage();
             if (backgroundImage != null) {
                 return convertToPicture(backgroundImage);
             }
@@ -447,14 +453,14 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         }
     }
 
-    private Theme convert(NewThemeEntity themeEntity) {
+    private Theme convert(final ExecutionContext executionContext, NewThemeEntity themeEntity) {
         try {
             final Date now = new Date();
             final Theme theme = new Theme();
             theme.setId(DEFAULT_THEME_ID);
             theme.setCreatedAt(now);
             theme.setUpdatedAt(now);
-            theme.setReferenceId(GraviteeContext.getCurrentEnvironment());
+            theme.setReferenceId(executionContext.getEnvironmentId());
             theme.setReferenceType(ThemeReferenceType.ENVIRONMENT.name());
             theme.setLogo(themeEntity.getLogo());
             theme.setName(themeEntity.getName());

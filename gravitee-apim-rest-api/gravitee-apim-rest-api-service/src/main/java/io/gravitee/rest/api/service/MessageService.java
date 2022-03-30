@@ -27,20 +27,20 @@ import java.util.Set;
 public interface MessageService {
     /**
      * send a message to api consumers according to recipients filters
-     * @param context ExecutionContext
+     * @param executionContext ExecutionContext
      * @param apiId api id
      * @param message message
      * @return the number of recipients
      */
-    int create(final ExecutionContext context, String apiId, MessageEntity message);
+    int create(final ExecutionContext executionContext, String apiId, MessageEntity message);
 
     /**
      * send a message to all users according to recipients filters
-     * @param context ExecutionContext
+     * @param executionContext ExecutionContext
      * @param message message
      * @return the number of recipients
      */
-    int create(final ExecutionContext context, MessageEntity message);
+    int create(final ExecutionContext executionContext, MessageEntity message);
 
     /**
      * get the user ids of recipients

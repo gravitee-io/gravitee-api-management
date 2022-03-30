@@ -33,6 +33,7 @@ import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
 import java.io.IOException;
 import java.util.Arrays;
@@ -125,7 +126,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                             .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     } else if (tokenService != null && userService != null) {
                         final Token token = tokenService.findByToken(tokenValue);
-                        final UserEntity user = userService.findById(token.getReferenceId());
+                        final UserEntity user = userService.findById(GraviteeContext.getExecutionContext(), token.getReferenceId());
 
                         final Set<GrantedAuthority> authorities = this.authoritiesProvider.retrieveAuthorities(user.getId());
 

@@ -17,16 +17,17 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface LogsService {
-    SearchLogResponse<ApiRequestItem> findByApi(String api, LogQuery query);
-    SearchLogResponse<ApplicationRequestItem> findByApplication(String application, LogQuery query);
-    SearchLogResponse<PlatformRequestItem> findPlatform(LogQuery query);
-    ApiRequest findApiLog(String id, Long timestamp);
-    ApplicationRequest findApplicationLog(String id, Long timestamp);
-    String exportAsCsv(SearchLogResponse<?> searchLogResponse);
+    SearchLogResponse<ApiRequestItem> findByApi(ExecutionContext executionContext, String api, LogQuery query);
+    SearchLogResponse<ApplicationRequestItem> findByApplication(ExecutionContext executionContext, String application, LogQuery query);
+    SearchLogResponse<PlatformRequestItem> findPlatform(ExecutionContext executionContext, LogQuery query);
+    ApiRequest findApiLog(ExecutionContext executionContext, String id, Long timestamp);
+    ApplicationRequest findApplicationLog(ExecutionContext executionContext, String id, Long timestamp);
+    String exportAsCsv(ExecutionContext executionContext, SearchLogResponse<?> searchLogResponse);
 }

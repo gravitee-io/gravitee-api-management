@@ -49,7 +49,7 @@ public class ApiQualityMetricHealthcheckTest {
     @Test
     public void shouldBeValid() {
         when(apiService.hasHealthCheckEnabled(any(), eq(true))).thenReturn(true);
-        boolean valid = srv.isValid(mock(ApiEntity.class), GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), mock(ApiEntity.class));
 
         assertTrue(valid);
     }
@@ -57,7 +57,7 @@ public class ApiQualityMetricHealthcheckTest {
     @Test
     public void shouldNotBeValid() {
         when(apiService.hasHealthCheckEnabled(any(), eq(true))).thenReturn(false);
-        boolean valid = srv.isValid(mock(ApiEntity.class), GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), mock(ApiEntity.class));
 
         assertFalse(valid);
     }

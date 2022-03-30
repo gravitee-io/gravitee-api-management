@@ -20,8 +20,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -31,6 +30,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.*;
 import javax.ws.rs.core.Response;
@@ -58,10 +58,12 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiService).findById(API);
+        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
 
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(mockApis)
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
     }
 
     @Test
@@ -69,7 +71,9 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
         // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(emptySet())
+            .when(apiService)
+            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         // test
         final Response response = target(API).path("metrics").request().get();
@@ -107,13 +111,15 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
         SubscriptionEntity subC8 = new SubscriptionEntity();
         subC8.setApplication("C");
         subC8.setApi("8");
-        doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1)).when(subscriptionService).search(any());
+        doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1))
+            .when(subscriptionService)
+            .search(eq(GraviteeContext.getExecutionContext()), any());
 
         io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number> mockMetrics = new io.gravitee.rest.api.model.healthcheck.ApiMetrics<>();
         Map<String, Double> globalMetrics = new HashMap<>();
         globalMetrics.put("1w", API_HEALTHCHECK_RATIO);
         mockMetrics.setGlobal(globalMetrics);
-        doReturn(mockMetrics).when(healthCheckService).getAvailability(any(), any());
+        doReturn(mockMetrics).when(healthCheckService).getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         final Response response = target(API).path("metrics").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -129,8 +135,8 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
     public void shouldGetEmptyApiMetrics() {
         // Case 1
         doReturn(null).when(analyticsService).execute(any(StatsQuery.class));
-        doReturn(null).when(subscriptionService).search(any());
-        doReturn(null).when(healthCheckService).getAvailability(any(), any());
+        doReturn(null).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(null).when(healthCheckService).getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         Response response = target(API).path("metrics").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -143,8 +149,10 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
 
         // Case 2
         doReturn(null).when(analyticsService).execute(any(StatsQuery.class));
-        doReturn(Collections.emptyList()).when(subscriptionService).search(any());
-        doReturn(new io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number>()).when(healthCheckService).getAvailability(any(), any());
+        doReturn(Collections.emptyList()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(new io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number>())
+            .when(healthCheckService)
+            .getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         response = target(API).path("metrics").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -157,10 +165,10 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
 
         // Case 3
         doReturn(null).when(analyticsService).execute(any(StatsQuery.class));
-        doReturn(null).when(subscriptionService).search(any());
+        doReturn(null).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
         io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number> mockedMetrics = new io.gravitee.rest.api.model.healthcheck.ApiMetrics<>();
         mockedMetrics.setGlobal(Collections.singletonMap("1w", Double.NaN));
-        doReturn(mockedMetrics).when(healthCheckService).getAvailability(any(), any());
+        doReturn(mockedMetrics).when(healthCheckService).getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         response = target(API).path("metrics").request().get();
         assertEquals(OK_200, response.getStatus());

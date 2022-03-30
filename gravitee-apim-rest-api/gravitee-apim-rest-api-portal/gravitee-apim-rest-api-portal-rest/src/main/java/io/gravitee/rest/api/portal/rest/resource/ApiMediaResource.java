@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,7 +48,11 @@ public class ApiMediaResource extends AbstractResource {
     public Response getApiMedia(@Context Request request, @PathParam("apiId") String apiId, @PathParam("mediaHash") String mediaHash) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             MediaEntity mediaEntity = mediaService.findByHashAndApi(mediaHash, apiId, true);
 

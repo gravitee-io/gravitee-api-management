@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -63,15 +64,17 @@ public class CategoriesResource extends AbstractCategoryResource {
         // But this service is also used to managed Categories from Settings.
         // We should find a way to load total API only when necessary (ie. not while editing an API)
         Set<ApiEntity> apis;
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (isAdmin()) {
-            apis = apiService.findAllByEnvironment(GraviteeContext.getCurrentEnvironment());
+            apis = apiService.findAllByEnvironment(executionContext);
         } else if (isAuthenticated()) {
-            apis = apiService.findByUser(getAuthenticatedUser(), null, true);
+            apis = apiService.findByUser(executionContext, getAuthenticatedUser(), null, true);
         } else {
-            apis = apiService.findByVisibility(Visibility.PUBLIC);
+            apis = apiService.findByVisibility(executionContext, Visibility.PUBLIC);
         }
 
         boolean All = hasPermission(
+            executionContext,
             RolePermission.ENVIRONMENT_CATEGORY,
             RolePermissionAction.UPDATE,
             RolePermissionAction.CREATE,
@@ -100,7 +103,7 @@ public class CategoriesResource extends AbstractCategoryResource {
     @Operation(summary = "Create a category", description = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE) })
     public CategoryEntity createCategory(@Valid @NotNull final NewCategoryEntity category) {
-        return categoryService.create(GraviteeContext.getCurrentEnvironment(), category);
+        return categoryService.create(GraviteeContext.getExecutionContext(), GraviteeContext.getCurrentEnvironment(), category);
     }
 
     @PUT
@@ -112,7 +115,7 @@ public class CategoriesResource extends AbstractCategoryResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE) })
     public List<CategoryEntity> updateCategories(@Valid @NotNull final List<UpdateCategoryEntity> categories) {
-        return categoryService.update(categories);
+        return categoryService.update(GraviteeContext.getExecutionContext(), categories);
     }
 
     @Path("{categoryId}")

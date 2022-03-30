@@ -23,6 +23,8 @@ import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -50,13 +52,21 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
     private AuditService auditService;
 
     @Override
-    public Set<IdentityProviderActivationEntity> activateIdpOnTargets(String identityProviderId, ActivationTarget... targetsToAdd) {
+    public Set<IdentityProviderActivationEntity> activateIdpOnTargets(
+        ExecutionContext executionContext,
+        String identityProviderId,
+        ActivationTarget... targetsToAdd
+    ) {
         LOGGER.debug("Activate identity provider {} on targets {} ", identityProviderId, targetsToAdd);
 
         try {
             Set<IdentityProviderActivationEntity> createdActivations = new HashSet<>();
             for (ActivationTarget target : targetsToAdd) {
-                IdentityProviderActivation createdIdentityProviderActivation = createIdentityProviderActivation(identityProviderId, target);
+                IdentityProviderActivation createdIdentityProviderActivation = createIdentityProviderActivation(
+                    executionContext,
+                    identityProviderId,
+                    target
+                );
                 createdActivations.add(convert(createdIdentityProviderActivation));
             }
             return createdActivations;
@@ -78,13 +88,21 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
     }
 
     @Override
-    public Set<IdentityProviderActivationEntity> addIdpsOnTarget(ActivationTarget target, String... identityProviderIdsToAdd) {
+    public Set<IdentityProviderActivationEntity> addIdpsOnTarget(
+        ExecutionContext executionContext,
+        ActivationTarget target,
+        String... identityProviderIdsToAdd
+    ) {
         LOGGER.debug("Add identity providers {} on target {} ", identityProviderIdsToAdd, target);
 
         try {
             Set<IdentityProviderActivationEntity> createdActivations = new HashSet<>();
             for (String identityProviderId : identityProviderIdsToAdd) {
-                IdentityProviderActivation createdIdentityProviderActivation = createIdentityProviderActivation(identityProviderId, target);
+                IdentityProviderActivation createdIdentityProviderActivation = createIdentityProviderActivation(
+                    executionContext,
+                    identityProviderId,
+                    target
+                );
                 createdActivations.add(convert(createdIdentityProviderActivation));
             }
             return createdActivations;
@@ -136,12 +154,12 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
     }
 
     @Override
-    public void deactivateIdpOnTargets(String identityProviderId, ActivationTarget... targetsToRemove) {
+    public void deactivateIdpOnTargets(ExecutionContext executionContext, String identityProviderId, ActivationTarget... targetsToRemove) {
         LOGGER.debug("Deactivate identity provider {} on targets {} ", identityProviderId, targetsToRemove);
 
         try {
             for (ActivationTarget target : targetsToRemove) {
-                deleteIdentityProviderActivation(identityProviderId, target);
+                deleteIdentityProviderActivation(executionContext, identityProviderId, target);
             }
         } catch (TechnicalException ex) {
             LOGGER.error(
@@ -161,12 +179,12 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
     }
 
     @Override
-    public void removeIdpsFromTarget(ActivationTarget target, String... identityProviderIdsToRemove) {
+    public void removeIdpsFromTarget(ExecutionContext executionContext, ActivationTarget target, String... identityProviderIdsToRemove) {
         LOGGER.debug("Remove identity providers {} from target {} ", identityProviderIdsToRemove, target);
 
         try {
             for (String identityProviderId : identityProviderIdsToRemove) {
-                deleteIdentityProviderActivation(identityProviderId, target);
+                deleteIdentityProviderActivation(executionContext, identityProviderId, target);
             }
         } catch (TechnicalException ex) {
             LOGGER.error(
@@ -186,7 +204,7 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
     }
 
     @Override
-    public void deactivateIdpOnAllTargets(String identityProviderId) {
+    public void deactivateIdpOnAllTargets(ExecutionContext executionContext, String identityProviderId) {
         LOGGER.debug("Deactivate identity provider {} on all targets", identityProviderId);
 
         try {
@@ -198,6 +216,7 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
 
             for (IdentityProviderActivation ipa : iPAsToRemove) {
                 auditService.createAuditLog(
+                    executionContext,
                     Audit.AuditReferenceType.valueOf(ipa.getReferenceType().name()),
                     ipa.getReferenceId(),
                     Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, ipa.getIdentityProviderId()),
@@ -217,7 +236,7 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
     }
 
     @Override
-    public void removeAllIdpsFromTarget(ActivationTarget target) {
+    public void removeAllIdpsFromTarget(ExecutionContext executionContext, ActivationTarget target) {
         LOGGER.debug("Remove all identity providers from target {} ", target);
 
         try {
@@ -233,6 +252,7 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
 
             for (IdentityProviderActivation ipa : iPAsToRemove) {
                 auditService.createAuditLog(
+                    executionContext,
                     Audit.AuditReferenceType.valueOf(ipa.getReferenceType().name()),
                     ipa.getReferenceId(),
                     Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, ipa.getReferenceId()),
@@ -252,30 +272,34 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
     }
 
     @Override
-    public void updateTargetIdp(ActivationTarget target, List<String> identityProviderIds) {
+    public void updateTargetIdp(ExecutionContext executionContext, ActivationTarget target, List<String> identityProviderIds) {
         final Set<IdentityProviderActivationEntity> allTargetActivations = this.findAllByTarget(target);
         allTargetActivations.forEach(
             ipa -> {
                 if (!identityProviderIds.contains(ipa.getIdentityProvider())) {
-                    this.removeIdpsFromTarget(target, ipa.getIdentityProvider());
+                    this.removeIdpsFromTarget(executionContext, target, ipa.getIdentityProvider());
                 } else {
                     identityProviderIds.remove(ipa.getIdentityProvider());
                 }
             }
         );
         if (!identityProviderIds.isEmpty()) {
-            this.addIdpsOnTarget(target, identityProviderIds.toArray(new String[identityProviderIds.size()]));
+            this.addIdpsOnTarget(executionContext, target, identityProviderIds.toArray(new String[identityProviderIds.size()]));
         }
     }
 
     @NotNull
-    private IdentityProviderActivation createIdentityProviderActivation(String identityProviderId, ActivationTarget target)
-        throws TechnicalException {
+    private IdentityProviderActivation createIdentityProviderActivation(
+        ExecutionContext executionContext,
+        String identityProviderId,
+        ActivationTarget target
+    ) throws TechnicalException {
         IdentityProviderActivation createdIdentityProviderActivation = identityProviderActivationRepository.create(
             convert(identityProviderId, target, new Date())
         );
 
         auditService.createAuditLog(
+            executionContext,
             Audit.AuditReferenceType.valueOf(target.getReferenceType().name()),
             target.getReferenceId(),
             Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, createdIdentityProviderActivation.getIdentityProviderId()),
@@ -288,7 +312,8 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
         return createdIdentityProviderActivation;
     }
 
-    private void deleteIdentityProviderActivation(String identityProviderId, ActivationTarget target) throws TechnicalException {
+    private void deleteIdentityProviderActivation(ExecutionContext executionContext, String identityProviderId, ActivationTarget target)
+        throws TechnicalException {
         Optional<IdentityProviderActivation> optIPAToRemove = identityProviderActivationRepository.findById(
             identityProviderId,
             target.getReferenceId(),
@@ -301,6 +326,7 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
         identityProviderActivationRepository.delete(identityProviderId, target.getReferenceId(), convert(target.getReferenceType()));
 
         auditService.createAuditLog(
+            executionContext,
             Audit.AuditReferenceType.valueOf(target.getReferenceType().name()),
             target.getReferenceId(),
             Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, identityProviderId),

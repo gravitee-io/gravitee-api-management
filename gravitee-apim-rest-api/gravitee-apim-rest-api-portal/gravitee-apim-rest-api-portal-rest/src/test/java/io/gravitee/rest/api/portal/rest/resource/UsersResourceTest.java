@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
@@ -122,14 +123,16 @@ public class UsersResourceTest extends AbstractResourceTest {
         NewExternalUserEntity newExternalUserEntity = new NewExternalUserEntity();
         doReturn(newExternalUserEntity).when(userMapper).convert(input);
 
-        doReturn(new UserEntity()).when(userService).register(newExternalUserEntity, "HTTP://MY-CONFIRM-PAGE");
+        doReturn(new UserEntity())
+            .when(userService)
+            .register(GraviteeContext.getExecutionContext(), newExternalUserEntity, "HTTP://MY-CONFIRM-PAGE");
 
         // test
         final Response response = target("registration").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(userMapper).convert(input);
-        Mockito.verify(userService).register(newExternalUserEntity, "HTTP://MY-CONFIRM-PAGE");
+        Mockito.verify(userService).register(GraviteeContext.getExecutionContext(), newExternalUserEntity, "HTTP://MY-CONFIRM-PAGE");
     }
 
     @Test
@@ -140,14 +143,14 @@ public class UsersResourceTest extends AbstractResourceTest {
         NewExternalUserEntity newExternalUserEntity = new NewExternalUserEntity();
         doReturn(newExternalUserEntity).when(userMapper).convert(input);
 
-        doReturn(null).when(userService).register(newExternalUserEntity, null);
+        doReturn(null).when(userService).register(GraviteeContext.getExecutionContext(), newExternalUserEntity, null);
 
         // test
         final Response response = target("registration").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
 
         Mockito.verify(userMapper).convert(input);
-        Mockito.verify(userService).register(newExternalUserEntity, null);
+        Mockito.verify(userService).register(GraviteeContext.getExecutionContext(), newExternalUserEntity, null);
     }
 
     @Test
@@ -186,14 +189,14 @@ public class UsersResourceTest extends AbstractResourceTest {
         RegisterUserEntity registerUserEntity = new RegisterUserEntity();
         doReturn(registerUserEntity).when(userMapper).convert(input);
 
-        doReturn(new UserEntity()).when(userService).finalizeRegistration(registerUserEntity);
+        doReturn(new UserEntity()).when(userService).finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
 
         // test
         final Response response = target("registration/_finalize").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(userMapper).convert(input);
-        Mockito.verify(userService).finalizeRegistration(registerUserEntity);
+        Mockito.verify(userService).finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
     }
 
     @Test
@@ -208,14 +211,14 @@ public class UsersResourceTest extends AbstractResourceTest {
         RegisterUserEntity registerUserEntity = new RegisterUserEntity();
         doReturn(registerUserEntity).when(userMapper).convert(input);
 
-        doReturn(null).when(userService).finalizeRegistration(registerUserEntity);
+        doReturn(null).when(userService).finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
 
         // test
         final Response response = target("registration/_finalize").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
 
         Mockito.verify(userMapper).convert(input);
-        Mockito.verify(userService).finalizeRegistration(registerUserEntity);
+        Mockito.verify(userService).finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
     }
 
     @Test
@@ -229,7 +232,7 @@ public class UsersResourceTest extends AbstractResourceTest {
     public void shouldHaveNoContentResponseWithUnexistingUser() {
         doThrow(new UserNotFoundException("my@email.com"))
             .when(userService)
-            .resetPasswordFromSourceId("my@email.com", "HTTP://MY-RESET-PAGE");
+            .resetPasswordFromSourceId(GraviteeContext.getExecutionContext(), "my@email.com", "HTTP://MY-RESET-PAGE");
         ResetUserPasswordInput input = new ResetUserPasswordInput().username("my@email.com").resetPageUrl("HTTP://MY-RESET-PAGE");
         final Response response = target().path("_reset_password").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
@@ -249,7 +252,9 @@ public class UsersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetUserAvatarRedirectUrl() throws IOException {
-        doReturn(new UrlPictureEntity(root().path("openapi").getUri().toURL().toString())).when(userService).getPicture(any());
+        doReturn(new UrlPictureEntity(root().path("openapi").getUri().toURL().toString()))
+            .when(userService)
+            .getPicture(eq(GraviteeContext.getExecutionContext()), any());
         final Response response = target().path("userId").path("avatar").request().get();
         assertEquals(OK_200, response.getStatus());
     }

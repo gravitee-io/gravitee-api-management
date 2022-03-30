@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.configuration.identity;
 
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -26,23 +27,31 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface IdentityProviderActivationService {
-    Set<IdentityProviderActivationEntity> activateIdpOnTargets(String identityProviderId, ActivationTarget... targetsToAdd);
+    Set<IdentityProviderActivationEntity> activateIdpOnTargets(
+        ExecutionContext executionContext,
+        String identityProviderId,
+        ActivationTarget... targetsToAdd
+    );
 
-    Set<IdentityProviderActivationEntity> addIdpsOnTarget(ActivationTarget target, String... identityProviderIdsToAdd);
+    Set<IdentityProviderActivationEntity> addIdpsOnTarget(
+        ExecutionContext executionContext,
+        ActivationTarget target,
+        String... identityProviderIdsToAdd
+    );
 
     Set<IdentityProviderActivationEntity> findAllByIdentityProviderId(String identityProviderId);
 
     Set<IdentityProviderActivationEntity> findAllByTarget(ActivationTarget target);
 
-    void deactivateIdpOnTargets(String identityProviderId, ActivationTarget... targetsToRemove);
+    void deactivateIdpOnTargets(ExecutionContext executionContext, String identityProviderId, ActivationTarget... targetsToRemove);
 
-    void removeIdpsFromTarget(ActivationTarget target, String... identityProviderIdsToRemove);
+    void removeIdpsFromTarget(ExecutionContext executionContext, ActivationTarget target, String... identityProviderIdsToRemove);
 
-    void deactivateIdpOnAllTargets(String identityProviderId);
+    void deactivateIdpOnAllTargets(ExecutionContext executionContext, String identityProviderId);
 
-    void removeAllIdpsFromTarget(ActivationTarget target);
+    void removeAllIdpsFromTarget(ExecutionContext executionContext, ActivationTarget target);
 
-    void updateTargetIdp(ActivationTarget target, List<String> identityProviderIds);
+    void updateTargetIdp(ExecutionContext executionContext, ActivationTarget target, List<String> identityProviderIds);
 
     class ActivationTarget {
 

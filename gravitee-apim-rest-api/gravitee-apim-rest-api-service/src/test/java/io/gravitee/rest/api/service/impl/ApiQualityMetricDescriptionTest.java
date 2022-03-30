@@ -49,31 +49,49 @@ public class ApiQualityMetricDescriptionTest {
 
     @Test
     public void shouldNotBeValidWithNull() {
-        when(parameterService.findAll(Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH, ParameterReferenceType.ENVIRONMENT))
+        when(
+            parameterService.findAll(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
             .thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn(null);
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertFalse(valid);
     }
 
     @Test
     public void shouldNotBeValidWithNotEnoughDefaultLength() {
-        when(parameterService.findAll(Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH, ParameterReferenceType.ENVIRONMENT))
+        when(
+            parameterService.findAll(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
             .thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn("1234567890");
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertFalse(valid);
     }
 
     @Test
     public void shouldBeValidWithEnoughDefaultLength() {
-        when(parameterService.findAll(Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH, ParameterReferenceType.ENVIRONMENT))
+        when(
+            parameterService.findAll(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
             .thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription())
@@ -90,31 +108,43 @@ public class ApiQualityMetricDescriptionTest {
                 "1234567890"
             );
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertTrue(valid);
     }
 
     @Test
     public void shouldBeValidWithEnoughCustomLength() {
-        when(parameterService.findAll(Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH, ParameterReferenceType.ENVIRONMENT))
+        when(
+            parameterService.findAll(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
             .thenReturn(Arrays.asList("3"));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn("123");
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertTrue(valid);
     }
 
     @Test
     public void shouldNotBeValidWithNotEnoughCustomLength() {
-        when(parameterService.findAll(Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH, ParameterReferenceType.ENVIRONMENT))
+        when(
+            parameterService.findAll(
+                GraviteeContext.getExecutionContext(),
+                Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
             .thenReturn(Arrays.asList("3"));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn("12");
 
-        boolean valid = srv.isValid(api, GraviteeContext.getCurrentEnvironment());
+        boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
         assertFalse(valid);
     }

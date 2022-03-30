@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -129,8 +130,9 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 EnvironmentEntity createdEnvironment = convert(environmentRepository.create(environment));
 
                 //create Default items for environment
-                apiHeaderService.initialize(createdEnvironment.getId());
-                pageService.initialize(createdEnvironment.getId());
+                ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
+                apiHeaderService.initialize(executionContext);
+                pageService.initialize(executionContext);
 
                 return createdEnvironment;
             }

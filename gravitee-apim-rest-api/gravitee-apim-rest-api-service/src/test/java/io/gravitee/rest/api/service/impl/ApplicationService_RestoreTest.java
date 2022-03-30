@@ -33,10 +33,10 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -76,11 +76,16 @@ public class ApplicationService_RestoreTest {
     @Mock
     private AuditService auditService;
 
+    @BeforeClass
+    public static void setup() {
+        GraviteeContext.setCurrentEnvironment(GraviteeContext.getDefaultEnvironment());
+    }
+
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotRestoreApp_NotExist() throws TechnicalException {
         when(applicationRepository.findById(APP)).thenReturn(Optional.empty());
 
-        applicationService.restore(APP);
+        applicationService.restore(GraviteeContext.getExecutionContext(), APP);
     }
 
     @Test(expected = ApplicationActiveException.class)
@@ -90,7 +95,7 @@ public class ApplicationService_RestoreTest {
 
         when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
 
-        applicationService.restore(APP);
+        applicationService.restore(GraviteeContext.getExecutionContext(), APP);
     }
 
     @Test
@@ -100,29 +105,19 @@ public class ApplicationService_RestoreTest {
 
         when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
         when(applicationRepository.update(app)).thenReturn(fakeApp(true));
-        when(subscriptionService.findByApplicationAndPlan(any(), any())).thenReturn(Collections.emptyList());
-        when(userService.findById(any())).thenReturn(new UserEntity());
+        when(subscriptionService.findByApplicationAndPlan(eq(GraviteeContext.getExecutionContext()), any(), any()))
+            .thenReturn(Collections.emptyList());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
 
-        ApplicationEntity result = applicationService.restore(APP);
+        ApplicationEntity result = applicationService.restore(GraviteeContext.getExecutionContext(), APP);
 
         verify(membershipService, times(1))
-            .deleteReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipReferenceType.APPLICATION,
-                APP
-            );
-        verify(membershipService, times(1))
-            .addRoleToMemberOnReference(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                any(),
-                any()
-            );
+            .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, APP);
+        verify(membershipService, times(1)).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
         verify(genericNotificationConfigService, times(1)).deleteReference(NotificationReferenceType.APPLICATION, APP);
         verify(portalNotificationConfigService, times(1)).deleteReference(NotificationReferenceType.APPLICATION, APP);
-        verify(auditService, times(1)).createApplicationAuditLog(any(), any(), any(), any(), any(), any());
+        verify(auditService, times(1))
+            .createApplicationAuditLog(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any(), any());
         Assertions.assertThat(result.getStatus()).isEqualTo(ApplicationStatus.ACTIVE.name());
     }
 

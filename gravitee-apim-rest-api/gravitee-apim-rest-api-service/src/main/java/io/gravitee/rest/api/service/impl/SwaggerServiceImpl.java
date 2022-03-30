@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIConverter;
 import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIV2Converter;
@@ -71,12 +72,16 @@ public class SwaggerServiceImpl implements SwaggerService {
     private TagService tagService;
 
     @Override
-    public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        return this.createAPI(swaggerDescriptor, DefinitionVersion.V1);
+    public SwaggerApiEntity createAPI(ExecutionContext executionContext, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        return this.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V1);
     }
 
     @Override
-    public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor, DefinitionVersion definitionVersion) {
+    public SwaggerApiEntity createAPI(
+        ExecutionContext executionContext,
+        ImportSwaggerDescriptorEntity swaggerDescriptor,
+        DefinitionVersion definitionVersion
+    ) {
         ParseOptions options = new ParseOptions();
         // In the context of an import, we need to fully resolve $ref which are required for OAIDescriptorVisitors (ie. policies).
         options.setResolveFully(true);
@@ -91,10 +96,10 @@ public class SwaggerServiceImpl implements SwaggerService {
         if (descriptor != null) {
             if (definitionVersion.equals(DefinitionVersion.V2)) {
                 return new OAIToAPIV2Converter(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService)
-                .convert((OAIDescriptor) descriptor);
+                .convert(executionContext, (OAIDescriptor) descriptor);
             } else {
                 return new OAIToAPIConverter(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService)
-                .convert((OAIDescriptor) descriptor);
+                .convert(executionContext, (OAIDescriptor) descriptor);
             }
         }
 

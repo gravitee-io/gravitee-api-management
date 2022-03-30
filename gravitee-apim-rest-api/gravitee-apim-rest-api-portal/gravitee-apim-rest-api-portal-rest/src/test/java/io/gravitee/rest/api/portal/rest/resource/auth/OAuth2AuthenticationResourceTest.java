@@ -42,6 +42,7 @@ import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.portal.rest.model.Token;
 import io.gravitee.rest.api.portal.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -198,10 +199,17 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         userEntity.setSourceId("janedoe@example.com");
         userEntity.setPicture("http://example.com/janedoe/me.jpg");
 
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString())).thenReturn(userEntity);
+        when(
+            userService.createOrUpdateUserFromSocialIdentityProvider(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(identityProvider),
+                anyString()
+            )
+        )
+            .thenReturn(userEntity);
 
         //mock DB user connect
-        when(userService.connect(userEntity.getId())).thenReturn(userEntity);
+        when(userService.connect(GraviteeContext.getExecutionContext(), userEntity.getId())).thenReturn(userEntity);
 
         // -- CALL
 
@@ -210,8 +218,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString());
-        verify(userService, times(1)).connect(userEntity.getSourceId());
+        verify(userService, times(1))
+            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+        verify(userService, times(1)).connect(GraviteeContext.getExecutionContext(), userEntity.getSourceId());
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -291,8 +300,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(0)).createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString());
-        verify(userService, times(0)).connect(anyString());
+        verify(userService, times(0))
+            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+        verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
 
@@ -313,7 +323,13 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         //mock oauth2 user info call
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(refEq(identityProvider), anyString()))
+        when(
+            userService.createOrUpdateUserFromSocialIdentityProvider(
+                eq(GraviteeContext.getExecutionContext()),
+                refEq(identityProvider),
+                anyString()
+            )
+        )
             .thenThrow(new EmailRequiredException(USER_NAME));
         // -- CALL
 
@@ -322,8 +338,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString());
-        verify(userService, times(0)).connect(anyString());
+        verify(userService, times(1))
+            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+        verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
 
@@ -390,7 +407,13 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
         //mock DB find user by name
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString()))
+        when(
+            userService.createOrUpdateUserFromSocialIdentityProvider(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(identityProvider),
+                anyString()
+            )
+        )
             .thenThrow(new ExpressionEvaluationException("cannot convert from java.lang.String to boolean"));
 
         // -- CALL
@@ -400,8 +423,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString());
-        verify(userService, times(0)).connect(anyString());
+        verify(userService, times(1))
+            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+        verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
 

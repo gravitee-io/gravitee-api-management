@@ -38,7 +38,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageActionException;
 import io.gravitee.rest.api.service.exceptions.PageUsedAsGeneralConditionsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.Arrays;
 import java.util.Collections;
@@ -115,7 +114,7 @@ public class PageService_DeleteTest {
         when(page.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
 
-        pageService.delete(PAGE_ID);
+        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
         verify(pageRepository).delete(PAGE_ID);
     }
@@ -126,7 +125,7 @@ public class PageService_DeleteTest {
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
         doThrow(TechnicalException.class).when(pageRepository).delete(PAGE_ID);
 
-        pageService.delete(PAGE_ID);
+        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
 
     @Test(expected = PageActionException.class)
@@ -141,7 +140,7 @@ public class PageService_DeleteTest {
         CategoryEntity category2 = new CategoryEntity();
         category2.setKey("cat_2");
         doReturn(Arrays.asList(category1, category2)).when(categoryService).findByPage(PAGE_ID);
-        pageService.delete(PAGE_ID);
+        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
 
     @Test
@@ -153,9 +152,9 @@ public class PageService_DeleteTest {
         when(page.getVisibility()).thenReturn("PUBLIC");
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(API_ID)).thenReturn(Collections.emptySet());
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
 
-        pageService.delete(PAGE_ID);
+        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
         verify(pageRepository).delete(PAGE_ID);
     }
@@ -173,9 +172,9 @@ public class PageService_DeleteTest {
         when(plan.getStatus()).thenReturn(PlanStatus.CLOSED);
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
 
-        pageService.delete(PAGE_ID);
+        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
         verify(pageRepository).delete(PAGE_ID);
     }
@@ -192,9 +191,9 @@ public class PageService_DeleteTest {
         when(plan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
 
-        pageService.delete(PAGE_ID);
+        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
@@ -210,9 +209,9 @@ public class PageService_DeleteTest {
         when(plan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
 
         when(pageRepository.findById(TRANSLATE_PAGE_ID)).thenReturn(Optional.of(translationPage));
-        when(planService.findByApi(API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
 
-        pageService.delete(TRANSLATE_PAGE_ID);
+        pageService.delete(GraviteeContext.getExecutionContext(), TRANSLATE_PAGE_ID);
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
@@ -227,9 +226,9 @@ public class PageService_DeleteTest {
         when(plan.getStatus()).thenReturn(PlanStatus.DEPRECATED);
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
 
-        pageService.delete(PAGE_ID);
+        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
@@ -244,9 +243,9 @@ public class PageService_DeleteTest {
         when(plan.getStatus()).thenReturn(PlanStatus.STAGING);
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
 
-        pageService.delete(PAGE_ID);
+        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
 
     @Captor
@@ -320,7 +319,7 @@ public class PageService_DeleteTest {
         when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build()))
             .thenReturn(Arrays.asList(folder, child, childPage, page));
 
-        pageService.deleteAllByApi("apiId", GraviteeContext.getCurrentEnvironment());
+        pageService.deleteAllByApi(GraviteeContext.getExecutionContext(), "apiId");
 
         verify(pageRepository, times(6)).delete(idCaptor.capture());
         assertEquals(

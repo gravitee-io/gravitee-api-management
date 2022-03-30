@@ -29,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -69,7 +70,11 @@ public class ApiMetricsResource extends AbstractResource {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
 
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUserOrNull(),
+            apiQuery
+        );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             Number healthRatio = getHealthRatio(apiId);
             Number nbHits = getNbHits(apiId);
@@ -87,6 +92,7 @@ public class ApiMetricsResource extends AbstractResource {
 
     private Number getHealthRatio(String apiId) {
         io.gravitee.rest.api.model.healthcheck.ApiMetrics<?> apiAvailability = healthCheckService.getAvailability(
+            GraviteeContext.getExecutionContext(),
             apiId,
             Field.ENDPOINT.name()
         );
@@ -131,7 +137,7 @@ public class ApiMetricsResource extends AbstractResource {
         subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
 
         // group by apis
-        Collection<SubscriptionEntity> searchResult = subscriptionService.search(subscriptionQuery);
+        Collection<SubscriptionEntity> searchResult = subscriptionService.search(GraviteeContext.getExecutionContext(), subscriptionQuery);
         if (searchResult != null) {
             return searchResult.stream().collect(Collectors.groupingBy(SubscriptionEntity::getApi, Collectors.counting())).get(apiId);
         }

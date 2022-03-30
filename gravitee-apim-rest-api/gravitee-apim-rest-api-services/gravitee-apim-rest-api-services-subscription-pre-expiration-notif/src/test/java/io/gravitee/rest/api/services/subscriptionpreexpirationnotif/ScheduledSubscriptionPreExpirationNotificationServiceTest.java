@@ -27,7 +27,6 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -67,7 +66,8 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         SubscriptionEntity subscription = mock(SubscriptionEntity.class);
 
-        when(subscriptionService.search(any(SubscriptionQuery.class))).thenReturn(Collections.singletonList(subscription));
+        when(subscriptionService.search(eq(GraviteeContext.getExecutionContext()), any(SubscriptionQuery.class)))
+            .thenReturn(Collections.singletonList(subscription));
 
         Collection<SubscriptionEntity> subscriptionsToNotify = service.findSubscriptionExpirationsToNotify(now, daysBeforeNotification);
 
@@ -75,6 +75,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         verify(subscriptionService, times(1))
             .search(
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(
                     subscriptionQuery ->
                         Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED).equals(subscriptionQuery.getStatuses()) &&
@@ -97,7 +98,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         SubscriptionEntity subscription = mock(SubscriptionEntity.class);
         when(subscription.getSubscribedBy()).thenReturn(subscriberId);
 
-        when(userService.findById(subscriberId)).thenReturn(subscriber);
+        when(userService.findById(GraviteeContext.getExecutionContext(), subscriberId)).thenReturn(subscriber);
 
         PrimaryOwnerEntity primaryOwner = mock(PrimaryOwnerEntity.class);
         when(primaryOwner.getEmail()).thenReturn("primary_owner@gravitee.io");
@@ -122,7 +123,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         SubscriptionEntity subscription = mock(SubscriptionEntity.class);
         when(subscription.getSubscribedBy()).thenReturn(subscriberId);
 
-        when(userService.findById(subscriberId)).thenReturn(subscriber);
+        when(userService.findById(GraviteeContext.getExecutionContext(), subscriberId)).thenReturn(subscriber);
 
         PrimaryOwnerEntity primaryOwner = mock(PrimaryOwnerEntity.class);
         when(primaryOwner.getEmail()).thenReturn("primary_owner@gravitee.io");
@@ -162,7 +163,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
             .param("apiKey", apiKey)
             .build();
 
-        verify(emailService, times(1)).sendAsyncEmailNotification(eq(emailNotification), any(GraviteeContext.ReferenceContext.class));
+        verify(emailService, times(1)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), eq(emailNotification));
     }
 
     @Test
@@ -172,7 +173,8 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         ApiKeyEntity apiKey = mock(ApiKeyEntity.class);
 
-        when(apiKeyService.search(any(ApiKeyQuery.class))).thenReturn(Collections.singletonList(apiKey));
+        when(apiKeyService.search(eq(GraviteeContext.getExecutionContext()), any(ApiKeyQuery.class)))
+            .thenReturn(Collections.singletonList(apiKey));
 
         Collection<ApiKeyEntity> apiKeysToNotify = service.findApiKeyExpirationsToNotify(now, daysBeforeNotification);
 
@@ -180,6 +182,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         verify(apiKeyService, times(1))
             .search(
+                eq(GraviteeContext.getExecutionContext()),
                 argThat(
                     apiKeyQuery ->
                         !apiKeyQuery.isIncludeRevoked() &&

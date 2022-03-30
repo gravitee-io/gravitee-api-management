@@ -17,10 +17,12 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.CustomUserFieldEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import java.util.List;
 import javax.ws.rs.core.GenericType;
@@ -45,7 +47,9 @@ public class ConfigurationCustomFieldsResourceTest extends AbstractResourceTest 
         customUserFieldEntity.setLabel("label 1");
         customUserFieldEntity.setRequired(true);
         customUserFieldEntity.setValues(Arrays.asList("a", "b"));
-        doReturn(Arrays.asList(customUserFieldEntity)).when(customUserFieldService).listAllFields();
+        doReturn(Arrays.asList(customUserFieldEntity))
+            .when(customUserFieldService)
+            .listAllFields(eq(GraviteeContext.getExecutionContext()));
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

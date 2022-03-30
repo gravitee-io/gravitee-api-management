@@ -79,8 +79,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
         mockApi.setProxy(proxy);
         mockApi.setUpdatedAt(new Date());
-        doReturn(mockApi).when(apiService).findById(API);
-        doThrow(ApiNotFoundException.class).when(apiService).findById(UNKNOWN_API);
+        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
+        doThrow(ApiNotFoundException.class).when(apiService).findById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
 
         updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setDescription("toto");
@@ -91,7 +91,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
         updateApiEntity.setProxy(proxy);
         updateApiEntity.setLifecycleState(ApiLifecycleState.CREATED);
-        doReturn(mockApi).when(apiService).update(eq(API), any(), eq(true));
+        doReturn(mockApi).when(apiService).update(eq(GraviteeContext.getExecutionContext()), eq(API), any(), eq(true));
     }
 
     @After
@@ -120,19 +120,19 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldStartApi() {
         mockApi.setState(Lifecycle.State.STOPPED);
-        doReturn(mockApi).when(apiService).start(eq(API), any());
+        doReturn(mockApi).when(apiService).start(eq(GraviteeContext.getExecutionContext()), eq(API), any());
 
         final Response response = envTarget(API).queryParam("action", LifecycleAction.START).request().post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
 
-        verify(apiService).start(API, "UnitTests");
+        verify(apiService).start(GraviteeContext.getExecutionContext(), API, "UnitTests");
     }
 
     @Test
     public void shouldNotStartApiBecauseNotFound() {
         mockApi.setState(Lifecycle.State.STOPPED);
-        doReturn(mockApi).when(apiService).start(eq(API), any());
+        doReturn(mockApi).when(apiService).start(eq(GraviteeContext.getExecutionContext()), eq(API), any());
         final Response response = envTarget(UNKNOWN_API).queryParam("action", LifecycleAction.START).request().post(null);
 
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -141,7 +141,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldStopApi() {
         mockApi.setState(Lifecycle.State.STARTED);
-        doReturn(mockApi).when(apiService).stop(eq(API), any());
+        doReturn(mockApi).when(apiService).stop(eq(GraviteeContext.getExecutionContext()), eq(API), any());
 
         final Response response = envTarget(API).queryParam("action", LifecycleAction.STOP).request().post(null);
 
@@ -277,13 +277,15 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         mockApi.setState(Lifecycle.State.STARTED);
         mockApi.setUpdatedAt(new Date());
-        doReturn(mockApi).when(apiService).deploy(any(), any(), eq(EventType.PUBLISH_API), any());
+        doReturn(mockApi)
+            .when(apiService)
+            .deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(EventType.PUBLISH_API), any());
 
         final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
 
         assertEquals(OK_200, response.getStatus());
 
-        verify(apiService, times(1)).deploy(any(), any(), eq(EventType.PUBLISH_API), any());
+        verify(apiService, times(1)).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(EventType.PUBLISH_API), any());
     }
 
     @Test
@@ -293,13 +295,15 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         mockApi.setState(Lifecycle.State.STARTED);
         mockApi.setUpdatedAt(new Date());
-        doReturn(mockApi).when(apiService).deploy(any(), any(), eq(EventType.PUBLISH_API), any());
+        doReturn(mockApi)
+            .when(apiService)
+            .deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(EventType.PUBLISH_API), any());
 
         final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
-        verify(apiService, times(0)).deploy(any(), any(), eq(EventType.PUBLISH_API), any());
+        verify(apiService, times(0)).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(EventType.PUBLISH_API), any());
     }
 
     public void shouldUploadApiMedia() {
@@ -367,7 +371,15 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldImportApiPathMappingsFromPage() {
-        when(apiService.importPathMappingsFromPage(any(), eq("Foo"), eq(DefinitionVersion.valueOfLabel("1.0.0")))).thenReturn(mockApi);
+        when(
+            apiService.importPathMappingsFromPage(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq("Foo"),
+                eq(DefinitionVersion.valueOfLabel("1.0.0"))
+            )
+        )
+            .thenReturn(mockApi);
 
         final Response response = envTarget(API + "/import-path-mappings").queryParam("page", "Foo").request().post(null);
         assertEquals(OK_200, response.getStatus());
@@ -375,7 +387,15 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldImportApiPathMappingsFromPageWithDefinitionVersion() {
-        when(apiService.importPathMappingsFromPage(any(), eq("Foo"), eq(DefinitionVersion.valueOfLabel("2.0.0")))).thenReturn(mockApi);
+        when(
+            apiService.importPathMappingsFromPage(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq("Foo"),
+                eq(DefinitionVersion.valueOfLabel("2.0.0"))
+            )
+        )
+            .thenReturn(mockApi);
 
         final Response response = envTarget(API + "/import-path-mappings")
             .queryParam("page", "Foo")

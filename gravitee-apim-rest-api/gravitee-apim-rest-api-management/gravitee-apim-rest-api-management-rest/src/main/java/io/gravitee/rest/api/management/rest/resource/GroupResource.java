@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,7 +72,7 @@ public class GroupResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public GroupEntity getGroup() {
-        return groupService.findById(GraviteeContext.getCurrentEnvironment(), group);
+        return groupService.findById(GraviteeContext.getExecutionContext(), group);
     }
 
     @DELETE
@@ -81,7 +82,7 @@ public class GroupResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE) })
     public Response deleteGroup() {
         checkRights();
-        groupService.delete(GraviteeContext.getCurrentEnvironment(), group);
+        groupService.delete(GraviteeContext.getExecutionContext(), group);
         return Response.noContent().build();
     }
 
@@ -104,8 +105,10 @@ public class GroupResource extends AbstractResource {
     public GroupEntity updateGroup(@Parameter(name = "group", required = true) @Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
         final GroupEntity groupEntity = checkRights();
         // check if user is a 'simple group admin' or a platform admin
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             !permissionService.hasPermission(
+                executionContext,
                 RolePermission.ENVIRONMENT_GROUP,
                 GraviteeContext.getCurrentEnvironment(),
                 CREATE,
@@ -125,7 +128,7 @@ public class GroupResource extends AbstractResource {
                 updateGroupEntity.getRoles().put(RoleScope.APPLICATION, groupEntity.getRoles().get(RoleScope.APPLICATION));
             }
         }
-        return groupService.update(GraviteeContext.getCurrentEnvironment(), group, updateGroupEntity);
+        return groupService.update(executionContext, group, updateGroupEntity);
     }
 
     @GET
@@ -157,7 +160,7 @@ public class GroupResource extends AbstractResource {
     public GroupEntity addGroupMember(@QueryParam("type") String type) {
         final GroupEntity groupEntity = checkRights();
 
-        groupService.associate(group, type);
+        groupService.associate(GraviteeContext.getExecutionContext(), group, type);
 
         return groupEntity;
     }

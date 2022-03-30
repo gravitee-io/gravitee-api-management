@@ -23,14 +23,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.UserCriteria;
-import io.gravitee.repository.management.model.UserStatus;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.impl.TaskServiceImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import java.util.*;
 import org.junit.AfterClass;
@@ -119,14 +116,15 @@ public class TaskServiceTest {
 
         when(roleService.findById("API_USER")).thenReturn(roleEntityWithoutPerm);
 
-        when(promotionTasksService.getPromotionTasks(any())).thenReturn(emptyList());
+        when(promotionTasksService.getPromotionTasks(GraviteeContext.getExecutionContext())).thenReturn(emptyList());
 
         Set<MembershipEntity> memberships = new HashSet<>();
         memberships.add(m1);
         memberships.add(m2);
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(memberships);
 
-        when(userService.search(any(UserCriteria.class), any())).thenReturn(new Page<>(emptyList(), 1, 0, 0));
+        when(userService.search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any()))
+            .thenReturn(new Page<>(emptyList(), 1, 0, 0));
     }
 
     @AfterClass
@@ -141,11 +139,11 @@ public class TaskServiceTest {
 
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
-        taskService.findAll("user");
+        taskService.findAll(GraviteeContext.getExecutionContext(), "user");
 
-        verify(subscriptionService, times(1)).search(any());
-        verify(promotionTasksService, times(1)).getPromotionTasks(any());
-        verify(userService, times(0)).search(any(UserCriteria.class), any());
+        verify(subscriptionService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any());
+        verify(promotionTasksService, times(1)).getPromotionTasks(GraviteeContext.getExecutionContext());
+        verify(userService, times(0)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
     }
 
     @Test
@@ -157,10 +155,10 @@ public class TaskServiceTest {
         when(authentication.getAuthorities()).thenReturn(authorities);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
-        taskService.findAll("admin");
+        taskService.findAll(GraviteeContext.getExecutionContext(), "admin");
 
-        verify(subscriptionService, times(1)).search(any());
-        verify(promotionTasksService, times(1)).getPromotionTasks(any());
-        verify(userService, times(1)).search(any(UserCriteria.class), any());
+        verify(subscriptionService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any());
+        verify(promotionTasksService, times(1)).getPromotionTasks(GraviteeContext.getExecutionContext());
+        verify(userService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
     }
 }

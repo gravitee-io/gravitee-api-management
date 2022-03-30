@@ -100,7 +100,7 @@ public class PromotionServiceTest {
     @Test(expected = BridgeOperationException.class)
     public void shouldFailToListPromotionTargets() {
         // Given
-        when(cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID))
+        when(cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID, ENVIRONMENT_ID))
             .thenReturn(new CockpitReply<>(Collections.emptyList(), CockpitReplyStatus.ERROR));
 
         // When
@@ -131,7 +131,7 @@ public class PromotionServiceTest {
         currentEnv.setName("My Environment");
         currentEnv.setInstallationId(INSTALLATION_ID);
 
-        when(cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID))
+        when(cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID, ENVIRONMENT_ID))
             .thenReturn(new CockpitReply<>(Arrays.asList(envA, envB, currentEnv), CockpitReplyStatus.SUCCEEDED));
 
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
@@ -195,26 +195,21 @@ public class PromotionServiceTest {
         when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
         Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        when(apiDuplicatorService.createWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
+        when(apiDuplicatorService.createWithImportedDefinition(any(), any())).thenReturn(new ApiEntity());
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
-        when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
+        when(cockpitPromotionService.processPromotion(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(cockpitReply);
 
         when(promotionRepository.update(any())).thenReturn(getAPromotion());
 
-        promotionService.processPromotion(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            PROMOTION_ID,
-            true
-        );
+        promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, true);
 
-        verify(apiDuplicatorService, times(1)).createWithImportedDefinition(any(), any(), any());
+        verify(apiDuplicatorService, times(1)).createWithImportedDefinition(any(), any());
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -223,31 +218,26 @@ public class PromotionServiceTest {
         when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any(), any())).thenReturn(new ApiEntity());
+        when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
         when(apiService.exists(any())).thenReturn(true);
 
         ApiEntity existingApi = new ApiEntity();
         existingApi.setId("api#existing");
-        when(apiService.findById(any())).thenReturn(existingApi);
+        when(apiService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
-        when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
+        when(cockpitPromotionService.processPromotion(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(cockpitReply);
 
         when(promotionRepository.update(any())).thenReturn(getAPromotion());
 
-        promotionService.processPromotion(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            PROMOTION_ID,
-            true
-        );
+        promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, true);
 
-        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), any(), any());
+        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), any());
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -261,19 +251,14 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
-        when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
+        when(cockpitPromotionService.processPromotion(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(cockpitReply);
 
         when(promotionRepository.update(any())).thenReturn(getAPromotion());
 
-        promotionService.processPromotion(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            PROMOTION_ID,
-            false
-        );
+        promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, false);
 
-        verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), any(), any());
-        verify(apiDuplicatorService, never()).updateWithImportedDefinition(any(), any(), any(), any());
+        verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), any());
+        verify(apiDuplicatorService, never()).updateWithImportedDefinition(any(), any(), any());
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -281,12 +266,7 @@ public class PromotionServiceTest {
     public void shouldNotProcessPromotionIfPromotionNotFound() throws Exception {
         when(promotionRepository.findById(any())).thenReturn(Optional.empty());
 
-        promotionService.processPromotion(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            PROMOTION_ID,
-            true
-        );
+        promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, true);
     }
 
     @Test(expected = ForbiddenAccessException.class)
@@ -298,14 +278,9 @@ public class PromotionServiceTest {
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
-        promotionService.processPromotion(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            PROMOTION_ID,
-            true
-        );
+        promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, true);
     }
 
     @Test(expected = BridgeOperationException.class)
@@ -313,35 +288,30 @@ public class PromotionServiceTest {
         when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         when(apiService.exists(any())).thenReturn(true);
-        when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any(), any())).thenReturn(new ApiEntity());
+        when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
 
         ApiEntity existingApi = new ApiEntity();
         existingApi.setId("api#existing");
-        when(apiService.findById(any())).thenReturn(existingApi);
+        when(apiService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.ERROR);
-        when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
+        when(cockpitPromotionService.processPromotion(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(cockpitReply);
 
-        promotionService.processPromotion(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            PROMOTION_ID,
-            true
-        );
+        promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, true);
 
-        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), any(), any());
+        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), any());
         verify(promotionRepository, times(0)).update(any());
     }
 
     @Test
     public void shouldPromote() throws TechnicalException {
-        when(userService.findById(any())).thenReturn(getAUserEntity());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(getAUserEntity());
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setCockpitId("env#cockpit-1");
         environmentEntity.setName("Env 1");
@@ -351,12 +321,13 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         when(promotionRepository.create(any())).thenReturn(getAPromotion());
-        when(cockpitPromotionService.requestPromotion(any()))
+        when(cockpitPromotionService.requestPromotion(eq(GraviteeContext.getExecutionContext()), any()))
             .thenReturn(new CockpitReply<>(getAPromotionEntity(), CockpitReplyStatus.SUCCEEDED));
 
         when(promotionRepository.update(any())).thenReturn(mock(Promotion.class));
 
         final PromotionEntity promotionEntity = promotionService.promote(
+            GraviteeContext.getExecutionContext(),
             GraviteeContext.getCurrentEnvironment(),
             "api#1",
             getAPromotionRequestEntity(),
@@ -364,12 +335,21 @@ public class PromotionServiceTest {
         );
 
         assertThat(promotionEntity).isNotNull();
-        verify(auditService).createApiAuditLog(eq("api#1"), any(), eq(PROMOTION_CREATED), any(), isNull(), any());
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("api#1"),
+                any(),
+                eq(PROMOTION_CREATED),
+                any(),
+                isNull(),
+                any()
+            );
     }
 
     @Test(expected = PromotionAlreadyInProgressException.class)
     public void shouldNotPromoteIfThereIsAlreadyAnInProgressPromotionForTheSameEnv() throws TechnicalException {
-        when(userService.findById(any())).thenReturn(getAUserEntity());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(getAUserEntity());
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setCockpitId("env#cockpit-1");
         environmentEntity.setName("Env 1");
@@ -390,7 +370,13 @@ public class PromotionServiceTest {
 
         PromotionRequestEntity promotionRequestEntity = getAPromotionRequestEntity();
         promotionRequestEntity.setTargetEnvCockpitId(targetEnvCockpitId);
-        promotionService.promote(GraviteeContext.getCurrentEnvironment(), "api#1", promotionRequestEntity, "user#1");
+        promotionService.promote(
+            GraviteeContext.getExecutionContext(),
+            GraviteeContext.getCurrentEnvironment(),
+            "api#1",
+            promotionRequestEntity,
+            "user#1"
+        );
     }
 
     @Test
@@ -404,7 +390,12 @@ public class PromotionServiceTest {
         ApiEntity apiFoundByCrossId = mock(ApiEntity.class);
         when(apiService.findByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.of(apiFoundByCrossId));
 
-        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(environment, new Promotion(), apiDefinition);
+        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(
+            GraviteeContext.getExecutionContext(),
+            environment,
+            new Promotion(),
+            apiDefinition
+        );
 
         assertSame(resultApi, apiFoundByCrossId);
     }
@@ -426,9 +417,14 @@ public class PromotionServiceTest {
         // Target API of last promotion is found
         ApiEntity apiFromLastPromotion = mock(ApiEntity.class);
         when(apiService.exists("api#1-Promoted")).thenReturn(true);
-        when(apiService.findById("api#1-Promoted")).thenReturn(apiFromLastPromotion);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), "api#1-Promoted")).thenReturn(apiFromLastPromotion);
 
-        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(environment, getAPromotion(), apiDefinition);
+        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(
+            GraviteeContext.getExecutionContext(),
+            environment,
+            getAPromotion(),
+            apiDefinition
+        );
 
         assertSame(resultApi, apiFromLastPromotion);
     }
@@ -447,7 +443,12 @@ public class PromotionServiceTest {
         Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 0, 0);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(environment, getAPromotion(), apiDefinition);
+        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(
+            GraviteeContext.getExecutionContext(),
+            environment,
+            getAPromotion(),
+            apiDefinition
+        );
 
         assertNull(resultApi);
     }
@@ -470,7 +471,12 @@ public class PromotionServiceTest {
         ApiEntity apiFromLastPromotion = mock(ApiEntity.class);
         when(apiService.exists("api#1-Promoted")).thenReturn(false);
 
-        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(environment, getAPromotion(), apiDefinition);
+        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(
+            GraviteeContext.getExecutionContext(),
+            environment,
+            getAPromotion(),
+            apiDefinition
+        );
 
         assertNull(resultApi);
     }

@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
@@ -84,12 +85,13 @@ public class PortalPagesResource extends AbstractResource {
     ) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(page, translated ? acceptedLocale : null);
-        if (isDisplayable(pageEntity)) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (isDisplayable(executionContext, pageEntity)) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
             }
             if (portal) {
-                pageService.transformWithTemplate(pageEntity, null);
+                pageService.transformWithTemplate(executionContext, pageEntity, null);
             }
             return pageEntity;
         } else {
@@ -109,8 +111,9 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getPortalPageContent(@PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page);
-        if (isDisplayable(pageEntity)) {
-            pageService.transformSwagger(pageEntity);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (isDisplayable(executionContext, pageEntity)) {
+            pageService.transformSwagger(executionContext, pageEntity);
             return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
         } else {
             throw new UnauthorizedAccessException();
@@ -140,8 +143,10 @@ public class PortalPagesResource extends AbstractResource {
         @QueryParam("translated") boolean translated
     ) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         return pageService
             .search(
+                executionContext.getEnvironmentId(),
                 new PageQuery.Builder()
                     .homepage(homepage)
                     .published(published)
@@ -150,11 +155,10 @@ public class PortalPagesResource extends AbstractResource {
                     .name(name)
                     .rootParent(rootParent)
                     .build(),
-                translated ? acceptedLocale : null,
-                GraviteeContext.getCurrentEnvironment()
+                translated ? acceptedLocale : null
             )
             .stream()
-            .filter(this::isDisplayable)
+            .filter(pageEntity -> isDisplayable(executionContext, pageEntity))
             .collect(Collectors.toList());
     }
 
@@ -176,10 +180,11 @@ public class PortalPagesResource extends AbstractResource {
         if (newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
             throw new PageSystemFolderActionException("Create");
         }
-        int order = pageService.findMaxPortalPageOrder(GraviteeContext.getCurrentEnvironment()) + 1;
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int order = pageService.findMaxPortalPageOrder(executionContext.getEnvironmentId()) + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUser());
-        PageEntity newPage = pageService.createPage(newPageEntity, GraviteeContext.getCurrentEnvironment());
+        PageEntity newPage = pageService.createPage(executionContext, newPageEntity);
         if (newPage != null) {
             return Response.created(this.getLocationHeader(newPage.getId())).entity(newPage).build();
         }
@@ -211,7 +216,7 @@ public class PortalPagesResource extends AbstractResource {
             throw new PageSystemFolderActionException("Update");
         }
         updatePageEntity.setLastContributor(getAuthenticatedUser());
-        return pageService.update(page, updatePageEntity);
+        return pageService.update(GraviteeContext.getExecutionContext(), page, updatePageEntity);
     }
 
     @PUT
@@ -237,7 +242,7 @@ public class PortalPagesResource extends AbstractResource {
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setContent(content);
-        PageEntity update = pageService.update(page, updatePageEntity, true);
+        PageEntity update = pageService.update(GraviteeContext.getExecutionContext(), page, updatePageEntity, true);
 
         return update.getContent();
     }
@@ -266,7 +271,7 @@ public class PortalPagesResource extends AbstractResource {
             throw new PageSystemFolderActionException("Update");
         }
         updatePageEntity.setLastContributor(getAuthenticatedUser());
-        return pageService.update(page, updatePageEntity, true);
+        return pageService.update(GraviteeContext.getExecutionContext(), page, updatePageEntity, true);
     }
 
     @POST
@@ -287,7 +292,7 @@ public class PortalPagesResource extends AbstractResource {
         pageService.findById(page);
         String contributor = getAuthenticatedUser();
 
-        return pageService.fetch(page, contributor);
+        return pageService.fetch(GraviteeContext.getExecutionContext(), page, contributor);
     }
 
     @POST
@@ -306,7 +311,7 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public Response fetchAllPortalPages() {
         String contributor = getAuthenticatedUser();
-        pageService.fetchAll(new PageQuery.Builder().build(), contributor, GraviteeContext.getCurrentEnvironment());
+        pageService.fetchAll(GraviteeContext.getExecutionContext(), new PageQuery.Builder().build(), contributor);
         return Response.noContent().build();
     }
 
@@ -324,7 +329,7 @@ public class PortalPagesResource extends AbstractResource {
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Delete");
         }
-        pageService.delete(page);
+        pageService.delete(GraviteeContext.getExecutionContext(), page);
     }
 
     @POST
@@ -346,7 +351,7 @@ public class PortalPagesResource extends AbstractResource {
         @Parameter(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity
     ) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
-        return pageService.importFiles(importPageEntity, GraviteeContext.getCurrentEnvironment());
+        return pageService.importFiles(GraviteeContext.getExecutionContext(), importPageEntity);
     }
 
     @PUT
@@ -368,18 +373,18 @@ public class PortalPagesResource extends AbstractResource {
         @Parameter(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity
     ) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
-        return pageService.importFiles(importPageEntity, GraviteeContext.getCurrentEnvironment());
+        return pageService.importFiles(GraviteeContext.getExecutionContext(), importPageEntity);
     }
 
-    private boolean isDisplayable(PageEntity pageEntity) {
-        if (!isAuthenticated() && configService.portalLoginForced(GraviteeContext.getCurrentEnvironment())) {
+    private boolean isDisplayable(final ExecutionContext executionContext, PageEntity pageEntity) {
+        if (!isAuthenticated() && configService.portalLoginForced(executionContext)) {
             // if portal requires login, this endpoint should hide the api pages even PUBLIC ones
             return false;
         } else if (isAuthenticated() && isAdmin()) {
             // if user is org admin
             return true;
         } else {
-            return accessControlService.canAccessPageFromPortal(GraviteeContext.getCurrentEnvironment(), pageEntity);
+            return accessControlService.canAccessPageFromPortal(executionContext, pageEntity);
         }
     }
 

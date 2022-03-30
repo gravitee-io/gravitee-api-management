@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.ReferenceMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,36 +54,36 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
     }
 
     @Override
-    public void delete(final String metadataId, final String applicationId) {
-        delete(metadataId, APPLICATION, applicationId);
+    public void delete(ExecutionContext executionContext, final String metadataId, final String applicationId) {
+        delete(executionContext, metadataId, APPLICATION, applicationId);
     }
 
     @Override
-    public ApplicationMetadataEntity create(final String environmentId, final NewApplicationMetadataEntity metadataEntity) {
+    public ApplicationMetadataEntity create(final ExecutionContext executionContext, final NewApplicationMetadataEntity metadataEntity) {
         return convert(
-            create(metadataEntity, APPLICATION, metadataEntity.getApplicationId(), false, environmentId),
+            create(executionContext, metadataEntity, APPLICATION, metadataEntity.getApplicationId(), false),
             metadataEntity.getApplicationId()
         );
     }
 
     @Override
-    public ApplicationMetadataEntity update(final String environmentId, final UpdateApplicationMetadataEntity metadataEntity) {
+    public ApplicationMetadataEntity update(final ExecutionContext executionContext, final UpdateApplicationMetadataEntity metadataEntity) {
         return convert(
-            update(metadataEntity, APPLICATION, metadataEntity.getApplicationId(), false, environmentId),
+            update(executionContext, metadataEntity, APPLICATION, metadataEntity.getApplicationId(), false),
             metadataEntity.getApplicationId()
         );
     }
 
     @Override
     protected void checkReferenceMetadataFormat(
+        final ExecutionContext executionContext,
         MetadataFormat format,
         String value,
         MetadataReferenceType referenceType,
-        String referenceId,
-        final String environmentId
+        String referenceId
     ) {
-        final ApplicationEntity applicationEntity = applicationService.findById(environmentId, referenceId);
-        metadataService.checkMetadataFormat(format, value, referenceType, applicationEntity);
+        final ApplicationEntity applicationEntity = applicationService.findById(executionContext, referenceId);
+        metadataService.checkMetadataFormat(executionContext, format, value, referenceType, applicationEntity);
     }
 
     private ApplicationMetadataEntity convert(ReferenceMetadataEntity m, String applicationId) {

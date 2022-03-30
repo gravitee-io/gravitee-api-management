@@ -28,7 +28,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.impl.PermissionServiceImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,9 +62,9 @@ public class PermissionServiceTest {
         reset(membershipService);
         UserEntity user = new UserEntity();
         user.setRoles(Collections.singleton(new UserRoleEntity()));
-        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+        doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
-        assertFalse(permissionService.hasManagementRights(USER_NAME));
+        assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
     }
 
     @Test
@@ -80,9 +80,9 @@ public class PermissionServiceTest {
 
         userCUDEnvironment.setPermissions(perms);
         user.setRoles(Collections.singleton(userCUDEnvironment));
-        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+        doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
-        assertTrue(permissionService.hasManagementRights(USER_NAME));
+        assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
     }
 
     @Test
@@ -98,9 +98,9 @@ public class PermissionServiceTest {
 
         userCUDEnvironment.setPermissions(perms);
         user.setRoles(Collections.singleton(userCUDEnvironment));
-        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+        doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
-        assertTrue(permissionService.hasManagementRights(USER_NAME));
+        assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
     }
 
     @Test
@@ -116,9 +116,9 @@ public class PermissionServiceTest {
 
         userCUDEnvironment.setPermissions(perms);
         user.setRoles(Collections.singleton(userCUDEnvironment));
-        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+        doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
-        assertFalse(permissionService.hasManagementRights(USER_NAME));
+        assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
     }
 
     @Test
@@ -127,7 +127,7 @@ public class PermissionServiceTest {
         reset(membershipService);
         UserEntity user = new UserEntity();
         user.setRoles(Collections.emptySet());
-        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+        doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
         Map<String, char[]> perms = new HashMap<>();
         perms.put(ApiPermission.ALERT.name(), new char[] { 'R' });
@@ -137,7 +137,7 @@ public class PermissionServiceTest {
         userMembership.setReference("apiId");
         doReturn(Collections.singletonList(userMembership))
             .when(membershipService)
-            .findUserMembership(MembershipReferenceType.API, USER_NAME);
+            .findUserMembership(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, USER_NAME);
 
         RoleEntity apiRole = new RoleEntity();
         apiRole.setPermissions(perms);
@@ -145,7 +145,7 @@ public class PermissionServiceTest {
             .when(membershipService)
             .getRoles(MembershipReferenceType.API, "apiId", MembershipMemberType.USER, USER_NAME);
 
-        assertTrue(permissionService.hasManagementRights(USER_NAME));
+        assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
     }
 
     @Test
@@ -154,13 +154,13 @@ public class PermissionServiceTest {
         reset(membershipService);
         UserEntity user = new UserEntity();
         user.setRoles(Collections.emptySet());
-        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+        doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
         UserMembership userMembership = new UserMembership();
         userMembership.setReference("apiId");
         doReturn(Collections.singletonList(userMembership))
             .when(membershipService)
-            .findUserMembership(MembershipReferenceType.API, USER_NAME);
+            .findUserMembership(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, USER_NAME);
 
         Map<String, char[]> perms = new HashMap<>();
         perms.put(ApiPermission.RATING.name(), new char[] { 'C', 'U' });
@@ -170,7 +170,7 @@ public class PermissionServiceTest {
             .when(membershipService)
             .getRoles(MembershipReferenceType.API, "apiId", MembershipMemberType.USER, USER_NAME);
 
-        assertFalse(permissionService.hasManagementRights(USER_NAME));
+        assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
     }
 
     @Test
@@ -179,13 +179,13 @@ public class PermissionServiceTest {
         reset(membershipService);
         UserEntity user = new UserEntity();
         user.setRoles(Collections.emptySet());
-        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+        doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
         UserMembership userMembership = new UserMembership();
         userMembership.setReference("apiId");
         doReturn(Collections.singletonList(userMembership))
             .when(membershipService)
-            .findUserMembership(MembershipReferenceType.API, USER_NAME);
+            .findUserMembership(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, USER_NAME);
 
         Map<String, char[]> perms = new HashMap<>();
         perms.put(ApiPermission.ALERT.name(), new char[] { 'R' });
@@ -195,6 +195,6 @@ public class PermissionServiceTest {
             .when(membershipService)
             .getRoles(MembershipReferenceType.API, "apiId", MembershipMemberType.USER, USER_NAME);
 
-        assertFalse(permissionService.hasManagementRights(USER_NAME));
+        assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
     }
 }
