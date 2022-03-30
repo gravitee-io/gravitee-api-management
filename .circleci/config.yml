@@ -954,8 +954,10 @@ jobs:
         docker:
             - image: cimg/openjdk:11.0
         resource_class: medium
-
         steps:
+            - add_ssh_keys:
+                  fingerprints:
+                      - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
             - run:
                   name: Get tag to release from bucket name
                   command: |
