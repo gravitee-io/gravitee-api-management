@@ -41,7 +41,7 @@ public interface ApiService {
 
     Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId);
 
-    Set<ApiEntity> findAllByEnvironment(ExecutionContext executionContext, String environment);
+    Set<ApiEntity> findAllByEnvironment(ExecutionContext executionContext);
 
     Set<ApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, String environment, Set<String> ids);
 

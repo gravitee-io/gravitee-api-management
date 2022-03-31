@@ -64,7 +64,7 @@ public class CategoriesResource extends AbstractCategoryResource {
         // We should find a way to load total API only when necessary (ie. not while editing an API)
         Set<ApiEntity> apis;
         if (isAdmin()) {
-            apis = apiService.findAllByEnvironment(GraviteeContext.getExecutionContext(), GraviteeContext.getCurrentEnvironment());
+            apis = apiService.findAllByEnvironment(GraviteeContext.getExecutionContext());
         } else if (isAuthenticated()) {
             apis = apiService.findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), null, true);
         } else {
@@ -100,7 +100,7 @@ public class CategoriesResource extends AbstractCategoryResource {
     @Operation(summary = "Create a category", description = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE) })
     public CategoryEntity createCategory(@Valid @NotNull final NewCategoryEntity category) {
-        return categoryService.create(GraviteeContext.getExecutionContext(), GraviteeContext.getCurrentEnvironment(), category);
+        return categoryService.create(GraviteeContext.getExecutionContext(), category);
     }
 
     @PUT
