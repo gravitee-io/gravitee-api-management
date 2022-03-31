@@ -84,7 +84,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
 
             // Apis documentation
             apiService
-                .findAllLightByEnvironment(executionContext, executionContext.getEnvironmentId())
+                .findAllLightByEnvironment(executionContext)
                 .forEach(api -> pageService.createSystemFolder(executionContext, api.getId(), SystemFolderType.ASIDE, 0));
         }
         return true;

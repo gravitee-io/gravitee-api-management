@@ -1269,7 +1269,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 withApis -> {
                     Set<String> apiIds = subscriptions.stream().map(SubscriptionEntity::getApi).collect(toSet());
                     return apiService
-                        .findByEnvironmentAndIdIn(executionContext, environment, apiIds)
+                        .findByEnvironmentAndIdIn(executionContext, apiIds)
                         .stream()
                         .collect(toMap(ApiEntity::getId, Function.identity()));
                 }
@@ -1345,7 +1345,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             if (query.hasDetails()) {
                 metadata.put(api.getId(), "state", api.getLifecycleState());
                 metadata.put(api.getId(), "version", api.getVersion());
-                apiService.calculateEntrypoints(executionContext, query.getEnvironment(), api);
+                apiService.calculateEntrypoints(executionContext, api);
                 metadata.put(api.getId(), "entrypoints", api.getEntrypoints());
             }
             query.getApiDelegate().forEach(delegate -> delegate.apply(metadata, api));

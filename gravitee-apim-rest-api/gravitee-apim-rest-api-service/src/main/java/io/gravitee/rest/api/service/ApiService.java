@@ -43,13 +43,13 @@ public interface ApiService {
 
     Set<ApiEntity> findAllByEnvironment(ExecutionContext executionContext);
 
-    Set<ApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, String environment, Set<String> ids);
+    Set<ApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, Set<String> ids);
 
-    default Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, String environmentId) {
-        return findAllLightByEnvironment(executionContext, environmentId, true);
+    default Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext) {
+        return findAllLightByEnvironment(executionContext, true);
     }
 
-    Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, String environmentId, boolean excludeDefinition);
+    Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, boolean excludeDefinition);
 
     Set<ApiEntity> findAllLight(ExecutionContext executionContext);
 
@@ -214,5 +214,5 @@ public interface ApiService {
 
     Map<String, Long> countPublishedByUserGroupedByCategories(String userId);
 
-    void calculateEntrypoints(ExecutionContext executionContext, String environment, ApiEntity api);
+    void calculateEntrypoints(ExecutionContext executionContext, ApiEntity api);
 }

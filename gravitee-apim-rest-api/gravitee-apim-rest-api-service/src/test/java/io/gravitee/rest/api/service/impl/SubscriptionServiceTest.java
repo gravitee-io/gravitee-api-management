@@ -1063,8 +1063,7 @@ public class SubscriptionServiceTest {
     @Test
     public void shouldGetAllMetadataWithSubscriptions() {
         when(apiEntity.getId()).thenReturn(API_ID);
-        when(apiService.findByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), "DEFAULT", Set.of(API_ID)))
-            .thenReturn(Set.of(apiEntity));
+        when(apiService.findByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), Set.of(API_ID))).thenReturn(Set.of(apiEntity));
         final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId(SUBSCRIPTION_ID);
         subscriptionEntity.setApplication(APPLICATION_ID);
@@ -1083,16 +1082,10 @@ public class SubscriptionServiceTest {
 
         assertNotNull(metadata);
         Mockito.verify(applicationService, times(1)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)));
-        Mockito
-            .verify(apiService, times(1))
-            .findByEnvironmentAndIdIn(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                eq(Set.of(API_ID))
-            );
+        Mockito.verify(apiService, times(1)).findByEnvironmentAndIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(API_ID)));
         Mockito.verify(planService, times(1)).findByIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(PLAN_ID)));
         Mockito.verify(userService, times(1)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(SUBSCRIBER_ID)));
-        Mockito.verify(apiService, times(1)).calculateEntrypoints(GraviteeContext.getExecutionContext(), "DEFAULT", apiEntity);
+        Mockito.verify(apiService, times(1)).calculateEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
     }
 
     @Test
@@ -1114,23 +1107,16 @@ public class SubscriptionServiceTest {
 
         assertNotNull(metadata);
         Mockito.verify(applicationService, times(0)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)));
-        Mockito
-            .verify(apiService, times(0))
-            .findByEnvironmentAndIdIn(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                eq(Set.of(API_ID))
-            );
+        Mockito.verify(apiService, times(0)).findByEnvironmentAndIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(API_ID)));
         Mockito.verify(planService, times(0)).findByIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(PLAN_ID)));
         Mockito.verify(userService, times(0)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(SUBSCRIBER_ID)));
-        Mockito.verify(apiService, times(0)).calculateEntrypoints(GraviteeContext.getExecutionContext(), "DEFAULT", apiEntity);
+        Mockito.verify(apiService, times(0)).calculateEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
     }
 
     @Test
     public void shouldFillApiMetadataAfterService() {
         when(apiEntity.getId()).thenReturn(API_ID);
-        when(apiService.findByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), "DEFAULT", Set.of(API_ID)))
-            .thenReturn(Set.of(apiEntity));
+        when(apiService.findByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), Set.of(API_ID))).thenReturn(Set.of(apiEntity));
         final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId(SUBSCRIPTION_ID);
         subscriptionEntity.setApplication(APPLICATION_ID);
@@ -1147,16 +1133,10 @@ public class SubscriptionServiceTest {
 
         assertNotNull(metadata);
         Mockito.verify(applicationService, times(0)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(APPLICATION_ID)));
-        Mockito
-            .verify(apiService, times(1))
-            .findByEnvironmentAndIdIn(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                eq(Set.of(API_ID))
-            );
+        Mockito.verify(apiService, times(1)).findByEnvironmentAndIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(API_ID)));
         Mockito.verify(planService, times(0)).findByIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(PLAN_ID)));
         Mockito.verify(userService, times(0)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(SUBSCRIBER_ID)));
-        Mockito.verify(apiService, times(0)).calculateEntrypoints(GraviteeContext.getExecutionContext(), "DEFAULT", apiEntity);
+        Mockito.verify(apiService, times(0)).calculateEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
         Mockito.verify(delegate, times(1)).apply(any(Metadata.class), eq(apiEntity));
     }
 

@@ -775,7 +775,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api), null);
 
         // Compute entrypoints
-        calculateEntrypoints(executionContext, api.getEnvironmentId(), apiEntity);
+        calculateEntrypoints(executionContext, apiEntity);
 
         return apiEntity;
     }
@@ -813,14 +813,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return this.getPrimaryOwner(executionContext, api.getId());
     }
 
-    public void calculateEntrypoints(ExecutionContext executionContext, String environment, ApiEntity api) {
+    public void calculateEntrypoints(final ExecutionContext executionContext, ApiEntity api) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
         if (api.getProxy() != null) {
             String defaultEntrypoint = parameterService.find(
                 executionContext,
                 Key.PORTAL_ENTRYPOINT,
-                environment,
+                executionContext.getEnvironmentId(),
                 ParameterReferenceType.ENVIRONMENT
             );
             final String scheme = getScheme(defaultEntrypoint);
@@ -925,7 +925,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAllByEnvironment(ExecutionContext executionContext) {
+    public Set<ApiEntity> findAllByEnvironment(final ExecutionContext executionContext) {
         try {
             LOGGER.debug("Find all APIs for environment {}", executionContext.getEnvironmentId());
             return new HashSet<>(
@@ -941,10 +941,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, String environmentId, Set<String> ids) {
-        LOGGER.debug("Find APIs by environment {} and ID in {}", environmentId, ids);
+    public Set<ApiEntity> findByEnvironmentAndIdIn(final ExecutionContext executionContext, Set<String> ids) {
+        LOGGER.debug("Find APIs by environment {} and ID in {}", executionContext.getEnvironmentId(), ids);
         try {
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId(environmentId).build();
+            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId(executionContext.getEnvironmentId()).build();
             return new HashSet<>(convert(executionContext, apiRepository.search(criteria)));
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to find APIs by environment and ids", e);
@@ -953,9 +953,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, String environmentId, boolean excludeDefinition) {
+    public Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, boolean excludeDefinition) {
         try {
-            LOGGER.debug("Find all APIs without some fields (definition, picture...) for environment {}", environmentId);
+            LOGGER.debug(
+                "Find all APIs without some fields (definition, picture...) for environment {}",
+                executionContext.getEnvironmentId()
+            );
             final ApiFieldExclusionFilter.Builder exclusionFilterBuilder = new ApiFieldExclusionFilter.Builder().excludePicture();
             if (excludeDefinition) {
                 exclusionFilterBuilder.excludeDefinition();
@@ -963,18 +966,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return new HashSet<>(
                 convert(
                     executionContext,
-                    apiRepository.search(new ApiCriteria.Builder().environmentId(environmentId).build(), exclusionFilterBuilder.build())
+                    apiRepository.search(
+                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
+                        exclusionFilterBuilder.build()
+                    )
                 )
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all APIs light for environment {}", environmentId, ex);
+            LOGGER.error("An error occurs while trying to find all APIs light for environment {}", executionContext.getEnvironmentId(), ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs light for environment", ex);
         }
     }
 
     @Override
     public Set<ApiEntity> findAllLight(ExecutionContext executionContext) {
-        return findAllLightByEnvironment(executionContext, null, false);
+        return findAllLightByEnvironment(executionContext, false);
     }
 
     @Override
