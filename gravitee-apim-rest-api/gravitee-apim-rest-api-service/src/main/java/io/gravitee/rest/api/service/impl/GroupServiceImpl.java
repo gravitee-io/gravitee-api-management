@@ -233,9 +233,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             newGroup.setUpdatedAt(newGroup.getCreatedAt());
             GroupEntity grp = this.map(groupRepository.create(newGroup));
             // Audit
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 Collections.singletonMap(GROUP, newGroup.getId()),
                 GROUP_CREATED,
                 newGroup.getCreatedAt(),
@@ -273,9 +272,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             updateDefaultRoles(executionContext, groupId, updatedGroupEntity.getRoles(), group.getRoles());
 
             // Audit
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                updatedGroup.getEnvironmentId(),
                 Collections.singletonMap(GROUP, groupId),
                 GROUP_UPDATED,
                 updatedGroupEntity.getUpdatedAt(),
@@ -579,9 +577,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             groupRepository.delete(groupId);
 
             // Audit
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 Collections.singletonMap(GROUP, groupId),
                 GROUP_DELETED,
                 new Date(),

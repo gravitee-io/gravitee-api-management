@@ -49,9 +49,8 @@ public interface AuditService {
         Object newValue
     );
 
-    void createEnvironmentAuditLog(
+    void createAuditLog(
         ExecutionContext executionContext,
-        final String environmentId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
         Date createdAt,

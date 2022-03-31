@@ -69,15 +69,7 @@ public class CategoryService_CreateTest {
 
         assertNotNull("result is null", category);
         verify(mockAuditService, times(1))
-            .createEnvironmentAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                eq(CATEGORY_CREATED),
-                any(),
-                isNull(),
-                any()
-            );
+            .createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(CATEGORY_CREATED), any(), isNull(), any());
         verify(mockCategoryRepository, times(1)).create(argThat(arg -> arg != null && arg.getName().equals("v1")));
     }
 

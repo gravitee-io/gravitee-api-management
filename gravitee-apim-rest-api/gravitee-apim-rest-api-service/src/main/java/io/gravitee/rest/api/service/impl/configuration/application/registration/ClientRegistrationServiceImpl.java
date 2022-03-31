@@ -36,7 +36,6 @@ import io.gravitee.rest.api.model.configuration.application.registration.NewClie
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -152,9 +151,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 clientRegistrationProvider
             );
 
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 singletonMap(CLIENT_REGISTRATION_PROVIDER, createdClientRegistrationProvider.getId()),
                 ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
                 createdClientRegistrationProvider.getUpdatedAt(),
@@ -218,9 +216,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             );
 
             // Audit
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
                 ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
                 clientRegistrationProvider.getUpdatedAt(),
@@ -288,9 +285,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             clientRegistrationProviderRepository.delete(id);
 
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 Collections.singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
                 ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED,
                 new Date(),
