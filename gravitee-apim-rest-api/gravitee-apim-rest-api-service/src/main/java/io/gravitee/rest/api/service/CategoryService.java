@@ -35,7 +35,7 @@ public interface CategoryService {
     Set<CategoryEntity> findByIdIn(final String environmentId, final Set<String> ids);
     CategoryEntity findById(String id, final String environment);
     CategoryEntity findNotHiddenById(String id, final String environmentId);
-    CategoryEntity create(ExecutionContext executionContext, final String environmentId, NewCategoryEntity category);
+    CategoryEntity create(ExecutionContext executionContext, NewCategoryEntity category);
     CategoryEntity update(ExecutionContext executionContext, String categoryId, UpdateCategoryEntity category);
     List<CategoryEntity> update(ExecutionContext executionContext, List<UpdateCategoryEntity> categories);
     void delete(ExecutionContext executionContext, String categoryId);

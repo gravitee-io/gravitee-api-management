@@ -65,11 +65,7 @@ public class CategoryService_CreateTest {
         v1.setName("v1");
         when(mockCategoryRepository.create(argThat(cat -> cat.getCreatedAt() != null))).thenReturn(new Category());
         when(mockEnvironmentService.findById("DEFAULT")).thenReturn(new EnvironmentEntity());
-        CategoryEntity category = categoryService.create(
-            GraviteeContext.getExecutionContext(),
-            GraviteeContext.getCurrentEnvironment(),
-            v1
-        );
+        CategoryEntity category = categoryService.create(GraviteeContext.getExecutionContext(), v1);
 
         assertNotNull("result is null", category);
         verify(mockAuditService, times(1))
@@ -91,7 +87,7 @@ public class CategoryService_CreateTest {
 
         NewCategoryEntity nv1 = new NewCategoryEntity();
         nv1.setName("v1");
-        categoryService.create(GraviteeContext.getExecutionContext(), GraviteeContext.getCurrentEnvironment(), nv1);
+        categoryService.create(GraviteeContext.getExecutionContext(), nv1);
     }
 
     @Test(expected = DuplicateCategoryNameException.class)
@@ -103,7 +99,7 @@ public class CategoryService_CreateTest {
         when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
 
         try {
-            categoryService.create(GraviteeContext.getExecutionContext(), GraviteeContext.getCurrentEnvironment(), nv1);
+            categoryService.create(GraviteeContext.getExecutionContext(), nv1);
         } catch (DuplicateCategoryNameException e) {
             verify(mockCategoryRepository, never()).create(any());
             throw e;

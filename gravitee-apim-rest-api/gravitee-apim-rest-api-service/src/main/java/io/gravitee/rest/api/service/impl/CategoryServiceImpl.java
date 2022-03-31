@@ -132,9 +132,9 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public CategoryEntity create(ExecutionContext executionContext, final String environmentId, NewCategoryEntity newCategory) {
+    public CategoryEntity create(ExecutionContext executionContext, NewCategoryEntity newCategory) {
         // First we prevent the duplicate category name
-        final List<CategoryEntity> categories = findAll(environmentId);
+        final List<CategoryEntity> categories = findAll(executionContext.getEnvironmentId());
         final Optional<CategoryEntity> optionalCategory = categories
             .stream()
             .filter(v -> v.getName().equals((newCategory.getName())))
@@ -146,18 +146,18 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
         try {
             // check if environment exists
-            this.environmentService.findById(environmentId);
+            this.environmentService.findById(executionContext.getEnvironmentId());
 
             Category category = convert(newCategory);
             final Date createdAt = new Date();
             category.setCreatedAt(createdAt);
             category.setUpdatedAt(createdAt);
-            category.setEnvironmentId(environmentId);
+            category.setEnvironmentId(executionContext.getEnvironmentId());
             category.setOrder(categories.size());
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
             auditService.createEnvironmentAuditLog(
                 executionContext,
-                environmentId,
+                executionContext.getEnvironmentId(),
                 Collections.singletonMap(CATEGORY, category.getId()),
                 CATEGORY_CREATED,
                 createdAt,
