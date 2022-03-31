@@ -89,10 +89,10 @@ commands:
             - keeper/install
             - run:
                   command: |
-                      ksm secret notation keeper://u2dz7IP-w9E0NKsUeyCAYA/custom_field/public_key -o pub.key
+                      ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_pub_key > pub.key
                       gpg --import pub.key
 
-                      ksm secret notation keeper://u2dz7IP-w9E0NKsUeyCAYA/custom_field/private_key -o private.key
+                      ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key > private.key
                       # Need --batch to be able to import private key
                       gpg --import --batch private.key
     prepare-tar-for-s3-glacier:
