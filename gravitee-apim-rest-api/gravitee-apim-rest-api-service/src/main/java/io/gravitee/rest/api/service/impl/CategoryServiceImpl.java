@@ -155,9 +155,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             category.setEnvironmentId(executionContext.getEnvironmentId());
             category.setOrder(categories.size());
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 Collections.singletonMap(CATEGORY, category.getId()),
                 CATEGORY_CREATED,
                 createdAt,
@@ -198,9 +197,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             category.setCreatedAt(categoryToUpdate.getCreatedAt());
             category.setUpdatedAt(updatedAt);
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                categoryToUpdate.getEnvironmentId(),
                 Collections.singletonMap(CATEGORY, category.getId()),
                 CATEGORY_UPDATED,
                 updatedAt,
@@ -239,9 +237,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                         category.setCreatedAt(categoryToUpdate.getCreatedAt());
                         category.setUpdatedAt(updatedAt);
                         savedCategories.add(convert(categoryRepository.update(category)));
-                        auditService.createEnvironmentAuditLog(
+                        auditService.createAuditLog(
                             executionContext,
-                            category.getEnvironmentId(),
                             Collections.singletonMap(CATEGORY, category.getId()),
                             CATEGORY_UPDATED,
                             updatedAt,
@@ -268,9 +265,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             if (categoryOptional.isPresent()) {
                 Category categoryToDelete = categoryOptional.get();
                 categoryRepository.delete(categoryToDelete.getId());
-                auditService.createEnvironmentAuditLog(
+                auditService.createAuditLog(
                     executionContext,
-                    categoryToDelete.getEnvironmentId(),
                     Collections.singletonMap(CATEGORY, categoryId),
                     CATEGORY_DELETED,
                     new Date(),

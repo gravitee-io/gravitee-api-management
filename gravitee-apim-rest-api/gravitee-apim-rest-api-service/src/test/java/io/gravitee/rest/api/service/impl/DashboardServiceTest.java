@@ -211,9 +211,8 @@ public class DashboardServiceTest {
                 )
             );
         verify(auditService, times(1))
-            .createEnvironmentAuditLog(
+            .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_CREATED),
                 any(Date.class),
@@ -282,9 +281,8 @@ public class DashboardServiceTest {
                 )
             );
         verify(auditService, times(1))
-            .createEnvironmentAuditLog(
+            .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_UPDATED),
                 any(Date.class),
@@ -312,9 +310,8 @@ public class DashboardServiceTest {
 
         verify(dashboardRepository, times(1)).delete(DASHBOARD_ID);
         verify(auditService, times(1))
-            .createEnvironmentAuditLog(
+            .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_DELETED),
                 any(Date.class),

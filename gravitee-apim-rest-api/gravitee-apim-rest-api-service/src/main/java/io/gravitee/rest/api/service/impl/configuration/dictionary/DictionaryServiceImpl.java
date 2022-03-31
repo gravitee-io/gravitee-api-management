@@ -30,7 +30,6 @@ import io.gravitee.rest.api.model.configuration.dictionary.*;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -376,9 +375,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     ) {
         String dictionaryName = oldValue != null ? oldValue.getName() : newValue.getName();
 
-        auditService.createEnvironmentAuditLog(
+        auditService.createAuditLog(
             executionContext,
-            executionContext.getEnvironmentId(),
             Collections.singletonMap(DICTIONARY, dictionaryName),
             event,
             createdAt,

@@ -151,15 +151,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
         int msgSize = send(executionContext, null, message, getRecipientsId(executionContext, message));
 
-        auditService.createEnvironmentAuditLog(
-            executionContext,
-            executionContext.getEnvironmentId(),
-            Collections.emptyMap(),
-            MESSAGE_SENT,
-            new Date(),
-            null,
-            message
-        );
+        auditService.createAuditLog(executionContext, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
         return msgSize;
     }
 

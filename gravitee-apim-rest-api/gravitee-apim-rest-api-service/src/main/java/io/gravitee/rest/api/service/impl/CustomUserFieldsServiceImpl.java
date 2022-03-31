@@ -34,7 +34,6 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.UserMetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldAlreadyExistException;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -189,15 +188,7 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
                 newValue
             );
         } else if (type == ENVIRONMENT) {
-            auditService.createEnvironmentAuditLog(
-                executionContext,
-                executionContext.getEnvironmentId(),
-                Collections.singletonMap(USER_FIELD, key),
-                event,
-                createdAt,
-                oldValue,
-                newValue
-            );
+            auditService.createAuditLog(executionContext, Collections.singletonMap(USER_FIELD, key), event, createdAt, oldValue, newValue);
         }
     }
 
