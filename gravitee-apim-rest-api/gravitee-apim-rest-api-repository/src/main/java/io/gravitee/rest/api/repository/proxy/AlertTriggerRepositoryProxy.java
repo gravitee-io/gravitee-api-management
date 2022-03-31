@@ -30,26 +30,37 @@ import org.springframework.stereotype.Component;
 @Component
 public class AlertTriggerRepositoryProxy extends AbstractProxy<AlertTriggerRepository> implements AlertTriggerRepository {
 
+    @Override
     public Set<AlertTrigger> findAll() throws TechnicalException {
         return target.findAll();
     }
 
-    public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) throws TechnicalException {
-        return target.findByReferenceAndReferenceIds(referenceType, referenceIds);
+    @Override
+    public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds, String environmentId) throws TechnicalException {
+        return target.findByReferenceAndReferenceIds(referenceType, referenceIds, environmentId);
     }
 
+    @Override
+    public Optional<AlertTrigger> findByIdAndEnvironment(String id, String environmentId) throws TechnicalException {
+        return target.findByIdAndEnvironment(id, environmentId);
+    }
+
+    @Override
     public Optional<AlertTrigger> findById(String s) throws TechnicalException {
         return target.findById(s);
     }
 
+    @Override
     public AlertTrigger create(AlertTrigger item) throws TechnicalException {
         return target.create(item);
     }
 
+    @Override
     public AlertTrigger update(AlertTrigger item) throws TechnicalException {
         return target.update(item);
     }
 
+    @Override
     public void delete(String s) throws TechnicalException {
         target.delete(s);
     }

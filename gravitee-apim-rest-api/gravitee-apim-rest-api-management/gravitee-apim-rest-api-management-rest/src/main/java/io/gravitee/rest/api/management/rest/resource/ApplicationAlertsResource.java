@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -75,8 +76,8 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({ @Permission(value = APPLICATION_ALERT, acls = READ) })
     public List<AlertTriggerEntity> getApplicationAlerts(@QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
         return withEventCounts
-            ? alertService.findByReferenceWithEventCounts(APPLICATION, application)
-            : alertService.findByReference(APPLICATION, application);
+            ? alertService.findByReferenceWithEventCounts(GraviteeContext.getExecutionContext(), APPLICATION, application)
+            : alertService.findByReference(GraviteeContext.getExecutionContext(), APPLICATION, application);
     }
 
     @GET
@@ -111,7 +112,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     public AlertTriggerEntity createApplicationAlert(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
         alertEntity.setReferenceType(APPLICATION);
         alertEntity.setReferenceId(application);
-        return alertService.create(alertEntity);
+        return alertService.create(GraviteeContext.getExecutionContext(), alertEntity);
     }
 
     @Path("{alert}")
@@ -136,6 +137,7 @@ public class ApplicationAlertsResource extends AbstractResource {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(APPLICATION);
         alertEntity.setReferenceId(application);
+        alertEntity.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         return alertService.update(alertEntity);
     }
 
@@ -154,6 +156,6 @@ public class ApplicationAlertsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.DELETE) })
     public void deleteApplicationAlert(@PathParam("alert") String alert) {
-        alertService.delete(alert, application);
+        alertService.delete(GraviteeContext.getExecutionContext(), alert, application);
     }
 }

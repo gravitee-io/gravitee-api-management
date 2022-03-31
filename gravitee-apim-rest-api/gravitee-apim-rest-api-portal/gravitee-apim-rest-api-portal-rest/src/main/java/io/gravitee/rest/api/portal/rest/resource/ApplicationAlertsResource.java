@@ -69,7 +69,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     public Response getAlertsByApplicationId(@PathParam("applicationId") String applicationId) {
         checkPlugins();
         List<Alert> alerts = applicationAlertService
-            .findByApplication(applicationId)
+            .findByApplication(GraviteeContext.getExecutionContext(), applicationId)
             .stream()
             .sorted(Comparator.comparing(AlertTriggerEntity::getCreatedAt))
             .map(alert -> alertMapper.convert(alert))
@@ -89,7 +89,7 @@ public class ApplicationAlertsResource extends AbstractResource {
         alertInput.setApplication(applicationId);
         checkPlugins();
 
-        if (applicationAlertService.findByApplication(applicationId).size() == 10) {
+        if (applicationAlertService.findByApplication(GraviteeContext.getExecutionContext(), applicationId).size() == 10) {
             throw new ApplicationAlertMaximumException(applicationId, 10);
         }
 

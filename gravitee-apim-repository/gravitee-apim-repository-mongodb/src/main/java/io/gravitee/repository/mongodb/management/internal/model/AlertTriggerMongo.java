@@ -44,6 +44,7 @@ public class AlertTriggerMongo {
     private Date updatedAt;
     private boolean template;
     private List<AlertEventRuleMongo> eventRules;
+    private String environmentId;
 
     public String getId() {
         return id;
@@ -157,6 +158,14 @@ public class AlertTriggerMongo {
         this.eventRules = eventRules;
     }
 
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -195,6 +204,8 @@ public class AlertTriggerMongo {
             createdAt +
             ", updatedAt=" +
             updatedAt +
+                    ", environmentId=" +
+                    environmentId +
             '}'
         );
     }

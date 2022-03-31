@@ -114,7 +114,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             );
         }
 
-        return alertService.create(alert);
+        return alertService.create(executionContext, alert);
     }
 
     private List<Notification> createNotification(String alertType, String organizationId) {
@@ -140,13 +140,13 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     }
 
     @Override
-    public List<AlertTriggerEntity> findByApplication(String applicationId) {
-        return alertService.findByReference(AlertReferenceType.APPLICATION, applicationId);
+    public List<AlertTriggerEntity> findByApplication(ExecutionContext executionContext, String applicationId) {
+        return alertService.findByReference(executionContext, AlertReferenceType.APPLICATION, applicationId);
     }
 
     @Override
-    public AlertTriggerEntity update(String applicationId, UpdateAlertTriggerEntity alert) {
-        final AlertTriggerEntity alertTrigger = alertService.findById(alert.getId());
+    public AlertTriggerEntity update(ExecutionContext executionContext, String applicationId, UpdateAlertTriggerEntity alert) {
+        final AlertTriggerEntity alertTrigger = alertService.findById(executionContext, alert.getId());
 
         alert.setName(alertTrigger.getName());
         alert.setReferenceType(AlertReferenceType.APPLICATION);
@@ -155,6 +155,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         alert.setSeverity(Trigger.Severity.INFO);
         alert.setDampening(Dampening.strictCount(1));
         alert.setFilters(combineFilters(applicationId, alert.getFilters()));
+        alert.setEnvironmentId(executionContext.getEnvironmentId());
 
         alertTrigger.getNotifications().removeIf(n -> DEFAULT_WEBHOOK_NOTIFIER.equals(n.getType()));
         alert.setNotifications(combineNotifications(alert.getNotifications(), alertTrigger.getNotifications()));
@@ -163,8 +164,8 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     }
 
     @Override
-    public void delete(String alertId, String applicationId) {
-        alertService.delete(alertId, applicationId);
+    public void delete(ExecutionContext executionContext, String alertId, String applicationId) {
+        alertService.delete(executionContext, alertId, applicationId);
     }
 
     @Override
@@ -182,7 +183,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         applicationService.findById(executionContext, applicationId);
 
         alertService
-            .findByReference(AlertReferenceType.APPLICATION, applicationId)
+            .findByReference(executionContext, AlertReferenceType.APPLICATION, applicationId)
             .forEach(
                 trigger -> {
                     if (trigger.getNotifications() == null) {
@@ -216,7 +217,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                             createNotification(trigger.getType(), singletonList(email), executionContext.getOrganizationId())
                         );
                     }
-                    alertService.update(convert(trigger));
+                    alertService.update(convert(executionContext, trigger));
                 }
             );
     }
@@ -231,7 +232,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         applicationService.findById(executionContext, applicationId);
 
         alertService
-            .findByReference(AlertReferenceType.APPLICATION, applicationId)
+            .findByReference(executionContext, AlertReferenceType.APPLICATION, applicationId)
             .forEach(
                 trigger -> {
                     if (trigger.getNotifications() == null) {
@@ -265,7 +266,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                                 configuration.put("body", emailNode.path("body").asText());
                                 notification.setConfiguration(mapper.writeValueAsString(configuration));
                             }
-                            alertService.update(convert(trigger));
+                            alertService.update(convert(executionContext, trigger));
                         } catch (JsonProcessingException e) {
                             LOGGER.error("An error occurs while trying to add a recipient to the Alert notification", e);
                             throw new TechnicalManagementException(
@@ -278,10 +279,10 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     }
 
     @Override
-    public void deleteAll(String applicationId) {
+    public void deleteAll(ExecutionContext executionContext, String applicationId) {
         alertService
-            .findByReference(AlertReferenceType.APPLICATION, applicationId)
-            .forEach(trigger -> alertService.delete(trigger.getId(), applicationId));
+            .findByReference(executionContext, AlertReferenceType.APPLICATION, applicationId)
+            .forEach(trigger -> alertService.delete(executionContext, trigger.getId(), applicationId));
     }
 
     @Override
@@ -295,8 +296,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                 if (notificationTemplate.getHook().equals(AlertHook.CONSUMER_HTTP_STATUS.name())) {
                     updateAllAlertsBody(organizationId, STATUS_ALERT, notificationTemplate.getContent(), notificationTemplate.getTitle());
                 } else if (notificationTemplate.getHook().equals(AlertHook.CONSUMER_RESPONSE_TIME.name())) {
-                    updateAllAlertsBody(
-                        organizationId,
+                    updateAllAlertsBody(organizationId,
                         RESPONSE_TIME_ALERT,
                         notificationTemplate.getContent(),
                         notificationTemplate.getTitle()
@@ -334,26 +334,28 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
         // apply new recipients to each AlertTrigger related to applications to update
         alertService
-            .findByReferenceAndReferenceIds(AlertReferenceType.APPLICATION, new ArrayList<>(applicationIds))
+            .findByReferenceAndReferenceIds(executionContext, AlertReferenceType.APPLICATION, new ArrayList<>(applicationIds))
             .forEach(
                 trigger -> {
                     if (trigger.getNotifications() == null) {
                         trigger.setNotifications(createNotification(trigger.getType(), organizationId));
                     }
 
-                    updateTriggerNotification(trigger, recipientsByApplicationId.get(trigger.getReferenceId()));
+                    updateTriggerNotification(executionContext, trigger, recipientsByApplicationId.get(trigger.getReferenceId()));
                 }
             );
     }
 
     private void updateAllAlertsBody(String organizationId, String type, String body, String subject) {
+        ExecutionContext executionContext = new ExecutionContext(organizationId, null);
+
         final List<String> ids = applicationService
             .findByOrganization(organizationId)
             .stream()
             .map(ApplicationListItem::getId)
             .collect(Collectors.toList());
         alertService
-            .findByReferenceAndReferenceIds(AlertReferenceType.APPLICATION, ids)
+            .findByReferenceAndReferenceIds(executionContext, AlertReferenceType.APPLICATION, ids)
             .stream()
             .filter(alert -> alert.getType().equals(type))
             .forEach(
@@ -362,7 +364,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                         trigger.setNotifications(createNotification(trigger.getType(), organizationId));
                     }
 
-                    updateTriggerNotification(trigger, body, subject);
+                    updateTriggerNotification(executionContext, trigger, body, subject);
                 }
             );
     }
@@ -421,15 +423,15 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         }
     }
 
-    private void updateTriggerNotification(AlertTriggerEntity trigger, List<String> recipients) {
-        updateTriggerNotification(trigger, null, null, recipients);
+    private void updateTriggerNotification(ExecutionContext executionContext, AlertTriggerEntity trigger, List<String> recipients) {
+        updateTriggerNotification(executionContext, trigger, null, null, recipients);
     }
 
-    private void updateTriggerNotification(AlertTriggerEntity trigger, String body, String subject) {
-        updateTriggerNotification(trigger, body, subject, null);
+    private void updateTriggerNotification(ExecutionContext executionContext, AlertTriggerEntity trigger, String body, String subject) {
+        updateTriggerNotification(executionContext, trigger, body, subject, null);
     }
 
-    private void updateTriggerNotification(AlertTriggerEntity trigger, String body, String subject, List<String> recipients) {
+    private void updateTriggerNotification(ExecutionContext executionContext, AlertTriggerEntity trigger, String body, String subject, List<String> recipients) {
         if (CollectionUtils.isEmpty(trigger.getNotifications())) {
             return;
         }
@@ -451,7 +453,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                         configuration.put("body", body == null ? emailNode.path("body").asText() : body);
                         notification.setConfiguration(mapper.writeValueAsString(configuration));
 
-                        alertService.update(convert(trigger));
+                        alertService.update(convert(executionContext, trigger));
                     } catch (JsonProcessingException e) {
                         LOGGER.error("An error occurs while trying to update Alert notification", e);
                         throw new TechnicalManagementException("An error occurs while trying to update Alert notification");
@@ -460,7 +462,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             );
     }
 
-    private UpdateAlertTriggerEntity convert(AlertTriggerEntity trigger) {
+    private UpdateAlertTriggerEntity convert(ExecutionContext executionContext, AlertTriggerEntity trigger) {
         final UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
         updating.setId(trigger.getId());
         updating.setName(trigger.getName());
@@ -477,6 +479,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         updating.setNotifications(trigger.getNotifications());
         updating.setNotificationPeriods(trigger.getNotificationPeriods());
         updating.setSource(trigger.getSource());
+        updating.setEnvironmentId(executionContext.getEnvironmentId());
 
         return updating;
     }

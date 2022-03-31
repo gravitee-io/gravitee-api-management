@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AlertAnalyticsService;
 import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -77,7 +78,7 @@ public class ApiAlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = API_ALERT, acls = READ) })
     public List<AlertTriggerEntity> getApiAlerts(@QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
-        return withEventCounts ? alertService.findByReferenceWithEventCounts(API, api) : alertService.findByReference(API, api);
+        return withEventCounts ? alertService.findByReferenceWithEventCounts(GraviteeContext.getExecutionContext(), API, api) : alertService.findByReference(GraviteeContext.getExecutionContext(), API, api);
     }
 
     @GET
@@ -115,7 +116,7 @@ public class ApiAlertsResource extends AbstractResource {
     public AlertAnalyticsEntity getPlatformAlertsAnalytics(@BeanParam AlertAnalyticsParam param) {
         param.validate();
         return alertAnalyticsService.findByReference(
-            API,
+                GraviteeContext.getExecutionContext(), API,
             api,
             new AlertAnalyticsQuery.Builder().from(param.getFrom()).to(param.getTo()).build()
         );
@@ -135,7 +136,7 @@ public class ApiAlertsResource extends AbstractResource {
     public AlertTriggerEntity createApiAlert(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
         alertEntity.setReferenceType(API);
         alertEntity.setReferenceId(api);
-        return alertService.create(alertEntity);
+        return alertService.create(GraviteeContext.getExecutionContext(), alertEntity);
     }
 
     @Path("{alert}")
@@ -154,6 +155,7 @@ public class ApiAlertsResource extends AbstractResource {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(API);
         alertEntity.setReferenceId(api);
+        alertEntity.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         return alertService.update(alertEntity);
     }
 
@@ -169,7 +171,7 @@ public class ApiAlertsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.DELETE) })
     public void deleteApiAlert(@PathParam("alert") String alert) {
-        alertService.delete(alert, api);
+        alertService.delete(GraviteeContext.getExecutionContext(), alert, api);
     }
 
     @GET

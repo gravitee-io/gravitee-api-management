@@ -123,8 +123,8 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
 
         when(alertRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
-        when(alertRepository.findByReference("API", "api-id")).thenReturn(singletonList(alert));
-        when(alertRepository.findByReferenceAndReferenceIds("API", asList("api-id", "application-id")))
+        when(alertRepository.findByReference("API", "api-id", "DEFAULT")).thenReturn(singletonList(alert));
+        when(alertRepository.findByReferenceAndReferenceIds("API", asList("api-id", "application-id"), "DEFAULT"))
             .thenReturn(asList(alert2, alertQuota100));
     }
 }

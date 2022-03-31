@@ -49,6 +49,9 @@ public class UpdateAlertTriggerEntity extends Trigger {
     @JsonProperty("event_rules")
     private List<AlertEventRuleEntity> eventRules;
 
+    @JsonProperty("environment_id")
+    private String environmentId;
+
     public UpdateAlertTriggerEntity() {
         super(null, null, Severity.INFO, null, false);
     }
@@ -111,6 +114,14 @@ public class UpdateAlertTriggerEntity extends Trigger {
         this.eventRules = eventRules;
     }
 
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -141,6 +152,8 @@ public class UpdateAlertTriggerEntity extends Trigger {
             referenceType +
             ", referenceId='" +
             referenceId +
+                    ", environmentId='" +
+                    environmentId +
             '\'' +
             '}'
         );

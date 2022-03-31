@@ -18,11 +18,12 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.AlertAnalyticsQuery;
 import io.gravitee.rest.api.model.alert.AlertAnalyticsEntity;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface AlertAnalyticsService {
-    AlertAnalyticsEntity findByReference(AlertReferenceType referenceType, String referenceId, AlertAnalyticsQuery analyticsQuery);
+    AlertAnalyticsEntity findByReference(ExecutionContext executionContext, AlertReferenceType referenceType, String referenceId, AlertAnalyticsQuery analyticsQuery);
 }

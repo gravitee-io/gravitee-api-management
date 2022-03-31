@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.alert.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+
 import java.util.List;
 
 /**
@@ -25,15 +27,15 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface AlertService {
-    AlertTriggerEntity create(NewAlertTriggerEntity alert);
+    AlertTriggerEntity create(ExecutionContext executionContext, NewAlertTriggerEntity alert);
     AlertTriggerEntity update(UpdateAlertTriggerEntity alert);
-    AlertTriggerEntity findById(String alertId);
-    List<AlertTriggerEntity> findByReference(AlertReferenceType referenceType, String referenceId);
-    List<AlertTriggerEntity> findByReferenceAndReferenceIds(AlertReferenceType referenceType, List<String> referenceIds);
-    List<AlertTriggerEntity> findByReferenceWithEventCounts(AlertReferenceType referenceType, String referenceId);
-    void delete(String alertId, String referenceId);
+    AlertTriggerEntity findById(ExecutionContext executionContext, String alertId);
+    List<AlertTriggerEntity> findByReference(ExecutionContext executionContext, AlertReferenceType referenceType, String referenceId);
+    List<AlertTriggerEntity> findByReferenceAndReferenceIds(ExecutionContext executionContext, AlertReferenceType referenceType, List<String> referenceIds);
+    List<AlertTriggerEntity> findByReferenceWithEventCounts(ExecutionContext executionContext, AlertReferenceType referenceType, String referenceId);
+    void delete(ExecutionContext executionContext, String alertId, String referenceId);
     AlertStatusEntity getStatus();
     Page<AlertEventEntity> findEvents(String alertId, AlertEventQuery eventQuery);
-    void createDefaults(AlertReferenceType referenceType, String referenceId);
-    void applyDefaults(String alertId, AlertReferenceType referenceType);
+    void createDefaults(ExecutionContext executionContext, AlertReferenceType referenceType, String referenceId);
+    void applyDefaults(ExecutionContext executionContext, String alertId, AlertReferenceType referenceType);
 }

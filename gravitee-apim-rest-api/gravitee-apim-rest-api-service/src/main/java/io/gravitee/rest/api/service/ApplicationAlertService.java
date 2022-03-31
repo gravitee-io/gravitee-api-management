@@ -27,11 +27,11 @@ import java.util.List;
 public interface ApplicationAlertService {
     AlertTriggerEntity create(ExecutionContext executionContext, String applicationId, NewAlertTriggerEntity alert);
 
-    List<AlertTriggerEntity> findByApplication(String applicationId);
+    List<AlertTriggerEntity> findByApplication(ExecutionContext executionContext, String applicationId);
 
-    AlertTriggerEntity update(String applicationId, UpdateAlertTriggerEntity alert);
+    AlertTriggerEntity update(ExecutionContext executionContext, String applicationId, UpdateAlertTriggerEntity alert);
 
-    void delete(String alertId, String applicationId);
+    void delete(ExecutionContext executionContext, String alertId, String applicationId);
 
     AlertStatusEntity getStatus();
 
@@ -39,7 +39,7 @@ public interface ApplicationAlertService {
 
     void deleteMemberFromApplication(ExecutionContext executionContext, String applicationId, String email);
 
-    void deleteAll(String applicationId);
+    void deleteAll(ExecutionContext executionContext, String applicationId);
 
     void handleEvent(Event<ApplicationAlertEventType, Object> event);
 }

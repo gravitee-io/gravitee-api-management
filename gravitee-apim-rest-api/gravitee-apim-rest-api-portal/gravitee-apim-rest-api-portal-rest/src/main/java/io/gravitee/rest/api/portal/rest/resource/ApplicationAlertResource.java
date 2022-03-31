@@ -27,8 +27,9 @@ import io.gravitee.rest.api.portal.rest.model.AlertInput;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationAlertService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import java.util.Date;
+
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -63,7 +64,7 @@ public class ApplicationAlertResource extends AbstractResource {
         LOGGER.info("Deleting alert {}", alertId);
 
         checkPlugins();
-        applicationAlertService.delete(alertId, applicationId);
+        applicationAlertService.delete(GraviteeContext.getExecutionContext(), alertId, applicationId);
         return Response.noContent().build();
     }
 
@@ -83,7 +84,7 @@ public class ApplicationAlertResource extends AbstractResource {
         final UpdateAlertTriggerEntity updateAlertTriggerEntity = alertMapper.convertToUpdate(alertInput);
         updateAlertTriggerEntity.setId(alertId);
 
-        final AlertTriggerEntity updated = applicationAlertService.update(applicationId, updateAlertTriggerEntity);
+        final AlertTriggerEntity updated = applicationAlertService.update(GraviteeContext.getExecutionContext(), applicationId, updateAlertTriggerEntity);
 
         Alert alert = alertMapper.convert(updated);
         return Response.ok(alert).build();

@@ -52,10 +52,20 @@ public class MongoAlertRepository implements AlertTriggerRepository {
     public Optional<AlertTrigger> findById(String triggerId) throws TechnicalException {
         LOGGER.debug("Find an alert trigger by ID [{}]", triggerId);
 
-        final AlertTriggerMongo alert = internalAlertRepo.findById(triggerId).orElse(null);
+        Optional<AlertTriggerMongo> alert = internalAlertRepo.findById(triggerId);
 
         LOGGER.debug("Find an alert trigger by ID [{}] - Done", triggerId);
-        return Optional.ofNullable(mapper.map(alert, AlertTrigger.class));
+        return alert.map(a -> mapper.map(a, AlertTrigger.class));
+    }
+
+    @Override
+    public Optional<AlertTrigger> findByIdAndEnvironment(String id, String environmentId) throws TechnicalException {
+        LOGGER.debug("Find an alert trigger by ID [{}] and environment [{}]", id, environmentId);
+
+        Optional<AlertTriggerMongo> alert = internalAlertRepo.findByIdAndEnvironment(id, environmentId);
+
+        LOGGER.debug("Find an alert trigger by ID [{}] and environment [{}] - Done", id, environmentId);
+        return alert.map(a -> mapper.map(a, AlertTrigger.class));
     }
 
     @Override
@@ -96,6 +106,7 @@ public class MongoAlertRepository implements AlertTriggerRepository {
             alertTriggerMongo.setDefinition(trigger.getDefinition());
             alertTriggerMongo.setCreatedAt(trigger.getCreatedAt());
             alertTriggerMongo.setUpdatedAt(trigger.getUpdatedAt());
+            alertTriggerMongo.setEnvironmentId(trigger.getEnvironmentId());
 
             if (trigger.getEventRules() != null && !trigger.getEventRules().isEmpty()) {
                 alertTriggerMongo.setEventRules(
@@ -134,12 +145,12 @@ public class MongoAlertRepository implements AlertTriggerRepository {
     }
 
     @Override
-    public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) {
-        LOGGER.debug("Find alert trigger by reference '{}' and referencesIds '{}'", referenceType, referenceIds);
+    public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds, String environmentId) {
+        LOGGER.debug("Find alert trigger by reference '{}' and referencesIds '{}' and environment_id '{}'", referenceType, referenceIds, environmentId);
 
-        final List<AlertTriggerMongo> triggers = internalAlertRepo.findByReferenceTypeAndReferenceIds(referenceType, referenceIds);
+        final List<AlertTriggerMongo> triggers = internalAlertRepo.findByReferenceTypeAndReferenceIds(referenceType, referenceIds, environmentId);
 
-        LOGGER.debug("Find alert trigger by reference '{}' and referencesIds '{}' done", referenceType, referenceIds);
+        LOGGER.debug("Find alert trigger by reference '{}' and referencesIds '{}' and environment_id '{}' done", referenceType, referenceIds, environmentId);
         return triggers.stream().map(this::map).collect(Collectors.toList());
     }
 
@@ -159,6 +170,7 @@ public class MongoAlertRepository implements AlertTriggerRepository {
         trigger.setEnabled(alertTriggerMongo.isEnabled());
         trigger.setParentId(alertTriggerMongo.getParentId());
         trigger.setTemplate(alertTriggerMongo.isTemplate());
+        trigger.setEnvironmentId(alertTriggerMongo.getEnvironmentId());
 
         if (alertTriggerMongo.getEventRules() != null && !alertTriggerMongo.getEventRules().isEmpty()) {
             trigger.setEventRules(
