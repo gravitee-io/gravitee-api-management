@@ -276,9 +276,40 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     @Override
-    public void createEnvironmentAuditLog(
+    public void createAuditLog(
         ExecutionContext executionContext,
-        final String environmentId,
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    ) {
+        if (executionContext.hasEnvironmentId()) {
+            createEnvironmentAuditLog(
+                executionContext,
+                executionContext.getEnvironmentId(),
+                properties,
+                event,
+                createdAt,
+                oldValue,
+                newValue
+            );
+        } else {
+            createOrganizationAuditLog(
+                executionContext,
+                executionContext.getOrganizationId(),
+                properties,
+                event,
+                createdAt,
+                oldValue,
+                newValue
+            );
+        }
+    }
+
+    private void createEnvironmentAuditLog(
+        ExecutionContext executionContext,
+        String environmentId,
         Map<Audit.AuditProperties, String> properties,
         Audit.AuditEvent event,
         Date createdAt,

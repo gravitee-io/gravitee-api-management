@@ -47,7 +47,6 @@ import io.gravitee.rest.api.model.providers.User;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -319,26 +318,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 break;
             case GROUP:
                 properties.put(Audit.AuditProperties.GROUP, referenceId);
-                auditService.createEnvironmentAuditLog(
-                    executionContext,
-                    executionContext.getEnvironmentId(),
-                    properties,
-                    event,
-                    date,
-                    oldValue,
-                    newValue
-                );
+                auditService.createAuditLog(executionContext, properties, event, date, oldValue, newValue);
                 break;
             case ENVIRONMENT:
-                auditService.createEnvironmentAuditLog(
-                    executionContext,
-                    executionContext.getEnvironmentId(),
-                    properties,
-                    event,
-                    date,
-                    oldValue,
-                    newValue
-                );
+                auditService.createAuditLog(executionContext, properties, event, date, oldValue, newValue);
                 break;
             case ORGANIZATION:
                 auditService.createOrganizationAuditLog(

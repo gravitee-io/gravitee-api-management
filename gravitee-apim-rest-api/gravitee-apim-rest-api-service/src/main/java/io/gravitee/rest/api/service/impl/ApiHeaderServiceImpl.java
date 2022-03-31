@@ -67,9 +67,8 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
             apiHeader.setCreatedAt(new Date());
             apiHeader.setUpdatedAt(apiHeader.getCreatedAt());
 
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 Collections.singletonMap(API_HEADER, apiHeader.getId()),
                 API_HEADER_CREATED,
                 apiHeader.getCreatedAt(),
@@ -94,9 +93,8 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             apiHeaderRepository.delete(apiHeaderId);
 
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 Collections.singletonMap(API_HEADER, apiHeaderId),
                 API_HEADER_DELETED,
                 new Date(),
@@ -140,9 +138,8 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 return convert(updatedHeader);
             } else {
                 ApiHeader header = apiHeaderRepository.update(updatedHeader);
-                auditService.createEnvironmentAuditLog(
+                auditService.createAuditLog(
                     executionContext,
-                    executionContext.getEnvironmentId(),
                     singletonMap(API_HEADER, header.getId()),
                     API_HEADER_UPDATED,
                     header.getUpdatedAt(),

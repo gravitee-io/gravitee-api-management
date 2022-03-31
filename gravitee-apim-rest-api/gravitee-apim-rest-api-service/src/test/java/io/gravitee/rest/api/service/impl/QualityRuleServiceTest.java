@@ -154,9 +154,8 @@ public class QualityRuleServiceTest {
                 )
             );
         verify(auditService, times(1))
-            .createEnvironmentAuditLog(
+            .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_CREATED),
                 any(Date.class),
@@ -213,9 +212,8 @@ public class QualityRuleServiceTest {
                 )
             );
         verify(auditService, times(1))
-            .createEnvironmentAuditLog(
+            .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
                 any(Date.class),
@@ -243,9 +241,8 @@ public class QualityRuleServiceTest {
 
         verify(qualityRuleRepository, times(1)).delete(QUALITY_RULE_ID);
         verify(auditService, times(1))
-            .createEnvironmentAuditLog(
+            .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
                 any(Date.class),

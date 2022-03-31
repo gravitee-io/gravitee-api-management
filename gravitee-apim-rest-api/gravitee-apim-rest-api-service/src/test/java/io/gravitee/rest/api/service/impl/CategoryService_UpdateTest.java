@@ -67,15 +67,7 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, never()).update(any());
         verify(mockAuditService, never())
-            .createEnvironmentAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                eq(CATEGORY_UPDATED),
-                any(),
-                any(),
-                any()
-            );
+            .createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(CATEGORY_UPDATED), any(), any(), any());
     }
 
     @Test(expected = CategoryNotFoundException.class)
@@ -88,15 +80,7 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, never()).update(any());
         verify(mockAuditService, never())
-            .createEnvironmentAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                eq(CATEGORY_UPDATED),
-                any(),
-                any(),
-                any()
-            );
+            .createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(CATEGORY_UPDATED), any(), any(), any());
     }
 
     @Test
@@ -132,15 +116,7 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, times(1)).update(any());
         verify(mockAuditService, times(1))
-            .createEnvironmentAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                eq(CATEGORY_UPDATED),
-                any(),
-                any(),
-                any()
-            );
+            .createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(CATEGORY_UPDATED), any(), any(), any());
     }
 
     @Test
@@ -175,14 +151,6 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, times(1)).update(any());
         verify(mockAuditService, times(1))
-            .createEnvironmentAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
-                any(),
-                eq(CATEGORY_UPDATED),
-                any(),
-                any(),
-                any()
-            );
+            .createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(CATEGORY_UPDATED), any(), any(), any());
     }
 }

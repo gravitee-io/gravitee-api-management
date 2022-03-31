@@ -33,7 +33,6 @@ import io.gravitee.rest.api.model.theme.*;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ThemeService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateThemeNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
@@ -124,9 +123,8 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
             Theme theme = themeRepository.create(convert(executionContext, themeEntity));
 
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 Collections.singletonMap(THEME, theme.getId()),
                 THEME_CREATED,
                 theme.getCreatedAt(),
@@ -189,9 +187,8 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 }
 
                 final ThemeEntity savedTheme = convert(themeRepository.update(theme));
-                auditService.createEnvironmentAuditLog(
+                auditService.createAuditLog(
                     executionContext,
-                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(THEME, theme.getId()),
                     THEME_UPDATED,
                     new Date(),
@@ -223,9 +220,8 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             Optional<Theme> themeOptional = themeRepository.findById(themeId);
             if (themeOptional.isPresent()) {
                 themeRepository.delete(themeId);
-                auditService.createEnvironmentAuditLog(
+                auditService.createAuditLog(
                     executionContext,
-                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(THEME, themeId),
                     THEME_DELETED,
                     new Date(),
@@ -292,9 +288,8 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                                 themeUpdate.setDefinition(MAPPER.writeValueAsString(mergeDefinition));
                                 theme.setUpdatedAt(new Date());
                                 this.themeRepository.update(themeUpdate);
-                                auditService.createEnvironmentAuditLog(
+                                auditService.createAuditLog(
                                     executionContext,
-                                    executionContext.getEnvironmentId(),
                                     Collections.singletonMap(THEME, theme.getId()),
                                     THEME_UPDATED,
                                     new Date(),
@@ -384,9 +379,8 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             LOGGER.debug("Reset to default theme by ID: {}", themeId);
             final ThemeEntity previousTheme = findEnabled(executionContext);
             themeRepository.delete(DEFAULT_THEME_ID);
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 Collections.singletonMap(THEME, themeId),
                 THEME_RESET,
                 new Date(),

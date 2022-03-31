@@ -31,7 +31,6 @@ import io.gravitee.rest.api.model.UpdateTenantEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.TenantService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateTenantNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TenantNotFoundException;
@@ -118,9 +117,8 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                 try {
                     Tenant tenant = convert(tenantEntity, referenceId, referenceType);
                     savedTenants.add(convert(tenantRepository.create(tenant)));
-                    auditService.createEnvironmentAuditLog(
+                    auditService.createAuditLog(
                         executionContext,
-                        executionContext.getEnvironmentId(),
                         Collections.singletonMap(TENANT, tenant.getId()),
                         TENANT_CREATED,
                         new Date(),
@@ -158,9 +156,8 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                         tenant.setReferenceId(existingTenant.getReferenceId());
                         tenant.setReferenceType(existingTenant.getReferenceType());
                         savedTenants.add(convert(tenantRepository.update(tenant)));
-                        auditService.createEnvironmentAuditLog(
+                        auditService.createAuditLog(
                             executionContext,
-                            executionContext.getEnvironmentId(),
                             Collections.singletonMap(TENANT, tenant.getId()),
                             TENANT_UPDATED,
                             new Date(),
@@ -187,9 +184,8 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
             );
             if (tenantOptional.isPresent()) {
                 tenantRepository.delete(tenantId);
-                auditService.createEnvironmentAuditLog(
+                auditService.createAuditLog(
                     executionContext,
-                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(TENANT, tenantId),
                     TENANT_DELETED,
                     new Date(),

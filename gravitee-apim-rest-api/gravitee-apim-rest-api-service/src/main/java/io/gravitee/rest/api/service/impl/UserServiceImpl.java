@@ -955,9 +955,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .param("registrationStatus", accepted ? "accepted" : "rejected")
                 .build()
         );
-        auditService.createEnvironmentAuditLog(
+        auditService.createAuditLog(
             executionContext,
-            executionContext.getEnvironmentId(),
             Collections.singletonMap(USER, processedUser.getId()),
             accepted ? User.AuditEvent.USER_CONFIRMED : User.AuditEvent.USER_REJECTED,
             processedUser.getUpdatedAt(),

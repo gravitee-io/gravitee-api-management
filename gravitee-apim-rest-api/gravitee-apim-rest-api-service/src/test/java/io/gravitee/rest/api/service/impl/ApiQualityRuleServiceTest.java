@@ -120,9 +120,8 @@ public class ApiQualityRuleServiceTest {
                 )
             );
         verify(auditService, times(1))
-            .createEnvironmentAuditLog(
+            .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(API_QUALITY_RULE, API_ID)),
                 eq(ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED),
                 any(Date.class),
@@ -175,9 +174,8 @@ public class ApiQualityRuleServiceTest {
                 )
             );
         verify(auditService, times(1))
-            .createEnvironmentAuditLog(
+            .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ImmutableMap.of(API_QUALITY_RULE, API_ID)),
                 eq(ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED),
                 any(Date.class),

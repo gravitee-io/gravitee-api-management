@@ -34,7 +34,6 @@ import io.gravitee.rest.api.model.UpdateDashboardEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.DashboardService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.DashboardNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -128,9 +127,8 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         try {
             final List<Dashboard> dashboards = dashboardRepository.findByReferenceType(dashboardEntity.getReferenceType().name());
             Dashboard dashboard = dashboardRepository.create(convert(dashboardEntity, dashboards));
-            auditService.createEnvironmentAuditLog(
+            auditService.createAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
                 Collections.singletonMap(DASHBOARD, dashboard.getId()),
                 DASHBOARD_CREATED,
                 dashboard.getCreatedAt(),
@@ -157,9 +155,8 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 } else {
                     savedDashboard = convert(dashboardRepository.update(dashboard));
                 }
-                auditService.createEnvironmentAuditLog(
+                auditService.createAuditLog(
                     executionContext,
-                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(DASHBOARD, dashboard.getId()),
                     DASHBOARD_UPDATED,
                     new Date(),
@@ -239,9 +236,8 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             if (dashboardOptional.isPresent()) {
                 dashboardRepository.delete(dashboardId);
                 reorderAndSaveDashboards(dashboardOptional.get(), true);
-                auditService.createEnvironmentAuditLog(
+                auditService.createAuditLog(
                     executionContext,
-                    executionContext.getEnvironmentId(),
                     Collections.singletonMap(DASHBOARD, dashboardId),
                     DASHBOARD_DELETED,
                     new Date(),
