@@ -1,0 +1,18 @@
+{
+  "id" : "my-api",
+  "name" : "my-team-api",
+  "version" : "undefined",
+  "gravitee" : "1.0.0",
+  "flow_mode" : "DEFAULT",
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/team"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false
+  },
+  "paths" : {
+    "/*" : [ ]
+  },
+  "properties" : [ ]
+}

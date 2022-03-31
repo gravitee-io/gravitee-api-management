@@ -26,7 +26,7 @@
 	<parent>
         <groupId>io.gravitee.apim.rest.api.management</groupId>
         <artifactId>gravitee-apim-rest-api-management</artifactId>
-		<version>3.18.0-SNAPSHOT</version>
+		<version>3.17.1-SNAPSHOT</version>
     </parent>
 
 	<artifactId>gravitee-apim-rest-api-management-rest</artifactId>
@@ -54,8 +54,9 @@
 
 		<!-- Gravitee dependencies -->
 		<dependency>
-			<groupId>io.gravitee.definition</groupId>
-			<artifactId>gravitee-definition-jackson</artifactId>
+			<groupId>io.gravitee.apim.definition</groupId>
+			<artifactId>gravitee-apim-definition-jackson</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>

@@ -1,0 +1,59 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "groups": [
+      {
+        "name": "group-default",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://localhost:8083/myapi"
+          }
+        ]
+      }],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  },
+
+  "properties": {
+    "my_property": "true",
+    "my_property2": "123",
+    "my_property3": "text"
+  },
+
+  "services": {
+    "health-check": {
+      "interval": 60,
+      "unit": "seconds",
+      "enabled": true,
+      "request": {
+        "uri": "http://se56-2-qlf.mbstech.aec.corp/services/cxf/mobilite",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "X-TOTO",
+            "value": "my_value"
+          }, {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": "My content in JSON form"
+      },
+      "expectation": {
+        "assertions": [
+          "response.status == 200",
+          "#jsonPath(response.body, '$.store.book[0].author')",
+          "#jsonPath(response.body, '$.store.book[0].author')"
+        ]
+      }
+    }
+  }
+}

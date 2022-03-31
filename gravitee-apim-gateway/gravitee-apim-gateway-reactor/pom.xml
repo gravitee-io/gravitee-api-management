@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.apim.gateway</groupId>
         <artifactId>gravitee-apim-gateway</artifactId>
-        <version>3.18.0-SNAPSHOT</version>
+        <version>3.17.1-SNAPSHOT</version>
     </parent>
 
 
@@ -57,8 +57,9 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.definition</groupId>
-            <artifactId>gravitee-definition-model</artifactId>
+            <groupId>io.gravitee.apim.definition</groupId>
+            <artifactId>gravitee-apim-definition-model</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

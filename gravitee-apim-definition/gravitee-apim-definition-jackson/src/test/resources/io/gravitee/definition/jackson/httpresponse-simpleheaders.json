@@ -1,0 +1,10 @@
+{
+  "body": "response-body",
+  "statusCode" : 200,
+  "headers" : {
+    "transfer-encoding" : ["chunked"],
+    "X-Gravitee-Transaction-Id" : ["transaction-id"],
+    "content-type" : ["application/json"],
+    "X-Gravitee-Request-Id" : ["request-id"]
+  }
+}

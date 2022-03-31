@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee.apim.repository</groupId>
         <artifactId>gravitee-apim-repository</artifactId>
-        <version>3.18.0-SNAPSHOT</version>
+        <version>3.17.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-apim-repository-jdbc</artifactId>
@@ -56,8 +56,9 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.definition</groupId>
-            <artifactId>gravitee-definition-jackson</artifactId>
+            <groupId>io.gravitee.apim.definition</groupId>
+            <artifactId>gravitee-apim-definition-jackson</artifactId>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 

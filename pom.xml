@@ -31,7 +31,7 @@
 
     <groupId>io.gravitee.apim</groupId>
     <artifactId>gravitee-api-management</artifactId>
-    <version>3.18.0-SNAPSHOT</version>
+    <version>3.17.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM</name>
@@ -48,6 +48,7 @@
     </issueManagement>
 
     <modules>
+        <module>gravitee-apim-definition</module>
         <module>gravitee-apim-distribution</module>
         <module>gravitee-apim-repository</module>
         <module>gravitee-apim-rest-api</module>
@@ -65,7 +66,6 @@
         <gravitee-cockpit-api.version>1.10.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.25.0</gravitee-common.version>
         <gravitee-connector-api.version>1.1.0</gravitee-connector-api.version>
-        <gravitee-definition.version>1.33.0</gravitee-definition.version>
         <gravitee-expression-language.version>1.9.1</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.32.1</gravitee-gateway-api.version>
@@ -112,6 +112,7 @@
         <jakarta.activation-api.version>1.2.2</jakarta.activation-api.version>
         <jakarta.xml.bind-api.version>2.3.3</jakarta.xml.bind-api.version>
         <jmh.version>1.33</jmh.version>
+        <jsonassert.version>1.5.0</jsonassert.version>
         <json-patch.version>1.13</json-patch.version>
         <json-path.version>2.6.0</json-path.version>
         <json-smart.version>2.4.7</json-smart.version>
@@ -175,18 +176,6 @@
                 <groupId>io.gravitee.connector</groupId>
                 <artifactId>gravitee-connector-api</artifactId>
                 <version>${gravitee-connector-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.definition</groupId>
-                <artifactId>gravitee-definition-jackson</artifactId>
-                <version>${gravitee-definition.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.definition</groupId>
-                <artifactId>gravitee-definition-model</artifactId>
-                <version>${gravitee-definition.version}</version>
             </dependency>
 
             <dependency>
@@ -448,6 +437,12 @@
                 <groupId>net.minidev</groupId>
                 <artifactId>json-smart</artifactId>
                 <version>${json-smart.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.skyscreamer</groupId>
+                <artifactId>jsonassert</artifactId>
+                <version>${jsonassert.version}</version>
             </dependency>
 
             <dependency>
