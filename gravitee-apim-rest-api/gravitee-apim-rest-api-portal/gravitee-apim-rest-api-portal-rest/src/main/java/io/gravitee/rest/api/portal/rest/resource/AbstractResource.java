@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
@@ -295,16 +296,22 @@ public abstract class AbstractResource<T, K> {
         }
 
         return new DataResponse()
-            .data(transformPageContent(pageContent))
-            .metadata(this.fillMetadata(this.computeMetadata(metadata, dataMetadata, paginationMetadata), pageContent))
+            .data(transformPageContent(GraviteeContext.getExecutionContext(), pageContent))
+            .metadata(
+                this.fillMetadata(
+                        GraviteeContext.getExecutionContext(),
+                        this.computeMetadata(metadata, dataMetadata, paginationMetadata),
+                        pageContent
+                    )
+            )
             .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
     }
 
-    protected List<T> transformPageContent(List<K> pageContent) {
+    protected List<T> transformPageContent(ExecutionContext executionContext, List<K> pageContent) {
         return (List<T>) pageContent;
     }
 
-    protected Map fillMetadata(Map metadata, List<K> pageContent) {
+    protected Map fillMetadata(ExecutionContext executionContext, Map metadata, List<K> pageContent) {
         return metadata;
     }
 

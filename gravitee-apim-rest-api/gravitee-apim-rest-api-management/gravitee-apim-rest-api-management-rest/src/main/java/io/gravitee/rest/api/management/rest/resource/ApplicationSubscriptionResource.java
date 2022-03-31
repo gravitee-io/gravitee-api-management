@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -79,7 +80,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public Subscription getApplicationSubscription() {
-        return convert(subscriptionService.findById(subscription));
+        return convert(GraviteeContext.getExecutionContext(), subscriptionService.findById(subscription));
     }
 
     @DELETE
@@ -98,7 +99,8 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     public Response closeApplicationSubscription() {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
         if (subscriptionEntity.getApplication().equals(application)) {
-            return Response.ok(convert(subscriptionService.close(GraviteeContext.getExecutionContext(), subscription))).build();
+            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+            return Response.ok(convert(executionContext, subscriptionService.close(executionContext, subscription))).build();
         }
 
         return Response.status(Response.Status.FORBIDDEN).build();
@@ -109,7 +111,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         return resourceContext.getResource(ApplicationSubscriptionApiKeysResource.class);
     }
 
-    private Subscription convert(SubscriptionEntity subscriptionEntity) {
+    private Subscription convert(ExecutionContext executionContext, SubscriptionEntity subscriptionEntity) {
         Subscription subscription = new Subscription();
 
         subscription.setId(subscriptionEntity.getId());
@@ -125,15 +127,15 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getSubscribedBy(), true).getDisplayName()
+                userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName()
             )
         );
 
-        PlanEntity plan = planService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getPlan());
+        PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         subscription.getPlan().setSecurity(plan.getSecurity());
 
-        ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), subscriptionEntity.getApi());
+        ApiEntity api = apiService.findById(executionContext, subscriptionEntity.getApi());
         subscription.setApi(
             new Subscription.Api(
                 api.getId(),

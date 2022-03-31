@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import java.time.OffsetDateTime;
@@ -140,7 +141,7 @@ public class ApisResource extends AbstractResource<Api, String> {
     }
 
     @Override
-    protected List<Api> transformPageContent(List<String> pageContent) {
+    protected List<Api> transformPageContent(ExecutionContext executionContext, List<String> pageContent) {
         if (pageContent.isEmpty()) {
             return Collections.emptyList();
         }

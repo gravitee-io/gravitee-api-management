@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -64,12 +65,13 @@ public class ApplicationSubscriptionApiKeyResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApplicationSubscription() {
-        ApiKeyEntity apiKeyEntity = apiKeyService.findById(GraviteeContext.getExecutionContext(), apikey);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
         if (!apiKeyEntity.hasSubscription(subscription)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'key' parameter does not correspond to the subscription").build();
         }
 
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), apiKeyEntity, true);
+        apiKeyService.revoke(executionContext, apiKeyEntity, true);
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 }
