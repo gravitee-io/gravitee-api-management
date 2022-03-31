@@ -1,0 +1,24 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8083/myapi"
+      }
+    ],
+    "strip_context_path": false,
+    "http": {
+    }
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  },
+
+  "tags": [ "tag1", "tag2" ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "proxy": {
+    "context_path": "/my-api",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:1234",
+        "tenant": "europe"
+      }
+    ],
+    "strip_context_path": false,
+    "multiTenant": true
+  }
+}
