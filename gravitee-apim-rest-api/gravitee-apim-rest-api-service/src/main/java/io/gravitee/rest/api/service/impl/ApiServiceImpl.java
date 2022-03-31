@@ -925,14 +925,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAllByEnvironment(final ExecutionContext executionContext, String environmentId) {
+    public Set<ApiEntity> findAllByEnvironment(final ExecutionContext executionContext) {
         try {
-            LOGGER.debug("Find all APIs for environment {}", environmentId);
+            LOGGER.debug("Find all APIs for environment {}", executionContext.getEnvironmentId());
             return new HashSet<>(
-                convert(executionContext, apiRepository.search(new ApiCriteria.Builder().environmentId(environmentId).build()))
+                convert(
+                    executionContext,
+                    apiRepository.search(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build())
+                )
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all APIs for environment {}", environmentId, ex);
+            LOGGER.error("An error occurs while trying to find all APIs for environment {}", executionContext.getEnvironmentId(), ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs for environment", ex);
         }
     }
@@ -2356,7 +2359,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void deleteTagFromAPIs(ExecutionContext executionContext, final String tagId) {
-        findAllByEnvironment(executionContext, executionContext.getEnvironmentId())
+        findAllByEnvironment(executionContext)
             .forEach(
                 api -> {
                     if (api.getTags() != null && api.getTags().contains(tagId)) {

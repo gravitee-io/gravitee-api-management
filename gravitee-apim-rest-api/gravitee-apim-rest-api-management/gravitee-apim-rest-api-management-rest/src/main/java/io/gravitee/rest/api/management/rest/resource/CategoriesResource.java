@@ -103,7 +103,7 @@ public class CategoriesResource extends AbstractCategoryResource {
     @Operation(summary = "Create a category", description = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE) })
     public CategoryEntity createCategory(@Valid @NotNull final NewCategoryEntity category) {
-        return categoryService.create(GraviteeContext.getExecutionContext(), GraviteeContext.getCurrentEnvironment(), category);
+        return categoryService.create(GraviteeContext.getExecutionContext(), category);
     }
 
     @PUT
