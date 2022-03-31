@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
 import io.swagger.v3.oas.annotations.Hidden;
-
 import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.HashMap;

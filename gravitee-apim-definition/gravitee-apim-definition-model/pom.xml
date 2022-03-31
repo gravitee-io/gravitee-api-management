@@ -22,27 +22,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.definition</groupId>
-        <artifactId>gravitee-definition</artifactId>
-        <version>1.34.0-SNAPSHOT</version>
+        <groupId>io.gravitee.apim.definition</groupId>
+        <artifactId>gravitee-apim-definition</artifactId>
+        <version>3.18.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-definition-model</artifactId>
+    <artifactId>gravitee-apim-definition-model</artifactId>
     <name>Gravitee.io APIM - Definition - Model</name>
 
     <dependencies>
         <dependency>
-            <groupId>io.gravitee.common</groupId>
-            <artifactId>gravitee-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>2.1.13</version>
         </dependency>
     </dependencies>
 </project>
