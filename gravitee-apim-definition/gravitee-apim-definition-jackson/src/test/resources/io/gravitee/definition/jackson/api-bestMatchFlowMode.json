@@ -1,0 +1,16 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "flow_mode": "BEST_MATCH",
+  "proxy": {
+    "context_path": "/my-api",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:1234"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": true
+  }
+}
