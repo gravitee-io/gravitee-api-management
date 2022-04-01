@@ -108,6 +108,8 @@ public class UpdateOrganizationEntity {
         this.name = organization.getName();
         this.description = organization.getDescription();
         this.domainRestrictions = organization.getDomainRestrictions();
+        this.flows = organization.getFlows();
+        this.flowMode = organization.getFlowMode();
     }
 
     @Override
