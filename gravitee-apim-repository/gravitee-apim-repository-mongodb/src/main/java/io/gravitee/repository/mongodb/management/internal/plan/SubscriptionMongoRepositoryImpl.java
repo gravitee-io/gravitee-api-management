@@ -111,24 +111,25 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         // set sort by created at
         dataPipeline.add(sort(Sorts.descending("createdAt")));
 
-        List<Facet> facets = new ArrayList<>();
-        facets.add(new Facet("data", dataPipeline));
-
-        // if pageable, dedicate a facet to count total subscriptions matching criteria
+        Integer totalCount = null;
+        // if pageable, count total subscriptions matching criterias
         if (pageable != null) {
             List<Bson> countPipeline = new ArrayList<>(dataPipeline);
             countPipeline.add(count("totalCount"));
-            facets.add(new Facet("totalCount", countPipeline));
-
+            AggregateIterable<Document> countAggregate = mongoTemplate
+                .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+                .aggregate(countPipeline);
+            if (countAggregate.first() != null) {
+                totalCount = countAggregate.first().getInteger("totalCount", 0);
+            }
             dataPipeline.add(skip(pageable.pageNumber() * pageable.pageSize()));
             dataPipeline.add(limit(pageable.pageSize()));
         }
 
-        AggregateIterable<Document> aggregateIterable = mongoTemplate
+        AggregateIterable<Document> dataAggregate = mongoTemplate
             .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
-            .aggregate(List.of(facet(facets)));
-
-        return buildSubscriptionsPage(pageable, aggregateIterable);
+            .aggregate(dataPipeline);
+        return buildSubscriptionsPage(pageable, dataAggregate, totalCount);
     }
 
     @Override
@@ -170,20 +171,15 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         return references;
     }
 
-    private Page<SubscriptionMongo> buildSubscriptionsPage(Pageable pageable, AggregateIterable<Document> aggregateIterable) {
+    private Page<SubscriptionMongo> buildSubscriptionsPage(
+        Pageable pageable,
+        AggregateIterable<Document> dataAggregate,
+        Integer totalCount
+    ) {
         List<SubscriptionMongo> subscriptions = new ArrayList<>();
 
-        Integer totalCount = null;
-
-        for (Document doc : aggregateIterable) {
-            if (doc.containsKey("totalCount") && !doc.getList("totalCount", Document.class).isEmpty()) {
-                totalCount = doc.getList("totalCount", Document.class).get(0).getInteger("totalCount");
-            }
-            if (doc.containsKey("data")) {
-                doc
-                    .getList("data", Document.class)
-                    .forEach(dataDoc -> subscriptions.add(mongoTemplate.getConverter().read(SubscriptionMongo.class, dataDoc)));
-            }
+        for (Document doc : dataAggregate) {
+            subscriptions.add(mongoTemplate.getConverter().read(SubscriptionMongo.class, doc));
         }
 
         return new Page<>(
