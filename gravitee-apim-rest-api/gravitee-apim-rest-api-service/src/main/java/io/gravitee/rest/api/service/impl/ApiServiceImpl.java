@@ -54,7 +54,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.EntrypointReferenceType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -825,10 +824,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
             final String scheme = getScheme(defaultEntrypoint);
             if (api.getTags() != null && !api.getTags().isEmpty()) {
-                List<EntrypointEntity> entrypoints = entrypointService.findByReference(
-                    executionContext.getOrganizationId(),
-                    EntrypointReferenceType.ORGANIZATION
-                );
+                List<EntrypointEntity> entrypoints = entrypointService.findAll(executionContext);
                 entrypoints.forEach(
                     entrypoint -> {
                         Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));

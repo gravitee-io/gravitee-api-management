@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.EntrypointEntity;
-import io.gravitee.rest.api.model.EntrypointReferenceType;
 import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -27,19 +26,9 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface EntrypointService {
-    EntrypointEntity findByIdAndReference(String entrypointId, String referenceId, EntrypointReferenceType referenceType);
-    List<EntrypointEntity> findByReference(String referenceId, EntrypointReferenceType referenceType);
-    EntrypointEntity create(
-        ExecutionContext executionContext,
-        NewEntryPointEntity entrypoint,
-        String referenceId,
-        EntrypointReferenceType referenceType
-    );
-    EntrypointEntity update(
-        ExecutionContext executionContext,
-        UpdateEntryPointEntity entrypoint,
-        String referenceId,
-        EntrypointReferenceType referenceType
-    );
-    void delete(ExecutionContext executionContext, String entrypointId, String referenceId, EntrypointReferenceType referenceType);
+    EntrypointEntity findById(ExecutionContext executionContext, String entrypointId);
+    List<EntrypointEntity> findAll(ExecutionContext executionContext);
+    EntrypointEntity create(ExecutionContext executionContext, NewEntryPointEntity entrypoint);
+    EntrypointEntity update(ExecutionContext executionContext, UpdateEntryPointEntity entrypoint);
+    void delete(ExecutionContext executionContext, String entrypointId);
 }
