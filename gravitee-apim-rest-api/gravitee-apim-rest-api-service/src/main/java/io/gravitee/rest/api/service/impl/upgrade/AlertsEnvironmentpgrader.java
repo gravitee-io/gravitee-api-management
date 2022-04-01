@@ -43,7 +43,7 @@ public class AlertsEnvironmentpgrader extends OneShotUpgrader {
 
     @Autowired
     public AlertsEnvironmentpgrader(AlertTriggerRepository alertTriggerRepository) {
-        super(InstallationService.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS);
+        super(InstallationService.ALERTS_ENVIRONMENT_UPGRADER);
         this.alertTriggerRepository = alertTriggerRepository;
     }
 
