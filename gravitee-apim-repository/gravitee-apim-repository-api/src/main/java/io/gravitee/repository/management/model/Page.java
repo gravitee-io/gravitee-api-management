@@ -256,7 +256,7 @@ public class Page {
             "id='" +
             id +
             '\'' +
-            "crossId='" +
+            ", crossId='" +
             crossId +
             '\'' +
             ", referenceId='" +
@@ -267,8 +267,9 @@ public class Page {
             ", name='" +
             name +
             '\'' +
-            ", type=" +
+            ", type='" +
             type +
+            '\'' +
             ", content='" +
             content +
             '\'' +
@@ -279,8 +280,9 @@ public class Page {
             order +
             ", published=" +
             published +
-            ", visibility=" +
+            ", visibility='" +
             visibility +
+            '\'' +
             ", source=" +
             source +
             ", configuration=" +
@@ -296,10 +298,12 @@ public class Page {
             '\'' +
             ", excludedAccessControls=" +
             excludedAccessControls +
-            ", accessControlList=" +
+            ", accessControls=" +
             accessControls +
             ", metadata=" +
             metadata +
+            ", useAutoFetch=" +
+            useAutoFetch +
             ", attachedMedia=" +
             attachedMedia +
             '}'

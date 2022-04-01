@@ -570,7 +570,9 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 select += " where ";
             }
 
-            jdbcTemplate.query(select + where.toString() + "order by " + ESCAPED_ORDER_COLUMN_NAME, rowMapper, params.toArray());
+            final String sql =
+                select + where.toString() + "order by " + ESCAPED_ORDER_COLUMN_NAME + ", p.id, p.reference_id, p.reference_type";
+            jdbcTemplate.query(sql, rowMapper, params.toArray());
 
             List<Page> items = rowMapper.getRows();
             for (Page page : items) {
