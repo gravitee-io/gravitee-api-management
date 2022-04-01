@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.apim.gateway.services</groupId>
         <artifactId>gravitee-apim-gateway-services</artifactId>
-        <version>3.10.13-SNAPSHOT</version>
+        <version>3.10.13</version>
     </parent>
 
     <artifactId>gravitee-apim-gateway-services-endpoint-discovery</artifactId>
