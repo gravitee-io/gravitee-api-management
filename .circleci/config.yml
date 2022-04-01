@@ -274,7 +274,6 @@ jobs:
             - persist_to_workspace:
                   root: ./
                   paths:
-                      - ./gravitee-*/*/target/*
                       - ./rest-api-docker-context
                       - ./gateway-docker-context
 
