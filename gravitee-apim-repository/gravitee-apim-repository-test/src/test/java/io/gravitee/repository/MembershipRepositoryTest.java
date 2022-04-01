@@ -97,6 +97,13 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldReturnEmptyListWithEmptyReferenceIdList() throws TechnicalException {
+        Set<Membership> memberships = membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.API, List.of(), null);
+        assertNotNull("result must not be null", memberships);
+        assertTrue(memberships.isEmpty());
+    }
+
+    @Test
     public void shouldFindApisOwners() throws TechnicalException {
         Set<Membership> memberships = membershipRepository.findByReferencesAndRoleId(
             MembershipReferenceType.API,
