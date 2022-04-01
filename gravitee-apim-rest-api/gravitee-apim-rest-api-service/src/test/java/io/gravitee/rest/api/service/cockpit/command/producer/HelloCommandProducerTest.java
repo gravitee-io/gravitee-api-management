@@ -27,6 +27,8 @@ import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.hello.HelloCommand;
 import io.gravitee.cockpit.api.command.hello.HelloPayload;
 import io.gravitee.cockpit.api.command.hello.HelloReply;
+import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
@@ -37,6 +39,7 @@ import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.observers.TestObserver;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -147,14 +150,30 @@ public class HelloCommandProducerTest {
         helloReply.setCommandStatus(CommandStatus.SUCCEEDED);
         helloReply.setDefaultOrganizationCockpitId("org#cockpit-1");
 
+        Flow flow = new Flow();
+        flow.setName("My-Flow");
+
         String defaultOrgId = "DEFAULT";
         OrganizationEntity defaultOrganization = new OrganizationEntity();
         defaultOrganization.setId(defaultOrgId);
+        defaultOrganization.setFlows(Collections.singletonList(flow));
+        defaultOrganization.setFlowMode(FlowMode.DEFAULT);
 
         when(organizationService.findById(defaultOrgId)).thenReturn(defaultOrganization);
 
         cut.handleReply(helloReply);
 
-        verify(organizationService).createOrUpdate(eq(defaultOrgId), argThat(org -> org.getCockpitId().equals("org#cockpit-1")));
+        verify(organizationService)
+            .createOrUpdate(
+                eq(defaultOrgId),
+                argThat(
+                    org ->
+                        org.getCockpitId().equals("org#cockpit-1") &&
+                        FlowMode.DEFAULT.equals(org.getFlowMode()) &&
+                        org.getFlows() != null &&
+                        org.getFlows().size() == 1 &&
+                        org.getFlows().get(0).getName().equals("My-Flow")
+                )
+            );
     }
 }
