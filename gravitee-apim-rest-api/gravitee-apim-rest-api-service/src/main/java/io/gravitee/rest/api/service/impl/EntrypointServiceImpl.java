@@ -56,13 +56,13 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     private EntrypointRepository entrypointRepository;
 
     @Override
-    public EntrypointEntity findByIdAndReference(final String entrypointId, String referenceId, EntrypointReferenceType referenceType) {
+    public EntrypointEntity findById(final ExecutionContext executionContext, final String entrypointId) {
         try {
             LOGGER.debug("Find by id {}", entrypointId);
             final Optional<Entrypoint> optionalEntryPoint = entrypointRepository.findByIdAndReference(
                 entrypointId,
-                referenceId,
-                repoEntrypointReferenceType(referenceType)
+                executionContext.getOrganizationId(),
+                repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION)
             );
             if (!optionalEntryPoint.isPresent()) {
                 throw new EntrypointNotFoundException(entrypointId);
@@ -75,11 +75,11 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     }
 
     @Override
-    public List<EntrypointEntity> findByReference(String referenceId, EntrypointReferenceType referenceType) {
+    public List<EntrypointEntity> findAll(final ExecutionContext executionContext) {
         try {
             LOGGER.debug("Find all APIs");
             return entrypointRepository
-                .findByReference(referenceId, repoEntrypointReferenceType(referenceType))
+                .findByReference(executionContext.getOrganizationId(), repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION))
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toList());
@@ -90,18 +90,13 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     }
 
     @Override
-    public EntrypointEntity create(
-        ExecutionContext executionContext,
-        final NewEntryPointEntity entrypointEntity,
-        String referenceId,
-        EntrypointReferenceType referenceType
-    ) {
+    public EntrypointEntity create(final ExecutionContext executionContext, final NewEntryPointEntity entrypointEntity) {
         try {
-            final Entrypoint entrypoint = convert(entrypointEntity, referenceId, referenceType);
+            final Entrypoint entrypoint = convert(entrypointEntity, executionContext);
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
             auditService.createOrganizationAuditLog(
                 executionContext,
-                referenceId,
+                executionContext.getOrganizationId(),
                 Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
                 ENTRYPOINT_CREATED,
                 new Date(),
@@ -116,17 +111,12 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     }
 
     @Override
-    public EntrypointEntity update(
-        ExecutionContext executionContext,
-        final UpdateEntryPointEntity entrypointEntity,
-        String referenceId,
-        EntrypointReferenceType referenceType
-    ) {
+    public EntrypointEntity update(ExecutionContext executionContext, final UpdateEntryPointEntity entrypointEntity) {
         try {
             final Optional<Entrypoint> entrypointOptional = entrypointRepository.findByIdAndReference(
                 entrypointEntity.getId(),
-                referenceId,
-                repoEntrypointReferenceType(referenceType)
+                executionContext.getOrganizationId(),
+                repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION)
             );
             if (entrypointOptional.isPresent()) {
                 final Entrypoint entrypoint = convert(entrypointEntity);
@@ -136,7 +126,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 final EntrypointEntity savedEntryPoint = convert(entrypointRepository.update(entrypoint));
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    referenceId,
+                    executionContext.getOrganizationId(),
                     Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
                     ENTRYPOINT_UPDATED,
                     new Date(),
@@ -154,23 +144,18 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     }
 
     @Override
-    public void delete(
-        ExecutionContext executionContext,
-        final String entrypointId,
-        String referenceId,
-        EntrypointReferenceType referenceType
-    ) {
+    public void delete(final ExecutionContext executionContext, final String entrypointId) {
         try {
             Optional<Entrypoint> entrypointOptional = entrypointRepository.findByIdAndReference(
                 entrypointId,
-                referenceId,
-                repoEntrypointReferenceType(referenceType)
+                executionContext.getOrganizationId(),
+                repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION)
             );
             if (entrypointOptional.isPresent()) {
                 entrypointRepository.delete(entrypointId);
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    referenceId,
+                    executionContext.getOrganizationId(),
                     Collections.singletonMap(ENTRYPOINT, entrypointId),
                     ENTRYPOINT_DELETED,
                     new Date(),
@@ -186,13 +171,13 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         }
     }
 
-    private Entrypoint convert(final NewEntryPointEntity entrypointEntity, String referenceId, EntrypointReferenceType referenceType) {
+    private Entrypoint convert(final NewEntryPointEntity entrypointEntity, ExecutionContext executionContext) {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setId(UuidString.generateRandom());
         entrypoint.setValue(entrypointEntity.getValue());
         entrypoint.setTags(String.join(SEPARATOR, entrypointEntity.getTags()));
-        entrypoint.setReferenceId(referenceId);
-        entrypoint.setReferenceType(repoEntrypointReferenceType(referenceType));
+        entrypoint.setReferenceId(executionContext.getOrganizationId());
+        entrypoint.setReferenceType(repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION));
         return entrypoint;
     }
 

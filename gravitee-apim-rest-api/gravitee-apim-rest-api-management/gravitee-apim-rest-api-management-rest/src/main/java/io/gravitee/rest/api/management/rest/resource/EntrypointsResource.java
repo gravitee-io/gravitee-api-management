@@ -21,7 +21,6 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EntrypointEntity;
-import io.gravitee.rest.api.model.EntrypointReferenceType;
 import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -71,11 +70,7 @@ public class EntrypointsResource extends AbstractResource {
         }
     )
     public EntrypointEntity getEntrypoint(final @PathParam("entrypoint") String entrypointId) {
-        return entrypointService.findByIdAndReference(
-            entrypointId,
-            GraviteeContext.getCurrentOrganization(),
-            EntrypointReferenceType.ORGANIZATION
-        );
+        return entrypointService.findById(GraviteeContext.getExecutionContext(), entrypointId);
     }
 
     @GET
@@ -101,7 +96,7 @@ public class EntrypointsResource extends AbstractResource {
     )
     public List<EntrypointEntity> getEntrypoints() {
         return entrypointService
-            .findByReference(GraviteeContext.getCurrentOrganization(), EntrypointReferenceType.ORGANIZATION)
+            .findAll(GraviteeContext.getExecutionContext())
             .stream()
             .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getValue(), o2.getValue()))
             .collect(toList());
@@ -127,12 +122,7 @@ public class EntrypointsResource extends AbstractResource {
         }
     )
     public EntrypointEntity createEntrypoint(@Valid @NotNull final NewEntryPointEntity entrypoint) {
-        return entrypointService.create(
-            GraviteeContext.getExecutionContext(),
-            entrypoint,
-            GraviteeContext.getCurrentOrganization(),
-            EntrypointReferenceType.ORGANIZATION
-        );
+        return entrypointService.create(GraviteeContext.getExecutionContext(), entrypoint);
     }
 
     @PUT
@@ -155,12 +145,7 @@ public class EntrypointsResource extends AbstractResource {
         }
     )
     public EntrypointEntity updateEntrypoint(@Valid @NotNull final UpdateEntryPointEntity entrypoint) {
-        return entrypointService.update(
-            GraviteeContext.getExecutionContext(),
-            entrypoint,
-            GraviteeContext.getCurrentOrganization(),
-            EntrypointReferenceType.ORGANIZATION
-        );
+        return entrypointService.update(GraviteeContext.getExecutionContext(), entrypoint);
     }
 
     @Path("{entrypoint}")
@@ -179,11 +164,6 @@ public class EntrypointsResource extends AbstractResource {
         }
     )
     public void deleteEntrypoint(@PathParam("entrypoint") String entrypoint) {
-        entrypointService.delete(
-            GraviteeContext.getExecutionContext(),
-            entrypoint,
-            GraviteeContext.getCurrentOrganization(),
-            EntrypointReferenceType.ORGANIZATION
-        );
+        entrypointService.delete(GraviteeContext.getExecutionContext(), entrypoint);
     }
 }
