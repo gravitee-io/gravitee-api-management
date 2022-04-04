@@ -39,7 +39,7 @@ describe('AlertService', () => {
     it('should call the API with PLATFORM scope', (done) => {
       const alertStatus = fakeAlertStatus();
 
-      alertService.getStatus(Scope.PLATFORM).subscribe((response) => {
+      alertService.getStatus(Scope.ENVIRONMENT).subscribe((response) => {
         expect(response).toMatchObject(alertStatus);
         done();
       });

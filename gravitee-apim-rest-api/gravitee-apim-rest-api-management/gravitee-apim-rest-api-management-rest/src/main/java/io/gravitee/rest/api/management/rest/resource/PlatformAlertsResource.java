@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.model.alert.AlertReferenceType.PLATFORM;
+import static io.gravitee.rest.api.model.alert.AlertReferenceType.ENVIRONMENT;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import io.gravitee.common.http.MediaType;
@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AlertAnalyticsService;
 import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -50,8 +51,6 @@ import javax.ws.rs.core.Response;
  */
 @Tag(name = "Platform Alerts")
 public class PlatformAlertsResource extends AbstractResource {
-
-    private static final String PLATFORM_REFERENCE_ID = "default";
 
     @Inject
     private AlertService alertService;
@@ -77,8 +76,8 @@ public class PlatformAlertsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ) })
     public List<AlertTriggerEntity> getPlatformAlerts(@QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
         return withEventCounts
-            ? alertService.findByReferenceWithEventCounts(PLATFORM, PLATFORM_REFERENCE_ID)
-            : alertService.findByReference(PLATFORM, PLATFORM_REFERENCE_ID);
+            ? alertService.findByReferenceWithEventCounts(ENVIRONMENT, GraviteeContext.getCurrentEnvironment())
+            : alertService.findByReference(ENVIRONMENT, GraviteeContext.getCurrentEnvironment());
     }
 
     @GET
@@ -101,8 +100,8 @@ public class PlatformAlertsResource extends AbstractResource {
     public AlertAnalyticsEntity getPlatformAlertsAnalytics(@BeanParam AlertAnalyticsParam param) {
         param.validate();
         return alertAnalyticsService.findByReference(
-            PLATFORM,
-            PLATFORM_REFERENCE_ID,
+            ENVIRONMENT,
+            GraviteeContext.getCurrentEnvironment(),
             new AlertAnalyticsQuery.Builder().from(param.getFrom()).to(param.getTo()).build()
         );
     }
@@ -119,7 +118,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ) })
     public AlertStatusEntity getPlatformAlertStatus() {
-        return alertService.getStatus();
+        return alertService.getStatus(GraviteeContext.getExecutionContext());
     }
 
     @POST
@@ -137,9 +136,9 @@ public class PlatformAlertsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.CREATE) })
     public AlertTriggerEntity createPlatformAlert(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
-        alertEntity.setReferenceType(PLATFORM);
-        alertEntity.setReferenceId(PLATFORM_REFERENCE_ID);
-        return alertService.create(alertEntity);
+        alertEntity.setReferenceType(ENVIRONMENT);
+        alertEntity.setReferenceId(GraviteeContext.getCurrentEnvironment());
+        return alertService.create(GraviteeContext.getExecutionContext(), alertEntity);
     }
 
     @Path("{alert}")
@@ -162,9 +161,9 @@ public class PlatformAlertsResource extends AbstractResource {
         @Valid @NotNull final UpdateAlertTriggerEntity alertEntity
     ) {
         alertEntity.setId(alert);
-        alertEntity.setReferenceType(PLATFORM);
-        alertEntity.setReferenceId(PLATFORM_REFERENCE_ID);
-        return alertService.update(alertEntity);
+        alertEntity.setReferenceType(ENVIRONMENT);
+        alertEntity.setReferenceId(GraviteeContext.getCurrentEnvironment());
+        return alertService.update(GraviteeContext.getExecutionContext(), alertEntity);
     }
 
     @POST
@@ -177,7 +176,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.UPDATE) })
     public Response associatePlatformAlert(@PathParam("alert") String alert, @QueryParam("type") String type) {
-        alertService.applyDefaults(alert, AlertReferenceType.valueOf(type.toUpperCase()));
+        alertService.applyDefaults(GraviteeContext.getExecutionContext(), alert, AlertReferenceType.valueOf(type.toUpperCase()));
         return Response.ok().build();
     }
 
@@ -192,7 +191,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.DELETE) })
     public void deletePlatformAlert(@PathParam("alert") String alert) {
-        alertService.delete(alert, PLATFORM_REFERENCE_ID);
+        alertService.delete(alert, GraviteeContext.getCurrentEnvironment());
     }
 
     @GET

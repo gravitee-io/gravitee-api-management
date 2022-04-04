@@ -43,7 +43,7 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
           referenceType = Scope.APPLICATION;
           referenceId = $state.params.applicationId;
         } else {
-          referenceType = Scope.PLATFORM;
+          referenceType = Scope.ENVIRONMENT;
         }
 
         this.values = metric.loader(referenceType, referenceId, $injector);

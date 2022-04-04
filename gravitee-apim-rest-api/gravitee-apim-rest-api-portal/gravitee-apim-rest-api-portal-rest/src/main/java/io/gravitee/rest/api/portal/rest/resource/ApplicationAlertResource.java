@@ -27,8 +27,9 @@ import io.gravitee.rest.api.portal.rest.model.AlertInput;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationAlertService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import java.util.Date;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -62,7 +63,7 @@ public class ApplicationAlertResource extends AbstractResource {
     public Response deleteApplicationAlert(@PathParam("applicationId") String applicationId, @PathParam("alertId") String alertId) {
         LOGGER.info("Deleting alert {}", alertId);
 
-        checkPlugins();
+        checkPlugins(GraviteeContext.getExecutionContext());
         applicationAlertService.delete(alertId, applicationId);
         return Response.noContent().build();
     }
@@ -77,20 +78,22 @@ public class ApplicationAlertResource extends AbstractResource {
         @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput
     ) {
         LOGGER.info("Updating alert {}", alertId);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
         alertInput.setApplication(applicationId);
 
-        checkPlugins();
+        checkPlugins(executionContext);
         final UpdateAlertTriggerEntity updateAlertTriggerEntity = alertMapper.convertToUpdate(alertInput);
         updateAlertTriggerEntity.setId(alertId);
 
-        final AlertTriggerEntity updated = applicationAlertService.update(applicationId, updateAlertTriggerEntity);
+        final AlertTriggerEntity updated = applicationAlertService.update(executionContext, applicationId, updateAlertTriggerEntity);
 
         Alert alert = alertMapper.convert(updated);
         return Response.ok(alert).build();
     }
 
-    private void checkPlugins() {
-        AlertStatusEntity alertStatus = applicationAlertService.getStatus();
+    private void checkPlugins(final ExecutionContext executionContext) {
+        AlertStatusEntity alertStatus = applicationAlertService.getStatus(executionContext);
         if (!alertStatus.isEnabled() || alertStatus.getPlugins() == 0) {
             throw new ForbiddenAccessException();
         }

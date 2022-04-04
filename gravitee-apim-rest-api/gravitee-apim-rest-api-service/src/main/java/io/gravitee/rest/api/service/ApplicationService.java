@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
@@ -24,6 +25,7 @@ import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -73,4 +75,6 @@ public interface ApplicationService {
     InlinePictureEntity getPicture(final ExecutionContext executionContext, String apiId);
 
     InlinePictureEntity getBackground(final ExecutionContext executionContext, String application);
+
+    Map<String, Object> findByIdAsMap(String id) throws TechnicalException;
 }

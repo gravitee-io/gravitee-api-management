@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.alert.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 /**
@@ -25,15 +26,15 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface AlertService {
-    AlertTriggerEntity create(NewAlertTriggerEntity alert);
-    AlertTriggerEntity update(UpdateAlertTriggerEntity alert);
+    AlertTriggerEntity create(ExecutionContext executionContext, NewAlertTriggerEntity alert);
+    AlertTriggerEntity update(ExecutionContext executionContext, UpdateAlertTriggerEntity alert);
     AlertTriggerEntity findById(String alertId);
+    List<AlertTriggerEntity> findAll();
     List<AlertTriggerEntity> findByReference(AlertReferenceType referenceType, String referenceId);
-    List<AlertTriggerEntity> findByReferenceAndReferenceIds(AlertReferenceType referenceType, List<String> referenceIds);
+    List<AlertTriggerEntity> findByReferences(AlertReferenceType referenceType, List<String> referenceIds);
     List<AlertTriggerEntity> findByReferenceWithEventCounts(AlertReferenceType referenceType, String referenceId);
     void delete(String alertId, String referenceId);
-    AlertStatusEntity getStatus();
+    AlertStatusEntity getStatus(ExecutionContext executionContext);
     Page<AlertEventEntity> findEvents(String alertId, AlertEventQuery eventQuery);
-    void createDefaults(AlertReferenceType referenceType, String referenceId);
-    void applyDefaults(String alertId, AlertReferenceType referenceType);
+    void applyDefaults(ExecutionContext executionContext, String alertId, AlertReferenceType referenceType);
 }

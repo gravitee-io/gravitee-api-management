@@ -61,6 +61,9 @@ public class AlertTriggerEntity extends Trigger {
     @JsonProperty("parent_id")
     private String parentId;
 
+    @JsonProperty("environment_id")
+    private String environmentId;
+
     protected AlertTriggerEntity(String id, String name, String source, Severity severity, boolean enabled) {
         super(id, name, severity, source, enabled);
     }
@@ -161,6 +164,14 @@ public class AlertTriggerEntity extends Trigger {
         this.parentId = parentId;
     }
 
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
+    }
+
     @Override
     public String toString() {
         return (
@@ -177,6 +188,8 @@ public class AlertTriggerEntity extends Trigger {
             createdAt +
             ", updatedAt=" +
             updatedAt +
+            ", environmentId=" +
+            environmentId +
             '}'
         );
     }

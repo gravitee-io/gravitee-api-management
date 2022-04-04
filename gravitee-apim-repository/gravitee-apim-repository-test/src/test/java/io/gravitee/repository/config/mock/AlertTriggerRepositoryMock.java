@@ -55,6 +55,7 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
         alert.setDefinition("{}");
         alert.setCreatedAt(date);
         alert.setUpdatedAt(date);
+        alert.setEnvironmentId("environment-id");
 
         final AlertTrigger alert2 = new AlertTrigger();
         alert2.setId("alert");
@@ -123,7 +124,7 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
 
         when(alertRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
-        when(alertRepository.findByReference("API", "api-id")).thenReturn(singletonList(alert));
+        when(alertRepository.findByReferenceAndReferenceId("API", "api-id")).thenReturn(singletonList(alert));
         when(alertRepository.findByReferenceAndReferenceIds("API", asList("api-id", "application-id")))
             .thenReturn(asList(alert2, alertQuota100));
     }

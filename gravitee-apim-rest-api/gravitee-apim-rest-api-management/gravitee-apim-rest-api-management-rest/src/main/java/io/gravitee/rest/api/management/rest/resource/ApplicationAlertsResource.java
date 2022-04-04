@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -91,7 +92,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ) })
     public AlertStatusEntity getApplicationAlertsStatus() {
-        return alertService.getStatus();
+        return alertService.getStatus(GraviteeContext.getExecutionContext());
     }
 
     @POST
@@ -111,7 +112,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     public AlertTriggerEntity createApplicationAlert(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
         alertEntity.setReferenceType(APPLICATION);
         alertEntity.setReferenceId(application);
-        return alertService.create(alertEntity);
+        return alertService.create(GraviteeContext.getExecutionContext(), alertEntity);
     }
 
     @Path("{alert}")
@@ -136,7 +137,7 @@ public class ApplicationAlertsResource extends AbstractResource {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(APPLICATION);
         alertEntity.setReferenceId(application);
-        return alertService.update(alertEntity);
+        return alertService.update(GraviteeContext.getExecutionContext(), alertEntity);
     }
 
     @Path("{alert}")

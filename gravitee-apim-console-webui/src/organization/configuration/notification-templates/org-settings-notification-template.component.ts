@@ -65,7 +65,7 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
         scope: this.scopeParam,
         hook: this.hookParam,
       }),
-      this.alertService.getStatus(Scope.PLATFORM),
+      this.alertService.getStatus(Scope.ENVIRONMENT),
     ])
       .pipe(
         takeUntil(this.unsubscribe$),

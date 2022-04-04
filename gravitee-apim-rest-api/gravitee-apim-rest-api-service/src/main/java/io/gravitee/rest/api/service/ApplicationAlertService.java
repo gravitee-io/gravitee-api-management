@@ -29,11 +29,11 @@ public interface ApplicationAlertService {
 
     List<AlertTriggerEntity> findByApplication(String applicationId);
 
-    AlertTriggerEntity update(String applicationId, UpdateAlertTriggerEntity alert);
+    AlertTriggerEntity update(ExecutionContext executionContext, String applicationId, UpdateAlertTriggerEntity alert);
 
     void delete(String alertId, String applicationId);
 
-    AlertStatusEntity getStatus();
+    AlertStatusEntity getStatus(ExecutionContext executionContext);
 
     void addMemberToApplication(ExecutionContext executionContext, String applicationId, String email);
 

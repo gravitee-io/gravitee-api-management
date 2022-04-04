@@ -29,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.model.AlertInput;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationAlertService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationAlertMaximumException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -67,7 +68,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.READ) })
     public Response getAlertsByApplicationId(@PathParam("applicationId") String applicationId) {
-        checkPlugins();
+        checkPlugins(GraviteeContext.getExecutionContext());
         List<Alert> alerts = applicationAlertService
             .findByApplication(applicationId)
             .stream()
@@ -86,8 +87,11 @@ public class ApplicationAlertsResource extends AbstractResource {
         @PathParam("applicationId") String applicationId,
         @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput
     ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
         alertInput.setApplication(applicationId);
-        checkPlugins();
+
+        checkPlugins(executionContext);
 
         if (applicationAlertService.findByApplication(applicationId).size() == 10) {
             throw new ApplicationAlertMaximumException(applicationId, 10);
@@ -95,11 +99,7 @@ public class ApplicationAlertsResource extends AbstractResource {
 
         final NewAlertTriggerEntity newAlertTriggerEntity = alertMapper.convert(alertInput);
 
-        final AlertTriggerEntity alert = applicationAlertService.create(
-            GraviteeContext.getExecutionContext(),
-            applicationId,
-            newAlertTriggerEntity
-        );
+        final AlertTriggerEntity alert = applicationAlertService.create(executionContext, applicationId, newAlertTriggerEntity);
 
         return Response.created(this.getLocationHeader(alert.getId())).entity(alertMapper.convert(alert)).build();
     }
@@ -110,7 +110,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = READ) })
     public Response getApplicationAlertStatus() {
-        return Response.ok(applicationAlertService.getStatus()).build();
+        return Response.ok(applicationAlertService.getStatus(GraviteeContext.getExecutionContext())).build();
     }
 
     @Path("{alertId}")
@@ -118,8 +118,8 @@ public class ApplicationAlertsResource extends AbstractResource {
         return resourceContext.getResource(ApplicationAlertResource.class);
     }
 
-    private void checkPlugins() {
-        AlertStatusEntity alertStatus = applicationAlertService.getStatus();
+    private void checkPlugins(final ExecutionContext executionContext) {
+        AlertStatusEntity alertStatus = applicationAlertService.getStatus(executionContext);
         if (!alertStatus.isEnabled() || alertStatus.getPlugins() == 0) {
             throw new ForbiddenAccessException();
         }

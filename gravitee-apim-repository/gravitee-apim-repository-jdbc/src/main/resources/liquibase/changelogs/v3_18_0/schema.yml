@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.18.0
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}alert_triggers
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)

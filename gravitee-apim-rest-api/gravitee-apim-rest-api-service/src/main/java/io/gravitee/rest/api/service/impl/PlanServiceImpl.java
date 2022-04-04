@@ -732,4 +732,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             throw new TechnicalManagementException("An error has occurred checking plans ownership", e);
         }
     }
+
+    @Override
+    public Map<String, Object> findByIdAsMap(String id) throws TechnicalException {
+        Plan plan = planRepository.findById(id).orElseThrow(() -> new PlanNotFoundException(id));
+        return objectMapper.convertValue(plan, Map.class);
+    }
 }
