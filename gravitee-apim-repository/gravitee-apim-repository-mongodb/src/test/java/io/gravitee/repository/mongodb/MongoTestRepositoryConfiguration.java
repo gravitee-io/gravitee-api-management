@@ -18,7 +18,10 @@ package io.gravitee.repository.mongodb;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
+import java.util.Arrays;
 import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -36,6 +39,8 @@ import org.testcontainers.utility.DockerImageName;
 @EnableMongoRepositories
 public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MongoTestRepositoryConfiguration.class);
+
     @Value("${environment.mongoVersion:4.4.6}")
     private String mongoVersion;
 
@@ -46,6 +51,9 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     public MongoDBContainer mongoDBContainer() {
         MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:" + mongoVersion));
         mongoDb.start();
+
+        LOG.info("Running tests with MongoDB version: {}", getMongoFullVersion(mongoDb.getContainerInfo().getConfig().getEnv()));
+
         return mongoDb;
     }
 
@@ -67,5 +75,14 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private String getMongoFullVersion(String[] containerEnvs) {
+        return Arrays
+            .stream(containerEnvs)
+            .filter(env -> env.startsWith("MONGO_VERSION="))
+            .findFirst()
+            .map(env -> env.split("=")[1])
+            .orElse("");
     }
 }
