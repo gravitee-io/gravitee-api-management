@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ENVIRONMENT;
-import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ORGANIZATION;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
@@ -54,8 +52,6 @@ import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -63,7 +59,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -78,18 +73,15 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private static final String UNKNOWN_SERVICE = "1";
     private static final String FIELD_API = "api";
     private static final String FIELD_APPLICATION = "application";
-    private static final String FIELD_TENANT = "tenant";
     private static final String FIELD_PLAN = "plan";
 
     private static final String METADATA_NAME = "name";
     private static final String METADATA_DELETED = "deleted";
     private static final String METADATA_UNKNOWN = "unknown";
-    private static final String METADATA_VERSION = "version";
     private static final String METADATA_UNKNOWN_API_NAME = "Unknown API (not found)";
     private static final String METADATA_UNKNOWN_APPLICATION_NAME = "Unknown application (keyless)";
     private static final String METADATA_DELETED_API_NAME = "Deleted API";
     private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
-    private static final String METADATA_DELETED_TENANT_NAME = "Deleted tenant";
     private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
 
     @Value("${notifiers.email.subject:[Gravitee.io] %s}")
@@ -118,9 +110,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Value("${notifiers.email.ssl.keyStorePassword:#{null}}")
     private String sslKeyStorePassword;
-
-    @Autowired
-    private ConfigurableEnvironment environment;
 
     @Autowired
     private ObjectMapper mapper;
@@ -305,42 +294,39 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return triggers
                 .stream()
                 .map(
-                    new Function<AlertTrigger, AlertTriggerEntity>() {
-                        @Override
-                        public AlertTriggerEntity apply(AlertTrigger alertTrigger) {
-                            AlertTriggerEntity entity = convert(alertTrigger);
+                    alertTrigger -> {
+                        AlertTriggerEntity entity = convert(alertTrigger);
 
-                            getLastEvent(entity.getId())
-                                .ifPresent(
-                                    alertEvent -> {
-                                        entity.setLastAlertAt(alertEvent.getCreatedAt());
-                                        entity.setLastAlertMessage(alertEvent.getMessage());
-                                    }
-                                );
-
-                            final Date from = new Date(System.currentTimeMillis());
-
-                            Map<String, Integer> counters = new HashMap<>();
-                            counters.put(
-                                "5m",
-                                countEvents(entity.getId(), from.toInstant().minus(Duration.ofMinutes(5)).toEpochMilli(), from.getTime())
-                            );
-                            counters.put(
-                                "1h",
-                                countEvents(entity.getId(), from.toInstant().minus(Duration.ofHours(1)).toEpochMilli(), from.getTime())
-                            );
-                            counters.put(
-                                "1d",
-                                countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(1)).toEpochMilli(), from.getTime())
-                            );
-                            counters.put(
-                                "1M",
-                                countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(30)).toEpochMilli(), from.getTime())
+                        getLastEvent(entity.getId())
+                            .ifPresent(
+                                alertEvent -> {
+                                    entity.setLastAlertAt(alertEvent.getCreatedAt());
+                                    entity.setLastAlertMessage(alertEvent.getMessage());
+                                }
                             );
 
-                            entity.setCounters(counters);
-                            return entity;
-                        }
+                        final Date from = new Date(System.currentTimeMillis());
+
+                        Map<String, Integer> counters = new HashMap<>();
+                        counters.put(
+                            "5m",
+                            countEvents(entity.getId(), from.toInstant().minus(Duration.ofMinutes(5)).toEpochMilli(), from.getTime())
+                        );
+                        counters.put(
+                            "1h",
+                            countEvents(entity.getId(), from.toInstant().minus(Duration.ofHours(1)).toEpochMilli(), from.getTime())
+                        );
+                        counters.put(
+                            "1d",
+                            countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(1)).toEpochMilli(), from.getTime())
+                        );
+                        counters.put(
+                            "1M",
+                            countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(30)).toEpochMilli(), from.getTime())
+                        );
+
+                        entity.setCounters(counters);
+                        return entity;
                     }
                 )
                 .sorted(comparing(AlertTriggerEntity::getName))
@@ -356,7 +342,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     public void delete(final String alertId, final String referenceId) {
         try {
             final Optional<AlertTrigger> optionalAlert = alertTriggerRepository.findById(alertId);
-            if (!optionalAlert.isPresent() || !optionalAlert.get().getReferenceId().equals(referenceId)) {
+            if (optionalAlert.isEmpty() || !optionalAlert.get().getReferenceId().equals(referenceId)) {
                 throw new AlertNotFoundException(alertId);
             }
             final AlertTriggerEntity alert = convert(optionalAlert.get());
@@ -389,14 +375,11 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             .getContent()
             .stream()
             .map(
-                new Function<AlertEvent, AlertEventEntity>() {
-                    @Override
-                    public AlertEventEntity apply(AlertEvent alertEventRepo) {
-                        AlertEventEntity alertEvent = new AlertEventEntity();
-                        alertEvent.setCreatedAt(alertEventRepo.getCreatedAt());
-                        alertEvent.setMessage(alertEventRepo.getMessage());
-                        return alertEvent;
-                    }
+                alertEventRepo -> {
+                    AlertEventEntity alertEvent = new AlertEventEntity();
+                    alertEvent.setCreatedAt(alertEventRepo.getCreatedAt());
+                    alertEvent.setMessage(alertEventRepo.getMessage());
+                    return alertEvent;
                 }
             )
             .collect(toList());
@@ -421,7 +404,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                         alert.getEventRules() != null &&
                         alert.getEventRules().stream().map(AlertEventRule::getEvent).collect(Collectors.toList()).contains(event)
                 )
-                .map(alert1 -> convert(alert1))
+                .map(this::convert)
                 .sorted(Comparator.comparing(AlertTriggerEntity::getName))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
             LOGGER.debug("findByEvent : {} - DONE", set);
@@ -463,7 +446,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     public void applyDefaults(ExecutionContext executionContext, final String alertId, final AlertReferenceType referenceType) {
         try {
             final Optional<AlertTrigger> optionalAlert = alertTriggerRepository.findById(alertId);
-            if (!optionalAlert.isPresent()) {
+            if (optionalAlert.isEmpty()) {
                 throw new AlertNotFoundException(alertId);
             }
             final AlertTriggerEntity alert = convert(optionalAlert.get());
@@ -478,33 +461,30 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     .stream()
                     .map(Api::getId)
                     .forEach(
-                        new Consumer<String>() {
-                            @Override
-                            public void accept(String apiId) {
-                                try {
-                                    boolean create = alertTriggerRepository
-                                        .findByReference(AlertReferenceType.API.name(), apiId)
-                                        .stream()
-                                        .noneMatch(alertTrigger -> alertId.equals(alertTrigger.getParentId()));
+                        apiId -> {
+                            try {
+                                boolean create = alertTriggerRepository
+                                    .findByReference(AlertReferenceType.API.name(), apiId)
+                                    .stream()
+                                    .noneMatch(alertTrigger -> alertId.equals(alertTrigger.getParentId()));
 
-                                    if (create) {
-                                        AlertTrigger trigger = convert(alert);
-                                        AlertTriggerEntity triggerEntity = convert(trigger);
-                                        triggerEntity.setId(UUID.toString(UUID.random()));
-                                        triggerEntity.setReferenceType(AlertReferenceType.API);
-                                        triggerEntity.setReferenceId(apiId);
-                                        triggerEntity.setTemplate(false);
-                                        triggerEntity.setEnabled(true);
-                                        triggerEntity.setEventRules(null);
-                                        triggerEntity.setParentId(alertId);
-                                        triggerEntity.setCreatedAt(new Date());
-                                        triggerEntity.setUpdatedAt(trigger.getCreatedAt());
+                                if (create) {
+                                    AlertTrigger trigger = convert(alert);
+                                    AlertTriggerEntity triggerEntity = convert(trigger);
+                                    triggerEntity.setId(UUID.toString(UUID.random()));
+                                    triggerEntity.setReferenceType(AlertReferenceType.API);
+                                    triggerEntity.setReferenceId(apiId);
+                                    triggerEntity.setTemplate(false);
+                                    triggerEntity.setEnabled(true);
+                                    triggerEntity.setEventRules(null);
+                                    triggerEntity.setParentId(alertId);
+                                    triggerEntity.setCreatedAt(new Date());
+                                    triggerEntity.setUpdatedAt(trigger.getCreatedAt());
 
-                                        create0(executionContext, convert(triggerEntity));
-                                    }
-                                } catch (TechnicalException te) {
-                                    LOGGER.error("Unable to create default alert for API {}", apiId, te);
+                                    create0(executionContext, convert(triggerEntity));
                                 }
+                            } catch (TechnicalException te) {
+                                LOGGER.error("Unable to create default alert for API {}", apiId, te);
                             }
                         }
                     );
@@ -531,13 +511,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
         // Set the email notifier configuration in case
         notifications.forEach(
-            new Consumer<Notification>() {
-                @Override
-                public void accept(Notification notification) {
-                    if (NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID.equalsIgnoreCase(notification.getType())) {
-                        // TODO : check
-                        setDefaultEmailNotifier(GraviteeContext.getExecutionContext(), notification);
-                    }
+            notification -> {
+                if (NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID.equalsIgnoreCase(notification.getType())) {
+                    setDefaultEmailNotifier(executionContext, notification);
                 }
             }
         );
@@ -549,34 +525,8 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             trigger.setFilters(filters);
         }
 
-        switch (referenceType) {
-            case API:
-            case APPLICATION:
-                filters.add(StringCondition.equals(referenceType.name().toLowerCase(), referenceId).build());
-                break;
-            case ENVIRONMENT:
-                //
-                //  TODO
-                //
-                // Add filters to make sure we will receive alert notifications only for events on the same organization / environment.
-                // For now, it seems that alerts are managed at organization level only. The behavior will change with https://github.com/gravitee-io/issues/issues/6079).
-                // It would be preferable to use a 'in' filter but this kind of filter does not exist yet. To keep backward compatibility we will rely on pattern matching.
-                filters.add(
-                    StringCondition
-                        .matches(
-                            ORGANIZATION.name().toLowerCase(),
-                            "(?:.*,|^)" + executionContext.getOrganizationId() + "(?:,.*|$)|\\*",
-                            true
-                        )
-                        .build()
-                );
-                filters.add(
-                    StringCondition
-                        .matches(ENVIRONMENT.name().toLowerCase(), "(?:.*|^)" + executionContext.getEnvironmentId() + "(?:,.*|$)|\\*", true)
-                        .build()
-                );
-                break;
-        }
+        // add filter matching reference type (api, application or environment)
+        filters.add(StringCondition.equals(referenceType.name().toLowerCase(), referenceId).build());
     }
 
     private void setDefaultEmailNotifier(ExecutionContext executionContext, Notification notification) {
@@ -647,55 +597,43 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     @Override
     public void afterPropertiesSet() throws Exception {
         triggerProvider.addListener(
-            new TriggerProvider.OnConnectionListener() {
-                @Override
-                public void doOnConnect() {
-                    LOGGER.info("Connected to alerting system. Sync alert triggers...");
-                    // On reconnect, ensure to push all the triggers again
-                    findAll()
-                        .stream()
-                        .filter(alertTriggerEntity -> !alertTriggerEntity.isTemplate())
-                        .forEach(
-                            new Consumer<AlertTriggerEntity>() {
-                                @Override
-                                public void accept(AlertTriggerEntity alertTriggerEntity) {
-                                    // TODO : check ?
-                                    enhance(
-                                        GraviteeContext.getExecutionContext(),
-                                        alertTriggerEntity,
-                                        alertTriggerEntity.getReferenceType(),
-                                        alertTriggerEntity.getReferenceId()
-                                    );
-                                    triggerOrCancelAlert(alertTriggerEntity);
-                                }
-                            }
-                        );
-                    LOGGER.info("Alert triggers synchronized with the alerting system.");
-                }
+            (TriggerProvider.OnConnectionListener) () -> {
+                LOGGER.info("Connected to alerting system. Sync alert triggers...");
+                // On reconnect, ensure to push all the triggers again
+                findAll()
+                    .stream()
+                    .filter(alertTriggerEntity -> !alertTriggerEntity.isTemplate())
+                    .forEach(
+                        alertTriggerEntity -> {
+                            // TODO : here we use context organization ID to retrieve email notification settings
+                            // We should loop on alerts by organization, in order to retrieve the right email settings
+                            enhance(
+                                GraviteeContext.getExecutionContext(),
+                                alertTriggerEntity,
+                                alertTriggerEntity.getReferenceType(),
+                                alertTriggerEntity.getReferenceId()
+                            );
+                            triggerOrCancelAlert(alertTriggerEntity);
+                        }
+                    );
+                LOGGER.info("Alert triggers synchronized with the alerting system.");
             }
         );
 
         triggerProvider.addListener(
-            new TriggerProvider.OnDisconnectionListener() {
-                @Override
-                public void doOnDisconnect() {
-                    LOGGER.error("Connection with the alerting system has been loose.");
+            (TriggerProvider.OnDisconnectionListener) () -> LOGGER.error("Connection with the alerting system has been loose.")
+        );
+
+        triggerProvider.addListener(
+            (TriggerProvider.OnCommandListener) command -> {
+                if (command instanceof AlertNotificationCommand) {
+                    handleAlertNotificationCommand((AlertNotificationCommand) command);
+                } else {
+                    LOGGER.warn("Unknown alert command: {}", command);
                 }
             }
         );
 
-        triggerProvider.addListener(
-            new TriggerProvider.OnCommandListener() {
-                @Override
-                public void doOnCommand(Command command) {
-                    if (command instanceof AlertNotificationCommand) {
-                        handleAlertNotificationCommand((AlertNotificationCommand) command);
-                    } else {
-                        LOGGER.warn("Unknown alert command: {}", command);
-                    }
-                }
-            }
-        );
 
         triggerProvider.addListener(
             new TriggerProvider.OnCommandResultListener() {
@@ -753,29 +691,22 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             if (properties != null) {
                 properties
                     .entrySet()
-                    .stream()
                     .forEach(
-                        new Consumer<Map.Entry<String, String>>() {
-                            @Override
-                            public void accept(Map.Entry<String, String> entry) {
-                                switch (entry.getKey()) {
-                                    // TODO : check
-                                    case FIELD_API:
-                                        values.put(entry.getKey(), getAPIMetadata(GraviteeContext.getExecutionContext(), entry.getValue()));
-                                        break;
-                                    case FIELD_APPLICATION:
-                                        values.put(
-                                            entry.getKey(),
-                                            getApplicationMetadata(GraviteeContext.getExecutionContext(), entry.getValue())
-                                        );
-                                        break;
-                                    case FIELD_PLAN:
-                                        values.put(
-                                            entry.getKey(),
-                                            getPlanMetadata(GraviteeContext.getExecutionContext(), entry.getValue())
-                                        );
-                                        break;
-                                }
+                        entry -> {
+                            switch (entry.getKey()) {
+                                // TODO : check
+                                case FIELD_API:
+                                    values.put(entry.getKey(), getAPIMetadata(GraviteeContext.getExecutionContext(), entry.getValue()));
+                                    break;
+                                case FIELD_APPLICATION:
+                                    values.put(
+                                        entry.getKey(),
+                                        getApplicationMetadata(GraviteeContext.getExecutionContext(), entry.getValue())
+                                    );
+                                    break;
+                                case FIELD_PLAN:
+                                    values.put(entry.getKey(), getPlanMetadata(GraviteeContext.getExecutionContext(), entry.getValue()));
+                                    break;
                             }
                         }
                     );
