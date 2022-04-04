@@ -78,7 +78,7 @@ public class ApiAlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = API_ALERT, acls = READ) })
     public List<AlertTriggerEntity> getApiAlerts(@QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
-        return withEventCounts ? alertService.findByReferenceWithEventCounts(GraviteeContext.getExecutionContext(), API, api) : alertService.findByReference(GraviteeContext.getExecutionContext(), API, api);
+        return withEventCounts ? alertService.findByReferenceWithEventCounts(API, api) : alertService.findByReference(API, api);
     }
 
     @GET
@@ -93,7 +93,7 @@ public class ApiAlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ALERT, acls = READ) })
     public AlertStatusEntity getApiAlertsStatus() {
-        return alertService.getStatus();
+        return alertService.getStatus(GraviteeContext.getExecutionContext());
     }
 
     @GET
@@ -116,7 +116,7 @@ public class ApiAlertsResource extends AbstractResource {
     public AlertAnalyticsEntity getPlatformAlertsAnalytics(@BeanParam AlertAnalyticsParam param) {
         param.validate();
         return alertAnalyticsService.findByReference(
-                GraviteeContext.getExecutionContext(), API,
+            API,
             api,
             new AlertAnalyticsQuery.Builder().from(param.getFrom()).to(param.getTo()).build()
         );
@@ -155,8 +155,7 @@ public class ApiAlertsResource extends AbstractResource {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(API);
         alertEntity.setReferenceId(api);
-        alertEntity.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
-        return alertService.update(alertEntity);
+        return alertService.update(GraviteeContext.getExecutionContext(), alertEntity);
     }
 
     @Path("{alert}")
@@ -171,7 +170,7 @@ public class ApiAlertsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.DELETE) })
     public void deleteApiAlert(@PathParam("alert") String alert) {
-        alertService.delete(GraviteeContext.getExecutionContext(), alert, api);
+        alertService.delete(alert, api);
     }
 
     @GET

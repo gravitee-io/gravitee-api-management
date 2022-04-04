@@ -1944,8 +1944,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
                 portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
                 // Delete alerts
-                final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(executionContext, AlertReferenceType.API, apiId);
-                alerts.forEach(alert -> alertService.delete(executionContext, alert.getId(), alert.getReferenceId()));
+                final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(AlertReferenceType.API, apiId);
+                alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
                 // delete all reference on api quality rule
                 apiQualityRuleRepository.deleteByApi(apiId);
                 // Audit

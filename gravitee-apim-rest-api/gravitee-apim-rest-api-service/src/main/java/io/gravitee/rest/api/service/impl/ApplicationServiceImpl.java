@@ -868,7 +868,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // delete memberships
             membershipService.deleteReference(executionContext, MembershipReferenceType.APPLICATION, applicationId);
             // delete alerts
-            applicationAlertService.deleteAll(executionContext, applicationId);
+            applicationAlertService.deleteAll(applicationId);
             // Audit
             auditService.createApplicationAuditLog(
                 executionContext,

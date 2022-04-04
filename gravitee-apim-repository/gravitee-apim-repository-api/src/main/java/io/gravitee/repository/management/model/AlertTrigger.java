@@ -55,8 +55,6 @@ public class AlertTrigger {
 
     private String parentId;
 
-    private String environmentId;
-
     private List<AlertEventRule> eventRules;
 
     private boolean template;
@@ -171,14 +169,6 @@ public class AlertTrigger {
 
     public void setEventRules(List<AlertEventRule> eventRules) {
         this.eventRules = eventRules;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
     }
 
     @Override

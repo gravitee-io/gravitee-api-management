@@ -24,7 +24,7 @@ export class Rule {
     'REQUEST',
     'METRICS_SIMPLE_CONDITION',
     'Alert when a metric of the request validates a condition',
-    [Scope.API, Scope.PLATFORM],
+    [Scope.API, Scope.ENVIRONMENT],
     'API metrics',
     ApiMetrics.METRICS,
   );
@@ -33,7 +33,7 @@ export class Rule {
     'REQUEST',
     'MISSING_DATA',
     'Alert when there is no request matching filters received for a period of time',
-    [Scope.API, Scope.PLATFORM],
+    [Scope.API, Scope.ENVIRONMENT],
     'API metrics',
     ApiMetrics.METRICS,
   );
@@ -42,7 +42,7 @@ export class Rule {
     'REQUEST',
     'METRICS_AGGREGATION',
     'Alert when the aggregated value of a request metric rises a threshold',
-    [Scope.API, Scope.PLATFORM],
+    [Scope.API, Scope.ENVIRONMENT],
     'API metrics',
     [ApiMetrics.RESPONSE_TIME, ApiMetrics.UPSTREAM_RESPONSE_TIME, ApiMetrics.REQUEST_CONTENT_LENGTH, ApiMetrics.RESPONSE_CONTENT_LENGTH],
   );
@@ -51,7 +51,7 @@ export class Rule {
     'REQUEST',
     'METRICS_RATE',
     'Alert when the rate of a given condition rises a threshold',
-    [Scope.API, Scope.PLATFORM],
+    [Scope.API, Scope.ENVIRONMENT],
     'API metrics',
     ApiMetrics.METRICS,
   );
@@ -60,7 +60,7 @@ export class Rule {
     'ENDPOINT_HEALTH_CHECK',
     'API_HC_ENDPOINT_STATUS_CHANGED',
     'Alert when the health status of an endpoint has changed',
-    [Scope.API, Scope.PLATFORM],
+    [Scope.API, Scope.ENVIRONMENT],
     'Health-check',
   );
 
@@ -76,7 +76,7 @@ export class Rule {
     'NODE_LIFECYCLE',
     'NODE_LIFECYCLE_CHANGED',
     'Alert when the lifecycle status of a node has changed',
-    [Scope.PLATFORM],
+    [Scope.ENVIRONMENT],
     'Node',
   );
 
@@ -84,7 +84,7 @@ export class Rule {
     'NODE_HEARTBEAT',
     'METRICS_SIMPLE_CONDITION',
     'Alert when a metric of the node validates a condition',
-    [Scope.PLATFORM],
+    [Scope.ENVIRONMENT],
     'Node',
     NodeMetrics.METRICS,
   );
@@ -93,7 +93,7 @@ export class Rule {
     'NODE_HEARTBEAT',
     'METRICS_AGGREGATION',
     'Alert when the aggregated value of a node metric rises a threshold',
-    [Scope.PLATFORM],
+    [Scope.ENVIRONMENT],
     'Node',
     NodeMetrics.METRICS,
   );
@@ -102,7 +102,7 @@ export class Rule {
     'NODE_HEARTBEAT',
     'METRICS_RATE',
     'Alert when the rate of a given condition rises a threshold',
-    [Scope.PLATFORM],
+    [Scope.ENVIRONMENT],
     'Node',
     NodeMetrics.METRICS,
   );
@@ -111,7 +111,7 @@ export class Rule {
     'NODE_HEALTHCHECK',
     'NODE_HEALTHCHECK',
     'Alert on the health status of the node',
-    [Scope.PLATFORM],
+    [Scope.ENVIRONMENT],
     'Node',
     NodeHealthcheckMetrics.METRICS,
   );

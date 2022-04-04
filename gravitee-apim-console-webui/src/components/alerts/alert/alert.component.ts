@@ -62,7 +62,7 @@ const AlertComponent: ng.IComponentOptions = {
         this.groups = ['Application'];
         this.titlePrefix = ($scope.$parent as any).$resolve.resolvedApplication.data.name;
       } else {
-        referenceType = Scope.PLATFORM;
+        referenceType = Scope.ENVIRONMENT;
         this.groups = ['Node', 'API metrics', 'Health-check'];
         this.titlePrefix = 'Platform';
       }

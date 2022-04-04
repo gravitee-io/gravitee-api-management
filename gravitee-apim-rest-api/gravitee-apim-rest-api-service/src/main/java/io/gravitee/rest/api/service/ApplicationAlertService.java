@@ -27,19 +27,19 @@ import java.util.List;
 public interface ApplicationAlertService {
     AlertTriggerEntity create(ExecutionContext executionContext, String applicationId, NewAlertTriggerEntity alert);
 
-    List<AlertTriggerEntity> findByApplication(ExecutionContext executionContext, String applicationId);
+    List<AlertTriggerEntity> findByApplication(String applicationId);
 
     AlertTriggerEntity update(ExecutionContext executionContext, String applicationId, UpdateAlertTriggerEntity alert);
 
-    void delete(ExecutionContext executionContext, String alertId, String applicationId);
+    void delete(String alertId, String applicationId);
 
-    AlertStatusEntity getStatus();
+    AlertStatusEntity getStatus(ExecutionContext executionContext);
 
     void addMemberToApplication(ExecutionContext executionContext, String applicationId, String email);
 
     void deleteMemberFromApplication(ExecutionContext executionContext, String applicationId, String email);
 
-    void deleteAll(ExecutionContext executionContext, String applicationId);
+    void deleteAll(String applicationId);
 
     void handleEvent(Event<ApplicationAlertEventType, Object> event);
 }

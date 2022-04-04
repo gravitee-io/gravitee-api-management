@@ -69,7 +69,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     public Response getAlertsByApplicationId(@PathParam("applicationId") String applicationId) {
         checkPlugins();
         List<Alert> alerts = applicationAlertService
-            .findByApplication(GraviteeContext.getExecutionContext(), applicationId)
+            .findByApplication(applicationId)
             .stream()
             .sorted(Comparator.comparing(AlertTriggerEntity::getCreatedAt))
             .map(alert -> alertMapper.convert(alert))
@@ -89,7 +89,7 @@ public class ApplicationAlertsResource extends AbstractResource {
         alertInput.setApplication(applicationId);
         checkPlugins();
 
-        if (applicationAlertService.findByApplication(GraviteeContext.getExecutionContext(), applicationId).size() == 10) {
+        if (applicationAlertService.findByApplication(applicationId).size() == 10) {
             throw new ApplicationAlertMaximumException(applicationId, 10);
         }
 
@@ -110,7 +110,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = READ) })
     public Response getApplicationAlertStatus() {
-        return Response.ok(applicationAlertService.getStatus()).build();
+        return Response.ok(applicationAlertService.getStatus(GraviteeContext.getExecutionContext())).build();
     }
 
     @Path("{alertId}")
@@ -119,7 +119,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     }
 
     private void checkPlugins() {
-        AlertStatusEntity alertStatus = applicationAlertService.getStatus();
+        AlertStatusEntity alertStatus = applicationAlertService.getStatus(GraviteeContext.getExecutionContext());
         if (!alertStatus.isEnabled() || alertStatus.getPlugins() == 0) {
             throw new ForbiddenAccessException();
         }

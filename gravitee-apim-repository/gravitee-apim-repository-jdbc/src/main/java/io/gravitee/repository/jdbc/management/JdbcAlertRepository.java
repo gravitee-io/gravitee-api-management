@@ -66,7 +66,6 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("template", Types.BIT, boolean.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .build();
     }
 
@@ -76,7 +75,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     }
 
     @Override
-    public List<AlertTrigger> findByReferenceAndReferenceIds(final String referenceType, final List<String> referenceIds, String environmentId)
+    public List<AlertTrigger> findByReferenceAndReferenceIds(final String referenceType, final List<String> referenceIds)
         throws TechnicalException {
         LOGGER.debug("JdbcAlertRepository.findByReferenceAndReferenceIds({}, {})", referenceType, referenceIds);
         if (isEmpty(referenceIds)) {
@@ -85,13 +84,12 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
         try {
             List<AlertTrigger> rows = jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " where environment_id = ? and reference_type = ? and reference_id in ( " +
+                " where reference_type = ? and reference_id in ( " +
                 getOrm().buildInClause(referenceIds) +
                 " )",
                 (PreparedStatement ps) -> {
-                    ps.setString(1, environmentId);
-                    ps.setString(2, referenceType);
-                    getOrm().setArguments(ps, referenceIds, 3);
+                    ps.setString(1, referenceType);
+                    getOrm().setArguments(ps, referenceIds, 2);
                 },
                 getOrm().getRowMapper()
             );
@@ -101,22 +99,6 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
             final String message = "Failed to find alerts by reference and referenceIds";
             LOGGER.error(message, ex);
             throw new TechnicalException(message, ex);
-        }
-    }
-
-    @Override
-    public Optional<AlertTrigger> findByIdAndEnvironment(String id, String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcAlertRepository.findByIdAndEnvironment({}, {})", id, environmentId);
-        try {
-            Optional<AlertTrigger> alert = jdbcTemplate
-                    .query(getOrm().getSelectAllSql() + " a where id = ? and environment_id = ?", getOrm().getRowMapper(), id, environmentId)
-                    .stream()
-                    .findFirst();
-            alert.ifPresent(this::addEvents);
-            return alert;
-        } catch (final Exception ex) {
-            LOGGER.error("Failed to find alert by id and environment_id", ex);
-            throw new TechnicalException("Failed to find alert by id and environment_id", ex);
         }
     }
 

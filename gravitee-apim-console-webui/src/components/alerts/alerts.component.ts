@@ -95,7 +95,7 @@ const AlertsComponent: ng.IComponentOptions = {
       } else if ($stateParams.applicationId) {
         alert.reference_type = Scope.APPLICATION;
       } else {
-        alert.reference_type = Scope.PLATFORM;
+        alert.reference_type = Scope.ENVIRONMENT;
       }
     };
 

@@ -17,9 +17,8 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
-import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
-import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -27,9 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author GraviteeSource Team
@@ -59,8 +55,9 @@ public class AlertsEnvironmentpgrader extends OneShotUpgrader {
 
     private void updateAlertTrigger(AlertTrigger alertTrigger) {
         try {
-            if (alertTrigger.getEnvironmentId() == null) {
-                alertTrigger.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
+            if ("PLATFORM".equals(alertTrigger.getReferenceType())) {
+                alertTrigger.setReferenceType(AlertReferenceType.ENVIRONMENT.name());
+                alertTrigger.setReferenceId(GraviteeContext.getDefaultEnvironment());
                 alertTriggerRepository.update(alertTrigger);
             }
         } catch (TechnicalException e) {

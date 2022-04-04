@@ -29,9 +29,7 @@ import io.gravitee.rest.api.model.AlertAnalyticsQuery;
 import io.gravitee.rest.api.model.alert.AlertAnalyticsEntity;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.service.AlertAnalyticsService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +46,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class AlertAnalyticsServiceTest {
 
-    private static final String REFERENCE_TYPE = "PLATFORM";
+    private static final String REFERENCE_TYPE = "ENVIRONMENT";
     private static final String REFERENCE_ID = "default";
 
     private AlertAnalyticsService cut;
@@ -66,15 +64,15 @@ public class AlertAnalyticsServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByReferenceWhenException() throws Exception {
-        when(alertTriggerRepository.findByReference(REFERENCE_TYPE, REFERENCE_ID, "DEFAULT")).thenThrow(new TechnicalException());
-        cut.findByReference(GraviteeContext.getExecutionContext(), AlertReferenceType.PLATFORM, REFERENCE_ID, new AlertAnalyticsQuery.Builder().from(0).to(1).build());
+        when(alertTriggerRepository.findByReference(REFERENCE_TYPE, REFERENCE_ID)).thenThrow(new TechnicalException());
+        cut.findByReference(AlertReferenceType.ENVIRONMENT, REFERENCE_ID, new AlertAnalyticsQuery.Builder().from(0).to(1).build());
     }
 
     @Test
     public void shouldNotFindByReferenceWhenNoAlert() throws Exception {
-        when(alertTriggerRepository.findByReference(REFERENCE_TYPE, REFERENCE_ID, "DEFAULT")).thenReturn(Collections.emptyList());
+        when(alertTriggerRepository.findByReference(REFERENCE_TYPE, REFERENCE_ID)).thenReturn(Collections.emptyList());
 
-        AlertAnalyticsEntity result = cut.findByReference(GraviteeContext.getExecutionContext(), AlertReferenceType.PLATFORM, REFERENCE_ID, null);
+        AlertAnalyticsEntity result = cut.findByReference(AlertReferenceType.ENVIRONMENT, REFERENCE_ID, null);
 
         assertThat(result.getAlerts()).isEmpty();
         assertThat(result.getBySeverity()).isEmpty();
@@ -82,11 +80,11 @@ public class AlertAnalyticsServiceTest {
 
     @Test
     public void shouldNotFindByReferenceWhenNoEvent() throws Exception {
-        when(alertTriggerRepository.findByReference(REFERENCE_TYPE, REFERENCE_ID, "DEFAULT")).thenReturn(alertTriggerProvider());
+        when(alertTriggerRepository.findByReference(REFERENCE_TYPE, REFERENCE_ID)).thenReturn(alertTriggerProvider());
         when(alertEventRepository.search(any(), any())).thenReturn(new Page(Collections.emptyList(), 0, 1, 0));
 
         AlertAnalyticsEntity result = cut.findByReference(
-                GraviteeContext.getExecutionContext(), AlertReferenceType.PLATFORM,
+            AlertReferenceType.ENVIRONMENT,
             REFERENCE_ID,
             new AlertAnalyticsQuery.Builder().from(0).to(1).build()
         );
@@ -97,7 +95,7 @@ public class AlertAnalyticsServiceTest {
 
     @Test
     public void shouldFindByReference() throws Exception {
-        when(alertTriggerRepository.findByReference(REFERENCE_TYPE, REFERENCE_ID, "DEFAULT")).thenReturn(alertTriggerProvider());
+        when(alertTriggerRepository.findByReference(REFERENCE_TYPE, REFERENCE_ID)).thenReturn(alertTriggerProvider());
         when(alertEventRepository.search(any(), any()))
             .thenReturn(alertEventsProvider(10, "alert1"))
             .thenReturn(alertEventsProvider(50, "alert2"))
@@ -105,7 +103,7 @@ public class AlertAnalyticsServiceTest {
             .thenReturn(alertEventsProvider(0, "alert4"));
 
         AlertAnalyticsEntity result = cut.findByReference(
-                GraviteeContext.getExecutionContext(), AlertReferenceType.PLATFORM,
+            AlertReferenceType.ENVIRONMENT,
             REFERENCE_ID,
             new AlertAnalyticsQuery.Builder().from(0).to(1).build()
         );

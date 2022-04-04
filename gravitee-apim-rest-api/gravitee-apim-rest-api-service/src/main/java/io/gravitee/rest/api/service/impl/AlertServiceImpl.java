@@ -156,12 +156,10 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private ApiMetadataService apiMetadataService;
 
     @Override
-    public AlertStatusEntity getStatus() {
+    public AlertStatusEntity getStatus(ExecutionContext executionContext) {
         AlertStatusEntity status = new AlertStatusEntity();
 
-        status.setEnabled(
-            parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)
-        );
+        status.setEnabled(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION));
         status.setPlugins(triggerProviderManager.findAll().size());
 
         return status;
@@ -169,16 +167,16 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Override
     public AlertTriggerEntity create(ExecutionContext executionContext, final NewAlertTriggerEntity newAlertTrigger) {
-        checkAlert();
+        checkAlert(executionContext);
 
         try {
             // Get trigger
-            AlertTrigger alertTrigger = convert(executionContext, newAlertTrigger);
+            AlertTrigger alertTrigger = convert(newAlertTrigger);
 
             alertTrigger.setCreatedAt(new Date());
             alertTrigger.setUpdatedAt(alertTrigger.getCreatedAt());
 
-            return create0(alertTrigger);
+            return create0(executionContext, alertTrigger);
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to create an alert " + newAlertTrigger;
             LOGGER.error(message, ex);
@@ -186,12 +184,12 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         }
     }
 
-    private AlertTriggerEntity create0(AlertTrigger alertTrigger) throws TechnicalException {
+    private AlertTriggerEntity create0(ExecutionContext executionContext, AlertTrigger alertTrigger) throws TechnicalException {
         final AlertTrigger createdAlert = alertTriggerRepository.create(alertTrigger);
 
         final AlertTriggerEntity alertTriggerEntity = convert(createdAlert);
 
-        enhance(alertTriggerEntity, alertTriggerEntity.getReferenceType(), alertTriggerEntity.getReferenceId());
+        enhance(executionContext, alertTriggerEntity, alertTriggerEntity.getReferenceType(), alertTriggerEntity.getReferenceId());
 
         // Obviously, we are not deploying rule templates :)
         if (!alertTriggerEntity.isTemplate()) {
@@ -202,11 +200,11 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     }
 
     @Override
-    public AlertTriggerEntity update(final UpdateAlertTriggerEntity updateAlertTrigger) {
-        checkAlert();
+    public AlertTriggerEntity update(ExecutionContext executionContext, final UpdateAlertTriggerEntity updateAlertTrigger) {
+        checkAlert(executionContext);
 
         try {
-            final Optional<AlertTrigger> alertOptional = alertTriggerRepository.findByIdAndEnvironment(updateAlertTrigger.getId(), updateAlertTrigger.getEnvironmentId());
+            final Optional<AlertTrigger> alertOptional = alertTriggerRepository.findById(updateAlertTrigger.getId());
             if (alertOptional.isPresent()) {
                 final AlertTrigger alertToUpdate = alertOptional.get();
                 if (!alertToUpdate.getReferenceId().equals(updateAlertTrigger.getReferenceId())) {
@@ -223,7 +221,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
                 final AlertTriggerEntity alertTriggerEntity = convert(alertTriggerRepository.update(trigger));
 
-                enhance(alertTriggerEntity, updateAlertTrigger.getReferenceType(), updateAlertTrigger.getReferenceId());
+                enhance(executionContext, alertTriggerEntity, updateAlertTrigger.getReferenceType(), updateAlertTrigger.getReferenceId());
 
                 // Obviously, we are not deploying rule templates :)
                 if (!alertTriggerEntity.isTemplate()) {
@@ -242,10 +240,10 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     }
 
     @Override
-    public AlertTriggerEntity findById(ExecutionContext executionContext, String alertId) {
+    public AlertTriggerEntity findById(String alertId) {
         try {
             final AlertTrigger alertTrigger = alertTriggerRepository
-                .findByIdAndEnvironment(alertId, executionContext.getEnvironmentId())
+                .findById(alertId)
                 .orElseThrow(() -> new AlertNotFoundException(alertId));
             return convert(alertTrigger);
         } catch (TechnicalException e) {
@@ -257,7 +255,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private List<AlertTriggerEntity> findAll() {
         try {
             final Set<AlertTrigger> triggers = alertTriggerRepository.findAll();
-            return triggers.stream().map(alert -> convert(alert)).collect(toList());
+            return triggers.stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list all alerts";
             LOGGER.error(message, ex);
@@ -266,12 +264,12 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     }
 
     @Override
-    public List<AlertTriggerEntity> findByReference(ExecutionContext executionContext, final AlertReferenceType referenceType, final String referenceId) {
+    public List<AlertTriggerEntity> findByReference(final AlertReferenceType referenceType, final String referenceId) {
         try {
             return alertTriggerRepository
-                .findByReference(referenceType.name(), referenceId, executionContext.getEnvironmentId())
+                .findByReference(referenceType.name(), referenceId)
                 .stream()
-                .map(alert -> convert(alert))
+                .map(this::convert)
                 .sorted(comparing(alertTriggerEntity -> alertTriggerEntity != null ? alertTriggerEntity.getName() : null))
                 .collect(toList());
         } catch (TechnicalException ex) {
@@ -283,14 +281,14 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Override
     public List<AlertTriggerEntity> findByReferenceAndReferenceIds(
-            ExecutionContext executionContext, final AlertReferenceType referenceType,
-            final List<String> referenceIds
+        final AlertReferenceType referenceType,
+        final List<String> referenceIds
     ) {
         try {
             return alertTriggerRepository
-                .findByReferenceAndReferenceIds(referenceType.name(), referenceIds, executionContext.getEnvironmentId())
+                .findByReferenceAndReferenceIds(referenceType.name(), referenceIds)
                 .stream()
-                .map(alert -> convert(alert))
+                .map(this::convert)
                 .sorted(comparing(alertTriggerEntity -> alertTriggerEntity != null ? alertTriggerEntity.getName() : null))
                 .collect(toList());
         } catch (TechnicalException ex) {
@@ -301,9 +299,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     }
 
     @Override
-    public List<AlertTriggerEntity> findByReferenceWithEventCounts(ExecutionContext executionContext, final AlertReferenceType referenceType, final String referenceId) {
+    public List<AlertTriggerEntity> findByReferenceWithEventCounts(final AlertReferenceType referenceType, final String referenceId) {
         try {
-            final List<AlertTrigger> triggers = alertTriggerRepository.findByReference(referenceType.name(), referenceId, executionContext.getEnvironmentId());
+            final List<AlertTrigger> triggers = alertTriggerRepository.findByReference(referenceType.name(), referenceId);
             return triggers
                 .stream()
                 .map(
@@ -355,9 +353,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     }
 
     @Override
-    public void delete(ExecutionContext executionContext, final String alertId, final String referenceId) {
+    public void delete(final String alertId, final String referenceId) {
         try {
-            final Optional<AlertTrigger> optionalAlert = alertTriggerRepository.findByIdAndEnvironment(alertId, executionContext.getEnvironmentId());
+            final Optional<AlertTrigger> optionalAlert = alertTriggerRepository.findById(alertId);
             if (!optionalAlert.isPresent() || !optionalAlert.get().getReferenceId().equals(referenceId)) {
                 throw new AlertNotFoundException(alertId);
             }
@@ -411,7 +409,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         );
     }
 
-    private Set<AlertTriggerEntity> findByEvent(ExecutionContext executionContext, AlertEventType event) {
+    private Set<AlertTriggerEntity> findByEvent(AlertEventType event) {
         try {
             LOGGER.debug("findByEvent: {}", event);
             Set<AlertTriggerEntity> set = alertTriggerRepository
@@ -419,7 +417,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 .stream()
                 .filter(
                     alert ->
-                        alert.getEnvironmentId().equals(executionContext.getEnvironmentId()) &&
                         alert.isTemplate() &&
                         alert.getEventRules() != null &&
                         alert.getEventRules().stream().map(AlertEventRule::getEvent).collect(Collectors.toList()).contains(event)
@@ -437,8 +434,8 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Override
     public void createDefaults(ExecutionContext executionContext, AlertReferenceType referenceType, String referenceId) {
-        if (getStatus().isEnabled()) {
-            Set<AlertTriggerEntity> defaultAlerts = findByEvent(executionContext, AlertEventType.API_CREATE);
+        if (getStatus(executionContext).isEnabled()) {
+            Set<AlertTriggerEntity> defaultAlerts = findByEvent(AlertEventType.API_CREATE);
 
             for (AlertTriggerEntity alert : defaultAlerts) {
                 AlertTrigger trigger = convert(alert);
@@ -454,7 +451,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 triggerEntity.setUpdatedAt(trigger.getCreatedAt());
 
                 try {
-                    create0(convert(triggerEntity));
+                    create0(executionContext, convert(triggerEntity));
                 } catch (TechnicalException te) {
                     LOGGER.error("Unable to create default alert", te);
                 }
@@ -465,7 +462,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     @Override
     public void applyDefaults(ExecutionContext executionContext, final String alertId, final AlertReferenceType referenceType) {
         try {
-            final Optional<AlertTrigger> optionalAlert = alertTriggerRepository.findByIdAndEnvironment(alertId, executionContext.getEnvironmentId());
+            final Optional<AlertTrigger> optionalAlert = alertTriggerRepository.findById(alertId);
             if (!optionalAlert.isPresent()) {
                 throw new AlertNotFoundException(alertId);
             }
@@ -486,7 +483,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                             public void accept(String apiId) {
                                 try {
                                     boolean create = alertTriggerRepository
-                                        .findByReference(AlertReferenceType.API.name(), apiId, executionContext.getEnvironmentId())
+                                        .findByReference(AlertReferenceType.API.name(), apiId)
                                         .stream()
                                         .noneMatch(alertTrigger -> alertId.equals(alertTrigger.getParentId()));
 
@@ -503,7 +500,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                                         triggerEntity.setCreatedAt(new Date());
                                         triggerEntity.setUpdatedAt(trigger.getCreatedAt());
 
-                                        create0(convert(triggerEntity));
+                                        create0(executionContext, convert(triggerEntity));
                                     }
                                 } catch (TechnicalException te) {
                                     LOGGER.error("Unable to create default alert for API {}", apiId, te);
@@ -519,7 +516,12 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         }
     }
 
-    private void enhance(final AlertTriggerEntity trigger, final AlertReferenceType referenceType, final String referenceId) {
+    private void enhance(
+        final ExecutionContext executionContext,
+        final AlertTriggerEntity trigger,
+        final AlertReferenceType referenceType,
+        final String referenceId
+    ) {
         // Notifications
         List<Notification> notifications = trigger.getNotifications();
         if (notifications == null) {
@@ -533,7 +535,8 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 @Override
                 public void accept(Notification notification) {
                     if (NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID.equalsIgnoreCase(notification.getType())) {
-                        setDefaultEmailNotifier(notification);
+                        // TODO : check
+                        setDefaultEmailNotifier(GraviteeContext.getExecutionContext(), notification);
                     }
                 }
             }
@@ -551,7 +554,10 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             case APPLICATION:
                 filters.add(StringCondition.equals(referenceType.name().toLowerCase(), referenceId).build());
                 break;
-            case PLATFORM:
+            case ENVIRONMENT:
+                //
+                //  TODO
+                //
                 // Add filters to make sure we will receive alert notifications only for events on the same organization / environment.
                 // For now, it seems that alerts are managed at organization level only. The behavior will change with https://github.com/gravitee-io/issues/issues/6079).
                 // It would be preferable to use a 'in' filter but this kind of filter does not exist yet. To keep backward compatibility we will rely on pattern matching.
@@ -559,47 +565,33 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     StringCondition
                         .matches(
                             ORGANIZATION.name().toLowerCase(),
-                            "(?:.*,|^)" + GraviteeContext.getCurrentOrganization() + "(?:,.*|$)|\\*",
+                            "(?:.*,|^)" + executionContext.getOrganizationId() + "(?:,.*|$)|\\*",
                             true
                         )
                         .build()
                 );
                 filters.add(
                     StringCondition
-                        .matches(
-                            ENVIRONMENT.name().toLowerCase(),
-                            "(?:.*|^)" + GraviteeContext.getCurrentEnvironment() + "(?:,.*|$)|\\*",
-                            true
-                        )
+                        .matches(ENVIRONMENT.name().toLowerCase(), "(?:.*|^)" + executionContext.getEnvironmentId() + "(?:,.*|$)|\\*", true)
                         .build()
                 );
                 break;
         }
     }
 
-    private void setDefaultEmailNotifier(Notification notification) {
+    private void setDefaultEmailNotifier(ExecutionContext executionContext, Notification notification) {
         EmailNotifierConfiguration configuration = new EmailNotifierConfiguration();
 
         if (host == null) {
-            configuration.setHost(
-                parameterService.find(GraviteeContext.getExecutionContext(), Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION)
-            );
-            final String emailPort = parameterService.find(
-                GraviteeContext.getExecutionContext(),
-                Key.EMAIL_PORT,
-                ParameterReferenceType.ORGANIZATION
-            );
+            configuration.setHost(parameterService.find(executionContext, Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION));
+            final String emailPort = parameterService.find(executionContext, Key.EMAIL_PORT, ParameterReferenceType.ORGANIZATION);
             if (emailPort != null) {
                 configuration.setPort(Integer.parseInt(emailPort));
             }
-            configuration.setUsername(
-                parameterService.find(GraviteeContext.getExecutionContext(), Key.EMAIL_USERNAME, ParameterReferenceType.ORGANIZATION)
-            );
-            configuration.setPassword(
-                parameterService.find(GraviteeContext.getExecutionContext(), Key.EMAIL_PASSWORD, ParameterReferenceType.ORGANIZATION)
-            );
+            configuration.setUsername(parameterService.find(executionContext, Key.EMAIL_USERNAME, ParameterReferenceType.ORGANIZATION));
+            configuration.setPassword(parameterService.find(executionContext, Key.EMAIL_PASSWORD, ParameterReferenceType.ORGANIZATION));
             configuration.setStartTLSEnabled(
-                parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION)
+                parameterService.findAsBoolean(executionContext, Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION)
             );
         } else {
             configuration.setHost(host);
@@ -626,13 +618,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         }
     }
 
-    private void checkAlert() {
+    private void checkAlert(ExecutionContext executionContext) {
         if (
-            !parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.ALERT_ENABLED,
-                ParameterReferenceType.ORGANIZATION
-            ) ||
+            !parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION) ||
             triggerProviderManager.findAll().isEmpty()
         ) {
             throw new AlertUnavailableException();
@@ -671,7 +659,13 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                             new Consumer<AlertTriggerEntity>() {
                                 @Override
                                 public void accept(AlertTriggerEntity alertTriggerEntity) {
-                                    enhance(alertTriggerEntity, alertTriggerEntity.getReferenceType(), alertTriggerEntity.getReferenceId());
+                                    // TODO : check ?
+                                    enhance(
+                                        GraviteeContext.getExecutionContext(),
+                                        alertTriggerEntity,
+                                        alertTriggerEntity.getReferenceType(),
+                                        alertTriggerEntity.getReferenceId()
+                                    );
                                     triggerOrCancelAlert(alertTriggerEntity);
                                 }
                             }
@@ -765,14 +759,21 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                             @Override
                             public void accept(Map.Entry<String, String> entry) {
                                 switch (entry.getKey()) {
+                                    // TODO : check
                                     case FIELD_API:
-                                        values.put(entry.getKey(), getAPIMetadata(entry.getValue()));
+                                        values.put(entry.getKey(), getAPIMetadata(GraviteeContext.getExecutionContext(), entry.getValue()));
                                         break;
                                     case FIELD_APPLICATION:
-                                        values.put(entry.getKey(), getApplicationMetadata(entry.getValue()));
+                                        values.put(
+                                            entry.getKey(),
+                                            getApplicationMetadata(GraviteeContext.getExecutionContext(), entry.getValue())
+                                        );
                                         break;
                                     case FIELD_PLAN:
-                                        values.put(entry.getKey(), getPlanMetadata(entry.getValue()));
+                                        values.put(
+                                            entry.getKey(),
+                                            getPlanMetadata(GraviteeContext.getExecutionContext(), entry.getValue())
+                                        );
                                         break;
                                 }
                             }
@@ -783,7 +784,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return values;
         }
 
-        private Map<String, Object> getAPIMetadata(String api) {
+        private Map<String, Object> getAPIMetadata(ExecutionContext executionContext, String api) {
             Map<String, Object> metadata = new HashMap<>();
 
             try {
@@ -791,7 +792,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), api);
+                    ApiEntity apiEntity = apiService.findById(executionContext, api);
                     metadata = mapper.convertValue(apiEntity, Map.class);
                     metadata.put("id", api);
                     metadata.put("primaryOwner", mapper.convertValue(apiEntity.getPrimaryOwner(), Map.class));
@@ -817,7 +818,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return metadata;
         }
 
-        private Map<String, Object> getApplicationMetadata(String application) {
+        private Map<String, Object> getApplicationMetadata(ExecutionContext executionContext, String application) {
             Map<String, Object> metadata = new HashMap<>();
 
             try {
@@ -825,7 +826,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), application);
+                    ApplicationEntity applicationEntity = applicationService.findById(executionContext, application);
                     metadata = mapper.convertValue(applicationEntity, Map.class);
                     metadata.remove("picture");
                 }
@@ -837,11 +838,11 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return metadata;
         }
 
-        private Map<String, Object> getPlanMetadata(String plan) {
+        private Map<String, Object> getPlanMetadata(ExecutionContext executionContext, String plan) {
             Map<String, Object> metadata = new HashMap<>();
 
             try {
-                PlanEntity planEntity = planService.findById(GraviteeContext.getExecutionContext(), plan);
+                PlanEntity planEntity = planService.findById(executionContext, plan);
                 metadata = mapper.convertValue(planEntity, Map.class);
             } catch (PlanNotFoundException anfe) {
                 metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
@@ -904,7 +905,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         return alert;
     }
 
-    private AlertTrigger convert(ExecutionContext executionContext, final NewAlertTriggerEntity alertEntity) {
+    private AlertTrigger convert(final NewAlertTriggerEntity alertEntity) {
         final AlertTrigger alert = new AlertTrigger();
         alert.setId(UUID.toString(UUID.random()));
         alertEntity.setId(alert.getId());
@@ -916,7 +917,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         alert.setType(alertEntity.getType());
         alert.setSeverity(alertEntity.getSeverity().name());
         alert.setTemplate(alertEntity.isTemplate());
-        alert.setEnvironmentId(executionContext.getEnvironmentId());
 
         if (alertEntity.getEventRules() != null && !alertEntity.getEventRules().isEmpty()) {
             alert.setEventRules(
@@ -945,7 +945,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         alert.setDescription(alertEntity.getDescription());
         alert.setEnabled(alertEntity.isEnabled());
         alert.setSeverity(alertEntity.getSeverity().name());
-        alert.setEnvironmentId(alertEntity.getEnvironmentId());
 
         if (alertEntity.getEventRules() != null && !alertEntity.getEventRules().isEmpty()) {
             alert.setEventRules(

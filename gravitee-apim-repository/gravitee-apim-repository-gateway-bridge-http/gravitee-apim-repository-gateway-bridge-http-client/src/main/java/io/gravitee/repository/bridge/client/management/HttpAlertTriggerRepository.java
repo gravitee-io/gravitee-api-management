@@ -36,12 +36,7 @@ public class HttpAlertTriggerRepository extends AbstractRepository implements Al
     }
 
     @Override
-    public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds, String environmentId) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Optional<AlertTrigger> findByIdAndEnvironment(String id, String environmentId) throws TechnicalException {
+    public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) throws TechnicalException {
         throw new IllegalStateException();
     }
 

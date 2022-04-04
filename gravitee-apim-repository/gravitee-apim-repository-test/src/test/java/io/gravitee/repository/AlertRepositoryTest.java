@@ -147,21 +147,21 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByReference() throws Exception {
-        final List<AlertTrigger> alerts = alertRepository.findByReference("API", "api-id", "DEFAULT");
+        final List<AlertTrigger> alerts = alertRepository.findByReference("API", "api-id");
         assertNotNull(alerts);
         assertEquals(1, alerts.size());
     }
 
     @Test
     public void shouldFindByReferenceAndReferenceIds() throws Exception {
-        final List<AlertTrigger> alerts = alertRepository.findByReferenceAndReferenceIds("API", Arrays.asList("api-id", "application-id"), "DEFAULT");
+        final List<AlertTrigger> alerts = alertRepository.findByReferenceAndReferenceIds("API", Arrays.asList("api-id", "application-id"));
         assertNotNull(alerts);
         assertEquals(2, alerts.size());
     }
 
     @Test
     public void shouldFindByReferenceAndReferenceIds_andReturnEmptyListWhenInputListIsEmpty() throws Exception {
-        final List<AlertTrigger> alerts = alertRepository.findByReferenceAndReferenceIds("API", Collections.emptyList(), "DEFAULT");
+        final List<AlertTrigger> alerts = alertRepository.findByReferenceAndReferenceIds("API", Collections.emptyList());
         assertNotNull(alerts);
         assertEquals(0, alerts.size());
     }

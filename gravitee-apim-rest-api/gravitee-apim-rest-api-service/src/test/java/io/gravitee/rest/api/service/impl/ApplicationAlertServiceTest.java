@@ -182,7 +182,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<NewAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(NewAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).create(GraviteeContext.getExecutionContext(), alertCaptor.capture());
+        verify(alertService, times(1)).create(eq(GraviteeContext.getExecutionContext()), alertCaptor.capture());
         assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getProperty()).isEqualTo("application");
         assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getPattern()).isEqualTo(APPLICATION_ID);
 
@@ -210,7 +210,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<NewAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(NewAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).create(GraviteeContext.getExecutionContext(), alertCaptor.capture());
+        verify(alertService, times(1)).create(eq(GraviteeContext.getExecutionContext()), alertCaptor.capture());
 
         assertThat(alertCaptor.getValue().getNotifications().size()).isEqualTo(3);
 
@@ -237,21 +237,21 @@ public class ApplicationAlertServiceTest {
     @Test
     public void shouldUpdate() throws Exception {
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
-        when(alertService.findById(GraviteeContext.getExecutionContext(), ALERT_ID)).thenReturn(alertTrigger);
+        when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
 
         UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
         updating.setId(ALERT_ID);
 
         cut.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updating);
 
-        verify(alertService, times(1)).update(updating);
+        verify(alertService, times(1)).update(GraviteeContext.getExecutionContext(), updating);
     }
 
     @Test
     public void shouldUpdateAlertWithApiFilter() {
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         alertTrigger.setFilters(singletonList(StringCondition.equals("application", APPLICATION_ID).build()));
-        when(alertService.findById(GraviteeContext.getExecutionContext(), ALERT_ID)).thenReturn(alertTrigger);
+        when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
 
         UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
         updating.setId(ALERT_ID);
@@ -261,7 +261,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).update(alertCaptor.capture());
+        verify(alertService, times(1)).update(eq(GraviteeContext.getExecutionContext()), alertCaptor.capture());
         assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getProperty()).isEqualTo("application");
         assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getPattern()).isEqualTo(APPLICATION_ID);
 
@@ -278,7 +278,7 @@ public class ApplicationAlertServiceTest {
         existingNotification2.setType("webhook-notifier");
         when(alertTrigger.getNotifications()).thenReturn(new ArrayList<>(List.of(existingNotification1, existingNotification2)));
 
-        when(alertService.findById(GraviteeContext.getExecutionContext(), ALERT_ID)).thenReturn(alertTrigger);
+        when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
 
         UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
         updating.setId(ALERT_ID);
@@ -292,7 +292,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).update(alertCaptor.capture());
+        verify(alertService, times(1)).update(eq(GraviteeContext.getExecutionContext()), alertCaptor.capture());
 
         assertThat(alertCaptor.getValue().getNotifications().size()).isEqualTo(3);
 
@@ -318,7 +318,7 @@ public class ApplicationAlertServiceTest {
         triggers.add(trigger1);
         triggers.add(trigger2);
 
-        when(alertService.findByReference(GraviteeContext.getExecutionContext(), AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
+        when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
 
         JsonNode emailNode = JsonNodeFactory.instance
             .objectNode()
@@ -333,7 +333,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(2)).update(updatingCaptor.capture());
+        verify(alertService, times(2)).update(eq(GraviteeContext.getExecutionContext()), updatingCaptor.capture());
 
         final UpdateAlertTriggerEntity updating = updatingCaptor.getValue();
         assertThat(updating.getNotifications().get(0).getConfiguration()).contains("to,add@mail.gio");
@@ -347,7 +347,7 @@ public class ApplicationAlertServiceTest {
         List<AlertTriggerEntity> triggers = new ArrayList<>();
         triggers.add(trigger1);
 
-        when(alertService.findByReference(GraviteeContext.getExecutionContext(), AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
+        when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(getApplication());
 
         cut.addMemberToApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, "add@mail.gio");
@@ -359,13 +359,13 @@ public class ApplicationAlertServiceTest {
         final List<Notification> notifications = notificationsCaptor.getValue();
         assertThat(notifications.get(0).getConfiguration()).contains("\"add@mail.gio\"");
 
-        verify(alertService, times(1)).update(any());
+        verify(alertService, times(1)).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
     public void shouldNotAddMemberEmptyMail() throws Exception {
         cut.addMemberToApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, "");
-        verify(alertService, never()).update(any());
+        verify(alertService, never()).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -379,7 +379,7 @@ public class ApplicationAlertServiceTest {
         List<AlertTriggerEntity> triggers = new ArrayList<>();
         triggers.add(trigger1);
 
-        when(alertService.findByReference(GraviteeContext.getExecutionContext(), AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
+        when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
 
         when(mapper.readTree(notification.getConfiguration())).thenThrow(JsonProcessingException.class);
 
@@ -403,7 +403,7 @@ public class ApplicationAlertServiceTest {
         triggers.add(trigger1);
         triggers.add(trigger2);
 
-        when(alertService.findByReference(GraviteeContext.getExecutionContext(), AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
+        when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
 
         JsonNode emailNode = JsonNodeFactory.instance
             .objectNode()
@@ -418,7 +418,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(2)).update(updatingCaptor.capture());
+        verify(alertService, times(2)).update(eq(GraviteeContext.getExecutionContext()), updatingCaptor.capture());
 
         final UpdateAlertTriggerEntity updating = updatingCaptor.getValue();
         assertThat(updating.getNotifications().get(0).getConfiguration()).contains("to");
@@ -428,7 +428,7 @@ public class ApplicationAlertServiceTest {
     @Test
     public void shouldNotDeleteMemberEmptyMail() throws Exception {
         cut.deleteMemberFromApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, "");
-        verify(alertService, never()).update(any());
+        verify(alertService, never()).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -442,7 +442,7 @@ public class ApplicationAlertServiceTest {
         List<AlertTriggerEntity> triggers = new ArrayList<>();
         triggers.add(trigger1);
 
-        when(alertService.findByReference(GraviteeContext.getExecutionContext(), AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
+        when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
 
         when(mapper.readTree(notification.getConfiguration())).thenThrow(JsonProcessingException.class);
 
@@ -469,7 +469,7 @@ public class ApplicationAlertServiceTest {
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_RATE");
-        when(alertService.findByReferenceAndReferenceIds(GraviteeContext.getExecutionContext(), AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
+        when(alertService.findByReferenceAndReferenceIds(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
             .thenReturn(Collections.singletonList(alertTrigger));
 
         Notification notification = new Notification();
@@ -489,7 +489,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).update(updatingCaptor.capture());
+        verify(alertService, times(1)).update(any(), updatingCaptor.capture());
 
         final UpdateAlertTriggerEntity updating = updatingCaptor.getValue();
         assertThat(updating.getNotifications().get(0).getConfiguration()).contains("notification-template-content");
@@ -516,7 +516,7 @@ public class ApplicationAlertServiceTest {
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_AGGREGATION");
-        when(alertService.findByReferenceAndReferenceIds(GraviteeContext.getExecutionContext(), AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
+        when(alertService.findByReferenceAndReferenceIds(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
             .thenReturn(Collections.singletonList(alertTrigger));
 
         Notification notification = new Notification();
@@ -536,7 +536,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).update(updatingCaptor.capture());
+        verify(alertService, times(1)).update(any(), updatingCaptor.capture());
 
         final UpdateAlertTriggerEntity updating = updatingCaptor.getValue();
         assertThat(updating.getNotifications().get(0).getConfiguration()).contains("notification-template-content");
@@ -563,14 +563,14 @@ public class ApplicationAlertServiceTest {
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_AGGREGATION");
-        when(alertService.findByReferenceAndReferenceIds(GraviteeContext.getExecutionContext(), AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
+        when(alertService.findByReferenceAndReferenceIds(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
             .thenReturn(Collections.singletonList(alertTrigger));
 
         when(alertTrigger.getNotifications()).thenReturn(Collections.emptyList());
 
         cut.handleEvent(event);
 
-        verify(alertService, times(0)).update(any());
+        verify(alertService, times(0)).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     private ApplicationEntity getApplication() {

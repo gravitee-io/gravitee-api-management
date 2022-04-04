@@ -76,8 +76,8 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({ @Permission(value = APPLICATION_ALERT, acls = READ) })
     public List<AlertTriggerEntity> getApplicationAlerts(@QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
         return withEventCounts
-            ? alertService.findByReferenceWithEventCounts(GraviteeContext.getExecutionContext(), APPLICATION, application)
-            : alertService.findByReference(GraviteeContext.getExecutionContext(), APPLICATION, application);
+            ? alertService.findByReferenceWithEventCounts(APPLICATION, application)
+            : alertService.findByReference(APPLICATION, application);
     }
 
     @GET
@@ -92,7 +92,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ) })
     public AlertStatusEntity getApplicationAlertsStatus() {
-        return alertService.getStatus();
+        return alertService.getStatus(GraviteeContext.getExecutionContext());
     }
 
     @POST
@@ -137,8 +137,7 @@ public class ApplicationAlertsResource extends AbstractResource {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(APPLICATION);
         alertEntity.setReferenceId(application);
-        alertEntity.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
-        return alertService.update(alertEntity);
+        return alertService.update(GraviteeContext.getExecutionContext(), alertEntity);
     }
 
     @Path("{alert}")
@@ -156,6 +155,6 @@ public class ApplicationAlertsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.DELETE) })
     public void deleteApplicationAlert(@PathParam("alert") String alert) {
-        alertService.delete(GraviteeContext.getExecutionContext(), alert, application);
+        alertService.delete(alert, application);
     }
 }

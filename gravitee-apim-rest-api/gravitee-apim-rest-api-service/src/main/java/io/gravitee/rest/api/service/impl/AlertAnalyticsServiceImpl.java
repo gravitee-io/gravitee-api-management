@@ -30,7 +30,6 @@ import io.gravitee.rest.api.model.AlertAnalyticsQuery;
 import io.gravitee.rest.api.model.alert.AlertAnalyticsEntity;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.service.AlertAnalyticsService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -61,10 +60,10 @@ public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
     }
 
     @Override
-    public AlertAnalyticsEntity findByReference(ExecutionContext executionContext, AlertReferenceType referenceType, String referenceId, AlertAnalyticsQuery analyticsQuery) {
+    public AlertAnalyticsEntity findByReference(AlertReferenceType referenceType, String referenceId, AlertAnalyticsQuery analyticsQuery) {
         try {
             Map<String, AlertTrigger> triggersById = alertTriggerRepository
-                .findByReference(referenceType.name(), referenceId, executionContext.getEnvironmentId())
+                .findByReference(referenceType.name(), referenceId)
                 .stream()
                 .collect(toMap(AlertTrigger::getId, trigger -> trigger));
             Map<AlertTrigger, HashSet<AlertEvent>> eventsByAlert = triggersById
