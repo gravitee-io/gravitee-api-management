@@ -1064,6 +1064,46 @@ jobs:
                             name: Version not set - nothing to run
                             command: exit 0
 
+    mongo-test-container:
+        parameters:
+            version:
+                type: string
+                description: version of the database to test
+                default: ""
+        machine:
+            image: ubuntu-2004:current
+        resource_class: medium
+        steps:
+            - when:
+                  condition: << parameters.version >>
+                  steps:
+                      - checkout
+                      - attach_workspace:
+                            at: .
+                      - restore-maven-cache
+                      - run:
+                            name: Run repository tests with MongoDB << parameters.version >>
+                            command: |
+                                cd gravitee-apim-repository
+                                mvn -pl 'gravitee-apim-repository-mongodb' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -DmongoVersion=<< parameters.version>> -T 2C
+                      - run:
+                            name: Save test results
+                            command: |
+                                mkdir -p ~/test-results/junit/
+                                find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+                            when: always
+                      - save-maven-cache
+                      - store_test_results:
+                            path: ~/test-results
+                      - notify-on-failure
+            - when:
+                  condition:
+                      not: << parameters.version >>
+                  steps:
+                      - run:
+                            name: Version not set - nothing to run
+                            command: exit 0
+
 workflows:
     pull_requests:
         when:
@@ -1307,7 +1347,7 @@ workflows:
                   requires:
                       - setup
 
-    jdbc_test_container:
+    db_repositories_test_container:
         triggers:
             - schedule:
                   cron: "0 12 * * *"
@@ -1338,3 +1378,9 @@ workflows:
                                   "mysql~8.0.28",
                                   "sqlserver~2017-CU12",
                               ]
+            - mongo-test-container:
+                  requires:
+                      - setup
+                  matrix:
+                      parameters:
+                          version: ["3", "4", "5"]
