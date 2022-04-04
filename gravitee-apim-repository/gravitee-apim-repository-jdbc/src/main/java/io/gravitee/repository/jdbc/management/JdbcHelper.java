@@ -19,9 +19,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -44,67 +42,29 @@ public class JdbcHelper {
         private final RowMapper<T> mapper;
         private final ChildAdder<T> childAdder;
         private final String idColumn;
-        private final List<T> rows;
-        private Comparable lastId;
-        private T current;
+        private final Map<Comparable, T> rows;
 
         CollatingRowMapper(RowMapper mapper, ChildAdder<T> childAdder, String idColumn) {
             this.mapper = mapper;
             this.childAdder = childAdder;
             this.idColumn = idColumn;
-            this.rows = new ArrayList<>();
+            this.rows = new LinkedHashMap<>();
         }
 
         @Override
         public void processRow(ResultSet rs) throws SQLException {
+            T current;
             Comparable currentId = (Comparable) rs.getObject(idColumn);
-            if ((lastId == null) || (lastId.compareTo(currentId) != 0)) {
-                lastId = currentId;
+            current = rows.get(currentId);
+            if (current == null) {
                 current = mapper.mapRow(rs, rows.size() + 1);
-                rows.add(current);
+                rows.put(currentId, current);
             }
             childAdder.addChild(current, rs);
         }
 
         public List<T> getRows() {
-            return rows;
-        }
-    }
-
-    public static class CollatingRowMapperTwoColumn<T> implements RowCallbackHandler {
-
-        private final RowMapper<T> mapper;
-        private final ChildAdder<T> childAdder;
-        private final String idColumn1;
-        private final String idColumn2;
-        private final List<T> rows;
-        private Comparable lastId1;
-        private Comparable lastId2;
-        private T current;
-
-        CollatingRowMapperTwoColumn(RowMapper mapper, ChildAdder<T> childAdder, String idColumn1, String idColumn2) {
-            this.mapper = mapper;
-            this.childAdder = childAdder;
-            this.idColumn1 = idColumn1;
-            this.idColumn2 = idColumn2;
-            this.rows = new ArrayList<>();
-        }
-
-        @Override
-        public void processRow(ResultSet rs) throws SQLException {
-            Comparable currentId1 = (Comparable) rs.getObject(idColumn1);
-            Comparable currentId2 = (Comparable) rs.getObject(idColumn2);
-            if ((lastId1 == null) || (lastId1.compareTo(currentId1) != 0) || (lastId2 == null) || (lastId2.compareTo(currentId2) != 0)) {
-                lastId1 = currentId1;
-                lastId2 = currentId2;
-                current = mapper.mapRow(rs, rows.size() + 1);
-                rows.add(current);
-            }
-            childAdder.addChild(current, rs);
-        }
-
-        public List<T> getRows() {
-            return rows;
+            return new ArrayList<>(rows.values());
         }
     }
 
