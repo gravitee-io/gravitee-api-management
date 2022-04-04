@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
@@ -22,6 +23,7 @@ import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -58,4 +60,6 @@ public interface PlanService {
     PlanEntity createOrUpdatePlan(ExecutionContext executionContext, PlanEntity planEntity);
 
     boolean anyPlanMismatchWithApi(List<String> planIds, String apiId);
+
+    Map<String, Object> findByIdAsMap(String id) throws TechnicalException;
 }

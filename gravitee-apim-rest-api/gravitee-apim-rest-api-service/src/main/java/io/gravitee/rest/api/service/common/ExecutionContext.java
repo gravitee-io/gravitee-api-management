@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.common;
 
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,6 +33,10 @@ public class ExecutionContext {
     public ExecutionContext(String organizationId, String environmentId) {
         this.organizationId = organizationId;
         this.environmentId = Optional.ofNullable(environmentId);
+    }
+
+    public ExecutionContext(EnvironmentEntity environment) {
+        this(environment.getOrganizationId(), environment.getId());
     }
 
     public String getOrganizationId() {

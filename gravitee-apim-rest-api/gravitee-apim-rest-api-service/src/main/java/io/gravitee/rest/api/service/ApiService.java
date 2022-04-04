@@ -215,4 +215,6 @@ public interface ApiService {
     Map<String, Long> countPublishedByUserGroupedByCategories(String userId);
 
     void calculateEntrypoints(ExecutionContext executionContext, ApiEntity api);
+
+    Map<String, Object> findByIdAsMap(String api) throws TechnicalException;
 }

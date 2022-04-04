@@ -255,6 +255,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private ConnectorService connectorService;
 
     @Autowired
+    private EnvironmentService environmentService;
+
+    @Autowired
     private ApiConverter apiConverter;
 
     @Value("${configuration.default-api-icon:}")
@@ -889,6 +892,34 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         api.setEntrypoints(apiEntrypoints);
+    }
+
+    @Override
+    public Map<String, Object> findByIdAsMap(String id) throws TechnicalException {
+        Api api = apiRepository.findById(id).orElseThrow(() -> new ApiNotFoundException(id));
+
+        ExecutionContext executionContext = new ExecutionContext(environmentService.findById(api.getEnvironmentId()));
+
+        ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api), null);
+
+        Map<String, Object> dataAsMap = objectMapper.convertValue(apiEntity, Map.class);
+        dataAsMap.put("id", api);
+        dataAsMap.put("primaryOwner", objectMapper.convertValue(apiEntity.getPrimaryOwner(), Map.class));
+        dataAsMap.remove("picture");
+        dataAsMap.remove("proxy");
+        dataAsMap.remove("paths");
+        dataAsMap.remove("properties");
+        dataAsMap.remove("services");
+        dataAsMap.remove("resources");
+        dataAsMap.remove("response_templates");
+        dataAsMap.remove("path_mappings");
+
+        final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(id);
+        final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
+        metadataList.forEach(m -> mapMetadata.put(m.getKey(), m.getValue() == null ? m.getDefaultValue() : m.getValue()));
+        dataAsMap.put("metadata", objectMapper.convertValue(mapMetadata, Map.class));
+
+        return dataAsMap;
     }
 
     private String getScheme(String defaultEntrypoint) {
