@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
+import io.gravitee.rest.api.model.settings.Alert;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -33,16 +34,16 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class AlertsEnvironmentpgrader extends OneShotUpgrader {
+public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlertsEnvironmentpgrader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AlertsEnvironmentUpgrader.class);
 
     private final AlertTriggerRepository alertTriggerRepository;
 
     private final EnvironmentRepository environmentRepository;
 
     @Autowired
-    public AlertsEnvironmentpgrader(AlertTriggerRepository alertTriggerRepository, EnvironmentRepository environmentRepository) {
+    public AlertsEnvironmentUpgrader(AlertTriggerRepository alertTriggerRepository, EnvironmentRepository environmentRepository) {
         super(InstallationService.ALERTS_ENVIRONMENT_UPGRADER);
         this.alertTriggerRepository = alertTriggerRepository;
         this.environmentRepository = environmentRepository;
@@ -50,7 +51,7 @@ public class AlertsEnvironmentpgrader extends OneShotUpgrader {
 
     @Override
     public int getOrder() {
-        return 501;
+        return 500;
     }
 
     @Override
@@ -89,8 +90,9 @@ public class AlertsEnvironmentpgrader extends OneShotUpgrader {
     }
 
     private void createAlertTrigger(Environment environment, AlertTrigger alertTrigger) throws TechnicalException {
-        alertTrigger.setId(null);
-        alertTrigger.setReferenceId(environment.getId());
-        alertTriggerRepository.create(alertTrigger);
+        AlertTrigger newAlertTrigger = new AlertTrigger(alertTrigger);
+        newAlertTrigger.setId(null);
+        newAlertTrigger.setReferenceId(environment.getId());
+        alertTriggerRepository.create(newAlertTrigger);
     }
 }

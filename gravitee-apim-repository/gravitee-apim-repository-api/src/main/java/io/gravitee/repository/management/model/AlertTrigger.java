@@ -31,6 +31,25 @@ public class AlertTrigger {
         ALERT_TRIGGER_DELETED,
     }
 
+    public AlertTrigger() {}
+
+    public AlertTrigger(AlertTrigger cloned) {
+        id = cloned.id;
+        name = cloned.name;
+        description = cloned.description;
+        type = cloned.type;
+        definition = cloned.definition;
+        enabled = cloned.enabled;
+        referenceType = cloned.referenceType;
+        referenceId = cloned.referenceId;
+        createdAt = cloned.createdAt;
+        updatedAt = cloned.updatedAt;
+        severity = cloned.severity;
+        parentId = cloned.parentId;
+        eventRules = cloned.eventRules;
+        template = cloned.template;
+    }
+
     private String id;
 
     private String name;
