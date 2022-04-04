@@ -19,6 +19,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import javax.inject.Inject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -35,12 +36,15 @@ import org.testcontainers.utility.DockerImageName;
 @EnableMongoRepositories
 public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
+    @Value("${environment.mongoVersion:4.4.6}")
+    private String mongoVersion;
+
     @Inject
     private MongoDBContainer mongoDBContainer;
 
     @Bean(destroyMethod = "stop")
     public MongoDBContainer mongoDBContainer() {
-        MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:4.4.6"));
+        MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:" + mongoVersion));
         mongoDb.start();
         return mongoDb;
     }
