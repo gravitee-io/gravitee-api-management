@@ -605,7 +605,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     .filter(alertTriggerEntity -> !alertTriggerEntity.isTemplate())
                     .forEach(
                         alertTriggerEntity -> {
-                            // TODO : here we use context organization ID to retrieve email notification settings
+                            // FIXME : here we use context organization ID to retrieve email notification settings
                             // We should loop on alerts by organization, in order to retrieve the right email settings
                             enhance(
                                 GraviteeContext.getExecutionContext(),
@@ -688,24 +688,26 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             Map<String, String> properties = command.getProperties();
             Map<String, Map<String, Object>> values = new HashMap<>();
 
+            // FIXME : command property should contain information about the executionContext in order to use the right context to retrieve metadatas
+            ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
             if (properties != null) {
                 properties
                     .entrySet()
                     .forEach(
                         entry -> {
                             switch (entry.getKey()) {
-                                // TODO : check
                                 case FIELD_API:
-                                    values.put(entry.getKey(), getAPIMetadata(GraviteeContext.getExecutionContext(), entry.getValue()));
+                                    values.put(entry.getKey(), getAPIMetadata(executionContext, entry.getValue()));
                                     break;
                                 case FIELD_APPLICATION:
                                     values.put(
                                         entry.getKey(),
-                                        getApplicationMetadata(GraviteeContext.getExecutionContext(), entry.getValue())
+                                        getApplicationMetadata(executionContext, entry.getValue())
                                     );
                                     break;
                                 case FIELD_PLAN:
-                                    values.put(entry.getKey(), getPlanMetadata(GraviteeContext.getExecutionContext(), entry.getValue()));
+                                    values.put(entry.getKey(), getPlanMetadata(executionContext, entry.getValue()));
                                     break;
                             }
                         }
