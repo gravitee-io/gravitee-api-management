@@ -634,7 +634,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             }
         );
 
-
         triggerProvider.addListener(
             new TriggerProvider.OnCommandResultListener() {
                 @Override
@@ -701,10 +700,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                                     values.put(entry.getKey(), getAPIMetadata(executionContext, entry.getValue()));
                                     break;
                                 case FIELD_APPLICATION:
-                                    values.put(
-                                        entry.getKey(),
-                                        getApplicationMetadata(executionContext, entry.getValue())
-                                    );
+                                    values.put(entry.getKey(), getApplicationMetadata(executionContext, entry.getValue()));
                                     break;
                                 case FIELD_PLAN:
                                     values.put(entry.getKey(), getPlanMetadata(executionContext, entry.getValue()));

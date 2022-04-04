@@ -17,7 +17,9 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -37,10 +39,13 @@ public class AlertsEnvironmentpgrader extends OneShotUpgrader {
 
     private final AlertTriggerRepository alertTriggerRepository;
 
+    private final EnvironmentRepository environmentRepository;
+
     @Autowired
-    public AlertsEnvironmentpgrader(AlertTriggerRepository alertTriggerRepository) {
+    public AlertsEnvironmentpgrader(AlertTriggerRepository alertTriggerRepository, EnvironmentRepository environmentRepository) {
         super(InstallationService.ALERTS_ENVIRONMENT_UPGRADER);
         this.alertTriggerRepository = alertTriggerRepository;
+        this.environmentRepository = environmentRepository;
     }
 
     @Override
@@ -50,18 +55,42 @@ public class AlertsEnvironmentpgrader extends OneShotUpgrader {
 
     @Override
     protected void processOneShotUpgrade(ExecutionContext executionContext) throws TechnicalException {
-        alertTriggerRepository.findAll().forEach(this::updateAlertTrigger);
+        alertTriggerRepository
+            .findAll()
+            .stream()
+            .filter(alert -> "PLATFORM".equals(alert.getReferenceType()))
+            .forEach(this::handleEnvironmentAlert);
     }
 
-    private void updateAlertTrigger(AlertTrigger alertTrigger) {
+    private void handleEnvironmentAlert(AlertTrigger alertTrigger) {
         try {
-            if ("PLATFORM".equals(alertTrigger.getReferenceType())) {
-                alertTrigger.setReferenceType(AlertReferenceType.ENVIRONMENT.name());
-                alertTrigger.setReferenceId(GraviteeContext.getDefaultEnvironment());
-                alertTriggerRepository.update(alertTrigger);
-            }
+            // update the current alert : set it the default environment
+            alertTrigger.setReferenceType(AlertReferenceType.ENVIRONMENT.name());
+            alertTrigger.setReferenceId(GraviteeContext.getDefaultEnvironment());
+            alertTriggerRepository.update(alertTrigger);
+
+            // duplicate it on all others environments
+            environmentRepository
+                .findAll()
+                .stream()
+                .filter(environment -> !GraviteeContext.getDefaultEnvironment().equals(environment.getId()))
+                .forEach(
+                    environment -> {
+                        try {
+                            createAlertTrigger(environment, alertTrigger);
+                        } catch (TechnicalException e) {
+                            LOGGER.error("Failed to duplicate alert {} to environment {}", alertTrigger.getId(), environment.getId(), e);
+                        }
+                    }
+                );
         } catch (TechnicalException e) {
-            LOGGER.error("Failed to set alertTrigger default environment", alertTrigger, e);
+            LOGGER.error("Failed to handle alert {}", alertTrigger.getId(), e);
         }
+    }
+
+    private void createAlertTrigger(Environment environment, AlertTrigger alertTrigger) throws TechnicalException {
+        alertTrigger.setId(null);
+        alertTrigger.setReferenceId(environment.getId());
+        alertTriggerRepository.create(alertTrigger);
     }
 }
