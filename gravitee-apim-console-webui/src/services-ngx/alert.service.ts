@@ -32,7 +32,7 @@ export class AlertService {
     return this.http.get<Installation>(`${this.constants.org.baseURL}/installation`);
   }
 
-  getStatus(referenceType: Scope.PLATFORM): Observable<AlertStatus>;
+  getStatus(referenceType: Scope.ENVIRONMENT): Observable<AlertStatus>;
   getStatus(referenceType: Scope, referenceId: string): Observable<AlertStatus>;
   getStatus(referenceType: Scope, referenceId?: string): Observable<AlertStatus> {
     return this.http.get<AlertStatus>(`${this.getReferenceURL(referenceType, referenceId)}/alerts/status`);

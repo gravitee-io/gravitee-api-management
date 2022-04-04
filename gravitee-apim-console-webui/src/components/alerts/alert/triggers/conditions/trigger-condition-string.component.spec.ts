@@ -16,17 +16,63 @@
 import { IComponentControllerService } from 'angular';
 
 import { setupAngularJsTesting } from '../../../../../../jest.setup';
+import { Metrics, Scope } from '../../../../../entities/alert';
 
 setupAngularJsTesting();
 
 describe('AlertTriggerConditionStringComponent', () => {
   let $componentController: IComponentControllerService;
+  let $state;
   let alertTriggerConditionStringComponent: any;
 
-  beforeEach(inject((_$componentController_) => {
+  beforeEach(inject((_$state_, _$componentController_) => {
     $componentController = _$componentController_;
+    $state = _$state_;
     alertTriggerConditionStringComponent = $componentController('gvAlertTriggerConditionString', null, {});
   }));
+
+  describe('onInit', () => {
+    const metric: any = {} as Metrics;
+    let metricLoaderSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      metric.key = 'test-property';
+      metric.loader = () => {
+        return 'test';
+      };
+      metricLoaderSpy = jest.spyOn(metric, 'loader');
+
+      alertTriggerConditionStringComponent.condition = { property: 'test-property' };
+      alertTriggerConditionStringComponent.metrics = [metric];
+    });
+
+    it('should call loader with environment type', () => {
+      $state.params.apiId = undefined;
+      $state.params.applicationId = undefined;
+
+      alertTriggerConditionStringComponent.$onInit();
+
+      expect(metricLoaderSpy).toHaveBeenCalledWith(Scope.ENVIRONMENT, undefined, expect.anything());
+    });
+
+    it('should call loader with API type', () => {
+      $state.params.apiId = 'test-api-id';
+      $state.params.applicationId = undefined;
+
+      alertTriggerConditionStringComponent.$onInit();
+
+      expect(metricLoaderSpy).toHaveBeenCalledWith(Scope.API, 'test-api-id', expect.anything());
+    });
+
+    it('should call loader with APPLICATION type', () => {
+      $state.params.apiId = undefined;
+      $state.params.applicationId = 'test-application-id';
+
+      alertTriggerConditionStringComponent.$onInit();
+
+      expect(metricLoaderSpy).toHaveBeenCalledWith(Scope.APPLICATION, 'test-application-id', expect.anything());
+    });
+  });
 
   describe('displaySelect', () => {
     describe('values are set', () => {

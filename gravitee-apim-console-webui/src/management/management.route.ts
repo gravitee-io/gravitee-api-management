@@ -127,8 +127,9 @@ function managementRouterConfig($stateProvider) {
       controllerAs: '$ctrl',
       resolve: {
         configuredAlerts: (AlertService: AlertService) =>
-          AlertService.listAlerts(undefined, Scope.PLATFORM, false).then((response) => response.data),
-        alertingStatus: (AlertService: AlertService) => AlertService.getStatus(undefined, Scope.PLATFORM).then((response) => response.data),
+          AlertService.listAlerts(undefined, Scope.ENVIRONMENT, false).then((response) => response.data),
+        alertingStatus: (AlertService: AlertService) =>
+          AlertService.getStatus(undefined, Scope.ENVIRONMENT).then((response) => response.data),
       },
       data: {
         docs: {

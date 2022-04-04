@@ -215,6 +215,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApiConverter apiConverter;
 
     @Autowired
+    protected AlertService alertService;
+
+    @Autowired
+    protected AlertAnalyticsService alertAnalyticsService;
+
+    @Autowired
     protected JsonPatchService jsonPatchService;
 
     @Autowired
@@ -502,6 +508,16 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ApiConverter apiConverter() {
             return mock(ApiConverter.class);
+        }
+
+        @Bean
+        public AlertService alertService() {
+            return mock(AlertService.class);
+        }
+
+        @Bean
+        public AlertAnalyticsService alertAnalyticsService() {
+            return mock(AlertAnalyticsService.class);
         }
 
         @Bean

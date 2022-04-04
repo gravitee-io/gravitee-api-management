@@ -77,6 +77,7 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
         final Date date = new Date(1439022010883L);
         alert.setCreatedAt(date);
         alert.setUpdatedAt(date);
+        alert.setEnvironmentId("environment-id");
 
         int nbAlertsBeforeCreation = alertRepository.findAll().size();
         alertRepository.create(alert);
@@ -94,6 +95,7 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
         assertEquals(alert.getType(), fetchedAlert.getType());
         assertEquals(alert.getDefinition(), fetchedAlert.getDefinition());
         assertEquals(alert.isEnabled(), fetchedAlert.isEnabled());
+        assertEquals(alert.getEnvironmentId(), fetchedAlert.getEnvironmentId());
         assertTrue(compareDate(alert.getCreatedAt(), fetchedAlert.getCreatedAt()));
         assertTrue(compareDate(alert.getUpdatedAt(), fetchedAlert.getUpdatedAt()));
     }
@@ -147,7 +149,7 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByReference() throws Exception {
-        final List<AlertTrigger> alerts = alertRepository.findByReference("API", "api-id");
+        final List<AlertTrigger> alerts = alertRepository.findByReferenceAndReferenceId("API", "api-id");
         assertNotNull(alerts);
         assertEquals(1, alerts.size());
     }

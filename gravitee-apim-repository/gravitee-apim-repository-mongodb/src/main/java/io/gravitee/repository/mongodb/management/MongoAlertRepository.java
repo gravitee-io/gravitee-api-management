@@ -96,6 +96,7 @@ public class MongoAlertRepository implements AlertTriggerRepository {
             alertTriggerMongo.setDefinition(trigger.getDefinition());
             alertTriggerMongo.setCreatedAt(trigger.getCreatedAt());
             alertTriggerMongo.setUpdatedAt(trigger.getUpdatedAt());
+            alertTriggerMongo.setEnvironmentId(trigger.getEnvironmentId());
 
             if (trigger.getEventRules() != null && !trigger.getEventRules().isEmpty()) {
                 alertTriggerMongo.setEventRules(
@@ -159,6 +160,7 @@ public class MongoAlertRepository implements AlertTriggerRepository {
         trigger.setEnabled(alertTriggerMongo.isEnabled());
         trigger.setParentId(alertTriggerMongo.getParentId());
         trigger.setTemplate(alertTriggerMongo.isTemplate());
+        trigger.setEnvironmentId(alertTriggerMongo.getEnvironmentId());
 
         if (alertTriggerMongo.getEventRules() != null && !alertTriggerMongo.getEventRules().isEmpty()) {
             trigger.setEventRules(

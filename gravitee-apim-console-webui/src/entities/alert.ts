@@ -18,7 +18,7 @@ import { deepEqual } from '@gravitee/ui-components/src/lib/utils';
 export enum Scope {
   API,
   APPLICATION,
-  PLATFORM,
+  ENVIRONMENT,
 }
 
 export enum ConditionType {

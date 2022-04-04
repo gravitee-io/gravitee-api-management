@@ -125,7 +125,7 @@ export class ApiMetrics extends Metrics {
     'API',
     [StringCondition.TYPE],
     true,
-    [Scope.APPLICATION, Scope.PLATFORM],
+    [Scope.APPLICATION, Scope.ENVIRONMENT],
     (type: number, id: string, $injector: any) => {
       const apis: Tuple[] = [];
 
@@ -154,7 +154,7 @@ export class ApiMetrics extends Metrics {
     'Application',
     [StringCondition.TYPE],
     true,
-    [Scope.API, Scope.PLATFORM],
+    [Scope.API, Scope.ENVIRONMENT],
     (type: number, id: string, $injector: any) => {
       const applications: Tuple[] = [];
 

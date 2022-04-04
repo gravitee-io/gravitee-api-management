@@ -63,7 +63,7 @@ public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
     public AlertAnalyticsEntity findByReference(AlertReferenceType referenceType, String referenceId, AlertAnalyticsQuery analyticsQuery) {
         try {
             Map<String, AlertTrigger> triggersById = alertTriggerRepository
-                .findByReference(referenceType.name(), referenceId)
+                .findByReferenceAndReferenceId(referenceType.name(), referenceId)
                 .stream()
                 .collect(toMap(AlertTrigger::getId, trigger -> trigger));
             Map<AlertTrigger, HashSet<AlertEvent>> eventsByAlert = triggersById

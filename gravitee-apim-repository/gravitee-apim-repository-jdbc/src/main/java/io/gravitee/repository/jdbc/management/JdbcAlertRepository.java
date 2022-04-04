@@ -66,6 +66,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("template", Types.BIT, boolean.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .build();
     }
 

@@ -139,20 +139,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             if (applicationOptional.isPresent()) {
-                Application application = applicationOptional.get();
-                MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
-                    executionContext.getOrganizationId(),
-                    MembershipReferenceType.APPLICATION,
-                    application.getId()
-                );
-                if (primaryOwnerMemberEntity == null) {
-                    if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
-                        LOGGER.error("The Application {} doesn't have any primary owner.", applicationId);
-                    }
-                    return convert(application, null);
-                }
-
-                return convert(application, userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()));
+                return convertAndFillPrimaryOwner(executionContext, applicationOptional.get());
             }
 
             throw new ApplicationNotFoundException(applicationId);
@@ -1103,6 +1090,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return imageEntity;
     }
 
+    @Override
+    public Map<String, Object> findByIdAsMap(String id) throws TechnicalException {
+        Application application = applicationRepository.findById(id).orElseThrow(() -> new ApplicationNotFoundException(id));
+
+        ExecutionContext executionContext = new ExecutionContext(environmentService.findById(application.getEnvironmentId()));
+        ApplicationEntity applicationEntity = convertAndFillPrimaryOwner(executionContext, application);
+
+        Map<String, Object> dataAsMap = mapper.convertValue(applicationEntity, Map.class);
+        dataAsMap.remove("picture");
+        return dataAsMap;
+    }
+
     private Set<String> findUserApplicationsIds(ExecutionContext executionContext, String username, final String organizationId) {
         //find applications where the user is a member
         Set<String> appIds = membershipService
@@ -1177,5 +1176,21 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 )
             );
         }
+    }
+
+    private ApplicationEntity convertAndFillPrimaryOwner(ExecutionContext executionContext, Application application) {
+        MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
+            executionContext.getOrganizationId(),
+            MembershipReferenceType.APPLICATION,
+            application.getId()
+        );
+        if (primaryOwnerMemberEntity == null) {
+            if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
+                LOGGER.error("The Application {} doesn't have any primary owner.", application.getId());
+            }
+            return convert(application, null);
+        }
+
+        return convert(application, userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()));
     }
 }

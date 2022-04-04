@@ -133,7 +133,7 @@ public class ApplicationAlertServiceTest {
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         cut.create(GraviteeContext.getExecutionContext(), APPLICATION_ID, newAlert);
 
-        verify(alertService, times(1)).create(newAlert);
+        verify(alertService, times(1)).create(GraviteeContext.getExecutionContext(), newAlert);
         verify(notificationTemplateService, times(1))
             .findByHookAndScope(
                 GraviteeContext.getCurrentOrganization(),
@@ -154,7 +154,7 @@ public class ApplicationAlertServiceTest {
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         cut.create(GraviteeContext.getExecutionContext(), APPLICATION_ID, newAlert);
 
-        verify(alertService, times(1)).create(newAlert);
+        verify(alertService, times(1)).create(GraviteeContext.getExecutionContext(), newAlert);
         verify(notificationTemplateService, times(1))
             .findByHookAndScope(
                 GraviteeContext.getCurrentOrganization(),
@@ -182,7 +182,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<NewAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(NewAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).create(alertCaptor.capture());
+        verify(alertService, times(1)).create(eq(GraviteeContext.getExecutionContext()), alertCaptor.capture());
         assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getProperty()).isEqualTo("application");
         assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getPattern()).isEqualTo(APPLICATION_ID);
 
@@ -210,7 +210,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<NewAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(NewAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).create(alertCaptor.capture());
+        verify(alertService, times(1)).create(eq(GraviteeContext.getExecutionContext()), alertCaptor.capture());
 
         assertThat(alertCaptor.getValue().getNotifications().size()).isEqualTo(3);
 
@@ -242,9 +242,9 @@ public class ApplicationAlertServiceTest {
         UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
         updating.setId(ALERT_ID);
 
-        cut.update(APPLICATION_ID, updating);
+        cut.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updating);
 
-        verify(alertService, times(1)).update(updating);
+        verify(alertService, times(1)).update(GraviteeContext.getExecutionContext(), updating);
     }
 
     @Test
@@ -257,11 +257,11 @@ public class ApplicationAlertServiceTest {
         updating.setId(ALERT_ID);
         updating.setFilters(singletonList(StringCondition.equals("api", API_ID).build()));
 
-        cut.update(APPLICATION_ID, updating);
+        cut.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updating);
 
         ArgumentCaptor<UpdateAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).update(alertCaptor.capture());
+        verify(alertService, times(1)).update(eq(GraviteeContext.getExecutionContext()), alertCaptor.capture());
         assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getProperty()).isEqualTo("application");
         assertThat(((StringCondition) alertCaptor.getValue().getFilters().get(0)).getPattern()).isEqualTo(APPLICATION_ID);
 
@@ -288,11 +288,11 @@ public class ApplicationAlertServiceTest {
         notification2.setType("notification2-type");
         updating.setNotifications(List.of(notification1, notification2));
 
-        cut.update(APPLICATION_ID, updating);
+        cut.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updating);
 
         ArgumentCaptor<UpdateAlertTriggerEntity> alertCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).update(alertCaptor.capture());
+        verify(alertService, times(1)).update(eq(GraviteeContext.getExecutionContext()), alertCaptor.capture());
 
         assertThat(alertCaptor.getValue().getNotifications().size()).isEqualTo(3);
 
@@ -333,7 +333,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(2)).update(updatingCaptor.capture());
+        verify(alertService, times(2)).update(eq(GraviteeContext.getExecutionContext()), updatingCaptor.capture());
 
         final UpdateAlertTriggerEntity updating = updatingCaptor.getValue();
         assertThat(updating.getNotifications().get(0).getConfiguration()).contains("to,add@mail.gio");
@@ -359,13 +359,13 @@ public class ApplicationAlertServiceTest {
         final List<Notification> notifications = notificationsCaptor.getValue();
         assertThat(notifications.get(0).getConfiguration()).contains("\"add@mail.gio\"");
 
-        verify(alertService, times(1)).update(any());
+        verify(alertService, times(1)).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
     public void shouldNotAddMemberEmptyMail() throws Exception {
         cut.addMemberToApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, "");
-        verify(alertService, never()).update(any());
+        verify(alertService, never()).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -418,7 +418,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(2)).update(updatingCaptor.capture());
+        verify(alertService, times(2)).update(eq(GraviteeContext.getExecutionContext()), updatingCaptor.capture());
 
         final UpdateAlertTriggerEntity updating = updatingCaptor.getValue();
         assertThat(updating.getNotifications().get(0).getConfiguration()).contains("to");
@@ -428,7 +428,7 @@ public class ApplicationAlertServiceTest {
     @Test
     public void shouldNotDeleteMemberEmptyMail() throws Exception {
         cut.deleteMemberFromApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, "");
-        verify(alertService, never()).update(any());
+        verify(alertService, never()).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -469,7 +469,7 @@ public class ApplicationAlertServiceTest {
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_RATE");
-        when(alertService.findByReferenceAndReferenceIds(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
+        when(alertService.findByReferences(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
             .thenReturn(Collections.singletonList(alertTrigger));
 
         Notification notification = new Notification();
@@ -489,7 +489,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).update(updatingCaptor.capture());
+        verify(alertService, times(1)).update(any(), updatingCaptor.capture());
 
         final UpdateAlertTriggerEntity updating = updatingCaptor.getValue();
         assertThat(updating.getNotifications().get(0).getConfiguration()).contains("notification-template-content");
@@ -516,7 +516,7 @@ public class ApplicationAlertServiceTest {
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_AGGREGATION");
-        when(alertService.findByReferenceAndReferenceIds(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
+        when(alertService.findByReferences(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
             .thenReturn(Collections.singletonList(alertTrigger));
 
         Notification notification = new Notification();
@@ -536,7 +536,7 @@ public class ApplicationAlertServiceTest {
 
         ArgumentCaptor<UpdateAlertTriggerEntity> updatingCaptor = ArgumentCaptor.forClass(UpdateAlertTriggerEntity.class);
 
-        verify(alertService, times(1)).update(updatingCaptor.capture());
+        verify(alertService, times(1)).update(any(), updatingCaptor.capture());
 
         final UpdateAlertTriggerEntity updating = updatingCaptor.getValue();
         assertThat(updating.getNotifications().get(0).getConfiguration()).contains("notification-template-content");
@@ -563,14 +563,14 @@ public class ApplicationAlertServiceTest {
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_AGGREGATION");
-        when(alertService.findByReferenceAndReferenceIds(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
+        when(alertService.findByReferences(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
             .thenReturn(Collections.singletonList(alertTrigger));
 
         when(alertTrigger.getNotifications()).thenReturn(Collections.emptyList());
 
         cut.handleEvent(event);
 
-        verify(alertService, times(0)).update(any());
+        verify(alertService, times(0)).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     private ApplicationEntity getApplication() {
