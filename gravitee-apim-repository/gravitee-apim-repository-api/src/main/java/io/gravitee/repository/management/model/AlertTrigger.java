@@ -48,6 +48,7 @@ public class AlertTrigger {
         parentId = cloned.parentId;
         eventRules = cloned.eventRules;
         template = cloned.template;
+        environmentId = cloned.environmentId;
     }
 
     private String id;
@@ -77,6 +78,8 @@ public class AlertTrigger {
     private List<AlertEventRule> eventRules;
 
     private boolean template;
+
+    private String environmentId;
 
     public String getId() {
         return id;
@@ -188,6 +191,14 @@ public class AlertTrigger {
 
     public void setEventRules(List<AlertEventRule> eventRules) {
         this.eventRules = eventRules;
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     @Override

@@ -17,20 +17,39 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
-import io.gravitee.rest.api.model.settings.Alert;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
+ * Before this upgrader runs :
+ *  - environment_id in alertTrigger collection are not set
+ *  - PLATFORM alerts, edited at environment level, are shared across all environments
+ *
+ * For each platform alert, this upgrader will :
+ *  - update its referenceType to ENVIRONMENT
+ *  - update its referenceId to the DEFAULT environment id
+ *  - create the same alert on all other environments
+ *
+ * For each application or api alert, this upgrader will :
+ *  - find the related api or application, to get its environment id
+ *  - update alert environmentId in alertTrigger collection
+ *
  * @author GraviteeSource Team
  */
 @Component
@@ -42,11 +61,22 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
 
     private final EnvironmentRepository environmentRepository;
 
+    private final ApiRepository apiRepository;
+
+    private final ApplicationRepository applicationRepository;
+
     @Autowired
-    public AlertsEnvironmentUpgrader(AlertTriggerRepository alertTriggerRepository, EnvironmentRepository environmentRepository) {
+    public AlertsEnvironmentUpgrader(
+        AlertTriggerRepository alertTriggerRepository,
+        EnvironmentRepository environmentRepository,
+        ApiRepository apiRepository,
+        ApplicationRepository applicationRepository
+    ) {
         super(InstallationService.ALERTS_ENVIRONMENT_UPGRADER);
         this.alertTriggerRepository = alertTriggerRepository;
         this.environmentRepository = environmentRepository;
+        this.apiRepository = apiRepository;
+        this.applicationRepository = applicationRepository;
     }
 
     @Override
@@ -58,9 +88,26 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
     protected void processOneShotUpgrade(ExecutionContext executionContext) throws TechnicalException {
         alertTriggerRepository
             .findAll()
-            .stream()
-            .filter(alert -> "PLATFORM".equals(alert.getReferenceType()))
-            .forEach(this::handleEnvironmentAlert);
+            .forEach(
+                alertTrigger -> {
+                    try {
+                        switch (alertTrigger.getReferenceType()) {
+                            case "PLATFORM":
+                                handleEnvironmentAlert(alertTrigger);
+                                break;
+                            case "API":
+                                handleApiAlert(alertTrigger);
+
+                                break;
+                            case "APPLICATION":
+                                handleApplicationAlert(alertTrigger);
+                                break;
+                        }
+                    } catch (AbstractNotFoundException | TechnicalException e) {
+                        LOGGER.error("Failed to update alert {}", alertTrigger.getId(), e);
+                    }
+                }
+            );
     }
 
     private void handleEnvironmentAlert(AlertTrigger alertTrigger) {
@@ -68,6 +115,7 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
             // update the current alert : set it the default environment
             alertTrigger.setReferenceType(AlertReferenceType.ENVIRONMENT.name());
             alertTrigger.setReferenceId(GraviteeContext.getDefaultEnvironment());
+            alertTrigger.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
             alertTriggerRepository.update(alertTrigger);
 
             // duplicate it on all others environments
@@ -78,7 +126,7 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
                 .forEach(
                     environment -> {
                         try {
-                            createAlertTrigger(environment, alertTrigger);
+                            createAlertTriggerForEnvironment(environment, alertTrigger);
                         } catch (TechnicalException e) {
                             LOGGER.error("Failed to duplicate alert {} to environment {}", alertTrigger.getId(), environment.getId(), e);
                         }
@@ -89,10 +137,30 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
         }
     }
 
-    private void createAlertTrigger(Environment environment, AlertTrigger alertTrigger) throws TechnicalException {
+    private void handleApiAlert(AlertTrigger alertTrigger) throws TechnicalException {
+        Api api = apiRepository
+            .findById(alertTrigger.getReferenceId())
+            .orElseThrow(() -> new ApiNotFoundException(alertTrigger.getReferenceId()));
+
+        alertTrigger.setEnvironmentId(api.getEnvironmentId());
+        alertTriggerRepository.update(alertTrigger);
+    }
+
+    private void handleApplicationAlert(AlertTrigger alertTrigger) throws TechnicalException {
+        Application application = applicationRepository
+            .findById(alertTrigger.getReferenceId())
+            .orElseThrow(() -> new ApplicationNotFoundException(alertTrigger.getReferenceId()));
+
+        alertTrigger.setEnvironmentId(application.getEnvironmentId());
+        alertTriggerRepository.update(alertTrigger);
+    }
+
+    private void createAlertTriggerForEnvironment(Environment environment, AlertTrigger alertTrigger) throws TechnicalException {
         AlertTrigger newAlertTrigger = new AlertTrigger(alertTrigger);
         newAlertTrigger.setId(null);
+        alertTrigger.setReferenceType(AlertReferenceType.ENVIRONMENT.name());
         newAlertTrigger.setReferenceId(environment.getId());
+        newAlertTrigger.setEnvironmentId(environment.getId());
         alertTriggerRepository.create(newAlertTrigger);
     }
 }
