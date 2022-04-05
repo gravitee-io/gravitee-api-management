@@ -19,8 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
@@ -28,6 +27,7 @@ import io.gravitee.cockpit.api.command.hello.HelloCommand;
 import io.gravitee.cockpit.api.command.hello.HelloPayload;
 import io.gravitee.cockpit.api.command.hello.HelloReply;
 import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.model.Installation;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
@@ -37,6 +37,8 @@ import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.observers.TestObserver;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -119,7 +121,7 @@ public class HelloCommandProducerTest {
     }
 
     @Test
-    public void handleReplay_shouldUpdateDefaultEnvironmentCockpitId() {
+    public void handleReply_shouldUpdateDefaultEnvironmentCockpitId() {
         HelloReply helloReply = new HelloReply();
         helloReply.setCommandStatus(CommandStatus.SUCCEEDED);
         helloReply.setDefaultEnvironmentCockpitId("env#cockpit-1");
@@ -129,6 +131,7 @@ public class HelloCommandProducerTest {
         defaultEnvironment.setId(defaultEnvId);
         defaultEnvironment.setOrganizationId("org#1");
 
+        when(installationService.getOrInitialize()).thenReturn(new InstallationEntity());
         when(environmentService.findById(defaultEnvId)).thenReturn(defaultEnvironment);
 
         cut.handleReply(helloReply);
@@ -142,7 +145,7 @@ public class HelloCommandProducerTest {
     }
 
     @Test
-    public void handleReplay_shouldUpdateDefaultOrganizationCockpitId() {
+    public void handleReply_shouldUpdateDefaultOrganizationCockpitId() {
         HelloReply helloReply = new HelloReply();
         helloReply.setCommandStatus(CommandStatus.SUCCEEDED);
         helloReply.setDefaultOrganizationCockpitId("org#cockpit-1");
@@ -151,6 +154,7 @@ public class HelloCommandProducerTest {
         OrganizationEntity defaultOrganization = new OrganizationEntity();
         defaultOrganization.setId(defaultOrgId);
 
+        when(installationService.getOrInitialize()).thenReturn(new InstallationEntity());
         when(organizationService.findById(defaultOrgId)).thenReturn(defaultOrganization);
 
         cut.handleReply(helloReply);
@@ -160,6 +164,50 @@ public class HelloCommandProducerTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(defaultOrgId),
                 argThat(org -> org.getCockpitId().equals("org#cockpit-1"))
+            );
+    }
+
+    @Test
+    public void handleReply_shouldUpdateCockpitInstallationStatusAndId_butKeepAlreadyExistingInstallationInformations() {
+        // mock already existing installation with informations
+        InstallationEntity installation = new InstallationEntity();
+        installation.setAdditionalInformation(
+            new HashMap(
+                Map.of(
+                    "key1",
+                    "value1",
+                    "key2",
+                    "value2",
+                    "COCKPIT_INSTALLATION_STATUS",
+                    "old-installation-status",
+                    "COCKPIT_INSTALLATION_ID",
+                    "old-installation-id"
+                )
+            )
+        );
+        when(installationService.getOrInitialize()).thenReturn(installation);
+
+        HelloReply helloReply = new HelloReply();
+        helloReply.setInstallationId("new-installation-id");
+        helloReply.setInstallationStatus("new-installation-status");
+        helloReply.setCommandStatus(CommandStatus.SUCCEEDED);
+
+        cut.handleReply(helloReply);
+
+        verify(installationService, times(1))
+            .setAdditionalInformation(
+                eq(
+                    Map.of(
+                        "key1",
+                        "value1",
+                        "key2",
+                        "value2",
+                        "COCKPIT_INSTALLATION_STATUS",
+                        "new-installation-status",
+                        "COCKPIT_INSTALLATION_ID",
+                        "new-installation-id"
+                    )
+                )
             );
     }
 }
