@@ -42,9 +42,9 @@ public class JdbcHelper {
         private final RowMapper<T> mapper;
         private final ChildAdder<T> childAdder;
         private final String idColumn;
-        private final Map<Comparable, T> rows;
+        private final Map<Comparable<?>, T> rows;
 
-        CollatingRowMapper(RowMapper mapper, ChildAdder<T> childAdder, String idColumn) {
+        CollatingRowMapper(RowMapper<T> mapper, ChildAdder<T> childAdder, String idColumn) {
             this.mapper = mapper;
             this.childAdder = childAdder;
             this.idColumn = idColumn;
@@ -53,13 +53,17 @@ public class JdbcHelper {
 
         @Override
         public void processRow(ResultSet rs) throws SQLException {
-            T current;
-            Comparable currentId = (Comparable) rs.getObject(idColumn);
-            current = rows.get(currentId);
-            if (current == null) {
-                current = mapper.mapRow(rs, rows.size() + 1);
-                rows.put(currentId, current);
-            }
+            Comparable<?> currentId = (Comparable<?>) rs.getObject(idColumn);
+            T current = rows.computeIfAbsent(
+                currentId,
+                id -> {
+                    try {
+                        return mapper.mapRow(rs, rows.size() + 1);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            );
             childAdder.addChild(current, rs);
         }
 
