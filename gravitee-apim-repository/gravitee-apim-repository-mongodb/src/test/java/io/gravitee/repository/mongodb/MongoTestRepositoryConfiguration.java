@@ -41,7 +41,7 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
 
     private static final Logger LOG = LoggerFactory.getLogger(MongoTestRepositoryConfiguration.class);
 
-    @Value("${environment.mongoVersion:4.4.6}")
+    @Value("${mongoVersion:4.4.6}")
     private String mongoVersion;
 
     @Inject
