@@ -116,7 +116,7 @@
         <snakeyaml.version>1.26</snakeyaml.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <spring.security.version>5.3.1.RELEASE</spring.security.version>
-        <swagger-model.version>2.0.10</swagger-model.version>
+        <swagger-model.version>2.2.0</swagger-model.version>
         <swagger.version>1.6.2</swagger.version>
         <swagger-parser.version>2.0.30</swagger-parser.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
