@@ -39,7 +39,7 @@ import org.testcontainers.utility.DockerImageName;
 @ComponentScan("io.gravitee.repository.jdbc")
 public class JdbcTestRepositoryConfiguration {
 
-    @Value("#{environment.jdbcType}")
+    @Value("${jdbcType:postgresql}")
     private String jdbcType;
 
     @Bean
