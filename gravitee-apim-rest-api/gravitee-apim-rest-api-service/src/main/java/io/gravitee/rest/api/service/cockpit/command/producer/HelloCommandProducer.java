@@ -88,7 +88,7 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
     @Override
     public Single<HelloReply> handleReply(HelloReply reply) {
         if (reply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-            final Map<String, String> additionalInformation = new HashMap<>();
+            final Map<String, String> additionalInformation = installationService.getOrInitialize().getAdditionalInformation();
             additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_ID, reply.getInstallationId());
             additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, reply.getInstallationStatus());
             installationService.setAdditionalInformation(additionalInformation);
