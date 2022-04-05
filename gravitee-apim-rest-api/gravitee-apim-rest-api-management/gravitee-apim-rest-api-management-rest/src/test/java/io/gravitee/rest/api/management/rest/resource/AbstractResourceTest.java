@@ -215,6 +215,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApiConverter apiConverter;
 
     @Autowired
+    protected JsonPatchService jsonPatchService;
+
+    @Autowired
     protected ObjectMapper objectMapper;
 
     @Configuration
@@ -504,6 +507,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ObjectMapper objectMapper() {
             return mock(GraviteeMapper.class);
+        }
+
+        @Bean
+        public JsonPatchService jsonPatchService() {
+            return mock(JsonPatchService.class);
         }
     }
 }

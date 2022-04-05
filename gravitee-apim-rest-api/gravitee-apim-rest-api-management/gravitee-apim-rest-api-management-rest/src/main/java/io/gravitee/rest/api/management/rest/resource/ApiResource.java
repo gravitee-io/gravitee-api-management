@@ -52,6 +52,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayOutputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -100,6 +101,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     protected ApiDuplicatorService apiDuplicatorService;
+
+    @Inject
+    protected JsonPatchService jsonPatchService;
 
     @Inject
     protected ApiExportService apiExportService;
@@ -874,6 +878,11 @@ public class ApiResource extends AbstractResource {
     @Path("quality-rules")
     public ApiQualityRulesResource getApiQualityRulesResource() {
         return resourceContext.getResource(ApiQualityRulesResource.class);
+    }
+
+    @Path("definition")
+    public ApiDefinitionResource getApiDefinition() {
+        return resourceContext.getResource(ApiDefinitionResource.class);
     }
 
     private void setSynchronizationState(final ExecutionContext executionContext, ApiStateEntity apiStateEntity) {

@@ -18,6 +18,7 @@ import { ApiImport, ImportSwaggerDescriptorEntity } from '@model/api-imports';
 import { BasicAuthentication } from '@model/users';
 import { ProcessSubscriptionEntity } from '@model/api-subscriptions';
 import { requestGateway } from 'support/common/http.commands';
+import { JsonPatch } from '@model/json-patch';
 
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({
@@ -220,4 +221,23 @@ export function getApiAnalytics(auth: BasicAuthentication, apiId: string, field 
       validWhen: (response) => !Cypress._.isEmpty(response.body.values),
     },
   );
+}
+
+export function getApiDefinition(auth: BasicAuthentication, apiId: string) {
+  return cy.request({
+    method: 'GET',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/definition`,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
+export function patchApiDefinition(auth: BasicAuthentication, apiId: string, jsonPatches: JsonPatch[], dryRun = false) {
+  return cy.request({
+    method: 'PATCH',
+    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/definition?dryRun=${dryRun}`,
+    auth,
+    body: jsonPatches,
+    failOnStatusCode: false,
+  });
 }
