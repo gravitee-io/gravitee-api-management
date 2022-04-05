@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -124,7 +124,7 @@
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
         <snakeyaml.version>1.30</snakeyaml.version>
         <swagger-jaxrs2.version>2.1.13</swagger-jaxrs2.version>
-        <swagger-core.version>2.1.13</swagger-core.version>
+        <swagger-core.version>2.2.0</swagger-core.version>
         <swagger-parser.version>2.0.30</swagger-parser.version>
         <swagger-models.version>1.6.4</swagger-models.version>
         <testcontainers.version>1.16.3</testcontainers.version>
@@ -868,8 +868,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine
-                    >@{argLine} --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED
+                    <argLine>@{argLine} --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED
                         --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens
                         java.base/java.util.stream=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED
                     </argLine>
