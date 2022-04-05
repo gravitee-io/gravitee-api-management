@@ -34,7 +34,7 @@
 	<name>Gravitee.io APIM - Management API - Management - Rest API</name>
 
 	<properties>
-		<swagger-jersey2-jaxrs.version>1.6.5</swagger-jersey2-jaxrs.version>
+		<swagger-jersey2-jaxrs.version>1.6.6</swagger-jersey2-jaxrs.version>
 	</properties>
 
 	<dependencies>
