@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -32,6 +33,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.debug.policy.DummyPolicy;
+import io.gravitee.gateway.debug.policy.NoTransformationPolicy;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugResponseStep;
@@ -201,6 +203,34 @@ public class PolicyDebugDecoratorTest {
     }
 
     @Test
+    public void onRequestContentNoTransformation() throws Exception {
+        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
+        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> NoTransformationPolicy.class);
+        Method onRequestContentMethod = resolvePolicyMethod(NoTransformationPolicy.class, OnRequestContent.class);
+        when(policyMetadata.method(OnRequestContent.class)).thenReturn(onRequestContentMethod);
+
+        NoTransformationPolicy noTransformationPolicy = mock(NoTransformationPolicy.class);
+        when(policyPluginFactory.create(NoTransformationPolicy.class, null)).thenReturn(noTransformationPolicy);
+        final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
+
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
+        final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_REQUEST, policy));
+
+        debugPolicy.stream(policyChain, context);
+
+        Assert.assertFalse(debugPolicy.isRunnable());
+        Assert.assertTrue(debugPolicy.isStreamable());
+        verify(noTransformationPolicy, never()).onRequest(policyChain, request, response);
+        verify(noTransformationPolicy, atLeastOnce()).onRequestContent(chainCaptor.capture(), eq(request), eq(response));
+        verify(noTransformationPolicy, never()).onResponse(policyChain, request, response);
+        verify(noTransformationPolicy, never()).onResponseContent(policyChain, request, response);
+        verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
+
+        verify(context, times(1)).saveNoTransformationDebugStep(any());
+        assertThat(chainCaptor.getValue()).isInstanceOf(DebugStreamablePolicyChain.class);
+    }
+
+    @Test
     public void onResponseContent() throws Exception {
         PolicyManifest policyManifest = mock(PolicyManifest.class);
         when(policyManifest.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
@@ -230,6 +260,34 @@ public class PolicyDebugDecoratorTest {
 
         verify(context, never()).beforePolicyExecution(any());
         verify(context, never()).afterPolicyExecution(any());
+        assertThat(chainCaptor.getValue()).isInstanceOf(DebugStreamablePolicyChain.class);
+    }
+
+    @Test
+    public void onResponseContentNoTransformation() throws Exception {
+        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
+        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> NoTransformationPolicy.class);
+        Method onResponseContentMethod = resolvePolicyMethod(NoTransformationPolicy.class, OnResponseContent.class);
+        when(policyMetadata.method(OnResponseContent.class)).thenReturn(onResponseContentMethod);
+
+        NoTransformationPolicy noTransformationPolicy = mock(NoTransformationPolicy.class);
+        when(policyPluginFactory.create(NoTransformationPolicy.class, null)).thenReturn(noTransformationPolicy);
+
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
+        final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy));
+        final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
+
+        debugPolicy.stream(policyChain, context);
+
+        Assert.assertFalse(debugPolicy.isRunnable());
+        Assert.assertTrue(debugPolicy.isStreamable());
+        verify(noTransformationPolicy, never()).onRequest(policyChain, request, response);
+        verify(noTransformationPolicy, never()).onRequestContent(policyChain, request, response);
+        verify(noTransformationPolicy, never()).onResponse(policyChain, request, response);
+        verify(noTransformationPolicy, atLeastOnce()).onResponseContent(chainCaptor.capture(), eq(request), eq(response));
+        verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
+
+        verify(context, times(1)).saveNoTransformationDebugStep(any());
         assertThat(chainCaptor.getValue()).isInstanceOf(DebugStreamablePolicyChain.class);
     }
 
