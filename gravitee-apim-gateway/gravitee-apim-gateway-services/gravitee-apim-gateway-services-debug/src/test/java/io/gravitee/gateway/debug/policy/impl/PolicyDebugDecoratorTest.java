@@ -204,17 +204,21 @@ public class PolicyDebugDecoratorTest {
 
     @Test
     public void onRequestContentNoTransformation() throws Exception {
-        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
-        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> NoTransformationPolicy.class);
+        PolicyManifest policyManifest = mock(PolicyManifest.class);
+        when(policyManifest.policy()).then((Answer<Class>) invocationOnMock -> NoTransformationPolicy.class);
         Method onRequestContentMethod = resolvePolicyMethod(NoTransformationPolicy.class, OnRequestContent.class);
-        when(policyMetadata.method(OnRequestContent.class)).thenReturn(onRequestContentMethod);
+        when(policyManifest.method(OnRequestContent.class)).thenReturn(onRequestContentMethod);
 
         NoTransformationPolicy noTransformationPolicy = mock(NoTransformationPolicy.class);
         when(policyPluginFactory.create(NoTransformationPolicy.class, null)).thenReturn(noTransformationPolicy);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
-        final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_REQUEST, policy));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
+            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, fakePolicyMetadata())
+        );
+        final PolicyDebugDecorator debugPolicy = spy(
+            new PolicyDebugDecorator(StreamType.ON_REQUEST, policy, new PolicyMetadata("dummy", "{}"))
+        );
 
         debugPolicy.stream(policyChain, context);
 
@@ -265,16 +269,20 @@ public class PolicyDebugDecoratorTest {
 
     @Test
     public void onResponseContentNoTransformation() throws Exception {
-        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
-        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> NoTransformationPolicy.class);
+        PolicyManifest policyManifest = mock(PolicyManifest.class);
+        when(policyManifest.policy()).then((Answer<Class>) invocationOnMock -> NoTransformationPolicy.class);
         Method onResponseContentMethod = resolvePolicyMethod(NoTransformationPolicy.class, OnResponseContent.class);
-        when(policyMetadata.method(OnResponseContent.class)).thenReturn(onResponseContentMethod);
+        when(policyManifest.method(OnResponseContent.class)).thenReturn(onResponseContentMethod);
 
         NoTransformationPolicy noTransformationPolicy = mock(NoTransformationPolicy.class);
         when(policyPluginFactory.create(NoTransformationPolicy.class, null)).thenReturn(noTransformationPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
-        final PolicyDebugDecorator debugPolicy = spy(new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy));
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
+            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, fakePolicyMetadata())
+        );
+        final PolicyDebugDecorator debugPolicy = spy(
+            new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy, new PolicyMetadata("dummy", "{}"))
+        );
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
         debugPolicy.stream(policyChain, context);
