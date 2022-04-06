@@ -15,8 +15,16 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.rest.api.model.EventEntity;
+import io.gravitee.rest.api.model.EventQuery;
+import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.InstanceListItem;
 import io.gravitee.rest.api.model.InstanceState;
 import io.gravitee.rest.api.service.impl.InstanceServiceImpl;
@@ -24,16 +32,126 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class InstanceServiceTest {
+
+    @Mock
+    private EventService eventService;
+
+    @InjectMocks
+    private InstanceService cut = new InstanceServiceImpl();
+
+    @Test
+    public void shouldFindByEventIfNoEnvOrOrgProperty() {
+        final EventEntity evt = new EventEntity();
+        evt.setProperties(Map.of("id", "evt-id"));
+
+        when(eventService.findById("evt-id")).thenReturn(evt);
+
+        final InstanceEntity result = cut.findByEvent("evt-id");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEnvironmentsHrids()).isEmpty();
+        assertThat(result.getOrganizationsHrids()).isEmpty();
+    }
+
+    @Test
+    public void shouldFindByEventIfNoOrgProperty() {
+        final EventEntity evt = new EventEntity();
+        evt.setProperties(Map.of("id", "evt-id", Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), "evt-env"));
+
+        when(eventService.findById("evt-id")).thenReturn(evt);
+
+        final InstanceEntity result = cut.findByEvent("evt-id");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEnvironmentsHrids()).hasSize(1);
+        assertThat(result.getOrganizationsHrids()).isEmpty();
+    }
+
+    @Test
+    public void shouldFindByEventIfNoEnvProperty() {
+        final EventEntity evt = new EventEntity();
+        evt.setProperties(Map.of("id", "evt-id", Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), "evt-org"));
+
+        when(eventService.findById("evt-id")).thenReturn(evt);
+
+        final InstanceEntity result = cut.findByEvent("evt-id");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEnvironmentsHrids()).isEmpty();
+        assertThat(result.getOrganizationsHrids()).hasSize(1);
+    }
+
+    @Test
+    public void shouldFindByEvent() {
+        final EventEntity evt = new EventEntity();
+        evt.setProperties(
+            Map.of(
+                "id",
+                "evt-id",
+                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
+                "evt-env",
+                Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(),
+                "evt-org"
+            )
+        );
+
+        when(eventService.findById("evt-id")).thenReturn(evt);
+
+        final InstanceEntity result = cut.findByEvent("evt-id");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEnvironmentsHrids()).hasSize(1);
+        assertThat(result.getOrganizationsHrids()).hasSize(1);
+    }
+
+    @Test
+    public void shouldFindAllStartedEvenIfNoEnvOrOrgProperty() {
+        final EventEntity evt = new EventEntity();
+        evt.setProperties(Map.of("id", "evt-id"));
+
+        final EventEntity evtWithEnv = new EventEntity();
+        evtWithEnv.setProperties(Map.of("id", "evt-id", Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), "evt-env"));
+
+        final EventEntity evtWithOrg = new EventEntity();
+        evtWithOrg.setProperties(Map.of("id", "evt-id", Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), "evt-org"));
+
+        final EventEntity evtWithEnvAndOrg = new EventEntity();
+        evtWithEnvAndOrg.setProperties(
+            Map.of(
+                "id",
+                "evt-id",
+                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
+                "evt-env",
+                Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(),
+                "evt-org"
+            )
+        );
+
+        when(eventService.search(any(EventQuery.class))).thenReturn(List.of(evt, evtWithEnv, evtWithOrg, evtWithEnvAndOrg));
+
+        final List<InstanceEntity> result = cut.findAllStarted();
+
+        assertThat(result).hasSize(4);
+    }
 
     @Test
     public void expirePredicateShouldFilterOldUnknownState() {
