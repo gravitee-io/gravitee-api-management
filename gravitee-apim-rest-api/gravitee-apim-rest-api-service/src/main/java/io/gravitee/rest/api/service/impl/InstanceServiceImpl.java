@@ -52,6 +52,7 @@ import org.springframework.util.StringUtils;
 public class InstanceServiceImpl implements InstanceService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceServiceImpl.class);
+    private static final Pattern PROPERTY_SPLITTER = Pattern.compile(", ");
 
     @Autowired
     private EventService eventService;
@@ -176,7 +177,7 @@ public class InstanceServiceImpl implements InstanceService {
 
         return extractedProperty == null
             ? List.of()
-            : Stream.of(extractedProperty.split(", ")).filter(StringUtils::hasText).collect(Collectors.toList());
+            : Stream.of(PROPERTY_SPLITTER.split(extractedProperty)).filter(StringUtils::hasText).collect(Collectors.toList());
     }
 
     private InstanceEntity convert(EventEntity event) {
