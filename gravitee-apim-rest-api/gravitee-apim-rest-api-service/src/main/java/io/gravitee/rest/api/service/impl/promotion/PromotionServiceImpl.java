@@ -257,6 +257,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 .orElseThrow(() -> new PromotionNotFoundException(promotionId));
 
             EnvironmentEntity environment = environmentService.findByCockpitId(promotion.getTargetEnvCockpitId());
+            ExecutionContext targetExecutionContext = new ExecutionContext(executionContext.getOrganizationId(), environment.getId());
 
             promotion.setStatus(accepted ? PromotionStatus.ACCEPTED : PromotionStatus.REJECTED);
 
@@ -266,8 +267,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             if (PromotionStatus.ACCEPTED.equals(promotion.getStatus())) {
                 ApiEntity promoted = null;
-
-                ExecutionContext targetExecutionContext = new ExecutionContext(executionContext.getOrganizationId(), environment.getId());
 
                 if (apiToUpdate == null) {
                     if (!permissionService.hasPermission(targetExecutionContext, ENVIRONMENT_API, environment.getId(), CREATE)) {
@@ -291,7 +290,10 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             final PromotionEntity promotionEntity = convert(promotion);
 
-            final CockpitReply<PromotionEntity> cockpitReply = cockpitPromotionService.processPromotion(executionContext, promotionEntity);
+            final CockpitReply<PromotionEntity> cockpitReply = cockpitPromotionService.processPromotion(
+                targetExecutionContext,
+                promotionEntity
+            );
 
             if (cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED) {
                 throw new BridgeOperationException(BridgeOperation.PROMOTE_API);

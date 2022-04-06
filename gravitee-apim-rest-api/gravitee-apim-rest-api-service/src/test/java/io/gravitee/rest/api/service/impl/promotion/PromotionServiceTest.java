@@ -192,9 +192,13 @@ public class PromotionServiceTest {
 
     @Test
     public void shouldProcessAcceptedPromotionCreateApi() throws Exception {
+        final Promotion promotion = getAPromotion();
+        final EnvironmentEntity targetEnvironment = new EnvironmentEntity();
+        targetEnvironment.setId("target-env-id");
+
         when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
-        when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
-        when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(promotion));
+        when(environmentService.findByCockpitId(any())).thenReturn(targetEnvironment);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
         Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 1, 1);
@@ -203,9 +207,15 @@ public class PromotionServiceTest {
         when(apiDuplicatorService.createWithImportedDefinition(any(), any())).thenReturn(new ApiEntity());
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
-        when(cockpitPromotionService.processPromotion(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(cockpitReply);
+        when(
+            cockpitPromotionService.processPromotion(
+                argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
+                any()
+            )
+        )
+            .thenReturn(cockpitReply);
 
-        when(promotionRepository.update(any())).thenReturn(getAPromotion());
+        when(promotionRepository.update(any())).thenReturn(promotion);
 
         promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, true);
 
@@ -215,12 +225,16 @@ public class PromotionServiceTest {
 
     @Test
     public void shouldProcessAcceptedPromotionUpdateApi() throws Exception {
+        final Promotion promotion = getAPromotion();
+        final EnvironmentEntity targetEnvironment = new EnvironmentEntity();
+        targetEnvironment.setId("target-env-id");
+
         when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
-        when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
-        when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(promotion));
+        when(environmentService.findByCockpitId(any())).thenReturn(targetEnvironment);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
-        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        Page<Promotion> promotionPage = new Page<>(singletonList(promotion), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
@@ -231,9 +245,15 @@ public class PromotionServiceTest {
         when(apiService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
-        when(cockpitPromotionService.processPromotion(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(cockpitReply);
+        when(
+            cockpitPromotionService.processPromotion(
+                argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
+                any()
+            )
+        )
+            .thenReturn(cockpitReply);
 
-        when(promotionRepository.update(any())).thenReturn(getAPromotion());
+        when(promotionRepository.update(any())).thenReturn(promotion);
 
         promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, true);
 
@@ -243,17 +263,27 @@ public class PromotionServiceTest {
 
     @Test
     public void shouldProcessRejectedPromotion() throws Exception {
-        when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
-        when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
-        when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        final Promotion promotion = getAPromotion();
+        final EnvironmentEntity targetEnvironment = new EnvironmentEntity();
+        targetEnvironment.setId("target-env-id");
 
-        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(promotion));
+        when(environmentService.findByCockpitId(any())).thenReturn(targetEnvironment);
+
+        Page<Promotion> promotionPage = new Page<>(singletonList(promotion), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
-        when(cockpitPromotionService.processPromotion(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(cockpitReply);
+        when(
+            cockpitPromotionService.processPromotion(
+                argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
+                any()
+            )
+        )
+            .thenReturn(cockpitReply);
 
-        when(promotionRepository.update(any())).thenReturn(getAPromotion());
+        when(promotionRepository.update(any())).thenReturn(promotion);
 
         promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, false);
 
@@ -285,9 +315,13 @@ public class PromotionServiceTest {
 
     @Test(expected = BridgeOperationException.class)
     public void shouldNotProcessPromotionIfCockpitReplyError() throws Exception {
+        final Promotion promotion = getAPromotion();
+        final EnvironmentEntity targetEnvironment = new EnvironmentEntity();
+        targetEnvironment.setId("target-env-id");
+
         when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
-        when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        when(environmentService.findByCockpitId(any())).thenReturn(targetEnvironment);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
@@ -301,7 +335,14 @@ public class PromotionServiceTest {
         when(apiService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.ERROR);
-        when(cockpitPromotionService.processPromotion(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(cockpitReply);
+
+        when(
+            cockpitPromotionService.processPromotion(
+                argThat(context -> targetEnvironment.getId().equals(context.getEnvironmentId())),
+                any()
+            )
+        )
+            .thenReturn(cockpitReply);
 
         promotionService.processPromotion(GraviteeContext.getExecutionContext(), PROMOTION_ID, true);
 
@@ -335,6 +376,7 @@ public class PromotionServiceTest {
         );
 
         assertThat(promotionEntity).isNotNull();
+
         verify(auditService)
             .createApiAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
