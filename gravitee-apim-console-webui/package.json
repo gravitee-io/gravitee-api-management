@@ -46,7 +46,7 @@
     "md-color-picker": "^0.2.6",
     "md-steppers": "^0.4.1",
     "messageformat": "^2.3.0",
-    "moment": "^2.25.3",
+    "moment": "^2.29.2",
     "ng-file-upload": "^12.2.13",
     "ng-infinite-scroll": "^1.3.0",
     "ng-showdown": "^1.1.0",
