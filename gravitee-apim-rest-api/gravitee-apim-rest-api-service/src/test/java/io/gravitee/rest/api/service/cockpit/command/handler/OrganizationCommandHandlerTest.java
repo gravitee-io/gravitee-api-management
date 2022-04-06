@@ -73,7 +73,6 @@ public class OrganizationCommandHandlerTest {
         when(
             organizationService.createOrUpdate(
                 argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
-                eq("orga#1"),
                 argThat(
                     newOrganization ->
                         newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
@@ -105,7 +104,6 @@ public class OrganizationCommandHandlerTest {
         when(
             organizationService.createOrUpdate(
                 argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
-                eq("orga#1"),
                 any(UpdateOrganizationEntity.class)
             )
         )

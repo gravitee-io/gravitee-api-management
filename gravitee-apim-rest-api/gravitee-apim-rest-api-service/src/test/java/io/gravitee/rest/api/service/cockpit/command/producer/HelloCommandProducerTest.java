@@ -161,8 +161,7 @@ public class HelloCommandProducerTest {
 
         verify(organizationService)
             .createOrUpdate(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(defaultOrgId),
+                argThat(executionContext -> executionContext.getOrganizationId().equals(defaultOrgId)),
                 argThat(org -> org.getCockpitId().equals("org#cockpit-1"))
             );
     }
