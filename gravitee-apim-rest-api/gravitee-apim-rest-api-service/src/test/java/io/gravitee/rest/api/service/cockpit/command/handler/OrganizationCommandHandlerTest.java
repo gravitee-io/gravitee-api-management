@@ -27,7 +27,6 @@ import io.gravitee.cockpit.api.command.organization.OrganizationReply;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,7 +72,7 @@ public class OrganizationCommandHandlerTest {
 
         when(
             organizationService.createOrUpdate(
-                eq(GraviteeContext.getExecutionContext()),
+                argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
                 eq("orga#1"),
                 argThat(
                     newOrganization ->
@@ -104,7 +103,11 @@ public class OrganizationCommandHandlerTest {
         organizationPayload.setDomainRestrictions(Arrays.asList("domain.restriction1.io", "domain.restriction2.io"));
 
         when(
-            organizationService.createOrUpdate(eq(GraviteeContext.getExecutionContext()), eq("orga#1"), any(UpdateOrganizationEntity.class))
+            organizationService.createOrUpdate(
+                argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
+                eq("orga#1"),
+                any(UpdateOrganizationEntity.class)
+            )
         )
             .thenThrow(new RuntimeException("fake error"));
 
