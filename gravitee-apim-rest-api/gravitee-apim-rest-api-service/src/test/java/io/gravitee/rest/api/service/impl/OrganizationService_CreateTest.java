@@ -109,7 +109,9 @@ public class OrganizationService_CreateTest {
         when(mockOrganizationRepository.create(any())).thenReturn(createdOrganization);
         when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(new ArrayList<>());
 
-        OrganizationEntity organization = organizationService.createOrUpdate(GraviteeContext.getExecutionContext(), "org_id", org1);
+        GraviteeContext.setCurrentOrganization("org_id");
+
+        OrganizationEntity organization = organizationService.createOrUpdate(GraviteeContext.getExecutionContext(), org1);
 
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))
@@ -161,7 +163,9 @@ public class OrganizationService_CreateTest {
 
         when(environmentService.findByOrganization(createdOrganization.getId())).thenReturn(List.of(env1, env2));
 
-        OrganizationEntity organization = organizationService.createOrUpdate(GraviteeContext.getExecutionContext(), "org_id", org1);
+        GraviteeContext.setCurrentOrganization("org_id");
+
+        OrganizationEntity organization = organizationService.createOrUpdate(GraviteeContext.getExecutionContext(), org1);
 
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))

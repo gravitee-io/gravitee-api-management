@@ -66,11 +66,7 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
             newOrganization.setDescription(organizationPayload.getDescription());
             newOrganization.setDomainRestrictions(organizationPayload.getDomainRestrictions());
 
-            final OrganizationEntity organization = organizationService.createOrUpdate(
-                executionContext,
-                organizationPayload.getId(),
-                newOrganization
-            );
+            final OrganizationEntity organization = organizationService.createOrUpdate(executionContext, newOrganization);
             logger.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.SUCCEEDED));
         } catch (Exception e) {

@@ -29,11 +29,7 @@ public interface OrganizationService {
 
     OrganizationEntity findById(String organizationId);
 
-    OrganizationEntity createOrUpdate(
-        ExecutionContext executionContext,
-        String organizationId,
-        UpdateOrganizationEntity organizationEntity
-    );
+    OrganizationEntity createOrUpdate(ExecutionContext executionContext, UpdateOrganizationEntity organizationEntity);
 
     OrganizationEntity update(ExecutionContext executionContext, String organizationId, UpdateOrganizationEntity organizationEntity);
 
