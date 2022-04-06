@@ -21,9 +21,11 @@ import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.organization.OrganizationCommand;
 import io.gravitee.cockpit.api.command.organization.OrganizationPayload;
 import io.gravitee.cockpit.api.command.organization.OrganizationReply;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.Single;
 import org.slf4j.Logger;
@@ -55,6 +57,8 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
         OrganizationPayload organizationPayload = command.getPayload();
 
         try {
+            ExecutionContext executionContext = new ExecutionContext(organizationPayload.getId(), null);
+
             UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity();
             newOrganization.setCockpitId(organizationPayload.getCockpitId());
             newOrganization.setHrids(organizationPayload.getHrids());
@@ -63,7 +67,7 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
             newOrganization.setDomainRestrictions(organizationPayload.getDomainRestrictions());
 
             final OrganizationEntity organization = organizationService.createOrUpdate(
-                GraviteeContext.getExecutionContext(),
+                executionContext,
                 organizationPayload.getId(),
                 newOrganization
             );

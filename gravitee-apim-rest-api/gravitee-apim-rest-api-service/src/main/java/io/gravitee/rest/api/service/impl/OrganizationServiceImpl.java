@@ -106,7 +106,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 //create Default role for organization
                 roleService.initialize(executionContext, createdOrganization.getId());
                 roleService.createOrUpdateSystemRoles(executionContext, createdOrganization.getId());
-                createPublishOrganizationEvent(executionContext, createdOrganization, executionContext.getEnvironmentId());
+                createPublishOrganizationEvent(executionContext, createdOrganization);
 
                 return createdOrganization;
             }
@@ -132,7 +132,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationId);
                 OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
-                createPublishOrganizationEvent(executionContext, updatedOrganization, executionContext.getEnvironmentId());
+                createPublishOrganizationEvent(executionContext, updatedOrganization);
                 return updatedOrganization;
             } else {
                 throw new OrganizationNotFoundException(organizationId);
@@ -146,11 +146,8 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         }
     }
 
-    private void createPublishOrganizationEvent(
-        ExecutionContext executionContext,
-        OrganizationEntity organizationEntity,
-        String environmentId
-    ) throws JsonProcessingException {
+    private void createPublishOrganizationEvent(ExecutionContext executionContext, OrganizationEntity organizationEntity)
+        throws JsonProcessingException {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organizationEntity.getId());
 
