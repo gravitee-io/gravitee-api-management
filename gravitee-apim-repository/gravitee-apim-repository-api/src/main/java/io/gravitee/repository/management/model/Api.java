@@ -319,7 +319,7 @@ public class Api {
             "id='" +
             id +
             '\'' +
-            "crossId='" +
+            ", crossId='" +
             crossId +
             '\'' +
             ", environmentId='" +
