@@ -26,7 +26,7 @@ export interface ApiImportMember {
 
 export interface ApiImportFlow {
   name: string;
-  path_operator: {
+  path_operator?: {
     path: string;
     operator: OperatorType;
   };
@@ -35,7 +35,7 @@ export interface ApiImportFlow {
   methods: any[];
   pre: any[];
   post: any[];
-  enabled: true;
+  enabled: boolean;
 }
 
 export interface ApiImportPlan {
