@@ -21,7 +21,7 @@ import { ApiImportFakers } from '@fakers/api-imports';
 import { PolicyFakers } from '@fakers/policies';
 import { ResourceFakers } from '@fakers/resources';
 import { API_PUBLISHER_USER } from '@fakers/users/users';
-import { Step, PlanSecurityType } from '@model/plan';
+import { Step } from '@model/plan';
 import { importCreateApi } from '@commands/management/api-management-commands';
 import { ApiImport } from '@model/api-imports';
 
