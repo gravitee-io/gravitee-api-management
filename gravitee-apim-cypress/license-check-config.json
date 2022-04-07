@@ -33,7 +33,8 @@
     ".tmp/**",
     ".vscode/**",
     "**/*.spec.ts.snap",
-    "cypress/fixtures/keys/**"
+    "cypress/fixtures/keys/**",
+    "projects"
   ],
   "license": "LICENSE_TEMPLATE.txt",
   "licenseFormats": {
