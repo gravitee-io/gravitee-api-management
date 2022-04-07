@@ -20,7 +20,8 @@
         "lint:license:fix": "license-check-and-add add -f license-check-config.json -r",
         "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
         "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
-        "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\""
+        "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
+        "update:sdk": "sh ./scripts/update-sdk.sh"
     },
     "license": "MIT License",
     "devDependencies": {
