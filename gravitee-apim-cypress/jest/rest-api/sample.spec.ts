@@ -17,14 +17,22 @@
 import { describe, expect, test } from '@jest/globals';
 import { APIsApi } from '../../projects/management-webclient-sdk/src/lib/apis/APIsApi';
 import { buildConfiguration } from '../../projects/configuration';
+import { ApiFakers } from '@fakers/apis';
 
 describe('Sample test with jest & sdk', () => {
   const apisResource = new APIsApi(buildConfiguration());
+  const envParams = { envId: 'DEFAULT', orgId: 'DEFAULT' };
 
   test('should get all apis', async () => {
-    const response = await apisResource.getApisRaw({ envId: 'DEFAULT', orgId: 'DEFAULT' });
+    const response = await apisResource.getApisRaw({ ...envParams });
     expect(response).not.toBeNull();
     expect(response.raw.status).toEqual(200);
   });
-  
+
+  test('should create an API', async () => {
+    const newApiEntity = ApiFakers.api();
+    const response = await apisResource.createApiRaw({ ...envParams, newApiEntity });
+    expect(response).not.toBeNull();
+    expect(response.raw.status).toEqual(201);
+  });
 });
