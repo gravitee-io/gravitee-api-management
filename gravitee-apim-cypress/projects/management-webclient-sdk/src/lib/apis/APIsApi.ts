@@ -6306,7 +6306,7 @@ export class APIsApi extends runtime.BaseAPI {
         }
 
         if (requestParameters.order !== undefined) {
-            queryParameters['order'] = requestParameters.order;
+            queryParameters['order'] = requestParameters.order.value;
         }
 
         if (requestParameters.size !== undefined) {

@@ -67,9 +67,9 @@ export function ApisOrderParamToJSON(value?: ApisOrderParam | null): any {
 * @enum {string}
 */
 export enum ApisOrderParamValueEnum {
-    Name = 'name',
+    NameAsc = 'name',
     Name = '-name',
-    Paths = 'paths',
+    PathsAsc = 'paths',
     Paths = '-paths'
 }
 
