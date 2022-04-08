@@ -1124,11 +1124,15 @@ workflows:
                       - Install APIM Console
             - console-webui-build-storybook:
                   requires:
-                      - Install APIM Console
+                    - Install APIM Console
+            - trigger-chromatic:
+                  type: approval
+                  requires:
+                    - console-webui-build-storybook
             - console-webui-chromatic-deployment:
                   context: cicd-orchestrator
                   requires:
-                      - console-webui-build-storybook
+                      - trigger-chromatic
             - webui-build:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
