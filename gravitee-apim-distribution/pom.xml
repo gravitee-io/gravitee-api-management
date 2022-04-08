@@ -771,6 +771,12 @@
                     <version>${gravitee-policy-data-logging-masking.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>com.jayway.jsonpath</groupId>
+                            <artifactId>json-path</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
         </profile>
