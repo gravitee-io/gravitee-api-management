@@ -136,7 +136,7 @@ commands:
 parameters:
     gio_action:
         type: enum
-        enum: [release, standalone_release, standalone_release_replay, nexus_staging, pull_requests, build_docker_images]
+        enum: [release, standalone_release, standalone_release_replay, nexus_staging, pull_requests, build_rpm_&_docker_images]
         default: pull_requests
     dry_run:
         type: boolean
@@ -1205,6 +1205,35 @@ jobs:
                       make postman
             - notify-on-failure
 
+    publish_rpm_packages:
+        parameters:
+            dry_run:
+                default: true
+                type: boolean
+            graviteeio_version:
+                type: string
+                default: ""
+        machine:
+            image: ubuntu-2004:202201-01
+        resource_class: medium
+        steps:
+            - keeper/env-export:
+                  secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
+                  var-name: GIO_PACKAGECLOUD_TOKEN
+            - run:
+                  name: "Building and publishing RPMs"
+                  command: |
+                        export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
+                        git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
+                        
+                        cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x
+                        ./build.sh -v << parameters.graviteeio_version >>
+                    
+                        if [ "<< parameters.dry_run >>" == "false" ]; then
+                            docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
+                        else
+                            echo " This is just a DRY RUN , no RPMs will  be published"
+                        fi;
 workflows:
     pull_requests:
         when:
@@ -1387,9 +1416,9 @@ workflows:
                   requires:
                       - cypress-install
 
-    build_docker_images:
+    build_rpm_&_docker_images:
         when:
-            equal: [build_docker_images, << pipeline.parameters.gio_action >>]
+            equal: [build_rpm_&_docker_images, << pipeline.parameters.gio_action >>]
         jobs:
             - publish_prod_docker_images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
@@ -1405,6 +1434,12 @@ workflows:
                   enterprise_edition: true
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+            -  publish_rpm_packages:
+                  context: cicd-orchestrator
+                  graviteeio_version: << pipeline.parameters.graviteeio_version >>
+                  dry_run: << pipeline.parameters.dry_run >>
+                  name: Build and push RPM packages for APIM CE & EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+
     release:
         when:
             equal: [release, << pipeline.parameters.gio_action >>]
