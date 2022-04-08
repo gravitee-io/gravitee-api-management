@@ -924,6 +924,44 @@ public class ApiService_UpdateTest {
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
+    @Test(expected = DefinitionVersionException.class)
+    public void shouldNotDowngradeDefinitionVersion() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getGraviteeDefinitionVersion()).thenReturn(DefinitionVersion.V1.getLabel());
+        when(api.getDefinition())
+            .thenReturn(
+                "{\"id\": \"" +
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\",\"gravitee\": \"2.0.0\"" +
+                ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
+            );
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUseInvalidDefinitionVersion() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getGraviteeDefinitionVersion()).thenReturn("0.0.0");
+        when(api.getDefinition())
+            .thenReturn(
+                "{\"id\": \"" +
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\",\"gravitee\": \"2.0.0\"" +
+                ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
+            );
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+
+        verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+    }
+
     private void assertUpdate(
         final ApiLifecycleState fromLifecycleState,
         final io.gravitee.rest.api.model.api.ApiLifecycleState lifecycleState,

@@ -1511,6 +1511,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             final ApiEntity apiToCheck = convert(executionContext, optApiToUpdate.get());
 
+            // if user changes definition version, then check if he is allowed to do it
+            checkDefinitionVersion(updateApiEntity, apiToCheck);
+
             // if user changes sharding tags, then check if he is allowed to do it
             checkShardingTags(updateApiEntity, apiToCheck, executionContext);
 
@@ -1737,6 +1740,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private void checkDefinitionVersion(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI) {
+        if (existingAPI != null && updateApiEntity.getGraviteeDefinitionVersion() != null) {
+            DefinitionVersion updateDefinitionVersion = DefinitionVersion.valueOfLabel(updateApiEntity.getGraviteeDefinitionVersion());
+            if (updateDefinitionVersion == null) {
+                throw new InvalidDataException("Invalid definition version for api '" + existingAPI.getId() + "'");
+            }
+            DefinitionVersion existingDefinitionVersion = DefinitionVersion.valueOfLabel(existingAPI.getGraviteeDefinitionVersion());
+            if (updateDefinitionVersion.asInteger() < existingDefinitionVersion.asInteger()) {
+                throw new DefinitionVersionException();
             }
         }
     }
