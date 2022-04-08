@@ -58,4 +58,8 @@ public enum DefinitionVersion {
     public static Set<String> versions() {
         return BY_LABEL.keySet();
     }
+
+    public Integer asInteger() {
+        return Integer.valueOf(label.replaceAll("\\.", ""));
+    }
 }
