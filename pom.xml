@@ -848,6 +848,7 @@
                         <exclude>**/sonar-project.properties</exclude>
                         <exclude>gravitee-apim-portal-webui/**</exclude>
                         <exclude>gravitee-apim-console-webui/**</exclude>
+                        <exclude>gravitee-apim-cypress/**</exclude>
                     </excludes>
                     <mapping>
                         <ts>SLASHSTAR_STYLE</ts>
