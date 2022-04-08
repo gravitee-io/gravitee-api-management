@@ -267,7 +267,7 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean install --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean install --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev,distribution-ee
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
@@ -405,6 +405,10 @@ jobs:
                   jobName: publish-on-nexus
 
     publish-images-azure-registry:
+        parameters:
+            enterprise_edition:
+                default: false
+                type: boolean
         docker:
             - image: cimg/openjdk:11.0
         resource_class: small
@@ -421,11 +425,34 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
                   var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+            - when:
+                  condition:
+                      not: << parameters.enterprise_edition>>
+                  steps:
+                      - run:
+                            name: Prepare the CE image by removing EE lib & plugins
+                            command: |
+                                ## Clean rest api
+                                rm rest-api-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
+                                rm rest-api-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
+                                rm rest-api-docker-context/distribution/plugins/gravitee-notifier-*.zip
+                                rm rest-api-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
+                                rm rest-api-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
+                                ## Clean Gateway
+                                rm gateway-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
+                                rm gateway-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
+                                rm gateway-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
+                                rm gateway-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
             - run:
-                  name: Build & Publish Management API and Gateway Docker Image to Azure Registry
+                  name: Build & publish dev docker image <<# parameters.enterprise_edition >>- Enterprise edition<</ parameters.enterprise_edition >>
                   command: |
-                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
-                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${TAG}
+                      export dockerTag=$TAG
+                      if [ "<< parameters.enterprise_edition >>" == "true" ]; then
+                        dockerTag=$(echo $dockerTag | sed 's/-/-ee-/')
+                      fi
+                      
+                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${dockerTag}
+                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${dockerTag}
 
                       docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
@@ -441,7 +468,6 @@ jobs:
                       docker push ${REST_API_PRIVATE_IMAGE_TAG}
                       docker push ${GATEWAY_PRIVATE_IMAGE_TAG}
                       docker logout graviteeio.azurecr.io
-
             - notify-on-failure
 
     webui-install:
@@ -1200,7 +1226,9 @@ workflows:
                       - test
                       - test-repository
             - publish-images-azure-registry:
+                  name: Publish ee images on azure registry
                   context: cicd-orchestrator
+                  enterprise_edition: true
                   requires:
                       - test
                       - test-repository
@@ -1209,6 +1237,18 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+            -   publish-images-azure-registry:
+                    name: Publish ce images on azure registry
+                    context: cicd-orchestrator
+                    enterprise_edition: false
+                    requires:
+                        - test
+                        - test-repository
+                    filters:
+                        branches:
+                            only:
+                                - master
+                                - /^\d+\.\d+\.x$/
             - webui-install:
                   name: Install APIM Console
                   apim-ui-project: gravitee-apim-console-webui
@@ -1295,7 +1335,8 @@ workflows:
             - deploy-on-azure-cluster:
                   context: cicd-orchestrator
                   requires:
-                      - publish-images-azure-registry
+                      - Publish ee images on azure registry
+                      - Publish ce images on azure registry
                       - Build and publish APIM Console docker image
                       - Build and publish APIM Portal docker image
                   filters:
