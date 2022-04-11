@@ -230,7 +230,7 @@ class ApiAdminController {
   }
 
   canTransferOwnership(): boolean {
-    return this.isAdmin() || this.UserService.isApiPrimaryOwner(this.api, this.resolvedApiGroups);
+    return this.UserService.currentUser.isAdmin() || this.UserService.isApiPrimaryOwner(this.api, this.resolvedApiGroups);
   }
 
   isAdmin(): boolean {

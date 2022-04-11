@@ -35,8 +35,6 @@ import { Role } from '../../../../entities/role/role';
 import { fakePermissionsByScopes } from '../../../../entities/role/permission.fixtures';
 
 describe('OrgSettingsRoleComponent', () => {
-  const roleScope = 'ORGANIZATION';
-  const role = 'USER';
   const fakeAjsState = {
     go: jest.fn(),
   };
@@ -51,28 +49,14 @@ describe('OrgSettingsRoleComponent', () => {
   });
 
   describe('edit mode', () => {
-    beforeEach(() => {
-      TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
-        providers: [
-          { provide: UIRouterState, useValue: fakeAjsState },
-          { provide: UIRouterStateParams, useValue: { roleScope, role } },
-        ],
-      });
-      httpTestingController = TestBed.inject(HttpTestingController);
-      fixture = TestBed.createComponent(OrgSettingsRoleComponent);
-      loader = TestbedHarnessEnvironment.loader(fixture);
-      fixture.detectChanges();
-    });
-
     it('should update role', async () => {
       const role = fakeRole({
         id: 'roleId',
-        scope: roleScope,
         permissions: {
           '1_USER_P': ['C', 'R', 'U', 'D'],
         },
       });
+      configureModule(role);
       expectRoleGetRequest(role);
       expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
 
@@ -109,11 +93,11 @@ describe('OrgSettingsRoleComponent', () => {
     it('should update role permissions', async () => {
       const role = fakeRole({
         id: 'roleId',
-        scope: roleScope,
         permissions: {
           '1_USER_P': ['C', 'R', 'U', 'D'],
         },
       });
+      configureModule(role);
       expectRoleGetRequest(role);
       expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
 
@@ -161,12 +145,12 @@ describe('OrgSettingsRoleComponent', () => {
     it('should toggle select all create & update permission right', async () => {
       const role = fakeRole({
         id: 'roleId',
-        scope: roleScope,
         permissions: {
           '1_USER_P': ['U', 'R'],
           '2_ROLE_P': ['R'],
         },
       });
+      configureModule(role);
       expectRoleGetRequest(role);
       expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
 
@@ -212,8 +196,9 @@ describe('OrgSettingsRoleComponent', () => {
       // No flush to stop test here
     });
 
-    it('should disable form with a system role', async () => {
-      const role = fakeRole({ id: 'roleId', system: true, scope: roleScope });
+    it('should disable form with organization admin', async () => {
+      const role = fakeRole({ id: 'roleId', system: true, scope: 'ORGANIZATION', name: 'ADMIN' });
+      configureModule(role);
       expectRoleGetRequest(role);
       expectGetPermissionsByScopeRequest(['1_USER_P', '2_ROLE_P']);
 
@@ -254,7 +239,7 @@ describe('OrgSettingsRoleComponent', () => {
         imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
         providers: [
           { provide: UIRouterState, useValue: fakeAjsState },
-          { provide: UIRouterStateParams, useValue: { roleScope } },
+          { provide: UIRouterStateParams, useValue: { roleScope: 'ORGANIZATION' } },
         ],
       });
       httpTestingController = TestBed.inject(HttpTestingController);
@@ -304,14 +289,14 @@ describe('OrgSettingsRoleComponent', () => {
       await saveBar.clickSubmit();
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles`,
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles`,
         method: 'POST',
       });
       expect(req.request.body).toEqual({
         name: 'NEW NAME',
         description: 'New description',
         default: true,
-        scope: roleScope,
+        scope: 'ORGANIZATION',
         permissions: {
           '1_USER_P': ['C', 'R', 'U', 'D'],
           '2_ROLE_P': [],
@@ -330,6 +315,20 @@ describe('OrgSettingsRoleComponent', () => {
     });
   });
 
+  function configureModule(role: Role) {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
+      providers: [
+        { provide: UIRouterState, useValue: fakeAjsState },
+        { provide: UIRouterStateParams, useValue: { roleScope: role.scope, role: role.name } },
+      ],
+    });
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(OrgSettingsRoleComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    fixture.detectChanges();
+  }
+
   function expectRoleGetRequest(role: Role) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${role.scope}/roles/${role.name}`, method: 'GET' })
@@ -340,7 +339,7 @@ describe('OrgSettingsRoleComponent', () => {
   function expectGetPermissionsByScopeRequest(permissions: string[]) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes`, method: 'GET' })
-      .flush(fakePermissionsByScopes({ [roleScope]: permissions }));
+      .flush(fakePermissionsByScopes({ ['ORGANIZATION']: permissions }));
     fixture.detectChanges();
   }
 });

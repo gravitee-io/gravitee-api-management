@@ -23,4 +23,5 @@ export interface Role {
   system?: boolean;
   permissions?: Record<string, string[]>;
   default?: boolean;
+  isReadOnly?: boolean;
 }

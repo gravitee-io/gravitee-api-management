@@ -99,7 +99,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
              */
             permissions: new FormGroup(
               permissions.reduce((prev, permission) => {
-                const disabled = isPermissionMovedToOrganizationScope(role, permission) || role.system;
+                const disabled = isPermissionMovedToOrganizationScope(role, permission) || this.isReadOnly;
 
                 // Create a new FormControl for each permission right and add observable to update the select all checkbox state
                 const createFormControl = new FormControl({ value: role.permissions[permission]?.includes('C'), disabled });
@@ -204,6 +204,10 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
       state: nbChecked === nbPermissions ? 'checked' : nbChecked === 0 ? 'unchecked' : 'indeterminate',
       label: `${nbChecked === nbPermissions ? 'Deselect' : 'Select'} all`,
     };
+  }
+
+  public get isReadOnly(): boolean {
+    return this.role?.scope === 'ORGANIZATION' && this.role?.name === 'ADMIN';
   }
 }
 
