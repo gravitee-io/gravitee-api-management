@@ -41,6 +41,7 @@ import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -256,6 +257,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private ApiConverter apiConverter;
 
+    @Autowired
+    private ResourceService resourceService;
+
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
 
@@ -403,6 +407,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // check policy configurations.
             checkPolicyConfigurations(api);
+
+            // check policy configurations.
+            checkResourceConfigurations(api);
 
             // check primary owner
             PrimaryOwnerEntity primaryOwner = findPrimaryOwner(executionContext, apiDefinition, userId);
@@ -1509,6 +1516,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check policy configurations.
             checkPolicyConfigurations(updateApiEntity);
 
+            // check resource configurations.
+            checkResourceConfigurations(updateApiEntity);
+
             final ApiEntity apiToCheck = convert(executionContext, optApiToUpdate.get());
 
             // if user changes definition version, then check if he is allowed to do it
@@ -1777,6 +1787,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 final String[] notAllowedTags = updatedTags.stream().filter(tag -> !userTags.contains(tag)).toArray(String[]::new);
                 throw new TagNotAllowedException(notAllowedTags);
             }
+        }
+    }
+
+    private void checkResourceConfigurations(final UpdateApiEntity updateApiEntity) {
+        List<Resource> resources = updateApiEntity.getResources();
+        if (resources != null) {
+            resources.stream().filter(Resource::isEnabled).forEach(resource -> resourceService.validateResourceConfiguration(resource));
         }
     }
 

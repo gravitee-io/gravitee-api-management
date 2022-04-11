@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -191,6 +192,9 @@ public class ApiService_UpdateTest {
 
     @Mock
     private PolicyService policyService;
+
+    @Mock
+    private ResourceService resourceService;
 
     @Mock
     private GroupService groupService;
@@ -960,6 +964,18 @@ public class ApiService_UpdateTest {
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUpdateWithInvalidResourceConfiguration() throws TechnicalException {
+        prepareUpdate();
+        Resource resource = new Resource();
+        when(existingApi.getResources()).thenReturn(List.of(resource));
+        doThrow(new InvalidDataException()).when(resourceService).validateResourceConfiguration(any(Resource.class));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+
+        fail("should throw InvalidDataException");
     }
 
     private void assertUpdate(
