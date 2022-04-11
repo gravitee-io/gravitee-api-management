@@ -97,6 +97,7 @@ public class RoleService_CreateTest {
     public void shouldNotCreateBecauseOfReservedRoleName() throws TechnicalException {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("admin");
+        when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ORGANIZATION);
 
         roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
 

@@ -23,7 +23,7 @@
   <h4>Manage CRUD (Create, Read, Update, Delete) permissions for this role {{ roleName }} in the {{ roleScope | titlecase }} scope.</h4>
 
   <form *ngIf="!isLoading" autocomplete="off" [formGroup]="roleForm" (ngSubmit)="onSubmit()">
-    <gio-banner-info *ngIf="role.system">System role are not editable</gio-banner-info>
+    <gio-banner-info *ngIf="isReadOnly">System role are not editable</gio-banner-info>
 
     <mat-card class="org-settings-role__role-card">
       <mat-form-field appearance="fill">
@@ -71,7 +71,7 @@
             <div>
               <mat-checkbox
                 (change)="toggleAll('C', $event)"
-                [disabled]="role.system"
+                [disabled]="isReadOnly"
                 [checked]="selectAllCheckbox.C.state === 'checked'"
                 [indeterminate]="selectAllCheckbox.C.state === 'indeterminate'"
                 [aria-label]="selectAllCheckbox.C.label"
@@ -91,7 +91,7 @@
             <div>
               <mat-checkbox
                 (change)="toggleAll('R', $event)"
-                [disabled]="role.system"
+                [disabled]="isReadOnly"
                 [checked]="selectAllCheckbox.R.state === 'checked'"
                 [indeterminate]="selectAllCheckbox.R.state === 'indeterminate'"
                 [aria-label]="selectAllCheckbox.R.label"
@@ -111,7 +111,7 @@
             <div>
               <mat-checkbox
                 (change)="toggleAll('U', $event)"
-                [disabled]="role.system"
+                [disabled]="isReadOnly"
                 [checked]="selectAllCheckbox.U.state === 'checked'"
                 [indeterminate]="selectAllCheckbox.U.state === 'indeterminate'"
                 [aria-label]="selectAllCheckbox.U.label"
@@ -131,7 +131,7 @@
             <div>
               <mat-checkbox
                 (change)="toggleAll('D', $event)"
-                [disabled]="role.system"
+                [disabled]="isReadOnly"
                 [checked]="selectAllCheckbox.D.state === 'checked'"
                 [indeterminate]="selectAllCheckbox.D.state === 'indeterminate'"
                 [aria-label]="selectAllCheckbox.D.label"

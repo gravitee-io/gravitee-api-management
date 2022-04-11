@@ -152,7 +152,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
     @Override
     public RoleEntity update(final ExecutionContext executionContext, final UpdateRoleEntity roleEntity) {
-        if (isReserved(roleEntity.getName())) {
+        if (isReserved(roleEntity.getScope(), roleEntity.getName())) {
             throw new RoleReservedNameException(roleEntity.getName());
         }
         RoleScope scope = roleEntity.getScope();
@@ -330,7 +330,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
     private Role convert(final NewRoleEntity roleEntity) {
         final Role role = new Role();
-        role.setName(generateId(roleEntity.getName()));
+        role.setName(generateId(roleEntity.getScope(), roleEntity.getName()));
         role.setDescription(roleEntity.getDescription());
         role.setScope(convert(roleEntity.getScope()));
         role.setDefaultRole(roleEntity.isDefaultRole());
@@ -345,7 +345,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             return null;
         }
         final Role role = new Role();
-        role.setName(generateId(roleEntity.getName()));
+        role.setName(generateId(roleEntity.getScope(), roleEntity.getName()));
         role.setId(roleEntity.getId());
         role.setDescription(roleEntity.getDescription());
         role.setScope(convert(roleEntity.getScope()));
@@ -425,21 +425,16 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         return RoleScope.valueOf(scope.name());
     }
 
-    private String generateId(String name) {
+    private String generateId(RoleScope scope, String name) {
         String id = name.trim().toUpperCase().replaceAll(" +", " ").replaceAll(" ", "_").replaceAll("[^\\w\\s]", "_").replaceAll("-+", "_");
-        if (isReserved(id)) {
+        if (isReserved(scope, id)) {
             throw new RoleReservedNameException(id);
         }
         return id;
     }
 
-    private boolean isReserved(String name) {
-        for (SystemRole systemRole : SystemRole.values()) {
-            if (systemRole.name().equals(name)) {
-                return true;
-            }
-        }
-        return false;
+    private boolean isReserved(RoleScope scope, String name) {
+        return scope == RoleScope.ORGANIZATION && SystemRole.ADMIN.name().equals(name);
     }
 
     @Override

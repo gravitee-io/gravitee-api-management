@@ -130,6 +130,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
       isSystem: role.system,
       hasUserRoleManagement: role.scope === 'ORGANIZATION',
       canBeDeleted: !role.default && !role.system,
+      isReadOnly: role.scope === 'ORGANIZATION' && role.name === 'ADMIN',
       icon: OrgSettingsRolesComponent.getScopeIcon(role.scope),
     }));
   }
