@@ -209,11 +209,9 @@ import DialogSubscriptionChangeEndDateController from './api/portal/subscription
 import DialogSubscriptionRenewController from './api/portal/subscriptions/dialog/subscription.renew.dialog.controller';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import DialogPublishPlanController from '../management/api/portal/plans/publishPlanDialog.controller';
-import TagsController from '../organization/configuration/tags/tags.controller';
 import TagService from '../services/tag.service';
 import MetadataController from '../components/metadata/metadata.controller';
 import MetadataService from '../services/metadata.service';
-import DeleteTagDialogController from '../organization/configuration/tags/delete.tag.dialog.controller';
 import DeleteMetadataDialogController from '../components/metadata/dialog/delete.metadata.dialog.controller';
 import NewMetadataDialogController from '../components/metadata/dialog/new.metadata.dialog.controller';
 import UpdateMetadataDialogController from '../components/metadata/dialog/update.metadata.dialog.controller';
@@ -223,24 +221,14 @@ import FileChooserDialogController from '../components/dialog/fileChooserDialog.
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from '../components/dialog/confirmAndValidateDialog.controller';
 import DialogDynamicProviderHttpController from '../management/api/design/properties/dynamic-provider-http-dialog.controller';
-import TenantsController from '../organization/configuration/tenants/tenants.controller';
 import TenantService from '../services/tenant.service';
-import DeleteTenantDialogController from '../organization/configuration/tenants/delete.tenant.dialog.controller';
-import PoliciesController from '../organization/configuration/policies/policies.controller';
 
 import CategoriesComponent from '../management/configuration/categories/categories.component';
 import CategoryComponent from './configuration/categories/category/category.component';
-import TenantsComponent from '../organization/configuration/tenants/tenants.component';
-import TagsComponent from '../organization/configuration/tags/tags.component';
 import MetadataComponent from '../management/configuration/metadata/metadata.component';
 import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
-import PoliciesComponent from '../organization/configuration/policies/policies.component';
 
-import RoleComponent from '../organization/configuration/roles/role/role.components';
-import RoleMembersComponent from '../organization/configuration/roles/role/role.members.component';
-import RolesComponent from '../organization/configuration/roles/roles.component';
 import RoleService from '../services/role.service';
-import DialogAddUserRoleController from '../organization/configuration/roles/role/add.user.dialog.controller';
 
 import applicationRouterConfig from './application/applications.route';
 import applicationsNotificationsRouterConfig from './application/details/notifications/applications.notifications.settings.route';
@@ -270,12 +258,7 @@ import NotificationsComponent from '../components/notifications/notifications.co
 import NotificationSettingsComponent from '../components/notifications/notificationsettings/notificationsettings.component';
 import NotificationSettingsService from '../services/notificationSettings.service';
 import NotificationTemplatesService from '../services/notificationTemplates.service';
-import NotificationTemplatesComponent from '../organization/configuration/notification-templates/notificationTemplates.component';
-import NotificationTemplateComponent from '../organization/configuration/notification-templates/notificationTemplate.component';
-import NotificationTemplateByTypeComponent from '../organization/configuration/notification-templates/components/notificationTemplateByType.component';
-import NotificationTemplatesController from '../organization/configuration/notification-templates/notificationTemplates.controller';
-import NotificationTemplateController from '../organization/configuration/notification-templates/notificationTemplate.controller';
-import NotificationTemplateByTypeController from '../organization/configuration/notification-templates/components/notificationTemplateByType.controller';
+
 // Documentation
 import '../components/documentation/documentation.module';
 
@@ -302,11 +285,6 @@ import PortalSettingsService from '../services/portalSettings.service';
 import PortalConfigService from '../services/portalConfig.service';
 import ApiLoggingComponent from '../management/configuration/api_logging/api_logging.component';
 import ApiLoggingController from '../management/configuration/api_logging/api_logging.controller';
-// Users
-import UsersComponent from '../organization/configuration/users/users.component';
-import UserDetailComponent from '../organization/configuration/user/userdetail.component';
-import NewUserComponent from '../organization/configuration/user/new/new-user.component';
-import DialogAddUserGroupController from '../organization/configuration/user/dialog/addusergroup.dialog.controller';
 // Groups
 import GroupsComponent from '../management/configuration/groups/groups.component';
 import GroupComponent from './configuration/groups/group/group.component';
@@ -320,12 +298,6 @@ import DictionaryController from '../management/configuration/dictionaries/dicti
 import DialogDictionaryAddPropertyController from '../management/configuration/dictionaries/add-property.dialog.controller';
 // Settings - Identity providers
 import IdentityProvidersComponent from '../components/identityProviders/identity-providers.component';
-import IdentityProviderComponent from '../organization/configuration/identity/identity-provider.component';
-import IdentityProviderController from '../organization/configuration/identity/identity-provider.controller';
-import IdentityProviderGoogleComponent from '../organization/configuration/identity/identity-provider-google.component';
-import IdentityProviderGitHubComponent from '../organization/configuration/identity/identity-provider-github.component';
-import IdentityProviderGraviteeioAmComponent from '../organization/configuration/identity/identity-provider-graviteeio-am.component';
-import IdentityProviderOIDCComponent from '../organization/configuration/identity/identity-provider-oidc.component';
 import IdentityProviderService from '../services/identityProvider.service';
 // Others
 import StringService from '../services/string.service';
@@ -348,8 +320,6 @@ import TopApisComponent from '../management/configuration/top-apis/top-apis.comp
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
 import ApiProxyController from './api/proxy/apiProxy.controller';
-import CockpitComponent from '../organization/configuration/cockpit/cockpit.component';
-import ConsoleSettingsComponentAjs from '../organization/configuration/console/console.component';
 import PortalSettingsComponent from './configuration/portal/portal.component';
 import DialogAddPathMappingController from './api/analytics/pathMappings/modal/add-pathMapping.dialog.controller';
 import DialogImportPathMappingController from './api/analytics/pathMappings/modal/import-pathMapping.dialog.controller';
@@ -398,12 +368,6 @@ import CircularPercentageComponent from '../components/circularPercentage/circul
 import CircularPercentageController from '../components/circularPercentage/circularPercentage.controller';
 
 import EntrypointService from '../services/entrypoint.service';
-import EntrypointComponent from '../organization/configuration/tags/entrypoint/entrypoint.component';
-import EntrypointController from '../organization/configuration/tags/entrypoint/entrypoint.controller';
-import DeleteEntrypointDialogController from '../organization/configuration/tags/entrypoint/delete.entrypoint.dialog.controller';
-
-import TagComponent from '../organization/configuration/tags/tag/tag.component';
-import TagController from '../organization/configuration/tags/tag/tag.controller';
 
 import SelectFolderDialogController from '../components/documentation/dialog/selectfolder.controller';
 import SelectPageDialogController from '../components/documentation/dialog/selectpage.controller';
@@ -746,10 +710,8 @@ graviteeManagementModule.controller('PlatformAlertsDashboardController', Platfor
 graviteeManagementModule.controller('ApiAlertsDashboardController', ApiAlertsDashboardController);
 graviteeManagementModule.controller('CategoriesController', CategoriesController);
 graviteeManagementModule.controller('CategoryController', CategoryController);
-graviteeManagementModule.controller('TenantsController', TenantsController);
 graviteeManagementModule.controller('DeleteCategoryDialogController', DeleteCategoryDialogController);
 graviteeManagementModule.controller('DeleteAPICategoryDialogController', DeleteAPICategoryDialogController);
-graviteeManagementModule.controller('DeleteTenantDialogController', DeleteTenantDialogController);
 graviteeManagementModule.component('groups', GroupsComponent);
 graviteeManagementModule.component('group', GroupComponent);
 graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
@@ -765,9 +727,7 @@ graviteeManagementModule.controller('DialogSubscriptionTransferController', Dial
 graviteeManagementModule.controller('DialogSubscriptionChangeEndDateController', DialogSubscriptionChangeEndDateController);
 graviteeManagementModule.controller('DialogSubscriptionRenewController', DialogSubscriptionRenewController);
 graviteeManagementModule.controller('DialogPublishPlanController', DialogPublishPlanController);
-graviteeManagementModule.controller('TagsController', TagsController);
 graviteeManagementModule.controller('MetadataController', MetadataController);
-graviteeManagementModule.controller('DeleteTagDialogController', DeleteTagDialogController);
 graviteeManagementModule.controller('DeleteMetadataDialogController', DeleteMetadataDialogController);
 graviteeManagementModule.controller('NewMetadataDialogController', NewMetadataDialogController);
 graviteeManagementModule.controller('UpdateMetadataDialogController', UpdateMetadataDialogController);
@@ -779,7 +739,6 @@ graviteeManagementModule.controller('DialogConfirmController', DialogConfirmCont
 graviteeManagementModule.controller('DialogConfirmDeploymentController', DialogConfirmDeploymentController);
 graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);
 graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
-graviteeManagementModule.controller('DialogAddUserRoleController', DialogAddUserRoleController);
 graviteeManagementModule.controller('SupportTicketController', SupportTicketController);
 graviteeManagementModule.controller('TicketsListController', TicketsListController);
 graviteeManagementModule.controller('AuditController', AuditController);
@@ -793,7 +752,6 @@ graviteeManagementModule.controller('SelectFolderDialogController', SelectFolder
 graviteeManagementModule.controller('SelectPageDialogController', SelectPageDialogController);
 graviteeManagementModule.controller('DialogReviewController', DialogReviewController);
 graviteeManagementModule.controller('DialogRequestForChangesController', DialogRequestForChangesController);
-graviteeManagementModule.controller('PoliciesController', PoliciesController);
 graviteeManagementModule.service('ApplicationService', ApplicationService);
 graviteeManagementModule.service('ApplicationTypesService', ApplicationTypesService);
 graviteeManagementModule.service('ApiService', ApiService);
@@ -870,30 +828,22 @@ graviteeManagementModule.component('categories', CategoriesComponent);
 graviteeManagementModule.component('category', CategoryComponent);
 graviteeManagementModule.component('moved', MovedComponent);
 
-graviteeManagementModule.component('tenants', TenantsComponent);
 graviteeManagementModule.directive('ngTenants', downgradeComponent({ component: OrgSettingsTenantsComponent }));
 
-graviteeManagementModule.component('tags', TagsComponent);
 graviteeManagementModule.directive('ngOrgSettingsTags', downgradeComponent({ component: OrgSettingsTagsComponent }));
 graviteeManagementModule.component('metadata', MetadataComponent);
-graviteeManagementModule.component('roles', RolesComponent);
 graviteeManagementModule.directive('ngRoles', downgradeComponent({ component: OrgSettingsRolesComponent }));
-graviteeManagementModule.component('role', RoleComponent);
 graviteeManagementModule.directive('ngOrgSettingsRole', downgradeComponent({ component: OrgSettingsRoleComponent }));
-graviteeManagementModule.component('roleMembers', RoleMembersComponent);
 graviteeManagementModule.directive('ngRoleMembers', downgradeComponent({ component: OrgSettingsRoleMembersComponent }));
 graviteeManagementModule.component('theme', ThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
-graviteeManagementModule.component('cockpit', CockpitComponent);
 graviteeManagementModule.directive('ngCockpit', downgradeComponent({ component: OrgSettingsCockpitComponent }));
-graviteeManagementModule.component('consoleSettings', ConsoleSettingsComponentAjs);
 graviteeManagementModule.directive('ngConsoleSettings', downgradeComponent({ component: OrgSettingsGeneralComponent }));
 graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
 graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsComponent);
 graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
 graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
 graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
-graviteeManagementModule.component('policies', PoliciesComponent);
 graviteeManagementModule.directive('ngPlatformPolicies', downgradeComponent({ component: OrgSettingsPlatformPoliciesComponent }));
 
 graviteeManagementModule.component('instances', InstancesComponent);
@@ -986,22 +936,15 @@ graviteeManagementModule.controller('DialogAddNotificationSettingsController', D
 graviteeManagementModule.component('notificationSettingsComponent', NotificationSettingsComponent);
 graviteeManagementModule.component('notificationsComponent', NotificationsComponent);
 
-graviteeManagementModule.component('notificationTemplatesComponent', NotificationTemplatesComponent);
 graviteeManagementModule.directive(
   'ngNotificationTemplatesComponent',
   downgradeComponent({ component: OrgSettingsNotificationTemplatesComponent }),
 );
 
-graviteeManagementModule.component('notificationTemplateComponent', NotificationTemplateComponent);
 graviteeManagementModule.directive(
   'ngNotificationTemplateComponent',
   downgradeComponent({ component: OrgSettingsNotificationTemplateComponent }),
 );
-
-graviteeManagementModule.component('gvNotificationTemplateByType', NotificationTemplateByTypeComponent);
-graviteeManagementModule.controller('NotificationTemplatesController', NotificationTemplatesController);
-graviteeManagementModule.controller('NotificationTemplateController', NotificationTemplateController);
-graviteeManagementModule.controller('NotificationTemplateByTypeController', NotificationTemplateByTypeController);
 
 graviteeManagementModule.component('gvSidenav', SidenavComponent);
 graviteeManagementModule.component('gvSubmenu', SubmenuComponent);
@@ -1047,16 +990,11 @@ graviteeManagementModule.component('apiLogging', ApiLoggingComponent);
 graviteeManagementModule.controller('ApiLoggingController', ApiLoggingController);
 
 // Users
-graviteeManagementModule.component('users', UsersComponent);
 graviteeManagementModule.directive('ngOrgSettingsUsers', downgradeComponent({ component: OrgSettingsUsersComponent }));
 
-graviteeManagementModule.component('userDetail', UserDetailComponent);
 graviteeManagementModule.directive('ngOrgSettingsUserDetail', downgradeComponent({ component: OrgSettingsUserDetailComponent }));
 
-graviteeManagementModule.component('newUser', NewUserComponent);
 graviteeManagementModule.directive('ngOrgSettingsNewUser', downgradeComponent({ component: OrgSettingsNewUserComponent }));
-
-graviteeManagementModule.controller('DialogAddUserGroupController', DialogAddUserGroupController);
 
 // Router
 graviteeManagementModule.service('RouterService', RouterService);
@@ -1094,12 +1032,6 @@ graviteeManagementModule.directive(
   downgradeComponent({ component: OrgSettingsIdentityProviderComponent }),
 );
 
-graviteeManagementModule.component('identityProvider', IdentityProviderComponent);
-graviteeManagementModule.component('gvIdentityproviderGraviteeioAm', IdentityProviderGraviteeioAmComponent);
-graviteeManagementModule.component('gvIdentityproviderGoogle', IdentityProviderGoogleComponent);
-graviteeManagementModule.component('gvIdentityproviderGithub', IdentityProviderGitHubComponent);
-graviteeManagementModule.component('gvIdentityproviderOidc', IdentityProviderOIDCComponent);
-graviteeManagementModule.controller('IdentityProviderController', IdentityProviderController);
 graviteeManagementModule.service('IdentityProviderService', IdentityProviderService);
 
 // Settings: Client Registration
@@ -1141,11 +1073,6 @@ graviteeManagementModule.component('circularPercentage', CircularPercentageCompo
 graviteeManagementModule.controller('CircularPercentageController', CircularPercentageController);
 
 graviteeManagementModule.service('EntrypointService', EntrypointService);
-graviteeManagementModule.component('entrypoint', EntrypointComponent);
-graviteeManagementModule.controller('EntrypointController', EntrypointController);
-graviteeManagementModule.controller('DeleteEntrypointDialogController', DeleteEntrypointDialogController);
-graviteeManagementModule.component('tag', TagComponent);
-graviteeManagementModule.controller('TagController', TagController);
 
 graviteeManagementModule.service('DashboardService', DashboardService);
 graviteeManagementModule.component('dashboard', AnalyticsDashboardComponent);
