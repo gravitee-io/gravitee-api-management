@@ -290,6 +290,9 @@ jobs:
             - run:
                   name: Run tests
                   command: |
+                      cd gravitee-apim-repository/gravitee-apim-repository-api
+                      mvn -s ../../.gravitee.settings.xml clean install -DskipTests
+                      cd ../..
                       mvn -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
