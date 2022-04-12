@@ -56,3 +56,7 @@ Cypress.Commands.add('loginInAPIM', (username: string, password: string) => {
     auth: { username, password },
   });
 });
+
+Cypress.Commands.add('focusOnDialog', () => {
+  return cy.get('mat-dialog-container');
+});

@@ -22,11 +22,11 @@
     <div class="form">
       <mat-form-field *ngIf="isUpdate" appearance="fill">
         <mat-label>Id</mat-label>
-        <input matInput formControlName="id" />
+        <input matInput formControlName="id" data-testid="tenant-id" />
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Name</mat-label>
-        <input matInput formControlName="name" required />
+        <input matInput formControlName="name" required data-testid="tenant-name" />
         <mat-hint align="end">{{ tenantForm.get('name').value?.length ?? 0 }}/30</mat-hint>
         <mat-error *ngIf="tenantForm.get('name').hasError('maxlength')">Name has to be less than 30 characters long.</mat-error>
         <mat-error *ngIf="tenantForm.get('name').hasError('minlength')">Name has to be more than 2 characters long.</mat-error>
@@ -34,7 +34,7 @@
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Description</mat-label>
-        <input matInput formControlName="description" />
+        <input matInput formControlName="description" data-testid="tenant-description" />
         <mat-hint align="end">{{ tenantForm.get('description').value?.length ?? 0 }}/160</mat-hint>
         <mat-error *ngIf="tenantForm.get('description').hasError('maxlength')"
           >Description has to be less than 160 characters long.</mat-error
@@ -45,6 +45,6 @@
 
   <mat-dialog-actions class="actions">
     <button mat-button [mat-dialog-close]="false">Cancel</button>
-    <button mat-button [disabled]="tenantForm.invalid" color="primary" type="submit">Ok</button>
+    <button mat-button [disabled]="tenantForm.invalid" color="primary" type="submit" data-testid="save-tenant">Ok</button>
   </mat-dialog-actions>
 </form>
