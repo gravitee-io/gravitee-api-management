@@ -17,6 +17,7 @@ import { Api, ApiLifecycleState, ApiMember, UpdateApiEntity } from '@model/apis'
 import { ApiImport, ImportSwaggerDescriptorEntity } from '@model/api-imports';
 import { BasicAuthentication } from '@model/users';
 import { ProcessSubscriptionEntity } from '@model/api-subscriptions';
+import { requestGateway } from 'support/common/http.commands';
 
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({
@@ -196,4 +197,27 @@ export function getApiKeys(auth: BasicAuthentication, apiId: string, subscriptio
     auth,
     failOnStatusCode: false,
   });
+}
+
+export function getApiAnalytics(auth: BasicAuthentication, apiId: string, field = 'mapped-path') {
+  return requestGateway(
+    {
+      url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/analytics`,
+      auth,
+      headers: {
+        'Cache-Control': 'no-cache, no-store',
+        Connection: 'close',
+      },
+      qs: {
+        type: 'group_by',
+        field,
+        interval: 10000,
+        from: Date.now() - 5 * 60 * 1000,
+        to: Date.now(),
+      },
+    },
+    {
+      validWhen: (response) => !Cypress._.isEmpty(response.body.values),
+    },
+  );
 }
