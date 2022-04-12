@@ -50,7 +50,7 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
     };
 
     this.displaySelect = () => {
-      return (this.values !== undefined && this.condition.operator === 'EQUALS') || this.condition.operator === 'NOT_EQUALS';
+      return this.values !== undefined && (this.condition.operator === 'EQUALS' || this.condition.operator === 'NOT_EQUALS');
     };
   },
 };
