@@ -15,14 +15,14 @@
  */
 
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
-import { deleteApi, deployApi, importSwaggerApi } from '@commands/management/api-management-commands';
+import { deleteApi, deployApi, getApiAnalytics, importSwaggerApi } from '@commands/management/api-management-commands';
 import { getPages } from '@commands/management/api-pages-management-commands';
 import { ApiImport } from '@model/api-imports';
 import { requestGateway } from 'support/common/http.commands';
 import swaggerv2 from 'fixtures/json/petstore_swaggerv2.json';
 import openavpiv3 from 'fixtures/json/petstore_openapiv3.json';
 
-describe('API import via Swagger definition file', () => {
+describe('Parameterized tests for API import via file/URL', () => {
   const apiImportArray = [
     ['Swagger v2 file', JSON.stringify(swaggerv2)],
     ['OpenAPI v3 file', JSON.stringify(openavpiv3)],
@@ -107,17 +107,22 @@ describe('API import via Swagger definition file', () => {
   });
 });
 
-describe('Test API endpoint policies (Swagger v2)', () => {
+describe('Test API endpoint policies (Swagger v2 only)', () => {
   let mockPolicyApi: ApiImport;
   let jsonValidationPolicyApi: ApiImport;
   let noExtrasApi: ApiImport;
   let xmlValidationPolicyApi: ApiImport;
+  let pathMappingApi: ApiImport;
+  let requestValidationApi: ApiImport;
   let swaggerImport = JSON.stringify(swaggerv2);
 
   before(() => {
     {
       cy.log('-----  Import a swagger API without any extra options selected  -----');
-      cy.createAndStartApiFromSwagger(swaggerImport).then((api) => (noExtrasApi = api));
+      const swaggerImportAttributes = {
+        with_path_mapping: false,
+      };
+      cy.createAndStartApiFromSwagger(swaggerImport, swaggerImportAttributes).then((api) => (noExtrasApi = api));
     }
 
     {
@@ -146,11 +151,35 @@ describe('Test API endpoint policies (Swagger v2)', () => {
       };
       cy.createAndStartApiFromSwagger(swaggerImport, swaggerImportAttributes).then((api) => (xmlValidationPolicyApi = api));
     }
+
+    {
+      cy.log('-----  Import a swagger API with Path-Mapping  -----');
+      const swaggerImportAttributes = {
+        with_path_mapping: true,
+      };
+      cy.createAndStartApiFromSwagger(swaggerImport, swaggerImportAttributes).then((api) => (pathMappingApi = api));
+    }
+
+    {
+      cy.log('-----  Import a swagger API with Validate-Request policy  -----');
+      const swaggerImportAttributes = {
+        with_policy_paths: true,
+        with_policies: ['policy-request-validation'],
+      };
+      cy.createAndStartApiFromSwagger(swaggerImport, swaggerImportAttributes).then((api) => (requestValidationApi = api));
+    }
+  });
+
+  after(() => {
+    cy.teardownApi(noExtrasApi);
+    cy.teardownApi(mockPolicyApi);
+    cy.teardownApi(jsonValidationPolicyApi);
+    cy.teardownApi(xmlValidationPolicyApi);
+    cy.teardownApi(pathMappingApi);
+    cy.teardownApi(requestValidationApi);
   });
 
   describe('Test without any extra options selected', () => {
-    after(() => cy.teardownApi(noExtrasApi));
-
     it('should successfully connect to API endpoint', () => {
       requestGateway({ url: `${Cypress.env('gatewayServer')}${noExtrasApi.context_path}/pet/findByStatus?status=available` })
         .its('body')
@@ -161,8 +190,6 @@ describe('Test API endpoint policies (Swagger v2)', () => {
   });
 
   describe('Tests mock path policy', () => {
-    after(() => cy.teardownApi(mockPolicyApi));
-
     it('should get a mocked response when trying to reach API endpoint', () => {
       requestGateway({ url: `${Cypress.env('gatewayServer')}${mockPolicyApi.context_path}/pet/findByStatus?status=available` })
         .its('body.category.name')
@@ -171,8 +198,6 @@ describe('Test API endpoint policies (Swagger v2)', () => {
   });
 
   describe('Tests JSON-Validation path policy', () => {
-    after(() => cy.teardownApi(jsonValidationPolicyApi));
-
     it('should fail with BAD REQUEST (400) when sending data using an invalid JSON schema', () => {
       requestGateway(
         {
@@ -223,8 +248,6 @@ describe('Test API endpoint policies (Swagger v2)', () => {
   });
 
   describe('Tests XML-Validation path policy', () => {
-    after(() => cy.teardownApi(xmlValidationPolicyApi));
-
     it('should fail with BAD REQUEST (400) when sending data using an invalid XML schema', () => {
       requestGateway(
         {
@@ -262,6 +285,129 @@ describe('Test API endpoint policies (Swagger v2)', () => {
         },
       ).should((response) => {
         expect(response.body.name).to.equal('Cat 9');
+      });
+    });
+  });
+
+  describe('Tests Path-Mapping (Analytics)', () => {
+    before(() => {
+      ['fish', 'cat', 'dog', 'bird', 'mouse'].forEach((animal) => {
+        requestGateway(
+          { url: `${Cypress.env('gatewayServer')}${noExtrasApi.context_path}/pet/${animal}` },
+          { validWhen: (response) => response.body !== 'No context-path matches the request URI.' },
+        );
+        requestGateway(
+          { url: `${Cypress.env('gatewayServer')}${pathMappingApi.context_path}/pet/${animal}` },
+          { validWhen: (response) => response.body !== 'No context-path matches the request URI.' },
+        );
+      });
+    });
+
+    it('should have paths set up (mentioned) in API definition if path mapping chosen', () => {
+      expect(pathMappingApi.path_mappings).to.deep.equal([
+        '/pet/:petId',
+        '/store/order/:orderId',
+        '/pet',
+        '/user/:username',
+        '/pet/findByStatus',
+        '/user/createWithList',
+        '/store/inventory',
+        '/user/login',
+        '/user',
+        '/user/createWithArray',
+        '/pet/findByTags',
+        '/store/order',
+        '/user/logout',
+        '/pet/:petId/uploadImage',
+      ]);
+    });
+
+    it('should not have paths set up (mentioned) in API definition if no path mapping enabled', () => {
+      expect(noExtrasApi.path_mappings).to.deep.equal(['/']);
+    });
+
+    it('should have 5 requests mapped in path /pet/:petId after requests were sent', () => {
+      requestGateway(
+        {
+          url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${pathMappingApi.id}/analytics`,
+          auth: API_PUBLISHER_USER,
+          qs: {
+            type: 'group_by',
+            field: 'mapped-path',
+            interval: 10000,
+            from: Date.now() - 4 * 60 * 1000,
+            to: Date.now() + 1 * 60 * 1000,
+          },
+        },
+        {
+          validWhen: (response) => response.body.values['/pet/:petId'] === 5,
+        },
+      ).should((response) => {
+        expect(Object.keys(response.body.values)).to.have.lengthOf(1);
+      });
+    });
+
+    it('should not have any mapped paths in analytics response if path-mapping was not set', () => {
+      cy.wait(5000); // some time needed to gather potential analytics data
+      requestGateway(
+        {
+          url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${noExtrasApi.id}/analytics`,
+          auth: API_PUBLISHER_USER,
+          qs: {
+            type: 'group_by',
+            field: 'mapped-path',
+            interval: 10000,
+            from: Date.now() - 4 * 60 * 1000,
+            to: Date.now() + 1 * 60 * 1000,
+          },
+        },
+        {
+          validWhen: (response) => response.body.values,
+        },
+      ).should((response) => {
+        expect(Cypress._.isEmpty(response.body.values));
+      });
+    });
+  });
+
+  describe('Tests Request-Validation policy', () => {
+    it('should not respond with an error if a request parameter is missing but Request-Validation policy not set', () => {
+      requestGateway({
+        url: `${Cypress.env('gatewayServer')}${noExtrasApi.context_path}/pet/findByStatus`,
+      }).should((response) => {
+        expect(response.body).to.be.empty;
+      });
+    });
+
+    it('should get a Request-Validation error if a required parameter is missing', () => {
+      requestGateway(
+        {
+          url: `${Cypress.env('gatewayServer')}${requestValidationApi.context_path}/pet/findByStatus`,
+        },
+        {
+          validWhen: (response) => response.status === 400,
+        },
+      ).should((response) => {
+        expect(response.body.message).to.equal(
+          '{"message":"Request is not valid according to constraint rules","constraints":["status query parameter is required"]}',
+        );
+      });
+    });
+
+    it('should successfully reach endpoint if request is valid', () => {
+      requestGateway(
+        {
+          url: `${Cypress.env('gatewayServer')}${requestValidationApi.context_path}/pet/findByStatus`,
+          qs: {
+            status: 'available',
+          },
+        },
+        {
+          validWhen: (response) => response.status === 200,
+        },
+      ).should((response) => {
+        expect(response.body[0].name).to.equal('Cat 1');
+        expect(response.body).to.have.lengthOf(7);
       });
     });
   });
