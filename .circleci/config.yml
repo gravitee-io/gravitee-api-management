@@ -419,7 +419,7 @@ jobs:
                       if [ "<< parameters.enterprise_edition >>" == "true" ]; then
                         dockerTag=$(echo $dockerTag | sed 's/-/-ee-/')
                       fi
-                      
+
                       export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${dockerTag}
                       export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${dockerTag}
 
@@ -432,7 +432,7 @@ jobs:
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                       -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
                       gateway-docker-context
-                      
+
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${REST_API_PRIVATE_IMAGE_TAG}
                       docker push ${GATEWAY_PRIVATE_IMAGE_TAG}
@@ -1188,6 +1188,13 @@ jobs:
             - run:
                   name: Run API and Postman tests
                   command: |
+                      # Remove Enterprise edition features
+                      # FIXME: add a licence to be able to run Enterprise edition
+                      rm rest-api-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
+                      rm rest-api-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
+                      rm rest-api-docker-context/distribution/plugins/gravitee-notifier-*.zip
+                      rm rest-api-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
+                      rm rest-api-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
                       # Start APIM in background
                       GIO_MAX_MEM=1024m rest-api-docker-context/distribution/bin/gravitee &
                       # Wait for APIM to be up and running
@@ -1226,7 +1233,7 @@ workflows:
                       branches:
                           only:
                               - master
-                              - cicd/run_postman_apim
+                              - /.*-run-postman$/
             - sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
@@ -1269,18 +1276,18 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-            -   publish-images-azure-registry:
-                    name: Publish ce images on azure registry
-                    context: cicd-orchestrator
-                    enterprise_edition: false
-                    requires:
-                        - test
-                        - test-repository
-                    filters:
-                        branches:
-                            only:
-                                - master
-                                - /^\d+\.\d+\.x$/
+            - publish-images-azure-registry:
+                  name: Publish ce images on azure registry
+                  context: cicd-orchestrator
+                  enterprise_edition: false
+                  requires:
+                      - test
+                      - test-repository
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
             - webui-lint-test:
                   name: Lint & Test APIM Console
                   apim-ui-project: gravitee-apim-console-webui
