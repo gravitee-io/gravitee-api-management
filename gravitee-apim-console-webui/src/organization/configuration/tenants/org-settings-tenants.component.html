@@ -22,7 +22,7 @@
 </h4>
 
 <div class="add-button-container" *gioPermission="{ anyOf: ['organization-tenant-c'] }">
-  <button (click)="onAddTenantClicked()" mat-raised-button color="primary" aria-label="Button to add a tenant">
+  <button (click)="onAddTenantClicked()" mat-raised-button color="primary" aria-label="Button to add a tenant" data-testid="add-tenant">
     <mat-icon>add</mat-icon>Add a tenant
   </button>
 </div>
@@ -53,7 +53,13 @@
       <td mat-cell *matCellDef="let element">
         <div class="centered-cell">
           <ng-container *gioPermission="{ anyOf: ['organization-tenant-u'] }">
-            <button (click)="onEditTenantClicked(element)" mat-icon-button aria-label="Button to edit a tenant" matTooltip="Edit tenant">
+            <button
+              (click)="onEditTenantClicked(element)"
+              mat-icon-button
+              aria-label="Button to edit a tenant"
+              matTooltip="Edit tenant"
+              data-testid="edit-tenant"
+            >
               <mat-icon>edit</mat-icon>
             </button>
           </ng-container>
@@ -63,6 +69,7 @@
               mat-icon-button
               aria-label="Button to delete a tenant"
               matTooltip="Delete tenant"
+              data-testid="delete-tenant"
             >
               <mat-icon>delete</mat-icon>
             </button>

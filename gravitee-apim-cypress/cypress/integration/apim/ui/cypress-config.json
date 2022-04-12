@@ -7,6 +7,7 @@
   "viewportHeight": 1080,
   "baseUrl": "http://localhost:8083",
   "testFiles": "**/*.ts",
+  "defaultCommandTimeout": 10000,
   "env": {
     "failOnStatusCode": false,
     "api_publisher_user_login": "api1",
