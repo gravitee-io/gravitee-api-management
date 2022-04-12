@@ -18,6 +18,7 @@ import AlertService from '../../../services/alert.service';
 import { ApiService } from '../../../services/api.service';
 import NotificationSettingsService from '../../../services/notificationSettings.service';
 import NotifierService from '../../../services/notifier.service';
+import { Scope as AlertScope } from '../../../entities/alert';
 
 export default apisNotificationsRouterConfig;
 
@@ -87,9 +88,9 @@ function apisNotificationsRouterConfig($stateProvider) {
       },
       resolve: {
         alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts($stateParams.apiId, 0).then((response) => response.data),
+          AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
-          AlertService.getStatus($stateParams.apiId, 0).then((response) => response.data),
+          AlertService.getStatus(AlertScope.API, $stateParams.apiId).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
       },
     })
@@ -107,9 +108,9 @@ function apisNotificationsRouterConfig($stateProvider) {
       },
       resolve: {
         alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts($stateParams.apiId, 0).then((response) => response.data),
+          AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
-          AlertService.getStatus($stateParams.apiId, 0).then((response) => response.data),
+          AlertService.getStatus(AlertScope.API, $stateParams.apiId).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
         mode: () => 'create',
       },
@@ -128,9 +129,9 @@ function apisNotificationsRouterConfig($stateProvider) {
       },
       resolve: {
         alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts($stateParams.apiId, 0).then((response) => response.data),
+          AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
-          AlertService.getStatus($stateParams.apiId, 0).then((response) => response.data),
+          AlertService.getStatus(AlertScope.API, $stateParams.apiId).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
         mode: () => 'detail',
       },

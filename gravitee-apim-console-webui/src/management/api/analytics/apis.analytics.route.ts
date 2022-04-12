@@ -165,9 +165,9 @@ function apisAnalyticsRouterConfig($stateProvider) {
       controllerAs: '$ctrl',
       resolve: {
         configuredAlerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts($stateParams.apiId, Scope.API, false).then((response) => response.data),
+          AlertService.listAlerts(Scope.API, false, $stateParams.apiId).then((response) => response.data),
         alertingStatus: (AlertService: AlertService, $stateParams) =>
-          AlertService.getStatus($stateParams.apiId, Scope.API).then((response) => response.data),
+          AlertService.getStatus(Scope.API, $stateParams.apiId).then((response) => response.data),
       },
       data: {
         perms: {

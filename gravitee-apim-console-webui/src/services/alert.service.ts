@@ -39,11 +39,11 @@ class AlertService {
     return this.$http.get(`${this.Constants.env.baseURL}/alerts/` + 'metrics');
   }
 
-  getStatus(referenceId?: string, referenceType?: Scope): IHttpPromise<any> {
+  getStatus(referenceType?: Scope, referenceId?: string): IHttpPromise<any> {
     return this.$http.get(this.getReferenceURL(referenceType, referenceId) + 'alerts/status');
   }
 
-  listAlerts(referenceId?: string, referenceType?: Scope, withEventCounts = true): IHttpPromise<any> {
+  listAlerts(referenceType?: Scope, withEventCounts = true, referenceId?: string): angular.IHttpPromise<any> {
     return this.$http.get(`${this.getReferenceURL(referenceType, referenceId)}alerts?event_counts=${withEventCounts}`);
   }
 

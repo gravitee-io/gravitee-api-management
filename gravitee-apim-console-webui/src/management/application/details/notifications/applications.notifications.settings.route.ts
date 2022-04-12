@@ -16,6 +16,7 @@
 import { Scope } from '../../../../entities/scope';
 import AlertService from '../../../../services/alert.service';
 import NotificationSettingsService from '../../../../services/notificationSettings.service';
+import { Scope as AlertScope } from '../../../../entities/alert';
 
 export default applicationsNotificationsRouterConfig;
 
@@ -45,7 +46,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
             (response) => response.data,
           ),
         alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts($stateParams.applicationId, 1).then((response) => response.data),
+          AlertService.listAlerts(AlertScope.APPLICATION, true, $stateParams.applicationId).then((response) => response.data),
       },
     })
     .state('management.applications.application.notifications.notification', {
