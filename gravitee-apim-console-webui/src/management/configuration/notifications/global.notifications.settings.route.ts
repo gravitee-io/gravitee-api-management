@@ -17,6 +17,7 @@ import { Scope } from '../../../entities/scope';
 import AlertService from '../../../services/alert.service';
 import NotificationSettingsService from '../../../services/notificationSettings.service';
 import NotifierService from '../../../services/notifier.service';
+import { Scope as AlertScope } from '../../../entities/alert';
 
 export default applicationsNotificationsRouterConfig;
 
@@ -79,9 +80,9 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         },
       },
       resolve: {
-        alerts: (AlertService: AlertService) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
+        alerts: (AlertService: AlertService) => AlertService.listAlerts(AlertScope.ENVIRONMENT).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
-          AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
+          AlertService.getStatus(AlertScope.ENVIRONMENT, $stateParams.apiId).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
         mode: () => 'detail',
       },
@@ -99,9 +100,9 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         },
       },
       resolve: {
-        alerts: (AlertService: AlertService) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
+        alerts: (AlertService: AlertService) => AlertService.listAlerts(AlertScope.ENVIRONMENT).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
-          AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
+          AlertService.getStatus(AlertScope.ENVIRONMENT, $stateParams.apiId).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
         mode: () => 'create',
       },
@@ -119,9 +120,9 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         },
       },
       resolve: {
-        alerts: (AlertService: AlertService) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
+        alerts: (AlertService: AlertService) => AlertService.listAlerts(AlertScope.ENVIRONMENT).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
-          AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
+          AlertService.getStatus(AlertScope.ENVIRONMENT, $stateParams.apiId).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
       },
     });

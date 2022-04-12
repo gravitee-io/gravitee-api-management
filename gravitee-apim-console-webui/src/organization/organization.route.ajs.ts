@@ -660,8 +660,7 @@ function organizationRouterConfig($stateProvider) {
             );
           }
         },
-        alertingStatus: (AlertService: AlertService) =>
-          AlertService.getStatus(undefined, Scope.ENVIRONMENT).then((response) => response.data),
+        alertingStatus: (AlertService: AlertService) => AlertService.getStatus(Scope.ENVIRONMENT).then((response) => response.data),
       },
     })
     .state('organization.settings.ng-notificationTemplate', {
