@@ -217,7 +217,7 @@ public class PolicyDebugDecoratorTest {
         verify(noTransformationPolicy, never()).onResponseContent(policyChain, request, response);
         verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
 
-        verify(context, times(1)).saveNoTransformationDebugStep(any());
+        verify(context, atLeastOnce()).saveNoTransformationDebugStep(any());
         assertThat(chainCaptor.getValue()).isInstanceOf(DebugStreamablePolicyChain.class);
     }
 
@@ -274,7 +274,7 @@ public class PolicyDebugDecoratorTest {
         verify(noTransformationPolicy, atLeastOnce()).onResponseContent(chainCaptor.capture(), eq(request), eq(response));
         verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
 
-        verify(context, times(1)).saveNoTransformationDebugStep(any());
+        verify(context, atLeastOnce()).saveNoTransformationDebugStep(any());
         assertThat(chainCaptor.getValue()).isInstanceOf(DebugStreamablePolicyChain.class);
     }
 
