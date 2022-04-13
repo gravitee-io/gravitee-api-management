@@ -17,25 +17,25 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import static java.util.stream.Collectors.toList;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.Upgrader;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
     private final PageService pageService;
 
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     private final SearchEngineService searchEngineService;
 
@@ -71,23 +71,27 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
     private final ApiConverter apiConverter;
 
+    private final UserConverter userConverter;
+
     private final Map<String, String> organizationIdByEnvironmentIdMap = new ConcurrentHashMap<>();
 
     @Autowired
     public SearchIndexUpgrader(
         ApiRepository apiRepository,
         PageService pageService,
-        UserService userService,
+        UserRepository userRepository,
         SearchEngineService searchEngineService,
         EnvironmentRepository environmentRepository,
-        ApiConverter apiConverter
+        ApiConverter apiConverter,
+        UserConverter userConverter
     ) {
         this.apiRepository = apiRepository;
         this.pageService = pageService;
-        this.userService = userService;
+        this.userRepository = userRepository;
         this.searchEngineService = searchEngineService;
         this.environmentRepository = environmentRepository;
         this.apiConverter = apiConverter;
+        this.userConverter = userConverter;
     }
 
     @Override
@@ -113,7 +117,11 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         }
 
         // index users
-        futures.add(runUsersIndexationAsync(executionContext));
+        try {
+            futures.addAll(runUsersIndexationAsync());
+        } catch (TechnicalException e) {
+            LOGGER.error("failed to index users", e);
+        }
 
         CompletableFuture<Void> future = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
@@ -189,17 +197,23 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         );
     }
 
-    private CompletableFuture<?> runUsersIndexationAsync(ExecutionContext executionContext) {
+    private List<CompletableFuture<?>> runUsersIndexationAsync() throws TechnicalException {
+        return userRepository
+            .search(
+                new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+            )
+            .getContent()
+            .stream()
+            .map(this::runUserIndexationAsync)
+            .collect(toList());
+    }
+
+    private CompletableFuture<?> runUserIndexationAsync(User user) {
         return CompletableFuture.runAsync(
             () -> {
-                // Index users
-                Page<UserEntity> users = userService.search(
-                    executionContext,
-                    new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
-                    new PageableImpl(1, Integer.MAX_VALUE)
-                );
-
-                users.getContent().forEach(userEntity -> searchEngineService.index(executionContext, userEntity, true, false));
+                ExecutionContext executionContext = new ExecutionContext(user.getOrganizationId(), null);
+                searchEngineService.index(executionContext, userConverter.toUserEntity(user), true, false);
             }
         );
     }
