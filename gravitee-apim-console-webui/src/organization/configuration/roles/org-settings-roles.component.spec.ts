@@ -20,6 +20,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { OrgSettingsRolesComponent } from './org-settings-roles.component';
 
@@ -45,7 +46,7 @@ describe('OrgSettingsRolesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterState, useValue: { go: jest.fn() } },
         { provide: CurrentUserService, useValue: { currentUser } },

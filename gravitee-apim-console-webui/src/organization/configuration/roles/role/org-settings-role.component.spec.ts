@@ -23,6 +23,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { OrgSettingsRoleComponent } from './org-settings-role.component';
 
@@ -52,7 +53,7 @@ describe('OrgSettingsRoleComponent', () => {
   describe('edit mode', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
         providers: [
           { provide: UIRouterState, useValue: fakeAjsState },
           { provide: UIRouterStateParams, useValue: { roleScope, role } },

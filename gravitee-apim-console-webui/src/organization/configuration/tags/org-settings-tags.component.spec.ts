@@ -24,6 +24,7 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { OrgSettingsTagsComponent } from './org-settings-tags.component';
 
@@ -58,7 +59,7 @@ describe('OrgSettingsTagsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
       providers: [{ provide: CurrentUserService, useValue: { currentUser: currentUser } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
