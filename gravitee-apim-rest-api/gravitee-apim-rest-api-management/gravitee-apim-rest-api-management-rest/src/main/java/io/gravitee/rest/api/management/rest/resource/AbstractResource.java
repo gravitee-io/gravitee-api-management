@@ -105,7 +105,7 @@ public abstract class AbstractResource {
         String referenceId,
         RolePermissionAction... acls
     ) {
-        return (isAuthenticated() && (isAdmin() || permissionService.hasPermission(executionContext, permission, referenceId, acls)));
+        return isAuthenticated() && permissionService.hasPermission(executionContext, permission, referenceId, acls);
     }
 
     protected boolean canReadAPIConfiguration() {

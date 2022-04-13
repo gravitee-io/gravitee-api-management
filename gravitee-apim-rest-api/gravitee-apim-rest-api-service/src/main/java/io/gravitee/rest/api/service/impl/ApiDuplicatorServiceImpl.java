@@ -36,7 +36,6 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
@@ -162,7 +161,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             // ensure user has required permission to update target API
             if (
                 !isAuthenticated() ||
-                !(isAdmin() || permissionService.hasPermission(executionContext, API_DEFINITION, apiJsonNode.getId(), UPDATE))
+                !(isEnvironmentAdmin() || permissionService.hasPermission(executionContext, API_DEFINITION, apiJsonNode.getId(), UPDATE))
             ) {
                 throw new ForbiddenAccessException();
             }

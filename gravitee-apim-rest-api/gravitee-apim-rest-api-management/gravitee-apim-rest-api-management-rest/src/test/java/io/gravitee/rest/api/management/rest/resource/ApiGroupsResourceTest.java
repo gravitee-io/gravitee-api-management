@@ -101,9 +101,6 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
 
         when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
-        when(roleService.hasPermission(any(), eq(ApiPermission.MEMBER), eq(new RolePermissionAction[] { RolePermissionAction.READ })))
-            .thenReturn(true);
-
         when(apiService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID)).thenThrow(new TechnicalManagementException());
 
         Response response = envTarget(API_ID).path("groups").request().get();
@@ -113,6 +110,7 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturn403IfNotGranted() {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
         Response response = envTarget(API_ID).path("groups").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
@@ -122,12 +120,6 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
         ApiEntity api = Mockito.mock(ApiEntity.class);
 
         when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
-
-        Map<String, char[]> userPermissions = Map.of(ApiPermission.MEMBER.name(), "R".toCharArray());
-
-        when(membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), api, USER_NAME)).thenReturn(userPermissions);
-
-        when(roleService.hasPermission(eq(userPermissions), any(), any())).thenReturn(true);
 
         when(apiService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID))
             .thenReturn(Map.of(UuidString.generateRandom(), List.of(new GroupMemberEntity())));

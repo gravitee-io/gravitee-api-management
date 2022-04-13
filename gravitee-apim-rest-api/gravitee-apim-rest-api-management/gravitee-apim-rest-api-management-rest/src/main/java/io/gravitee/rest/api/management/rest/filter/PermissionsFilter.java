@@ -15,22 +15,17 @@
  */
 package io.gravitee.rest.api.management.rest.filter;
 
-import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
-import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -39,8 +34,6 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,8 +44,6 @@ import org.slf4j.LoggerFactory;
 @Priority(200)
 public class PermissionsFilter implements ContainerRequestFilter {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     @Context
     protected ResourceInfo resourceInfo;
 
@@ -60,114 +51,58 @@ public class PermissionsFilter implements ContainerRequestFilter {
     private SecurityContext securityContext;
 
     @Inject
-    private MembershipService membershipService;
-
-    @Inject
-    private ApplicationService applicationService;
-
-    @Inject
-    private ApiService apiService;
-
-    @Inject
-    private RoleService roleService;
-
-    @Inject
-    private GroupService groupService;
+    private PermissionService permissionService;
 
     @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (securityContext.isUserInRole(AbstractResource.ORGANIZATION_ADMIN)) {
-            logger.debug("User [{}] has full access because of its ADMIN role", securityContext.getUserPrincipal().getName());
-            return;
-        }
-
-        filter(getRequiredPermission(), requestContext, GraviteeContext.getExecutionContext());
+    public void filter(ContainerRequestContext requestContext) {
+        findRequiredPermissions()
+            .ifPresent(
+                requiredPermissions -> {
+                    mustBeAuthenticated();
+                    filter(requiredPermissions, requestContext, GraviteeContext.getExecutionContext());
+                }
+            );
     }
 
     protected void filter(Permissions permissions, ContainerRequestContext requestContext, ExecutionContext executionContext) {
-        if (permissions != null && permissions.value().length > 0) {
-            Principal principal = securityContext.getUserPrincipal();
-            if (principal != null) {
-                String username = principal.getName();
-                for (Permission permission : permissions.value()) {
-                    Map<String, char[]> memberPermissions;
-                    switch (permission.value().getScope()) {
-                        case ORGANIZATION:
-                            memberPermissions =
-                                membershipService.getUserMemberPermissions(
-                                    executionContext,
-                                    MembershipReferenceType.ORGANIZATION,
-                                    GraviteeContext.getCurrentOrganization(),
-                                    username
-                                );
-                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
-                                return;
-                            }
-                            break;
-                        case ENVIRONMENT:
-                            memberPermissions =
-                                membershipService.getUserMemberPermissions(
-                                    executionContext,
-                                    MembershipReferenceType.ENVIRONMENT,
-                                    GraviteeContext.getCurrentEnvironment(),
-                                    username
-                                );
-                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
-                                return;
-                            }
-                            break;
-                        case APPLICATION:
-                            ApplicationEntity application = getApplication(executionContext, requestContext);
-                            memberPermissions = membershipService.getUserMemberPermissions(executionContext, application, username);
-                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
-                                return;
-                            }
-                            break;
-                        case API:
-                            ApiEntity api = getApi(executionContext, requestContext);
-                            memberPermissions = membershipService.getUserMemberPermissions(executionContext, api, username);
-                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
-                                return;
-                            }
-                            break;
-                        case GROUP:
-                            GroupEntity group = getGroup(executionContext, requestContext);
-                            memberPermissions = membershipService.getUserMemberPermissions(executionContext, group, username);
-                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
-                                return;
-                            }
-                            break;
-                        default:
-                            sendSecurityError();
-                    }
-                }
-            }
-            sendSecurityError();
+        Stream
+            .of(permissions.value())
+            .filter(permission -> hasPermission(permission, requestContext, executionContext))
+            .findAny()
+            .orElseThrow(ForbiddenAccessException::new);
+    }
+
+    private boolean hasPermission(Permission permission, ContainerRequestContext requestContext, ExecutionContext executionContext) {
+        switch (permission.value().getScope()) {
+            case ORGANIZATION:
+                return hasPermission(executionContext, permission, executionContext.getOrganizationId());
+            case ENVIRONMENT:
+                return hasPermission(executionContext, permission, executionContext.getEnvironmentId());
+            case APPLICATION:
+                return hasPermission(executionContext, permission, getApplicationId(requestContext));
+            case API:
+                return hasPermission(executionContext, permission, getApiId(requestContext));
+            case GROUP:
+                return hasPermission(executionContext, permission, getGroupId(requestContext));
+            default:
+                return false;
         }
     }
 
-    private ApiEntity getApi(final ExecutionContext executionContext, ContainerRequestContext requestContext) {
-        String apiId = getId("api", requestContext);
-        if (apiId == null) {
-            return null;
-        }
-        return apiService.findById(executionContext, apiId);
+    private boolean hasPermission(final ExecutionContext executionContext, Permission permission, String referenceId) {
+        return permissionService.hasPermission(executionContext, permission.value(), referenceId, permission.acls());
     }
 
-    private GroupEntity getGroup(final ExecutionContext executionContext, ContainerRequestContext requestContext) {
-        String groupId = getId("group", requestContext);
-        if (groupId == null) {
-            return null;
-        }
-        return groupService.findById(executionContext, groupId);
+    private String getGroupId(ContainerRequestContext requestContext) {
+        return getId("group", requestContext);
     }
 
-    private ApplicationEntity getApplication(final ExecutionContext executionContext, ContainerRequestContext requestContext) {
-        String applicationId = getId("application", requestContext);
-        if (applicationId == null) {
-            return null;
-        }
-        return applicationService.findById(executionContext, applicationId);
+    private String getApiId(ContainerRequestContext requestContext) {
+        return getId("api", requestContext);
+    }
+
+    private String getApplicationId(ContainerRequestContext requestContext) {
+        return getId("application", requestContext);
     }
 
     private String getId(String key, ContainerRequestContext requestContext) {
@@ -183,22 +118,16 @@ public class PermissionsFilter implements ContainerRequestFilter {
         return null;
     }
 
-    private void sendSecurityError() {
-        Principal principal = securityContext.getUserPrincipal();
-        if (principal != null) {
-            throw new ForbiddenAccessException();
-        } else {
-            throw new UnauthorizedAccessException();
-        }
+    private Optional<Permissions> findRequiredPermissions() {
+        return Optional
+            .ofNullable(resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class))
+            .or(() -> Optional.ofNullable(resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class)));
     }
 
-    private Permissions getRequiredPermission() {
-        Permissions permission = resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class);
-
-        if (permission == null) {
-            return resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class);
+    private void mustBeAuthenticated() {
+        Principal principal = securityContext.getUserPrincipal();
+        if (principal == null) {
+            throw new UnauthorizedAccessException();
         }
-
-        return permission;
     }
 }

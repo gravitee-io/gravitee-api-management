@@ -227,7 +227,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     planEntity.getExcludedGroups(),
                     getAuthenticatedUsername()
                 );
-                if (!userAuthorizedToAccessApiData && !isAdmin()) {
+                if (!userAuthorizedToAccessApiData && !isEnvironmentAdmin()) {
                     throw new PlanRestrictedException(plan);
                 }
             }

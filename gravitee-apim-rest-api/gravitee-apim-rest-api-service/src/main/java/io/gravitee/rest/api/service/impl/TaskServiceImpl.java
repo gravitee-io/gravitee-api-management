@@ -103,7 +103,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 tasks = subscriptionService.search(executionContext, query).stream().map(this::convert).collect(toList());
             }
 
-            if (isAdmin()) {
+            if (isEnvironmentAdmin()) {
                 // search for PENDING user registration
                 final Page<UserEntity> pendingUsers = userService.search(
                     executionContext,

@@ -44,6 +44,7 @@ public class UsersResourceTest extends AbstractResourceTest {
     @Before
     public void setUp() {
         reset(userService);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test
