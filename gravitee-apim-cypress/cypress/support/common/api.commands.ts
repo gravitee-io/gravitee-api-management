@@ -43,7 +43,7 @@ Cypress.Commands.add('teardownApi', (api) => {
   cy.log(`----- Removing API "${api.name}" -----`);
   cy.log(`Number of plans: ${api.plans.length}`);
   if (api.plans.length > 0) {
-    closePlan(ADMIN_USER, api.id, api.plans[0].id).ok();
+    api.plans.forEach((plan) => closePlan(ADMIN_USER, api.id, plan.id).ok())
   }
   stopApi(ADMIN_USER, api.id).noContent();
   deleteApi(ADMIN_USER, api.id).noContent();
