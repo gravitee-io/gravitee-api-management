@@ -66,6 +66,7 @@ import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
+import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -192,6 +193,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Autowired
     private UserMetadataService userMetadataService;
+
+    @Autowired
+    private UserConverter userConverter;
 
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
@@ -493,7 +497,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 externalUser.setFirstname(registerUserEntity.getFirstname());
                 externalUser.setLastname(registerUserEntity.getLastname());
                 externalUser.setEmail(email);
-                user = convert(create(executionContext, externalUser, true));
+                user = userConverter.toUser(create(executionContext, externalUser, true));
                 user.setOrganizationId(executionContext.getOrganizationId());
             } else {
                 final String username = subject.toString();
@@ -707,7 +711,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 );
             }
 
-            User user = convert(newExternalUserEntity);
+            User user = userConverter.toUser(newExternalUserEntity);
             user.setId(UuidString.generateRandom());
             user.setOrganizationId(organizationId);
             user.setStatus(autoRegistrationEnabled ? UserStatus.ACTIVE : UserStatus.PENDING);
@@ -1439,39 +1443,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         );
     }
 
-    private User convert(NewExternalUserEntity newExternalUserEntity) {
-        if (newExternalUserEntity == null) {
-            return null;
-        }
-        User user = new User();
-        user.setEmail(newExternalUserEntity.getEmail());
-        user.setFirstname(newExternalUserEntity.getFirstname());
-        user.setLastname(newExternalUserEntity.getLastname());
-        user.setSource(newExternalUserEntity.getSource());
-        user.setSourceId(newExternalUserEntity.getSourceId());
-        user.setStatus(UserStatus.ACTIVE);
-        user.setPicture(newExternalUserEntity.getPicture());
-        user.setNewsletterSubscribed(newExternalUserEntity.getNewsletter());
-        return user;
-    }
-
-    private User convert(UserEntity userEntity) {
-        if (userEntity == null) {
-            return null;
-        }
-        User user = new User();
-        user.setId(userEntity.getId());
-        user.setEmail(userEntity.getEmail());
-        user.setFirstname(userEntity.getFirstname());
-        user.setLastname(userEntity.getLastname());
-        user.setSource(userEntity.getSource());
-        user.setSourceId(userEntity.getSourceId());
-        if (userEntity.getStatus() != null) {
-            user.setStatus(UserStatus.valueOf(userEntity.getStatus()));
-        }
-        return user;
-    }
-
     private UserEntity convert(ExecutionContext executionContext, User user, boolean loadRoles) {
         return convert(executionContext, user, loadRoles, Collections.emptyList());
     }
@@ -1480,27 +1451,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (user == null) {
             return null;
         }
-        UserEntity userEntity = new UserEntity();
 
-        final String userId = user.getId();
-        userEntity.setId(userId);
-        userEntity.setSource(user.getSource());
-        userEntity.setSourceId(user.getSourceId());
-        userEntity.setEmail(user.getEmail());
-        userEntity.setFirstname(user.getFirstname());
-        userEntity.setLastname(user.getLastname());
-        userEntity.setPassword(user.getPassword());
-        userEntity.setCreatedAt(user.getCreatedAt());
-        userEntity.setUpdatedAt(user.getUpdatedAt());
-        userEntity.setLastConnectionAt(user.getLastConnectionAt());
-        userEntity.setFirstConnectionAt(user.getFirstConnectionAt());
-        userEntity.setPicture(user.getPicture());
-        userEntity.setReferenceType(GraviteeContext.ReferenceContextType.ORGANIZATION.name());
-        userEntity.setReferenceId(user.getOrganizationId());
-
-        if (user.getStatus() != null) {
-            userEntity.setStatus(user.getStatus().name());
-        }
+        UserEntity userEntity = userConverter.toUserEntity(user, customUserFields);
 
         if (loadRoles) {
             Set<UserRoleEntity> roles = new HashSet<>();
@@ -1508,7 +1460,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 MembershipReferenceType.ORGANIZATION,
                 executionContext.getOrganizationId(),
                 MembershipMemberType.USER,
-                userId
+                user.getId()
             );
             if (!roleEntities.isEmpty()) {
                 roleEntities.forEach(roleEntity -> roles.add(convert(roleEntity)));
@@ -1519,7 +1471,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .flatMap(
                     env ->
                         membershipService
-                            .getRoles(MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, userId)
+                            .getRoles(MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, user.getId())
                             .stream()
                 )
                 .filter(Objects::nonNull)
@@ -1536,7 +1488,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                             MembershipReferenceType.ENVIRONMENT,
                             env.getId(),
                             MembershipMemberType.USER,
-                            userId
+                            user.getId()
                         );
                         if (!envRoleEntities.isEmpty()) {
                             envRoleEntities.forEach(roleEntity -> envRoles.add(convert(roleEntity)));
@@ -1547,16 +1499,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             userEntity.setEnvRoles(envRolesMap);
         }
 
-        userEntity.setLoginCount(user.getLoginCount());
-        userEntity.setNewsletterSubscribed(user.getNewsletterSubscribed());
-
-        if (customUserFields != null && !customUserFields.isEmpty()) {
-            Maps.MapBuilder builder = Maps.builder();
-            for (UserMetadataEntity meta : customUserFields) {
-                builder.put(meta.getKey(), meta.getValue());
-            }
-            userEntity.setCustomFields(builder.build());
-        }
         return userEntity;
     }
 

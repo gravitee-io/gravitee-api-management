@@ -52,6 +52,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
+import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -62,6 +63,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -181,6 +183,15 @@ public class UserServiceTest {
 
     @Mock
     private EnvironmentService environmentService;
+
+    @Mock
+    private UserConverter userConverter;
+
+    @Before
+    public void setup() {
+        when(userConverter.toUser(any(NewExternalUserEntity.class))).thenCallRealMethod();
+        when(userConverter.toUserEntity(any(User.class), any())).thenCallRealMethod();
+    }
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
