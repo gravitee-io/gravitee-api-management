@@ -15,9 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
@@ -25,9 +30,12 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,22 +59,36 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchIndexUpgrader.class);
 
-    @Autowired
-    private ApiService apiService;
+    private final ApiRepository apiRepository;
 
-    @Autowired
-    private PageService pageService;
+    private final PageService pageService;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private SearchEngineService searchEngineService;
+    private final SearchEngineService searchEngineService;
 
-    @Autowired
-    private EnvironmentRepository environmentRepository;
+    private final EnvironmentRepository environmentRepository;
+
+    private final ApiConverter apiConverter;
 
     private final Map<String, String> organizationIdByEnvironmentIdMap = new ConcurrentHashMap<>();
+
+    @Autowired
+    public SearchIndexUpgrader(
+        ApiRepository apiRepository,
+        PageService pageService,
+        UserService userService,
+        SearchEngineService searchEngineService,
+        EnvironmentRepository environmentRepository,
+        ApiConverter apiConverter
+    ) {
+        this.apiRepository = apiRepository;
+        this.pageService = pageService;
+        this.userService = userService;
+        this.searchEngineService = searchEngineService;
+        this.environmentRepository = environmentRepository;
+        this.apiConverter = apiConverter;
+    }
 
     @Override
     public boolean upgrade(ExecutionContext executionContext) {
@@ -82,30 +104,13 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
             }
         );
 
-        List<CompletableFuture<?>> futures = new ArrayList<>();
-
         // index APIs
-        apiService
-            .findAllLight(executionContext)
-            .stream()
-            .forEach(
-                apiEntity -> {
-                    String environmentId = apiEntity.getReferenceId();
-                    String organizationId = organizationIdByEnvironmentIdMap.computeIfAbsent(
-                        environmentId,
-                        envId -> {
-                            try {
-                                return environmentRepository.findById(environmentId).get().getOrganizationId();
-                            } catch (Exception e) {
-                                LOGGER.error("failed to find organization for environment {}", environmentId, e);
-                                return null;
-                            }
-                        }
-                    );
-
-                    futures.add(runApiIndexationAsync(executionContext, apiEntity, environmentId, organizationId, executorService));
-                }
-            );
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        try {
+            futures.addAll(runApisIndexationAsync(executorService));
+        } catch (TechnicalException e) {
+            LOGGER.error("failed to index APIs", e);
+        }
 
         // index users
         futures.add(runUsersIndexationAsync(executionContext));
@@ -123,11 +128,30 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         return true;
     }
 
-    private CompletableFuture runApiIndexationAsync(
+    private List<CompletableFuture<?>> runApisIndexationAsync(ExecutorService executorService) throws TechnicalException {
+        return apiRepository.findAll().stream().map(api -> runApiIndexationAsync(executorService, api)).collect(toList());
+    }
+
+    private CompletableFuture<?> runApiIndexationAsync(ExecutorService executorService, Api api) {
+        String environmentId = api.getEnvironmentId();
+        String organizationId = organizationIdByEnvironmentIdMap.computeIfAbsent(
+            environmentId,
+            envId -> {
+                try {
+                    return environmentRepository.findById(environmentId).get().getOrganizationId();
+                } catch (Exception e) {
+                    LOGGER.error("failed to find organization for environment {}", environmentId, e);
+                    return null;
+                }
+            }
+        );
+
+        return runApiIndexationAsync(new ExecutionContext(organizationId, environmentId), apiConverter.toApiEntity(api), executorService);
+    }
+
+    private CompletableFuture<?> runApiIndexationAsync(
         ExecutionContext executionContext,
         ApiEntity apiEntity,
-        String environmentId,
-        String organizationId,
         ExecutorService executorService
     ) {
         return CompletableFuture.runAsync(
@@ -138,7 +162,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
                     // Pages
                     List<PageEntity> apiPages = pageService.search(
-                        environmentId,
+                        executionContext.getEnvironmentId(),
                         new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
                         true
                     );
@@ -151,11 +175,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                                     !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
                                     !PageType.LINK.name().equals(page.getType())
                                 ) {
-                                    pageService.transformSwagger(
-                                        new ExecutionContext(environmentId, organizationId),
-                                        page,
-                                        apiEntity.getId()
-                                    );
+                                    pageService.transformSwagger(executionContext, page, apiEntity.getId());
                                     searchEngineService.index(executionContext, page, true, false);
                                 }
                             } catch (Exception ignored) {}
@@ -169,7 +189,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         );
     }
 
-    private CompletableFuture runUsersIndexationAsync(ExecutionContext executionContext) {
+    private CompletableFuture<?> runUsersIndexationAsync(ExecutionContext executionContext) {
         return CompletableFuture.runAsync(
             () -> {
                 // Index users
