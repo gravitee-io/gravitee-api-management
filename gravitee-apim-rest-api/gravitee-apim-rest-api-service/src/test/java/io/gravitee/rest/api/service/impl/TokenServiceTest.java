@@ -63,6 +63,8 @@ public class TokenServiceTest {
 
     private static final String USER_ID = "user123";
     private static final String TOKEN_ID = "1";
+    private static final String CURRENT_ENVIRONMENT = "test";
+    private static final String CURRENT_ORGANIZATION = "gravitee";
 
     @InjectMocks
     private final TokenService tokenService = new TokenServiceImpl();
@@ -93,6 +95,7 @@ public class TokenServiceTest {
                 public void setAuthentication(Authentication authentication) {}
             }
         );
+        GraviteeContext.cleanContext();
     }
 
     @Before
@@ -152,6 +155,8 @@ public class TokenServiceTest {
                 public void setAuthentication(Authentication authentication) {}
             }
         );
+        GraviteeContext.setCurrentOrganization(CURRENT_ORGANIZATION);
+        GraviteeContext.setCurrentEnvironment(CURRENT_ENVIRONMENT);
     }
 
     @Test
@@ -199,7 +204,7 @@ public class TokenServiceTest {
         verify(auditService)
             .createOrganizationAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(CURRENT_ORGANIZATION),
                 anyMap(),
                 eq(TOKEN_CREATED),
                 any(Date.class),
@@ -227,7 +232,7 @@ public class TokenServiceTest {
         verify(auditService)
             .createOrganizationAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(CURRENT_ORGANIZATION),
                 anyMap(),
                 eq(TOKEN_DELETED),
                 any(Date.class),
@@ -246,7 +251,7 @@ public class TokenServiceTest {
         verify(auditService)
             .createOrganizationAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(CURRENT_ORGANIZATION),
                 anyMap(),
                 eq(TOKEN_DELETED),
                 any(Date.class),

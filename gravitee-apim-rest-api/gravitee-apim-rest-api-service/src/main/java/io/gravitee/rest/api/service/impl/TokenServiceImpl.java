@@ -85,7 +85,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             final Token token = convert(newToken, TokenReferenceType.USER, user, passwordEncoder.encode(decodedToken));
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
                 Collections.singletonMap(TOKEN, token.getId()),
                 TOKEN_CREATED,
                 token.getCreatedAt(),
@@ -114,7 +114,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
                 tokenRepository.delete(tokenId);
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    executionContext.getEnvironmentId(),
+                    executionContext.getOrganizationId(),
                     Collections.singletonMap(TOKEN, tokenId),
                     TOKEN_DELETED,
                     new Date(),
