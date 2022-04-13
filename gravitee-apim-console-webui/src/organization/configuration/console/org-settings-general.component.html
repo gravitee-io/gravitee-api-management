@@ -287,30 +287,15 @@
             >lock</mat-icon
           >
           <mat-label>Allow-Headers</mat-label>
-          <mat-chip-list #allowHeadersChipList aria-label="Allow-Headers selection" multiple [disabled]="allowHeadersFormControl.disabled">
-            <mat-chip
-              *ngFor="let header of allowHeadersFormControl.value"
-              [selectable]="false"
-              [removable]="!allowHeadersFormControl.disabled"
-              (removed)="removeChipToFormControl(header, 'cors.allowHeaders', allowHeadersChipList)"
-            >
-              {{ header }}
-              <mat-icon *ngIf="!allowHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
-            </mat-chip>
-            <input
-              *ngIf="!allowHeadersFormControl.disabled"
-              placeholder="Content-Type, ..."
-              [formControl]="allowHeadersInputFormControl"
-              [matAutocomplete]="auto"
-              [matChipInputFor]="allowHeadersChipList"
-              (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowHeaders', allowHeadersChipList)"
-            />
-          </mat-chip-list>
-          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.allowHeaders')">
-            <mat-option *ngFor="let defaultHeader of allowHeadersFilteredOptions$ | async" [value]="defaultHeader">
-              {{ defaultHeader }}
-            </mat-option>
-          </mat-autocomplete>
+
+          <gio-form-tags-input
+            aria-label="Allow-Headers selection"
+            formControlName="allowHeaders"
+            placeholder="Content-Type, ..."
+            [addOnBlur]="false"
+            [autocompleteOptions]="defaultHttpHeaders"
+          >
+          </gio-form-tags-input>
         </mat-form-field>
 
         <div class="settings-general__form__card__label">Exposed-Headers</div>
@@ -326,35 +311,15 @@
             >lock</mat-icon
           >
           <mat-label>Exposed-Headers</mat-label>
-          <mat-chip-list
-            #exposedHeadersChipList
+
+          <gio-form-tags-input
             aria-label="Exposed-Headers selection"
-            multiple
-            [disabled]="exposedHeadersFormControl.disabled"
+            formControlName="exposedHeaders"
+            placeholder="Content-Type, ..."
+            [addOnBlur]="false"
+            [autocompleteOptions]="defaultHttpHeaders"
           >
-            <mat-chip
-              *ngFor="let header of exposedHeadersFormControl.value"
-              [selectable]="false"
-              [removable]="!exposedHeadersFormControl.disabled"
-              (removed)="removeChipToFormControl(header, 'cors.exposedHeaders', exposedHeadersChipList)"
-            >
-              {{ header }}
-              <mat-icon *ngIf="!exposedHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
-            </mat-chip>
-            <input
-              *ngIf="!exposedHeadersFormControl.disabled"
-              placeholder="Content-Type, ..."
-              [formControl]="exposedHeadersInputFormControl"
-              [matAutocomplete]="auto"
-              [matChipInputFor]="exposedHeadersChipList"
-              (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.exposedHeaders', exposedHeadersChipList)"
-            />
-          </mat-chip-list>
-          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.exposedHeaders')">
-            <mat-option *ngFor="let defaultHeader of exposedHeadersFilteredOptions$ | async" [value]="defaultHeader">
-              {{ defaultHeader }}
-            </mat-option>
-          </mat-autocomplete>
+          </gio-form-tags-input>
         </mat-form-field>
 
         <div class="settings-general__form__card__label">Max age</div>

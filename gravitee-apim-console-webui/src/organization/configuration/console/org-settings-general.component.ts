@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-import { Observable, Subject } from 'rxjs';
-import { map, startWith, takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
-import { cloneDeep, get, isEmpty, merge } from 'lodash';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { cloneDeep, get, merge } from 'lodash';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
@@ -48,11 +46,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
 
   httpMethods = CorsUtil.httpMethods;
 
-  allowHeadersInputFormControl = new FormControl();
-  allowHeadersFilteredOptions$: Observable<string[]>;
-
-  exposedHeadersInputFormControl = new FormControl();
-  exposedHeadersFilteredOptions$: Observable<string[]>;
+  defaultHttpHeaders = CorsUtil.defaultHttpHeaders;
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
@@ -155,47 +149,11 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
 
         this.formInitialValues = this.formSettings.getRawValue();
       });
-
-    this.allowHeadersFilteredOptions$ = this.allowHeadersInputFormControl.valueChanges.pipe(
-      startWith(''),
-      map((value: string | null) => {
-        return CorsUtil.defaultHttpHeaders.filter((defaultHeader) => defaultHeader.toLowerCase().includes((value ?? '').toLowerCase()));
-      }),
-    );
-
-    this.exposedHeadersFilteredOptions$ = this.exposedHeadersInputFormControl.valueChanges.pipe(
-      startWith(''),
-      map((value: string | null) => {
-        return CorsUtil.defaultHttpHeaders.filter((defaultHeader) => defaultHeader.toLowerCase().includes((value ?? '').toLowerCase()));
-      }),
-    );
   }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  addChipToFormControl(event: MatChipInputEvent, formControlPath: string, matChipList: MatChipList): void {
-    const input = event.chipInput.inputElement;
-    const chipToAdd = (event.value ?? '').trim();
-    const formControl = this.formSettings.get(formControlPath);
-
-    // Add new Chip in form control
-    if (!isEmpty(chipToAdd)) {
-      // Delete Chip if already existing
-      const formControlValue = [...formControl.value].filter((v) => v !== chipToAdd);
-
-      formControl.setValue([...formControlValue, chipToAdd]);
-    }
-
-    // Reset the input value
-    if (input) {
-      input.value = '';
-    }
-
-    // Check error state
-    matChipList.errorState = formControl.errors !== null;
   }
 
   confirmAllowAllOrigins(): (tag: string, validationCb: (shouldAddTag: boolean) => void) => void {
@@ -227,30 +185,6 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
         validationCb(true);
       }
     };
-  }
-
-  removeChipToFormControl(value: string, formControlPath: string, matChipList: MatChipList) {
-    const formControl = this.formSettings.get(formControlPath);
-    // Remove Chip in form control
-    formControl.setValue([...formControl.value].filter((v) => v !== value));
-
-    // Check error state
-    matChipList.errorState = formControl.errors !== null;
-  }
-
-  addSelectedToFormControl(event: MatAutocompleteSelectedEvent, formControlPath: string): void {
-    const optionToAdd = event.option.viewValue;
-
-    // Add selected option in form control
-    if (!isEmpty(optionToAdd)) {
-      const formControl = this.formSettings.get(formControlPath);
-      // Delete Chip if already existing
-      const formControlValue = [...formControl.value].filter((v) => v !== optionToAdd);
-
-      formControl.setValue([...formControlValue, optionToAdd]);
-    }
-    this.allowHeadersInputFormControl.setValue(null);
-    this.allowHeadersInputFormControl.updateValueAndValidity();
   }
 
   onSubmit() {

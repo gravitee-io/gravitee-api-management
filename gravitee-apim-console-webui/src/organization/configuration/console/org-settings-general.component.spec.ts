@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HarnessLoader, TestKey } from '@angular/cdk/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatChipListHarness } from '@angular/material/chips/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
-import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { OrgSettingsGeneralComponent } from './org-settings-general.component';
 
@@ -44,7 +43,7 @@ describe('ConsoleSettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -375,27 +374,23 @@ describe('ConsoleSettingsComponent', () => {
 
       // # Allow-Headers
       const allowHeadersFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Allow-Headers' }));
-      const allowHeadersChipList = await allowHeadersFormField.getControl(MatChipListHarness);
-      const allowHeadersChipListInput = await allowHeadersChipList.getInput();
+      const allowHeadersTagsInput = await allowHeadersFormField.getControl(GioFormTagsInputHarness);
       // Add new custom header
-      await allowHeadersChipListInput.setValue('x-ray');
-      await allowHeadersChipListInput.sendSeparatorKey(TestKey.ENTER);
+      await allowHeadersTagsInput.addTag('x-ray');
       // Remove x-foo header
-      await (await allowHeadersChipList.getChips({ text: 'x-foo' }))[0].remove();
+      await allowHeadersTagsInput.removeTag('x-foo');
       // Check headers
-      const allowHeadersChips = await Promise.all(await (await allowHeadersChipList.getChips()).map((c) => c.getText()));
-      expect(allowHeadersChips).toEqual(['x-bar', 'x-ray']);
+      expect(await allowHeadersTagsInput.getTags()).toEqual(['x-bar', 'x-ray']);
 
       // # Exposed-Headers
       const exposedHeadersFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Exposed-Headers' }));
-      const exposedHeadersChipList = await exposedHeadersFormField.getControl(MatChipListHarness);
-      const exposedHeadersAutocomplete = await exposedHeadersFormField.getControl(MatAutocompleteHarness);
+      const exposedHeadersFormTags = await exposedHeadersFormField.getControl(GioFormTagsInputHarness);
+      const exposedHeadersAutocomplete = await exposedHeadersFormTags.getMatAutocompleteHarness();
       // Select `Cache-Control` with autocomplete
       await exposedHeadersAutocomplete.focus();
       await exposedHeadersAutocomplete.selectOption({ text: 'Cache-Control' });
       // Check headers
-      const exposedHeadersChips = await Promise.all(await (await exposedHeadersChipList.getChips()).map((c) => c.getText()));
-      expect(exposedHeadersChips).toEqual(['Cache-Control']);
+      expect(await exposedHeadersFormTags.getTags()).toEqual(['Cache-Control']);
 
       // # Max age
       const maxAgeFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /^Max age/ }));
