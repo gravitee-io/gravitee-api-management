@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -529,5 +530,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public JsonPatchService jsonPatchService() {
             return mock(JsonPatchService.class);
         }
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 }

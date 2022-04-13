@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static java.util.function.Predicate.not;
+
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.service.MembershipService;
@@ -23,8 +25,13 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,6 +40,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PermissionServiceImpl extends AbstractService implements PermissionService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PermissionServiceImpl.class);
+
+    private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
+
+    private static final Map<RoleScope, MembershipReferenceType> ROLE_SCOPE_TO_REFERENCE_TYPE = Map.ofEntries(
+        Pair.of(RoleScope.API, MembershipReferenceType.API),
+        Pair.of(RoleScope.APPLICATION, MembershipReferenceType.APPLICATION),
+        Pair.of(RoleScope.ORGANIZATION, MembershipReferenceType.ORGANIZATION),
+        Pair.of(RoleScope.ENVIRONMENT, MembershipReferenceType.ENVIRONMENT),
+        Pair.of(RoleScope.GROUP, MembershipReferenceType.GROUP)
+    );
 
     @Autowired
     MembershipService membershipService;
@@ -61,29 +80,12 @@ public class PermissionServiceImpl extends AbstractService implements Permission
         String referenceId,
         RolePermissionAction... acls
     ) {
-        MembershipReferenceType membershipReferenceType;
-        switch (permission.getScope()) {
-            case API:
-                membershipReferenceType = MembershipReferenceType.API;
-                break;
-            case APPLICATION:
-                membershipReferenceType = MembershipReferenceType.APPLICATION;
-                break;
-            case ENVIRONMENT:
-                membershipReferenceType = MembershipReferenceType.ENVIRONMENT;
-                if (referenceId == null) {
-                    referenceId = executionContext.getEnvironmentId();
-                }
-                break;
-            case ORGANIZATION:
-                membershipReferenceType = MembershipReferenceType.ORGANIZATION;
-                if (referenceId == null) {
-                    referenceId = executionContext.getOrganizationId();
-                }
-                break;
-            default:
-                membershipReferenceType = null;
+        if (isOrganizationAdmin()) {
+            LOGGER.debug("User [{}] has full access because of its ORGANIZATION ADMIN role", userId);
+            return true;
         }
+
+        MembershipReferenceType membershipReferenceType = ROLE_SCOPE_TO_REFERENCE_TYPE.get(permission.getScope());
 
         Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
             executionContext,
@@ -91,95 +93,77 @@ public class PermissionServiceImpl extends AbstractService implements Permission
             referenceId,
             userId
         );
-        if (permissions == null) {
-            return false;
-        }
-        return roleService.hasPermission(permissions, permission.getPermission(), acls);
+
+        return permissions != null && roleService.hasPermission(permissions, permission.getPermission(), acls);
     }
 
     @Override
     public boolean hasManagementRights(final ExecutionContext executionContext, String userId) {
         UserEntity user = userService.findByIdWithRoles(executionContext, userId);
-        boolean hasManagementRights = this.hasRelevantManagementRole(user);
-
-        if (!hasManagementRights) {
-            Set<RoleEntity> userApisRole = membershipService
-                .findUserMembership(executionContext, MembershipReferenceType.API, userId)
-                .stream()
-                .map(UserMembership::getReference)
-                .distinct()
-                .flatMap(
-                    apiId -> membershipService.getRoles(MembershipReferenceType.API, apiId, MembershipMemberType.USER, userId).stream()
-                )
-                .collect(Collectors.toSet());
-            hasManagementRights =
-                userApisRole
-                    .stream()
-                    .anyMatch(
-                        roleEntity -> {
-                            boolean hasCreateUpdateOrDeletePermission = false;
-                            Map<String, char[]> rolePermissions = roleEntity.getPermissions();
-                            Iterator<String> iterator = rolePermissions.keySet().iterator();
-                            while (iterator.hasNext() && !hasCreateUpdateOrDeletePermission) {
-                                String permissionName = iterator.next();
-                                if (
-                                    !ApiPermission.RATING.name().equals(permissionName) &&
-                                    !ApiPermission.RATING_ANSWER.name().equals(permissionName)
-                                ) {
-                                    String permissionString = new String(rolePermissions.get(permissionName));
-                                    hasCreateUpdateOrDeletePermission =
-                                        permissionString != null &&
-                                        !permissionString.isEmpty() &&
-                                        (
-                                            permissionString.contains("C") ||
-                                            permissionString.contains("U") ||
-                                            permissionString.contains("D")
-                                        );
-                                }
-                            }
-                            return hasCreateUpdateOrDeletePermission;
-                        }
-                    );
-        }
-        return hasManagementRights;
+        return hasOrganizationManagementRole(user) || hasEnvironmentManagementRole(user) || hasApiManagementRole(executionContext, user);
     }
 
-    /**
-     * Checks whether the user has an appropriate management role, which means he has create/update/delete permission
-     * on Organization or Environment scope, with the exception of the Environment/Application scope (which does not
-     * allow the user to access management)
-     *
-     * @param user
-     * @return true if the user has an appropriate management role, else false
-     */
-    private boolean hasRelevantManagementRole(UserEntity user) {
-        if (user.getRoles() == null) {
-            return false;
-        }
+    private static boolean isOrganizationAdmin() {
+        return SecurityContextHolder
+            .getContext()
+            .getAuthentication()
+            .getAuthorities()
+            .stream()
+            .map(GrantedAuthority::getAuthority)
+            .anyMatch(ORGANIZATION_ADMIN::equals);
+    }
 
-        for (UserRoleEntity userRoleEntity : user.getRoles()) {
-            if (userRoleEntity.getPermissions() != null) {
-                RoleScope currentScope = userRoleEntity.getScope();
-                for (String permissionName : userRoleEntity.getPermissions().keySet()) {
-                    String permissionString = new String(userRoleEntity.getPermissions().get((permissionName)));
-                    boolean isCreateUpdateOrDelete =
-                        permissionString.contains("C") || permissionString.contains("U") || permissionString.contains("D");
+    private boolean hasApiManagementRole(final ExecutionContext executionContext, UserEntity user) {
+        return streamUserApiIds(executionContext, user)
+            .flatMap(apiId -> streamApiUserPermissions(apiId, user))
+            .filter(not(this::isApiRatingPermission))
+            .anyMatch(this::isCreateOrUpdateOrDeletePermission);
+    }
 
-                    if (currentScope.equals(RoleScope.ORGANIZATION) && isCreateUpdateOrDelete) {
-                        return true;
-                    }
+    private boolean hasEnvironmentManagementRole(UserEntity user) {
+        return streamUserRolePermissions(user, RoleScope.ENVIRONMENT)
+            .filter(not(this::isEnvironmentApplicationPermission))
+            .anyMatch(this::isCreateOrUpdateOrDeletePermission);
+    }
 
-                    if (
-                        currentScope.equals(RoleScope.ENVIRONMENT) &&
-                        !EnvironmentPermission.valueOf(permissionName).equals(EnvironmentPermission.APPLICATION) &&
-                        isCreateUpdateOrDelete
-                    ) {
-                        return true;
-                    }
-                }
-            }
-        }
+    private boolean hasOrganizationManagementRole(UserEntity user) {
+        return streamUserRolePermissions(user, RoleScope.ORGANIZATION).anyMatch(this::isCreateOrUpdateOrDeletePermission);
+    }
 
-        return false;
+    private boolean isCreateOrUpdateOrDeletePermission(Map.Entry<String, char[]> permission) {
+        String permissionString = new String(permission.getValue());
+        return permissionString.contains("C") || permissionString.contains("U") || permissionString.contains("D");
+    }
+
+    private boolean isEnvironmentApplicationPermission(Map.Entry<String, char[]> permission) {
+        return EnvironmentPermission.valueOf(permission.getKey()) == EnvironmentPermission.APPLICATION;
+    }
+
+    private boolean isApiRatingPermission(Map.Entry<String, char[]> permission) {
+        ApiPermission apiPermission = ApiPermission.valueOf(permission.getKey());
+        return apiPermission == ApiPermission.RATING || ApiPermission.RATING_ANSWER == apiPermission;
+    }
+
+    private Stream<String> streamUserApiIds(final ExecutionContext executionContext, UserEntity user) {
+        return membershipService
+            .findUserMembership(executionContext, MembershipReferenceType.API, user.getId())
+            .stream()
+            .map(UserMembership::getReference)
+            .distinct();
+    }
+
+    private Stream<Map.Entry<String, char[]>> streamUserRolePermissions(UserEntity user, RoleScope scope) {
+        return streamUserRoles(user).filter(role -> scope == role.getScope()).flatMap(role -> role.getPermissions().entrySet().stream());
+    }
+
+    private Stream<UserRoleEntity> streamUserRoles(UserEntity user) {
+        return Stream.ofNullable(user.getRoles()).flatMap(Collection::stream);
+    }
+
+    private Stream<Map.Entry<String, char[]>> streamApiUserPermissions(String apiId, UserEntity user) {
+        return membershipService
+            .getRoles(MembershipReferenceType.API, apiId, MembershipMemberType.USER, user.getId())
+            .stream()
+            .flatMap(role -> role.getPermissions().entrySet().stream());
     }
 }

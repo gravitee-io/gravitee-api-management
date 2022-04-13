@@ -16,17 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.NewTokenEntity;
-import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Date;
 import javax.annotation.Priority;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -58,13 +55,13 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
 
     @Before
     public void setUp() {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
         reset(tokenService);
     }
 
     @Test
     public void shouldNotGetTokens() {
         final Response response = envTarget().request().get();
-
         assertThat(response.getStatus()).isEqualTo(403);
         verify(tokenService, never()).findByUser(USER_ID);
     }
@@ -73,7 +70,6 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
     public void shouldNotCreateToken() {
         NewTokenEntity newToken = new NewTokenEntity();
         final Response response = envTarget().request().post(Entity.json(newToken));
-
         assertThat(response.getStatus()).isEqualTo(403);
         verify(tokenService, never()).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
@@ -81,16 +77,8 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
     @Test
     public void shouldNotRevokeToken() {
         final Response response = envTarget().path(TOKEN_ID).request().delete();
-
         assertThat(response.getStatus()).isEqualTo(403);
         verify(tokenService, never()).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
-    }
-
-    private TokenEntity fakeToken(String name) {
-        final TokenEntity tokenEntity = new TokenEntity();
-        tokenEntity.setName(name);
-        tokenEntity.setCreatedAt(new Date());
-        return tokenEntity;
     }
 
     @Priority(50)

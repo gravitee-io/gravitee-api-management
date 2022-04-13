@@ -51,7 +51,7 @@ public abstract class AbstractService extends TransactionalService {
         );
     }
 
-    protected boolean isAdmin() {
+    protected boolean isEnvironmentAdmin() {
         return isUserInRole(ENVIRONMENT_ADMIN);
     }
 

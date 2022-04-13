@@ -35,7 +35,6 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateTagNameException;
 import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -224,7 +223,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
     @Override
     public Set<String> findByUser(final String user, String referenceId, TagReferenceType referenceType) {
         final List<TagEntity> tags = findByReference(referenceId, referenceType);
-        if (isAdmin()) {
+        if (isEnvironmentAdmin()) {
             return tags.stream().map(TagEntity::getId).collect(toSet());
         } else {
             final Set<String> restrictedTags = tags

@@ -33,7 +33,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.util.Maps;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.spel.function.json.JsonPathFunction;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -343,24 +342,16 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public UserEntity findByIdWithRoles(ExecutionContext executionContext, String id) {
+    public UserEntity findByIdWithRoles(ExecutionContext executionContext, String userId) {
+        LOGGER.debug("Find user by ID: {}", userId);
         try {
-            LOGGER.debug("Find user by ID: {}", id);
-
-            Optional<User> optionalUser = userRepository.findById(id);
-
-            if (optionalUser.isPresent()) {
-                UserEntity userEntity = convert(executionContext, optionalUser.get(), true, userMetadataService.findAllByUserId(id));
-
-                populateUserFlags(executionContext, Collections.singletonList(userEntity));
-
-                return userEntity;
-            }
-            //should never happen
-            throw new UserNotFoundException(id);
+            return userRepository
+                .findById(userId)
+                .map(user -> convertWithFlags(executionContext, user))
+                .orElseThrow(() -> new UserNotFoundException(userId)); // should never happen
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find user using its ID {}", id, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + id, ex);
+            LOGGER.error("An error occurs while trying to find user using its ID {}", userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + userId, ex);
         }
     }
 
@@ -1432,7 +1423,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     protected boolean canResetPassword(ExecutionContext executionContext) {
-        if (isAdmin()) {
+        if (isEnvironmentAdmin()) {
             return true;
         }
         return permissionService.hasPermission(
@@ -1441,6 +1432,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             executionContext.getOrganizationId(),
             new RolePermissionAction[] { UPDATE }
         );
+    }
+
+    private UserEntity convertWithFlags(final ExecutionContext executionContext, User user) {
+        UserEntity userEntity = convert(executionContext, user, true, userMetadataService.findAllByUserId(user.getId()));
+        populateUserFlags(executionContext, List.of(userEntity));
+        return userEntity;
     }
 
     private UserEntity convert(ExecutionContext executionContext, User user, boolean loadRoles) {

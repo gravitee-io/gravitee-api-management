@@ -88,6 +88,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         field.setKey("TestResCreate");
         field.setLabel("TestResCreate");
 
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
         final Response response = orgTarget().request().post(Entity.json(field));
 
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -101,6 +102,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         field.setKey("test-update");
         field.setLabel("Test");
 
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
         final Response response = orgTarget("/" + field.getKey()).request().put(Entity.json(field));
 
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -110,7 +112,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
     @Test
     public void shouldNotDeleteField() {
         reset(customUserFieldService);
-
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
         final Response response = orgTarget("/some-key").request().delete();
 
         assertEquals(FORBIDDEN_403, response.getStatus());
