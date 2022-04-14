@@ -1,6 +1,8 @@
 [
   {
     "id": "new",
+    "organizationId": "DEFAULT",
+    "environmentId": "DEFAULT",
     "referenceId": "1",
     "referenceType": "API",
     "event": "PLAN_CREATED",

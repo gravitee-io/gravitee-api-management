@@ -58,6 +58,8 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         return JdbcObjectMapper
             .builder(Audit.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("organization_id", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, Audit.AuditReferenceType.class)
             .addColumn("user", Types.NVARCHAR, String.class)

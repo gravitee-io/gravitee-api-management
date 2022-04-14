@@ -17,6 +17,7 @@ package io.gravitee.repository;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
@@ -27,9 +28,8 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Plan;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class AuditRepositoryTest extends AbstractRepositoryTest {
@@ -40,12 +40,47 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldCreate() throws Exception {
+        final Audit audit = new Audit();
+        audit.setId("createdAudit");
+        audit.setOrganizationId("DEFAULT");
+        audit.setEnvironmentId("DEFAULT");
+        audit.setReferenceType(Audit.AuditReferenceType.API);
+        audit.setReferenceId("1");
+        audit.setEvent(Plan.AuditEvent.PLAN_CREATED.name());
+        final Map<String, String> properties = new HashMap<>();
+        properties.put(Audit.AuditProperties.PLAN.name(), "123");
+        audit.setProperties(properties);
+        audit.setUser("JohnDoe");
+        audit.setPatch("diff");
+        audit.setCreatedAt(new Date(1486771200000L));
+
+        final Audit createdAudit = auditRepository.create(audit);
+        assertEquals("id", createdAudit.getId(), audit.getId());
+        assertEquals("organizationId", createdAudit.getOrganizationId(), audit.getOrganizationId());
+        assertEquals("environmentId", createdAudit.getEnvironmentId(), audit.getEnvironmentId());
+        assertEquals("referenceId", createdAudit.getReferenceId(), audit.getReferenceId());
+        assertEquals("referenceType", createdAudit.getReferenceType(), audit.getReferenceType());
+        assertEquals("event", createdAudit.getEvent(), audit.getEvent());
+        assertEquals("properties", createdAudit.getProperties(), audit.getProperties());
+        assertEquals("user", createdAudit.getUser(), audit.getUser());
+        assertEquals("createdAt", createdAudit.getCreatedAt(), audit.getCreatedAt());
+        assertEquals("patch", createdAudit.getPatch(), audit.getPatch());
+
+        Optional<Audit> optionalAudit = auditRepository.findById("createdAudit");
+        Assert.assertTrue("Audit saved not found", optionalAudit.isPresent());
+        assertEquals("id", optionalAudit.get().getId(), audit.getId());
+    }
+
+    @Test
     public void shouldFindById() throws TechnicalException {
         Optional<Audit> auditOptional = auditRepository.findById("new");
 
         assertTrue(auditOptional.isPresent());
         Audit audit = auditOptional.get();
         assertEquals("id", "new", audit.getId());
+        assertEquals("organizationId", "DEFAULT", audit.getOrganizationId());
+        assertEquals("environmentId", "DEFAULT", audit.getEnvironmentId());
         assertEquals("referenceId", "1", audit.getReferenceId());
         assertEquals("referenceType", Audit.AuditReferenceType.API, audit.getReferenceType());
         assertEquals("event", Plan.AuditEvent.PLAN_CREATED.name(), audit.getEvent());

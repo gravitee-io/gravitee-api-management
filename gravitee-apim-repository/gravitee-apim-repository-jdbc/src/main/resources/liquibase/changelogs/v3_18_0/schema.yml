@@ -9,3 +9,12 @@ databaseChangeLog:
               - column:
                   name: environment_id
                   type: nvarchar(64)
+        - addColumn:
+              tableName: ${gravitee_prefix}audits
+              columns:
+                  - column:
+                        name: organization_id
+                        type: nvarchar(64)
+                  - column:
+                        name: environment_id
+                        type: nvarchar(64)

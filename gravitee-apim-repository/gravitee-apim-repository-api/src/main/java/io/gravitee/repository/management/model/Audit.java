@@ -68,6 +68,8 @@ public class Audit {
     }
 
     private String id;
+    private String organizationId;
+    private String environmentId;
     private String referenceId;
     private AuditReferenceType referenceType;
     private String user;
@@ -82,6 +84,22 @@ public class Audit {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getReferenceId() {
