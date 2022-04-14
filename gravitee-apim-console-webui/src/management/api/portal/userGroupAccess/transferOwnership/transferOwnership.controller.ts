@@ -122,7 +122,7 @@ class ApiTransferOwnershipController {
   }
 
   isAllowedToTransferOwnership(): boolean {
-    return this.UserService.currentUser.isAdmin() || this.UserService.isApiPrimaryOwner(this.api, this.groupMembers);
+    return this.UserService.currentUser.isOrganizationAdmin() || this.UserService.currentUser.allowedTo(['api-members-u']);
   }
 
   canUseGroupAsPrimaryOwner(): boolean {
