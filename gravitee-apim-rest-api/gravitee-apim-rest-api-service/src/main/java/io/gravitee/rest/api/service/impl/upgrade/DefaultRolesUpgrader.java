@@ -15,18 +15,18 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.permissions.RoleScope;
+import static io.gravitee.rest.api.model.permissions.RoleScope.*;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.*;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.Upgrader;
-import io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,33 +35,44 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultRolesUpgrader extends OrganizationUpgrader {
+public class DefaultRolesUpgrader extends OneShotUpgrader {
 
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DefaultRolesUpgrader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRolesUpgrader.class);
+
+    private final RoleService roleService;
+
+    private final OrganizationRepository organizationRepository;
 
     @Autowired
-    private RoleService roleService;
+    public DefaultRolesUpgrader(RoleService roleService, OrganizationRepository organizationRepository) {
+        super(InstallationService.DEFAULT_ROLES_UPGRADER_STATUS);
+        this.roleService = roleService;
+        this.organizationRepository = organizationRepository;
+    }
 
     @Override
-    public void upgradeOrganization(ExecutionContext executionContext) {
-        // initialize roles.
+    protected void processOneShotUpgrade() throws TechnicalException {
+        organizationRepository
+            .findAll()
+            .forEach(
+                organization -> {
+                    ExecutionContext executionContext = new ExecutionContext(organization);
+                    initializeDefaultRoles(executionContext);
+                }
+            );
+    }
+
+    private void initializeDefaultRoles(ExecutionContext executionContext) {
         if (roleService.findAllByOrganization(executionContext.getOrganizationId()).isEmpty()) {
             roleService.initialize(executionContext, executionContext.getOrganizationId());
-        } else {
-            Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
-                RoleScope.API,
-                "REVIEWER",
-                executionContext.getOrganizationId()
-            );
-            if (!optionalRole.isPresent()) {
-                logger.info("     - <API> REVIEWER");
-                roleService.create(executionContext, DefaultRoleEntityDefinition.ROLE_API_REVIEWER);
-            }
+        } else if (shouldCreateApiReviewerRole(executionContext)) {
+            LOGGER.info("     - <API> REVIEWER");
+            roleService.create(executionContext, ROLE_API_REVIEWER);
         }
-        roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+    }
+
+    private boolean shouldCreateApiReviewerRole(final ExecutionContext executionContext) {
+        return roleService.findByScopeAndName(API, ROLE_API_REVIEWER.getName(), executionContext.getOrganizationId()).isEmpty();
     }
 
     @Override
