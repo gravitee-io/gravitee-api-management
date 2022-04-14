@@ -364,6 +364,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     ) {
         Audit audit = new Audit();
         audit.setId(UuidString.generateRandom());
+        audit.setOrganizationId(executionContext.getOrganizationId());
+        if (executionContext.hasEnvironmentId() && !referenceType.equals(Audit.AuditReferenceType.ORGANIZATION)) {
+            audit.setEnvironmentId(executionContext.getEnvironmentId());
+        }
         audit.setCreatedAt(createdAt == null ? new Date() : createdAt);
 
         final UserDetails authenticatedUser = getAuthenticatedUser();
