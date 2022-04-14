@@ -28,15 +28,14 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultThemeUpgrader implements Upgrader, Ordered {
+public class DefaultThemeUpgrader extends EnvironmentUpgrader {
 
     @Autowired
     private ThemeService themeService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public void upgradeEnvironment(ExecutionContext executionContext) {
         themeService.updateDefaultTheme(executionContext);
-        return true;
     }
 
     @Override
