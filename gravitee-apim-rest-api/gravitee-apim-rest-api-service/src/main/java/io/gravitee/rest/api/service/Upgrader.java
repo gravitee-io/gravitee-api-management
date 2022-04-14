@@ -22,6 +22,10 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface Upgrader {
+    // FIXME : executionContext parameter has to be removed
+    //  Upgrader.upgrade() is run with the default environment ExecutionContext as parameter
+    //  But most upgraders have to process every environment, not only the default one
+    //  Related issue : https://github.com/gravitee-io/issues/issues/7407
     boolean upgrade(ExecutionContext executionContext);
 
     int getOrder();
