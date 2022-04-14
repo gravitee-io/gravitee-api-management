@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -50,6 +51,7 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
 
     @Before
     public void setUp() {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
         reset(tokenService);
     }
 
