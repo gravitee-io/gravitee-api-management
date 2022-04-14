@@ -196,7 +196,7 @@ class ApplicationMembersController {
   }
 
   isAllowedToTransferOwnership() {
-    return this.UserService.currentUser.isAdmin() || this.isPrimaryOwner();
+    return this.UserService.currentUser.isOrganizationAdmin() || this.isPrimaryOwner();
   }
 
   isPrimaryOwner() {

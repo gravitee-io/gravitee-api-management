@@ -76,12 +76,7 @@ export class User {
     return _.difference(permissions, allPermissions).length === 0;
   }
 
-  isAdmin(): boolean {
-    if (!this.userPermissions && !this.userEnvironmentPermissions) {
-      return false;
-    }
-    return this.userEnvironmentPermissions.some((userEnvironmentPermission) => {
-      return userEnvironmentPermission.startsWith('environment-instance') || userEnvironmentPermission.startsWith('environment-platform');
-    });
+  isOrganizationAdmin(): boolean {
+    return this.roles?.some((role) => role.scope === 'ORGANIZATION' && role.name === 'ADMIN');
   }
 }

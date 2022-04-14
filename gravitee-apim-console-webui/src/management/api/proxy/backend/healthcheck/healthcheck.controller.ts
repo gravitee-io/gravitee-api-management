@@ -248,7 +248,7 @@ class ApiHealthCheckController {
   }
 
   displayGatewayHC() {
-    return this.UserService.currentUser.isAdmin();
+    return this.UserService.currentUser.isOrganizationAdmin();
   }
 }
 
