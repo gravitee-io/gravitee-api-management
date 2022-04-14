@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultApiHeaderUpgrader implements Upgrader, Ordered {
+public class DefaultApiHeaderUpgrader extends EnvironmentUpgrader {
 
     /**
      * Logger.
@@ -41,16 +41,12 @@ public class DefaultApiHeaderUpgrader implements Upgrader, Ordered {
     private ApiHeaderService apiHeaderService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public void upgradeEnvironment(ExecutionContext executionContext) {
         // Initialize default headers
-        // FIXME: need to iterate on each env...
         if (apiHeaderService.findAll(executionContext.getEnvironmentId()).size() == 0) {
-            logger.info("Create default API Headers configuration for default environment");
-            apiHeaderService.initialize(
-                new ExecutionContext(executionContext.getOrganizationId(), GraviteeContext.getDefaultEnvironment())
-            );
+            logger.info("Create default API Headers configuration for {}", executionContext);
+            apiHeaderService.initialize(executionContext);
         }
-        return true;
     }
 
     @Override
