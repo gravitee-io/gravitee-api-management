@@ -33,18 +33,13 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultUserStatusUpgrader implements Upgrader, Ordered {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DefaultUserStatusUpgrader.class);
+public class DefaultUserStatusUpgrader extends OrganizationUpgrader {
 
     @Autowired
     private UserService userService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public void upgradeOrganization(ExecutionContext executionContext) {
         // Initialize default user status
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
         updateUserEntity.setStatus(UserStatus.ACTIVE.name());
@@ -58,8 +53,6 @@ public class DefaultUserStatusUpgrader implements Upgrader, Ordered {
                     }
                 }
             );
-
-        return true;
     }
 
     @Override
