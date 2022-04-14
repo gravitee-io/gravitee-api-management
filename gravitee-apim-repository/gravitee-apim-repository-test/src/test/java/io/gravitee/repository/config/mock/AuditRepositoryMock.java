@@ -26,6 +26,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Entrypoint;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Plan;
 import java.util.Date;
 
@@ -43,6 +45,8 @@ public class AuditRepositoryMock extends AbstractRepositoryMock<AuditRepository>
     void prepare(AuditRepository auditRepository) throws Exception {
         final Audit newAudit = mock(Audit.class);
         when(newAudit.getId()).thenReturn("new");
+        when(newAudit.getOrganizationId()).thenReturn("DEFAULT");
+        when(newAudit.getEnvironmentId()).thenReturn("DEFAULT");
         when(newAudit.getReferenceType()).thenReturn(Audit.AuditReferenceType.API);
         when(newAudit.getReferenceId()).thenReturn("1");
         when(newAudit.getEvent()).thenReturn(Plan.AuditEvent.PLAN_CREATED.name());
@@ -52,11 +56,27 @@ public class AuditRepositoryMock extends AbstractRepositoryMock<AuditRepository>
         when(newAudit.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(auditRepository.findById("new")).thenReturn(of(newAudit));
 
+        final Audit createdAudit = mock(Audit.class);
+        when(createdAudit.getId()).thenReturn("createdAudit");
+        when(createdAudit.getOrganizationId()).thenReturn("DEFAULT");
+        when(createdAudit.getEnvironmentId()).thenReturn("DEFAULT");
+        when(createdAudit.getReferenceType()).thenReturn(Audit.AuditReferenceType.API);
+        when(createdAudit.getReferenceId()).thenReturn("1");
+        when(createdAudit.getEvent()).thenReturn(Plan.AuditEvent.PLAN_CREATED.name());
+        when(createdAudit.getProperties()).thenReturn(singletonMap(Audit.AuditProperties.PLAN.name(), "123"));
+        when(createdAudit.getUser()).thenReturn("JohnDoe");
+        when(createdAudit.getPatch()).thenReturn("diff");
+        when(createdAudit.getCreatedAt()).thenReturn(new Date(1486771200000L));
+        when(auditRepository.create(any(Audit.class))).thenReturn(createdAudit);
+        when(auditRepository.findById("createdAudit")).thenReturn(of(createdAudit));
+
         final Audit searchable1 = mock(Audit.class);
         when(searchable1.getId()).thenReturn("searchable1");
+        when(searchable1.getOrganizationId()).thenReturn("DEFAULT");
 
         final Audit searchable2 = mock(Audit.class);
         when(searchable2.getId()).thenReturn("searchable2");
+        when(searchable2.getOrganizationId()).thenReturn("DEFAULT");
         //shouldSearchWithPagination
         when(auditRepository.search(argThat(o -> o != null && o.getReferences() != null && !o.getReferences().isEmpty()), any()))
             .thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 2));

@@ -30,6 +30,8 @@ public class AuditMongo extends Auditable {
     @Id
     private String id;
 
+    private String organizationId;
+    private String environmentId;
     private String referenceId;
     private String referenceType;
     private String user;
@@ -43,6 +45,22 @@ public class AuditMongo extends Auditable {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getReferenceId() {
