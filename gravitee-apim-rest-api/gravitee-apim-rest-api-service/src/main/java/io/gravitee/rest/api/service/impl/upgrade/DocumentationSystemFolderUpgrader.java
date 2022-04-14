@@ -19,9 +19,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +27,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,12 +34,9 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
+public class DocumentationSystemFolderUpgrader extends EnvironmentUpgrader {
 
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DocumentationSystemFolderUpgrader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentationSystemFolderUpgrader.class);
 
     @Autowired
     private PageService pageService;
@@ -51,13 +45,12 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
     private ApiService apiService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public void upgradeEnvironment(ExecutionContext executionContext) {
         PageQuery query = new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build();
         // searching for system folders.
         if (pageService.search(executionContext.getEnvironmentId(), query).isEmpty()) {
-            logger.info("No system folders found. Add system folders in documentation, for portal and each API.");
+            LOGGER.info("No system folders found. Add system folders in documentation, for portal and each API.");
 
-            GraviteeContext.setCurrentEnvironment(GraviteeContext.getDefaultEnvironment());
             // Portal documentation
             Map<SystemFolderType, String> systemFolderIds = pageService.initialize(executionContext);
 
@@ -87,7 +80,6 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
                 .findAllLightByEnvironment(executionContext)
                 .forEach(api -> pageService.createSystemFolder(executionContext, api.getId(), SystemFolderType.ASIDE, 0));
         }
-        return true;
     }
 
     private PageEntity createFolder(ExecutionContext executionContext, String parentId, String name) {
