@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultRolesUpgrader implements Upgrader, Ordered {
+public class DefaultRolesUpgrader extends OrganizationUpgrader {
 
     /**
      * Logger.
@@ -46,10 +46,10 @@ public class DefaultRolesUpgrader implements Upgrader, Ordered {
     private RoleService roleService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public void upgradeOrganization(ExecutionContext executionContext) {
         // initialize roles.
-        if (roleService.findAllByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
-            roleService.initialize(executionContext, GraviteeContext.getDefaultOrganization());
+        if (roleService.findAllByOrganization(executionContext.getOrganizationId()).isEmpty()) {
+            roleService.initialize(executionContext, executionContext.getOrganizationId());
         } else {
             Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
                 RoleScope.API,
@@ -61,9 +61,7 @@ public class DefaultRolesUpgrader implements Upgrader, Ordered {
                 roleService.create(executionContext, DefaultRoleEntityDefinition.ROLE_API_REVIEWER);
             }
         }
-        roleService.createOrUpdateSystemRoles(executionContext, GraviteeContext.getDefaultOrganization());
-
-        return true;
+        roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
     }
 
     @Override
