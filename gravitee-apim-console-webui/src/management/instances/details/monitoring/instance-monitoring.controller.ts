@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { duration } from 'moment';
+import { isNil, isNumber, round } from 'lodash';
 
 import InstancesService from '../../../../services/instances.service';
 
@@ -52,20 +52,21 @@ class InstanceMonitoringController {
     return duration(-timeInMillis).humanize(true);
   }
 
-  humanizeSize(bytes, precision) {
-    if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) {
+  humanizeSize(bytes: number, precision: number | undefined | null): string {
+    if (!isNumber(bytes) || !isFinite(bytes)) {
       return '-';
     }
-    if (typeof precision === 'undefined') {
+    if (isNil(precision)) {
       precision = 1;
     }
-    const units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
-      number = Math.floor(Math.log(bytes) / Math.log(1024));
-    return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) + ' ' + units[number];
+    const units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
+    const mostRelevantUnitIndex = bytes === 0 ? 0 : Math.floor(Math.log(bytes) / Math.log(1024));
+    const valueInSelectedUnit = bytes / Math.pow(1024, Math.floor(mostRelevantUnitIndex));
+    return `${valueInSelectedUnit.toFixed(precision)} ${units[mostRelevantUnitIndex]}`;
   }
 
-  ratio(value, value2) {
-    return _.round((value / value2) * 100);
+  ratio(value: number, value2: number): string | number {
+    return value2 === 0 ? '-' : round((value / value2) * 100);
   }
 
   getPieChartPercentColor(value) {
