@@ -40,7 +40,10 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
     private IdentityProviderActivationService identityProviderActivationService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public boolean upgrade() {
+        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
         // initialize roles.
         final ActivationTarget defaultEnvTarget = new ActivationTarget(
             GraviteeContext.getDefaultEnvironment(),

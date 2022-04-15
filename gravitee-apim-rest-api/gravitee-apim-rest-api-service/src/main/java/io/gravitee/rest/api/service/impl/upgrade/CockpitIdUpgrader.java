@@ -38,7 +38,10 @@ public class CockpitIdUpgrader implements Upgrader, Ordered {
     private EnvironmentService environmentService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public boolean upgrade() {
+        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
         Collection<OrganizationEntity> organizations = organizationService.findAll();
 
         organizations

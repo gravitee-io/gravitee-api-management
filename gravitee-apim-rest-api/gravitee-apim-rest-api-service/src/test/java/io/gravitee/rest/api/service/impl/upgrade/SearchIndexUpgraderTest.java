@@ -29,7 +29,6 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -82,7 +81,7 @@ public class SearchIndexUpgraderTest {
         mockTestApis();
         mockTestUsers();
 
-        upgrader.upgrade(GraviteeContext.getExecutionContext());
+        upgrader.upgrade();
 
         verify(environmentRepository, times(1)).findById("env1");
         verify(environmentRepository, times(1)).findById("env2");
@@ -95,7 +94,7 @@ public class SearchIndexUpgraderTest {
         mockTestApis();
         mockTestUsers();
 
-        upgrader.upgrade(GraviteeContext.getExecutionContext());
+        upgrader.upgrade();
 
         verify(searchEngineService, times(1))
             .index(
@@ -132,7 +131,7 @@ public class SearchIndexUpgraderTest {
         mockTestApis();
         mockTestUsers();
 
-        upgrader.upgrade(GraviteeContext.getExecutionContext());
+        upgrader.upgrade();
 
         verify(searchEngineService, times(1))
             .index(

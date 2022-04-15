@@ -40,7 +40,7 @@ public abstract class OrganizationUpgrader implements Upgrader, Ordered {
     protected abstract void upgradeOrganization(ExecutionContext executionContext);
 
     @Override
-    public final boolean upgrade(ExecutionContext defaultExecutionContext) {
+    public final boolean upgrade() {
         try {
             organizationRepository
                 .findAll()
