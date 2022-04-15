@@ -99,6 +99,10 @@ public class PermissionServiceImpl extends AbstractService implements Permission
 
     @Override
     public boolean hasManagementRights(final ExecutionContext executionContext, String userId) {
+        if (isOrganizationAdmin()) {
+            LOGGER.debug("User [{}] has full access because of its ORGANIZATION ADMIN role", userId);
+            return true;
+        }
         UserEntity user = userService.findByIdWithRoles(executionContext, userId);
         return hasOrganizationManagementRole(user) || hasEnvironmentManagementRole(user) || hasApiManagementRole(executionContext, user);
     }
