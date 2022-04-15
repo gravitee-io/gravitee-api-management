@@ -15,16 +15,15 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
-import io.gravitee.rest.api.model.permissions.OrganizationPermission;
-import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
@@ -35,6 +34,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -57,17 +60,19 @@ public class PermissionServiceTest {
 
     @Test
     public void shouldGetConfigurationWithRandomRoles() {
+        setSecurityContext(false);
         reset(userService);
         reset(membershipService);
         UserEntity user = new UserEntity();
         user.setRoles(Collections.singleton(new UserRoleEntity()));
         doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
-
         assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     public void shouldGetConfigurationWithOrganizationRoles() {
+        setSecurityContext(false);
         reset(userService);
         reset(membershipService);
         UserEntity user = new UserEntity();
@@ -82,10 +87,12 @@ public class PermissionServiceTest {
         doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
         assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     public void shouldGetConfigurationWithEnvironmentRoles() {
+        setSecurityContext(false);
         reset(userService);
         reset(membershipService);
         UserEntity user = new UserEntity();
@@ -100,10 +107,12 @@ public class PermissionServiceTest {
         doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
         assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     public void shouldGetConfigurationWithOnlyEnvironmentApplicationPermission() {
+        setSecurityContext(false);
         reset(userService);
         reset(membershipService);
         UserEntity user = new UserEntity();
@@ -118,10 +127,12 @@ public class PermissionServiceTest {
         doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
         assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     public void shouldGetConfigurationWithAPIRolesWithCUDPermissions() {
+        setSecurityContext(false);
         reset(userService);
         reset(membershipService);
         UserEntity user = new UserEntity();
@@ -146,10 +157,12 @@ public class PermissionServiceTest {
             .getRoles(MembershipReferenceType.API, "apiId", MembershipMemberType.USER, USER_NAME);
 
         assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     public void shouldGetConfigurationWithoutManagementPartBecauseOfRatingPermission() {
+        setSecurityContext(false);
         reset(userService);
         reset(membershipService);
 
@@ -179,10 +192,12 @@ public class PermissionServiceTest {
             .getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, USER_NAME);
 
         assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     public void shouldGetConfigurationWithoutManagementPartBecauseOfReadPermission() {
+        setSecurityContext(false);
         reset(userService);
         reset(membershipService);
 
@@ -209,5 +224,33 @@ public class PermissionServiceTest {
             .getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, USER_NAME);
 
         assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    public void shouldByPassChecksBecauseIsOrganizationAdmin() {
+        setSecurityContext(true);
+        assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
+        assertTrue(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_MEMBER,
+                "reference-id",
+                RolePermissionAction.UPDATE
+            )
+        );
+        SecurityContextHolder.clearContext();
+    }
+
+    private static void setSecurityContext(boolean isOrganizationAdmin) {
+        final Authentication authentication = mock(Authentication.class);
+        final GrantedAuthority grantedAuthority = mock(GrantedAuthority.class);
+        if (isOrganizationAdmin) {
+            when(grantedAuthority.getAuthority()).thenReturn(RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name());
+        }
+        doReturn(List.of(grantedAuthority)).when(authentication).getAuthorities();
+        final SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
     }
 }

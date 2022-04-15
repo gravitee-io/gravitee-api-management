@@ -196,11 +196,7 @@ class ApplicationMembersController {
   }
 
   isAllowedToTransferOwnership() {
-    return this.UserService.currentUser.isOrganizationAdmin() || this.isPrimaryOwner();
-  }
-
-  isPrimaryOwner() {
-    return this.UserService.currentUser.id === this.application.owner.id;
+    return this.UserService.currentUser.isOrganizationAdmin() || this.UserService.currentUser.allowedTo(['api-members-u']);
   }
 
   toggleDisableMembershipNotifications() {

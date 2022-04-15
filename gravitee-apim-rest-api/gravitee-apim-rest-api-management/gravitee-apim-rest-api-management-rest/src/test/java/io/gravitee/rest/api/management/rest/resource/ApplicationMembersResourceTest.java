@@ -18,17 +18,22 @@ package io.gravitee.rest.api.management.rest.resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.model.ApplicationMembership;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,7 +51,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCreateMember() {
-        Mockito.reset(membershipService);
+        reset(membershipService);
 
         ApplicationMembership applicationMembership = new ApplicationMembership();
         applicationMembership.setId(MEMBER_1);
@@ -66,8 +71,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
             MembershipService.MembershipMember.class
         );
 
-        Mockito
-            .verify(membershipService)
+        verify(membershipService)
             .addRoleToMemberOnReference(
                 eq(GraviteeContext.getExecutionContext()),
                 memberShipRefCaptor.capture(),
