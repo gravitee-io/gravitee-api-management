@@ -26,7 +26,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,21 +56,21 @@ public class OrphanCategoryUpgraderTest {
     @Test
     public void upgrade_should_not_run_cause_already_executed_with_success() {
         setUpgradeStatus(UpgradeStatus.SUCCESS);
-        assertFalse(upgrader.upgrade(GraviteeContext.getExecutionContext()));
+        assertFalse(upgrader.upgrade());
         verify(installationService, never()).setAdditionalInformation(any());
     }
 
     @Test
     public void upgrade_should_not_run_because_already_running() {
         setUpgradeStatus(UpgradeStatus.RUNNING);
-        assertFalse(upgrader.upgrade(GraviteeContext.getExecutionContext()));
+        assertFalse(upgrader.upgrade());
         verify(installationService, never()).setAdditionalInformation(any());
     }
 
     @Test
     public void upgrade_should_run_because_already_executed_but_failed() {
         setUpgradeStatus(UpgradeStatus.FAILURE);
-        assertTrue(upgrader.upgrade(GraviteeContext.getExecutionContext()));
+        assertTrue(upgrader.upgrade());
         verify(installationService, times(2)).setAdditionalInformation(any());
     }
 
@@ -88,7 +87,7 @@ public class OrphanCategoryUpgraderTest {
         when(apiRepository.findAll()).thenReturn(Set.of(apiWithOrphanCategory));
 
         setUpgradeStatus(null);
-        assertTrue(upgrader.upgrade(GraviteeContext.getExecutionContext()));
+        assertTrue(upgrader.upgrade());
 
         assertEquals(1, apiWithOrphanCategory.getCategories().size());
         assertFalse(apiWithOrphanCategory.getCategories().contains(orphanCategoryId));

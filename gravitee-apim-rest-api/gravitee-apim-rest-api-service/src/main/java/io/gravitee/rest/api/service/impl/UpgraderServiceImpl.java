@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.rest.api.service.InitializerService;
 import io.gravitee.rest.api.service.Upgrader;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Comparator;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -54,7 +53,7 @@ public class UpgraderServiceImpl extends AbstractService<UpgraderServiceImpl> im
             .forEach(
                 upgrader -> {
                     logger.info("Running upgrader {}", upgrader.getClass().getName());
-                    upgrader.upgrade(GraviteeContext.getExecutionContext());
+                    upgrader.upgrade();
                 }
             );
     }

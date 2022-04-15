@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.NewMetadataEntity;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,10 @@ public class DefaultMetadataUpgrader implements Upgrader, Ordered {
     private MetadataService metadataService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public boolean upgrade() {
+        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
         // initialize default metadata
         final MetadataEntity defaultEmailSupportMetadata = metadataService.findDefaultByKey(METADATA_EMAIL_SUPPORT_KEY);
 

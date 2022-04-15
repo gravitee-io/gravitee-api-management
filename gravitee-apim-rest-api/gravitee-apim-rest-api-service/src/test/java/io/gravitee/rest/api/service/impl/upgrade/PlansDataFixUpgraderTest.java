@@ -70,7 +70,7 @@ public class PlansDataFixUpgraderTest {
     public void upgrade_should_not_run_cause_not_enabled() {
         ReflectionTestUtils.setField(upgrader, "enabled", false);
 
-        boolean success = upgrader.upgrade(null);
+        boolean success = upgrader.upgrade();
 
         assertFalse(success);
         verifyNoInteractions(installationService);
@@ -81,7 +81,7 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         mockInstallationWithExecutionStatus("SUCCESS");
 
-        boolean success = upgrader.upgrade(null);
+        boolean success = upgrader.upgrade();
 
         assertFalse(success);
         verify(installationService, never()).setAdditionalInformation(any());
@@ -92,7 +92,7 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         mockInstallationWithExecutionStatus("RUNNING");
 
-        boolean success = upgrader.upgrade(null);
+        boolean success = upgrader.upgrade();
 
         assertFalse(success);
         verify(installationService, never()).setAdditionalInformation(any());
@@ -104,7 +104,7 @@ public class PlansDataFixUpgraderTest {
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
         doThrow(new Exception("test exception")).when(upgrader).processOneShotUpgrade();
 
-        boolean success = upgrader.upgrade(null);
+        boolean success = upgrader.upgrade();
 
         assertFalse(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
@@ -118,7 +118,7 @@ public class PlansDataFixUpgraderTest {
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
         doNothing().when(upgrader).processOneShotUpgrade();
 
-        boolean success = upgrader.upgrade(null);
+        boolean success = upgrader.upgrade();
 
         assertTrue(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
@@ -133,7 +133,7 @@ public class PlansDataFixUpgraderTest {
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
         doNothing().when(upgrader).processOneShotUpgrade();
 
-        boolean success = upgrader.upgrade(null);
+        boolean success = upgrader.upgrade();
 
         assertTrue(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");

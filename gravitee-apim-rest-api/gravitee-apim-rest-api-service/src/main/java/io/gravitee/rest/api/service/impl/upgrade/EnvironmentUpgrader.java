@@ -40,7 +40,7 @@ public abstract class EnvironmentUpgrader implements Upgrader, Ordered {
     protected abstract void upgradeEnvironment(ExecutionContext executionContext);
 
     @Override
-    public final boolean upgrade(ExecutionContext defaultExecutionContext) {
+    public final boolean upgrade() {
         try {
             environmentRepository
                 .findAll()

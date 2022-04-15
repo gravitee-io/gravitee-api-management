@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.service.Upgrader;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -51,7 +50,7 @@ public class DefaultCategoryUpgrader implements Upgrader, Ordered {
     private ApiRepository apiRepository;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public boolean upgrade() {
         // Initialize default category
         final Set<Category> categories;
         try {

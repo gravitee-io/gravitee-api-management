@@ -21,7 +21,6 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.Upgrader;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +50,7 @@ public class DefaultParameterUpgrader implements Upgrader, Ordered {
     private ConfigurableEnvironment environment;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public boolean upgrade() {
         try {
             String envPortalURL = environment.getProperty("portalURL", Key.MANAGEMENT_URL.defaultValue());
             if (envPortalURL != null) {
