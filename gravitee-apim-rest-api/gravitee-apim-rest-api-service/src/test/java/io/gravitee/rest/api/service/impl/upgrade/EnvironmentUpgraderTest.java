@@ -49,7 +49,7 @@ public class EnvironmentUpgraderTest {
 
     @Test
     public void upgrade_should_read_all_environments() throws Exception {
-        upgrader.upgrade(null);
+        upgrader.upgrade();
 
         verify(environmentRepository, times(1)).findAll();
     }
@@ -66,7 +66,7 @@ public class EnvironmentUpgraderTest {
                 )
             );
 
-        upgrader.upgrade(null);
+        upgrader.upgrade();
 
         verify(upgrader, times(1))
             .upgradeEnvironment(argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")));
@@ -80,7 +80,7 @@ public class EnvironmentUpgraderTest {
 
     @Test
     public void upgrade_should_return_true_when_no_technicalException() throws Exception {
-        boolean result = upgrader.upgrade(null);
+        boolean result = upgrader.upgrade();
 
         assertTrue(result);
     }
@@ -89,7 +89,7 @@ public class EnvironmentUpgraderTest {
     public void upgrade_should_return_false_when_technicalException() throws Exception {
         when(environmentRepository.findAll()).thenThrow(new TechnicalException("this is a test exception"));
 
-        boolean result = upgrader.upgrade(null);
+        boolean result = upgrader.upgrade();
 
         assertFalse(result);
     }

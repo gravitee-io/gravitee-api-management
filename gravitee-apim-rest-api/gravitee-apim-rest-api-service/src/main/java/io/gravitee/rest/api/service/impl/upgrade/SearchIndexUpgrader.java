@@ -95,7 +95,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     }
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public boolean upgrade() {
         ExecutorService executorService = Executors.newFixedThreadPool(
             Runtime.getRuntime().availableProcessors() * 2,
             new ThreadFactory() {

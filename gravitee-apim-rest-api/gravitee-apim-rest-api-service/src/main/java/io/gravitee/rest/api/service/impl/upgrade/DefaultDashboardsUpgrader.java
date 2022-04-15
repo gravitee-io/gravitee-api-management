@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.service.DashboardService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -46,7 +47,10 @@ public class DefaultDashboardsUpgrader implements Upgrader, Ordered {
     private DashboardService dashboardService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public boolean upgrade() {
+        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
         final List<DashboardEntity> dashboards = dashboardService.findAll();
         if (dashboards == null || dashboards.isEmpty()) {
             checkAndCreateDashboard(executionContext, PLATFORM);
