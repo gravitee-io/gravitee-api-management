@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { LocationStrategy } from '@angular/common';
@@ -47,7 +47,6 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
     private usersTokenService: UsersTokenService,
     private locationStrategy: LocationStrategy,
     private readonly snackBarService: SnackBarService,
-    public dialogRef: MatDialogRef<OrgSettingsUserGenerateTokenComponent>,
     @Inject(MAT_DIALOG_DATA) confirmDialogData: OrgSettingsUserGenerateTokenDialogData,
     @Inject('Constants') private readonly constants: Constants,
   ) {
@@ -88,9 +87,10 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
   }
 
   getExampleOfUse(token: string): string {
-    const envBaseURL = this.constants.env.baseURL.startsWith('/')
-      ? this.locationStrategy.getBaseHref() + this.constants.env.baseURL
-      : this.constants.env.baseURL;
+    let envBaseURL = `${this.constants.org.baseURL}/environments/${this.constants.org.currentEnv.id}`;
+    if (envBaseURL.startsWith('/')) {
+      envBaseURL = this.locationStrategy.getBaseHref() + envBaseURL;
+    }
     return `curl -H "Authorization: Bearer ${token}" "${envBaseURL}"`;
   }
 }
