@@ -80,6 +80,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         mockImage.setContent(applicationLogoContent);
         mockImage.setType("image/svg");
         doReturn(mockImage).when(applicationService).getPicture(GraviteeContext.getExecutionContext(), APPLICATION_PICTURE);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.RatingAnswerEntity;
 import io.gravitee.rest.api.model.RatingEntity;
@@ -71,6 +72,8 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
         ratingEntity.setAnswers(Arrays.asList(answer));
         doReturn(ratingEntity).when(ratingService).findById(eq(GraviteeContext.getExecutionContext()), eq(RATING));
         doReturn(ratingEntity).when(ratingService).createAnswer(eq(GraviteeContext.getExecutionContext()), any());
+
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test

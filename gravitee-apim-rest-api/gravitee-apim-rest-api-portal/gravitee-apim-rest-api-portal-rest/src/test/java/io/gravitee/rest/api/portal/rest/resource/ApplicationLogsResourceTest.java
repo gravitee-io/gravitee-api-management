@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
@@ -79,6 +80,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
 
         doReturn(new Log()).when(logMapper).convert(any(ApplicationRequestItem.class));
         doReturn(new Log()).when(logMapper).convert(any(ApplicationRequest.class));
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test

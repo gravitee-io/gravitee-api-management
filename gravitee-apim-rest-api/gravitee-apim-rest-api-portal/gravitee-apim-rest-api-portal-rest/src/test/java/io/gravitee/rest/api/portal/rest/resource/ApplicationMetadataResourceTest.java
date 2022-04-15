@@ -119,6 +119,8 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
         doThrow(ApplicationMetadataNotFoundException.class)
             .when(applicationMetadataService)
             .delete(eq(GraviteeContext.getExecutionContext()), eq(UNKNOWN_METADATA), any());
+
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test

@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.*;
@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.filtering.FilteringService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

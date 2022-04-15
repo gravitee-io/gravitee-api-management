@@ -15,21 +15,18 @@
  */
 package io.gravitee.rest.api.portal.rest.filter;
 
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.resource.AbstractResource;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import java.io.IOException;
-import java.security.Principal;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -59,106 +56,61 @@ public class PermissionsFilter implements ContainerRequestFilter {
     private SecurityContext securityContext;
 
     @Inject
-    private MembershipService membershipService;
-
-    @Inject
-    private ApplicationService applicationService;
-
-    @Inject
-    private ApiService apiService;
-
-    @Inject
-    private RoleService roleService;
+    private PermissionService permissionService;
 
     @Inject
     private ConfigService configService;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (securityContext.isUserInRole(AbstractResource.ENVIRONMENT_ADMIN)) {
-            logger.debug("User [{}] has full access because of its ADMIN role", securityContext.getUserPrincipal().getName());
-            return;
-        }
-
-        filter(getRequiredPermission(), requestContext);
-        filter(requiredPortalAuth());
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        checkAuthenticationConditions(executionContext);
+        findRequiredPermissions().ifPresent(requiredPermissions -> filter(requiredPermissions, requestContext, executionContext));
     }
 
-    protected void filter(Permissions permissions, ContainerRequestContext requestContext) {
-        if (permissions != null && permissions.value().length > 0) {
-            Principal principal = securityContext.getUserPrincipal();
-            if (principal != null) {
-                String username = principal.getName();
-                for (Permission permission : permissions.value()) {
-                    if (hasPermission(requestContext, username, permission)) {
-                        return;
-                    }
-                }
-            }
-            sendSecurityError();
+    protected void filter(Permissions permissions, ContainerRequestContext requestContext, final ExecutionContext executionContext) {
+        Stream
+            .of(permissions.value())
+            .filter(permission -> hasPermission(permission, requestContext, executionContext))
+            .findAny()
+            .orElseThrow(ForbiddenAccessException::new);
+    }
+
+    private void checkAuthenticationConditions(final ExecutionContext executionContext) {
+        if (requiresPortalAuth(executionContext) && securityContext.getUserPrincipal() == null) {
+            throw new UnauthorizedAccessException();
         }
     }
 
-    protected void filter(boolean portalLoginRequired) {
-        if (
-            portalLoginRequired &&
-            configService.portalLoginForced(GraviteeContext.getExecutionContext()) &&
-            securityContext.getUserPrincipal() == null
-        ) {
-            sendSecurityError();
-        }
-    }
-
-    protected boolean hasPermission(ContainerRequestContext requestContext, String username, Permission permission) {
-        Map<String, char[]> memberPermissions;
+    private boolean hasPermission(Permission permission, ContainerRequestContext requestContext, final ExecutionContext executionContext) {
         switch (permission.value().getScope()) {
             case ORGANIZATION:
-                memberPermissions =
-                    membershipService.getUserMemberPermissions(
-                        GraviteeContext.getExecutionContext(),
-                        MembershipReferenceType.ORGANIZATION,
-                        GraviteeContext.getCurrentOrganization(),
-                        username
-                    );
-                return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
+                return hasPermission(executionContext, permission, executionContext.getOrganizationId());
             case ENVIRONMENT:
-                memberPermissions =
-                    membershipService.getUserMemberPermissions(
-                        GraviteeContext.getExecutionContext(),
-                        MembershipReferenceType.ENVIRONMENT,
-                        GraviteeContext.getCurrentEnvironment(),
-                        username
-                    );
-                return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
+                return hasPermission(executionContext, permission, executionContext.getEnvironmentId());
             case APPLICATION:
-                ApplicationEntity application = getApplication(requestContext);
-                memberPermissions =
-                    membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), application, username);
-                return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
+                return hasPermission(executionContext, permission, getApplicationId(requestContext));
             case API:
-                ApiEntity api = getApi(requestContext);
-                memberPermissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), api, username);
-                return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
+                return hasPermission(executionContext, permission, getApiId(requestContext));
             default:
-                sendSecurityError();
+                return false;
         }
-        return false;
     }
 
-    private ApiEntity getApi(ContainerRequestContext requestContext) {
-        String apiId = getId("apiId", requestContext);
-        if (apiId == null) {
-            return null;
-        }
-        return apiService.findById(GraviteeContext.getExecutionContext(), apiId);
+    private boolean hasPermission(final ExecutionContext executionContext, Permission permission, String referenceId) {
+        return permissionService.hasPermission(executionContext, permission.value(), referenceId, permission.acls());
     }
 
-    private ApplicationEntity getApplication(ContainerRequestContext requestContext) {
-        String applicationId = getId("applicationId", requestContext);
-        if (applicationId == null) {
-            return null;
-        }
-        return applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
+    private boolean requiresPortalAuth(final ExecutionContext executionContext) {
+        return findRequirePortalAuthAnnotation().isPresent() && configService.portalLoginForced(executionContext);
+    }
+
+    private String getApiId(ContainerRequestContext requestContext) {
+        return getId("apiId", requestContext);
+    }
+
+    private String getApplicationId(ContainerRequestContext requestContext) {
+        return getId("applicationId", requestContext);
     }
 
     private String getId(String key, ContainerRequestContext requestContext) {
@@ -174,30 +126,15 @@ public class PermissionsFilter implements ContainerRequestFilter {
         return null;
     }
 
-    private void sendSecurityError() {
-        Principal principal = securityContext.getUserPrincipal();
-        if (principal != null) {
-            throw new ForbiddenAccessException();
-        } else {
-            throw new UnauthorizedAccessException();
-        }
+    private Optional<Permissions> findRequiredPermissions() {
+        return Optional
+            .ofNullable(resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class))
+            .or(() -> Optional.ofNullable(resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class)));
     }
 
-    private Permissions getRequiredPermission() {
-        Permissions permission = resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class);
-
-        if (permission == null) {
-            return resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class);
-        }
-
-        return permission;
-    }
-
-    private boolean requiredPortalAuth() {
-        boolean requiredAuth = resourceInfo.getResourceMethod().getDeclaredAnnotation(RequirePortalAuth.class) != null;
-        if (!requiredAuth) {
-            requiredAuth = resourceInfo.getResourceClass().getDeclaredAnnotation(RequirePortalAuth.class) != null;
-        }
-        return requiredAuth;
+    private Optional<RequirePortalAuth> findRequirePortalAuthAnnotation() {
+        return Optional
+            .ofNullable(resourceInfo.getResourceMethod().getDeclaredAnnotation(RequirePortalAuth.class))
+            .or(() -> Optional.ofNullable(resourceInfo.getResourceClass().getDeclaredAnnotation(RequirePortalAuth.class)));
     }
 }

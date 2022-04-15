@@ -85,6 +85,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
             .when(applicationService)
             .findById(GraviteeContext.getExecutionContext(), UNKNOWN_APPLICATION);
         doThrow(UserNotFoundException.class).when(userService).findById(GraviteeContext.getExecutionContext(), UNKNOWN_MEMBER);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test

@@ -83,6 +83,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         doReturn(new Application().id("NEW"))
             .when(applicationMapper)
             .convert(eq(GraviteeContext.getExecutionContext()), eq(createdEntity), any());
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test

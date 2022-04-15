@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.model.permissions.RoleScope.*;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 
 import io.gravitee.common.http.MediaType;
@@ -144,7 +145,7 @@ public class ApplicationMembersResource extends AbstractResource {
     )
     public Response addOrUpdateApplicationMember(@Valid @NotNull ApplicationMembership applicationMembership) {
         if (PRIMARY_OWNER.name().equals(applicationMembership.getRole())) {
-            throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
+            throw new SinglePrimaryOwnerException(APPLICATION);
         }
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -159,10 +160,7 @@ public class ApplicationMembersResource extends AbstractResource {
             applicationMembership.getReference(),
             MembershipMemberType.USER
         );
-        MembershipService.MembershipRole role = new MembershipService.MembershipRole(
-            RoleScope.APPLICATION,
-            applicationMembership.getRole()
-        );
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(APPLICATION, applicationMembership.getRole());
 
         MemberEntity membership = null;
         if (applicationMembership.getId() != null) {
@@ -220,16 +218,10 @@ public class ApplicationMembersResource extends AbstractResource {
     public Response transferApplicationOwnership(@Valid @NotNull TransferOwnership transferOwnership) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         List<RoleEntity> newRoles = new ArrayList<>();
-        Optional<RoleEntity> optNewPORole = roleService.findByScopeAndName(
-            RoleScope.APPLICATION,
-            transferOwnership.getPoRole(),
-            executionContext.getOrganizationId()
-        );
-        if (optNewPORole.isPresent()) {
-            newRoles.add(optNewPORole.get());
-        } else {
-            //it doesn't matter
-        }
+
+        roleService
+            .findByScopeAndName(APPLICATION, transferOwnership.getPoRole(), executionContext.getOrganizationId())
+            .ifPresent(newRoles::add);
 
         applicationService.findById(executionContext, application);
         membershipService.transferApplicationOwnership(

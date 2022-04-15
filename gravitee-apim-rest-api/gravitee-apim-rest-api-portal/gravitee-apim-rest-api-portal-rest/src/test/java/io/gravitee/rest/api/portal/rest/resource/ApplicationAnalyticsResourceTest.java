@@ -18,7 +18,9 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.analytics.query.Aggregation;
@@ -31,6 +33,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.Response;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -48,6 +51,11 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
 
     private static final String APPLICATION = "my-application";
     private static final String ANALYTICS_ROOT_FIELD = "application";
+
+    @Before
+    public void setUp() {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    }
 
     @Test
     public void shouldGetDateHistoAnalytics() {
