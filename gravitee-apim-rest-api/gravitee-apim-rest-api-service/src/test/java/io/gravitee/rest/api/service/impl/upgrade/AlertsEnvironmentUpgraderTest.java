@@ -26,7 +26,6 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
 import java.util.Optional;
 import java.util.Set;
@@ -83,7 +82,7 @@ public class AlertsEnvironmentUpgraderTest {
         api3.setEnvironmentId("env-id-2");
         when(apiRepository.findById("api-id-3")).thenReturn(Optional.of(api3));
 
-        upgrader.processOneShotUpgrade(GraviteeContext.getExecutionContext());
+        upgrader.processOneShotUpgrade();
 
         // 2 alerts have been updated with API environment
         verify(alertTriggerRepository, times(1))
@@ -116,7 +115,7 @@ public class AlertsEnvironmentUpgraderTest {
         application3.setEnvironmentId("env-id-2");
         when(applicationRepository.findById("app-id-3")).thenReturn(Optional.of(application3));
 
-        upgrader.processOneShotUpgrade(GraviteeContext.getExecutionContext());
+        upgrader.processOneShotUpgrade();
 
         // 2 alerts have been updated with applications environment
         verify(alertTriggerRepository, times(1))
@@ -135,7 +134,7 @@ public class AlertsEnvironmentUpgraderTest {
                 Set.of(buildTestAlert("alert-id-2", "alert-name-2", "PLATFORM"), buildTestAlert("alert-id-4", "alert-name-4", "PLATFORM"))
             );
 
-        upgrader.processOneShotUpgrade(GraviteeContext.getExecutionContext());
+        upgrader.processOneShotUpgrade();
 
         // existing platform alert have been updated and linked to DEFAULT env
         verify(alertTriggerRepository, times(1))
