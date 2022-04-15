@@ -66,6 +66,8 @@ public class UsersResourceTest extends AbstractResourceTest {
         doReturn(Collections.singletonList(searchableUser)).when(identityService).search(anyString());
 
         doCallRealMethod().when(userMapper).convert(searchableUser);
+
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test

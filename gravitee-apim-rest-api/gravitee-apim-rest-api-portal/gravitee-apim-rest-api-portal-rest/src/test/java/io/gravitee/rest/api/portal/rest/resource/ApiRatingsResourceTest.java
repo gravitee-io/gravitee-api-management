@@ -21,8 +21,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -82,6 +81,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         createdRating.setComment(RATING);
         createdRating.setRate((byte) 1);
         doReturn(createdRating).when(ratingService).create(eq(GraviteeContext.getExecutionContext()), any());
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test
