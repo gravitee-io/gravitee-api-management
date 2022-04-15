@@ -37,6 +37,7 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
   let fixture: ComponentFixture<OrgSettingsUserGenerateTokenComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  const fakeConstants = CONSTANTS_TESTING;
 
   const userId = 'user-id';
 
@@ -47,28 +48,31 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
   afterEach(() => {
     matDialogRefMock.close.mockClear();
   });
+  beforeEach(() => {
+    const dialogData: OrgSettingsUserGenerateTokenDialogData = {
+      userId: userId,
+    };
+    TestBed.configureTestingModule({
+      imports: [OrganizationSettingsModule, GioHttpTestingModule],
+      providers: [
+        {
+          provide: 'Constants',
+          useValue: fakeConstants,
+        },
+        {
+          provide: MAT_DIALOG_DATA,
+          useFactory: () => dialogData,
+        },
+        { provide: MatDialogRef, useValue: matDialogRefMock },
+      ],
+    });
+    fixture = TestBed.createComponent(OrgSettingsUserGenerateTokenComponent);
+    component = fixture.componentInstance;
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
 
   describe('token creation', () => {
-    beforeEach(() => {
-      const dialogData: OrgSettingsUserGenerateTokenDialogData = {
-        userId: userId,
-      };
-      TestBed.configureTestingModule({
-        imports: [OrganizationSettingsModule, GioHttpTestingModule],
-        providers: [
-          {
-            provide: MAT_DIALOG_DATA,
-            useFactory: () => dialogData,
-          },
-          { provide: MatDialogRef, useValue: matDialogRefMock },
-        ],
-      });
-      fixture = TestBed.createComponent(OrgSettingsUserGenerateTokenComponent);
-      component = fixture.componentInstance;
-      loader = TestbedHarnessEnvironment.loader(fixture);
-      httpTestingController = TestBed.inject(HttpTestingController);
-    });
-
     it('should be able to create a token', async () => {
       fixture.detectChanges();
 
@@ -152,5 +156,22 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
         expect(await matFormFieldHarness.getTextErrors()).toContain(errorMessage);
       },
     );
+  });
+
+  describe('getExampleOfUse', () => {
+    const token = 'A_TOKEN';
+
+    it('should return a proper curl example with full url', () => {
+      expect(component.getExampleOfUse(token)).toEqual(
+        `curl -H "Authorization: Bearer A_TOKEN" "https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT"`,
+      );
+    });
+
+    it('should return a proper curl example with url starting with /', () => {
+      fakeConstants.org.baseURL = '/management/organizations/DEFAULT';
+      expect(component.getExampleOfUse(token)).toEqual(
+        `curl -H "Authorization: Bearer A_TOKEN" "http://localhost/management/organizations/DEFAULT/environments/DEFAULT"`,
+      );
+    });
   });
 });
