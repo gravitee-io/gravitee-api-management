@@ -21,8 +21,10 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -53,6 +55,9 @@ public class PlansDataFixUpgraderTest {
     private ApiRepository apiRepository;
 
     @Mock
+    private EnvironmentRepository environmentRepository;
+
+    @Mock
     private PlanRepository planRepository;
 
     @Mock
@@ -65,7 +70,7 @@ public class PlansDataFixUpgraderTest {
     public void upgrade_should_not_run_cause_not_enabled() {
         ReflectionTestUtils.setField(upgrader, "enabled", false);
 
-        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
+        boolean success = upgrader.upgrade(null);
 
         assertFalse(success);
         verifyNoInteractions(installationService);
@@ -76,7 +81,7 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         mockInstallationWithExecutionStatus("SUCCESS");
 
-        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
+        boolean success = upgrader.upgrade(null);
 
         assertFalse(success);
         verify(installationService, never()).setAdditionalInformation(any());
@@ -87,7 +92,7 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         mockInstallationWithExecutionStatus("RUNNING");
 
-        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
+        boolean success = upgrader.upgrade(null);
 
         assertFalse(success);
         verify(installationService, never()).setAdditionalInformation(any());
@@ -97,9 +102,9 @@ public class PlansDataFixUpgraderTest {
     public void upgrade_should_run_and_set_failure_status_on_exception() throws Exception {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doThrow(new Exception("test exception")).when(upgrader).processOneShotUpgrade(GraviteeContext.getExecutionContext());
+        doThrow(new Exception("test exception")).when(upgrader).processOneShotUpgrade();
 
-        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
+        boolean success = upgrader.upgrade(null);
 
         assertFalse(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
@@ -111,9 +116,9 @@ public class PlansDataFixUpgraderTest {
     public void upgrade_should_run_and_set_success_status() throws Exception {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).processOneShotUpgrade(GraviteeContext.getExecutionContext());
+        doNothing().when(upgrader).processOneShotUpgrade();
 
-        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
+        boolean success = upgrader.upgrade(null);
 
         assertTrue(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
@@ -126,9 +131,9 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         ReflectionTestUtils.setField(upgrader, "dryRun", true);
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).processOneShotUpgrade(GraviteeContext.getExecutionContext());
+        doNothing().when(upgrader).processOneShotUpgrade();
 
-        boolean success = upgrader.upgrade(GraviteeContext.getExecutionContext());
+        boolean success = upgrader.upgrade(null);
 
         assertTrue(success);
         verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
@@ -139,28 +144,90 @@ public class PlansDataFixUpgraderTest {
     @Test
     public void fixPlansData_should_fix_only_v2_apis() throws Exception {
         ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
-        doNothing().when(upgrader).fixApiPlans(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doNothing().when(upgrader).fixApiPlans(any(), any(), any());
+        when(environmentRepository.findById(any())).thenAnswer(i -> Optional.of(buildTestEnvironment(i.getArgument(0), "testOrgId")));
 
         Api apiv1_1 = new Api();
         apiv1_1.setId("api1");
         apiv1_1.setDefinition("{}");
+        apiv1_1.setEnvironmentId("envId");
         Api apiv2_1 = new Api();
         apiv2_1.setId("api2");
         apiv2_1.setDefinition("{\"gravitee\": \"2.0.0\"}");
+        apiv2_1.setEnvironmentId("envId");
         Api apiv1_2 = new Api();
         apiv1_2.setId("api3");
         apiv1_2.setDefinition("{\"gravitee\": \"1.0.0\"}");
+        apiv1_2.setEnvironmentId("envId");
         Api apiv2_2 = new Api();
         apiv2_2.setId("api4");
         apiv2_2.setDefinition("{\"gravitee\": \"2.0.0\"}");
+        apiv2_2.setEnvironmentId("envId");
         when(apiRepository.findAll()).thenReturn(Set.of(apiv1_1, apiv2_1, apiv1_2, apiv2_2));
 
-        upgrader.processOneShotUpgrade(GraviteeContext.getExecutionContext());
+        upgrader.processOneShotUpgrade();
 
-        verify(upgrader, times(1)).fixApiPlans(eq(GraviteeContext.getExecutionContext()), same(apiv2_1), any());
-        verify(upgrader, times(1)).fixApiPlans(eq(GraviteeContext.getExecutionContext()), same(apiv2_2), any());
-        verify(upgrader, never()).fixApiPlans(eq(GraviteeContext.getExecutionContext()), same(apiv1_1), any());
-        verify(upgrader, never()).fixApiPlans(eq(GraviteeContext.getExecutionContext()), same(apiv1_2), any());
+        verify(upgrader, times(1)).fixApiPlans(any(), same(apiv2_1), any());
+        verify(upgrader, times(1)).fixApiPlans(any(), same(apiv2_2), any());
+        verify(upgrader, never()).fixApiPlans(any(), same(apiv1_1), any());
+        verify(upgrader, never()).fixApiPlans(any(), same(apiv1_2), any());
+    }
+
+    @Test
+    public void fixPlansData_should_fix_apis_using_related_executionContext() throws Exception {
+        ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
+        doNothing().when(upgrader).fixApiPlans(any(), any(), any());
+
+        Api api1 = new Api();
+        api1.setId("api1");
+        api1.setEnvironmentId("env1");
+        api1.setDefinition("{\"gravitee\": \"2.0.0\"}");
+        Api api2 = new Api();
+        api2.setId("api2");
+        api2.setEnvironmentId("env2");
+        api2.setDefinition("{\"gravitee\": \"2.0.0\"}");
+        Api api3 = new Api();
+        api3.setId("api3");
+        api3.setEnvironmentId("env1");
+        api3.setDefinition("{\"gravitee\": \"2.0.0\"}");
+
+        when(apiRepository.findAll()).thenReturn(Set.of(api1, api2, api3));
+
+        when(environmentRepository.findById("env1")).thenReturn(Optional.of(buildTestEnvironment("env1", "org1")));
+        when(environmentRepository.findById("env2")).thenReturn(Optional.of(buildTestEnvironment("env2", "org2")));
+
+        upgrader.processOneShotUpgrade();
+
+        // assert that 2 environments have been retreived from repository
+        verify(environmentRepository, times(1)).findById("env1");
+        verify(environmentRepository, times(1)).findById("env2");
+        verifyNoMoreInteractions(environmentRepository);
+
+        // assert that each call to fixApiPlans has been done with the ExecutionContext related to API
+        verify(upgrader, times(1))
+            .fixApiPlans(argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")), same(api1), any());
+        verify(upgrader, times(1))
+            .fixApiPlans(argThat(e -> e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")), same(api2), any());
+        verify(upgrader, times(1))
+            .fixApiPlans(argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")), same(api3), any());
+    }
+
+    @Test
+    public void fixPlansData_should_not_fix_apis_if_environment_search_throws_exception() throws Exception {
+        ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
+
+        Api api1 = new Api();
+        api1.setId("api1");
+        api1.setEnvironmentId("env1");
+        api1.setDefinition("{\"gravitee\": \"2.0.0\"}");
+
+        when(apiRepository.findAll()).thenReturn(Set.of(api1));
+        when(environmentRepository.findById(any())).thenThrow(new TechnicalException("this is a test exception"));
+
+        upgrader.processOneShotUpgrade();
+
+        // assert that fixApiPlans has never been called as environment search failed
+        verify(upgrader, never()).fixApiPlans(any(), any(), any());
     }
 
     @Test
@@ -263,5 +330,12 @@ public class PlansDataFixUpgraderTest {
         when(installationAdditionalInformations.get(InstallationService.PLANS_DATA_UPGRADER_STATUS)).thenReturn(status);
         when(installationService.getOrInitialize()).thenReturn(installation);
         return installation;
+    }
+
+    private Environment buildTestEnvironment(String environmentId, String organizationId) {
+        Environment environment = new Environment();
+        environment.setId(environmentId);
+        environment.setOrganizationId(organizationId);
+        return environment;
     }
 }

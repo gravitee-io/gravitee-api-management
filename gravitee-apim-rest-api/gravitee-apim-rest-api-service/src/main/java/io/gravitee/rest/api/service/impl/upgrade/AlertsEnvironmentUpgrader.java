@@ -25,7 +25,6 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
 import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
@@ -84,7 +83,7 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    protected void processOneShotUpgrade(ExecutionContext executionContext) throws TechnicalException {
+    protected void processOneShotUpgrade() throws TechnicalException {
         alertTriggerRepository
             .findAll()
             .forEach(

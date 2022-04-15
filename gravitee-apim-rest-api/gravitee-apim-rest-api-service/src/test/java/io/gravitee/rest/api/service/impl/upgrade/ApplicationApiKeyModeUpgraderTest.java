@@ -26,7 +26,6 @@ import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -95,7 +94,7 @@ public class ApplicationApiKeyModeUpgraderTest {
                 )
             );
 
-        upgrader.processOneShotUpgrade(GraviteeContext.getExecutionContext());
+        upgrader.processOneShotUpgrade();
 
         // all applications have been searched
         verify(applicationRepository, times(1)).findAll();
