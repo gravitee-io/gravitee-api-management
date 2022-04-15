@@ -19,8 +19,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public class ApiKeySubscriptionsUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    protected void processOneShotUpgrade(ExecutionContext executionContext) throws TechnicalException {
+    protected void processOneShotUpgrade() throws TechnicalException {
         apiKeyRepository.findAll().forEach(this::updateApiKeySubscriptions);
     }
 

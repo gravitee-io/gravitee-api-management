@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +59,9 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     private PlanRepository planRepository;
 
     @Autowired
+    private EnvironmentRepository environmentRepository;
+
+    @Autowired
     private EmailService emailService;
 
     @Autowired
@@ -76,6 +81,8 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
 
     private boolean anomalyFound = false;
 
+    private final Map<String, ExecutionContext> executionContextByEnvironment = new ConcurrentHashMap<>();
+
     public PlansDataFixUpgrader() {
         super(InstallationService.PLANS_DATA_UPGRADER_STATUS);
     }
@@ -86,7 +93,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    protected void processOneShotUpgrade(ExecutionContext executionContext) throws Exception {
+    protected void processOneShotUpgrade() throws Exception {
         for (Api api : apiRepository.findAll()) {
             io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                 api.getDefinition(),
@@ -94,7 +101,10 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
             );
 
             if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion()) {
-                fixApiPlans(executionContext, api, apiDefinition);
+                ExecutionContext executionContext = getApiExecutionContext(api);
+                if (executionContext != null) {
+                    fixApiPlans(executionContext, api, apiDefinition);
+                }
             }
         }
         if (!anomalyFound) {
@@ -271,6 +281,20 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
         LOGGER.warn("");
         LOGGER.warn("##############################################################");
         LOGGER.warn("");
+    }
+
+    private ExecutionContext getApiExecutionContext(Api api) {
+        return executionContextByEnvironment.computeIfAbsent(
+            api.getEnvironmentId(),
+            envId -> {
+                try {
+                    return environmentRepository.findById(api.getEnvironmentId()).map(ExecutionContext::new).orElse(null);
+                } catch (TechnicalException e) {
+                    LOGGER.error("failed to find environment {}", api.getEnvironmentId(), e);
+                    return null;
+                }
+            }
+        );
     }
 
     @Override

@@ -47,7 +47,7 @@ public abstract class OneShotUpgrader implements Upgrader, Ordered {
 
     private String installationStatusKey;
 
-    protected abstract void processOneShotUpgrade(ExecutionContext executionContext) throws Exception;
+    protected abstract void processOneShotUpgrade() throws Exception;
 
     public OneShotUpgrader(String installationStatusKey) {
         super();
@@ -81,7 +81,7 @@ public abstract class OneShotUpgrader implements Upgrader, Ordered {
         try {
             LOGGER.info("Starting {} execution with dry-run {}", this.getClass().getSimpleName(), isDryRun() ? "enabled" : "disabled");
             setExecutionStatus(installation, RUNNING);
-            processOneShotUpgrade(executionContext);
+            processOneShotUpgrade();
             setExecutionStatus(installation, isDryRun() ? DRY_SUCCESS : SUCCESS);
         } catch (Throwable e) {
             LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
