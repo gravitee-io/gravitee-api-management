@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.Upgrader;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +39,7 @@ public class DefaultOrganizationUpgrader implements Upgrader, Ordered {
     private OrganizationService organizationService;
 
     @Override
-    public boolean upgrade(ExecutionContext executionContext) {
+    public boolean upgrade() {
         // initialize default organization.
         if (organizationService.count().equals(0L)) {
             logger.info("    No organization found. Add default one.");
