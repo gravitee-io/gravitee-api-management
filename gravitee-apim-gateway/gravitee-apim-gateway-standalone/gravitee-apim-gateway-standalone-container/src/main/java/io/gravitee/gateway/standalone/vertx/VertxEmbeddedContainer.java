@@ -16,6 +16,7 @@
 package io.gravitee.gateway.standalone.vertx;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
 import io.gravitee.node.vertx.verticle.factory.SpringVerticleFactory;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -63,7 +64,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
 
         DeploymentOptions options = new DeploymentOptions().setInstances(instances);
         vertx.deployVerticle(
-            SpringVerticleFactory.VERTICLE_PREFIX + ':' + ReactorVerticle.class.getName(),
+            SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName(),
             options,
             event -> {
                 if (event.failed()) {

@@ -66,7 +66,7 @@
         <gravitee-connector-api.version>1.1.0</gravitee-connector-api.version>
         <gravitee-expression-language.version>1.9.2</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>1.32.2</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>1.33.0-SNAPSHOT</gravitee-gateway-api.version>
         <gravitee-node.version>1.24.2</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
         <gravitee-plugin.version>1.23.2</gravitee-plugin.version>

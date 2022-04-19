@@ -15,10 +15,13 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
+import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -50,8 +53,11 @@ public class VertxReactorConfiguration {
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public ReactorVerticle graviteeVerticle() {
-        return new ReactorVerticle();
+    public HttpProtocolVerticle graviteeVerticle(
+        @Qualifier("gatewayHttpServer") HttpServer httpServer,
+        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
+    ) {
+        return new HttpProtocolVerticle(httpServer, requestDispatcher);
     }
 
     @Bean
