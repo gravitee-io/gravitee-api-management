@@ -17,12 +17,28 @@ package io.gravitee.gateway.buffer.netty;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.buffer.BufferFactory;
+import io.netty.buffer.ByteBuf;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
 public class BufferFactoryImpl implements BufferFactory {
+
+    @Override
+    public Buffer buffer(ByteBuf nativeBuffer) {
+        return new BufferImpl(nativeBuffer);
+    }
+
+    @Override
+    public Buffer buffer(io.vertx.core.buffer.Buffer vertxBuffer) {
+        return new BufferImpl(vertxBuffer.getByteBuf());
+    }
+
+    @Override
+    public Buffer buffer(io.vertx.reactivex.core.buffer.Buffer vertxBuffer) {
+        return new BufferImpl(vertxBuffer.getByteBuf());
+    }
 
     @Override
     public Buffer buffer(int initialSizeHint) {
