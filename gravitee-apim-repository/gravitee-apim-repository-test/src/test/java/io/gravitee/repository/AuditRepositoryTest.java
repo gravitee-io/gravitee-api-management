@@ -179,4 +179,32 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         assertEquals("page elements", 1, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
     }
+
+    @Test
+    public void shouldSearchWithEnvironmentIds() throws TechnicalException {
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().environmentIds(singletonList("DEFAULT")).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
+
+        assertNotNull(auditPage);
+        assertEquals("total elements", 1, auditPage.getTotalElements());
+        assertEquals("page elements", 1, auditPage.getPageElements());
+        assertEquals("page number", 0, auditPage.getPageNumber());
+        assertEquals("find audit with id 'new'", "new", auditPage.getContent().get(0).getId());
+    }
+
+    @Test
+    public void shouldSearchWithOrganizationId() throws TechnicalException {
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().organizationId("DEFAULT").build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
+
+        assertNotNull(auditPage);
+        assertEquals("total elements", 1, auditPage.getTotalElements());
+        assertEquals("page elements", 1, auditPage.getPageElements());
+        assertEquals("page number", 0, auditPage.getPageNumber());
+        assertEquals("find audit with id 'new'", "new", auditPage.getContent().get(0).getId());
+    }
 }

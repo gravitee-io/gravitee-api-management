@@ -33,6 +33,10 @@ public class AuditCriteria {
 
     private long from, to;
 
+    private List<String> environmentIds;
+
+    private String organizationId;
+
     AuditCriteria(AuditCriteria.Builder builder) {
         this.from = builder.from;
         this.to = builder.to;
@@ -41,6 +45,8 @@ public class AuditCriteria {
         if (builder.events != null) {
             this.events = builder.events;
         }
+        this.environmentIds = builder.environmentIds;
+        this.organizationId = builder.organizationId;
     }
 
     public Map<Audit.AuditReferenceType, List<String>> getReferences() {
@@ -83,6 +89,14 @@ public class AuditCriteria {
         this.events = events;
     }
 
+    public List<String> getEnvironmentIds() {
+        return environmentIds;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -93,6 +107,8 @@ public class AuditCriteria {
         if (from != that.from) return false;
         if (to != that.to) return false;
         if (references != null ? !references.equals(that.references) : that.references != null) return false;
+        if (environmentIds != null ? !environmentIds.equals(that.environmentIds) : that.environmentIds != null) return false;
+        if (organizationId != that.organizationId) return false;
         return properties != null ? properties.equals(that.properties) : that.properties == null;
     }
 
@@ -116,6 +132,10 @@ public class AuditCriteria {
         private long to;
 
         private List<String> events;
+
+        private List<String> environmentIds;
+
+        private String organizationId;
 
         public Builder from(long from) {
             this.from = from;
@@ -145,6 +165,16 @@ public class AuditCriteria {
 
         public AuditCriteria build() {
             return new AuditCriteria(this);
+        }
+
+        public AuditCriteria.Builder environmentIds(final List<String> environmentIds) {
+            this.environmentIds = environmentIds;
+            return this;
+        }
+
+        public AuditCriteria.Builder organizationId(final String organizationId) {
+            this.organizationId = organizationId;
+            return this;
         }
     }
 }

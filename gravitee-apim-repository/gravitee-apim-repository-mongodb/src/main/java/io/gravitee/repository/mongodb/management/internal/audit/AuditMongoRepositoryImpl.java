@@ -65,6 +65,14 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
             query.addCriteria(where("event").in(filter.getEvents()));
         }
 
+        if (filter.getEnvironmentIds() != null && !filter.getEnvironmentIds().isEmpty()) {
+            query.addCriteria(where("environmentId").in(filter.getEnvironmentIds()));
+        }
+
+        if (filter.getOrganizationId() != null) {
+            query.addCriteria(where("organizationId").is(filter.getOrganizationId()));
+        }
+
         long total = mongoTemplate.count(query, AuditMongo.class);
 
         query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.by(Sort.Direction.DESC, "createdAt")));
