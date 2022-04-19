@@ -23,15 +23,16 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.connection.*;
 import java.io.FileInputStream;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
+import javax.net.ssl.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -139,33 +140,61 @@ public class MongoFactory implements FactoryBean<MongoClient> {
     private SslSettings buildSslSettings() {
         SslSettings.Builder sslBuilder = SslSettings.builder();
 
-        Boolean sslEnabled = readPropertyValue(propertyPrefix + "sslEnabled", Boolean.class);
+        boolean sslEnabled = readPropertyValue(propertyPrefix + "sslEnabled", Boolean.class, false);
+        sslBuilder.enabled(sslEnabled);
 
-        if (sslEnabled != null) {
-            sslBuilder.enabled(sslEnabled);
-            if (sslEnabled.booleanValue()) {
-                String keystore = readPropertyValue(propertyPrefix + "keystore", String.class);
-                String keystorePassword = readPropertyValue(propertyPrefix + "keystorePassword", String.class);
-                String keyPassword = readPropertyValue(propertyPrefix + "keyPassword", String.class);
-
-                if (keystore != null) {
-                    try {
-                        SSLContext ctx = SSLContext.getInstance("TLS");
-                        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-                        KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-                        ks.load(new FileInputStream(keystore), keystorePassword.toCharArray());
-                        keyManagerFactory.init(ks, keyPassword.toCharArray());
-                        ctx.init(keyManagerFactory.getKeyManagers(), null, null);
-                        sslBuilder.context(ctx);
-                    } catch (Exception e) {
-                        logger.error(e.getCause().toString());
-                        throw new IllegalStateException("Error creating the keystore for mongodb", e);
-                    }
-                }
+        if (sslEnabled) {
+            try {
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(getKeyManagers(), getTrustManagers(), null);
+                sslBuilder.context(sslContext);
+            } catch (NoSuchAlgorithmException | KeyManagementException e) {
+                throw new IllegalStateException("Error creating the SSLContext for mongodb", e);
             }
         }
 
         return sslBuilder.build();
+    }
+
+    private KeyManager[] getKeyManagers() {
+        String keystore = readPropertyValue(propertyPrefix + "keystore", String.class);
+        String keystorePassword = readPropertyValue(propertyPrefix + "keystorePassword", String.class, "");
+        String keyPassword = readPropertyValue(propertyPrefix + "keyPassword", String.class, "");
+
+        if (keystore == null) {
+            return null;
+        }
+
+        try {
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore.load(new FileInputStream(keystore), keystorePassword.toCharArray());
+            keyManagerFactory.init(keyStore, keyPassword.toCharArray());
+            return keyManagerFactory.getKeyManagers();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error creating the keystore for mongodb", e);
+        }
+    }
+
+    private TrustManager[] getTrustManagers() {
+        String truststorePropertyPrefix = propertyPrefix + "truststore.";
+        String truststorePath = readPropertyValue(truststorePropertyPrefix + "path", String.class);
+        String truststoreType = readPropertyValue(truststorePropertyPrefix + "type", String.class);
+        String truststorePassword = readPropertyValue(truststorePropertyPrefix + "password", String.class, "");
+
+        if (truststorePath == null) {
+            return null;
+        }
+
+        try {
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            KeyStore keyStore = KeyStore.getInstance(truststoreType != null ? truststoreType : KeyStore.getDefaultType());
+            keyStore.load(new FileInputStream(truststorePath), truststorePassword.toCharArray());
+            trustManagerFactory.init(keyStore);
+            return trustManagerFactory.getTrustManagers();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error creating the truststore for mongodb", e);
+        }
     }
 
     private MongoClientSettings buildClientSettings(boolean isReactive) {
