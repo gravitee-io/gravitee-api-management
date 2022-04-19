@@ -88,6 +88,11 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     public MetadataPage<AuditEntity> search(final ExecutionContext executionContext, AuditQuery query) {
         Builder criteria = new Builder().from(query.getFrom()).to(query.getTo());
 
+        criteria.organizationId(executionContext.getOrganizationId());
+        if (executionContext.hasEnvironmentId()) {
+            criteria.environmentIds(Collections.singletonList(executionContext.getEnvironmentId()));
+        }
+
         if (query.isCurrentEnvironmentLogsOnly()) {
             criteria.references(Audit.AuditReferenceType.ENVIRONMENT, Collections.singletonList(executionContext.getEnvironmentId()));
         } else if (query.isCurrentOrganizationLogsOnly()) {
