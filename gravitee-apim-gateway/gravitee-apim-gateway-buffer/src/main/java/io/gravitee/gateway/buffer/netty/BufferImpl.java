@@ -29,10 +29,14 @@ import java.util.Objects;
  */
 public class BufferImpl implements Buffer {
 
-    private ByteBuf buffer;
+    private final ByteBuf buffer;
 
     BufferImpl() {
         this(0);
+    }
+
+    BufferImpl(ByteBuf nativeBuffer) {
+        this.buffer = nativeBuffer;
     }
 
     BufferImpl(int initialSizeHint) {
@@ -57,13 +61,13 @@ public class BufferImpl implements Buffer {
 
     @Override
     public Buffer appendBuffer(Buffer buff) {
-        ByteBuf cb = (ByteBuf) buff.getNativeBuffer();
+        ByteBuf cb = buff.getNativeBuffer();
         return appendBuf(cb, cb.readableBytes());
     }
 
     @Override
     public Buffer appendBuffer(Buffer buff, int length) {
-        ByteBuf cb = (ByteBuf) buff.getNativeBuffer();
+        ByteBuf cb = buff.getNativeBuffer();
         return appendBuf(cb, Math.min(buff.length(), length));
     }
 
@@ -84,8 +88,9 @@ public class BufferImpl implements Buffer {
     }
 
     private Buffer appendBuf(ByteBuf cb, int length) {
+        final int currIndex = cb.readerIndex();
         buffer.writeBytes(cb, length);
-        cb.readerIndex(0); // Need to reset readerindex since Netty write modifies readerIndex of source!
+        cb.readerIndex(currIndex); // Need to reset reader index since Netty write modifies readerIndex of source!
         return this;
     }
 
@@ -106,8 +111,8 @@ public class BufferImpl implements Buffer {
 
     @Override
     public byte[] getBytes() {
-        byte[] arr = new byte[buffer.writerIndex()];
-        buffer.getBytes(0, arr);
+        byte[] arr = new byte[buffer.writerIndex() - buffer.readerIndex()];
+        buffer.getBytes(buffer.readerIndex(), arr);
         return arr;
     }
 
@@ -117,7 +122,7 @@ public class BufferImpl implements Buffer {
     }
 
     @Override
-    public Object getNativeBuffer() {
+    public ByteBuf getNativeBuffer() {
         return buffer;
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.connector.ConnectorRegistry;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
@@ -46,6 +47,8 @@ import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
+import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -170,10 +173,13 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                     applicationContext.getBean(ObjectMapper.class)
                 );
 
-                handler.setInvoker(
-                    invokerFactory(api, applicationContext.getBean(Vertx.class), endpointResolver(referenceRegister, groupLifecycleManager))
-                        .create()
-                );
+                final Invoker invoker = invokerFactory(
+                    api,
+                    applicationContext.getBean(Vertx.class),
+                    endpointResolver(referenceRegister, groupLifecycleManager)
+                )
+                    .create();
+                handler.setInvoker(invoker);
 
                 handler.setPolicyManager(policyManager);
                 handler.setGroupLifecycleManager(groupLifecycleManager);
@@ -190,7 +196,16 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 
                 handler.setExecutionContextFactory(executionContextFactory);
 
-                return handler;
+                final SyncApiReactor syncApiReactor = new SyncApiReactor(
+                    api,
+                    new io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory(customComponentProvider),
+                    new InvokerAdapter(invoker),
+                    resourceLifecycleManager,
+                    policyManager,
+                    groupLifecycleManager
+                );
+
+                return syncApiReactor;
             } else {
                 logger.warn("Api is disabled !");
             }

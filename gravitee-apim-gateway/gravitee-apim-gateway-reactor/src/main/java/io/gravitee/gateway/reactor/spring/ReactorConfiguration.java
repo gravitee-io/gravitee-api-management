@@ -15,14 +15,19 @@
  */
 package io.gravitee.gateway.reactor.spring;
 
+import io.gravitee.common.http.IdGenerator;
+import io.gravitee.common.utils.Hex;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
+import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactive.reactor.handler.impl.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactor.Reactor;
-import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider;
-import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
@@ -31,6 +36,7 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.node.api.Node;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,13 +47,24 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ReactorConfiguration {
 
+    private static final String HEX_FORMAT = "hex";
+
     @Bean
-    public Reactor reactor() {
-        return new DefaultReactor();
+    public IdGenerator idGenerator(@Value("${handlers.request.format:uuid}") String requestFormat) {
+        if (HEX_FORMAT.equals(requestFormat)) {
+            return new Hex();
+        } else {
+            return new UUID();
+        }
     }
 
     @Bean
-    public EntrypointResolver reactorHandlerResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
+    public HttpRequestDispatcher httpRequestDispatcher(IdGenerator idGenerator) {
+        return new DefaultHttpRequestDispatcher(idGenerator);
+    }
+
+    @Bean
+    public EntrypointResolver entrypointResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
         return new DefaultEntrypointResolver(reactorHandlerRegistry);
     }
 
