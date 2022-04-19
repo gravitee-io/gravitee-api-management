@@ -82,6 +82,12 @@
             <artifactId>gravitee-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-http</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
