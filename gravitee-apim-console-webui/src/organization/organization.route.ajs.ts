@@ -288,5 +288,19 @@ function organizationRouterConfig($stateProvider) {
           only: ['organization-notification_templates-r'],
         },
       },
+    })
+    .state('organization.settings.ng-audit', {
+      url: '/audit',
+      component: 'ngOrgSettingsAudit',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'management-audit',
+        },
+        perms: {
+          only: ['organization-audit-r'],
+        },
+      },
     });
 }

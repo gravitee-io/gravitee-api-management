@@ -66,6 +66,7 @@ import { OrgSettingAddMappingDialogComponent } from './tags/org-settings-add-map
 import { OrgSettingsRoleComponent } from './roles/role/org-settings-role.component';
 import { OrgSettingsUserDetailAddGroupDialogComponent } from './user/detail/org-settings-user-detail-add-group-dialog.component';
 import { OrgSettingsUserGenerateTokenComponent } from './user/detail/tokens/org-settings-user-generate-token.component';
+import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -156,6 +157,7 @@ import { SpelService } from '../../services-ngx/spel.service';
     OrgSettingAddMappingDialogComponent,
     OrgSettingsRoleComponent,
     OrgSettingsUserDetailAddGroupDialogComponent,
+    OrgSettingsAuditComponent,
   ],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
   entryComponents: [
@@ -179,6 +181,7 @@ import { SpelService } from '../../services-ngx/spel.service';
     OrgSettingAddMappingDialogComponent,
     OrgSettingsRoleComponent,
     OrgSettingsUserDetailAddGroupDialogComponent,
+    OrgSettingsAuditComponent,
   ],
   providers: [
     {
