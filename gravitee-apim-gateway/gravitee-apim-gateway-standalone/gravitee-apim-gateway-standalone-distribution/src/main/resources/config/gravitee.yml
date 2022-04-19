@@ -113,9 +113,11 @@ management:
 
 ## SSL settings
 #    sslEnabled:                  # mongodb ssl mode (default false)
-#    keystore:                    # path to KeyStore (when sslEnabled is true, default null)
-#    keystorePassword:            # KeyStore password (when sslEnabled is true, default null)
-#    keyPassword:                 # password for recovering keys in the KeyStore (when sslEnabled is true, default null)
+#    keystore:
+#      path:                      # Path to the keystore (when sslEnabled is true, default null)
+#      type:                      # Type of the keystore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
+#      password:                  # KeyStore password (when sslEnabled is true, default null)
+#      keyPassword:               # Password for recovering keys in the KeyStore (when sslEnabled is true, default null)
 #    truststore:
 #      path:                      # Path to the truststore (when sslEnabled is true, default null)
 #      type:                      # Type of the truststore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)

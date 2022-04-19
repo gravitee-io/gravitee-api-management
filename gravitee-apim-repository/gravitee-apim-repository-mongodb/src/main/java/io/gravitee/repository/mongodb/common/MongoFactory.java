@@ -157,9 +157,25 @@ public class MongoFactory implements FactoryBean<MongoClient> {
     }
 
     private KeyManager[] getKeyManagers() {
-        String keystore = readPropertyValue(propertyPrefix + "keystore", String.class);
-        String keystorePassword = readPropertyValue(propertyPrefix + "keystorePassword", String.class, "");
-        String keyPassword = readPropertyValue(propertyPrefix + "keyPassword", String.class, "");
+        String keystorePropertyPrefix = propertyPrefix + "keystore.";
+        // TODO: Old properties are kept for backwards compatibility, new ones were added in 3.10.13+ -> 3.18.0.
+        // So remove `keystore`, `keystorePassword` and `keyPassword` properties in 3.19.0+
+        String keystore = readPropertyValue(
+            keystorePropertyPrefix + "path",
+            String.class,
+            readPropertyValue(propertyPrefix + "keystore", String.class)
+        );
+        String keystorePassword = readPropertyValue(
+            keystorePropertyPrefix + "password",
+            String.class,
+            readPropertyValue(propertyPrefix + "keystorePassword", String.class, "")
+        );
+        String keyPassword = readPropertyValue(
+            keystorePropertyPrefix + "keyPassword",
+            String.class,
+            readPropertyValue(propertyPrefix + "keyPassword", String.class, "")
+        );
+        String keystoreType = readPropertyValue(keystorePropertyPrefix + "type", String.class);
 
         if (keystore == null) {
             return null;
@@ -167,7 +183,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
 
         try {
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            KeyStore keyStore = KeyStore.getInstance(keystoreType != null ? keystoreType : KeyStore.getDefaultType());
             keyStore.load(new FileInputStream(keystore), keystorePassword.toCharArray());
             keyManagerFactory.init(keyStore, keyPassword.toCharArray());
             return keyManagerFactory.getKeyManagers();
