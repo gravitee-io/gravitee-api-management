@@ -18,6 +18,6 @@ Jenkinsfile
 .idea
 .tmp
 .circleci
-projects
+lib/management-webclient-sdk
 
 !.eslintrc.js
