@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
 import static java.lang.String.format;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -183,6 +184,12 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
             ", " +
             "events: " +
             filter.getEvents() +
+            ", " +
+            "environmentIds: " +
+            filter.getEnvironmentIds() +
+            ", " +
+            "organizationId: " +
+            filter.getOrganizationId() +
             " }"
         );
     }
@@ -209,6 +216,21 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
             argsList.add(new Date(filter.getTo()));
             started = true;
         }
+
+        if (!isEmpty(filter.getEnvironmentIds())) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("a.environment_id in (").append(getOrm().buildInClause(filter.getEnvironmentIds())).append(")");
+            argsList.addAll(filter.getEnvironmentIds());
+            started = true;
+        }
+
+        if (filter.getOrganizationId() != null) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("a.organization_id = ?");
+            argsList.add(filter.getOrganizationId());
+            started = true;
+        }
+
         started = addPropertiesWhereClause(filter, argsList, builder, started);
         started = addReferencesWhereClause(filter, argsList, builder, started);
         addStringsWhereClause(filter.getEvents(), "event", argsList, builder, started);

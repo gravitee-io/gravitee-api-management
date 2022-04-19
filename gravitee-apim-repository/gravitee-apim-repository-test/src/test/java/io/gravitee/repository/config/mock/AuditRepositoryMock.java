@@ -23,6 +23,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.util.collections.Sets.newSet;
 
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.model.Audit;
@@ -113,5 +114,21 @@ public class AuditRepositoryMock extends AbstractRepositoryMock<AuditRepository>
         //shouldSearchTo
         when(auditRepository.search(argThat(o -> o != null && o.getFrom() == 0 && o.getTo() > 0), any()))
             .thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(mock(Audit.class)), 0, 1, 1));
+        //shouldSearchWithEnvironmentIds
+        when(
+            auditRepository.search(
+                argThat(o -> o != null && o.getEnvironmentIds() != null && o.getEnvironmentIds().get(0).equals("DEFAULT")),
+                any()
+            )
+        )
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(newAudit), 0, 1, 1));
+        //shouldSearchWithOrganizationId
+        when(
+            auditRepository.search(
+                argThat(o -> o != null && o.getOrganizationId() != null && o.getOrganizationId().equals("DEFAULT")),
+                any()
+            )
+        )
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(newAudit), 0, 1, 1));
     }
 }
