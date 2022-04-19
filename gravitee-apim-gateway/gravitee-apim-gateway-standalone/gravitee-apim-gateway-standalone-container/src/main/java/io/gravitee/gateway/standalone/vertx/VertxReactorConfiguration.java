@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
+import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
@@ -50,8 +51,8 @@ public class VertxReactorConfiguration {
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public ReactorVerticle graviteeVerticle() {
-        return new ReactorVerticle();
+    public HttpProtocolVerticle graviteeVerticle() {
+        return new HttpProtocolVerticle();
     }
 
     @Bean
