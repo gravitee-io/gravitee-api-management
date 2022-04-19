@@ -119,6 +119,19 @@
         </li>
       </ul>
 
+      <div class="aui-nav-heading" ng-if="$ctrl.settingsMenu.audit.perm">
+        <strong>Audit</strong>
+      </div>
+      <ul class="aui-nav">
+        <li
+          class="iterable-item"
+          ng-class="{'aui-nav-selected': $ctrl.$state.includes('organization.settings.ng-audit')}"
+          ng-if="$ctrl.settingsMenu.audit.perm"
+        >
+          <a class="execute" ui-sref="{{$ctrl.settingsMenu.audit.goTo}}">Audit</a>
+        </li>
+      </ul>
+
       <div class="aui-nav-heading" ng-if="$ctrl.settingsMenu.cockpit.perm"><strong>Cockpit</strong></div>
       <ul class="aui-nav">
         <li

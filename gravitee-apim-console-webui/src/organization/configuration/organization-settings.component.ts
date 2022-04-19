@@ -38,6 +38,10 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
         perm: UserService.isUserHasPermissions(['organization-settings-r']),
         goTo: 'organization.settings.ng-console',
       },
+      audit: {
+        perm: UserService.isUserHasPermissions(['organization-audit-r']),
+        goTo: 'organization.settings.ng-audit',
+      },
 
       // USER MANAGEMENT
       users: {

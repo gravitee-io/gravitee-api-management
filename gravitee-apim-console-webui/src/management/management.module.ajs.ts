@@ -544,6 +544,7 @@ import ApplicationSubscriptionsListController from '../management/application/de
 import ApiKeysComponent from '../management/api-key/api-keys.component';
 import ApiKeysController from '../management/api-key/api-keys.controller';
 import { GioBannerComponent } from '@gravitee/ui-particles-angular';
+import { OrgSettingsAuditComponent } from '../organization/configuration/audit/org-settings-audit.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -845,6 +846,7 @@ graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidato
 graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
 graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
 graviteeManagementModule.directive('ngPlatformPolicies', downgradeComponent({ component: OrgSettingsPlatformPoliciesComponent }));
+graviteeManagementModule.directive('ngOrgSettingsAudit', downgradeComponent({ component: OrgSettingsAuditComponent }));
 
 graviteeManagementModule.component('instances', InstancesComponent);
 graviteeManagementModule.component('instance', InstanceComponent);
