@@ -15,10 +15,6 @@
  */
 import { IComponentControllerService } from 'angular';
 
-import { setupAngularJsTesting } from '../../../../../../jest.setup';
-
-setupAngularJsTesting();
-
 describe('AlertTriggerConditionStringComponent', () => {
   let $componentController: IComponentControllerService;
   let alertTriggerConditionStringComponent: any;
