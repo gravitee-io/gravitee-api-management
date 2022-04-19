@@ -154,14 +154,14 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
                         .range(300, 399)
                         .range(400, 499)
                         .build());
-        
+
         Assert.assertNotNull(response);
         for(Bucket bucket : response.getValues()) {
         	if( bucket.name().startsWith("100")) {
         		Assert.assertEquals(0,  bucket.value());
         	}
         	if( bucket.name().startsWith("200")) {
-        		Assert.assertEquals(1,  bucket.value()); //line 56 in bulk.json
+        		Assert.assertEquals(6,  bucket.value()); //line 56 in bulk.json
         	}
         	if( bucket.name().startsWith("300")) {
         		Assert.assertEquals(0,  bucket.value());
