@@ -98,14 +98,7 @@ public class HttpProtocolVerticleTest {
         client
             .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
-            .onComplete(
-                testContext.succeeding(
-                    response ->
-                        testContext.verify(
-                            () -> assertThat(response.statusCode()).isEqualTo(500)
-                        )
-                )
-            )
+            .onComplete(testContext.succeeding(response -> testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(500))))
             .compose(httpClientResponse -> client.request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
             .onComplete(
