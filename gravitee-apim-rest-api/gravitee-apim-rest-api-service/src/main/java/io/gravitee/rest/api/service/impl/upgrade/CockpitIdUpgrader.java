@@ -39,9 +39,6 @@ public class CockpitIdUpgrader implements Upgrader, Ordered {
 
     @Override
     public boolean upgrade() {
-        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-
         Collection<OrganizationEntity> organizations = organizationService.findAll();
 
         organizations
@@ -49,6 +46,7 @@ public class CockpitIdUpgrader implements Upgrader, Ordered {
             .filter(org -> !org.getId().equals(GraviteeContext.getDefaultOrganization()) && org.getCockpitId() == null)
             .forEach(
                 org -> {
+                    ExecutionContext executionContext = new ExecutionContext(org.getId(), null);
                     UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
                     newOrganization.setCockpitId(org.getId());
                     organizationService.update(executionContext, newOrganization);
