@@ -342,10 +342,14 @@
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
+            <artifactId>vertx-junit5-rx-java2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
             <artifactId>vertx-grpc</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java-util</artifactId>
@@ -427,7 +431,8 @@
                       protobuf-java version that grpc depends on.
                     -->
                     <protoTestSourceRoot>src/test/resources</protoTestSourceRoot>
-                    <protocArtifact>com.google.protobuf:protoc:${protobuf-java.version}:exe:${os.detected.classifier}</protocArtifact>
+                    <protocArtifact>com.google.protobuf:protoc:${protobuf-java.version}:exe:${os.detected.classifier}
+                    </protocArtifact>
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.42.1:exe:${os.detected.classifier}</pluginArtifact>
                     <protocPlugins>
