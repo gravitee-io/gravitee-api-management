@@ -64,7 +64,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
 
         DeploymentOptions options = new DeploymentOptions().setInstances(instances);
         vertx.deployVerticle(
-                SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName(),
+            SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName(),
             options,
             event -> {
                 if (event.failed()) {
