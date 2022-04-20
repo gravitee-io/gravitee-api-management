@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
@@ -39,28 +41,36 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
     @Autowired
     private IdentityProviderActivationService identityProviderActivationService;
 
+    @Autowired
+    private EnvironmentRepository environmentRepository;
+
     @Override
     public boolean upgrade() {
-        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        upgradeByEnvironment(executionContext);
+        try {
+            for (Environment environment : environmentRepository.findAll()) {
+                upgradeByEnvironment(new ExecutionContext(environment.getOrganizationId(), environment.getId()));
+            }
+        } catch (TechnicalException e) {
+            logger.error("{} execution failed", this.getClass().getSimpleName(), e);
+            return false;
+        }
         return true;
     }
 
     private void upgradeByEnvironment(ExecutionContext executionContext) {
         // initialize roles.
-        final ActivationTarget defaultEnvTarget = new ActivationTarget(
-            GraviteeContext.getDefaultEnvironment(),
+        final ActivationTarget envTarget = new ActivationTarget(
+            executionContext.getEnvironmentId(),
             IdentityProviderActivationReferenceType.ENVIRONMENT
         );
-        final ActivationTarget defaultOrgTarget = new ActivationTarget(
-            GraviteeContext.getDefaultOrganization(),
+        final ActivationTarget orgTarget = new ActivationTarget(
+            executionContext.getOrganizationId(),
             IdentityProviderActivationReferenceType.ORGANIZATION
         );
 
         if (
-            this.identityProviderActivationService.findAllByTarget(defaultOrgTarget).isEmpty() &&
-            this.identityProviderActivationService.findAllByTarget(defaultEnvTarget).isEmpty()
+            this.identityProviderActivationService.findAllByTarget(envTarget).isEmpty() &&
+            this.identityProviderActivationService.findAllByTarget(orgTarget).isEmpty()
         ) {
             logger.info("    No activation found. Active all idp on all target by default if enabled.");
             this.identityProviderService.findAll(executionContext)
@@ -70,8 +80,8 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
                             this.identityProviderActivationService.activateIdpOnTargets(
                                     executionContext,
                                     idp.getId(),
-                                    defaultOrgTarget,
-                                    defaultEnvTarget
+                                    envTarget,
+                                    orgTarget
                                 );
                         }
                     }
