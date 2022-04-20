@@ -14,6 +14,7 @@
         "test:apim:dev": "cypress run --env printLogsToConsole=always --config-file cypress/integration/apim/rest-api/cypress-config.json",
         "test:apim:parallel": "cypress run --record --group apis --spec 'cypress/integration/apim/rest-api/apis/**/*' --config-file cypress/integration/apim/rest-api/cypress-config.json",
         "test:platform": "cypress open --config-file cypress/integration/platform/cypress-config.json",
+        "test:api:management": "jest api-test/management",
         "lint": "echo 'Lint to be configured'",
         "lint:fix": "npm run prettier:fix && npm run lint:license:fix",
         "lint:license": "license-check-and-add check -f license-check-config.json",
@@ -26,14 +27,20 @@
     "license": "MIT License",
     "devDependencies": {
         "@types/faker": "5.5.9",
+        "@types/jest": "27.4.1",
         "@types/node": "16.10.9",
+        "@types/node-fetch": "2.6.1",
         "ansi-regex": "6.0.1",
         "cypress": "9.5.0",
         "cypress-terminal-report": "3.4.1",
+        "dotenv": "16.0.0",
         "har-validator": "5.1.5",
+        "jest": "27.5.1",
         "jsonwebtoken": "8.5.1",
         "license-check-and-add": "4.0.3",
+        "node-fetch": "2.6.7",
         "prettier": "2.5.1",
+        "ts-jest": "27.1.4",
         "typescript": "4.5.2"
     },
     "dependencies": {
