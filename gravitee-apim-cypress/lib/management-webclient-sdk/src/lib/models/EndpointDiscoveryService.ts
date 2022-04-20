@@ -33,10 +33,10 @@ export interface EndpointDiscoveryService {
     provider?: string;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof EndpointDiscoveryService
      */
-    _configuration?: object;
+    configuration?: any;
 }
 
 export function EndpointDiscoveryServiceFromJSON(json: any): EndpointDiscoveryService {
@@ -51,7 +51,7 @@ export function EndpointDiscoveryServiceFromJSONTyped(json: any, ignoreDiscrimin
         
         'enabled': !exists(json, 'enabled') ? undefined : json['enabled'],
         'provider': !exists(json, 'provider') ? undefined : json['provider'],
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
     };
 }
 
@@ -66,7 +66,7 @@ export function EndpointDiscoveryServiceToJSON(value?: EndpointDiscoveryService 
         
         'enabled': value.enabled,
         'provider': value.provider,
-        'configuration': value._configuration,
+        'configuration': value.configuration,
     };
 }
 

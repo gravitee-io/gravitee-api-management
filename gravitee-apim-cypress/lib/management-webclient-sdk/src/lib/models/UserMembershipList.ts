@@ -34,10 +34,10 @@ export interface UserMembershipList {
     memberships?: Array<UserMembership>;
     /**
      * 
-     * @type {{ [key: string]: { [key: string]: object; }; }}
+     * @type {{ [key: string]: { [key: string]: any; }; }}
      * @memberof UserMembershipList
      */
-    metadata?: { [key: string]: { [key: string]: object; }; };
+    metadata?: { [key: string]: { [key: string]: any; }; };
 }
 
 export function UserMembershipListFromJSON(json: any): UserMembershipList {

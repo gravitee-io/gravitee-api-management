@@ -44,10 +44,10 @@ export interface DeleteApplicationAlertRequest {
 }
 
 export interface GetApplicationAlertsRequest {
+    eventCounts?: boolean;
     application: string;
     envId: string;
     orgId: string;
-    eventCounts?: boolean;
 }
 
 export interface GetApplicationAlertsStatusRequest {

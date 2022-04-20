@@ -113,7 +113,7 @@ export interface NewPageEntity {
      * @type {{ [key: string]: string; }}
      * @memberof NewPageEntity
      */
-    _configuration?: { [key: string]: string; };
+    configuration?: { [key: string]: string; };
     /**
      * 
      * @type {boolean}
@@ -173,7 +173,7 @@ export function NewPageEntityFromJSONTyped(json: any, ignoreDiscriminator: boole
         'published': !exists(json, 'published') ? undefined : json['published'],
         'visibility': !exists(json, 'visibility') ? undefined : VisibilityFromJSON(json['visibility']),
         'lastContributor': !exists(json, 'lastContributor') ? undefined : json['lastContributor'],
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
         'homepage': !exists(json, 'homepage') ? undefined : json['homepage'],
         'excludedAccessControls': !exists(json, 'excludedAccessControls') ? undefined : json['excludedAccessControls'],
         'accessControls': !exists(json, 'accessControls') ? undefined : ((json['accessControls'] as Array<any>).map(AccessControlEntityFromJSON)),
@@ -203,7 +203,7 @@ export function NewPageEntityToJSON(value?: NewPageEntity | null): any {
         'published': value.published,
         'visibility': VisibilityToJSON(value.visibility),
         'lastContributor': value.lastContributor,
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'homepage': value.homepage,
         'excludedAccessControls': value.excludedAccessControls,
         'accessControls': value.accessControls === undefined ? undefined : ((value.accessControls as Array<any>).map(AccessControlEntityToJSON)),

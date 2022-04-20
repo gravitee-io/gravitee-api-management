@@ -26,8 +26,6 @@ export interface GetAuditEventsRequest {
 }
 
 export interface GetAuditsRequest {
-    envId: string;
-    orgId: string;
     envLog?: boolean;
     orgLog?: boolean;
     api?: string;
@@ -37,6 +35,8 @@ export interface GetAuditsRequest {
     to?: number;
     size?: number;
     page?: number;
+    envId: string;
+    orgId: string;
 }
 
 /**
@@ -48,7 +48,7 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_AUDIT[READ] permission to use this service
      * List available audit event type for platform
      */
-    async getAuditEventsRaw(requestParameters: GetAuditEventsRequest): Promise<runtime.ApiResponse<Array<object>>> {
+    async getAuditEventsRaw(requestParameters: GetAuditEventsRequest): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getAuditEvents.');
         }
@@ -78,7 +78,7 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_AUDIT[READ] permission to use this service
      * List available audit event type for platform
      */
-    async getAuditEvents(requestParameters: GetAuditEventsRequest): Promise<Array<object>> {
+    async getAuditEvents(requestParameters: GetAuditEventsRequest): Promise<Array<any>> {
         const response = await this.getAuditEventsRaw(requestParameters);
         return await response.value();
     }

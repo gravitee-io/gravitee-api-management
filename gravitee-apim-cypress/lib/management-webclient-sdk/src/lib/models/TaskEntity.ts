@@ -34,10 +34,10 @@ export interface TaskEntity {
     type?: TaskType;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof TaskEntity
      */
-    data?: object;
+    data?: any;
     /**
      * 
      * @type {Date}

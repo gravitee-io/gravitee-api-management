@@ -118,10 +118,10 @@ export interface UserEntity {
     newsletterSubscribed?: boolean;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {{ [key: string]: any; }}
      * @memberof UserEntity
      */
-    customFields?: { [key: string]: object; };
+    customFields?: { [key: string]: any; };
     /**
      * 
      * @type {string}

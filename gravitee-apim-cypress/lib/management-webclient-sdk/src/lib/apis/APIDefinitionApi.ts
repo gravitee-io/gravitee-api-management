@@ -15,26 +15,23 @@
 
 import * as runtime from '../runtime';
 import {
-    ApiEntity,
-    ApiEntityFromJSON,
-    ApiEntityToJSON,
     JsonPatch,
     JsonPatchFromJSON,
     JsonPatchToJSON,
 } from '../models';
 
-export interface ExportApiDefinition1Request {
+export interface GetApiDefinitionRequest {
     api: string;
     envId: string;
     orgId: string;
 }
 
 export interface PatchRequest {
+    dryRun?: boolean;
     api: string;
     envId: string;
     orgId: string;
     jsonPatch: Array<JsonPatch>;
-    dryRun?: boolean;
 }
 
 /**
@@ -46,17 +43,17 @@ export class APIDefinitionApi extends runtime.BaseAPI {
      * User must have the API_DEFINITION[READ] permission to use this service
      * Export the API definition in JSON format
      */
-    async exportApiDefinition1Raw(requestParameters: ExportApiDefinition1Request): Promise<runtime.ApiResponse<ApiEntity>> {
+    async getApiDefinitionRaw(requestParameters: GetApiDefinitionRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling exportApiDefinition1.');
+            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiDefinition.');
         }
 
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling exportApiDefinition1.');
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApiDefinition.');
         }
 
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling exportApiDefinition1.');
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiDefinition.');
         }
 
         const queryParameters: runtime.HTTPQuery = {};
@@ -73,15 +70,15 @@ export class APIDefinitionApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      * User must have the API_DEFINITION[READ] permission to use this service
      * Export the API definition in JSON format
      */
-    async exportApiDefinition1(requestParameters: ExportApiDefinition1Request): Promise<ApiEntity> {
-        const response = await this.exportApiDefinition1Raw(requestParameters);
+    async getApiDefinition(requestParameters: GetApiDefinitionRequest): Promise<any> {
+        const response = await this.getApiDefinitionRaw(requestParameters);
         return await response.value();
     }
 
@@ -89,7 +86,7 @@ export class APIDefinitionApi extends runtime.BaseAPI {
      * User must have the API_DEFINITION[UPDATE] permission to use this service
      * Update the API with json patches
      */
-    async patchRaw(requestParameters: PatchRequest): Promise<runtime.ApiResponse<ApiEntity>> {
+    async patchRaw(requestParameters: PatchRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling patch.');
         }
@@ -127,14 +124,14 @@ export class APIDefinitionApi extends runtime.BaseAPI {
             body: requestParameters.jsonPatch.map(JsonPatchToJSON),
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      * User must have the API_DEFINITION[UPDATE] permission to use this service
      * Update the API with json patches
      */
-    async patch(requestParameters: PatchRequest): Promise<ApiEntity> {
+    async patch(requestParameters: PatchRequest): Promise<any> {
         const response = await this.patchRaw(requestParameters);
         return await response.value();
     }

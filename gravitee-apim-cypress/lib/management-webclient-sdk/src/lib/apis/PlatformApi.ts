@@ -61,9 +61,9 @@ import {
 
 export interface AssociatePlatformAlertRequest {
     alert: string;
+    type?: string;
     envId: string;
     orgId: string;
-    type?: string;
 }
 
 export interface CreatePlatformAlertRequest {
@@ -85,8 +85,6 @@ export interface DeletePlatformAlertRequest {
 }
 
 export interface ExportPlatformLogsAsCSVRequest {
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -94,16 +92,18 @@ export interface ExportPlatformLogsAsCSVRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetPlatformAlertEventsRequest {
     alert: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     page?: number;
     size?: number;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetPlatformAlertStatusRequest {
@@ -112,53 +112,51 @@ export interface GetPlatformAlertStatusRequest {
 }
 
 export interface GetPlatformAlertsRequest {
+    eventCounts?: boolean;
     envId: string;
     orgId: string;
-    eventCounts?: boolean;
 }
 
 export interface GetPlatformAlertsAnalytics1Request {
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetPlatformAnalytics1Request {
-    type: AnalyticsType;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     interval?: number;
     query?: string;
     field?: string;
     size?: number;
+    type: AnalyticsType;
     ranges?: Array<string>;
     aggs?: Array<string>;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetPlatformEventsRequest {
-    envId: string;
-    orgId: string;
     type?: Array<EventType>;
     from?: number;
     to?: number;
     page?: number;
     size?: number;
     apiIds?: Array<string>;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetPlatformLogRequest {
     log: string;
+    timestamp?: number;
     envId: string;
     orgId: string;
-    timestamp?: number;
 }
 
 export interface GetPlatformLogsRequest {
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -166,6 +164,8 @@ export interface GetPlatformLogsRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetTicketRequest {
@@ -175,13 +175,13 @@ export interface GetTicketRequest {
 }
 
 export interface GetTicketsRequest {
-    envId: string;
-    orgId: string;
     size?: number;
     page?: number;
     apiId?: string;
     applicationId?: string;
     order?: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface UpdatePlatformAlertRequest {

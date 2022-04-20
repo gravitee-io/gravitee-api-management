@@ -26,11 +26,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-  npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
--i http://localhost:8083/management/openapi.json \
+npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
+  -i http://localhost:8083/management/openapi.json \
   -g typescript-fetch \
   -o lib/management-webclient-sdk/src/lib/ \
   -puseSingleRequestParameter=true \
   -pmodelPropertyNaming=original \
+  -psortModelPropertiesByRequiredFlag=false \
+  -psortParamsByRequiredFlag=false \
   --import-mappings=DateTime=Date \
-  --type-mappings=DateTime=Date
+  --type-mappings=DateTime=Date,object=any \
+  --reserved-words-mappings=configuration=configuration

@@ -36,8 +36,8 @@ export interface GetEnvironmentsRequest {
 }
 
 export interface GetEnvironmentsPermissionsRequest {
-    orgId: string;
     idOrHrid?: string;
+    orgId: string;
 }
 
 export interface GetIdentityProviderActivationsRequest {

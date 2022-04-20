@@ -55,13 +55,13 @@ export interface MediaType {
      * @type {boolean}
      * @memberof MediaType
      */
-    wildcardType?: boolean;
+    wildcardSubtype?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof MediaType
      */
-    wildcardSubtype?: boolean;
+    wildcardType?: boolean;
     /**
      * 
      * @type {number}
@@ -96,8 +96,8 @@ export function MediaTypeFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'subtype': !exists(json, 'subtype') ? undefined : json['subtype'],
         'parameters': !exists(json, 'parameters') ? undefined : json['parameters'],
         'QUALITY_FACTOR_PARAMETER': !exists(json, 'QUALITY_FACTOR_PARAMETER') ? undefined : json['QUALITY_FACTOR_PARAMETER'],
-        'wildcardType': !exists(json, 'wildcardType') ? undefined : json['wildcardType'],
         'wildcardSubtype': !exists(json, 'wildcardSubtype') ? undefined : json['wildcardSubtype'],
+        'wildcardType': !exists(json, 'wildcardType') ? undefined : json['wildcardType'],
         'qualityFactor': !exists(json, 'qualityFactor') ? undefined : json['qualityFactor'],
         'charset': !exists(json, 'charset') ? undefined : MediaTypeCharsetFromJSON(json['charset']),
         'concrete': !exists(json, 'concrete') ? undefined : json['concrete'],
@@ -117,8 +117,8 @@ export function MediaTypeToJSON(value?: MediaType | null): any {
         'subtype': value.subtype,
         'parameters': value.parameters,
         'QUALITY_FACTOR_PARAMETER': value.QUALITY_FACTOR_PARAMETER,
-        'wildcardType': value.wildcardType,
         'wildcardSubtype': value.wildcardSubtype,
+        'wildcardType': value.wildcardType,
         'qualityFactor': value.qualityFactor,
         'charset': MediaTypeCharsetToJSON(value.charset),
         'concrete': value.concrete,

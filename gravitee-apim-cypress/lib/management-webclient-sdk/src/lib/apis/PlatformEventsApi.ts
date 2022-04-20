@@ -24,14 +24,14 @@ import {
 } from '../models';
 
 export interface GetPlatformEventsRequest {
-    envId: string;
-    orgId: string;
     type?: Array<EventType>;
     from?: number;
     to?: number;
     page?: number;
     size?: number;
     apiIds?: Array<string>;
+    envId: string;
+    orgId: string;
 }
 
 /**

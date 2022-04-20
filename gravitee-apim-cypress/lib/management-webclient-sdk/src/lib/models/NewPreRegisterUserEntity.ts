@@ -63,10 +63,10 @@ export interface NewPreRegisterUserEntity {
     newsletter?: boolean;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {{ [key: string]: any; }}
      * @memberof NewPreRegisterUserEntity
      */
-    customFields?: { [key: string]: object; };
+    customFields?: { [key: string]: any; };
     /**
      * 
      * @type {boolean}

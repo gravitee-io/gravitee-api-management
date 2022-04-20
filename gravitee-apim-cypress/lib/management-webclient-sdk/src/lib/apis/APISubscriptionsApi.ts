@@ -52,22 +52,22 @@ export interface ChangeApiSubscriptionStatusRequest {
 export interface CreateSubscriptionToApiRequest {
     application: string;
     plan: string;
+    customApiKey?: string;
     api: string;
     envId: string;
     orgId: string;
-    customApiKey?: string;
 }
 
 export interface ExportApiSubscriptionsLogsAsCSVRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     plan?: Array<string>;
     application?: Array<string>;
     status?: Array<SubscriptionStatus>;
     apiKey?: string;
     size?: number;
     page?: number;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiKeysForApiSubscriptionRequest {
@@ -91,9 +91,6 @@ export interface GetApiSubscriptionRequest {
 }
 
 export interface GetApiSubscriptionsRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     plan?: Array<string>;
     application?: Array<string>;
     status?: Array<SubscriptionStatus>;
@@ -101,6 +98,9 @@ export interface GetApiSubscriptionsRequest {
     size?: number;
     page?: number;
     expand?: Array<GetApiSubscriptionsExpandEnum>;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface ProcessApiSubscriptionRequest {
@@ -121,10 +121,10 @@ export interface ReactivateApiKeyForApiSubscriptionRequest {
 
 export interface RenewSubscriptionApiKeysForApiSubscriptionRequest {
     subscription: string;
+    customApiKey?: string;
     api: string;
     envId: string;
     orgId: string;
-    customApiKey?: string;
 }
 
 export interface RevokeApiKeyForApiSubscriptionRequest {

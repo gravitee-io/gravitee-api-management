@@ -46,9 +46,9 @@ import {
 
 export interface AddGroupMemberRequest {
     group: string;
+    type?: string;
     envId: string;
     orgId: string;
-    type?: string;
 }
 
 export interface AddOrUpdateGroupMemberRequest {
@@ -110,18 +110,18 @@ export interface GetGroupMembersRequest {
 }
 
 export interface GetGroupMembers1Request {
+    size?: number;
+    page?: number;
     group: string;
     envId: string;
     orgId: string;
-    size?: number;
-    page?: number;
 }
 
 export interface GetGroupMembershipsRequest {
     group: string;
+    type?: string;
     envId: string;
     orgId: string;
-    type?: string;
 }
 
 export interface GetGroupsRequest {

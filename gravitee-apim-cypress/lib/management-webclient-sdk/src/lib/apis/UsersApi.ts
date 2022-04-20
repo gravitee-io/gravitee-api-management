@@ -113,18 +113,18 @@ export interface FinalizeUserRegistration1Request {
 }
 
 export interface GetAllUsersRequest {
-    envId: string;
-    orgId: string;
     q?: string;
     size?: number;
     page?: number;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetAllUsers1Request {
-    orgId: string;
     q?: string;
     size?: number;
     page?: number;
+    orgId: string;
 }
 
 export interface GetUserRequest {
@@ -162,15 +162,15 @@ export interface GetUserGroups1Request {
 
 export interface GetUserMembershipsRequest {
     userId: string;
+    type?: string;
     envId: string;
     orgId: string;
-    type?: string;
 }
 
 export interface GetUserMemberships1Request {
     userId: string;
-    orgId: string;
     type?: string;
+    orgId: string;
 }
 
 export interface GetUserTokensRequest {

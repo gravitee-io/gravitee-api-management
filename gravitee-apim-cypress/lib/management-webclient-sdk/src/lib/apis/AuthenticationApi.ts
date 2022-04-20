@@ -47,15 +47,15 @@ export interface GetSocialIdentityProviders1Request {
 
 export interface TokenExchange1Request {
     identity: string;
+    token?: string;
     envId: string;
     orgId: string;
-    token?: string;
 }
 
 export interface TokenExchange2Request {
     identity: string;
-    orgId: string;
     token?: string;
+    orgId: string;
 }
 
 /**

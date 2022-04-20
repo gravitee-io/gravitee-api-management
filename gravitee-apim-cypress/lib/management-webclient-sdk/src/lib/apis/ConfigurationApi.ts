@@ -214,9 +214,9 @@ import {
 
 export interface AddGroupMemberRequest {
     group: string;
+    type?: string;
     envId: string;
     orgId: string;
-    type?: string;
 }
 
 export interface AddOrUpdateGroupMemberRequest {
@@ -610,9 +610,9 @@ export interface GetDashboardRequest {
 }
 
 export interface GetDashboardsRequest {
+    referenceType?: GetDashboardsReferenceTypeEnum;
     envId: string;
     orgId: string;
-    referenceType?: GetDashboardsReferenceTypeEnum;
 }
 
 export interface GetDictionariesRequest {
@@ -681,18 +681,18 @@ export interface GetGroupMembersRequest {
 }
 
 export interface GetGroupMembers1Request {
+    size?: number;
+    page?: number;
     group: string;
     envId: string;
     orgId: string;
-    size?: number;
-    page?: number;
 }
 
 export interface GetGroupMembershipsRequest {
     group: string;
+    type?: string;
     envId: string;
     orgId: string;
-    type?: string;
 }
 
 export interface GetGroupsRequest {
@@ -737,9 +737,9 @@ export interface GetNotificationTemplateRequest {
 }
 
 export interface GetNotificationTemplatesRequest {
-    orgId: string;
     scope?: string;
     hook?: string;
+    orgId: string;
 }
 
 export interface GetPlansConfigurationRequest {
@@ -1881,7 +1881,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Create notification settings
      */
-    async createPortalNotificationSettingRaw(requestParameters: CreatePortalNotificationSettingRequest): Promise<runtime.ApiResponse<object>> {
+    async createPortalNotificationSettingRaw(requestParameters: CreatePortalNotificationSettingRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createPortalNotificationSetting.');
         }
@@ -1907,13 +1907,13 @@ export class ConfigurationApi extends runtime.BaseAPI {
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
         });
 
-        return new runtime.JSONApiResponse<any>(response);
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      * Create notification settings
      */
-    async createPortalNotificationSetting(requestParameters: CreatePortalNotificationSettingRequest): Promise<object> {
+    async createPortalNotificationSetting(requestParameters: CreatePortalNotificationSettingRequest): Promise<any> {
         const response = await this.createPortalNotificationSettingRaw(requestParameters);
         return await response.value();
     }
@@ -4293,7 +4293,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
 
     /**
      */
-    async getGrammarRaw(requestParameters: GetGrammarRequest): Promise<runtime.ApiResponse<object>> {
+    async getGrammarRaw(requestParameters: GetGrammarRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getGrammar.');
         }
@@ -4316,12 +4316,12 @@ export class ConfigurationApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse<any>(response);
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      */
-    async getGrammar(requestParameters: GetGrammarRequest): Promise<object> {
+    async getGrammar(requestParameters: GetGrammarRequest): Promise<any> {
         const response = await this.getGrammarRaw(requestParameters);
         return await response.value();
     }
@@ -4968,7 +4968,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getPortalNotificationSettingsRaw(requestParameters: GetPortalNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<object>>> {
+    async getPortalNotificationSettingsRaw(requestParameters: GetPortalNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPortalNotificationSettings.');
         }
@@ -4997,7 +4997,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getPortalNotificationSettings(requestParameters: GetPortalNotificationSettingsRequest): Promise<Array<object>> {
+    async getPortalNotificationSettings(requestParameters: GetPortalNotificationSettingsRequest): Promise<Array<any>> {
         const response = await this.getPortalNotificationSettingsRaw(requestParameters);
         return await response.value();
     }

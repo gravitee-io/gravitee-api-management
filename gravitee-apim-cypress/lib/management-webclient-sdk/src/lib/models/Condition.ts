@@ -39,16 +39,16 @@ import {
 export interface Condition {
     /**
      * 
-     * @type {string}
-     * @memberof Condition
-     */
-    type?: ConditionTypeEnum;
-    /**
-     * 
      * @type {Array<Projection>}
      * @memberof Condition
      */
     projections?: Array<Projection>;
+    /**
+     * 
+     * @type {string}
+     * @memberof Condition
+     */
+    type?: ConditionTypeEnum;
 }
 
 export function ConditionFromJSON(json: any): Condition {
@@ -87,8 +87,8 @@ export function ConditionFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     }
     return {
         
-        'type': !exists(json, 'type') ? undefined : json['type'],
         'projections': !exists(json, 'projections') ? undefined : ((json['projections'] as Array<any>).map(ProjectionFromJSON)),
+        'type': !exists(json, 'type') ? undefined : json['type'],
     };
 }
 
@@ -101,8 +101,8 @@ export function ConditionToJSON(value?: Condition | null): any {
     }
     return {
         
-        'type': value.type,
         'projections': value.projections === undefined ? undefined : ((value.projections as Array<any>).map(ProjectionToJSON)),
+        'type': value.type,
     };
 }
 

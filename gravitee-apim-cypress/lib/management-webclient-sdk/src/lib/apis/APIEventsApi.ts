@@ -27,10 +27,10 @@ import {
 } from '../models';
 
 export interface GetApiEventsEventsRequest {
+    type?: Array<EventType>;
     api: string;
     envId: string;
     orgId: string;
-    type?: Array<EventType>;
 }
 
 export interface GetEventRequest {
@@ -41,15 +41,15 @@ export interface GetEventRequest {
 }
 
 export interface SearchApiEventsRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     type?: Array<EventType>;
     from?: number;
     to?: number;
     page?: number;
     size?: number;
     apiIds?: Array<string>;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 /**

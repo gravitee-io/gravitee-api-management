@@ -21,10 +21,10 @@ import {
 } from '../models';
 
 export interface GetUserSubscriptionsRequest {
-    envId: string;
-    orgId: string;
     application?: string;
     plan?: string;
+    envId: string;
+    orgId: string;
 }
 
 /**

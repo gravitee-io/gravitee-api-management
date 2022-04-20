@@ -45,9 +45,9 @@ export interface GetDashboardRequest {
 }
 
 export interface GetDashboardsRequest {
+    referenceType?: GetDashboardsReferenceTypeEnum;
     envId: string;
     orgId: string;
-    referenceType?: GetDashboardsReferenceTypeEnum;
 }
 
 export interface UpdateDashboardRequest {

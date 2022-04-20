@@ -44,10 +44,10 @@ export interface UpdateIdentityProviderEntity {
     description?: string;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {{ [key: string]: any; }}
      * @memberof UpdateIdentityProviderEntity
      */
-    _configuration: { [key: string]: object; };
+    configuration: { [key: string]: any; };
     /**
      * 
      * @type {boolean}
@@ -98,7 +98,7 @@ export function UpdateIdentityProviderEntityFromJSONTyped(json: any, ignoreDiscr
         
         'name': json['name'],
         'description': !exists(json, 'description') ? undefined : json['description'],
-        '_configuration': json['configuration'],
+        'configuration': json['configuration'],
         'enabled': json['enabled'],
         'groupMappings': !exists(json, 'groupMappings') ? undefined : ((json['groupMappings'] as Array<any>).map(GroupMappingEntityFromJSON)),
         'roleMappings': !exists(json, 'roleMappings') ? undefined : ((json['roleMappings'] as Array<any>).map(RoleMappingEntityFromJSON)),
@@ -119,7 +119,7 @@ export function UpdateIdentityProviderEntityToJSON(value?: UpdateIdentityProvide
         
         'name': value.name,
         'description': value.description,
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'enabled': value.enabled,
         'groupMappings': value.groupMappings === undefined ? undefined : ((value.groupMappings as Array<any>).map(GroupMappingEntityToJSON)),
         'roleMappings': value.roleMappings === undefined ? undefined : ((value.roleMappings as Array<any>).map(RoleMappingEntityToJSON)),

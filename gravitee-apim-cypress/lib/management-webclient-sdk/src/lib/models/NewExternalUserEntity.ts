@@ -63,10 +63,10 @@ export interface NewExternalUserEntity {
     newsletter?: boolean;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {{ [key: string]: any; }}
      * @memberof NewExternalUserEntity
      */
-    customFields?: { [key: string]: object; };
+    customFields?: { [key: string]: any; };
 }
 
 export function NewExternalUserEntityFromJSON(json: any): NewExternalUserEntity {

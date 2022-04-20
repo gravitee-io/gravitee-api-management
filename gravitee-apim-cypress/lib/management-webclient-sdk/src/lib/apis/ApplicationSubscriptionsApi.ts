@@ -71,9 +71,6 @@ export interface GetApplicationSubscriptionRequest {
 }
 
 export interface GetApplicationSubscriptionsRequest {
-    application: string;
-    envId: string;
-    orgId: string;
     plan?: Array<string>;
     api?: Array<string>;
     status?: Array<SubscriptionStatus>;
@@ -82,6 +79,9 @@ export interface GetApplicationSubscriptionsRequest {
     size?: number;
     page?: number;
     expand?: Array<GetApplicationSubscriptionsExpandEnum>;
+    application: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface RenewApiKeyForApplicationSubscription1Request {

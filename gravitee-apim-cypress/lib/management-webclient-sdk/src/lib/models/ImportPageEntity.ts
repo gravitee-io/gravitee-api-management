@@ -73,7 +73,7 @@ export interface ImportPageEntity {
      * @type {{ [key: string]: string; }}
      * @memberof ImportPageEntity
      */
-    _configuration?: { [key: string]: string; };
+    configuration?: { [key: string]: string; };
     /**
      * 
      * @type {boolean}
@@ -109,7 +109,7 @@ export function ImportPageEntityFromJSONTyped(json: any, ignoreDiscriminator: bo
         'visibility': !exists(json, 'visibility') ? undefined : VisibilityFromJSON(json['visibility']),
         'lastContributor': !exists(json, 'lastContributor') ? undefined : json['lastContributor'],
         'source': !exists(json, 'source') ? undefined : PageSourceEntityFromJSON(json['source']),
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
         'excludedAccessControls': !exists(json, 'excludedAccessControls') ? undefined : json['excludedAccessControls'],
         'accessControls': !exists(json, 'accessControls') ? undefined : ((json['accessControls'] as Array<any>).map(AccessControlEntityFromJSON)),
         'excluded_groups': !exists(json, 'excluded_groups') ? undefined : json['excluded_groups'],
@@ -130,7 +130,7 @@ export function ImportPageEntityToJSON(value?: ImportPageEntity | null): any {
         'visibility': VisibilityToJSON(value.visibility),
         'lastContributor': value.lastContributor,
         'source': PageSourceEntityToJSON(value.source),
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'excludedAccessControls': value.excludedAccessControls,
         'accessControls': value.accessControls === undefined ? undefined : ((value.accessControls as Array<any>).map(AccessControlEntityToJSON)),
         'excluded_groups': value.excluded_groups,

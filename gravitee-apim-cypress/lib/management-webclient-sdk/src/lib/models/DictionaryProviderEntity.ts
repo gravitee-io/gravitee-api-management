@@ -27,10 +27,10 @@ export interface DictionaryProviderEntity {
     type: string;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof DictionaryProviderEntity
      */
-    _configuration: object;
+    configuration: any;
 }
 
 export function DictionaryProviderEntityFromJSON(json: any): DictionaryProviderEntity {
@@ -44,7 +44,7 @@ export function DictionaryProviderEntityFromJSONTyped(json: any, ignoreDiscrimin
     return {
         
         'type': json['type'],
-        '_configuration': json['configuration'],
+        'configuration': json['configuration'],
     };
 }
 
@@ -58,7 +58,7 @@ export function DictionaryProviderEntityToJSON(value?: DictionaryProviderEntity 
     return {
         
         'type': value.type,
-        'configuration': value._configuration,
+        'configuration': value.configuration,
     };
 }
 

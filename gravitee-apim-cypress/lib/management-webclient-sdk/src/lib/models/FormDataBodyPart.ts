@@ -50,10 +50,10 @@ export interface FormDataBodyPart {
     contentDisposition?: ContentDisposition;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof FormDataBodyPart
      */
-    entity?: object;
+    entity?: any;
     /**
      * 
      * @type {{ [key: string]: Array<string>; }}
@@ -68,10 +68,10 @@ export interface FormDataBodyPart {
     mediaType?: BodyPartMediaType;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof FormDataBodyPart
      */
-    messageBodyWorkers?: object;
+    messageBodyWorkers?: any;
     /**
      * 
      * @type {MultiPart}
@@ -80,22 +80,22 @@ export interface FormDataBodyPart {
     parent?: MultiPart;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof FormDataBodyPart
      */
-    providers?: object;
-    /**
-     * 
-     * @type {FormDataContentDisposition}
-     * @memberof FormDataBodyPart
-     */
-    formDataContentDisposition?: FormDataContentDisposition;
+    providers?: any;
     /**
      * 
      * @type {boolean}
      * @memberof FormDataBodyPart
      */
     simple?: boolean;
+    /**
+     * 
+     * @type {FormDataContentDisposition}
+     * @memberof FormDataBodyPart
+     */
+    formDataContentDisposition?: FormDataContentDisposition;
     /**
      * 
      * @type {string}
@@ -133,8 +133,8 @@ export function FormDataBodyPartFromJSONTyped(json: any, ignoreDiscriminator: bo
         'messageBodyWorkers': !exists(json, 'messageBodyWorkers') ? undefined : json['messageBodyWorkers'],
         'parent': !exists(json, 'parent') ? undefined : MultiPartFromJSON(json['parent']),
         'providers': !exists(json, 'providers') ? undefined : json['providers'],
-        'formDataContentDisposition': !exists(json, 'formDataContentDisposition') ? undefined : FormDataContentDispositionFromJSON(json['formDataContentDisposition']),
         'simple': !exists(json, 'simple') ? undefined : json['simple'],
+        'formDataContentDisposition': !exists(json, 'formDataContentDisposition') ? undefined : FormDataContentDispositionFromJSON(json['formDataContentDisposition']),
         'name': !exists(json, 'name') ? undefined : json['name'],
         'value': !exists(json, 'value') ? undefined : json['value'],
         'parameterizedHeaders': !exists(json, 'parameterizedHeaders') ? undefined : json['parameterizedHeaders'],
@@ -157,8 +157,8 @@ export function FormDataBodyPartToJSON(value?: FormDataBodyPart | null): any {
         'messageBodyWorkers': value.messageBodyWorkers,
         'parent': MultiPartToJSON(value.parent),
         'providers': value.providers,
-        'formDataContentDisposition': FormDataContentDispositionToJSON(value.formDataContentDisposition),
         'simple': value.simple,
+        'formDataContentDisposition': FormDataContentDispositionToJSON(value.formDataContentDisposition),
         'name': value.name,
         'value': value.value,
         'parameterizedHeaders': value.parameterizedHeaders,

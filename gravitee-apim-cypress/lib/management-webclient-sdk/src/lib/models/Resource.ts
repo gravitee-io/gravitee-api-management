@@ -33,10 +33,10 @@ export interface Resource {
     type: string;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof Resource
      */
-    _configuration: object;
+    configuration: any;
     /**
      * 
      * @type {boolean}
@@ -57,7 +57,7 @@ export function ResourceFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         
         'name': json['name'],
         'type': json['type'],
-        '_configuration': json['configuration'],
+        'configuration': json['configuration'],
         'enabled': !exists(json, 'enabled') ? undefined : json['enabled'],
     };
 }
@@ -73,7 +73,7 @@ export function ResourceToJSON(value?: Resource | null): any {
         
         'name': value.name,
         'type': value.type,
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'enabled': value.enabled,
     };
 }

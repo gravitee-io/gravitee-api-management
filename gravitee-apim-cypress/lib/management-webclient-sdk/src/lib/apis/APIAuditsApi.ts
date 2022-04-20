@@ -27,9 +27,6 @@ export interface GetApiAuditEventsRequest {
 }
 
 export interface GetApiAuditsRequest {
-    api2: string;
-    envId: string;
-    orgId: string;
     envLog?: boolean;
     orgLog?: boolean;
     api?: string;
@@ -39,6 +36,9 @@ export interface GetApiAuditsRequest {
     to?: number;
     size?: number;
     page?: number;
+    api2: string;
+    envId: string;
+    orgId: string;
 }
 
 /**

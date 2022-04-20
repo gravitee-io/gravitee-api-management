@@ -30,13 +30,7 @@ export interface Hook {
      * @type {string}
      * @memberof Hook
      */
-    category?: string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof Hook
-     */
-    hidden?: boolean;
+    scope?: HookScopeEnum;
     /**
      * 
      * @type {string}
@@ -48,13 +42,19 @@ export interface Hook {
      * @type {string}
      * @memberof Hook
      */
-    template?: string;
+    category?: string;
     /**
      * 
      * @type {string}
      * @memberof Hook
      */
-    scope?: HookScopeEnum;
+    template?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Hook
+     */
+    hidden?: boolean;
 }
 
 export function HookFromJSON(json: any): Hook {
@@ -68,11 +68,11 @@ export function HookFromJSONTyped(json: any, ignoreDiscriminator: boolean): Hook
     return {
         
         'label': !exists(json, 'label') ? undefined : json['label'],
-        'category': !exists(json, 'category') ? undefined : json['category'],
-        'hidden': !exists(json, 'hidden') ? undefined : json['hidden'],
-        'description': !exists(json, 'description') ? undefined : json['description'],
-        'template': !exists(json, 'template') ? undefined : json['template'],
         'scope': !exists(json, 'scope') ? undefined : json['scope'],
+        'description': !exists(json, 'description') ? undefined : json['description'],
+        'category': !exists(json, 'category') ? undefined : json['category'],
+        'template': !exists(json, 'template') ? undefined : json['template'],
+        'hidden': !exists(json, 'hidden') ? undefined : json['hidden'],
     };
 }
 
@@ -86,11 +86,11 @@ export function HookToJSON(value?: Hook | null): any {
     return {
         
         'label': value.label,
-        'category': value.category,
-        'hidden': value.hidden,
-        'description': value.description,
-        'template': value.template,
         'scope': value.scope,
+        'description': value.description,
+        'category': value.category,
+        'template': value.template,
+        'hidden': value.hidden,
     };
 }
 

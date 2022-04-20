@@ -66,7 +66,7 @@ export class APINotificationsApi extends runtime.BaseAPI {
     /**
      * Create notification settings
      */
-    async createApiNotificationSettingsRaw(requestParameters: CreateApiNotificationSettingsRequest): Promise<runtime.ApiResponse<object>> {
+    async createApiNotificationSettingsRaw(requestParameters: CreateApiNotificationSettingsRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling createApiNotificationSettings.');
         }
@@ -96,13 +96,13 @@ export class APINotificationsApi extends runtime.BaseAPI {
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
         });
 
-        return new runtime.JSONApiResponse<any>(response);
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      * Create notification settings
      */
-    async createApiNotificationSettings(requestParameters: CreateApiNotificationSettingsRequest): Promise<object> {
+    async createApiNotificationSettings(requestParameters: CreateApiNotificationSettingsRequest): Promise<any> {
         const response = await this.createApiNotificationSettingsRaw(requestParameters);
         return await response.value();
     }
@@ -154,7 +154,7 @@ export class APINotificationsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApiNotificationSettingsRaw(requestParameters: GetApiNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<object>>> {
+    async getApiNotificationSettingsRaw(requestParameters: GetApiNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiNotificationSettings.');
         }
@@ -187,7 +187,7 @@ export class APINotificationsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApiNotificationSettings(requestParameters: GetApiNotificationSettingsRequest): Promise<Array<object>> {
+    async getApiNotificationSettings(requestParameters: GetApiNotificationSettingsRequest): Promise<Array<any>> {
         const response = await this.getApiNotificationSettingsRaw(requestParameters);
         return await response.value();
     }

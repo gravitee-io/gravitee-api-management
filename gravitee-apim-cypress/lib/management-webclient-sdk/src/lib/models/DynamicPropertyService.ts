@@ -33,10 +33,10 @@ export interface DynamicPropertyService {
     provider?: DynamicPropertyServiceProviderEnum;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof DynamicPropertyService
      */
-    _configuration?: object;
+    configuration?: any;
     /**
      * 
      * @type {string}
@@ -57,7 +57,7 @@ export function DynamicPropertyServiceFromJSONTyped(json: any, ignoreDiscriminat
         
         'enabled': !exists(json, 'enabled') ? undefined : json['enabled'],
         'provider': !exists(json, 'provider') ? undefined : json['provider'],
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
     };
 }
@@ -73,7 +73,7 @@ export function DynamicPropertyServiceToJSON(value?: DynamicPropertyService | nu
         
         'enabled': value.enabled,
         'provider': value.provider,
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'schedule': value.schedule,
     };
 }

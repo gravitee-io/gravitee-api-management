@@ -42,13 +42,13 @@ export interface BodyPartMediaType {
      * @type {boolean}
      * @memberof BodyPartMediaType
      */
-    wildcardType?: boolean;
+    wildcardSubtype?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof BodyPartMediaType
      */
-    wildcardSubtype?: boolean;
+    wildcardType?: boolean;
 }
 
 export function BodyPartMediaTypeFromJSON(json: any): BodyPartMediaType {
@@ -64,8 +64,8 @@ export function BodyPartMediaTypeFromJSONTyped(json: any, ignoreDiscriminator: b
         'type': !exists(json, 'type') ? undefined : json['type'],
         'subtype': !exists(json, 'subtype') ? undefined : json['subtype'],
         'parameters': !exists(json, 'parameters') ? undefined : json['parameters'],
-        'wildcardType': !exists(json, 'wildcardType') ? undefined : json['wildcardType'],
         'wildcardSubtype': !exists(json, 'wildcardSubtype') ? undefined : json['wildcardSubtype'],
+        'wildcardType': !exists(json, 'wildcardType') ? undefined : json['wildcardType'],
     };
 }
 
@@ -81,8 +81,8 @@ export function BodyPartMediaTypeToJSON(value?: BodyPartMediaType | null): any {
         'type': value.type,
         'subtype': value.subtype,
         'parameters': value.parameters,
-        'wildcardType': value.wildcardType,
         'wildcardSubtype': value.wildcardSubtype,
+        'wildcardType': value.wildcardType,
     };
 }
 

@@ -73,12 +73,12 @@ export interface FetchApiPageRequest {
 
 export interface GetApiPageRequest {
     page: string;
-    api: string;
-    envId: string;
-    orgId: string;
     acceptLanguage?: string;
     portal?: boolean;
     translated?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiPageContentRequest {
@@ -96,9 +96,6 @@ export interface GetApiPageMediaRequest {
 }
 
 export interface GetApiPagesRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     acceptLanguage?: string;
     homepage?: boolean;
     type?: PageType;
@@ -106,6 +103,9 @@ export interface GetApiPagesRequest {
     name?: string;
     root?: boolean;
     translated?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface ImportApiPageFilesRequest {

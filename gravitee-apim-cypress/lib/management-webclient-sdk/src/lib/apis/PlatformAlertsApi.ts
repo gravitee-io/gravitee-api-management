@@ -34,9 +34,9 @@ import {
 
 export interface AssociatePlatformAlertRequest {
     alert: string;
+    type?: string;
     envId: string;
     orgId: string;
-    type?: string;
 }
 
 export interface CreatePlatformAlertRequest {
@@ -53,12 +53,12 @@ export interface DeletePlatformAlertRequest {
 
 export interface GetPlatformAlertEventsRequest {
     alert: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     page?: number;
     size?: number;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetPlatformAlertStatusRequest {
@@ -67,16 +67,16 @@ export interface GetPlatformAlertStatusRequest {
 }
 
 export interface GetPlatformAlertsRequest {
+    eventCounts?: boolean;
     envId: string;
     orgId: string;
-    eventCounts?: boolean;
 }
 
 export interface GetPlatformAlertsAnalytics1Request {
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
+    envId: string;
+    orgId: string;
 }
 
 export interface UpdatePlatformAlertRequest {

@@ -67,12 +67,12 @@ export interface FetchPortalPageRequest {
 }
 
 export interface GetPortalPageRequest {
-    page: string;
-    envId: string;
-    orgId: string;
     acceptLanguage?: string;
+    page: string;
     portal?: boolean;
     translated?: boolean;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetPortalPageContentRequest {
@@ -88,8 +88,6 @@ export interface GetPortalPageMediaRequest {
 }
 
 export interface GetPortalPagesRequest {
-    envId: string;
-    orgId: string;
     acceptLanguage?: string;
     homepage?: boolean;
     published?: boolean;
@@ -98,6 +96,8 @@ export interface GetPortalPagesRequest {
     name?: string;
     root?: boolean;
     translated?: boolean;
+    envId: string;
+    orgId: string;
 }
 
 export interface ImportPortalPageFromFilesRequest {

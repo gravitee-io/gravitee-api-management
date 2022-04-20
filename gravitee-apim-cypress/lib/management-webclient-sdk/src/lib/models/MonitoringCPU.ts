@@ -27,10 +27,10 @@ export interface MonitoringCPU {
     percent_use?: number;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {{ [key: string]: any; }}
      * @memberof MonitoringCPU
      */
-    load_average?: { [key: string]: object; };
+    load_average?: { [key: string]: any; };
 }
 
 export function MonitoringCPUFromJSON(json: any): MonitoringCPU {

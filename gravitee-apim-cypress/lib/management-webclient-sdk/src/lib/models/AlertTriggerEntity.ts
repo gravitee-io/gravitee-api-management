@@ -188,6 +188,12 @@ export interface AlertTriggerEntity {
      * @memberof AlertTriggerEntity
      */
     parent_id?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AlertTriggerEntity
+     */
+    environment_id?: string;
 }
 
 export function AlertTriggerEntityFromJSON(json: any): AlertTriggerEntity {
@@ -223,6 +229,7 @@ export function AlertTriggerEntityFromJSONTyped(json: any, ignoreDiscriminator: 
         'counters': !exists(json, 'counters') ? undefined : json['counters'],
         'event_rules': !exists(json, 'event_rules') ? undefined : ((json['event_rules'] as Array<any>).map(AlertEventRuleEntityFromJSON)),
         'parent_id': !exists(json, 'parent_id') ? undefined : json['parent_id'],
+        'environment_id': !exists(json, 'environment_id') ? undefined : json['environment_id'],
     };
 }
 
@@ -258,6 +265,7 @@ export function AlertTriggerEntityToJSON(value?: AlertTriggerEntity | null): any
         'counters': value.counters,
         'event_rules': value.event_rules === undefined ? undefined : ((value.event_rules as Array<any>).map(AlertEventRuleEntityToJSON)),
         'parent_id': value.parent_id,
+        'environment_id': value.environment_id,
     };
 }
 

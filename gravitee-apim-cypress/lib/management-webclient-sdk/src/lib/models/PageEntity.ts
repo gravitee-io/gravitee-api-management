@@ -119,7 +119,7 @@ export interface PageEntity {
      * @type {{ [key: string]: string; }}
      * @memberof PageEntity
      */
-    _configuration?: { [key: string]: string; };
+    configuration?: { [key: string]: string; };
     /**
      * 
      * @type {boolean}
@@ -216,7 +216,7 @@ export function PageEntityFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'lastModificationDate': !exists(json, 'lastModificationDate') ? undefined : (new Date(json['lastModificationDate'])),
         'contentType': !exists(json, 'contentType') ? undefined : json['contentType'],
         'source': !exists(json, 'source') ? undefined : PageSourceEntityFromJSON(json['source']),
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
         'homepage': !exists(json, 'homepage') ? undefined : json['homepage'],
         'parentId': !exists(json, 'parentId') ? undefined : json['parentId'],
         'parentPath': !exists(json, 'parentPath') ? undefined : json['parentPath'],
@@ -253,7 +253,7 @@ export function PageEntityToJSON(value?: PageEntity | null): any {
         'lastModificationDate': value.lastModificationDate === undefined ? undefined : (value.lastModificationDate.toISOString()),
         'contentType': value.contentType,
         'source': PageSourceEntityToJSON(value.source),
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'homepage': value.homepage,
         'parentId': value.parentId,
         'parentPath': value.parentPath,

@@ -64,12 +64,6 @@ export interface SocialIdentityProviderEntity {
     syncMappings?: boolean;
     /**
      * 
-     * @type {IdentityProviderType}
-     * @memberof SocialIdentityProviderEntity
-     */
-    type?: IdentityProviderType;
-    /**
-     * 
      * @type {string}
      * @memberof SocialIdentityProviderEntity
      */
@@ -79,13 +73,25 @@ export interface SocialIdentityProviderEntity {
      * @type {string}
      * @memberof SocialIdentityProviderEntity
      */
-    authorizationEndpoint?: string;
+    display?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof SocialIdentityProviderEntity
+     */
+    scopes?: Array<string>;
     /**
      * 
      * @type {string}
      * @memberof SocialIdentityProviderEntity
      */
-    display?: string;
+    scopeDelimiter?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SocialIdentityProviderEntity
+     */
+    authorizationEndpoint?: string;
     /**
      * 
      * @type {Array<string>}
@@ -103,25 +109,19 @@ export interface SocialIdentityProviderEntity {
      * @type {string}
      * @memberof SocialIdentityProviderEntity
      */
-    tokenIntrospectionEndpoint?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SocialIdentityProviderEntity
-     */
     userLogoutEndpoint?: string;
     /**
      * 
-     * @type {Array<string>}
-     * @memberof SocialIdentityProviderEntity
-     */
-    scopes?: Array<string>;
-    /**
-     * 
      * @type {string}
      * @memberof SocialIdentityProviderEntity
      */
-    scopeDelimiter?: string;
+    tokenIntrospectionEndpoint?: string;
+    /**
+     * 
+     * @type {IdentityProviderType}
+     * @memberof SocialIdentityProviderEntity
+     */
+    type?: IdentityProviderType;
 }
 
 export function SocialIdentityProviderEntityFromJSON(json: any): SocialIdentityProviderEntity {
@@ -140,16 +140,16 @@ export function SocialIdentityProviderEntityFromJSONTyped(json: any, ignoreDiscr
         'clientId': !exists(json, 'clientId') ? undefined : json['clientId'],
         'emailRequired': !exists(json, 'emailRequired') ? undefined : json['emailRequired'],
         'syncMappings': !exists(json, 'syncMappings') ? undefined : json['syncMappings'],
-        'type': !exists(json, 'type') ? undefined : IdentityProviderTypeFromJSON(json['type']),
         'color': !exists(json, 'color') ? undefined : json['color'],
-        'authorizationEndpoint': !exists(json, 'authorizationEndpoint') ? undefined : json['authorizationEndpoint'],
         'display': !exists(json, 'display') ? undefined : json['display'],
-        'optionalUrlParams': !exists(json, 'optionalUrlParams') ? undefined : json['optionalUrlParams'],
-        'requiredUrlParams': !exists(json, 'requiredUrlParams') ? undefined : json['requiredUrlParams'],
-        'tokenIntrospectionEndpoint': !exists(json, 'tokenIntrospectionEndpoint') ? undefined : json['tokenIntrospectionEndpoint'],
-        'userLogoutEndpoint': !exists(json, 'userLogoutEndpoint') ? undefined : json['userLogoutEndpoint'],
         'scopes': !exists(json, 'scopes') ? undefined : json['scopes'],
         'scopeDelimiter': !exists(json, 'scopeDelimiter') ? undefined : json['scopeDelimiter'],
+        'authorizationEndpoint': !exists(json, 'authorizationEndpoint') ? undefined : json['authorizationEndpoint'],
+        'optionalUrlParams': !exists(json, 'optionalUrlParams') ? undefined : json['optionalUrlParams'],
+        'requiredUrlParams': !exists(json, 'requiredUrlParams') ? undefined : json['requiredUrlParams'],
+        'userLogoutEndpoint': !exists(json, 'userLogoutEndpoint') ? undefined : json['userLogoutEndpoint'],
+        'tokenIntrospectionEndpoint': !exists(json, 'tokenIntrospectionEndpoint') ? undefined : json['tokenIntrospectionEndpoint'],
+        'type': !exists(json, 'type') ? undefined : IdentityProviderTypeFromJSON(json['type']),
     };
 }
 
@@ -168,16 +168,16 @@ export function SocialIdentityProviderEntityToJSON(value?: SocialIdentityProvide
         'clientId': value.clientId,
         'emailRequired': value.emailRequired,
         'syncMappings': value.syncMappings,
-        'type': IdentityProviderTypeToJSON(value.type),
         'color': value.color,
-        'authorizationEndpoint': value.authorizationEndpoint,
         'display': value.display,
-        'optionalUrlParams': value.optionalUrlParams,
-        'requiredUrlParams': value.requiredUrlParams,
-        'tokenIntrospectionEndpoint': value.tokenIntrospectionEndpoint,
-        'userLogoutEndpoint': value.userLogoutEndpoint,
         'scopes': value.scopes,
         'scopeDelimiter': value.scopeDelimiter,
+        'authorizationEndpoint': value.authorizationEndpoint,
+        'optionalUrlParams': value.optionalUrlParams,
+        'requiredUrlParams': value.requiredUrlParams,
+        'userLogoutEndpoint': value.userLogoutEndpoint,
+        'tokenIntrospectionEndpoint': value.tokenIntrospectionEndpoint,
+        'type': IdentityProviderTypeToJSON(value.type),
     };
 }
 

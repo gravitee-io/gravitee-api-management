@@ -63,10 +63,10 @@ export interface RenewApiKeyForApplicationSubscription1Request {
 
 export interface RenewSubscriptionApiKeysForApiSubscriptionRequest {
     subscription: string;
+    customApiKey?: string;
     api: string;
     envId: string;
     orgId: string;
-    customApiKey?: string;
 }
 
 export interface RevokeApiKeyForApiSubscriptionRequest {

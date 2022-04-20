@@ -28,10 +28,10 @@ import {
 export interface Endpoint {
     /**
      * 
-     * @type {Array<object>}
+     * @type {Array<any>}
      * @memberof Endpoint
      */
-    endpointAvailabilityListeners?: Array<object>;
+    endpointAvailabilityListeners?: Array<any>;
     /**
      * 
      * @type {string}

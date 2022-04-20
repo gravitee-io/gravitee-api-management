@@ -63,9 +63,9 @@ export interface GetConnectorSchemaRequest {
 }
 
 export interface GetConnectorsRequest {
+    expand?: Array<string>;
     envId: string;
     orgId: string;
-    expand?: Array<string>;
 }
 
 export interface GetFetcherRequest {
@@ -81,10 +81,10 @@ export interface GetFetcherSchemaRequest {
 }
 
 export interface GetFetchersRequest {
-    envId: string;
-    orgId: string;
     expand?: Array<string>;
     _import?: boolean;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetNotifierRequest {
@@ -100,16 +100,16 @@ export interface GetNotifierSchemaRequest {
 }
 
 export interface GetNotifiersRequest {
+    expand?: Array<string>;
     envId: string;
     orgId: string;
-    expand?: Array<string>;
 }
 
 export interface GetPoliciesRequest {
-    envId: string;
-    orgId: string;
     expand?: Array<string>;
     withResource?: boolean;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetPolicyRequest {
@@ -155,9 +155,9 @@ export interface GetResourceSchemaRequest {
 }
 
 export interface GetResourcesRequest {
+    expand?: Array<string>;
     envId: string;
     orgId: string;
-    expand?: Array<string>;
 }
 
 export interface GetServiceDiscoveryRequest {
@@ -173,9 +173,9 @@ export interface GetServiceDiscoverySchemaRequest {
 }
 
 export interface GetServicesDiscoverResourcesRequest {
+    expand?: Array<string>;
     envId: string;
     orgId: string;
-    expand?: Array<string>;
 }
 
 export interface GetSwaggerPolicyRequest {
