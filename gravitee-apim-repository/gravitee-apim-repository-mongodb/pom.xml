@@ -36,7 +36,7 @@
             spring data 3.2.x is compatible with mongo driver 4.1.x
         -->
         <mongo.version>4.1.2</mongo.version>
-        <spring.data.mongodb.version>3.2.3</spring.data.mongodb.version>
+        <spring.data.mongodb.version>3.2.8</spring.data.mongodb.version>
     </properties>
 
     <dependencies>
