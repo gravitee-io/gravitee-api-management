@@ -30,7 +30,6 @@ import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.reporter.api.http.Metrics;
-
 import javax.net.ssl.SSLSession;
 
 /**
