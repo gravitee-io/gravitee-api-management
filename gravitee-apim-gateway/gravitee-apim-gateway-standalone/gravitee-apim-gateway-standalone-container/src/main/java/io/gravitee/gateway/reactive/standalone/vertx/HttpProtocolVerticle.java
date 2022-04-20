@@ -15,69 +15,45 @@
  */
 package io.gravitee.gateway.reactive.standalone.vertx;
 
-import io.gravitee.common.http.IdGenerator;
-import io.gravitee.common.utils.Hex;
-import io.gravitee.common.utils.UUID;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
-import io.reactivex.Flowable;
+import io.reactivex.Completable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.plugins.RxJavaPlugins;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
+import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.RxHelper;
-import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HttpProtocolVerticle extends AbstractVerticle {
 
-    private static final String HEX_FORMAT = "hex";
-
     private final Logger log = LoggerFactory.getLogger(HttpProtocolVerticle.class);
 
-    @Autowired
-    @Qualifier("gatewayHttpServer")
-    private HttpServer httpServer;
-
-    @Autowired
-    @Qualifier("httpRequestDispatcher")
-    private HttpRequestDispatcher requestDispatcher;
-
-    @Autowired
-    @Qualifier("httpServerConfiguration")
-    private HttpServerConfiguration httpServerConfiguration;
-
-    @Autowired
-    private Vertx vertx;
-
-    @Value("${handlers.request.format:uuid}")
-    private String requestFormat;
-
-    private Disposable disposable;
+    private final io.vertx.reactivex.core.http.HttpServer rxHttpServer;
+    private final HttpRequestDispatcher requestDispatcher;
+    private final HttpServerConfiguration httpServerConfiguration;
     private Disposable requestDisposable;
 
+    public HttpProtocolVerticle(
+        @Qualifier("gatewayHttpServer") HttpServer httpServer,
+        @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration,
+        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
+    ) {
+        this.rxHttpServer = io.vertx.reactivex.core.http.HttpServer.newInstance(httpServer);
+        this.httpServerConfiguration = httpServerConfiguration;
+        this.requestDispatcher = requestDispatcher;
+    }
+
     @Override
-    public void start(Promise<Void> startPromise) throws Exception {
-        final io.vertx.reactivex.core.http.HttpServer rxServer = io.vertx.reactivex.core.http.HttpServer.newInstance(httpServer);
-        final Flowable<HttpServerRequest> requestFlowable = rxServer.requestStream().toFlowable();
-        final IdGenerator idGenerator;
-
-        if (HEX_FORMAT.equals(requestFormat)) {
-            idGenerator = new Hex();
-        } else {
-            idGenerator = new UUID();
-        }
-
+    public Completable rxStart() {
         // Set global error handler to catch everything that has not been properly caught.
         RxJavaPlugins.setErrorHandler(e -> log.warn("An unexpected error occurred", e));
 
@@ -87,29 +63,46 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         RxJavaPlugins.setNewThreadSchedulerHandler(s -> RxHelper.scheduler(vertx));
 
         requestDisposable =
-            requestFlowable
-                .flatMapCompletable(requestDispatcher::dispatch)
-                .subscribe(() -> {}, e -> log.error("An unexpected error occurred", e));
+            rxHttpServer
+                .requestStream()
+                .toFlowable()
+                .flatMapCompletable(
+                    request ->
+                        requestDispatcher
+                            .dispatch(request)
+                            .doOnComplete(() -> log.debug("Request properly dispatched"))
+                            .doOnSubscribe(
+                                dispatchDisposable ->
+                                    request
+                                        .connection()
+                                        // Must be added to ensure closed connection disposes underlying subscription
+                                        .closeHandler(event -> dispatchDisposable.dispose())
+                            )
+                            .onErrorResumeNext(
+                                throwable -> {
+                                    log.error("An unexpected error occurred while dispatching the incoming request", throwable);
+                                    return request
+                                        .response()
+                                        .setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
+                                        .rxEnd()
+                                        .onErrorResumeNext(endError -> Completable.complete());
+                                }
+                            )
+                )
+                .subscribe();
 
-        disposable =
-            rxServer
-                .rxListen()
-                .subscribe(
-                    (s, throwable) -> {
-                        if (throwable == null) {
-                            log.info("HTTP listener ready to accept requests on port {}", httpServerConfiguration.getPort());
-                            startPromise.complete();
-                        } else {
-                            log.error("Unable to start HTTP Server", throwable.getCause());
-                            startPromise.fail(throwable.getCause());
-                        }
-                    }
-                );
+        return rxHttpServer
+            .rxListen()
+            .ignoreElement()
+            .doOnComplete(() -> log.info("HTTP listener ready to accept requests on port {}", httpServerConfiguration.getPort()))
+            .doOnError(throwable -> log.error("Unable to start HTTP Server", throwable.getCause()));
     }
 
     @Override
-    public void stop() throws Exception {
+    public Completable rxStop() {
         log.info("Stopping HTTP Server...");
-        httpServer.close(voidAsyncResult -> log.info("HTTP Server has been correctly stopped"));
+        return Completable
+            .fromRunnable(() -> requestDisposable.dispose())
+            .andThen(rxHttpServer.rxClose().doOnComplete(() -> log.info("HTTP Server has been correctly stopped")));
     }
 }
