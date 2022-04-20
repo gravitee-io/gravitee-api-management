@@ -43,7 +43,11 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
     public boolean upgrade() {
         // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        upgradeByEnvironment(executionContext);
+        return true;
+    }
 
+    private void upgradeByEnvironment(ExecutionContext executionContext) {
         // initialize roles.
         final ActivationTarget defaultEnvTarget = new ActivationTarget(
             GraviteeContext.getDefaultEnvironment(),
@@ -73,7 +77,6 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
                     }
                 );
         }
-        return true;
     }
 
     @Override
