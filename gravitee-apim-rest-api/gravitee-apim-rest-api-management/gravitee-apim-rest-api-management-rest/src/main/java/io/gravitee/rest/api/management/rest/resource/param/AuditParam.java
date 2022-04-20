@@ -25,11 +25,18 @@ import javax.ws.rs.QueryParam;
  */
 public class AuditParam {
 
+    @QueryParam("environment")
+    private String environmentId;
+
     @QueryParam("api")
     private String apiId;
 
     @QueryParam("application")
     private String applicationId;
+
+    @QueryParam("type")
+    @Parameter(description = "filter on the type of audit")
+    private AuditType type;
 
     @QueryParam("event")
     @Parameter(description = "filter by the name of an event.", example = "APPLICATION_UPDATED, API_CREATED, METADATA_DELETED, ...")
@@ -52,6 +59,14 @@ public class AuditParam {
     @DefaultValue("1")
     private int page;
 
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
+    }
+
     public String getApiId() {
         return apiId;
     }
@@ -66,6 +81,14 @@ public class AuditParam {
 
     public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
+    }
+
+    public AuditType getType() {
+        return type;
+    }
+
+    public void setType(AuditType type) {
+        this.type = type;
     }
 
     public String getEvent() {

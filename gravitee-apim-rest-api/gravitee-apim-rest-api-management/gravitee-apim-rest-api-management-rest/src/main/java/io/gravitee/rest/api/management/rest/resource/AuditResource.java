@@ -15,13 +15,17 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static java.util.Map.entry;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.management.rest.model.wrapper.AuditEntityMetadataPage;
 import io.gravitee.rest.api.management.rest.resource.param.AuditParam;
+import io.gravitee.rest.api.management.rest.resource.param.AuditType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.audit.AuditQuery;
+import io.gravitee.rest.api.model.audit.AuditReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
@@ -81,13 +85,18 @@ public class AuditResource extends AbstractResource {
         query.setPage(param.getPage());
         query.setSize(param.getSize());
 
-        if (param.getApiId() != null) {
-            query.setApiIds(Collections.singletonList(param.getApiId()));
+        if (param.getEnvironmentId() != null) {
+            query.setEnvironmentIds(Collections.singletonList(param.getEnvironmentId()));
         }
         if (param.getApplicationId() != null) {
             query.setApplicationIds(Collections.singletonList(param.getApplicationId()));
         }
-
+        if (param.getApiId() != null) {
+            query.setApiIds(Collections.singletonList(param.getApiId()));
+        }
+        if (param.getType() != null) {
+            query.setReferenceType(AuditType.fromAuditType(param.getType()));
+        }
         if (param.getEvent() != null) {
             query.setEvents(Collections.singletonList(param.getEvent()));
         }
