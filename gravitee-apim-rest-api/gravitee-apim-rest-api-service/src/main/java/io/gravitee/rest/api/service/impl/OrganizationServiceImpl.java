@@ -91,10 +91,10 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     @Override
     public OrganizationEntity createOrUpdate(ExecutionContext executionContext, final UpdateOrganizationEntity organizationEntity) {
         try {
-            String organizationId = executionContext.getOrganizationId();
             try {
-                return this.update(executionContext, organizationId, organizationEntity);
+                return this.update(executionContext, organizationEntity);
             } catch (OrganizationNotFoundException e) {
+                String organizationId = executionContext.getOrganizationId();
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationId);
                 flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());
@@ -117,12 +117,9 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public OrganizationEntity update(
-        ExecutionContext executionContext,
-        String organizationId,
-        final UpdateOrganizationEntity organizationEntity
-    ) {
+    public OrganizationEntity update(ExecutionContext executionContext, final UpdateOrganizationEntity organizationEntity) {
         try {
+            String organizationId = executionContext.getOrganizationId();
             Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
             if (organizationOptional.isPresent()) {
                 flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());

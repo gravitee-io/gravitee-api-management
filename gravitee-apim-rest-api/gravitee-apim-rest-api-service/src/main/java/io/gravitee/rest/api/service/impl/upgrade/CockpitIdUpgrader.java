@@ -51,7 +51,7 @@ public class CockpitIdUpgrader implements Upgrader, Ordered {
                 org -> {
                     UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
                     newOrganization.setCockpitId(org.getId());
-                    organizationService.update(executionContext, org.getId(), newOrganization);
+                    organizationService.update(executionContext, newOrganization);
                 }
             );
 

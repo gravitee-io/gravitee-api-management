@@ -31,7 +31,7 @@ public interface OrganizationService {
 
     OrganizationEntity createOrUpdate(ExecutionContext executionContext, UpdateOrganizationEntity organizationEntity);
 
-    OrganizationEntity update(ExecutionContext executionContext, String organizationId, UpdateOrganizationEntity organizationEntity);
+    OrganizationEntity update(ExecutionContext executionContext, UpdateOrganizationEntity organizationEntity);
 
     void delete(String organizationId);
 
