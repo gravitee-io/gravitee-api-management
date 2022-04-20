@@ -86,7 +86,7 @@ public class ApiEntity implements Indexable {
     private Map<String, List<Rule>> paths = new HashMap<>();
 
     @DeploymentRequired
-    @JsonProperty(value = "flows", required = true)
+    @JsonProperty(value = "flows")
     @Schema(description = "a list of flows (the policies configuration)")
     private List<Flow> flows = new ArrayList<>();
 
