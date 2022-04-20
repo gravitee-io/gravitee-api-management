@@ -93,11 +93,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             criteria.environmentIds(Collections.singletonList(executionContext.getEnvironmentId()));
         }
 
-        if (query.isCurrentEnvironmentLogsOnly()) {
-            criteria.references(Audit.AuditReferenceType.ENVIRONMENT, Collections.singletonList(executionContext.getEnvironmentId()));
-        } else if (query.isCurrentOrganizationLogsOnly()) {
-            criteria.references(Audit.AuditReferenceType.ORGANIZATION, Collections.singletonList(executionContext.getOrganizationId()));
-        } else if (query.getApiIds() != null && !query.getApiIds().isEmpty()) {
+        if (query.getApiIds() != null && !query.getApiIds().isEmpty()) {
             criteria.references(Audit.AuditReferenceType.API, query.getApiIds());
         } else if (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) {
             criteria.references(Audit.AuditReferenceType.APPLICATION, query.getApplicationIds());

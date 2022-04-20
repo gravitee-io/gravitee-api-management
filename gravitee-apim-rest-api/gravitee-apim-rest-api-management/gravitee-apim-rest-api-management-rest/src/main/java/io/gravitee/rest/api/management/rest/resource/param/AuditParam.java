@@ -25,18 +25,6 @@ import javax.ws.rs.QueryParam;
  */
 public class AuditParam {
 
-    @QueryParam("envLog")
-    @Parameter(
-        description = "true if you only want logs from the current environment, false if you also want api, application and organization audit logs"
-    )
-    private boolean environmentLogsOnly;
-
-    @QueryParam("orgLog")
-    @Parameter(
-        description = "true if you only want logs from the current organization, false if you also want api, application and environment audit logs"
-    )
-    private boolean organizationLogsOnly;
-
     @QueryParam("api")
     private String apiId;
 
@@ -63,22 +51,6 @@ public class AuditParam {
     @QueryParam("page")
     @DefaultValue("1")
     private int page;
-
-    public boolean isEnvironmentLogsOnly() {
-        return environmentLogsOnly;
-    }
-
-    public void setEnvironmentLogsOnly(boolean environmentLogsOnly) {
-        this.environmentLogsOnly = environmentLogsOnly;
-    }
-
-    public boolean isOrganizationLogsOnly() {
-        return organizationLogsOnly;
-    }
-
-    public void setOrganizationLogsOnly(boolean organizationLogsOnly) {
-        this.organizationLogsOnly = organizationLogsOnly;
-    }
 
     public String getApiId() {
         return apiId;

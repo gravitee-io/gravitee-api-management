@@ -23,8 +23,6 @@ import java.util.List;
  */
 public class AuditQuery {
 
-    private boolean currentEnvironmentLogsOnly;
-    private boolean currentOrganizationLogsOnly;
     private List<String> apiIds;
     private List<String> applicationIds;
     private List<String> events;
@@ -32,22 +30,6 @@ public class AuditQuery {
     private long to;
     private int size;
     private int page;
-
-    public boolean isCurrentEnvironmentLogsOnly() {
-        return currentEnvironmentLogsOnly;
-    }
-
-    public void setCurrentEnvironmentLogsOnly(boolean currentEnvironmentLogsOnly) {
-        this.currentEnvironmentLogsOnly = currentEnvironmentLogsOnly;
-    }
-
-    public boolean isCurrentOrganizationLogsOnly() {
-        return currentOrganizationLogsOnly;
-    }
-
-    public void setCurrentOrganizationLogsOnly(boolean currentOrganizationLogsOnly) {
-        this.currentOrganizationLogsOnly = currentOrganizationLogsOnly;
-    }
 
     public List<String> getApiIds() {
         return apiIds;
