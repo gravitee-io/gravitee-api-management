@@ -27,10 +27,10 @@ export interface JsonPatch {
     jsonPath: string;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof JsonPatch
      */
-    value?: object;
+    value?: any;
     /**
      * 
      * @type {string}

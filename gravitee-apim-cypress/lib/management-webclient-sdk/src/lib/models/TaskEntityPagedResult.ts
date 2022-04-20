@@ -38,10 +38,10 @@ export interface TaskEntityPagedResult {
     data?: Array<TaskEntity>;
     /**
      * 
-     * @type {{ [key: string]: { [key: string]: object; }; }}
+     * @type {{ [key: string]: { [key: string]: any; }; }}
      * @memberof TaskEntityPagedResult
      */
-    metadata?: { [key: string]: { [key: string]: object; }; };
+    metadata?: { [key: string]: { [key: string]: any; }; };
     /**
      * 
      * @type {Page}

@@ -46,10 +46,10 @@ export interface NewIdentityProviderEntity {
     type: IdentityProviderType;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {{ [key: string]: any; }}
      * @memberof NewIdentityProviderEntity
      */
-    _configuration: { [key: string]: object; };
+    configuration: { [key: string]: any; };
     /**
      * 
      * @type {boolean}
@@ -89,7 +89,7 @@ export function NewIdentityProviderEntityFromJSONTyped(json: any, ignoreDiscrimi
         'name': json['name'],
         'description': !exists(json, 'description') ? undefined : json['description'],
         'type': IdentityProviderTypeFromJSON(json['type']),
-        '_configuration': json['configuration'],
+        'configuration': json['configuration'],
         'enabled': !exists(json, 'enabled') ? undefined : json['enabled'],
         'userProfileMapping': !exists(json, 'userProfileMapping') ? undefined : json['userProfileMapping'],
         'emailRequired': !exists(json, 'emailRequired') ? undefined : json['emailRequired'],
@@ -109,7 +109,7 @@ export function NewIdentityProviderEntityToJSON(value?: NewIdentityProviderEntit
         'name': value.name,
         'description': value.description,
         'type': IdentityProviderTypeToJSON(value.type),
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'enabled': value.enabled,
         'userProfileMapping': value.userProfileMapping,
         'emailRequired': value.emailRequired,

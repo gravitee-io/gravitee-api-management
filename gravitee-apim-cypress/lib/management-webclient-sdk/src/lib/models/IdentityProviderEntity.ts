@@ -66,10 +66,10 @@ export interface IdentityProviderEntity {
     enabled?: boolean;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {{ [key: string]: any; }}
      * @memberof IdentityProviderEntity
      */
-    _configuration?: { [key: string]: object; };
+    configuration?: { [key: string]: any; };
     /**
      * 
      * @type {Array<GroupMappingEntity>}
@@ -135,7 +135,7 @@ export function IdentityProviderEntityFromJSONTyped(json: any, ignoreDiscriminat
         'description': !exists(json, 'description') ? undefined : json['description'],
         'type': !exists(json, 'type') ? undefined : IdentityProviderTypeFromJSON(json['type']),
         'enabled': !exists(json, 'enabled') ? undefined : json['enabled'],
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
         'groupMappings': !exists(json, 'groupMappings') ? undefined : ((json['groupMappings'] as Array<any>).map(GroupMappingEntityFromJSON)),
         'roleMappings': !exists(json, 'roleMappings') ? undefined : ((json['roleMappings'] as Array<any>).map(RoleMappingEntityFromJSON)),
         'userProfileMapping': !exists(json, 'userProfileMapping') ? undefined : json['userProfileMapping'],
@@ -161,7 +161,7 @@ export function IdentityProviderEntityToJSON(value?: IdentityProviderEntity | nu
         'description': value.description,
         'type': IdentityProviderTypeToJSON(value.type),
         'enabled': value.enabled,
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'groupMappings': value.groupMappings === undefined ? undefined : ((value.groupMappings as Array<any>).map(GroupMappingEntityToJSON)),
         'roleMappings': value.roleMappings === undefined ? undefined : ((value.roleMappings as Array<any>).map(RoleMappingEntityToJSON)),
         'userProfileMapping': value.userProfileMapping,

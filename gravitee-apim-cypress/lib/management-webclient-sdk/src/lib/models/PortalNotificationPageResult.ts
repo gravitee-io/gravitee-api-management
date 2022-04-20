@@ -38,10 +38,10 @@ export interface PortalNotificationPageResult {
     data?: Array<PortalNotificationEntity>;
     /**
      * 
-     * @type {{ [key: string]: { [key: string]: object; }; }}
+     * @type {{ [key: string]: { [key: string]: any; }; }}
      * @memberof PortalNotificationPageResult
      */
-    metadata?: { [key: string]: { [key: string]: object; }; };
+    metadata?: { [key: string]: { [key: string]: any; }; };
     /**
      * 
      * @type {Page}

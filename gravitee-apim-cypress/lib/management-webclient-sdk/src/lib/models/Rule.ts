@@ -19,7 +19,7 @@ import { exists, mapValues } from '../runtime';
  * @interface Rule
  */
 export interface Rule {
-    [key: string]: object | any;
+    [key: string]: any | any;
     /**
      * 
      * @type {Array<string>}

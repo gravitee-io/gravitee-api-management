@@ -181,13 +181,13 @@ export interface ApiEntity {
      * @type {{ [key: string]: Array<Rule>; }}
      * @memberof ApiEntity
      */
-    paths: { [key: string]: Array<Rule>; };
+    paths?: { [key: string]: Array<Rule>; };
     /**
      * a list of flows (the policies configuration)
      * @type {Array<Flow>}
      * @memberof ApiEntity
      */
-    flows: Array<Flow>;
+    flows?: Array<Flow>;
     /**
      * a list of plans with flows (the policies configuration)
      * @type {Array<Plan>}
@@ -313,8 +313,8 @@ export function ApiEntityFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'context_path': !exists(json, 'context_path') ? undefined : json['context_path'],
         'proxy': ProxyFromJSON(json['proxy']),
         'flow_mode': !exists(json, 'flow_mode') ? undefined : json['flow_mode'],
-        'paths': json['paths'],
-        'flows': ((json['flows'] as Array<any>).map(FlowFromJSON)),
+        'paths': !exists(json, 'paths') ? undefined : json['paths'],
+        'flows': !exists(json, 'flows') ? undefined : ((json['flows'] as Array<any>).map(FlowFromJSON)),
         'plans': ((json['plans'] as Array<any>).map(PlanFromJSON)),
         'gravitee': !exists(json, 'gravitee') ? undefined : json['gravitee'],
         'deployed_at': !exists(json, 'deployed_at') ? undefined : (new Date(json['deployed_at'])),
@@ -361,7 +361,7 @@ export function ApiEntityToJSON(value?: ApiEntity | null): any {
         'proxy': ProxyToJSON(value.proxy),
         'flow_mode': value.flow_mode,
         'paths': value.paths,
-        'flows': ((value.flows as Array<any>).map(FlowToJSON)),
+        'flows': value.flows === undefined ? undefined : ((value.flows as Array<any>).map(FlowToJSON)),
         'plans': ((value.plans as Array<any>).map(PlanToJSON)),
         'gravitee': value.gravitee,
         'deployed_at': value.deployed_at === undefined ? undefined : (value.deployed_at.toISOString()),

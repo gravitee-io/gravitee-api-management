@@ -66,7 +66,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
     /**
      * Create notification settings
      */
-    async createApplicationNotificationSettingsRaw(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<object>> {
+    async createApplicationNotificationSettingsRaw(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling createApplicationNotificationSettings.');
         }
@@ -96,13 +96,13 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
         });
 
-        return new runtime.JSONApiResponse<any>(response);
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      * Create notification settings
      */
-    async createApplicationNotificationSettings(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<object> {
+    async createApplicationNotificationSettings(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<any> {
         const response = await this.createApplicationNotificationSettingsRaw(requestParameters);
         return await response.value();
     }
@@ -154,7 +154,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApplicationNotificationSettingsRaw(requestParameters: GetApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<object>>> {
+    async getApplicationNotificationSettingsRaw(requestParameters: GetApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationNotificationSettings.');
         }
@@ -187,7 +187,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApplicationNotificationSettings(requestParameters: GetApplicationNotificationSettingsRequest): Promise<Array<object>> {
+    async getApplicationNotificationSettings(requestParameters: GetApplicationNotificationSettingsRequest): Promise<Array<any>> {
         const response = await this.getApplicationNotificationSettingsRaw(requestParameters);
         return await response.value();
     }

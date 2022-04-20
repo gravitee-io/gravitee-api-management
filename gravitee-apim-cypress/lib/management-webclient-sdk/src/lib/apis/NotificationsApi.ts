@@ -31,9 +31,9 @@ export interface GetNotificationTemplateRequest {
 }
 
 export interface GetNotificationTemplatesRequest {
-    orgId: string;
     scope?: string;
     hook?: string;
+    orgId: string;
 }
 
 export interface UpdateNotificationTemplateRequest {

@@ -28,16 +28,16 @@ import {
 export interface SingleValueCondition {
     /**
      * 
-     * @type {string}
-     * @memberof SingleValueCondition
-     */
-    type?: SingleValueConditionTypeEnum;
-    /**
-     * 
      * @type {Array<Projection>}
      * @memberof SingleValueCondition
      */
     projections?: Array<Projection>;
+    /**
+     * 
+     * @type {string}
+     * @memberof SingleValueCondition
+     */
+    type?: SingleValueConditionTypeEnum;
 }
 
 export function SingleValueConditionFromJSON(json: any): SingleValueCondition {
@@ -50,8 +50,8 @@ export function SingleValueConditionFromJSONTyped(json: any, ignoreDiscriminator
     }
     return {
         
-        'type': !exists(json, 'type') ? undefined : json['type'],
         'projections': !exists(json, 'projections') ? undefined : ((json['projections'] as Array<any>).map(ProjectionFromJSON)),
+        'type': !exists(json, 'type') ? undefined : json['type'],
     };
 }
 
@@ -64,8 +64,8 @@ export function SingleValueConditionToJSON(value?: SingleValueCondition | null):
     }
     return {
         
-        'type': value.type,
         'projections': value.projections === undefined ? undefined : ((value.projections as Array<any>).map(ProjectionToJSON)),
+        'type': value.type,
     };
 }
 

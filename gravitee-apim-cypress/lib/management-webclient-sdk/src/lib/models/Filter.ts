@@ -28,16 +28,16 @@ import {
 export interface Filter {
     /**
      * 
-     * @type {string}
-     * @memberof Filter
-     */
-    type?: FilterTypeEnum;
-    /**
-     * 
      * @type {Array<Projection>}
      * @memberof Filter
      */
     projections?: Array<Projection>;
+    /**
+     * 
+     * @type {string}
+     * @memberof Filter
+     */
+    type?: FilterTypeEnum;
 }
 
 export function FilterFromJSON(json: any): Filter {
@@ -50,8 +50,8 @@ export function FilterFromJSONTyped(json: any, ignoreDiscriminator: boolean): Fi
     }
     return {
         
-        'type': !exists(json, 'type') ? undefined : json['type'],
         'projections': !exists(json, 'projections') ? undefined : ((json['projections'] as Array<any>).map(ProjectionFromJSON)),
+        'type': !exists(json, 'type') ? undefined : json['type'],
     };
 }
 
@@ -64,8 +64,8 @@ export function FilterToJSON(value?: Filter | null): any {
     }
     return {
         
-        'type': value.type,
         'projections': value.projections === undefined ? undefined : ((value.projections as Array<any>).map(ProjectionToJSON)),
+        'type': value.type,
     };
 }
 

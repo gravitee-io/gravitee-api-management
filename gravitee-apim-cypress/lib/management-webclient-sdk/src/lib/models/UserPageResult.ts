@@ -38,10 +38,10 @@ export interface UserPageResult {
     data?: Array<UserEntity>;
     /**
      * 
-     * @type {{ [key: string]: { [key: string]: object; }; }}
+     * @type {{ [key: string]: { [key: string]: any; }; }}
      * @memberof UserPageResult
      */
-    metadata?: { [key: string]: { [key: string]: object; }; };
+    metadata?: { [key: string]: { [key: string]: any; }; };
     /**
      * 
      * @type {Page}

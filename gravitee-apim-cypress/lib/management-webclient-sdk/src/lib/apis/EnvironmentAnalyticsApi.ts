@@ -24,17 +24,17 @@ import {
 } from '../models';
 
 export interface GetPlatformAnalyticsRequest {
-    type: AnalyticsType;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     interval?: number;
     query?: string;
     field?: string;
     size?: number;
+    type: AnalyticsType;
     ranges?: Array<string>;
     aggs?: Array<string>;
+    envId: string;
+    orgId: string;
 }
 
 /**

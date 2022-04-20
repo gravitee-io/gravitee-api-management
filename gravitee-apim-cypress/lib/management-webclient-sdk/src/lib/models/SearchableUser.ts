@@ -30,12 +30,6 @@ export interface SearchableUser {
      * @type {string}
      * @memberof SearchableUser
      */
-    id?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SearchableUser
-     */
     picture?: string;
     /**
      * 
@@ -61,6 +55,12 @@ export interface SearchableUser {
      * @memberof SearchableUser
      */
     displayName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SearchableUser
+     */
+    id?: string;
 }
 
 export function SearchableUserFromJSON(json: any): SearchableUser {
@@ -74,12 +74,12 @@ export function SearchableUserFromJSONTyped(json: any, ignoreDiscriminator: bool
     return {
         
         'email': !exists(json, 'email') ? undefined : json['email'],
-        'id': !exists(json, 'id') ? undefined : json['id'],
         'picture': !exists(json, 'picture') ? undefined : json['picture'],
         'reference': !exists(json, 'reference') ? undefined : json['reference'],
         'firstname': !exists(json, 'firstname') ? undefined : json['firstname'],
         'lastname': !exists(json, 'lastname') ? undefined : json['lastname'],
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
+        'id': !exists(json, 'id') ? undefined : json['id'],
     };
 }
 
@@ -93,12 +93,12 @@ export function SearchableUserToJSON(value?: SearchableUser | null): any {
     return {
         
         'email': value.email,
-        'id': value.id,
         'picture': value.picture,
         'reference': value.reference,
         'firstname': value.firstname,
         'lastname': value.lastname,
         'displayName': value.displayName,
+        'id': value.id,
     };
 }
 

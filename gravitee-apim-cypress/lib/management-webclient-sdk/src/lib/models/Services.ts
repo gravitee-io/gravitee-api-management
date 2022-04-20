@@ -36,16 +36,16 @@ import {
 export interface Services {
     /**
      * 
-     * @type {HealthCheckService}
-     * @memberof Services
-     */
-    health_check?: HealthCheckService;
-    /**
-     * 
      * @type {EndpointDiscoveryService}
      * @memberof Services
      */
     discovery?: EndpointDiscoveryService;
+    /**
+     * 
+     * @type {HealthCheckService}
+     * @memberof Services
+     */
+    health_check?: HealthCheckService;
     /**
      * 
      * @type {DynamicPropertyService}
@@ -64,8 +64,8 @@ export function ServicesFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
     }
     return {
         
-        'health_check': !exists(json, 'health-check') ? undefined : HealthCheckServiceFromJSON(json['health-check']),
         'discovery': !exists(json, 'discovery') ? undefined : EndpointDiscoveryServiceFromJSON(json['discovery']),
+        'health_check': !exists(json, 'health-check') ? undefined : HealthCheckServiceFromJSON(json['health-check']),
         'dynamic_property': !exists(json, 'dynamic-property') ? undefined : DynamicPropertyServiceFromJSON(json['dynamic-property']),
     };
 }
@@ -79,8 +79,8 @@ export function ServicesToJSON(value?: Services | null): any {
     }
     return {
         
-        'health-check': HealthCheckServiceToJSON(value.health_check),
         'discovery': EndpointDiscoveryServiceToJSON(value.discovery),
+        'health-check': HealthCheckServiceToJSON(value.health_check),
         'dynamic-property': DynamicPropertyServiceToJSON(value.dynamic_property),
     };
 }

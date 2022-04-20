@@ -51,23 +51,23 @@ export interface GetTicket1Request {
 }
 
 export interface GetTicketsRequest {
-    envId: string;
-    orgId: string;
     size?: number;
     page?: number;
     apiId?: string;
     applicationId?: string;
     order?: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetTickets1Request {
-    envId: string;
-    orgId: string;
     size?: number;
     page?: number;
     apiId?: string;
     applicationId?: string;
     order?: string;
+    envId: string;
+    orgId: string;
 }
 
 /**

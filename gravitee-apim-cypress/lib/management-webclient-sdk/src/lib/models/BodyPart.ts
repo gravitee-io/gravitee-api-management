@@ -46,10 +46,10 @@ export interface BodyPart {
     contentDisposition?: ContentDisposition;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof BodyPart
      */
-    entity?: object;
+    entity?: any;
     /**
      * 
      * @type {{ [key: string]: Array<string>; }}
@@ -64,10 +64,10 @@ export interface BodyPart {
     mediaType?: BodyPartMediaType;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof BodyPart
      */
-    messageBodyWorkers?: object;
+    messageBodyWorkers?: any;
     /**
      * 
      * @type {MultiPart}
@@ -76,10 +76,10 @@ export interface BodyPart {
     parent?: MultiPart;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof BodyPart
      */
-    providers?: object;
+    providers?: any;
     /**
      * 
      * @type {{ [key: string]: Array<ParameterizedHeader>; }}

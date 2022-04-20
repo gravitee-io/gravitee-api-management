@@ -38,10 +38,10 @@ export interface ApiListItemPagedResult {
     data?: Array<ApiListItem>;
     /**
      * 
-     * @type {{ [key: string]: { [key: string]: object; }; }}
+     * @type {{ [key: string]: { [key: string]: any; }; }}
      * @memberof ApiListItemPagedResult
      */
-    metadata?: { [key: string]: { [key: string]: object; }; };
+    metadata?: { [key: string]: { [key: string]: any; }; };
     /**
      * 
      * @type {Page}

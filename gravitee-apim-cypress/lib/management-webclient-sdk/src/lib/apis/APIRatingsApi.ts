@@ -66,11 +66,11 @@ export interface DeleteApiRatingAnswerRequest {
 }
 
 export interface GetApiRatingRequest {
+    pageNumber?: number;
+    pageSize?: number;
     api: string;
     envId: string;
     orgId: string;
-    pageNumber?: number;
-    pageSize?: number;
 }
 
 export interface GetApiRatingByApiAndUserRequest {

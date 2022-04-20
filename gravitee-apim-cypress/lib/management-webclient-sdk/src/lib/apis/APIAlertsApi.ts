@@ -48,20 +48,20 @@ export interface DeleteApiAlertRequest {
 
 export interface GetApiAlertEventsRequest {
     alert: string;
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     page?: number;
     size?: number;
-}
-
-export interface GetApiAlertsRequest {
     api: string;
     envId: string;
     orgId: string;
+}
+
+export interface GetApiAlertsRequest {
     eventCounts?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiAlertsStatusRequest {
@@ -71,11 +71,11 @@ export interface GetApiAlertsStatusRequest {
 }
 
 export interface GetPlatformAlertsAnalyticsRequest {
+    from?: number;
+    to?: number;
     api: string;
     envId: string;
     orgId: string;
-    from?: number;
-    to?: number;
 }
 
 export interface UpdateApiAlertRequest {

@@ -33,21 +33,21 @@ import {
 } from '../models';
 
 export interface GetApiHealthRequest {
+    type?: HealthcheckType;
+    field?: HealthcheckField;
     api: string;
     envId: string;
     orgId: string;
-    type?: HealthcheckType;
-    field?: HealthcheckField;
 }
 
 export interface GetApiHealthAverageRequest {
+    from?: number;
+    to?: number;
+    interval?: number;
     type: AnalyticsAverageType;
     api: string;
     envId: string;
     orgId: string;
-    from?: number;
-    to?: number;
-    interval?: number;
 }
 
 export interface GetApiHealthCheckLogRequest {
@@ -58,15 +58,15 @@ export interface GetApiHealthCheckLogRequest {
 }
 
 export interface GetApiHealthCheckLogsRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
     size?: number;
     page?: number;
     transition?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 /**

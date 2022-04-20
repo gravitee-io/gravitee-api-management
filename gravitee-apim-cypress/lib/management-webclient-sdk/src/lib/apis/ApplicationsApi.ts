@@ -185,9 +185,6 @@ export interface DeleteApplicationNotificationSettingsRequest {
 }
 
 export interface ExportApplicationLogsAsCSVRequest {
-    application: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -195,6 +192,9 @@ export interface ExportApplicationLogsAsCSVRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    application: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiKeysForApplicationRequest {
@@ -223,10 +223,10 @@ export interface GetApplicationRequest {
 }
 
 export interface GetApplicationAlertsRequest {
+    eventCounts?: boolean;
     application: string;
     envId: string;
     orgId: string;
-    eventCounts?: boolean;
 }
 
 export interface GetApplicationAlertsStatusRequest {
@@ -236,18 +236,18 @@ export interface GetApplicationAlertsStatusRequest {
 }
 
 export interface GetApplicationAnalyticsHitsRequest {
-    type: AnalyticsType;
-    application: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     interval?: number;
     query?: string;
     field?: string;
     size?: number;
+    type: AnalyticsType;
     ranges?: Array<string>;
     aggs?: Array<string>;
+    application: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApplicationBackgroundRequest {
@@ -263,16 +263,13 @@ export interface GetApplicationHooksRequest {
 
 export interface GetApplicationLogRequest {
     log: string;
+    timestamp?: number;
     application: string;
     envId: string;
     orgId: string;
-    timestamp?: number;
 }
 
 export interface GetApplicationLogsRequest {
-    application: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -280,6 +277,9 @@ export interface GetApplicationLogsRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    application: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApplicationMemberPermissionsRequest {
@@ -333,9 +333,6 @@ export interface GetApplicationSubscriptionRequest {
 }
 
 export interface GetApplicationSubscriptionsRequest {
-    application: string;
-    envId: string;
-    orgId: string;
     plan?: Array<string>;
     api?: Array<string>;
     status?: Array<SubscriptionStatus>;
@@ -344,6 +341,9 @@ export interface GetApplicationSubscriptionsRequest {
     size?: number;
     page?: number;
     expand?: Array<GetApplicationSubscriptionsExpandEnum>;
+    application: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApplicationTypeRequest {
@@ -353,11 +353,11 @@ export interface GetApplicationTypeRequest {
 }
 
 export interface GetApplicationsRequest {
-    envId: string;
-    orgId: string;
     group?: string;
     query?: string;
     status?: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface RenewApiKeyForApplicationSubscriptionRequest {
@@ -695,7 +695,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Create notification settings
      */
-    async createApplicationNotificationSettingsRaw(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<object>> {
+    async createApplicationNotificationSettingsRaw(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling createApplicationNotificationSettings.');
         }
@@ -725,13 +725,13 @@ export class ApplicationsApi extends runtime.BaseAPI {
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
         });
 
-        return new runtime.JSONApiResponse<any>(response);
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      * Create notification settings
      */
-    async createApplicationNotificationSettings(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<object> {
+    async createApplicationNotificationSettings(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<any> {
         const response = await this.createApplicationNotificationSettingsRaw(requestParameters);
         return await response.value();
     }
@@ -1814,7 +1814,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApplicationNotificationSettingsRaw(requestParameters: GetApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<object>>> {
+    async getApplicationNotificationSettingsRaw(requestParameters: GetApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationNotificationSettings.');
         }
@@ -1847,7 +1847,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApplicationNotificationSettings(requestParameters: GetApplicationNotificationSettingsRequest): Promise<Array<object>> {
+    async getApplicationNotificationSettings(requestParameters: GetApplicationNotificationSettingsRequest): Promise<Array<any>> {
         const response = await this.getApplicationNotificationSettingsRaw(requestParameters);
         return await response.value();
     }

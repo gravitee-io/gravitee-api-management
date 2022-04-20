@@ -38,10 +38,10 @@ export interface SubscriptionEntityPageResult {
     data?: Array<SubscriptionEntity>;
     /**
      * 
-     * @type {{ [key: string]: { [key: string]: object; }; }}
+     * @type {{ [key: string]: { [key: string]: any; }; }}
      * @memberof SubscriptionEntityPageResult
      */
-    metadata?: { [key: string]: { [key: string]: object; }; };
+    metadata?: { [key: string]: { [key: string]: any; }; };
     /**
      * 
      * @type {Page}

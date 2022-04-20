@@ -44,11 +44,11 @@ export interface GetGroupMembersRequest {
 }
 
 export interface GetGroupMembers1Request {
+    size?: number;
+    page?: number;
     group: string;
     envId: string;
     orgId: string;
-    size?: number;
-    page?: number;
 }
 
 /**

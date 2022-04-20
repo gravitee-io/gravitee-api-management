@@ -40,13 +40,13 @@ export interface GetInstanceMonitoringRequest {
 }
 
 export interface GetInstancesRequest {
-    envId: string;
-    orgId: string;
     includeStopped?: boolean;
     from?: number;
     to?: number;
     page?: number;
     size?: number;
+    envId: string;
+    orgId: string;
 }
 
 /**

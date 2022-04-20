@@ -20,7 +20,7 @@
 export enum AlertReferenceType {
     API = 'API',
     APPLICATION = 'APPLICATION',
-    PLATFORM = 'PLATFORM'
+    ENVIRONMENT = 'ENVIRONMENT'
 }
 
 export function AlertReferenceTypeFromJSON(json: any): AlertReferenceType {

@@ -30,7 +30,7 @@ export interface PageSourceEntity {
      * @type {string}
      * @memberof PageSourceEntity
      */
-    _configuration?: string;
+    configuration?: string;
 }
 
 export function PageSourceEntityFromJSON(json: any): PageSourceEntity {
@@ -44,7 +44,7 @@ export function PageSourceEntityFromJSONTyped(json: any, ignoreDiscriminator: bo
     return {
         
         'type': !exists(json, 'type') ? undefined : json['type'],
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
     };
 }
 
@@ -58,7 +58,7 @@ export function PageSourceEntityToJSON(value?: PageSourceEntity | null): any {
     return {
         
         'type': value.type,
-        'configuration': value._configuration,
+        'configuration': value.configuration,
     };
 }
 

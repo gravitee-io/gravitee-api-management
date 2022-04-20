@@ -103,7 +103,7 @@ export interface UpdatePageEntity {
      * @type {{ [key: string]: string; }}
      * @memberof UpdatePageEntity
      */
-    _configuration?: { [key: string]: string; };
+    configuration?: { [key: string]: string; };
     /**
      * 
      * @type {boolean}
@@ -162,7 +162,7 @@ export function UpdatePageEntityFromJSONTyped(json: any, ignoreDiscriminator: bo
         'order': !exists(json, 'order') ? undefined : json['order'],
         'published': !exists(json, 'published') ? undefined : json['published'],
         'visibility': !exists(json, 'visibility') ? undefined : VisibilityFromJSON(json['visibility']),
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
         'homepage': !exists(json, 'homepage') ? undefined : json['homepage'],
         'parentId': !exists(json, 'parentId') ? undefined : json['parentId'],
         'excludedAccessControls': !exists(json, 'excludedAccessControls') ? undefined : json['excludedAccessControls'],
@@ -191,7 +191,7 @@ export function UpdatePageEntityToJSON(value?: UpdatePageEntity | null): any {
         'order': value.order,
         'published': value.published,
         'visibility': VisibilityToJSON(value.visibility),
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'homepage': value.homepage,
         'parentId': value.parentId,
         'excludedAccessControls': value.excludedAccessControls,

@@ -57,10 +57,10 @@ export interface UpdateUserEntity {
     newsletter?: boolean;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {{ [key: string]: any; }}
      * @memberof UpdateUserEntity
      */
-    customFields?: { [key: string]: object; };
+    customFields?: { [key: string]: any; };
 }
 
 export function UpdateUserEntityFromJSON(json: any): UpdateUserEntity {

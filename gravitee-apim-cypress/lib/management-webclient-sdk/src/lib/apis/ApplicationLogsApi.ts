@@ -24,9 +24,6 @@ import {
 } from '../models';
 
 export interface ExportApplicationLogsAsCSVRequest {
-    application: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -34,20 +31,20 @@ export interface ExportApplicationLogsAsCSVRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    application: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApplicationLogRequest {
     log: string;
+    timestamp?: number;
     application: string;
     envId: string;
     orgId: string;
-    timestamp?: number;
 }
 
 export interface GetApplicationLogsRequest {
-    application: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -55,6 +52,9 @@ export interface GetApplicationLogsRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    application: string;
+    envId: string;
+    orgId: string;
 }
 
 /**

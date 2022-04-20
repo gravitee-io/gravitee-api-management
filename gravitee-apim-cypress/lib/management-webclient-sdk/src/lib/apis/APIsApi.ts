@@ -361,10 +361,10 @@ export interface CreateApiRatingAnswerRequest {
 export interface CreateSubscriptionToApiRequest {
     application: string;
     plan: string;
+    customApiKey?: string;
     api: string;
     envId: string;
     orgId: string;
-    customApiKey?: string;
 }
 
 export interface DebugAPIRequest {
@@ -482,22 +482,13 @@ export interface DuplicateAPIRequest {
 
 export interface ExportApiDefinitionRequest {
     api: string;
-    envId: string;
-    orgId: string;
     version?: string;
     exclude?: string;
-}
-
-export interface ExportApiDefinition1Request {
-    api: string;
     envId: string;
     orgId: string;
 }
 
 export interface ExportApiLogsAsCSVRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -505,18 +496,21 @@ export interface ExportApiLogsAsCSVRequest {
     page?: number;
     field?: string;
     order?: boolean;
-}
-
-export interface ExportApiSubscriptionsLogsAsCSVRequest {
     api: string;
     envId: string;
     orgId: string;
+}
+
+export interface ExportApiSubscriptionsLogsAsCSVRequest {
     plan?: Array<string>;
     application?: Array<string>;
     status?: Array<SubscriptionStatus>;
     apiKey?: string;
     size?: number;
     page?: number;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface FetchAllApiPagesRequest {
@@ -540,20 +534,20 @@ export interface GetApiRequest {
 
 export interface GetApiAlertEventsRequest {
     alert: string;
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     page?: number;
     size?: number;
-}
-
-export interface GetApiAlertsRequest {
     api: string;
     envId: string;
     orgId: string;
+}
+
+export interface GetApiAlertsRequest {
     eventCounts?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiAlertsStatusRequest {
@@ -563,18 +557,18 @@ export interface GetApiAlertsStatusRequest {
 }
 
 export interface GetApiAnalyticsHitsRequest {
-    type: AnalyticsType;
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     interval?: number;
     query?: string;
     field?: string;
     size?: number;
+    type: AnalyticsType;
     ranges?: Array<string>;
     aggs?: Array<string>;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiAuditEventsRequest {
@@ -584,9 +578,6 @@ export interface GetApiAuditEventsRequest {
 }
 
 export interface GetApiAuditsRequest {
-    api2: string;
-    envId: string;
-    orgId: string;
     envLog?: boolean;
     orgLog?: boolean;
     api?: string;
@@ -596,6 +587,9 @@ export interface GetApiAuditsRequest {
     to?: number;
     size?: number;
     page?: number;
+    api2: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiBackgroundRequest {
@@ -604,11 +598,17 @@ export interface GetApiBackgroundRequest {
     orgId: string;
 }
 
-export interface GetApiEventsEventsRequest {
+export interface GetApiDefinitionRequest {
     api: string;
     envId: string;
     orgId: string;
+}
+
+export interface GetApiEventsEventsRequest {
     type?: Array<EventType>;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiFlowSchemaFormRequest {
@@ -623,21 +623,21 @@ export interface GetApiGroupsWithMembersRequest {
 }
 
 export interface GetApiHealthRequest {
+    type?: HealthcheckType;
+    field?: HealthcheckField;
     api: string;
     envId: string;
     orgId: string;
-    type?: HealthcheckType;
-    field?: HealthcheckField;
 }
 
 export interface GetApiHealthAverageRequest {
+    from?: number;
+    to?: number;
+    interval?: number;
     type: AnalyticsAverageType;
     api: string;
     envId: string;
     orgId: string;
-    from?: number;
-    to?: number;
-    interval?: number;
 }
 
 export interface GetApiHealthCheckLogRequest {
@@ -648,15 +648,15 @@ export interface GetApiHealthCheckLogRequest {
 }
 
 export interface GetApiHealthCheckLogsRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
     size?: number;
     page?: number;
     transition?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiHooksRequest {
@@ -673,16 +673,13 @@ export interface GetApiKeysForApiSubscriptionRequest {
 
 export interface GetApiLogRequest {
     log: string;
+    timestamp?: number;
     api: string;
     envId: string;
     orgId: string;
-    timestamp?: number;
 }
 
 export interface GetApiLogsRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -690,6 +687,9 @@ export interface GetApiLogsRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiMediaImageRequest {
@@ -738,12 +738,12 @@ export interface GetApiNotifiersRequest {
 
 export interface GetApiPageRequest {
     page: string;
-    api: string;
-    envId: string;
-    orgId: string;
     acceptLanguage?: string;
     portal?: boolean;
     translated?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiPageContentRequest {
@@ -761,9 +761,6 @@ export interface GetApiPageMediaRequest {
 }
 
 export interface GetApiPagesRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     acceptLanguage?: string;
     homepage?: boolean;
     type?: PageType;
@@ -771,6 +768,9 @@ export interface GetApiPagesRequest {
     name?: string;
     root?: boolean;
     translated?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiPictureRequest {
@@ -787,11 +787,11 @@ export interface GetApiPlanRequest {
 }
 
 export interface GetApiPlansRequest {
+    status?: Array<PlanStatus>;
+    security?: Array<PlanSecurityType>;
     api: string;
     envId: string;
     orgId: string;
-    status?: Array<PlanStatus>;
-    security?: Array<PlanSecurityType>;
 }
 
 export interface GetApiQualityMetricsRequest {
@@ -807,11 +807,11 @@ export interface GetApiQualityRulesRequest {
 }
 
 export interface GetApiRatingRequest {
+    pageNumber?: number;
+    pageSize?: number;
     api: string;
     envId: string;
     orgId: string;
-    pageNumber?: number;
-    pageSize?: number;
 }
 
 export interface GetApiRatingByApiAndUserRequest {
@@ -840,9 +840,6 @@ export interface GetApiSubscriptionRequest {
 }
 
 export interface GetApiSubscriptionsRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     plan?: Array<string>;
     application?: Array<string>;
     status?: Array<SubscriptionStatus>;
@@ -850,11 +847,12 @@ export interface GetApiSubscriptionsRequest {
     size?: number;
     page?: number;
     expand?: Array<GetApiSubscriptionsExpandEnum>;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApisRequest {
-    envId: string;
-    orgId: string;
     category?: string;
     group?: string;
     top?: boolean;
@@ -867,11 +865,11 @@ export interface GetApisRequest {
     tag?: string;
     portal?: boolean;
     crossId?: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApisPagedRequest {
-    envId: string;
-    orgId: string;
     category?: string;
     group?: string;
     top?: boolean;
@@ -886,6 +884,8 @@ export interface GetApisPagedRequest {
     crossId?: string;
     size?: number;
     page?: number;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetEventRequest {
@@ -896,11 +896,11 @@ export interface GetEventRequest {
 }
 
 export interface GetPlatformAlertsAnalyticsRequest {
+    from?: number;
+    to?: number;
     api: string;
     envId: string;
     orgId: string;
-    from?: number;
-    to?: number;
 }
 
 export interface GetPortalApiHeadersRequest {
@@ -910,10 +910,10 @@ export interface GetPortalApiHeadersRequest {
 }
 
 export interface ImportApiDefinitionRequest {
+    definitionVersion?: string;
     envId: string;
     orgId: string;
-    body: string;
-    definitionVersion?: string;
+    body: any;
 }
 
 export interface ImportApiPageFilesRequest {
@@ -926,16 +926,16 @@ export interface ImportApiPageFilesRequest {
 export interface ImportApiPathMappingsFromPageRequest {
     api: string;
     page: string;
+    definitionVersion?: string;
     envId: string;
     orgId: string;
-    definitionVersion?: string;
 }
 
 export interface ImportSwaggerApiRequest {
+    definitionVersion?: string;
     envId: string;
     orgId: string;
     importSwaggerDescriptorEntity: ImportSwaggerDescriptorEntity;
-    definitionVersion?: string;
 }
 
 export interface IsApiSynchronizedRequest {
@@ -959,11 +959,11 @@ export interface PartialUpdateApiPageRequest {
 }
 
 export interface PatchRequest {
+    dryRun?: boolean;
     api: string;
     envId: string;
     orgId: string;
     jsonPatch: Array<JsonPatch>;
-    dryRun?: boolean;
 }
 
 export interface ProcessApiSubscriptionRequest {
@@ -998,10 +998,10 @@ export interface ReactivateApiKeyForApiSubscriptionRequest {
 
 export interface RenewSubscriptionApiKeysForApiSubscriptionRequest {
     subscription: string;
+    customApiKey?: string;
     api: string;
     envId: string;
     orgId: string;
-    customApiKey?: string;
 }
 
 export interface RevokeApiKeyForApiSubscriptionRequest {
@@ -1020,15 +1020,15 @@ export interface RollbackApiRequest {
 }
 
 export interface SearchApiEventsRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     type?: Array<EventType>;
     from?: number;
     to?: number;
     page?: number;
     size?: number;
     apiIds?: Array<string>;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface SearchApisRequest {
@@ -1039,11 +1039,11 @@ export interface SearchApisRequest {
 
 export interface SearchApis1Request {
     q: string;
-    envId: string;
-    orgId: string;
     order?: ApisOrderParam;
     size?: number;
     page?: number;
+    envId: string;
+    orgId: string;
 }
 
 export interface TransferApiMemberOwnershipRequest {
@@ -1171,10 +1171,10 @@ export interface UpdateApiWithSwaggerRequest {
 
 export interface UpdateApiWithSwaggerPUTRequest {
     api: string;
+    definitionVersion?: string;
     envId: string;
     orgId: string;
     importSwaggerDescriptorEntity: ImportSwaggerDescriptorEntity;
-    definitionVersion?: string;
 }
 
 export interface UpdatePageContentRequest {
@@ -1639,7 +1639,7 @@ export class APIsApi extends runtime.BaseAPI {
     /**
      * Create notification settings
      */
-    async createApiNotificationSettingsRaw(requestParameters: CreateApiNotificationSettingsRequest): Promise<runtime.ApiResponse<object>> {
+    async createApiNotificationSettingsRaw(requestParameters: CreateApiNotificationSettingsRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling createApiNotificationSettings.');
         }
@@ -1669,13 +1669,13 @@ export class APIsApi extends runtime.BaseAPI {
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
         });
 
-        return new runtime.JSONApiResponse<any>(response);
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      * Create notification settings
      */
-    async createApiNotificationSettings(requestParameters: CreateApiNotificationSettingsRequest): Promise<object> {
+    async createApiNotificationSettings(requestParameters: CreateApiNotificationSettingsRequest): Promise<any> {
         const response = await this.createApiNotificationSettingsRaw(requestParameters);
         return await response.value();
     }
@@ -2757,7 +2757,7 @@ export class APIsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API permission to use this service
      * Export the API definition in JSON format
      */
-    async exportApiDefinitionRaw(requestParameters: ExportApiDefinitionRequest): Promise<runtime.ApiResponse<ApiEntity>> {
+    async exportApiDefinitionRaw(requestParameters: ExportApiDefinitionRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling exportApiDefinition.');
         }
@@ -2792,58 +2792,15 @@ export class APIsApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      * User must have the MANAGE_API permission to use this service
      * Export the API definition in JSON format
      */
-    async exportApiDefinition(requestParameters: ExportApiDefinitionRequest): Promise<ApiEntity> {
+    async exportApiDefinition(requestParameters: ExportApiDefinitionRequest): Promise<any> {
         const response = await this.exportApiDefinitionRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * User must have the API_DEFINITION[READ] permission to use this service
-     * Export the API definition in JSON format
-     */
-    async exportApiDefinition1Raw(requestParameters: ExportApiDefinition1Request): Promise<runtime.ApiResponse<ApiEntity>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling exportApiDefinition1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling exportApiDefinition1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling exportApiDefinition1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/apis/{api}/definition`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the API_DEFINITION[READ] permission to use this service
-     * Export the API definition in JSON format
-     */
-    async exportApiDefinition1(requestParameters: ExportApiDefinition1Request): Promise<ApiEntity> {
-        const response = await this.exportApiDefinition1Raw(requestParameters);
         return await response.value();
     }
 
@@ -3511,6 +3468,49 @@ export class APIsApi extends runtime.BaseAPI {
      */
     async getApiBackground(requestParameters: GetApiBackgroundRequest): Promise<Blob> {
         const response = await this.getApiBackgroundRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * User must have the API_DEFINITION[READ] permission to use this service
+     * Export the API definition in JSON format
+     */
+    async getApiDefinitionRaw(requestParameters: GetApiDefinitionRequest): Promise<runtime.ApiResponse<any>> {
+        if (requestParameters.api === null || requestParameters.api === undefined) {
+            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiDefinition.');
+        }
+
+        if (requestParameters.envId === null || requestParameters.envId === undefined) {
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApiDefinition.');
+        }
+
+        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiDefinition.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/organizations/{orgId}/environments/{envId}/apis/{api}/definition`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.TextApiResponse(response) as any;
+    }
+
+    /**
+     * User must have the API_DEFINITION[READ] permission to use this service
+     * Export the API definition in JSON format
+     */
+    async getApiDefinition(requestParameters: GetApiDefinitionRequest): Promise<any> {
+        const response = await this.getApiDefinitionRaw(requestParameters);
         return await response.value();
     }
 
@@ -4284,7 +4284,7 @@ export class APIsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApiNotificationSettingsRaw(requestParameters: GetApiNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<object>>> {
+    async getApiNotificationSettingsRaw(requestParameters: GetApiNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiNotificationSettings.');
         }
@@ -4317,7 +4317,7 @@ export class APIsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApiNotificationSettings(requestParameters: GetApiNotificationSettingsRequest): Promise<Array<object>> {
+    async getApiNotificationSettings(requestParameters: GetApiNotificationSettingsRequest): Promise<Array<any>> {
         const response = await this.getApiNotificationSettingsRaw(requestParameters);
         return await response.value();
     }
@@ -5769,7 +5769,7 @@ export class APIsApi extends runtime.BaseAPI {
      * User must have the API_DEFINITION[UPDATE] permission to use this service
      * Update the API with json patches
      */
-    async patchRaw(requestParameters: PatchRequest): Promise<runtime.ApiResponse<ApiEntity>> {
+    async patchRaw(requestParameters: PatchRequest): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling patch.');
         }
@@ -5807,14 +5807,14 @@ export class APIsApi extends runtime.BaseAPI {
             body: requestParameters.jsonPatch.map(JsonPatchToJSON),
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
+        return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      * User must have the API_DEFINITION[UPDATE] permission to use this service
      * Update the API with json patches
      */
-    async patch(requestParameters: PatchRequest): Promise<ApiEntity> {
+    async patch(requestParameters: PatchRequest): Promise<any> {
         const response = await this.patchRaw(requestParameters);
         return await response.value();
     }

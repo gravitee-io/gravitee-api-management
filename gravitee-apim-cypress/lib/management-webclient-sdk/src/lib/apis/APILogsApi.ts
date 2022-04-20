@@ -24,9 +24,6 @@ import {
 } from '../models';
 
 export interface ExportApiLogsAsCSVRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -34,20 +31,20 @@ export interface ExportApiLogsAsCSVRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetApiLogRequest {
     log: string;
+    timestamp?: number;
     api: string;
     envId: string;
     orgId: string;
-    timestamp?: number;
 }
 
 export interface GetApiLogsRequest {
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -55,6 +52,9 @@ export interface GetApiLogsRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 /**

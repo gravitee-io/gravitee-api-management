@@ -38,10 +38,10 @@ export interface PagedResultGroupMemberEntity {
     data?: Array<GroupMemberEntity>;
     /**
      * 
-     * @type {{ [key: string]: { [key: string]: object; }; }}
+     * @type {{ [key: string]: { [key: string]: any; }; }}
      * @memberof PagedResultGroupMemberEntity
      */
-    metadata?: { [key: string]: { [key: string]: object; }; };
+    metadata?: { [key: string]: { [key: string]: any; }; };
     /**
      * 
      * @type {Page}

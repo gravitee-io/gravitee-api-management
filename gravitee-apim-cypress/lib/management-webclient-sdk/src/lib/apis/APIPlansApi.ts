@@ -75,11 +75,11 @@ export interface GetApiPlanRequest {
 }
 
 export interface GetApiPlansRequest {
+    status?: Array<PlanStatus>;
+    security?: Array<PlanSecurityType>;
     api: string;
     envId: string;
     orgId: string;
-    status?: Array<PlanStatus>;
-    security?: Array<PlanSecurityType>;
 }
 
 export interface PublishApiPlanRequest {

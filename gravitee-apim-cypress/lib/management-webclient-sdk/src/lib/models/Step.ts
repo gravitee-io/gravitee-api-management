@@ -39,10 +39,10 @@ export interface Step {
     description?: string;
     /**
      * 
-     * @type {object}
+     * @type {any}
      * @memberof Step
      */
-    _configuration?: object;
+    configuration?: any;
     /**
      * 
      * @type {boolean}
@@ -70,7 +70,7 @@ export function StepFromJSONTyped(json: any, ignoreDiscriminator: boolean): Step
         'name': !exists(json, 'name') ? undefined : json['name'],
         'policy': !exists(json, 'policy') ? undefined : json['policy'],
         'description': !exists(json, 'description') ? undefined : json['description'],
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
         'enabled': !exists(json, 'enabled') ? undefined : json['enabled'],
         'condition': !exists(json, 'condition') ? undefined : json['condition'],
     };
@@ -88,7 +88,7 @@ export function StepToJSON(value?: Step | null): any {
         'name': value.name,
         'policy': value.policy,
         'description': value.description,
-        'configuration': value._configuration,
+        'configuration': value.configuration,
         'enabled': value.enabled,
         'condition': value.condition,
     };

@@ -24,12 +24,6 @@ export interface MembershipListItem {
      * @type {string}
      * @memberof MembershipListItem
      */
-    id?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MembershipListItem
-     */
     role?: string;
     /**
      * 
@@ -37,6 +31,12 @@ export interface MembershipListItem {
      * @memberof MembershipListItem
      */
     displayName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MembershipListItem
+     */
+    id?: string;
 }
 
 export function MembershipListItemFromJSON(json: any): MembershipListItem {
@@ -49,9 +49,9 @@ export function MembershipListItemFromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'id': !exists(json, 'id') ? undefined : json['id'],
         'role': !exists(json, 'role') ? undefined : json['role'],
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
+        'id': !exists(json, 'id') ? undefined : json['id'],
     };
 }
 
@@ -64,9 +64,9 @@ export function MembershipListItemToJSON(value?: MembershipListItem | null): any
     }
     return {
         
-        'id': value.id,
         'role': value.role,
         'displayName': value.displayName,
+        'id': value.id,
     };
 }
 

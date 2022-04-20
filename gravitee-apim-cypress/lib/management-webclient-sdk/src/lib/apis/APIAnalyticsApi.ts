@@ -24,18 +24,18 @@ import {
 } from '../models';
 
 export interface GetApiAnalyticsHitsRequest {
-    type: AnalyticsType;
-    api: string;
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     interval?: number;
     query?: string;
     field?: string;
     size?: number;
+    type: AnalyticsType;
     ranges?: Array<string>;
     aggs?: Array<string>;
+    api: string;
+    envId: string;
+    orgId: string;
 }
 
 /**

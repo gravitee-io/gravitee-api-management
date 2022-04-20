@@ -24,8 +24,6 @@ import {
 } from '../models';
 
 export interface ExportPlatformLogsAsCSVRequest {
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -33,18 +31,18 @@ export interface ExportPlatformLogsAsCSVRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    envId: string;
+    orgId: string;
 }
 
 export interface GetPlatformLogRequest {
     log: string;
+    timestamp?: number;
     envId: string;
     orgId: string;
-    timestamp?: number;
 }
 
 export interface GetPlatformLogsRequest {
-    envId: string;
-    orgId: string;
     from?: number;
     to?: number;
     query?: string;
@@ -52,6 +50,8 @@ export interface GetPlatformLogsRequest {
     page?: number;
     field?: string;
     order?: boolean;
+    envId: string;
+    orgId: string;
 }
 
 /**

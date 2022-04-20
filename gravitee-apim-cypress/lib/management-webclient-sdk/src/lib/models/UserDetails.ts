@@ -110,10 +110,10 @@ export interface UserDetails {
     displayNewsletterSubscription?: boolean;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {{ [key: string]: any; }}
      * @memberof UserDetails
      */
-    customFields?: { [key: string]: object; };
+    customFields?: { [key: string]: any; };
     /**
      * 
      * @type {boolean}

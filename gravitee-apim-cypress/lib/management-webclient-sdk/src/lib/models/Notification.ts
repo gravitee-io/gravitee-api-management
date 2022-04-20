@@ -43,7 +43,7 @@ export interface Notification {
      * @type {string}
      * @memberof Notification
      */
-    _configuration?: string;
+    configuration?: string;
 }
 
 export function NotificationFromJSON(json: any): Notification {
@@ -58,7 +58,7 @@ export function NotificationFromJSONTyped(json: any, ignoreDiscriminator: boolea
         
         'type': !exists(json, 'type') ? undefined : json['type'],
         'periods': !exists(json, 'periods') ? undefined : ((json['periods'] as Array<any>).map(PeriodFromJSON)),
-        '_configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
     };
 }
 
@@ -73,7 +73,7 @@ export function NotificationToJSON(value?: Notification | null): any {
         
         'type': value.type,
         'periods': value.periods === undefined ? undefined : ((value.periods as Array<any>).map(PeriodToJSON)),
-        'configuration': value._configuration,
+        'configuration': value.configuration,
     };
 }
 
