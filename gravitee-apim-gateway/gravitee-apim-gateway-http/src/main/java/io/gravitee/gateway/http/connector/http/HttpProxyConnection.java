@@ -30,6 +30,7 @@ import io.gravitee.gateway.http.connector.ClientConnectionResponse;
 import io.gravitee.gateway.http.connector.ClientTimeoutResponse;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.http.*;
@@ -186,12 +187,25 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
                 .names()
                 .forEach(headerName -> proxyResponse.headers().put(headerName, clientResponse.headers().getAll(headerName)));
 
+            if (isSse(proxyRequest)) {
+                proxyRequest.closeHandler(
+                    proxyConnectionClosed -> {
+                        clientResponse.exceptionHandler(null);
+                        cancel();
+                    }
+                );
+            }
+
             proxyResponse.pause();
 
             proxyResponse.cancelHandler(tracker);
 
             // Copy body content
-            clientResponse.handler(event -> proxyResponse.bodyHandler().handle(Buffer.buffer(event.getBytes())));
+            clientResponse.handler(
+                event -> {
+                    proxyResponse.bodyHandler().handle(Buffer.buffer(event.getBytes()));
+                }
+            );
 
             // Signal end of the response
             clientResponse.endHandler(
@@ -348,5 +362,9 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
         httpClientRequest.writeCustomFrame(frame.type(), frame.flags(), io.vertx.core.buffer.Buffer.buffer(frame.payload().getBytes()));
 
         return this;
+    }
+
+    private boolean isSse(ProxyRequest request) {
+        return HttpHeaderValues.TEXT_EVENT_STREAM.contentEqualsIgnoreCase(request.headers().getFirst(HttpHeaders.ACCEPT));
     }
 }
