@@ -17,12 +17,17 @@ package io.gravitee.rest.api.services.search;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandQuery;
 import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.IOException;
@@ -65,6 +70,9 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
     @Autowired
     private SearchEngineService searchEngineService;
 
+    @Autowired
+    private EnvironmentRepository environmentRepository;
+
     private ObjectMapper mapper = new ObjectMapper();
 
     @Override
@@ -86,10 +94,22 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
     @Override
     public void run() {
         logger.debug("Search Indexer #{} started at {}", counter.incrementAndGet(), Instant.now());
+        try {
+            for (Environment environment : environmentRepository.findAll()) {
+                runByEnvironment(new ExecutionContext(environment.getOrganizationId(), environment.getId()));
+            }
+        } catch (TechnicalException e) {
+            logger.error("{} execution failed", this.getClass().getSimpleName(), e);
+        }
+
+        logger.debug("Search Indexer #{} ended at {}", counter.get(), Instant.now());
+    }
+
+    private void runByEnvironment(ExecutionContext executionContext) {
         CommandQuery query = new CommandQuery();
         query.setTo(MessageRecipient.MANAGEMENT_APIS.name());
         query.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
-        List<CommandEntity> messageEntities = commandService.search(GraviteeContext.getExecutionContext(), query);
+        List<CommandEntity> messageEntities = commandService.search(executionContext, query);
         messageEntities.forEach(
             commandEntity -> {
                 if (commandEntity.isExpired()) {
@@ -99,7 +119,7 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
                         commandService.ack(commandEntity.getId());
                         try {
                             searchEngineService.process(
-                                GraviteeContext.getExecutionContext(),
+                                executionContext,
                                 mapper.readValue(commandEntity.getContent(), CommandSearchIndexerEntity.class)
                             );
                         } catch (IOException e) {
@@ -109,7 +129,5 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
                 }
             }
         );
-
-        logger.debug("Search Indexer #{} ended at {}", counter.get(), Instant.now());
     }
 }

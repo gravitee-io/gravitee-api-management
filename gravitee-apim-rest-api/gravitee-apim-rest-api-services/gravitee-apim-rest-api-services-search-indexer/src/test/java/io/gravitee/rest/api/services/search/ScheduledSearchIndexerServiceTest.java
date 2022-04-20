@@ -17,13 +17,19 @@ package io.gravitee.rest.api.services.search;
 
 import static org.mockito.Mockito.*;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -46,9 +52,24 @@ public class ScheduledSearchIndexerServiceTest {
     @Mock
     SearchEngineService searchEngineService;
 
+    @Mock
+    EnvironmentRepository environmentRepository;
+
+    @Mock
+    Environment environment;
+
+    @Before
+    public void setup() throws TechnicalException {
+        environment.setId("DEFAULT");
+        environment.setOrganizationId("DEFAULT");
+        Set<Environment> environments = Set.of(environment);
+        when(environmentRepository.findAll()).thenReturn(environments);
+    }
+
     @Test
     public void shouldDoNothing() {
-        when(commandService.search(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptyList());
+        ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
+        when(commandService.search(eq(executionContext), any())).thenReturn(Collections.emptyList());
 
         service.run();
 
@@ -58,6 +79,7 @@ public class ScheduledSearchIndexerServiceTest {
 
     @Test
     public void shouldInsertAndDelete() {
+        ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
         CommandEntity insert = new CommandEntity();
         insert.setId("insertid");
         insert.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
@@ -66,11 +88,11 @@ public class ScheduledSearchIndexerServiceTest {
         delete.setId("deleteid");
         delete.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
         delete.setContent("{\"id\":\"2\"}");
-        when(commandService.search(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Arrays.asList(delete, insert));
+        when(commandService.search(eq(executionContext), any())).thenReturn(Arrays.asList(delete, insert));
 
         service.run();
 
         verify(commandService, times(2)).ack(anyString());
-        verify(searchEngineService, times(2)).process(eq(GraviteeContext.getExecutionContext()), any());
+        verify(searchEngineService, times(2)).process(eq(executionContext), any());
     }
 }
