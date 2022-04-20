@@ -124,7 +124,7 @@
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
         <snakeyaml.version>1.30</snakeyaml.version>
         <swagger-jaxrs2.version>2.1.13</swagger-jaxrs2.version>
-        <swagger-core.version>2.1.13</swagger-core.version>
+        <swagger-core.version>2.2.0</swagger-core.version>
         <swagger-parser.version>2.0.30</swagger-parser.version>
         <swagger-models.version>1.6.4</swagger-models.version>
         <testcontainers.version>1.16.3</testcontainers.version>
