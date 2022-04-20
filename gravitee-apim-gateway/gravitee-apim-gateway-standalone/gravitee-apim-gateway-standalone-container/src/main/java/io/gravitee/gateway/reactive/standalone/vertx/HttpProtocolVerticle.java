@@ -39,16 +39,13 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
     private final io.vertx.reactivex.core.http.HttpServer rxHttpServer;
     private final HttpRequestDispatcher requestDispatcher;
-    private final HttpServerConfiguration httpServerConfiguration;
     private Disposable requestDisposable;
 
     public HttpProtocolVerticle(
         @Qualifier("gatewayHttpServer") HttpServer httpServer,
-        @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration,
         @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
         this.rxHttpServer = io.vertx.reactivex.core.http.HttpServer.newInstance(httpServer);
-        this.httpServerConfiguration = httpServerConfiguration;
         this.requestDispatcher = requestDispatcher;
     }
 
@@ -94,7 +91,7 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         return rxHttpServer
             .rxListen()
             .ignoreElement()
-            .doOnComplete(() -> log.info("HTTP listener ready to accept requests on port {}", httpServerConfiguration.getPort()))
+            .doOnComplete(() -> log.info("HTTP listener ready to accept requests on port {}", rxHttpServer.actualPort()))
             .doOnError(throwable -> log.error("Unable to start HTTP Server", throwable.getCause()));
     }
 
