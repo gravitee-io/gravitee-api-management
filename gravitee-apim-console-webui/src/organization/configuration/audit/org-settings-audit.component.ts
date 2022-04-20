@@ -14,7 +14,22 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { mapValues } from 'lodash';
 import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { AuditService } from '../../../services-ngx/audit.service';
+
+interface AuditDataTable {
+  id: string;
+  date: number;
+  user: string;
+  referenceType: string;
+  reference: string;
+  event: string;
+  targets: Record<string, string>;
+  patch: unknown;
+  displayPatch: boolean;
+}
 
 @Component({
   selector: 'org-settings-audit',
@@ -24,9 +39,29 @@ import { Subject } from 'rxjs';
 export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  constructor() {}
+  public displayedColumns = ['date', 'user', 'referenceType', 'reference', 'event', 'targets', 'patch'];
+  public filteredTableData: AuditDataTable[] = [];
 
-  ngOnInit(): void {}
+  constructor(private auditService: AuditService) {}
+
+  ngOnInit(): void {
+    this.auditService
+      .listByOrganization()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((auditsPage) => {
+        this.filteredTableData = (auditsPage.content ?? []).map((audit) => ({
+          id: audit.id,
+          date: audit.createdAt,
+          user: (auditsPage.metadata[`USER:${audit.user}:name`] as string) ?? audit.user,
+          referenceType: audit.referenceType,
+          reference: (auditsPage.metadata[`${audit.referenceType}:${audit.referenceId}:name`] as string) ?? audit.user,
+          event: audit.event,
+          targets: mapValues(audit.properties, (v, k) => auditsPage.metadata[k + ':' + v + ':name'] as string),
+          patch: JSON.parse(audit.patch),
+          displayPatch: false,
+        }));
+      });
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
