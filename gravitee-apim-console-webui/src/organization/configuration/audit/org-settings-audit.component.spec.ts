@@ -20,6 +20,7 @@ import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { OrgSettingsAuditComponent } from './org-settings-audit.component';
 
@@ -48,6 +49,7 @@ describe('OrgSettingsAuditComponent', () => {
 
   it('should display audit logs', async () => {
     expectAuditListRequest();
+    expectAuditEventsNameRequest();
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
@@ -64,13 +66,35 @@ describe('OrgSettingsAuditComponent', () => {
     });
   });
 
+  it('should display audit logs with event filter', async () => {
+    expectAuditListRequest();
+    expectAuditEventsNameRequest();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    expect(rowCells.length).toEqual(20);
+
+    const eventInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=event]' }));
+    await eventInput.clickOptions({ text: 'ROLE_UPDATED' });
+    expectAuditListRequest({ event: 'ROLE_UPDATED' });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  function expectAuditListRequest() {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/audit`);
+  function expectAuditListRequest(filters: { event?: string } = {}) {
+    const req = httpTestingController.expectOne(
+      `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10${filters.event ? '&event=' + filters.event : ''}`,
+    );
     expect(req.request.method).toEqual('GET');
     req.flush(fakeMetadataPageAudit());
+  }
+
+  function expectAuditEventsNameRequest() {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/audit/events`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(['TENANT_CREATED', 'ROLE_UPDATED']);
   }
 });

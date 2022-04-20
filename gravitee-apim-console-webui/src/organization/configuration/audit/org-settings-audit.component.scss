@@ -5,6 +5,10 @@
 }
 
 .org-settings-audit {
+  &__filters {
+    margin-bottom: 8px;
+  }
+
   &__table {
     .mat-column-date {
       min-width: 214px;

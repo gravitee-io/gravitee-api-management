@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
 import { mapValues } from 'lodash';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { distinctUntilChanged, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
+import { ApiService } from '../../../services-ngx/api.service';
 import { AuditService } from '../../../services-ngx/audit.service';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 interface AuditDataTable {
   id: string;
@@ -37,18 +40,45 @@ interface AuditDataTable {
   styles: [require('./org-settings-audit.component.scss')],
 })
 export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-
   public displayedColumns = ['date', 'user', 'referenceType', 'reference', 'event', 'targets', 'patch'];
   public filteredTableData: AuditDataTable[] = [];
+  public nbTotalAudit = 0;
+
+  public filtersForm = new FormGroup({
+    event: new FormControl(),
+  });
+
+  public range = new FormGroup({
+    start: new FormControl(),
+    end: new FormControl(),
+  });
+
+  public eventsName$ = this.auditService.getAllEventsNameByOrganization();
+
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  // Create filters stream
+  private filtersStream = new BehaviorSubject<GioTableWrapperFilters & { event?: string }>({
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  });
 
   constructor(private auditService: AuditService) {}
 
   ngOnInit(): void {
-    this.auditService
-      .listByOrganization()
-      .pipe(takeUntil(this.unsubscribe$))
+    this.filtersForm.valueChanges.subscribe(({ event }) => {
+      this.filtersStream.next({ ...this.filtersStream.value, event });
+    });
+
+    this.filtersStream
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        throttleTime(100),
+        distinctUntilChanged(),
+        switchMap(({ pagination, event }) => this.auditService.listByOrganization({ event }, pagination.index, pagination.size)),
+      )
       .subscribe((auditsPage) => {
+        this.nbTotalAudit = auditsPage.totalElements;
         this.filteredTableData = (auditsPage.content ?? []).map((audit) => ({
           id: audit.id,
           date: audit.createdAt,
@@ -66,5 +96,9 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  onFiltersChanged(filters: GioTableWrapperFilters) {
+    this.filtersStream.next(filters);
   }
 }

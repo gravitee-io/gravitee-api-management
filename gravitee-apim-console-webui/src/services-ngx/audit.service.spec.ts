@@ -35,7 +35,7 @@ describe('AuditService', () => {
   });
 
   describe('listByOrganization', () => {
-    it('should call the API with PLATFORM scope', (done) => {
+    it('should call the API', (done) => {
       const fakeAuditPage = fakeMetadataPageAudit();
 
       auditService.listByOrganization().subscribe((response) => {
@@ -43,10 +43,46 @@ describe('AuditService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/audit`);
-      expect(req.request.method).toEqual('GET');
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10`,
+        })
+        .flush(fakeAuditPage);
+    });
 
-      req.flush(fakeAuditPage);
+    it('should call the API with filters', (done) => {
+      const fakeAuditPage = fakeMetadataPageAudit();
+
+      auditService.listByOrganization({ event: 'HELLO' }).subscribe((response) => {
+        expect(response).toEqual(fakeAuditPage);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10&event=HELLO`,
+        })
+        .flush(fakeAuditPage);
+    });
+  });
+
+  describe('getAllEventsNameByOrganization', () => {
+    it('should call the API', (done) => {
+      const fakeEvents = ['HELLO', 'WORLD'];
+
+      auditService.getAllEventsNameByOrganization().subscribe((response) => {
+        expect(response).toEqual(fakeEvents);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/audit/events`,
+        })
+        .flush(fakeEvents);
     });
   });
 
