@@ -36,7 +36,7 @@
     "@angular/router": "13.3.0",
     "@asyncapi/web-component": "1.0.0-next.15",
     "@fontsource/ibm-plex-sans": "^4.5.5",
-    "@gravitee/ui-components": "3.33.1",
+    "@gravitee/ui-components": "3.35.0",
     "@highcharts/map-collection": "^2.0.0",
     "@ngx-translate/core": "14.0.0",
     "@ngx-translate/http-loader": "7.0.0",
