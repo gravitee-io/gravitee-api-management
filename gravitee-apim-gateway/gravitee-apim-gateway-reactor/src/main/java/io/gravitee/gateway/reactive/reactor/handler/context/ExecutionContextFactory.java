@@ -22,7 +22,6 @@ import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
 import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
-
 import java.util.ArrayList;
 import java.util.List;
 
