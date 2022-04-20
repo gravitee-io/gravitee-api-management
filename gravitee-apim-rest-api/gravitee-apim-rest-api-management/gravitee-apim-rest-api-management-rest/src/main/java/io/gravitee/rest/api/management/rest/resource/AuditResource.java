@@ -69,10 +69,10 @@ public class AuditResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(
-            {
-                    @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ),
-                    @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
-            }
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
+        }
     )
     public AuditEntityMetadataPage getAudits(@BeanParam AuditParam param) {
         AuditQuery query = new AuditQuery();
@@ -80,17 +80,12 @@ public class AuditResource extends AbstractResource {
         query.setTo(param.getTo());
         query.setPage(param.getPage());
         query.setSize(param.getSize());
-        if (param.isEnvironmentLogsOnly()) {
-            query.setCurrentEnvironmentLogsOnly(true);
-        } else if (param.isOrganizationLogsOnly()) {
-            query.setCurrentOrganizationLogsOnly(true);
-        } else {
-            if (param.getApiId() != null) {
-                query.setApiIds(Collections.singletonList(param.getApiId()));
-            }
-            if (param.getApplicationId() != null) {
-                query.setApplicationIds(Collections.singletonList(param.getApplicationId()));
-            }
+
+        if (param.getApiId() != null) {
+            query.setApiIds(Collections.singletonList(param.getApiId()));
+        }
+        if (param.getApplicationId() != null) {
+            query.setApplicationIds(Collections.singletonList(param.getApplicationId()));
         }
 
         if (param.getEvent() != null) {
@@ -117,10 +112,10 @@ public class AuditResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
-            {
-                    @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ),
-                    @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
-            }
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
+        }
     )
     public Response getAuditEvents() {
         if (events.isEmpty()) {
