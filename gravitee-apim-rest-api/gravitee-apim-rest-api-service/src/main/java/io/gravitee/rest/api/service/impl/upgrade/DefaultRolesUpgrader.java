@@ -58,6 +58,7 @@ public class DefaultRolesUpgrader extends OneShotUpgrader {
                 organization -> {
                     ExecutionContext executionContext = new ExecutionContext(organization);
                     initializeDefaultRoles(executionContext);
+                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
                 }
             );
     }

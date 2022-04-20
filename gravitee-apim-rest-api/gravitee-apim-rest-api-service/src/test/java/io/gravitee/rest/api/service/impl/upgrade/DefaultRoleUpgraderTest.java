@@ -62,6 +62,7 @@ public class DefaultRoleUpgraderTest {
         upgrader.processOneShotUpgrade();
         verify(roleService, times(1)).findAllByOrganization(expectedExecutionContext.getOrganizationId());
         verify(roleService, times(1)).initialize(expectedExecutionContext, expectedExecutionContext.getOrganizationId());
+        verify(roleService, times(1)).createOrUpdateSystemRoles(expectedExecutionContext, organization.getId());
     }
 
     @Test
@@ -82,5 +83,6 @@ public class DefaultRoleUpgraderTest {
         verify(roleService, never()).initialize(expectedExecutionContext, expectedExecutionContext.getOrganizationId());
         verify(roleService).findByScopeAndName(API, ROLE_API_REVIEWER.getName(), expectedExecutionContext.getOrganizationId());
         verify(roleService).create(expectedExecutionContext, ROLE_API_REVIEWER);
+        verify(roleService, times(1)).createOrUpdateSystemRoles(expectedExecutionContext, organization.getId());
     }
 }
