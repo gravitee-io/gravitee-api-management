@@ -55,10 +55,9 @@ public class VertxReactorConfiguration {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public HttpProtocolVerticle graviteeVerticle(
         @Qualifier("gatewayHttpServer") HttpServer httpServer,
-        @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration,
         @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
-        return new HttpProtocolVerticle(httpServer, httpServerConfiguration, requestDispatcher);
+        return new HttpProtocolVerticle(httpServer, requestDispatcher);
     }
 
     @Bean
