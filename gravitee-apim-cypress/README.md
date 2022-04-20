@@ -1,8 +1,8 @@
-# Integration tests with Cypress
+# Gravitee APIM e2e
 
 This folder contains the integration tests of Gravitee.io API Management.
 
-They are based on Cypress and can be run against a locally running APIM Rest API.
+They are based on Cypress and Jest and can be run against a locally running APIM Rest API.
 
 
 ## Getting Started
@@ -14,35 +14,40 @@ npm install
 ```
 
 Then, the following NPM scripts are available:
- - `npm run test`: Opens the Cypress Test Runner to run tests against a locally running APIM Rest API  
- - `npm run test:ci`: Run integration tests with Cypress against a locally running APIM Rest API
- - `npm run test:dev`: Run integration tests with Cypress against a locally running APIM Rest API with verbose (**requests, responses and calls to cy.log() are logged**)
- - `npm run test:e2e`: Run end to end tests with Cypress against a locally running APIM, testing is made against UI
- - `npm run test:bulk`: Run Cypress to insert bulk data in APIM
+ - `npm run test`: Opens the Cypress Test Runner to run tests against a locally running APIM Rest API
+ - `npm run test:api:management`: Run end to end tests of management rest-api against a locally running APIM.
 
 ## Structure
 ````
-Cypress
+|api-test
+|cypress
 |_ assertions
-|_ e2e
 |_ fakers
 |_ fixtures
 |_ model
-|_ nrt
 |_ plugins
 |_ support
+|lib
+|scripts
 ````
 
-| Folder 	            | Description 	|
-|--------	            |-------------	|
-| assertions     	    | Utils classes to do common assertions for a particular object     	|
-| e2e     	            | End to end testing folder (tests run against UI)     	|
-| fakers     	        | Utils classes to generate fake data for particular object  	|
-| fixtures     	        | Files containing static data to be used in tests through `cy.fixture(filePath)`  	|
-| model       	        | Types of our objects            	|
-| nrt       	        | Non regression testing folder            	|
-| plugins       	    | Load and configure plugins for cypress            	|
-| support       	    | Processed and loaded automatically before your test files.            	|
+| Folder 	                             | Description 	                                                                      |
+|--------------------------------------|------------------------------------------------------------------------------------|
+| api-test/management     	            | Api management e2e tests                                                           |
+| api-test/portal     	                | Api portal e2e tests (soon)                                                        |
+| api-test/gateway     	               | Api gateway e2e tests (soon)                                                       |
+| cypress/assertions     	             | Utils classes to do common assertions for a particular object     	                |
+| cypress/fakers     	                 | Utils classes to generate fake data for particular object  	                       |
+| cypress/fixtures     	               | Files containing static data to be used in tests through `cy.fixture(filePath)`  	 |
+| cypress/model       	                | Types of our objects            	                                                  |
+| cypress/plugins       	              | Load and configure plugins for cypress            	                                |
+| cypress/support       	              | Processed and loaded automatically before your test files.            	            |
+| lib/management-webclient-sdk       	 | Generated client for management API                                                |
+
+## About management API client 
+
+This project use project https://github.com/OpenAPITools/openapi-generator[openapi-generator] to generate a client sdk with openapi file.
+If you want to generate the client, start the management rest-api locally and run `npm run update:sdk`
 
 ## Environment variables
 
