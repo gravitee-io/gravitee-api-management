@@ -59,13 +59,9 @@ public class HttpProtocolVerticleTest {
         int randomPort = socket.getLocalPort();
         socket.close();
         httpServer = vertx.createHttpServer(new HttpServerOptions().setPort(randomPort));
-        HttpServerConfiguration httpServerConfiguration = HttpServerConfiguration.builder()
-                                                                                 .withPort(randomPort)
-                                                                                 .withEnvironment(new MockEnvironment())
-                                                                                 .build();
         mockRequestDispatcher = spy(new MockHttpRequestDispatcher());
         vertx.deployVerticle(
-                new HttpProtocolVerticle(httpServer, httpServerConfiguration, mockRequestDispatcher),
+                new HttpProtocolVerticle(httpServer, mockRequestDispatcher),
                 testContext.succeedingThenComplete()
                             );
     }
