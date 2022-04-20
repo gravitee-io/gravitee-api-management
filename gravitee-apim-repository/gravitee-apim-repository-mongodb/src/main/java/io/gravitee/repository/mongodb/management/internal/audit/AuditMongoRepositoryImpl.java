@@ -45,8 +45,13 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
             filter
                 .getReferences()
                 .forEach(
-                    (referenceType, referenceIds) ->
-                        query.addCriteria(where("referenceType").is(referenceType).andOperator(where("referenceId").in(referenceIds)))
+                    (referenceType, referenceIds) -> {
+                        if (referenceIds != null && !referenceIds.isEmpty()) {
+                            query.addCriteria(where("referenceType").is(referenceType).andOperator(where("referenceId").in(referenceIds)));
+                        } else {
+                            query.addCriteria(where("referenceType").is(referenceType));
+                        }
+                    }
                 );
         }
 

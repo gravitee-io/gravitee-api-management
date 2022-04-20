@@ -79,7 +79,17 @@ public class AuditRepositoryMock extends AbstractRepositoryMock<AuditRepository>
         when(searchable2.getId()).thenReturn("searchable2");
         when(searchable2.getOrganizationId()).thenReturn("DEFAULT");
         //shouldSearchWithPagination
-        when(auditRepository.search(argThat(o -> o != null && o.getReferences() != null && !o.getReferences().isEmpty()), any()))
+        when(
+            auditRepository.search(
+                argThat(
+                    o ->
+                        o != null &&
+                        o.getReferences() != null &&
+                        o.getReferences().get(Audit.AuditReferenceType.API).equals(singletonList("2"))
+                ),
+                any()
+            )
+        )
             .thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 2));
         //shouldSearchWithEvent
         when(
@@ -130,5 +140,20 @@ public class AuditRepositoryMock extends AbstractRepositoryMock<AuditRepository>
             )
         )
             .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(newAudit), 0, 1, 1));
+        //shouldSearchWithReferenceTypeOnly
+        when(
+            auditRepository.search(
+                argThat(
+                    o ->
+                        o != null &&
+                        o.getReferences() != null &&
+                        !o.getReferences().isEmpty() &&
+                        o.getReferences().containsKey(Audit.AuditReferenceType.API) &&
+                        o.getReferences().get(Audit.AuditReferenceType.API) == null
+                ),
+                any()
+            )
+        )
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(searchable2, newAudit, searchable1), 0, 3, 3));
     }
 }

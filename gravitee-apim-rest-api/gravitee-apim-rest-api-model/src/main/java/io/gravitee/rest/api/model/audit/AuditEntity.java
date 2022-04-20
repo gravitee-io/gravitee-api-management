@@ -27,7 +27,7 @@ public class AuditEntity {
 
     private String id;
     private String referenceId;
-    private String referenceType;
+    private AuditReferenceType referenceType;
     private String user;
     private Date createdAt;
     private String event;
@@ -50,11 +50,11 @@ public class AuditEntity {
         this.referenceId = referenceId;
     }
 
-    public String getReferenceType() {
+    public AuditReferenceType getReferenceType() {
         return referenceType;
     }
 
-    public void setReferenceType(String referenceType) {
+    public void setReferenceType(AuditReferenceType referenceType) {
         this.referenceType = referenceType;
     }
 

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefaultReferenceId;
+import static java.util.Map.entry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -31,7 +32,11 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
+import io.gravitee.rest.api.model.audit.AuditReferenceType;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -55,6 +60,13 @@ import org.springframework.stereotype.Component;
 public class AuditServiceImpl extends AbstractService implements AuditService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(AuditServiceImpl.class);
+
+    private static final Map<Audit.AuditReferenceType, AuditReferenceType> AUDIT_REFERENCE_TYPE_AUDIT_REFERENCE_TYPE_MAP = Map.ofEntries(
+        entry(Audit.AuditReferenceType.ORGANIZATION, AuditReferenceType.ORGANIZATION),
+        entry(Audit.AuditReferenceType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
+        entry(Audit.AuditReferenceType.APPLICATION, AuditReferenceType.APPLICATION),
+        entry(Audit.AuditReferenceType.API, AuditReferenceType.API)
+    );
 
     @Autowired
     private AuditRepository auditRepository;
@@ -82,6 +94,9 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private UserService userService;
 
     @Autowired
+    private PermissionService permissionService;
+
+    @Autowired
     private ObjectMapper mapper;
 
     @Override
@@ -93,10 +108,35 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             criteria.environmentIds(Collections.singletonList(executionContext.getEnvironmentId()));
         }
 
-        if (query.getApiIds() != null && !query.getApiIds().isEmpty()) {
-            criteria.references(Audit.AuditReferenceType.API, query.getApiIds());
-        } else if (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) {
+        if (
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ORGANIZATION_AUDIT,
+                executionContext.getOrganizationId(),
+                RolePermissionAction.READ
+            ) &&
+            query.getReferenceType() != null &&
+            query.getReferenceType().equals(AuditReferenceType.ORGANIZATION)
+        ) {
+            criteria.references(Audit.AuditReferenceType.ORGANIZATION, null);
+        } else if (
+            (query.getEnvironmentIds() != null && !query.getEnvironmentIds().isEmpty()) ||
+            query.getReferenceType() != null &&
+            query.getReferenceType().equals(AuditReferenceType.ENVIRONMENT)
+        ) {
+            criteria.references(Audit.AuditReferenceType.ENVIRONMENT, query.getEnvironmentIds());
+        } else if (
+            (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) ||
+            query.getReferenceType() != null &&
+            query.getReferenceType().equals(AuditReferenceType.APPLICATION)
+        ) {
             criteria.references(Audit.AuditReferenceType.APPLICATION, query.getApplicationIds());
+        } else if (
+            (query.getApiIds() != null && !query.getApiIds().isEmpty()) ||
+            query.getReferenceType() != null &&
+            query.getReferenceType().equals(AuditReferenceType.API)
+        ) {
+            criteria.references(Audit.AuditReferenceType.API, query.getApiIds());
         }
 
         if (query.getEvents() != null && !query.getEvents().isEmpty()) {
@@ -133,7 +173,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 metadata.put(metadataKey, auditEntity.getUser());
             }
 
-            if (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType())) {
+            if (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "API:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
@@ -146,7 +186,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
-            } else if (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType())) {
+            } else if (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "APPLICATION:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
@@ -413,7 +453,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private AuditEntity convert(Audit audit) {
         AuditEntity auditEntity = new AuditEntity();
 
-        auditEntity.setReferenceType(audit.getReferenceType().name());
+        auditEntity.setReferenceType(AUDIT_REFERENCE_TYPE_AUDIT_REFERENCE_TYPE_MAP.get(audit.getReferenceType()));
         auditEntity.setReferenceId(audit.getReferenceId());
         auditEntity.setEvent(audit.getEvent());
         auditEntity.setProperties(audit.getProperties());

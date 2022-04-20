@@ -273,20 +273,23 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("(");
             for (Entry<Audit.AuditReferenceType, List<String>> ref : filter.getReferences().entrySet()) {
-                builder.append("( reference_type = ? and reference_id in (");
+                builder.append("( reference_type = ?");
                 argsList.add(ref.getKey().toString());
                 LOGGER.debug("argsList after ref type = {}", argsList);
-                boolean first = true;
-                for (String id : ref.getValue()) {
-                    if (!first) {
-                        builder.append(", ");
+
+                if (ref.getValue() != null && !ref.getValue().isEmpty()) {
+                    StringJoiner inReferenceIdsQueryString = new StringJoiner(",", "and reference_id in (", ")");
+
+                    for (String id : ref.getValue()) {
+                        inReferenceIdsQueryString.add("?");
+                        argsList.add(id);
+                        LOGGER.debug("argsList after ref id = {}", argsList);
                     }
-                    first = false;
-                    builder.append("?");
-                    argsList.add(id);
-                    LOGGER.debug("argsList after ref id = {}", argsList);
+                    builder.append(inReferenceIdsQueryString);
                 }
-                builder.append(") )");
+
+                builder.append(")");
+
                 started = true;
             }
             builder.append(") ");

@@ -33,6 +33,10 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
+import io.gravitee.rest.api.model.audit.AuditReferenceType;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -44,6 +48,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AuditService_SearchTest {
@@ -65,6 +70,9 @@ public class AuditService_SearchTest {
 
     @Mock
     private ApiRepository apiRepository;
+
+    @Mock
+    private PermissionService permissionService;
 
     @Mock
     private Api api;
@@ -106,5 +114,82 @@ public class AuditService_SearchTest {
         assertEquals(2, auditPage.getPageNumber());
         assertEquals(1, auditPage.getPageElements());
         assertEquals(2, auditPage.getTotalElements());
+    }
+
+    @Test
+    public void should_searchWithOrganizationReferenceType() throws TechnicalException {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Audit auditFound = new Audit();
+        auditFound.setId("auditId");
+        auditFound.setUser(USER_NAME);
+        auditFound.setReferenceType(Audit.AuditReferenceType.ORGANIZATION);
+
+        Page<Audit> pageFound = new Page<>(Arrays.asList(auditFound), 2, 1, 2);
+
+        when(
+            auditRepository.search(
+                eq(
+                    new AuditCriteria.Builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentIds(singletonList(executionContext.getEnvironmentId()))
+                        .references(Audit.AuditReferenceType.ORGANIZATION, null)
+                        .build()
+                ),
+                any()
+            )
+        )
+            .thenReturn(pageFound);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ORGANIZATION_AUDIT,
+                executionContext.getOrganizationId(),
+                RolePermissionAction.READ
+            )
+        )
+            .thenReturn(true);
+
+        AuditQuery query = new AuditQuery();
+        query.setReferenceType(AuditReferenceType.ORGANIZATION);
+        final Page<AuditEntity> auditPage = auditService.search(executionContext, query);
+
+        assertNotNull(auditPage);
+        assertEquals(1, auditPage.getContent().size());
+    }
+
+    @Test
+    public void should_searchWithEnvironmentReferenceType() throws TechnicalException {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Audit auditFound = new Audit();
+        auditFound.setId("auditId");
+        auditFound.setUser(USER_NAME);
+        auditFound.setReferenceType(Audit.AuditReferenceType.ENVIRONMENT);
+        auditFound.setReferenceId("envId");
+
+        Page<Audit> pageFound = new Page<>(Arrays.asList(auditFound), 2, 1, 2);
+
+        when(
+            auditRepository.search(
+                eq(
+                    new AuditCriteria.Builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentIds(singletonList(executionContext.getEnvironmentId()))
+                        .references(Audit.AuditReferenceType.ENVIRONMENT, singletonList("envId"))
+                        .build()
+                ),
+                any()
+            )
+        )
+            .thenReturn(pageFound);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+
+        AuditQuery query = new AuditQuery();
+        query.setReferenceType(AuditReferenceType.ENVIRONMENT);
+        query.setEnvironmentIds(singletonList("envId"));
+        final Page<AuditEntity> auditPage = auditService.search(executionContext, query);
+
+        assertNotNull(auditPage);
+        assertEquals(1, auditPage.getContent().size());
     }
 }

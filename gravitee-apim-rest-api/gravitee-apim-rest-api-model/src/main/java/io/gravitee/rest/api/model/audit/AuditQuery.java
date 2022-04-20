@@ -23,13 +23,23 @@ import java.util.List;
  */
 public class AuditQuery {
 
+    private List<String> environmentIds;
     private List<String> apiIds;
     private List<String> applicationIds;
+    private AuditReferenceType referenceType;
     private List<String> events;
     private long from;
     private long to;
     private int size;
     private int page;
+
+    public List<String> getEnvironmentIds() {
+        return environmentIds;
+    }
+
+    public void setEnvironmentIds(List<String> environmentIds) {
+        this.environmentIds = environmentIds;
+    }
 
     public List<String> getApiIds() {
         return apiIds;
@@ -45,6 +55,14 @@ public class AuditQuery {
 
     public void setApplicationIds(List<String> applicationIds) {
         this.applicationIds = applicationIds;
+    }
+
+    public AuditReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(AuditReferenceType resourceType) {
+        this.referenceType = resourceType;
     }
 
     public List<String> getEvents() {
