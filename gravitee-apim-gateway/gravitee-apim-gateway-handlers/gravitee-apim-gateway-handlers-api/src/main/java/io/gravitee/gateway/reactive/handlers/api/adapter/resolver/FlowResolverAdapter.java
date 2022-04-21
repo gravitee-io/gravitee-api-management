@@ -17,8 +17,8 @@ package io.gravitee.gateway.reactive.handlers.api.adapter.resolver;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.handlers.api.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolver;
+import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Flowable;
 import java.util.List;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.adapter.context;
+package io.gravitee.gateway.reactive.policy.adapter.context;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
