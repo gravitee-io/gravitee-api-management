@@ -51,10 +51,28 @@ describe('AuditService', () => {
         .flush(fakeAuditPage);
     });
 
-    it('should call the API with filters', (done) => {
+    it('should call the API with environment filters', (done) => {
       const fakeAuditPage = fakeMetadataPageAudit();
 
-      auditService.listByOrganization({ event: 'HELLO', referenceType: 'API' }).subscribe((response) => {
+      auditService
+        .listByOrganization({ event: 'HELLO', referenceType: 'ENVIRONMENT', apiId: 'NOOP', environmentId: 'envId' })
+        .subscribe((response) => {
+          expect(response).toEqual(fakeAuditPage);
+          done();
+        });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10&event=HELLO&type=ENVIRONMENT&environment=envId`,
+        })
+        .flush(fakeAuditPage);
+    });
+
+    it('should call the API with application filters', (done) => {
+      const fakeAuditPage = fakeMetadataPageAudit();
+
+      auditService.listByOrganization({ referenceType: 'APPLICATION', applicationId: 'appId' }).subscribe((response) => {
         expect(response).toEqual(fakeAuditPage);
         done();
       });
@@ -62,7 +80,23 @@ describe('AuditService', () => {
       httpTestingController
         .expectOne({
           method: 'GET',
-          url: `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10&event=HELLO&type=API`,
+          url: `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10&type=APPLICATION&application=appId`,
+        })
+        .flush(fakeAuditPage);
+    });
+
+    it('should call the API with api filters', (done) => {
+      const fakeAuditPage = fakeMetadataPageAudit();
+
+      auditService.listByOrganization({ referenceType: 'API', apiId: 'apiId', environmentId: 'NOOP' }).subscribe((response) => {
+        expect(response).toEqual(fakeAuditPage);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10&type=API&api=apiId`,
         })
         .flush(fakeAuditPage);
     });

@@ -27,6 +27,10 @@ import { OrgSettingsAuditComponent } from './org-settings-audit.component';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { fakeMetadataPageAudit } from '../../../entities/audit/Audit.fixture';
+import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
+import { Environment } from '../../../entities/environment/environment';
+import { Api } from '../../../entities/api/Api';
+import { fakeApi } from '../../../entities/api/Api.fixture';
 
 describe('OrgSettingsAuditComponent', () => {
   let fixture: ComponentFixture<OrgSettingsAuditComponent>;
@@ -94,15 +98,46 @@ describe('OrgSettingsAuditComponent', () => {
     expectAuditListRequest({ referenceType: 'ORGANIZATION' });
   });
 
+  it('should display audit logs with api filter', async () => {
+    expectAuditListRequest();
+    expectAuditEventsNameRequest();
+
+    // 1. Expect initial page
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    expect(rowCells.length).toEqual(20);
+
+    // 2. Expect display of APIs select field
+    const referenceTypeSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=referenceType]' }));
+    await referenceTypeSelect.clickOptions({ text: 'API' });
+
+    expectAuditListRequest({ referenceType: 'API' });
+
+    expectEnvironmentGetAllRequest([fakeEnvironment({ id: 'envA', name: 'envA' }), fakeEnvironment({ id: 'envB', name: 'envB' })]);
+    expectApiGetAllByEnvRequest('envA', [fakeApi({ id: 'envA_api1', name: 'envA_api1' })]);
+    expectApiGetAllByEnvRequest('envB', [fakeApi({ id: 'envB_api1', name: 'envB_api1' })]);
+
+    // 3. Expect API selection works and trigger new AuditListRequest
+    const apiIdSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=apiId]' }));
+
+    await apiIdSelect.clickOptions({ text: 'envB_api1' });
+    expectAuditListRequest({ referenceType: 'API', apiId: 'envB_api1' });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  function expectAuditListRequest(filters: { event?: string; referenceType?: string } = {}) {
+  function expectAuditListRequest(
+    filters: { event?: string; referenceType?: string; environmentId?: string; applicationId?: string; apiId?: string } = {},
+  ) {
     const req = httpTestingController.expectOne(
       `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10${filters.event ? '&event=' + filters.event : ''}${
         filters.referenceType ? '&type=' + filters.referenceType : ''
-      }`,
+      }${filters.environmentId ? '&environment=' + filters.environmentId : ''}${
+        filters.applicationId ? '&application=' + filters.applicationId : ''
+      }${filters.apiId ? '&api=' + filters.apiId : ''}`,
     );
     expect(req.request.method).toEqual('GET');
     req.flush(fakeMetadataPageAudit());
@@ -112,5 +147,17 @@ describe('OrgSettingsAuditComponent', () => {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/audit/events`);
     expect(req.request.method).toEqual('GET');
     req.flush(['TENANT_CREATED', 'ROLE_UPDATED']);
+  }
+
+  function expectEnvironmentGetAllRequest(envs: Environment[]) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(envs);
+  }
+
+  function expectApiGetAllByEnvRequest(envId: string, apis: Api[]) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments/${envId}/apis`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(apis);
   }
 });
