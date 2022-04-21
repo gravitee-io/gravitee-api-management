@@ -54,7 +54,7 @@ describe('AuditService', () => {
     it('should call the API with filters', (done) => {
       const fakeAuditPage = fakeMetadataPageAudit();
 
-      auditService.listByOrganization({ event: 'HELLO' }).subscribe((response) => {
+      auditService.listByOrganization({ event: 'HELLO', referenceType: 'API' }).subscribe((response) => {
         expect(response).toEqual(fakeAuditPage);
         done();
       });
@@ -62,7 +62,7 @@ describe('AuditService', () => {
       httpTestingController
         .expectOne({
           method: 'GET',
-          url: `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10&event=HELLO`,
+          url: `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10&event=HELLO&type=API`,
         })
         .flush(fakeAuditPage);
     });

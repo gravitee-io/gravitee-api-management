@@ -27,12 +27,13 @@ import { MetadataPage } from '../entities/MetadataPage';
 export class AuditService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  listByOrganization(filters: { event?: string } = {}, page = 1, size = 10): Observable<MetadataPage<Audit>> {
+  listByOrganization(filters: { event?: string; referenceType?: string } = {}, page = 1, size = 10): Observable<MetadataPage<Audit>> {
     return this.http.get<MetadataPage<Audit>>(`${this.constants.org.baseURL}/audit`, {
       params: {
         page,
         size,
         ...(filters.event ? { event: filters.event } : {}),
+        ...(filters.referenceType ? { type: filters.referenceType } : {}),
       },
     });
   }
