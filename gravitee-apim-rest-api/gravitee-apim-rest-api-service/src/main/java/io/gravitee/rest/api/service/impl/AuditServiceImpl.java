@@ -87,6 +87,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private ApiRepository apiRepository;
 
     @Autowired
+    private EnvironmentRepository environmentRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
     private ApplicationRepository applicationRepository;
 
     @Autowired
@@ -173,13 +179,26 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 metadata.put(metadataKey, auditEntity.getUser());
             }
 
-            if (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name())) {
-                metadataKey = "API:" + auditEntity.getReferenceId() + ":name";
+            if (Audit.AuditReferenceType.ORGANIZATION.name().equals(auditEntity.getReferenceType().name())) {
+                metadataKey = "ORGANIZATION:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
-                        Optional<Api> optApi = apiRepository.findById(auditEntity.getReferenceId());
-                        if (optApi.isPresent()) {
-                            metadata.put(metadataKey, optApi.get().getName());
+                        Optional<Organization> optOrganization = organizationRepository.findById(auditEntity.getReferenceId());
+                        if (optOrganization.isPresent()) {
+                            metadata.put(metadataKey, optOrganization.get().getName());
+                        }
+                    } catch (TechnicalException e) {
+                        LOGGER.error("Error finding metadata {}", metadataKey);
+                        metadata.put(metadataKey, auditEntity.getReferenceId());
+                    }
+                }
+            } else if (Audit.AuditReferenceType.ENVIRONMENT.name().equals(auditEntity.getReferenceType().name())) {
+                metadataKey = "ENVIRONMENT:" + auditEntity.getReferenceId() + ":name";
+                if (!metadata.containsKey(metadataKey)) {
+                    try {
+                        Optional<Environment> optEnvironment = environmentRepository.findById(auditEntity.getReferenceId());
+                        if (optEnvironment.isPresent()) {
+                            metadata.put(metadataKey, optEnvironment.get().getName());
                         }
                     } catch (TechnicalException e) {
                         LOGGER.error("Error finding metadata {}", metadataKey);
@@ -193,6 +212,19 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         Optional<Application> optApp = applicationRepository.findById(auditEntity.getReferenceId());
                         if (optApp.isPresent()) {
                             metadata.put(metadataKey, optApp.get().getName());
+                        }
+                    } catch (TechnicalException e) {
+                        LOGGER.error("Error finding metadata {}", metadataKey);
+                        metadata.put(metadataKey, auditEntity.getReferenceId());
+                    }
+                }
+            } else if (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name())) {
+                metadataKey = "API:" + auditEntity.getReferenceId() + ":name";
+                if (!metadata.containsKey(metadataKey)) {
+                    try {
+                        Optional<Api> optApi = apiRepository.findById(auditEntity.getReferenceId());
+                        if (optApi.isPresent()) {
+                            metadata.put(metadataKey, optApi.get().getName());
                         }
                     } catch (TechnicalException e) {
                         LOGGER.error("Error finding metadata {}", metadataKey);

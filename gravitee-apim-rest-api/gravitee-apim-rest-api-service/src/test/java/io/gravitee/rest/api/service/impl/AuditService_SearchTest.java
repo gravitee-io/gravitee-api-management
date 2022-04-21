@@ -16,20 +16,24 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.AuditRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Environment;
+import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
@@ -75,6 +79,12 @@ public class AuditService_SearchTest {
     private PermissionService permissionService;
 
     @Mock
+    private EnvironmentRepository environmentRepository;
+
+    @Mock
+    private OrganizationRepository organizationRepository;
+
+    @Mock
     private Api api;
 
     @Test
@@ -106,7 +116,7 @@ public class AuditService_SearchTest {
         AuditQuery query = new AuditQuery();
         query.setPage(2);
         query.setSize(1);
-        final Page<AuditEntity> auditPage = auditService.search(executionContext, query);
+        final MetadataPage<AuditEntity> auditPage = auditService.search(executionContext, query);
 
         assertNotNull(auditPage);
         assertEquals(1, auditPage.getContent().size());
@@ -114,6 +124,7 @@ public class AuditService_SearchTest {
         assertEquals(2, auditPage.getPageNumber());
         assertEquals(1, auditPage.getPageElements());
         assertEquals(2, auditPage.getTotalElements());
+        assertTrue(auditPage.getMetadata().containsKey("API:" + API_ID + ":name"));
     }
 
     @Test
@@ -123,6 +134,7 @@ public class AuditService_SearchTest {
         auditFound.setId("auditId");
         auditFound.setUser(USER_NAME);
         auditFound.setReferenceType(Audit.AuditReferenceType.ORGANIZATION);
+        auditFound.setReferenceId("orgId");
 
         Page<Audit> pageFound = new Page<>(Arrays.asList(auditFound), 2, 1, 2);
 
@@ -149,13 +161,15 @@ public class AuditService_SearchTest {
             )
         )
             .thenReturn(true);
+        when(organizationRepository.findById("orgId")).thenReturn(Optional.of(new Organization()));
 
         AuditQuery query = new AuditQuery();
         query.setReferenceType(AuditReferenceType.ORGANIZATION);
-        final Page<AuditEntity> auditPage = auditService.search(executionContext, query);
+        final MetadataPage<AuditEntity> auditPage = auditService.search(executionContext, query);
 
         assertNotNull(auditPage);
         assertEquals(1, auditPage.getContent().size());
+        assertTrue(auditPage.getMetadata().containsKey("ORGANIZATION:orgId:name"));
     }
 
     @Test
@@ -183,13 +197,15 @@ public class AuditService_SearchTest {
         )
             .thenReturn(pageFound);
         when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        when(environmentRepository.findById("envId")).thenReturn(Optional.of(new Environment()));
 
         AuditQuery query = new AuditQuery();
         query.setReferenceType(AuditReferenceType.ENVIRONMENT);
         query.setEnvironmentIds(singletonList("envId"));
-        final Page<AuditEntity> auditPage = auditService.search(executionContext, query);
+        final MetadataPage<AuditEntity> auditPage = auditService.search(executionContext, query);
 
         assertNotNull(auditPage);
         assertEquals(1, auditPage.getContent().size());
+        assertTrue(auditPage.getMetadata().containsKey("ENVIRONMENT:envId:name"));
     }
 }
