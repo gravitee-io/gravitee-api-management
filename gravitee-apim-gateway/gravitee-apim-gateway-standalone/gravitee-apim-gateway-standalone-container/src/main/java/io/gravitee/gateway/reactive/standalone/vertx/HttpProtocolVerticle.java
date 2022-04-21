@@ -24,6 +24,7 @@ import io.reactivex.plugins.RxJavaPlugins;
 import io.vertx.core.http.HttpServer;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.RxHelper;
+import io.vertx.reactivex.core.http.HttpServerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -78,11 +79,11 @@ public class HttpProtocolVerticle extends AbstractVerticle {
                             .onErrorResumeNext(
                                 throwable -> {
                                     log.error("An unexpected error occurred while dispatching the incoming request", throwable);
-                                    return request
-                                        .response()
-                                        .setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                                        .rxEnd()
-                                        .onErrorResumeNext(endError -> Completable.complete());
+                                    HttpServerResponse response = request.response();
+                                    if (!response.headWritten()) {
+                                        response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                                    }
+                                    return response.rxEnd().onErrorResumeNext(endError -> Completable.complete());
                                 }
                             )
                 )
