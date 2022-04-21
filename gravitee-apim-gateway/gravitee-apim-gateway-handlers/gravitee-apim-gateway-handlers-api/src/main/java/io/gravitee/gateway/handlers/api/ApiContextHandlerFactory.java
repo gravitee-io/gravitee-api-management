@@ -204,7 +204,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 
                 final SyncApiReactor syncApiReactor = new SyncApiReactor(
                     api,
-                    new io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory(customComponentProvider),
+                    new io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory(apiComponentProvider),
                     new InvokerAdapter(invoker),
                     resourceLifecycleManager,
                     policyManager,

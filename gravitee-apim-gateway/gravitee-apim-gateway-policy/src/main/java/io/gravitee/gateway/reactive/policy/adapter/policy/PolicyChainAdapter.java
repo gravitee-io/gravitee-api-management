@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.adapter.policy;
+package io.gravitee.gateway.reactive.policy.adapter.policy;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -50,7 +50,7 @@ public class PolicyChainAdapter implements io.gravitee.policy.api.PolicyChain {
         // TODO: ExecutionFailure.
         ctx.response().status(policyResult.statusCode());
 
-        // ctx.response().content(Buffer.buffer(policyResult.message()));
+        //ctx.response().content(Buffer.buffer(policyResult.message()));
         ctx.interrupt();
         emitter.onComplete();
     }
