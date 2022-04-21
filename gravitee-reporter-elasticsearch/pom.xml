@@ -23,12 +23,12 @@
 	<parent>
 		<groupId>io.gravitee.elasticsearch</groupId>
 		<artifactId>gravitee-elasticsearch</artifactId>
-    <version>3.8.4-SNAPSHOT</version>
+    <version>3.8.4</version>
 	</parent>
 
 	<groupId>io.gravitee.reporter</groupId>
 	<artifactId>gravitee-reporter-elasticsearch</artifactId>
-    <version>3.8.4-SNAPSHOT</version>
+    <version>3.8.4</version>
 
 	<name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
