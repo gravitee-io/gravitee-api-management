@@ -113,8 +113,7 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
                 .build());
 
         assertNotNull(response);
-        assertEquals(12, response.getSize());
-        assertEquals(12, response.getLogs().size());
+        assertEquals(response.getSize(), response.getLogs().size());
     }
 
 }
