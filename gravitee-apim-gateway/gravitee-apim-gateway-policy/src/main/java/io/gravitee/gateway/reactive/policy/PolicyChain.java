@@ -19,6 +19,11 @@ import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.reactivex.Completable;
 
 /**
+ * PolicyChain is responsible for executing a given list of policies respecting the original order.
+ * Policy execution must occur in an ordered sequence, one by one.
+ * It is the responsibility of the chain to handle any policy execution error and stop the entire execution of the policy chain.
+ * The PolicyChain should also check the current execution context against the {@link ExecutionContext#isInterrupted()} flag and abort the chain execution accordingly.
+ *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -28,7 +33,8 @@ public interface PolicyChain {
      *
      * @param ctx the current context that will be passed to each policy to be executed.
      *
-     * @return an {@link Completable} that completes when the policies of the chain have been executed.
+     * @return a {@link Completable} that completes when all the policies of the chain have been executed or the chain has been interrupted.
+     * The {@link Completable} may complete in error in case of any error occurred while executing the policies.
      */
     Completable execute(ExecutionContext<?, ?> ctx);
 }
