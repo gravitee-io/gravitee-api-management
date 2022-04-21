@@ -70,7 +70,7 @@
         <ng-container *ngFor="let customField of user.customFields | keyvalue">
           <!-- TODO: try to display custom field Label ? -->
           <dt>{{ customField.key }}</dt>
-          <dd gioClipboardCopyWrapper [contentToCopy]="customField.value">{{ customField.value }}</dd>
+          <dd gioClipboardCopyWrapper [contentToCopy]="customField.value">{{ customField.value | slice: 0:94 }}</dd>
         </ng-container>
 
         <dt>Last connection at</dt>
