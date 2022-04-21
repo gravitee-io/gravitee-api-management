@@ -23,6 +23,7 @@ import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,15 +31,22 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyChain implements io.gravitee.gateway.reactive.policy.PolicyChain {
+public class PolicyChainImpl implements io.gravitee.gateway.reactive.policy.PolicyChain {
 
-    private final Logger log = LoggerFactory.getLogger(PolicyChain.class);
+    private final Logger log = LoggerFactory.getLogger(PolicyChainImpl.class);
 
     private final String id;
     private final Flowable<Policy> policies;
     private final ExecutionPhase phase;
 
-    public PolicyChain(String id, List<Policy> policies, ExecutionPhase phase) {
+    /**
+     * Creates a policy chain with the given list of policies.
+     *
+     * @param id an arbitrary id that helps to identify the policy chain at execution time.
+     * @param policies the list of the policies to be part of the execution chain.
+     * @param phase the execution phase that will be used to determine the method of the policies to execute ({@link Policy#onRequest(SyncExecutionContext)}, {@link Policy#onAsyncRequest(AsyncExecutionContext)}}, ...).
+     */
+    public PolicyChainImpl(@Nonnull String id, @Nonnull List<Policy> policies, @Nonnull ExecutionPhase phase) {
         this.id = id;
         this.phase = phase;
         this.policies = Flowable.fromIterable(policies);
@@ -51,7 +59,7 @@ public class PolicyChain implements io.gravitee.gateway.reactive.policy.PolicyCh
         return policies.flatMapCompletable(policy -> executePolicy(ctx, policy), false, 1);
     }
 
-    protected Completable executePolicy(ExecutionContext<?, ?> ctx, Policy policy) {
+    private Completable executePolicy(ExecutionContext<?, ?> ctx, Policy policy) {
         if (ctx.isInterrupted()) {
             return Completable.complete();
         }
@@ -68,11 +76,7 @@ public class PolicyChain implements io.gravitee.gateway.reactive.policy.PolicyCh
             case ASYNC_RESPONSE:
                 return policy.onAsyncResponse((AsyncExecutionContext) ctx);
             default:
-                return Completable.error(new RuntimeException("Invalid execution phase " + phase.name()));
+                return Completable.error(new RuntimeException("Invalid execution phase"));
         }
-    }
-
-    public String getId() {
-        return id;
     }
 }

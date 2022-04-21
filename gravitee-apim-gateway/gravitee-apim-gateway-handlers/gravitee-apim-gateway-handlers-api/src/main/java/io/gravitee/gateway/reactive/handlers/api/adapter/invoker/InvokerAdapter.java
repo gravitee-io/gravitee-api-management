@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 
 import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
-import io.gravitee.gateway.reactive.handlers.api.adapter.context.ExecutionContextAdapter;
+import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
