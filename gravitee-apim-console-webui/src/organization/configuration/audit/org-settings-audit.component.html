@@ -20,7 +20,7 @@
 </div>
 
 <mat-card class="org-settings-audit__filters" [formGroup]="filtersForm">
-  <mat-form-field appearance="fill">
+  <mat-form-field class="org-settings-audit__filters__field" appearance="fill">
     <mat-label>Event</mat-label>
     <mat-select formControlName="event">
       <mat-option value=""></mat-option>
@@ -28,16 +28,52 @@
     </mat-select>
   </mat-form-field>
 
-  <mat-form-field appearance="fill">
+  <mat-form-field class="org-settings-audit__filters__field" appearance="fill">
     <mat-label>Type</mat-label>
     <mat-select formControlName="referenceType">
       <mat-option value=""></mat-option>
-      <mat-option value="API">API</mat-option>
-      <mat-option value="APPLICATION">APPLICATION</mat-option>
-      <mat-option value="ENVIRONMENT">ENVIRONMENT</mat-option>
       <mat-option value="ORGANIZATION">ORGANIZATION</mat-option>
+      <mat-option value="ENVIRONMENT">ENVIRONMENT</mat-option>
+      <mat-option value="APPLICATION">APPLICATION</mat-option>
+      <mat-option value="API">API</mat-option>
     </mat-select>
   </mat-form-field>
+  <ng-container [ngSwitch]="filtersForm.get('referenceType').value">
+    <mat-form-field *ngSwitchCase="'ENVIRONMENT'" class="org-settings-audit__filters__field" appearance="fill">
+      <mat-label>Environments</mat-label>
+      <mat-select formControlName="environmentId">
+        <mat-option value=""></mat-option>
+        <mat-option *ngFor="let environment of environments$ | async" [value]="environment.id">{{ environment.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field *ngSwitchCase="'APPLICATION'" class="org-settings-audit__filters__field" appearance="fill">
+      <mat-label>Applications</mat-label>
+      <mat-select formControlName="applicationId">
+        <mat-option value=""></mat-option>
+        <mat-optgroup
+          *ngFor="let environmentApplications of environmentsApplications$ | async | keyvalue"
+          [label]="environmentApplications.key"
+        >
+          <mat-option *ngFor="let application of environmentApplications.value" [value]="application.id">
+            {{ application.name }}
+          </mat-option>
+        </mat-optgroup>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field *ngSwitchCase="'API'" class="org-settings-audit__filters__field" appearance="fill">
+      <mat-label>APIs</mat-label>
+      <mat-select formControlName="apiId">
+        <mat-option value=""></mat-option>
+        <mat-optgroup *ngFor="let environmentApis of environmentsApis$ | async | keyvalue" [label]="environmentApis.key">
+          <mat-option *ngFor="let api of environmentApis.value" [value]="api.id">
+            {{ api.name }}
+          </mat-option>
+        </mat-optgroup>
+      </mat-select>
+    </mat-form-field>
+  </ng-container>
 </mat-card>
 
 <gio-table-wrapper [length]="nbTotalAudit" (filtersChange)="onFiltersChanged($event)">

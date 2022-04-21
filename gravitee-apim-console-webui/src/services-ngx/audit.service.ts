@@ -16,8 +16,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Audit } from '../entities/audit/audit';
 
+import { Audit } from '../entities/audit/Audit';
 import { Constants } from '../entities/Constants';
 import { MetadataPage } from '../entities/MetadataPage';
 
@@ -27,13 +27,20 @@ import { MetadataPage } from '../entities/MetadataPage';
 export class AuditService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  listByOrganization(filters: { event?: string; referenceType?: string } = {}, page = 1, size = 10): Observable<MetadataPage<Audit>> {
+  listByOrganization(
+    filters: { event?: string; referenceType?: string; environmentId?: string; applicationId?: string; apiId?: string } = {},
+    page = 1,
+    size = 10,
+  ): Observable<MetadataPage<Audit>> {
     return this.http.get<MetadataPage<Audit>>(`${this.constants.org.baseURL}/audit`, {
       params: {
         page,
         size,
         ...(filters.event ? { event: filters.event } : {}),
         ...(filters.referenceType ? { type: filters.referenceType } : {}),
+        ...(filters.environmentId && filters.referenceType === 'ENVIRONMENT' ? { environment: filters.environmentId } : {}),
+        ...(filters.applicationId && filters.referenceType === 'APPLICATION' ? { application: filters.applicationId } : {}),
+        ...(filters.apiId && filters.referenceType === 'API' ? { api: filters.apiId } : {}),
       },
     });
   }

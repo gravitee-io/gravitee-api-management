@@ -16,10 +16,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { mapValues } from 'lodash';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { distinctUntilChanged, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
+import { BehaviorSubject, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
+import { catchError, distinctUntilChanged, shareReplay, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
+
+import { Api } from '../../../entities/api';
 import { ApiService } from '../../../services-ngx/api.service';
+import { ApplicationService } from '../../../services-ngx/application.service';
 import { AuditService } from '../../../services-ngx/audit.service';
+import { EnvironmentService } from '../../../services-ngx/environment.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 interface AuditDataTable {
@@ -46,6 +51,10 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
 
   public filtersForm = new FormGroup({
     event: new FormControl(),
+    referenceType: new FormControl(),
+    environmentId: new FormControl(),
+    applicationId: new FormControl(),
+    apiId: new FormControl(),
   });
 
   public range = new FormGroup({
@@ -54,20 +63,70 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   });
 
   public eventsName$ = this.auditService.getAllEventsNameByOrganization();
+  public environments$ = this.environmentService.list().pipe(shareReplay());
+
+  // Fetch all environment and for each one fetch all apis
+  public environmentsApis$: Observable<Record<string, Api[]>> = this.environments$.pipe(
+    switchMap((envs) =>
+      forkJoin(
+        envs.reduce(
+          (res, env) => ({
+            ...res,
+            [env.name]: this.apiService.getAll({
+              environmentId: env.id,
+            }),
+          }),
+          {} as Record<string, Observable<Api[]>>,
+        ),
+      ),
+    ),
+  );
+
+  // Fetch all environment and for each one fetch all applications
+  public environmentsApplications$: Observable<Record<string, Api[]>> = this.environments$.pipe(
+    switchMap((envs) =>
+      forkJoin(
+        envs.reduce(
+          (res, env) => ({
+            ...res,
+            [env.name]: this.applicationService.getAll({
+              environmentId: env.id,
+            }),
+          }),
+          {} as Record<string, Observable<Api[]>>,
+        ),
+      ),
+    ),
+  );
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   // Create filters stream
-  private filtersStream = new BehaviorSubject<GioTableWrapperFilters & { event?: string; referenceType?: string }>({
+  private filtersStream = new BehaviorSubject<
+    GioTableWrapperFilters & { event?: string; referenceType?: string; environmentId?: string; applicationId?: string; apiId?: string }
+  >({
     pagination: { index: 1, size: 10 },
     searchTerm: '',
   });
 
-  constructor(private auditService: AuditService, private snackBarService: SnackBarService) {}
+  constructor(
+    private auditService: AuditService,
+    private apiService: ApiService,
+    private applicationService: ApplicationService,
+    private environmentService: EnvironmentService,
+    private snackBarService: SnackBarService,
+  ) {}
 
   ngOnInit(): void {
-    this.filtersForm.valueChanges.subscribe(({ event, referenceType }) => {
-      this.filtersStream.next({ ...this.filtersStream.value, event, referenceType });
+    this.filtersForm.valueChanges.subscribe(({ event, referenceType, environmentId, applicationId, apiId }) => {
+      this.filtersStream.next({
+        ...this.filtersStream.value,
+        event,
+        referenceType,
+        environmentId,
+        applicationId,
+        apiId,
+      });
     });
 
     this.filtersStream
@@ -75,8 +134,12 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         throttleTime(100),
         distinctUntilChanged(),
-        switchMap(({ pagination, event, referenceType }) =>
-          this.auditService.listByOrganization({ event, referenceType }, pagination.index, pagination.size),
+        switchMap(({ pagination, event, referenceType, environmentId, applicationId, apiId }) =>
+          this.auditService.listByOrganization(
+            { event, referenceType, environmentId, applicationId, apiId },
+            pagination.index,
+            pagination.size,
+          ),
         ),
         catchError(() => {
           this.snackBarService.error('Unable to run the request, please try again');

@@ -7,6 +7,10 @@
 .org-settings-audit {
   &__filters {
     margin-bottom: 8px;
+
+    &__field {
+      margin-right: 16px;
+    }
   }
 
   &__table {
