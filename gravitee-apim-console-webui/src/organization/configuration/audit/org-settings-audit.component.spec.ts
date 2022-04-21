@@ -32,6 +32,7 @@ import { fakeEnvironment } from '../../../entities/environment/environment.fixtu
 import { Environment } from '../../../entities/environment/environment';
 import { Api } from '../../../entities/api/Api';
 import { fakeApi } from '../../../entities/api/Api.fixture';
+import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('OrgSettingsAuditComponent', () => {
   let fixture: ComponentFixture<OrgSettingsAuditComponent>;
@@ -64,7 +65,7 @@ describe('OrgSettingsAuditComponent', () => {
       date: 'Apr 19, 2022, 3:32:30 PM',
       event: 'THEME_UPDATED',
       patch: '',
-      reference: 'system',
+      reference: 'DEFAULT',
       referenceType: 'ENVIRONMENT',
       targets: 'THEME:default',
       user: 'system',
@@ -145,6 +146,28 @@ describe('OrgSettingsAuditComponent', () => {
     expectAuditListRequest({ from: 1649635200000, to: 986083200000 });
   });
 
+  it('should reset pagination on filter change', async () => {
+    expectAuditListRequest();
+    expectAuditEventsNameRequest();
+
+    // 1. Expect initial page
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    expect(rowCells.length).toEqual(20);
+
+    // 2. Expect new call on page 2
+    const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
+
+    await (await tableWrapper.getPaginator()).goToNextPage();
+    expectAuditListRequest(undefined, { page: 2, size: 10 });
+
+    // 3. Expect change filter reset to page 1
+    const referenceTypeInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=referenceType]' }));
+    await referenceTypeInput.clickOptions({ text: 'ORGANIZATION' });
+    expectAuditListRequest({ referenceType: 'ORGANIZATION' }, { page: 1, size: 10 });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
@@ -159,15 +182,19 @@ describe('OrgSettingsAuditComponent', () => {
       from?: number;
       to?: number;
     } = {},
+    pagination: {
+      page: number;
+      size: number;
+    } = { page: 1, size: 10 },
   ) {
     const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10${filters.event ? '&event=' + filters.event : ''}${
-        filters.referenceType ? '&type=' + filters.referenceType : ''
-      }${filters.environmentId ? '&environment=' + filters.environmentId : ''}${
-        filters.applicationId ? '&application=' + filters.applicationId : ''
-      }${filters.apiId ? '&api=' + filters.apiId : ''}${filters.from ? '&from=' + filters.from : ''}${
-        filters.to ? '&to=' + filters.to : ''
-      }`,
+      `${CONSTANTS_TESTING.org.baseURL}/audit?page=${pagination.page}&size=${pagination.size}${
+        filters.event ? '&event=' + filters.event : ''
+      }${filters.referenceType ? '&type=' + filters.referenceType : ''}${
+        filters.environmentId ? '&environment=' + filters.environmentId : ''
+      }${filters.applicationId ? '&application=' + filters.applicationId : ''}${filters.apiId ? '&api=' + filters.apiId : ''}${
+        filters.from ? '&from=' + filters.from : ''
+      }${filters.to ? '&to=' + filters.to : ''}`,
     );
     expect(req.request.method).toEqual('GET');
     req.flush(fakeMetadataPageAudit());
