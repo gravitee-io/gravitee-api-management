@@ -86,4 +86,36 @@ describe('ApiService', () => {
       req.flush({});
     });
   });
+
+  describe('getAll', () => {
+    it('should call the API', (done) => {
+      const mockApis = [fakeApi()];
+
+      apiService.getAll().subscribe((response) => {
+        expect(response).toMatchObject(mockApis);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/apis` });
+
+      req.flush(mockApis);
+    });
+
+    it('should call the API with environmentId', (done) => {
+      const mockApis = [fakeApi()];
+      const environmentId = 'environmentId';
+
+      apiService.getAll({ environmentId }).subscribe((response) => {
+        expect(response).toMatchObject(mockApis);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.org.baseURL}/environments/${environmentId}/apis`,
+      });
+
+      req.flush(mockApis);
+    });
+  });
 });

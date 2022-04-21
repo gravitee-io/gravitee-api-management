@@ -18,3 +18,21 @@ export enum ApiKeyMode {
   SHARED = 'SHARED',
   EXCLUSIVE = 'EXCLUSIVE',
 }
+
+export interface Application {
+  id: string;
+  created_at: number;
+  updated_at: number;
+
+  name: string;
+  description?: string;
+  domain?: string;
+  groups?: Record<string, string>;
+  status?: string;
+  type?: string;
+  picture_url?: string;
+  owner?: unknown;
+  settings?: unknown;
+  disable_membership_notifications?: boolean;
+  api_key_mode?: ApiKeyMode;
+}

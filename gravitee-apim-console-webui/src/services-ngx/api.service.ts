@@ -70,4 +70,23 @@ export class ApiService {
       { headers: new HttpHeaders({ ...(api.etag ? { 'If-Match': api.etag } : {}) }) },
     );
   }
+
+  getAll(
+    params: {
+      order?: string;
+      environmentId?: string;
+    } = {},
+  ): Observable<Api[]> {
+    let baseURL = this.constants.env.baseURL;
+
+    if (params.environmentId) {
+      baseURL = `${this.constants.org.baseURL}/environments/${params.environmentId}`;
+    }
+
+    return this.http.get<Api[]>(`${baseURL}/apis`, {
+      params: {
+        ...(params.order ? { order: params.order } : {}),
+      },
+    });
+  }
 }
