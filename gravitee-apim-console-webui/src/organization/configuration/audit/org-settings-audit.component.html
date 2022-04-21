@@ -74,6 +74,20 @@
       </mat-select>
     </mat-form-field>
   </ng-container>
+
+  <mat-form-field appearance="fill" class="org-settings-audit__filters__field right">
+    <mat-label>Enter a date range</mat-label>
+    <mat-date-range-input formGroupName="range" [rangePicker]="picker">
+      <input matStartDate formControlName="start" placeholder="Start date" />
+      <input matEndDate formControlName="end" placeholder="End date" />
+    </mat-date-range-input>
+    <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-date-range-picker #picker></mat-date-range-picker>
+
+    <mat-error *ngIf="filtersForm.controls.range.controls.start.hasError('matStartDateInvalid')">Invalid start date</mat-error>
+    <mat-error *ngIf="filtersForm.controls.range.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error>
+  </mat-form-field>
 </mat-card>
 
 <gio-table-wrapper [length]="nbTotalAudit" (filtersChange)="onFiltersChanged($event)">

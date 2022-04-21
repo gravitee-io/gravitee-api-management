@@ -35,10 +35,11 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatRippleModule } from '@angular/material/core';
+import { MatNativeDateModule, MatRippleModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSortModule } from '@angular/material/sort';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { GioBannerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 
@@ -114,6 +115,8 @@ import { SpelService } from '../../services-ngx/spel.service';
     MatListModule,
     MatProgressBarModule,
     MatSortModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
 
     GioPermissionModule,
     GioConfirmDialogModule,

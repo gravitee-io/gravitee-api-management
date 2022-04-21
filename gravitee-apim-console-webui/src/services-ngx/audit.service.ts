@@ -28,7 +28,15 @@ export class AuditService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   listByOrganization(
-    filters: { event?: string; referenceType?: string; environmentId?: string; applicationId?: string; apiId?: string } = {},
+    filters: {
+      event?: string;
+      referenceType?: string;
+      environmentId?: string;
+      applicationId?: string;
+      apiId?: string;
+      from?: number;
+      to?: number;
+    } = {},
     page = 1,
     size = 10,
   ): Observable<MetadataPage<Audit>> {
@@ -41,6 +49,8 @@ export class AuditService {
         ...(filters.environmentId && filters.referenceType === 'ENVIRONMENT' ? { environment: filters.environmentId } : {}),
         ...(filters.applicationId && filters.referenceType === 'APPLICATION' ? { application: filters.applicationId } : {}),
         ...(filters.apiId && filters.referenceType === 'API' ? { api: filters.apiId } : {}),
+        ...(filters.from ? { from: filters.from } : {}),
+        ...(filters.to ? { to: filters.to } : {}),
       },
     });
   }

@@ -100,6 +100,22 @@ describe('AuditService', () => {
         })
         .flush(fakeAuditPage);
     });
+
+    it('should call the API with from & to filters', (done) => {
+      const fakeAuditPage = fakeMetadataPageAudit();
+
+      auditService.listByOrganization({ from: 10000, to: 20000 }).subscribe((response) => {
+        expect(response).toEqual(fakeAuditPage);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10&from=10000&to=20000`,
+        })
+        .flush(fakeAuditPage);
+    });
   });
 
   describe('getAllEventsNameByOrganization', () => {
