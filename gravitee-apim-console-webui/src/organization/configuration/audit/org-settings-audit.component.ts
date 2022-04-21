@@ -162,7 +162,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
           date: audit.createdAt,
           user: (auditsPage.metadata[`USER:${audit.user}:name`] as string) ?? audit.user,
           referenceType: audit.referenceType,
-          reference: (auditsPage.metadata[`${audit.referenceType}:${audit.referenceId}:name`] as string) ?? audit.user,
+          reference: (auditsPage.metadata[`${audit.referenceType}:${audit.referenceId}:name`] as string) ?? audit.referenceId,
           event: audit.event,
           targets: mapValues(audit.properties, (v, k) => auditsPage.metadata[k + ':' + v + ':name'] as string),
           patch: JSON.parse(audit.patch),

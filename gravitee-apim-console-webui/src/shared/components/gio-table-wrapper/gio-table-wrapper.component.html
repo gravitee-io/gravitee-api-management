@@ -17,11 +17,13 @@
 -->
 
 <div class="gio-table-wrapper__header-bar">
-  <mat-form-field class="gio-table-wrapper__header-bar__search-field" appearance="outline">
-    <mat-icon matPrefix>search</mat-icon>
-    <mat-label>Search</mat-label>
-    <input class="search-input" [formControl]="inputSearch" type="search" matInput data-testid="search" />
-  </mat-form-field>
+  <div>
+    <mat-form-field *ngIf="!disableSearchInput" class="gio-table-wrapper__header-bar__search-field" appearance="outline">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Search</mat-label>
+      <input class="search-input" [formControl]="inputSearch" type="search" matInput data-testid="search" />
+    </mat-form-field>
+  </div>
 
   <mat-paginator
     class="gio-table-wrapper__header-bar__paginator"

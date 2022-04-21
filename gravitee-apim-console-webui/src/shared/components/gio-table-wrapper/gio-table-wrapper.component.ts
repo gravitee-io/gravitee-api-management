@@ -70,6 +70,10 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @Input()
   length = 0;
 
+  /** Disable search input */
+  @Input()
+  disableSearchInput = false;
+
   // Combine the paginator, sort and filter into a single output
   // Alway sent initial filters values
   @Output()
