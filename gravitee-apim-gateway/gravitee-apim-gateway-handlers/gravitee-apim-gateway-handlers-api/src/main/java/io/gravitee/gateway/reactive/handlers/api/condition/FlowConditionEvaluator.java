@@ -21,7 +21,7 @@ import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowCondi
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.handlers.api.adapter.context.ExecutionContextAdapter;
+import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Flowable;
 
 /**
