@@ -55,11 +55,10 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
     environmentId: new FormControl(),
     applicationId: new FormControl(),
     apiId: new FormControl(),
-  });
-
-  public range = new FormGroup({
-    start: new FormControl(),
-    end: new FormControl(),
+    range: new FormGroup({
+      start: new FormControl(),
+      end: new FormControl(),
+    }),
   });
 
   public eventsName$ = this.auditService.getAllEventsNameByOrganization();
@@ -103,7 +102,15 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
 
   // Create filters stream
   private filtersStream = new BehaviorSubject<
-    GioTableWrapperFilters & { event?: string; referenceType?: string; environmentId?: string; applicationId?: string; apiId?: string }
+    GioTableWrapperFilters & {
+      event?: string;
+      referenceType?: string;
+      environmentId?: string;
+      applicationId?: string;
+      apiId?: string;
+      from?: number;
+      to?: number;
+    }
   >({
     pagination: { index: 1, size: 10 },
     searchTerm: '',
@@ -118,7 +125,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.filtersForm.valueChanges.subscribe(({ event, referenceType, environmentId, applicationId, apiId }) => {
+    this.filtersForm.valueChanges.subscribe(({ event, referenceType, environmentId, applicationId, apiId, range }) => {
       this.filtersStream.next({
         ...this.filtersStream.value,
         event,
@@ -126,6 +133,8 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
         environmentId,
         applicationId,
         apiId,
+        from: range?.start?.getTime() ?? undefined,
+        to: range?.end?.getTime() ?? undefined,
       });
     });
 
@@ -134,9 +143,9 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         throttleTime(100),
         distinctUntilChanged(),
-        switchMap(({ pagination, event, referenceType, environmentId, applicationId, apiId }) =>
+        switchMap(({ pagination, event, referenceType, environmentId, applicationId, apiId, from, to }) =>
           this.auditService.listByOrganization(
-            { event, referenceType, environmentId, applicationId, apiId },
+            { event, referenceType, environmentId, applicationId, apiId, from, to },
             pagination.index,
             pagination.size,
           ),

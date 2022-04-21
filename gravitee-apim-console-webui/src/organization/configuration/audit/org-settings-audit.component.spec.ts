@@ -21,6 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatDateRangeInputHarness } from '@angular/material/datepicker/testing';
 
 import { OrgSettingsAuditComponent } from './org-settings-audit.component';
 
@@ -125,19 +126,48 @@ describe('OrgSettingsAuditComponent', () => {
     expectAuditListRequest({ referenceType: 'API', apiId: 'envB_api1' });
   });
 
+  it('should display audit logs with from & to range', async () => {
+    expectAuditListRequest();
+    expectAuditEventsNameRequest();
+
+    // 1. Expect initial page
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    expect(rowCells.length).toEqual(20);
+
+    // 2. Expect date range works and trigger new AuditListRequest
+    const rangeSelect = await loader.getHarness(MatDateRangeInputHarness.with({ selector: '[formGroupName=range]' }));
+    await (await rangeSelect.getStartInput()).setValue('4/11/2022');
+    expectAuditListRequest({ from: 986083200000 });
+
+    await (await rangeSelect.getEndInput()).setValue('4/20/2022');
+    expectAuditListRequest({ from: 1649635200000, to: 986083200000 });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
 
   function expectAuditListRequest(
-    filters: { event?: string; referenceType?: string; environmentId?: string; applicationId?: string; apiId?: string } = {},
+    filters: {
+      event?: string;
+      referenceType?: string;
+      environmentId?: string;
+      applicationId?: string;
+      apiId?: string;
+      from?: number;
+      to?: number;
+    } = {},
   ) {
     const req = httpTestingController.expectOne(
       `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10${filters.event ? '&event=' + filters.event : ''}${
         filters.referenceType ? '&type=' + filters.referenceType : ''
       }${filters.environmentId ? '&environment=' + filters.environmentId : ''}${
         filters.applicationId ? '&application=' + filters.applicationId : ''
-      }${filters.apiId ? '&api=' + filters.apiId : ''}`,
+      }${filters.apiId ? '&api=' + filters.apiId : ''}${filters.from ? '&from=' + filters.from : ''}${
+        filters.to ? '&to=' + filters.to : ''
+      }`,
     );
     expect(req.request.method).toEqual('GET');
     req.flush(fakeMetadataPageAudit());
