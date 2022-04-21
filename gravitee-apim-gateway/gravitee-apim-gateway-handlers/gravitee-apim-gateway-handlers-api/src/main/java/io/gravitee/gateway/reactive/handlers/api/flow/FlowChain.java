@@ -27,9 +27,9 @@ import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.handlers.api.adapter.policy.PolicyAdapter;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolver;
-import io.gravitee.gateway.reactive.policy.impl.PolicyChain;
+import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
+import io.gravitee.gateway.reactive.policy.impl.PolicyChainImpl;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.List;
@@ -63,7 +63,7 @@ public class FlowChain {
             .flatMapCompletable(chain -> continueChain(ctx, chain), false, 1);
     }
 
-    private PolicyChain createPolicyChain(Flow flow, ExecutionPhase phase) {
+    private PolicyChainImpl createPolicyChain(Flow flow, ExecutionPhase phase) {
         final List<Step> steps = getSteps(flow, phase);
         final StreamType streamType = toStreamType(phase);
 
@@ -76,7 +76,7 @@ public class FlowChain {
             .map(PolicyAdapter::new)
             .collect(Collectors.toList());
 
-        return new PolicyChain(flow.getName() + " " + phase.name(), policies, phase);
+        return new PolicyChainImpl(flow.getName() + " " + phase.name(), policies, phase);
     }
 
     private List<Step> getSteps(Flow flow, ExecutionPhase phase) {
@@ -100,7 +100,7 @@ public class FlowChain {
         return this.flows;
     }
 
-    private Completable continueChain(ExecutionContext<?, ?> ctx, PolicyChain chain) {
+    private Completable continueChain(ExecutionContext<?, ?> ctx, PolicyChainImpl chain) {
         if (!ctx.isInterrupted()) {
             return chain.execute(ctx);
         } else {

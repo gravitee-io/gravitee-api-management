@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.adapter.context;
+package io.gravitee.gateway.reactive.policy.adapter.context;
 
 import static io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT;
 
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
 import io.gravitee.tracing.api.Tracer;
 import java.util.Collections;
 import java.util.Enumeration;

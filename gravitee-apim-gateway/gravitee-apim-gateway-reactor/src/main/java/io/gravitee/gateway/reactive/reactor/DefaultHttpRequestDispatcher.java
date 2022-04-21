@@ -68,6 +68,7 @@ public class DefaultHttpRequestDispatcher
 
     @Override
     public Completable dispatch(HttpServerRequest httpServerRequest) {
+        log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
         final HandlerEntrypoint entrypoint = entrypointResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
         final ReactorHandler target = entrypoint.target();
 
