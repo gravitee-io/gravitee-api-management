@@ -28,6 +28,7 @@ import {
 import { FormControl } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
+import { isEqual } from 'lodash';
 import { merge, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, scan, startWith, takeUntil } from 'rxjs/operators';
 
@@ -94,7 +95,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     // Update values on changes
-    if (changes.filters) {
+    if (changes.filters && !isEqual(changes.filters.currentValue, changes.filters.previousValue)) {
       this.initPaginator(this.filters?.pagination);
 
       this.initSearch(this.filters?.searchTerm);

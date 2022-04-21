@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
-import { mapValues } from 'lodash';
+import { isEqual, mapValues } from 'lodash';
 import { BehaviorSubject, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, shareReplay, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
 
@@ -101,8 +101,9 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   // Create filters stream
-  private filtersStream = new BehaviorSubject<
-    GioTableWrapperFilters & {
+  private filtersStream = new BehaviorSubject<{
+    tableWrapper: GioTableWrapperFilters;
+    auditFilters: {
       event?: string;
       referenceType?: string;
       environmentId?: string;
@@ -110,10 +111,13 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
       apiId?: string;
       from?: number;
       to?: number;
-    }
-  >({
-    pagination: { index: 1, size: 10 },
-    searchTerm: '',
+    };
+  }>({
+    tableWrapper: {
+      pagination: { index: 1, size: 10 },
+      searchTerm: '',
+    },
+    auditFilters: {},
   });
 
   constructor(
@@ -127,14 +131,21 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.filtersForm.valueChanges.subscribe(({ event, referenceType, environmentId, applicationId, apiId, range }) => {
       this.filtersStream.next({
-        ...this.filtersStream.value,
-        event,
-        referenceType,
-        environmentId,
-        applicationId,
-        apiId,
-        from: range?.start?.getTime() ?? undefined,
-        to: range?.end?.getTime() ?? undefined,
+        tableWrapper: {
+          ...this.filtersStream.value.tableWrapper,
+          // go to first page when filters change
+          pagination: { index: 1, size: this.filtersStream.value.tableWrapper.pagination.size },
+        },
+        auditFilters: {
+          ...this.filtersStream.value.auditFilters,
+          event,
+          referenceType,
+          environmentId,
+          applicationId,
+          apiId,
+          from: range?.start?.getTime() ?? undefined,
+          to: range?.end?.getTime() ?? undefined,
+        },
       });
     });
 
@@ -142,13 +153,9 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         throttleTime(100),
-        distinctUntilChanged(),
-        switchMap(({ pagination, event, referenceType, environmentId, applicationId, apiId, from, to }) =>
-          this.auditService.listByOrganization(
-            { event, referenceType, environmentId, applicationId, apiId, from, to },
-            pagination.index,
-            pagination.size,
-          ),
+        distinctUntilChanged(isEqual),
+        switchMap(({ auditFilters, tableWrapper }) =>
+          this.auditService.listByOrganization(auditFilters, tableWrapper.pagination.index, tableWrapper.pagination.size),
         ),
         catchError(() => {
           this.snackBarService.error('Unable to run the request, please try again');
@@ -177,6 +184,6 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
-    this.filtersStream.next({ ...this.filtersStream.value, ...filters });
+    this.filtersStream.next({ ...this.filtersStream.value, tableWrapper: filters });
   }
 }
