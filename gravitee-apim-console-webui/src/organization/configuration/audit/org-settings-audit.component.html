@@ -27,6 +27,17 @@
       <mat-option *ngFor="let name of eventsName$ | async" [value]="name">{{ name }}</mat-option>
     </mat-select>
   </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Type</mat-label>
+    <mat-select formControlName="referenceType">
+      <mat-option value=""></mat-option>
+      <mat-option value="API">API</mat-option>
+      <mat-option value="APPLICATION">APPLICATION</mat-option>
+      <mat-option value="ENVIRONMENT">ENVIRONMENT</mat-option>
+      <mat-option value="ORGANIZATION">ORGANIZATION</mat-option>
+    </mat-select>
+  </mat-form-field>
 </mat-card>
 
 <gio-table-wrapper [length]="nbTotalAudit" (filtersChange)="onFiltersChanged($event)">

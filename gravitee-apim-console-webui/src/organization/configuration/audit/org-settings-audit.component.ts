@@ -58,16 +58,16 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   // Create filters stream
-  private filtersStream = new BehaviorSubject<GioTableWrapperFilters & { event?: string }>({
+  private filtersStream = new BehaviorSubject<GioTableWrapperFilters & { event?: string; referenceType?: string }>({
     pagination: { index: 1, size: 10 },
     searchTerm: '',
   });
 
-  constructor(private auditService: AuditService) {}
+  constructor(private auditService: AuditService, private snackBarService: SnackBarService) {}
 
   ngOnInit(): void {
-    this.filtersForm.valueChanges.subscribe(({ event }) => {
-      this.filtersStream.next({ ...this.filtersStream.value, event });
+    this.filtersForm.valueChanges.subscribe(({ event, referenceType }) => {
+      this.filtersStream.next({ ...this.filtersStream.value, event, referenceType });
     });
 
     this.filtersStream
@@ -75,7 +75,13 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         throttleTime(100),
         distinctUntilChanged(),
-        switchMap(({ pagination, event }) => this.auditService.listByOrganization({ event }, pagination.index, pagination.size)),
+        switchMap(({ pagination, event, referenceType }) =>
+          this.auditService.listByOrganization({ event, referenceType }, pagination.index, pagination.size),
+        ),
+        catchError(() => {
+          this.snackBarService.error('Unable to run the request, please try again');
+          return EMPTY;
+        }),
       )
       .subscribe((auditsPage) => {
         this.nbTotalAudit = auditsPage.totalElements;
@@ -99,6 +105,6 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
-    this.filtersStream.next(filters);
+    this.filtersStream.next({ ...this.filtersStream.value, ...filters });
   }
 }

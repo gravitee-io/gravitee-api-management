@@ -80,13 +80,29 @@ describe('OrgSettingsAuditComponent', () => {
     expectAuditListRequest({ event: 'ROLE_UPDATED' });
   });
 
+  it('should display audit logs with type filter', async () => {
+    expectAuditListRequest();
+    expectAuditEventsNameRequest();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    expect(rowCells.length).toEqual(20);
+
+    const referenceTypeInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=referenceType]' }));
+    await referenceTypeInput.clickOptions({ text: 'ORGANIZATION' });
+    expectAuditListRequest({ referenceType: 'ORGANIZATION' });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  function expectAuditListRequest(filters: { event?: string } = {}) {
+  function expectAuditListRequest(filters: { event?: string; referenceType?: string } = {}) {
     const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10${filters.event ? '&event=' + filters.event : ''}`,
+      `${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10${filters.event ? '&event=' + filters.event : ''}${
+        filters.referenceType ? '&type=' + filters.referenceType : ''
+      }`,
     );
     expect(req.request.method).toEqual('GET');
     req.flush(fakeMetadataPageAudit());
