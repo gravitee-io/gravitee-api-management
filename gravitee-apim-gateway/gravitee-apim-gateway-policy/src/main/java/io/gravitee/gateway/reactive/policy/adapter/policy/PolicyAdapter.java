@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.adapter.policy;
+package io.gravitee.gateway.reactive.policy.adapter.policy;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.async.AsyncExecutionContext;
 import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
-import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.handlers.api.adapter.context.ExecutionContextAdapter;
+import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Policy adapter allows to adapt the behavior of a v3 policy to make it compatible with the reactive execution.
@@ -37,8 +33,6 @@ import org.slf4j.LoggerFactory;
  * @author GraviteeSource Team
  */
 public class PolicyAdapter implements Policy {
-
-    private final Logger log = LoggerFactory.getLogger(PolicyAdapter.class);
 
     private final io.gravitee.gateway.policy.Policy policy;
 
@@ -83,18 +77,6 @@ public class PolicyAdapter implements Policy {
      * @return a {@link Completable} indicating the execution is completed.
      */
     private Completable execute(SyncExecutionContext ctx, ExecutionPhase phase) {
-        if (phase != ExecutionPhase.REQUEST && phase != ExecutionPhase.RESPONSE) {
-            return Completable.error(
-                new RuntimeException(
-                    "Invalid execution phase " +
-                    phase +
-                    ". Phase " +
-                    phase +
-                    " is not supported to execute policy in v3 compatibility mode."
-                )
-            );
-        }
-
         Completable completable;
 
         if (policy.isRunnable()) {
@@ -125,20 +107,12 @@ public class PolicyAdapter implements Policy {
     }
 
     private Completable policyStream(SyncExecutionContext ctx, ExecutionPhase phase) {
-        final Buffer newBuffer = Buffer.buffer();
+        Buffer newBuffer = Buffer.buffer();
 
         return Completable
             .create(
                 emitter -> {
                     try {
-                        Flowable<Buffer> source;
-
-                        if (phase == ExecutionPhase.REQUEST) {
-                            source = ((SyncRequest) ctx.request()).getChunkedBody();
-                        } else {
-                            source = ((SyncResponse) ctx.response()).getChunkedBody();
-                        }
-
                         // Invoke the policy to get the appropriate read/write stream.
                         final ReadWriteStream<Buffer> stream = policy.stream(
                             new PolicyChainAdapter(ctx, emitter),
@@ -155,7 +129,7 @@ public class PolicyAdapter implements Policy {
                             // Add an end handler to capture end of the legacy stream and continue the reactive chain.
                             stream.endHandler(result -> emitter.onComplete());
 
-                            source
+                            getBody(ctx, phase)
                                 .doOnNext(stream::write)
                                 .doFinally(stream::end)
                                 .doOnError(emitter::tryOnError)
@@ -170,9 +144,8 @@ public class PolicyAdapter implements Policy {
             .andThen(
                 Completable.defer(
                     () -> {
-                        // Replace the chunks of the request or response if response is not completed.
                         if (ctx.isInterrupted()) {
-                            // The response could be marked as completed is the policy invoke the stream.failWith(...) method.
+                            // The context can be interrupted if the policy has invoked the stream.failWith(...) method.
                             return Completable.complete();
                         }
 
@@ -180,13 +153,26 @@ public class PolicyAdapter implements Policy {
                             return Completable.complete();
                         }
 
-                        if (phase == ExecutionPhase.REQUEST) {
-                            return ((SyncRequest) ctx.request()).setBody(Maybe.just(newBuffer));
-                        } else {
-                            return ((SyncResponse) ctx.response()).setBody(Maybe.just(newBuffer));
-                        }
+                        // Replace the chunks of the request or response if not interrupted.
+                        return setBody(ctx, phase, newBuffer);
                     }
                 )
             );
+    }
+
+    private Flowable<Buffer> getBody(SyncExecutionContext ctx, ExecutionPhase phase) {
+        if (phase == ExecutionPhase.REQUEST) {
+            return ctx.request().getChunkedBody();
+        } else {
+            return ctx.response().getChunkedBody();
+        }
+    }
+
+    private Completable setBody(SyncExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
+        if (phase == ExecutionPhase.REQUEST) {
+            return ctx.request().setBody(Maybe.just(newBuffer));
+        } else {
+            return ctx.response().setBody(Maybe.just(newBuffer));
+        }
     }
 }
