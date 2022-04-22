@@ -222,22 +222,3 @@ export function getApiAnalytics(auth: BasicAuthentication, apiId: string, field 
     },
   );
 }
-
-export function getApiDefinition(auth: BasicAuthentication, apiId: string) {
-  return cy.request({
-    method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/definition`,
-    auth,
-    failOnStatusCode: false,
-  });
-}
-
-export function patchApiDefinition(auth: BasicAuthentication, apiId: string, jsonPatches: JsonPatch[], dryRun = false) {
-  return cy.request({
-    method: 'PATCH',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/definition?dryRun=${dryRun}`,
-    auth,
-    body: jsonPatches,
-    failOnStatusCode: false,
-  });
-}
