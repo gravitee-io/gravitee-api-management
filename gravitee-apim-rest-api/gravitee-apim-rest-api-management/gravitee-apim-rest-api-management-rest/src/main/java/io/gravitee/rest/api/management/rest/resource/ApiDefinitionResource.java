@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -31,6 +32,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.*;
@@ -71,11 +73,11 @@ public class ApiDefinitionResource extends AbstractResource {
     @ApiResponse(
         responseCode = "200",
         description = "API definition",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = JsonNode.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response exportApiDefinition() {
+    public Response getApiDefinition() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiDefinition = apiExportService.exportAsJson(executionContext, api, EXPORT_VERSION);
         return Response.ok(apiDefinition).build();
@@ -90,12 +92,12 @@ public class ApiDefinitionResource extends AbstractResource {
     @ApiResponse(
         responseCode = "200",
         description = "API successfully updated with json patches",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = JsonNode.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response patch(
-        @Parameter(name = "patches", required = true) @Valid @NotNull final Collection<JsonPatch> patches,
+        @RequestBody(required = true) @Valid @NotNull final Collection<JsonPatch> patches,
         @QueryParam("dryRun") @DefaultValue("false") boolean dryRun
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();

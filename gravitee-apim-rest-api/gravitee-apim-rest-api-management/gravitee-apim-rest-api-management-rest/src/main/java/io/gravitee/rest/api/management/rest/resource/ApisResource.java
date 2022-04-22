@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -54,6 +55,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
@@ -251,11 +253,11 @@ public class ApisResource extends AbstractResource {
         }
     )
     public Response importApiDefinition(
-        @Parameter(name = "definition", required = true) @Valid @NotNull String apiDefinition,
+        @RequestBody(required = true) @Valid @NotNull JsonNode body,
         @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, apiDefinition);
+        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, body.toString());
 
         if (
             DefinitionVersion.valueOfLabel(definitionVersion).equals(DefinitionVersion.V2) &&

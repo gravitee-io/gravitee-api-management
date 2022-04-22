@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -52,7 +53,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayOutputStream;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -212,7 +212,7 @@ public class ApiResource extends AbstractResource {
 
     @POST
     @Operation(summary = "Manage the API's lifecycle", description = "User must have the MANAGE_LIFECYCLE permission to use this service")
-    @ApiResponse(responseCode = "204", description = "API's picture")
+    @ApiResponse(responseCode = "204")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response doApiLifecycleAction(
@@ -561,7 +561,7 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(
         responseCode = "200",
         description = "API definition",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = JsonNode.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
