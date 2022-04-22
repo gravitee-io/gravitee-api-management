@@ -52,15 +52,8 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
     }
 
     private void release() {
-        Subscription sub = subscription;
-        if (sub != null) {
-            try {
-                proxyResponse.endHandler(null);
-                proxyResponse.bodyHandler(null);
-            } catch (Exception ignore) {
-                cancelProxyResponse();
-            }
-        }
+        proxyResponse.endHandler(null);
+        proxyResponse.bodyHandler(null);
     }
 
     @Override
@@ -70,11 +63,9 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
             return;
         }
 
+        log.debug("Subscribing to proxy response");
+
         this.subscriber = subscriber;
-
-        // Pause the proxy response.
-        pauseProxyResponse();
-
         this.subscription = new ProxyResponseSubscription();
 
         // Capture all the chunks and write them in the response.
@@ -103,11 +94,13 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
             }
         } catch (Throwable t) {
             subscriber.onError(t);
+            cancelProxyResponse();
         }
     }
 
     private void handleEnd() {
         release();
+        ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
         subscriber.onComplete();
     }
 
@@ -123,7 +116,9 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
 
     private void cancelProxyResponse() {
         try {
-            if (!cancelled.compareAndSet(false, true)) {
+            if (cancelled.compareAndSet(false, true)) {
+                log.debug("Cancelling proxy response");
+                ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
                 proxyResponse.cancel();
                 connection.cancel();
             }
@@ -132,7 +127,7 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
         }
     }
 
-    class ProxyResponseSubscription implements Subscription {
+    final class ProxyResponseSubscription implements Subscription {
 
         @Override
         public void request(long l) {
