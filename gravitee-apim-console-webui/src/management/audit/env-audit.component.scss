@@ -32,6 +32,18 @@
       }
     }
 
+    .mat-column-targets {
+      .targets {
+        display: grid;
+        grid-gap: 5px;
+        grid-template-columns: auto 1fr;
+        line-height: 20px;
+        &__target {
+          font-weight: bold;
+        }
+      }
+    }
+
     .mat-column-date,
     .mat-column-user,
     .mat-column-referenceType,
