@@ -16,14 +16,15 @@
 package io.gravitee.rest.api.management.rest.filter;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.*;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import java.util.Collections;
@@ -31,6 +32,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,9 +67,18 @@ public class PermissionFilterTest {
 
     private static final String ENVIRONMENT_ID = "DEFAULT";
 
+    private static final String ORGANIZATION_ID = "ORG_ID";
+
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     /**
@@ -184,5 +195,66 @@ public class PermissionFilterTest {
         permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
 
         verify(permissionService, times(1)).hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT_ID), eq(UPDATE));
+    }
+
+    /**
+     * ORGANIZATION Tests
+     */
+
+    private void initOrganizationMocks() {
+        GraviteeContext.setCurrentEnvironment(null);
+
+        Permission perm = mock(Permission.class);
+        when(perm.value()).thenReturn(ORGANIZATION_TENANT);
+        when(perm.acls()).thenReturn(new RolePermissionAction[] { DELETE });
+        when(permissions.value()).thenReturn(new Permission[] { perm });
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+    }
+
+    @Test(expected = ForbiddenAccessException.class)
+    public void shouldThrowForbiddenExceptionWhenNoOrganizationPermissions() {
+        initOrganizationMocks();
+        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
+
+        try {
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+        } catch (ForbiddenAccessException e) {
+            verify(permissionService, times(1)).hasPermission(any(), eq(ORGANIZATION_TENANT), eq(ORGANIZATION_ID), eq(DELETE));
+            throw e;
+        }
+
+        Assert.fail("Should throw a ForbiddenAccessException");
+    }
+
+    @Test
+    public void shouldBeAuthorizedWhenOrganizationPermissions() {
+        initOrganizationMocks();
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+
+        permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+        verify(permissionService, times(1)).hasPermission(any(), eq(ORGANIZATION_TENANT), eq(ORGANIZATION_ID), eq(DELETE));
+    }
+
+    @Test
+    public void shouldBeAuthorizedWhenOrganizationAndEnvironmentPermissions() {
+        GraviteeContext.setCurrentEnvironment(null);
+        Permission orgPerm = mock(Permission.class);
+        when(orgPerm.value()).thenReturn(ORGANIZATION_TENANT);
+        when(orgPerm.acls()).thenReturn(new RolePermissionAction[] { DELETE });
+        Permission envPerm = mock(Permission.class);
+        when(envPerm.value()).thenReturn(ENVIRONMENT_API);
+        when(envPerm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
+        when(permissions.value()).thenReturn(new Permission[] { envPerm, orgPerm });
+
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+
+        when(permissionService.hasPermission(any(), eq(ORGANIZATION_TENANT), any(), any())).thenReturn(true);
+
+        permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+        verify(permissionService, times(1)).hasPermission(any(), eq(ORGANIZATION_TENANT), eq(ORGANIZATION_ID), eq(DELETE));
     }
 }

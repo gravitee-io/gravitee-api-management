@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.rest.filter;
 
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -77,7 +77,9 @@ public class PermissionsFilter implements ContainerRequestFilter {
             case ORGANIZATION:
                 return hasPermission(executionContext, permission, executionContext.getOrganizationId());
             case ENVIRONMENT:
-                return hasPermission(executionContext, permission, executionContext.getEnvironmentId());
+                return (
+                    executionContext.hasEnvironmentId() && hasPermission(executionContext, permission, executionContext.getEnvironmentId())
+                );
             case APPLICATION:
                 return hasPermission(executionContext, permission, getApplicationId(requestContext));
             case API:
