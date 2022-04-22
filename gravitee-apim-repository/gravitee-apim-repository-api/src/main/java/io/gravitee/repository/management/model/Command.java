@@ -28,6 +28,7 @@ public class Command {
 
     private String id;
     private String environmentId;
+    private String organizationId;
     private String from;
     private String to;
     private List<String> tags;
@@ -43,6 +44,14 @@ public class Command {
 
     public void setEnvironmentId(String environmentId) {
         this.environmentId = environmentId;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 
     public String getId() {
@@ -130,14 +139,18 @@ public class Command {
         return Objects.hash(id);
     }
 
+    @Override
     public String toString() {
         return (
-            "Message{" +
+            "Command{" +
             "id='" +
             id +
             '\'' +
             ", environmentId='" +
             environmentId +
+            '\'' +
+            ", organizationId='" +
+            organizationId +
             '\'' +
             ", from='" +
             from +
@@ -145,9 +158,8 @@ public class Command {
             ", to='" +
             to +
             '\'' +
-            ", tags='" +
+            ", tags=" +
             tags +
-            '\'' +
             ", content='" +
             content +
             '\'' +
@@ -155,6 +167,10 @@ public class Command {
             acknowledgments +
             ", expiredAt=" +
             expiredAt +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
             '}'
         );
     }

@@ -27,7 +27,7 @@ To do so you can use the following commands:
  - PostgreSQL (9.6.12): `mvn clean install -DjdbcType=postgresql`
  - SQLServer (2017-CU12): `mvn clean install -DjdbcType=sqlserver`
 
-You can also use a specific version of the databsase like:
+You can also use a specific version of the database like:
 - MariaDB: `mvn clean install -DjdbcType=mariadb~10.4.24`
 - MySQL: `mvn clean install -DjdbcType=mysql~8.0.28`
 - PostgreSQL: `mvn clean install -DjdbcType=postgresql~13.6`

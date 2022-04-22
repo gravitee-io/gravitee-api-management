@@ -15,18 +15,21 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import java.util.Arrays;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class CommandCriteria {
 
-    private String to;
-    private String[] tags;
-    private boolean notExpired;
-    private String notFrom;
-    private String notAckBy;
-    private String environmentId;
+    private final String to;
+    private final String[] tags;
+    private final boolean notExpired;
+    private final String notFrom;
+    private final String notAckBy;
+    private final String environmentId;
+    private final String organizationId;
 
     private CommandCriteria(Builder builder) {
         this.to = builder.to;
@@ -35,6 +38,7 @@ public class CommandCriteria {
         this.notFrom = builder.notFrom;
         this.notAckBy = builder.notAckBy;
         this.environmentId = builder.environmentId;
+        this.organizationId = builder.organizationId;
     }
 
     public String getTo() {
@@ -61,6 +65,10 @@ public class CommandCriteria {
         return environmentId;
     }
 
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
     @Override
     public String toString() {
         return (
@@ -68,7 +76,7 @@ public class CommandCriteria {
             "to: " +
             to +
             "tags: " +
-            tags +
+            Arrays.toString(tags) +
             "notExpired: " +
             notExpired +
             "notFrom: " +
@@ -89,6 +97,7 @@ public class CommandCriteria {
         private String notFrom;
         private String notAckBy;
         private String environmentId;
+        private String organizationId;
 
         public CommandCriteria build() {
             return new CommandCriteria(this);
@@ -121,6 +130,11 @@ public class CommandCriteria {
 
         public Builder environmentId(String environmentId) {
             this.environmentId = environmentId;
+            return this;
+        }
+
+        public Builder organizationId(String organizationId) {
+            this.organizationId = organizationId;
             return this;
         }
     }

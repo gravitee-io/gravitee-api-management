@@ -62,10 +62,9 @@ public class ExecutionContext {
     }
 
     public GraviteeContext.ReferenceContext getReferenceContext() {
-        if (environmentId.isPresent()) {
-            return new GraviteeContext.ReferenceContext(environmentId.get(), GraviteeContext.ReferenceContextType.ENVIRONMENT);
-        }
-        return new GraviteeContext.ReferenceContext(organizationId, GraviteeContext.ReferenceContextType.ORGANIZATION);
+        return environmentId
+            .map(id -> new GraviteeContext.ReferenceContext(id, GraviteeContext.ReferenceContextType.ENVIRONMENT))
+            .orElseGet(() -> new GraviteeContext.ReferenceContext(organizationId, GraviteeContext.ReferenceContextType.ORGANIZATION));
     }
 
     @Override

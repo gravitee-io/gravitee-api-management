@@ -44,6 +44,7 @@ public class CommandRepositoryMock extends AbstractRepositoryMock<CommandReposit
         Command newCommand = new Command();
         newCommand.setId("msg-to-create");
         newCommand.setEnvironmentId("DEFAULT");
+        newCommand.setOrganizationId("DEFAULT");
         newCommand.setTo("someone");
         newCommand.setTags(Arrays.asList("INSERT", "DATA_TO_INDEX"));
         newCommand.setContent("Hello, is it me you're looking for?");
@@ -56,6 +57,7 @@ public class CommandRepositoryMock extends AbstractRepositoryMock<CommandReposit
         //shouldUpdate
         Command updatedCommand = new Command();
         updatedCommand.setId("msg-to-update");
+        updatedCommand.setOrganizationId("NEW_DEFAULT");
         updatedCommand.setEnvironmentId("new_DEFAULT");
         updatedCommand.setTo("message updated");
         updatedCommand.setFrom("from updated");
@@ -94,6 +96,8 @@ public class CommandRepositoryMock extends AbstractRepositoryMock<CommandReposit
             .thenReturn(Arrays.asList(newCommand, updatedCommand, mock(Command.class), search2));
         when(commandRepository.search(argThat(o -> o != null && o.isNotExpired()))).thenReturn(singletonList(search2));
         when(commandRepository.search(argThat(o -> o != null && "DEFAULT".equals(o.getEnvironmentId()))))
+            .thenReturn(singletonList(newCommand));
+        when(commandRepository.search(argThat(o -> o != null && "DEFAULT".equals(o.getOrganizationId()))))
             .thenReturn(singletonList(newCommand));
     }
 }

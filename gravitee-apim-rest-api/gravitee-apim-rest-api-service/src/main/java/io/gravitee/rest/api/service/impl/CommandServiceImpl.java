@@ -22,16 +22,13 @@ import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandQuery;
-import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.model.command.NewCommandEntity;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.CommandConverter;
 import io.gravitee.rest.api.service.exceptions.Message2RecipientNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,29 +50,18 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
     CommandRepository commandRepository;
 
     @Autowired
+    CommandConverter commandConverter;
+
+    @Autowired
     Node node;
 
     @Override
-    public void send(ExecutionContext executionContext, NewCommandEntity messageEntity) {
-        if (messageEntity.getTo() == null || messageEntity.getTo().isEmpty()) {
+    public void send(ExecutionContext executionContext, NewCommandEntity commandEntity) {
+        if (commandEntity.getTo() == null || commandEntity.getTo().isEmpty()) {
             throw new Message2RecipientNotFoundException();
         }
 
-        Command command = new Command();
-        command.setId(UuidString.generateRandom());
-        command.setEnvironmentId(
-            executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : GraviteeContext.getDefaultEnvironment()
-        );
-        command.setFrom(node.id());
-        command.setTo(messageEntity.getTo());
-        command.setTags(convert(messageEntity.getTags()));
-        long now = System.currentTimeMillis();
-        command.setCreatedAt(new Date(now));
-        command.setUpdatedAt(command.getCreatedAt());
-        command.setExpiredAt(new Date(now + (messageEntity.getTtlInSeconds() * 1000)));
-        if (messageEntity.getContent() != null) {
-            command.setContent(messageEntity.getContent());
-        }
+        Command command = commandConverter.toCommand(executionContext, commandEntity);
 
         try {
             commandRepository.create(command);
@@ -92,12 +78,15 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         if (query.getTags() != null) {
             tags = query.getTags().stream().map(Enum::name).toArray(String[]::new);
         }
+
         CommandCriteria criteria = new CommandCriteria.Builder()
             .to(query.getTo())
             .tags(tags)
-            .environmentId(executionContext.getEnvironmentId())
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null)
             .build();
-        return commandRepository.search(criteria).stream().map(this::map).collect(Collectors.toList());
+
+        return commandRepository.search(criteria).stream().map(commandConverter::toCommandEntity).collect(Collectors.toList());
     }
 
     @Override
@@ -131,33 +120,5 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
             logger.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
-    }
-
-    private List<String> convert(List<CommandTags> tags) {
-        if (tags == null || tags.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return tags.stream().map(Enum::name).collect(Collectors.toList());
-    }
-
-    private CommandEntity map(Command command) {
-        if (command == null) {
-            return null;
-        }
-
-        CommandEntity commandEntity = new CommandEntity();
-        commandEntity.setId(command.getId());
-        commandEntity.setTo(command.getTo());
-        commandEntity.setContent(command.getContent());
-        if (command.getTags() != null && !command.getTags().isEmpty()) {
-            commandEntity.setTags(command.getTags().stream().map(CommandTags::valueOf).collect(Collectors.toList()));
-        }
-        commandEntity.setExpired(command.getExpiredAt().before(new Date()));
-        final List<String> acknowledgments = command.getAcknowledgments();
-        if (acknowledgments != null) {
-            commandEntity.setProcessedInCurrentNode(acknowledgments.contains(node.id()));
-        }
-        return commandEntity;
     }
 }
