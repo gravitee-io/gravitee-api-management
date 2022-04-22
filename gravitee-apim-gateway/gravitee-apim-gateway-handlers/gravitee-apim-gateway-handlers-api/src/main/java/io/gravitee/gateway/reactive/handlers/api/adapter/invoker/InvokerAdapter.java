@@ -62,8 +62,12 @@ public class InvokerAdapter implements Invoker {
                 // Assign the chunks from the connection handler to the response.
                 ctx.response().setChunkedBody(connectionHandlerAdapter.getChunks());
 
-                // Invoke to make the connection happen.
-                legacyInvoker.invoke(ctxAdapter, streamAdapter, connectionHandlerAdapter);
+                try {
+                    // Invoke to make the connection happen.
+                    legacyInvoker.invoke(ctxAdapter, streamAdapter, connectionHandlerAdapter);
+                } catch (Throwable t) {
+                    nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
+                }
             }
         );
     }
