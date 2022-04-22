@@ -69,8 +69,6 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
 
     private void handleProxyResponse(ProxyConnection connection, ProxyResponse proxyResponse) {
         try {
-            ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
-
             // Set the response status with the status coming from the invoker.
             ctx.response().status(proxyResponse.status());
 
