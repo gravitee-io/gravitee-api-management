@@ -1,0 +1,45 @@
+@use '../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.org-settings-audit {
+  &__filters {
+    margin-bottom: 8px;
+
+    &__field {
+      margin-right: 16px;
+
+      &.right {
+        float: right;
+      }
+    }
+  }
+
+  &__table {
+    .mat-column-date {
+      min-width: 214px;
+    }
+
+    .mat-column-patch {
+      .pre-wrapper {
+        display: flex;
+        align-items: center;
+        pre {
+          margin: 0 0 0 0;
+        }
+      }
+    }
+
+    .mat-column-date,
+    .mat-column-user,
+    .mat-column-referenceType,
+    .mat-column-reference,
+    .mat-column-event,
+    .mat-column-targets,
+    .mat-column-patch {
+      padding: 0 6px;
+    }
+  }
+}

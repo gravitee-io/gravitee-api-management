@@ -274,7 +274,6 @@ import TicketService from '../services/ticket.service';
 import SupportTicketController from '../management/support/ticket.controller';
 // Audit
 import AuditService from '../services/audit.service';
-import AuditController from '../management/audit/audit.controller';
 import ApiAuditController from '../management/api/audit/general/audit.controller';
 import AuditComponent from '../components/audit/audit.component';
 // Configuration
@@ -545,6 +544,7 @@ import ApiKeysComponent from '../management/api-key/api-keys.component';
 import ApiKeysController from '../management/api-key/api-keys.controller';
 import { GioBannerComponent } from '@gravitee/ui-particles-angular';
 import { OrgSettingsAuditComponent } from '../organization/configuration/audit/org-settings-audit.component';
+import { EnvAuditComponent } from './audit/env-audit.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -742,7 +742,7 @@ graviteeManagementModule.controller('DialogConfirmAndValidateController', Dialog
 graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
 graviteeManagementModule.controller('SupportTicketController', SupportTicketController);
 graviteeManagementModule.controller('TicketsListController', TicketsListController);
-graviteeManagementModule.controller('AuditController', AuditController);
+graviteeManagementModule.directive('ngEnvAudit', downgradeComponent({ component: EnvAuditComponent }));
 graviteeManagementModule.controller('ApiAuditController', ApiAuditController);
 graviteeManagementModule.controller('ThemeController', ThemeController);
 graviteeManagementModule.controller('CustomUserFieldsController', CustomUserFieldsController);

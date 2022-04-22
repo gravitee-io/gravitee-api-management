@@ -23,7 +23,6 @@ import AlertService from '../services/alert.service';
 import AnalyticsService from '../services/analytics.service';
 import { ApiService } from '../services/api.service';
 import ApplicationService from '../services/application.service';
-import AuditService from '../services/audit.service';
 import DashboardService from '../services/dashboard.service';
 import InstancesService from '../services/instances.service';
 import RoleService from '../services/role.service';
@@ -34,6 +33,7 @@ function managementRouterConfig($stateProvider) {
   $stateProvider
     .state('management', {
       redirectTo: 'management.dashboard',
+      template: '<div ui-view layout="column" flex></div>',
       parent: 'withSidenav',
       controller: function ($rootScope, Constants) {
         $rootScope.consoleTitle = Constants.org.settings.management.title;
@@ -261,10 +261,9 @@ function managementRouterConfig($stateProvider) {
     })
     .state('management.audit', {
       url: '/audit',
-      template: require('./audit/audit.html'),
-      controller: 'AuditController',
-      controllerAs: 'auditCtrl',
+      component: 'ngEnvAudit',
       data: {
+        useAngularMaterial: true,
         menu: {
           label: 'Audit',
           icon: 'visibility',
@@ -277,9 +276,6 @@ function managementRouterConfig($stateProvider) {
         docs: {
           page: 'management-audit',
         },
-      },
-      resolve: {
-        resolvedEvents: (AuditService: AuditService) => AuditService.listEvents().then((response) => response.data),
       },
     })
     .state('management.messages', {

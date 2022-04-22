@@ -118,6 +118,24 @@ describe('AuditService', () => {
     });
   });
 
+  describe('list', () => {
+    it('should call the API', (done) => {
+      const fakeAuditPage = fakeMetadataPageAudit();
+
+      auditService.list().subscribe((response) => {
+        expect(response).toEqual(fakeAuditPage);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/audit?page=1&size=10`,
+        })
+        .flush(fakeAuditPage);
+    });
+  });
+
   describe('getAllEventsNameByOrganization', () => {
     it('should call the API', (done) => {
       const fakeEvents = ['HELLO', 'WORLD'];
@@ -131,6 +149,24 @@ describe('AuditService', () => {
         .expectOne({
           method: 'GET',
           url: `${CONSTANTS_TESTING.org.baseURL}/audit/events`,
+        })
+        .flush(fakeEvents);
+    });
+  });
+
+  describe('getAllEventsName', () => {
+    it('should call the API', (done) => {
+      const fakeEvents = ['HELLO', 'WORLD'];
+
+      auditService.getAllEventsName().subscribe((response) => {
+        expect(response).toEqual(fakeEvents);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/audit/events`,
         })
         .flush(fakeEvents);
     });

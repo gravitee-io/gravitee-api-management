@@ -21,41 +21,53 @@ import { Audit } from '../entities/audit/Audit';
 import { Constants } from '../entities/Constants';
 import { MetadataPage } from '../entities/MetadataPage';
 
+export type AuditListFilters = {
+  event?: string;
+  referenceType?: string;
+  environmentId?: string;
+  applicationId?: string;
+  apiId?: string;
+  from?: number;
+  to?: number;
+};
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuditService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  listByOrganization(
-    filters: {
-      event?: string;
-      referenceType?: string;
-      environmentId?: string;
-      applicationId?: string;
-      apiId?: string;
-      from?: number;
-      to?: number;
-    } = {},
-    page = 1,
-    size = 10,
-  ): Observable<MetadataPage<Audit>> {
+  listByOrganization(filters: AuditListFilters = {}, page = 1, size = 10): Observable<MetadataPage<Audit>> {
     return this.http.get<MetadataPage<Audit>>(`${this.constants.org.baseURL}/audit`, {
-      params: {
-        page,
-        size,
-        ...(filters.event ? { event: filters.event } : {}),
-        ...(filters.referenceType ? { type: filters.referenceType } : {}),
-        ...(filters.environmentId && filters.referenceType === 'ENVIRONMENT' ? { environment: filters.environmentId } : {}),
-        ...(filters.applicationId && filters.referenceType === 'APPLICATION' ? { application: filters.applicationId } : {}),
-        ...(filters.apiId && filters.referenceType === 'API' ? { api: filters.apiId } : {}),
-        ...(filters.from ? { from: filters.from } : {}),
-        ...(filters.to ? { to: filters.to } : {}),
-      },
+      params: this.sanitizeAuditParams(filters, page, size),
     });
   }
 
   getAllEventsNameByOrganization(): Observable<string[]> {
     return this.http.get<string[]>(`${this.constants.org.baseURL}/audit/events`);
+  }
+
+  list(filters: Omit<AuditListFilters, 'environmentId'> = {}, page = 1, size = 10): Observable<MetadataPage<Audit>> {
+    return this.http.get<MetadataPage<Audit>>(`${this.constants.env.baseURL}/audit`, {
+      params: this.sanitizeAuditParams(filters, page, size),
+    });
+  }
+
+  getAllEventsName(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.constants.env.baseURL}/audit/events`);
+  }
+
+  private sanitizeAuditParams(filters: AuditListFilters, page: number, size: number) {
+    return {
+      page,
+      size,
+      ...(filters.event ? { event: filters.event } : {}),
+      ...(filters.referenceType ? { type: filters.referenceType } : {}),
+      ...(filters.environmentId && filters.referenceType === 'ENVIRONMENT' ? { environment: filters.environmentId } : {}),
+      ...(filters.applicationId && filters.referenceType === 'APPLICATION' ? { application: filters.applicationId } : {}),
+      ...(filters.apiId && filters.referenceType === 'API' ? { api: filters.apiId } : {}),
+      ...(filters.from ? { from: filters.from } : {}),
+      ...(filters.to ? { to: filters.to } : {}),
+    };
   }
 }
