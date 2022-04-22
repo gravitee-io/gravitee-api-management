@@ -25,8 +25,6 @@ import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.reactive.policy.adapter.context.RequestAdapter;
 import io.reactivex.CompletableEmitter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This {@link ReadWriteStreamAdapter} is a {@link SimpleReadWriteStream} implementation that can be used when calling {@link io.gravitee.gateway.api.Invoker#invoke(ExecutionContext, ReadStream, Handler)}.
@@ -36,15 +34,13 @@ import org.slf4j.LoggerFactory;
  */
 class ReadWriteStreamAdapter extends SimpleReadWriteStream<Buffer> {
 
-    private final Logger log = LoggerFactory.getLogger(ReadWriteStreamAdapter.class);
-
     /**
-     * Creates an dedicated {@link io.gravitee.gateway.api.stream.ReadWriteStream}.
-     * This constructor take an {@link ExecutionContextAdapter} on which a {@link RequestAdapter} is attached.
-     * This specific {@link RequestAdapter} allows to register an resume callback that will be invoked by the {@link io.gravitee.gateway.api.Invoker} when it will be ready to read request body.
+     * Creates a dedicated {@link io.gravitee.gateway.api.stream.ReadWriteStream}.
+     * This constructor takes an {@link ExecutionContextAdapter} on which a {@link RequestAdapter} is attached.
+     * This specific {@link RequestAdapter} allows to register a resume callback that will be invoked by the {@link io.gravitee.gateway.api.Invoker} when it will be ready to read the request body.
      *
-     * @param ctx an {@link ExecutionContextAdapter} on which a {@link RequestAdapter} is attached and that can be used to
-     * @param nextEmitter the reactive emitter that can be used to emit error in case of error.
+     * @param ctx an {@link ExecutionContextAdapter} on which a {@link RequestAdapter} is attached to.
+     * @param nextEmitter the reactive emitter that can be used to emit error in case of trouble.
      */
     public ReadWriteStreamAdapter(ExecutionContextAdapter ctx, CompletableEmitter nextEmitter) {
         final RequestAdapter request = ctx.request();
@@ -53,7 +49,7 @@ class ReadWriteStreamAdapter extends SimpleReadWriteStream<Buffer> {
         request.onResume(
             () ->
                 syncRequest
-                    .content()
+                    .getChunkedBody()
                     .doOnNext(this::write)
                     .doOnComplete(this::end)
                     .doOnError(nextEmitter::tryOnError)
