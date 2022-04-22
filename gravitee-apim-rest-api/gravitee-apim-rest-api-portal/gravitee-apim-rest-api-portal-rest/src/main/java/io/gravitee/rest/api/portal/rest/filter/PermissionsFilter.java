@@ -87,7 +87,9 @@ public class PermissionsFilter implements ContainerRequestFilter {
             case ORGANIZATION:
                 return hasPermission(executionContext, permission, executionContext.getOrganizationId());
             case ENVIRONMENT:
-                return hasPermission(executionContext, permission, executionContext.getEnvironmentId());
+                return (
+                    executionContext.hasEnvironmentId() && hasPermission(executionContext, permission, executionContext.getEnvironmentId())
+                );
             case APPLICATION:
                 return hasPermission(executionContext, permission, getApplicationId(requestContext));
             case API:
