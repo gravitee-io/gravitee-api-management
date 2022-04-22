@@ -133,8 +133,8 @@
     <ng-container matColumnDef="targets">
       <th mat-header-cell *matHeaderCellDef id="targets" width="15%">Target</th>
       <td mat-cell *matCellDef="let element">
-        <div class="audit-properties" *ngFor="let target of element.targets | keyvalue">
-          <div class="audit-property">{{ target.key }}:</div>
+        <div class="targets" *ngFor="let target of element.targets | keyvalue">
+          <div class="targets__target">{{ target.key }}:</div>
           <div>{{ target.value }}</div>
         </div>
       </td>
