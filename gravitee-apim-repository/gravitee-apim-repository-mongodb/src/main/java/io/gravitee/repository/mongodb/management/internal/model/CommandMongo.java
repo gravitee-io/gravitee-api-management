@@ -23,6 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class CommandMongo extends Auditable {
 
     private String id;
+    private String organizationId;
     private String environmentId;
     private String from;
     private String to;
@@ -93,5 +94,13 @@ public class CommandMongo extends Auditable {
 
     public void setExpiredAt(Date expiredAt) {
         this.expiredAt = expiredAt;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 }

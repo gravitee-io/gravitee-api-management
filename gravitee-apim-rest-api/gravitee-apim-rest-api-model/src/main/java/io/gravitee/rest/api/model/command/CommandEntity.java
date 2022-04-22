@@ -25,6 +25,8 @@ public class CommandEntity {
 
     private String id;
     private String to;
+    private String organizationId;
+    private String environmentId;
     private List<CommandTags> tags;
     private String content;
     private long ttlInSeconds;
@@ -85,5 +87,21 @@ public class CommandEntity {
 
     public void setProcessedInCurrentNode(boolean processedInCurrentNode) {
         this.processedInCurrentNode = processedInCurrentNode;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 }

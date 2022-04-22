@@ -17,12 +17,16 @@ package io.gravitee.rest.api.services.search;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.MessageRecipient;
+import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandQuery;
 import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.IOException;
@@ -60,6 +64,9 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
     private final AtomicLong counter = new AtomicLong(0);
 
     @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
     private CommandService commandService;
 
     @Autowired
@@ -86,30 +93,50 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
     @Override
     public void run() {
         logger.debug("Search Indexer #{} started at {}", counter.incrementAndGet(), Instant.now());
+
         CommandQuery query = new CommandQuery();
         query.setTo(MessageRecipient.MANAGEMENT_APIS.name());
         query.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
-        List<CommandEntity> messageEntities = commandService.search(GraviteeContext.getExecutionContext(), query);
-        messageEntities.forEach(
-            commandEntity -> {
-                if (commandEntity.isExpired()) {
-                    commandService.delete(commandEntity.getId());
-                } else {
-                    if (!commandEntity.isProcessedInCurrentNode()) {
-                        commandService.ack(commandEntity.getId());
-                        try {
-                            searchEngineService.process(
-                                GraviteeContext.getExecutionContext(),
-                                mapper.readValue(commandEntity.getContent(), CommandSearchIndexerEntity.class)
-                            );
-                        } catch (IOException e) {
-                            logger.error("Search Indexer has received a bad message.", e);
-                        }
+
+        try {
+            organizationRepository
+                .findAll()
+                .forEach(
+                    organization -> {
+                        ExecutionContext organizationContext = new ExecutionContext(organization);
+                        List<CommandEntity> commands = commandService.search(organizationContext, query);
+                        processCommands(organization, commands);
                     }
+                );
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while trying to process organization commands", e);
+        }
+
+        logger.debug("Search Indexer #{} ended at {}", counter.get(), Instant.now());
+    }
+
+    private void processCommands(Organization organization, List<CommandEntity> commands) {
+        commands.forEach(
+            command -> {
+                if (command.isExpired()) {
+                    commandService.delete(command.getId());
+                } else {
+                    String environmentId = command.getEnvironmentId();
+                    ExecutionContext commandContext = new ExecutionContext(organization.getId(), environmentId);
+                    processCommand(commandContext, command);
                 }
             }
         );
+    }
 
-        logger.debug("Search Indexer #{} ended at {}", counter.get(), Instant.now());
+    private void processCommand(ExecutionContext executionContext, CommandEntity command) {
+        if (!command.isProcessedInCurrentNode()) {
+            commandService.ack(command.getId());
+            try {
+                searchEngineService.process(executionContext, mapper.readValue(command.getContent(), CommandSearchIndexerEntity.class));
+            } catch (IOException e) {
+                logger.error("Search Indexer has received a bad message.", e);
+            }
+        }
     }
 }

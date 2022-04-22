@@ -57,6 +57,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             .builder(Command.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("from", Types.NVARCHAR, String.class)
             .addColumn("to", Types.NVARCHAR, String.class)
             .addColumn("content", Types.NVARCHAR, String.class)
@@ -131,8 +132,8 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             storeTags(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create plan", ex);
-            throw new TechnicalException("Failed to create plan", ex);
+            LOGGER.error("Failed to create command", ex);
+            throw new TechnicalException("Failed to create command", ex);
         }
     }
 
@@ -199,6 +200,9 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         if (criteria.getTo() != null) {
             query.append(" and c.").append(escapeReservedWord("to")).append(" = ? ");
         }
+        if (criteria.getOrganizationId() != null) {
+            query.append(" and c.organization_id = ? ");
+        }
         if (criteria.getEnvironmentId() != null) {
             query.append(" and c.environment_id = ? ");
         }
@@ -220,6 +224,9 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
                     }
                     if (criteria.getTo() != null) {
                         ps.setString(lastIndex++, criteria.getTo());
+                    }
+                    if (criteria.getOrganizationId() != null) {
+                        ps.setString(lastIndex++, criteria.getOrganizationId());
                     }
                     if (criteria.getEnvironmentId() != null) {
                         ps.setString(lastIndex++, criteria.getEnvironmentId());
