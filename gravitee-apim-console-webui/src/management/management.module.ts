@@ -21,6 +21,7 @@ import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { GioPolicyStudioRoutingModule } from './api/policy-studio/gio-policy-studio-routing.module';
+import { EnvAuditModule } from './audit/env-audit.module';
 
 import { GioConfirmDialogModule } from '../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
@@ -34,6 +35,7 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     GioPermissionModule,
     GioConfirmDialogModule,
     GioPolicyStudioModule,
+    EnvAuditModule,
     GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.detail.design.flowsNg' }),
   ],
   declarations: [],
