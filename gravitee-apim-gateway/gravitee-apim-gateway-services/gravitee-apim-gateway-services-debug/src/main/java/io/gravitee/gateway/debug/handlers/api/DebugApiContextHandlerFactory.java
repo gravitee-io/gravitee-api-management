@@ -20,8 +20,8 @@ import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFa
 import io.gravitee.gateway.debug.security.core.DebugSecurityPolicyResolver;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
-import io.gravitee.gateway.handlers.api.ApiContextHandlerFactory;
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
+import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
@@ -38,7 +38,7 @@ import org.springframework.context.ApplicationContext;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugApiContextHandlerFactory extends ApiContextHandlerFactory {
+public class DebugApiContextHandlerFactory extends ApiReactorHandlerFactory {
 
     public DebugApiContextHandlerFactory(
         ApplicationContext applicationContext,
