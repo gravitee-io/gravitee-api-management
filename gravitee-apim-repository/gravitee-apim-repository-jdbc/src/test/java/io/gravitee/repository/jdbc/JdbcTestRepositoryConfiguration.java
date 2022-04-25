@@ -73,13 +73,13 @@ public class JdbcTestRepositoryConfiguration {
                 // It appears that the limitation is not entirely due to the DB engine configuration, but also in the way I/O are managed between container and host.
                 // I let this configuration for documentation purpose, but it does not solve our performance issue.
                 // See --> https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html
-                containerBean = new MySQLContainer<>(dockerImageName).withCommand("mysqld --innodb-buffer-pool-size=1G");
+                containerBean = new MySQLContainer<>(dockerImageName);
                 break;
             case MARIADB:
                 // It appears that the limitation is not entirely due to the DB engine configuration, but also in the way I/O are managed between container and host.
                 // I let this configuration for documentation purpose, but it does not solve our performance issue.
                 // See --> https://mariadb.com/kb/en/innodb-system-variables/
-                containerBean = new MariaDBContainer<>(dockerImageName).withCommand("mysqld --innodb-buffer-pool-size=1G");
+                containerBean = new MariaDBContainer<>(dockerImageName);
                 break;
             case SQLSERVER:
                 containerBean = new MSSQLServerContainer<>(dockerImageName);
