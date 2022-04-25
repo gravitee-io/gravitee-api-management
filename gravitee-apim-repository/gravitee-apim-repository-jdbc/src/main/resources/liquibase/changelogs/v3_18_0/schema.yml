@@ -1,20 +1,123 @@
 databaseChangeLog:
-  - changeSet:
-      id: 3.18.0
-      author: GraviteeSource Team
-      changes:
-        - addColumn:
-            tableName: ${gravitee_prefix}alert_triggers
-            columns:
-              - column:
-                  name: environment_id
-                  type: nvarchar(64)
-        - addColumn:
-              tableName: ${gravitee_prefix}audits
-              columns:
-                  - column:
-                        name: organization_id
-                        type: nvarchar(64)
-                  - column:
-                        name: environment_id
-                        type: nvarchar(64)
+    -   changeSet:
+            id: 3.18.0
+            author: GraviteeSource Team
+            changes:
+                -   addColumn:
+                        tableName: ${gravitee_prefix}alert_triggers
+                        columns:
+                            -   column:
+                                    name: environment_id
+                                    type: nvarchar(64)
+                                    constraints:
+                                        nullable: true
+                -   addColumn:
+                        tableName: ${gravitee_prefix}audits
+                        columns:
+                            -   column:
+                                    name: organization_id
+                                    type: nvarchar(64)
+                                    constraints:
+                                        nullable: true
+                            -   column:
+                                    name: environment_id
+                                    type: nvarchar(64)
+                                    constraints:
+                                        nullable: true
+                -   createIndex:
+                        tableName: ${gravitee_prefix}audits
+                        indexName: idx_${gravitee_prefix}organization_environment
+                        columns:
+                            -   column:
+                                    name: organization_id
+                                    type: nvarchar(64)
+                            -   column:
+                                    name: environment_id
+                                    type: nvarchar(64)
+                # mssql
+                -   sql:
+                        dbms: mssql
+                        sql: UPDATE ${gravitee_prefix}audits SET organization_id = reference_id WHERE reference_type = 'ORGANIZATION';
+                -   sql:
+                        dbms: mssql
+                        sql: |
+                            UPDATE a
+                            SET organization_id = coalesce(e.organization_id, 'DEFAULT'), environment_id = coalesce(e.id, 'DEFAULT')
+                            FROM ${gravitee_prefix}audits a
+                            LEFT JOIN ${gravitee_prefix}environments e on e.id = a.reference_id
+                            WHERE a.reference_type = 'ENVIRONMENT';
+                -   sql:
+                        dbms: mssql
+                        sql: |
+                            UPDATE a
+                            SET organization_id = coalesce(e.organization_id, 'DEFAULT'), environment_id = coalesce(e.id, 'DEFAULT')
+                            FROM ${gravitee_prefix}audits a
+                            LEFT JOIN ${gravitee_prefix}apis apis on a.reference_id = apis.id
+                            LEFT JOIN ${gravitee_prefix}environments e on e.id = apis.environment_id
+                            WHERE a.reference_type = 'API';
+                -   sql:
+                        dbms: mssql
+                        sql: |
+                            UPDATE a
+                            SET organization_id = coalesce(e.organization_id, 'DEFAULT'), environment_id = coalesce(e.id, 'DEFAULT')
+                            FROM ${gravitee_prefix}audits a
+                            LEFT JOIN ${gravitee_prefix}applications app on a.reference_id = app.id
+                            LEFT JOIN ${gravitee_prefix}environments e on e.id = app.environment_id
+                            WHERE a.reference_type = 'APPLICATION';
+                # postgresql
+                -   sql:
+                        dbms: postgresql
+                        sql: UPDATE ${gravitee_prefix}audits SET organization_id = reference_id WHERE reference_type = 'ORGANIZATION';
+                -   sql:
+                        dbms: postgresql
+                        sql: |
+                            UPDATE ${gravitee_prefix}audits ua
+                            SET organization_id = coalesce(e.organization_id, 'DEFAULT'), environment_id = coalesce(e.id, 'DEFAULT')
+                            FROM ${gravitee_prefix}audits a
+                            LEFT JOIN ${gravitee_prefix}environments e on e.id = a.reference_id
+                            WHERE ua.id = a.id AND a.reference_type = 'ENVIRONMENT';
+                -   sql:
+                        dbms: postgresql
+                        sql: |
+                            UPDATE ${gravitee_prefix}audits ua
+                            SET organization_id = coalesce(e.organization_id, 'DEFAULT'), environment_id = coalesce(e.id, 'DEFAULT')
+                            FROM ${gravitee_prefix}audits a
+                            LEFT JOIN ${gravitee_prefix}apis apis on a.reference_id = apis.id
+                            LEFT JOIN ${gravitee_prefix}environments e on e.id = apis.environment_id
+                            WHERE ua.id = a.id AND a.reference_type = 'API';
+                -   sql:
+                        dbms: postgresql
+                        sql: |
+                            UPDATE ${gravitee_prefix}audits ua
+                            SET organization_id = coalesce(e.organization_id, 'DEFAULT'), environment_id = coalesce(e.id, 'DEFAULT')
+                            FROM ${gravitee_prefix}audits a
+                            LEFT JOIN ${gravitee_prefix}applications app on a.reference_id = app.id
+                            LEFT JOIN ${gravitee_prefix}environments e on e.id = app.environment_id
+                            WHERE ua.id = a.id AND a.reference_type = 'APPLICATION';
+                # mariadb, mysql
+                -   sql:
+                        dbms: mariadb, mysql
+                        sql: UPDATE ${gravitee_prefix}audits SET organization_id = reference_id WHERE reference_type = 'ORGANIZATION';
+                -   sql:
+                        dbms: mariadb, mysql
+                        sql: |
+                            UPDATE ${gravitee_prefix}audits a
+                            LEFT JOIN ${gravitee_prefix}environments e on e.id = a.reference_id
+                            SET a.organization_id = coalesce(e.organization_id, 'DEFAULT'), environment_id = coalesce(e.id, 'DEFAULT')
+                            WHERE a.reference_type = 'ENVIRONMENT';
+                -   sql:
+                        dbms: mariadb, mysql
+                        sql: |
+                            UPDATE ${gravitee_prefix}audits a
+                            LEFT JOIN ${gravitee_prefix}apis apis on a.reference_id = apis.id
+                            LEFT JOIN ${gravitee_prefix}environments e on e.id = apis.environment_id
+                            SET a.organization_id = coalesce(e.organization_id, 'DEFAULT'), a.environment_id = coalesce(e.id, 'DEFAULT')
+                            WHERE a.reference_type = 'API';
+                -   sql:
+                        dbms: mariadb, mysql
+                        sql: |
+                            UPDATE ${gravitee_prefix}audits a
+                            LEFT JOIN ${gravitee_prefix}applications app on a.reference_id = app.id
+                            LEFT JOIN ${gravitee_prefix}environments e on e.id = app.environment_id
+                            SET a.organization_id = coalesce(e.organization_id, 'DEFAULT'), a.environment_id = coalesce(e.id, 'DEFAULT')
+                            WHERE a.reference_type = 'APPLICATION';
