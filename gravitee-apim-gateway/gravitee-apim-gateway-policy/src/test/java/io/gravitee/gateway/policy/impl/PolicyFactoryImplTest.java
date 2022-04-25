@@ -18,13 +18,13 @@ package io.gravitee.gateway.policy.impl;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
-import io.gravitee.gateway.policy.DummyPolicy;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.policy.dummy.DummyPolicy;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Map;
 import junit.framework.TestCase;
