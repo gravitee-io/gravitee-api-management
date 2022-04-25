@@ -50,5 +50,9 @@ $typography: map.get(gio.$mat-theme, typography);
     .color-red {
       color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
     }
+
+    .color-black {
+      color: mat.get-color-from-palette(gio.$mat-content-palette, 'darker');
+    }
   }
 }
