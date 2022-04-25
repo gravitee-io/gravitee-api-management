@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare type GlobalFetch = any;
+const createCacheKeyFunction = require('@jest/create-cache-key-function').default;
 
-declare module '*.xml' {
-  const src: string;
-  const filename: string;
-  export { src, filename };
-}
+const filesToAccountFor = [__filename];
+
+const valuesToAccountFor = [];
+
+module.exports = {
+  getCacheKey: createCacheKeyFunction(filesToAccountFor, valuesToAccountFor),
+  process(src, filename) {
+    return `module.exports = ${JSON.stringify({ src, filename })};`;
+  },
+};

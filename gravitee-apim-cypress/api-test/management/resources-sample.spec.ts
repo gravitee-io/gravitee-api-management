@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare type GlobalFetch = any;
+import { describe, expect, test } from '@jest/globals';
+import { src as testXml, filename } from '../resources/test.xml';
 
-declare module '*.xml' {
-  const src: string;
-  const filename: string;
-  export { src, filename };
-}
+describe('Resources sample', () => {
+  test('should load xml file', () => {
+    expect(testXml).toBeDefined();
+    expect(filename).toContain('api-test/resources/test.xml');
+  });
+});
