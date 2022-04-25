@@ -75,6 +75,9 @@ public class Api implements Serializable {
     @JsonProperty("plans")
     private Map<String, Plan> plans = new HashMap<>();
 
+    @JsonProperty("executionMode")
+    private ExecutionMode executionMode;
+
     public Api() {}
 
     public String getId() {
@@ -206,6 +209,14 @@ public class Api implements Serializable {
         for (Plan plan : plans) {
             this.plans.put(plan.getId(), plan);
         }
+    }
+
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(final ExecutionMode executionMode) {
+        this.executionMode = executionMode;
     }
 
     @Override
