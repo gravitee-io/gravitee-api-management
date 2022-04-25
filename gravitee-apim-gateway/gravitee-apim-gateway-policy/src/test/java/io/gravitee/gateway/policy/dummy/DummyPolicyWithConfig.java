@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
+package io.gravitee.gateway.policy.dummy;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -24,10 +24,20 @@ import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.policy.api.annotations.OnResponseContent;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyPolicy {
+public class DummyPolicyWithConfig {
+
+    private DummyPolicyConfiguration dummyPolicyConfiguration;
+
+    public DummyPolicyWithConfig(final DummyPolicyConfiguration dummyPolicyConfiguration) {
+        this.dummyPolicyConfiguration = dummyPolicyConfiguration;
+    }
+
+    public DummyPolicyConfiguration getDummyPolicyConfiguration() {
+        return dummyPolicyConfiguration;
+    }
 
     @OnRequest
     public void onRequest(PolicyChain chain, Request request, Response response) {
