@@ -20,7 +20,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
-import io.gravitee.gateway.handlers.api.ApiContextHandlerFactory;
+import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
@@ -115,6 +115,6 @@ public class ApiHandlerConfiguration {
         PolicyFactoryCreator policyFactoryCreator,
         PolicyChainProviderLoader policyChainProviderLoader
     ) {
-        return new ApiContextHandlerFactory(applicationContext, configuration, node, policyFactoryCreator, policyChainProviderLoader);
+        return new ApiReactorHandlerFactory(applicationContext, configuration, node, policyFactoryCreator, policyChainProviderLoader);
     }
 }

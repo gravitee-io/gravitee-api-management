@@ -16,9 +16,9 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
-import io.gravitee.gateway.policy.DummyPolicy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.gateway.policy.PolicyManifest;
+import io.gravitee.gateway.policy.dummy.DummyPolicy;
 import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
