@@ -78,6 +78,8 @@ db.getCollection(`${prefix}roles`).reIndex();
 db.getCollection(`${prefix}audits`).dropIndexes();
 db.getCollection(`${prefix}audits`).createIndex( { "referenceType": 1, "referenceId": 1 }, { "name": "rt1ri1" } );
 db.getCollection(`${prefix}audits`).createIndex( { "createdAt": 1 }, { "name": "c1" } );
+db.getCollection(`${prefix}audits`).createIndex({ organizationId: 1 }, { name: "o1" });
+db.getCollection(`${prefix}audits`).createIndex({ organizationId: 1, environmentId: 1 }, { name: "o1e1" });
 db.getCollection(`${prefix}audits`).reIndex();
 
 // "rating" collection
