@@ -25,8 +25,8 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public enum ExecutionMode {
-    V3("v3"),
     @JsonEnumDefaultValue
+    V3("v3"),
     JUPITER("jupiter");
 
     private static final Map<String, ExecutionMode> BY_LABEL = Map.of(V3.label, V3, JUPITER.label, JUPITER);
