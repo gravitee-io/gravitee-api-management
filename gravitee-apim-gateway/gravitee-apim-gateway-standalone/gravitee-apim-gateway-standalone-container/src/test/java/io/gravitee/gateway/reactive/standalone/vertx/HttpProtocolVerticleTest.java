@@ -22,12 +22,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
-import io.gravitee.node.vertx.ReactivexVertxHttpServerFactory;
-import io.gravitee.node.vertx.VertxHttpServerFactory;
-import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Single;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.junit5.VertxExtension;
@@ -55,7 +50,7 @@ public class HttpProtocolVerticleTest {
         int randomPort = socket.getLocalPort();
         socket.close();
         httpServer = vertx.createHttpServer(new HttpServerOptions().setPort(randomPort));
-        mockRequestDispatcher = spy(new MockHttpRequestDispatcher());
+        mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());
         vertx.deployVerticle(new HttpProtocolVerticle(httpServer, mockRequestDispatcher), testContext.succeedingThenComplete());
     }
 
@@ -66,12 +61,12 @@ public class HttpProtocolVerticleTest {
     }
 
     @Test
-    void verticle_should_be_deployed(Vertx vertx, VertxTestContext testContext) {
+    void verticleShouldBeDeployed(Vertx vertx, VertxTestContext testContext) {
         testContext.completeNow();
     }
 
     @Test
-    void http_server_should_listen(Vertx vertx, VertxTestContext testContext) {
+    void httpServerShouldListen(Vertx vertx, VertxTestContext testContext) {
         HttpClient client = vertx.createHttpClient();
         client
             .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
@@ -90,7 +85,7 @@ public class HttpProtocolVerticleTest {
     }
 
     @Test
-    void http_server_should_close_and_resume_on_error(Vertx vertx, VertxTestContext testContext) {
+    void httpServerShouldCloseAndResumeOnError(Vertx vertx, VertxTestContext testContext) {
         doReturn(Completable.error(new RuntimeException("error"))).doCallRealMethod().when(mockRequestDispatcher).dispatch(any());
         HttpClient client = vertx.createHttpClient();
         client
@@ -118,7 +113,7 @@ public class HttpProtocolVerticleTest {
     }
 
     @Test
-    void http_server_should_dispose_when_connection_closed(Vertx vertx, VertxTestContext testContext) {
+    void httpServerShouldDisposeWhenConnectionClosed(Vertx vertx, VertxTestContext testContext) {
         doReturn(Completable.timer(2, TimeUnit.SECONDS).doOnDispose(testContext::completeNow)).when(mockRequestDispatcher).dispatch(any());
         HttpClient client = vertx.createHttpClient();
         client
@@ -132,7 +127,7 @@ public class HttpProtocolVerticleTest {
     }
 
     @Test
-    void http_server_should_ignore_already_ended_response_on_error(Vertx vertx, VertxTestContext testContext) {
+    void httpServerShouldIgnoreAlreadyEndedResponseOnError(Vertx vertx, VertxTestContext testContext) {
         doAnswer(
                 invocation -> {
                     HttpServerRequest httpServerRequest = invocation.getArgument(0);

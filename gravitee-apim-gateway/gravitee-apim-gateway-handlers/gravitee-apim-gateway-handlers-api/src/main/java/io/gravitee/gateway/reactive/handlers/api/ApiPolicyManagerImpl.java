@@ -15,92 +15,42 @@
  */
 package io.gravitee.gateway.reactive.handlers.api;
 
-import com.fasterxml.jackson.databind.type.TypeFactory;
-import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
-import io.gravitee.gateway.core.classloader.LegacyClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.handlers.api.ApiPolicyManager;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.PolicyManifest;
-import io.gravitee.gateway.policy.PolicyMetadata;
-import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.gateway.policy.impl.PolicyLoader;
-import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
-import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.gateway.reactive.policy.impl.AbstractPolicyManager;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.policy.api.PolicyConfiguration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiPolicyManagerImpl extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
+public class ApiPolicyManagerImpl extends AbstractPolicyManager {
 
-    private final Map<String, PolicyManifest> policies = new HashMap<>();
-    private final Reactable reactable;
-    private final PolicyFactory policyFactory;
-    private final PolicyConfigurationFactory policyConfigurationFactory;
-    private final PolicyLoader policyLoader;
+    private final Api api;
 
     public ApiPolicyManagerImpl(
         DefaultClassLoader classLoader,
-        Reactable reactable,
+        Api api,
         PolicyFactory policyFactory,
         PolicyConfigurationFactory policyConfigurationFactory,
         ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider
     ) {
-        this.reactable = reactable;
-        this.policyFactory = policyFactory;
-        this.policyConfigurationFactory = policyConfigurationFactory;
-        this.policyLoader = new PolicyLoader(classLoader, policyPluginManager, policyClassLoaderFactory, componentProvider);
+        super(classLoader, policyFactory, policyConfigurationFactory, policyPluginManager, policyClassLoaderFactory, componentProvider);
+        this.api = api;
     }
 
     @Override
-    protected void doStart() throws Exception {
-        // Load policies
-        Set<io.gravitee.definition.model.Policy> dependencies = reactable.dependencies(io.gravitee.definition.model.Policy.class);
-        policies.putAll(policyLoader.load(dependencies));
-
-        // Activate policy context
-        policyLoader.activatePolicyContext(policies);
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        // Deactivate policy context
-        policyLoader.disablePolicyContext(policies, policyFactory::cleanup);
-
-        // Be sure to remove all references to policies.
-        policies.clear();
-
-        // This action aims to avoid memory leak by making sure that no Gravitee ClassLoader is still referenced by Jackson TypeFactory.
-        TypeFactory.defaultInstance().clearCache();
-    }
-
-    @Override
-    public Policy create(final ExecutionPhase executionPhase, final PolicyMetadata policyMetadata) {
-        PolicyManifest manifest = policies.get(policyMetadata.getName());
-        if (manifest != null) {
-            PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
-                manifest.configuration(),
-                policyMetadata.getConfiguration()
-            );
-
-            return policyFactory.create(executionPhase, manifest, policyConfiguration, policyMetadata);
-        }
-        return null;
+    protected Set<Policy> dependencies() {
+        return api.dependencies(Policy.class);
     }
 }
