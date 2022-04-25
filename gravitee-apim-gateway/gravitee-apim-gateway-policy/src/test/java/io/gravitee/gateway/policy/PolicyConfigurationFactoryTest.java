@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy;
 
+import io.gravitee.gateway.policy.dummy.DummyPolicyConfiguration;
 import io.gravitee.gateway.policy.impl.PolicyConfigurationFactoryImpl;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.io.IOException;

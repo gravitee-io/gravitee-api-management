@@ -86,6 +86,21 @@ public class HttpProtocolVerticle extends AbstractVerticle {
                                     return response.rxEnd().onErrorResumeNext(endError -> Completable.complete());
                                 }
                             )
+                            .andThen(
+                                Completable.defer(
+                                    () -> {
+                                        HttpServerResponse response = request.response();
+                                        if (!response.ended()) {
+                                            if (!response.headWritten()) {
+                                                response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                                            }
+                                            return response.rxEnd().onErrorResumeNext(endError -> Completable.complete());
+                                        } else {
+                                            return Completable.complete();
+                                        }
+                                    }
+                                )
+                            )
                 )
                 .subscribe();
 
