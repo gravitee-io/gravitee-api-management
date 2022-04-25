@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,9 +43,9 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     private Disposable requestDisposable;
 
     public HttpProtocolVerticle(
-        @Qualifier("gatewayHttpServer") HttpServer httpServer,
-        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
-    ) {
+            @Qualifier("gatewayHttpServer") HttpServer httpServer,
+            @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
+                               ) {
         this.rxHttpServer = io.vertx.reactivex.core.http.HttpServer.newInstance(httpServer);
         this.requestDispatcher = requestDispatcher;
     }
@@ -61,61 +61,54 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         RxJavaPlugins.setNewThreadSchedulerHandler(s -> RxHelper.scheduler(vertx));
 
         requestDisposable =
-            rxHttpServer
-                .requestStream()
-                .toFlowable()
-                .flatMapCompletable(
-                    request ->
-                        requestDispatcher
-                            .dispatch(request)
-                            .doOnComplete(() -> log.debug("Request properly dispatched"))
-                            .doOnSubscribe(
-                                dispatchDisposable ->
-                                    request
-                                        .connection()
-                                        // Must be added to ensure closed connection disposes underlying subscription
-                                        .closeHandler(event -> dispatchDisposable.dispose())
-                            )
-                            .onErrorResumeNext(
-                                throwable -> {
-                                    log.error("An unexpected error occurred while dispatching the incoming request", throwable);
-                                    HttpServerResponse response = request.response();
-                                    if (!response.headWritten()) {
-                                        response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-                                    }
-                                    return response.rxEnd().onErrorResumeNext(endError -> Completable.complete());
-                                }
-                            )
-                            .andThen(
-                                Completable.defer(
-                                    () -> {
-                                        HttpServerResponse response = request.response();
-                                        if (!response.ended()) {
-                                            if (!response.headWritten()) {
-                                                response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-                                            }
-                                            return response.rxEnd().onErrorResumeNext(endError -> Completable.complete());
-                                        } else {
-                                            return Completable.complete();
-                                        }
-                                    }
-                                )
-                            )
-                )
-                .subscribe();
+                rxHttpServer
+                        .requestStream()
+                        .toFlowable()
+                        .flatMapCompletable(
+                                request ->
+                                        requestDispatcher
+                                                .dispatch(request)
+                                                .doOnComplete(() -> log.debug("Request properly dispatched"))
+                                                .doOnSubscribe(
+                                                        dispatchDisposable ->
+                                                                request
+                                                                        .connection()
+                                                                        // Must be added to ensure closed connection disposes underlying subscription
+                                                                        .closeHandler(event -> dispatchDisposable.dispose())
+                                                              )
+                                                .doOnError(throwable -> log.error("An unexpected error occurred while dispatching the incoming request", throwable))
+                                                .onErrorComplete()
+                                                .andThen(
+                                                        Completable.defer(
+                                                                () -> {
+                                                                    HttpServerResponse response = request.response();
+                                                                    if (!response.ended()) {
+                                                                        if (!response.headWritten()) {
+                                                                            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                                                                        }
+                                                                        return response.rxEnd()
+                                                                                       .onErrorResumeNext(endError -> Completable.complete());
+                                                                    } else {
+                                                                        return Completable.complete();
+                                                                    }
+                                                                }
+                                                                         )
+                                                        )
+                                           )
+                        .subscribe();
 
         return rxHttpServer
-            .rxListen()
-            .ignoreElement()
-            .doOnComplete(() -> log.info("HTTP listener ready to accept requests on port {}", rxHttpServer.actualPort()))
-            .doOnError(throwable -> log.error("Unable to start HTTP Server", throwable.getCause()));
+                .rxListen()
+                .ignoreElement()
+                .doOnComplete(() -> log.info("HTTP listener ready to accept requests on port {}", rxHttpServer.actualPort()))
+                .doOnError(throwable -> log.error("Unable to start HTTP Server", throwable.getCause()));
     }
 
     @Override
     public Completable rxStop() {
         log.info("Stopping HTTP Server...");
         return Completable
-            .fromRunnable(() -> requestDisposable.dispose())
-            .andThen(rxHttpServer.rxClose().doOnComplete(() -> log.info("HTTP Server has been correctly stopped")));
+                .fromRunnable(() -> requestDisposable.dispose())
+                .andThen(rxHttpServer.rxClose().doOnComplete(() -> log.info("HTTP Server has been correctly stopped")));
     }
 }
