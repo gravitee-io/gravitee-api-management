@@ -34,7 +34,8 @@
     ".vscode/**",
     "**/*.spec.ts.snap",
     "cypress/fixtures/keys/**",
-    "lib/management-webclient-sdk"
+    "lib/management-webclient-sdk",
+    "api-test/resources/**"
   ],
   "license": "LICENSE_TEMPLATE.txt",
   "licenseFormats": {
