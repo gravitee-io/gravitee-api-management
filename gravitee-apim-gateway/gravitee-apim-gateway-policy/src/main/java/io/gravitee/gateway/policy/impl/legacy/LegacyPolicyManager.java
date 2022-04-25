@@ -87,70 +87,10 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
     protected void doStart() throws Exception {
         // Init required policies
         initialize();
-
-        // Activate policy context
-        policies
-            .values()
-            .stream()
-            .filter(registeredPolicy -> registeredPolicy.context() != null)
-            .forEach(
-                registeredPolicy -> {
-                    try {
-                        logger.info(
-                            "Activating context for {} [{}]",
-                            registeredPolicy.id(),
-                            registeredPolicy.context().getClass().getName()
-                        );
-
-                        registeredPolicy.context().onActivation();
-                    } catch (Exception ex) {
-                        logger.error("Unable to activate policy context", ex);
-                    }
-                }
-            );
     }
 
     @Override
     protected void doStop() throws Exception {
-        // Deactivate policy context
-        policies
-            .values()
-            .stream()
-            .filter(registeredPolicy -> registeredPolicy.context() != null)
-            .forEach(
-                registeredPolicy -> {
-                    try {
-                        logger.info(
-                            "De-activating context for {} [{}]",
-                            registeredPolicy.id(),
-                            registeredPolicy.context().getClass().getName()
-                        );
-                        registeredPolicy.context().onDeactivation();
-                    } catch (Exception ex) {
-                        logger.error("Unable to deactivate policy context", ex);
-                    }
-                }
-            );
-
-        // Close policy classloaders
-        policies
-            .values()
-            .forEach(
-                policy -> {
-                    // Cleanup everything possible in PolicyFactory.
-                    policyFactory.cleanup(policy);
-
-                    ClassLoader policyClassLoader = policy.classloader();
-                    if (policyClassLoader instanceof PluginClassLoader) {
-                        try {
-                            ((PluginClassLoader) policyClassLoader).close();
-                        } catch (IOException e) {
-                            logger.error("Unable to close policy classloader for policy {}", policy.id());
-                        }
-                    }
-                }
-            );
-
         // Be sure to remove all references to policies.
         policies.clear();
 

@@ -27,19 +27,20 @@ import org.mockito.MockitoAnnotations;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiContextHandlerFactoryTest {
+public class ApiReactorHandlerFactoryTest {
 
-    private ApiContextHandlerFactory apiContextHandlerFactory;
+    private ApiReactorHandlerFactory apiContextHandlerFactory;
 
     @Mock
     private Api api;
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        apiContextHandlerFactory = new ApiContextHandlerFactory(null, null, null, null, null);
+        MockitoAnnotations.openMocks(this);
+        apiContextHandlerFactory = new ApiReactorHandlerFactory(null, null, null, null, null);
     }
 
     @Test

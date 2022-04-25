@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
+package io.gravitee.gateway.reactive.policy;
 
-import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.policy.Policy;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyPolicyConfiguration implements PolicyConfiguration {
-
-    private int value;
-
-    public int getValue() {
-        return value;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
-    }
+public interface PolicyManager extends LifecycleComponent<PolicyManager> {
+    Policy create(final ExecutionPhase executionPhase, final PolicyMetadata policy);
 }
