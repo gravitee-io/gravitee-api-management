@@ -48,6 +48,10 @@ public class ApiListItem {
     @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
     private String description;
 
+    @Schema(description = "Api's execution mode. Define if the execution mode should use v3 or jupiter mode.", example = "v3")
+    @JsonProperty(value = "execution_mode")
+    private ExecutionMode executionMode;
+
     @JsonProperty("created_at")
     @Schema(description = "The date (as a timestamp) when the API was created.", example = "1581256457163")
     private Date createdAt;
@@ -344,5 +348,13 @@ public class ApiListItem {
             '\'' +
             '}'
         );
+    }
+
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(final ExecutionMode executionMode) {
+        this.executionMode = executionMode;
     }
 }
