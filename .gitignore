@@ -49,8 +49,8 @@ graviteebot.gpg.pub.key
 .secrets.json
 
 # Cypress
-gravitee-apim-cypress/cypress/videos/
-gravitee-apim-cypress/cypress/screenshots/
+gravitee-apim-e2e/cypress/videos/
+gravitee-apim-e2e/cypress/screenshots/
 
 # Deepcode (Snyk Code) cache
 **/.dccache

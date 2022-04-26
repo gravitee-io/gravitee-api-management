@@ -440,7 +440,7 @@ jobs:
                       docker logout graviteeio.azurecr.io
             - notify-on-failure
 
-    cypress-install:
+    e2e-install:
         executor:
             name: node-lts
             class: small
@@ -449,23 +449,23 @@ jobs:
             - restore_cache:
                   name: Restore NPM cache
                   keys:
-                      - gravitee-apim-cypress-cache-v1-{{ checksum "gravitee-apim-cypress/package-lock.json" }}
+                      - gravitee-apim-e2e-cache-v1-{{ checksum "gravitee-apim-e2e/package-lock.json" }}
             - run:
                   name: Install dependencies
                   command: npm install
-                  working_directory: gravitee-apim-cypress
+                  working_directory: gravitee-apim-e2e
             - notify-on-failure
             - save_cache:
                   name: Save NPM cache
-                  key: gravitee-apim-cypress-cache-v1-{{ checksum "gravitee-apim-cypress/package-lock.json" }}
+                  key: gravitee-apim-e2e-cache-v1-{{ checksum "gravitee-apim-e2e/package-lock.json" }}
                   paths:
-                      - ./gravitee-apim-cypress/node_modules
+                      - ./gravitee-apim-e2e/node_modules
             - persist_to_workspace:
                   root: .
                   paths:
-                      - gravitee-apim-cypress/node_modules
+                      - gravitee-apim-e2e/node_modules
 
-    cypress-lint-test:
+    e2e-lint-test:
         executor:
             name: node-lts
             class: medium
@@ -476,15 +476,15 @@ jobs:
             - run:
                   name: Check License
                   command: npm run lint:license
-                  working_directory: gravitee-apim-cypress
+                  working_directory: gravitee-apim-e2e
             - run:
                   name: Run Prettier and ESLint
                   command: npm run lint
-                  working_directory: gravitee-apim-cypress
+                  working_directory: gravitee-apim-e2e
             - run:
                   name: Run unit tests
                   command: echo "Will run 'npm run test:ci' in the future"
-                  working_directory: gravitee-apim-cypress
+                  working_directory: gravitee-apim-e2e
             - notify-on-failure
 
     webui-lint-test:
@@ -1410,12 +1410,12 @@ workflows:
                               - master
                               - /^\d+\.\d+\.x$/
                   # To be modified when testing strategy will be defined
-            - cypress-install:
+            - e2e-install:
                   requires:
                       - build
-            - cypress-lint-test:
+            - e2e-lint-test:
                   requires:
-                      - cypress-install
+                      - e2e-install
 
     build_rpm_&_docker_images:
         when:

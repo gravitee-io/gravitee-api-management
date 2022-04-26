@@ -1,8 +1,8 @@
 {
-    "name": "gravitee-apim-cypress",
+    "name": "gravitee-apim-e2E",
     "version": "3.16.1",
     "private": true,
-    "description": "Gravitee.io APIM - Cypress",
+    "description": "Gravitee.io APIM - e2e",
     "scripts": {
         "test": "cypress open --config-file cypress/integration/cypress-config.json",
         "test:apim": "cypress open --config-file cypress/integration/apim/cypress-config.json",
