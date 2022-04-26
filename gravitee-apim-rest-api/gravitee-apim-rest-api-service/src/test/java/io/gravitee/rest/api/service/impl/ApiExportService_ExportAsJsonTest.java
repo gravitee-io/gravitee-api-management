@@ -251,4 +251,19 @@ public class ApiExportService_ExportAsJsonTest extends ApiExportService_ExportAs
     public void shouldConvertAsJsonWithoutMetadata_1_25() throws IOException {
         shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version.V_1_25, "1_25");
     }
+
+    @Test
+    public void shouldConvertAsJsonForExportWithExecutionMode() throws IOException {
+        shouldConvertAsJsonForExportWithExecutionMode(ApiSerializer.Version.DEFAULT, null);
+    }
+
+    @Test
+    public void shouldConvertAsJsonForExportWithExecutionMode_v3() throws IOException {
+        shouldConvertAsJsonForExportWithExecutionMode(ApiSerializer.Version.DEFAULT, ExecutionMode.V3);
+    }
+
+    @Test
+    public void shouldConvertAsJsonForExportWithExecutionMode_jupiter() throws IOException {
+        shouldConvertAsJsonForExportWithExecutionMode(ApiSerializer.Version.DEFAULT, ExecutionMode.JUPITER);
+    }
 }

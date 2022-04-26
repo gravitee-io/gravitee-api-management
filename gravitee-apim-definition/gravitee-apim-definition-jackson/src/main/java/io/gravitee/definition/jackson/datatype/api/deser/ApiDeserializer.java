@@ -75,6 +75,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
         } else {
             api.setVersion(versionNode.asText());
         }
+        api.setExecutionMode(ExecutionMode.fromLabel(node.path("execution_mode").asText()));
 
         JsonNode proxyNode = node.get("proxy");
         if (proxyNode != null) {

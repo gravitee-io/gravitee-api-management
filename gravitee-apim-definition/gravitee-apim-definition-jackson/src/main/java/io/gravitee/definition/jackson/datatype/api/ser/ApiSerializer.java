@@ -49,6 +49,9 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
         if (api.getDefinitionVersion() != null) {
             jgen.writeObjectField("gravitee", api.getDefinitionVersion().getLabel());
         }
+        if (api.getExecutionMode() != null) {
+            jgen.writeObjectField("execution_mode", api.getExecutionMode().getLabel());
+        }
 
         if (api.getFlowMode() != null) {
             jgen.writeObjectField("flow_mode", api.getFlowMode().toString().toUpperCase());

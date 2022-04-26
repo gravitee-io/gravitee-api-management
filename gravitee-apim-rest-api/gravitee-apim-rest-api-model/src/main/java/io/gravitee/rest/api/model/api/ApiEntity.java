@@ -62,6 +62,11 @@ public class ApiEntity implements Indexable {
     )
     private String description;
 
+    @Schema(description = "Api's execution mode. Define if the execution mode should use v3 or jupiter mode.", example = "v3")
+    @DeploymentRequired
+    @JsonProperty(value = "execution_mode")
+    private ExecutionMode executionMode;
+
     @Schema(description = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
@@ -527,6 +532,14 @@ public class ApiEntity implements Indexable {
         this.crossId = crossId;
     }
 
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(final ExecutionMode executionMode) {
+        this.executionMode = executionMode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -590,6 +603,8 @@ public class ApiEntity implements Indexable {
             graviteeDefinitionVersion +
             ", flowMode=" +
             flowMode +
+            ", executionMode=" +
+            executionMode +
             '}'
         );
     }
