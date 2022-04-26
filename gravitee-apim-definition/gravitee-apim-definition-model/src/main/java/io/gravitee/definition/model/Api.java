@@ -75,7 +75,7 @@ public class Api implements Serializable {
     @JsonProperty("plans")
     private Map<String, Plan> plans = new HashMap<>();
 
-    @JsonProperty("executionMode")
+    @JsonProperty("execution_mode")
     private ExecutionMode executionMode;
 
     public Api() {}
