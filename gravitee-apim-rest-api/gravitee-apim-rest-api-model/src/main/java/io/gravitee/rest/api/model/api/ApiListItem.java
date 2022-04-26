@@ -17,7 +17,9 @@ package io.gravitee.rest.api.model.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;

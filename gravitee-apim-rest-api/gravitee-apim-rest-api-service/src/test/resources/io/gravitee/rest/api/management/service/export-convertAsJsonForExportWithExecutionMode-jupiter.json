@@ -1,0 +1,200 @@
+{
+  "crossId": "test-api-cross-id",
+  "description": "Gravitee.io",
+  "gravitee": "1.0.0",
+  "execution_mode": "jupiter",
+  "resources": [],
+  "properties": [],
+  "flow_mode": "DEFAULT",
+  "primaryOwner": {
+    "id": "johndoe",
+    "displayName": "johndoe-sourceId",
+    "type": "USER"
+  },
+  "groups": [
+    "My Group"
+  ],
+  "members": [
+    {
+      "source": "johndoe-source",
+      "sourceId": "johndoe-sourceId",
+      "roles": [
+        "API_PRIMARY_OWNER"
+      ]
+    }
+  ],
+  "pages" : [
+    {
+      "name" : "My Folder",
+      "type" : "FOLDER",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name" : "My Title",
+      "type" : "MARKDOWN",
+      "content" : "Read the doc",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name" : "My Swagger",
+      "type" : "SWAGGER",
+      "content" : "Read the doc",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "Aside",
+      "type": "SYSTEM_FOLDER",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": true,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Link",
+      "type": "LINK",
+      "content" : "Read the doc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Translation",
+      "type": "TRANSLATION",
+      "content" : "Lire la documentation",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Template",
+      "type": "MARKDOWN_TEMPLATE",
+      "content" : "Read the doc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My asciidoc",
+      "type": "ASCIIDOC",
+      "content" : "Read the asciidoc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan-id",
+      "crossId": "test-plan-cross-id",
+      "description": "free plan",
+      "validation": "AUTO",
+      "security": "API_KEY",
+      "type": "API",
+      "status": "PUBLISHED",
+      "api": "id-api",
+      "order": 0,
+      "paths": {
+        "/": [
+          {
+            "methods": [
+              "GET"
+            ],
+            "rate-limit": {
+              "rate": {
+                "limit": 1,
+                "periodTime": 1,
+                "periodTimeUnit": "SECONDS"
+              }
+            },
+            "enabled": true
+          }
+        ]
+      },
+      "flows": [],
+      "comment_required": false
+    }
+  ],
+  "metadata": [
+    {
+      "key": "metadata-key",
+      "name": "metadata-name",
+      "format": "STRING",
+      "value": "metadata-value",
+      "defaultValue": "metadata-default-value",
+      "apiId": "id-api"
+    }
+  ],
+  "id": "id-api",
+  "path_mappings": [],
+  "proxy": {
+    "virtual_hosts": [
+      {
+        "path": "/test"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": false,
+    "logging": {
+      "mode": "CLIENT_PROXY",
+      "condition": "condition",
+      "content":"NONE",
+      "scope":"NONE"
+    },
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://test",
+            "weight": 1,
+            "backup": false,
+            "type": "http"
+          }
+        ],
+        "load_balancing": {
+          "type": "ROUND_ROBIN"
+        },
+        "http": {
+          "connectTimeout": 5000,
+          "idleTimeout": 60000,
+          "keepAlive": true,
+          "readTimeout": 10000,
+          "pipelining": false,
+          "maxConcurrentConnections": 100,
+          "useCompression": true,
+          "followRedirects": false
+        }
+      }
+    ]
+  },
+  "response_templates": {
+    "API_KEY_MISSING": {
+      "*/*": {
+        "status": 400,
+        "body": "{\"bad\":\"news\"}"
+      }
+    }
+  }
+}
