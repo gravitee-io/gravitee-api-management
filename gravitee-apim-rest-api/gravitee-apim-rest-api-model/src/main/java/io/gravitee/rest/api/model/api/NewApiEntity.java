@@ -16,8 +16,10 @@
 package io.gravitee.rest.api.model.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.rest.api.model.DeploymentRequired;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Set;
@@ -46,6 +48,11 @@ public class NewApiEntity {
         example = "I can use a hundred characters to describe this API."
     )
     private String description;
+
+    @Schema(description = "Api's execution mode. Define if the execution mode should use v3 or jupiter mode.", example = "v3")
+    @DeploymentRequired
+    @JsonProperty(value = "execution_mode")
+    private ExecutionMode executionMode;
 
     @NotNull
     @Schema(description = "API's context path.", example = "/my-awesome-api")
@@ -179,5 +186,13 @@ public class NewApiEntity {
             '\'' +
             '}'
         );
+    }
+
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(final ExecutionMode executionMode) {
+        this.executionMode = executionMode;
     }
 }

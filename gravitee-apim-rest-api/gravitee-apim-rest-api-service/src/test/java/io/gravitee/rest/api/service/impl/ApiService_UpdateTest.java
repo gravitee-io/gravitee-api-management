@@ -41,6 +41,7 @@ import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.NewApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -64,10 +65,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
@@ -212,7 +210,7 @@ public class ApiService_UpdateTest {
     private ConnectorService connectorService;
 
     @InjectMocks
-    private ApiConverter apiConverter;
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
 
     @Before
     public void setUp() {
@@ -243,6 +241,7 @@ public class ApiService_UpdateTest {
         when(membershipService.getPrimaryOwner(eq(GraviteeContext.getCurrentOrganization()), eq(MembershipReferenceType.API), any()))
             .thenReturn(primaryOwner);
         reset(searchEngineService);
+        when(virtualHostService.sanitizeAndValidate(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     @After
@@ -458,13 +457,6 @@ public class ApiService_UpdateTest {
     public void shouldUpdateWithExistingAllowedTag() throws TechnicalException {
         prepareUpdate();
         when(existingApi.getTags()).thenReturn(singleton("private"));
-        Proxy proxy = new Proxy();
-        EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new Endpoint("EndpointName", null);
-        endpointGroup.setEndpoints(singleton(endpoint));
-        proxy.setGroups(singleton(endpointGroup));
-        when(existingApi.getProxy()).thenReturn(proxy);
         when(api.getDefinition())
             .thenReturn(
                 "{\"id\": \"" +
@@ -485,13 +477,6 @@ public class ApiService_UpdateTest {
     public void shouldUpdateWithExistingAllowedTags() throws TechnicalException {
         prepareUpdate();
         when(existingApi.getTags()).thenReturn(newSet("public", "private"));
-        Proxy proxy = new Proxy();
-        EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new Endpoint("endpointName", null);
-        endpointGroup.setEndpoints(singleton(endpoint));
-        proxy.setGroups(singleton(endpointGroup));
-        when(existingApi.getProxy()).thenReturn(proxy);
         when(api.getDefinition())
             .thenReturn(
                 "{\"id\": \"" +
@@ -994,5 +979,37 @@ public class ApiService_UpdateTest {
         if (!failed && shouldFail) {
             fail("Should not be possible to change the lifecycle state of a " + fromLifecycleState + " API to " + lifecycleState);
         }
+    }
+
+    @Test
+    public void shouldUpdateExistingApiWithV3ExecutionModeWhenNoExecutionMode() throws TechnicalException {
+        prepareUpdate();
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+
+        assertNotNull(apiEntity);
+        assertEquals(ExecutionMode.V3, apiEntity.getExecutionMode());
+    }
+
+    @Test
+    public void shouldUpdateExistingApiWithV3ExecutionMode() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getExecutionMode()).thenReturn(ExecutionMode.V3);
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+
+        assertNotNull(apiEntity);
+        assertEquals(ExecutionMode.V3, apiEntity.getExecutionMode());
+    }
+
+    @Test
+    public void shouldUpdateExistingApiWithJupiterExecutionMode() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getExecutionMode()).thenReturn(ExecutionMode.JUPITER);
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+
+        assertNotNull(apiEntity);
+        assertEquals(ExecutionMode.JUPITER, apiEntity.getExecutionMode());
     }
 }

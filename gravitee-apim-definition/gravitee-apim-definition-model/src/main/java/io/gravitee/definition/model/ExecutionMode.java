@@ -40,11 +40,7 @@ public enum ExecutionMode {
 
     @JsonCreator
     public static ExecutionMode fromLabel(final String label) {
-        if (label != null) {
-            return BY_LABEL.get(label);
-        } else {
-            return null;
-        }
+        return BY_LABEL.getOrDefault(label, V3);
     }
 
     public String getLabel() {

@@ -15,12 +15,15 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.*;
 
 /**
@@ -34,6 +37,7 @@ public class ApiModelEntity {
     private String name;
     private String version;
     private String description;
+    private ExecutionMode executionMode;
     private Set<String> groups;
     private ProxyModelEntity proxy;
     private Map<String, List<Rule>> paths = new HashMap<>();
@@ -285,5 +289,13 @@ public class ApiModelEntity {
             disableMembershipNotifications +
             '}'
         );
+    }
+
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(final ExecutionMode executionMode) {
+        this.executionMode = executionMode;
     }
 }
