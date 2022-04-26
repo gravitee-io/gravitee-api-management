@@ -255,6 +255,12 @@ public class VertxHttpServerRequest implements Request {
         return this.serverRequest.host();
     }
 
+    @Override
+    public Request closeHandler(Handler<Void> closeHandler) {
+        serverRequest.connection().closeHandler(closeHandler::handle);
+        return this;
+    }
+
     public HttpServerRequest getNativeServerRequest() {
         return serverRequest;
     }

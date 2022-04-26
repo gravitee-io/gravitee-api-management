@@ -264,6 +264,11 @@ public class BestMatchFlowResolverBenchmark {
         }
 
         @Override
+        public Request closeHandler(Handler<Void> closeHandler) {
+            return null;
+        }
+
+        @Override
         public ReadStream<Buffer> bodyHandler(Handler<Buffer> handler) {
             return null;
         }
