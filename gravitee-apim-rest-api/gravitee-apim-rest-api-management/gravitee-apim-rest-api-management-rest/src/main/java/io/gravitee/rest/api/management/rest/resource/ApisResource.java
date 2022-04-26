@@ -143,6 +143,7 @@ public class ApisResource extends AbstractResource {
         apiQuery.setContextPath(apisParam.getContextPath());
         apiQuery.setLabel(apisParam.getLabel());
         apiQuery.setVersion(apisParam.getVersion());
+        apiQuery.setExecutionMode(apisParam.getExecutionMode());
         apiQuery.setName(apisParam.getName());
         apiQuery.setTag(apisParam.getTag());
         apiQuery.setState(apisParam.getState());
@@ -435,6 +436,7 @@ public class ApisResource extends AbstractResource {
         apiItem.setName(api.getName());
         apiItem.setVersion(api.getVersion());
         apiItem.setDescription(api.getDescription());
+        apiItem.setExecutionMode(api.getExecutionMode());
 
         final UriBuilder ub = uriInfo.getBaseUriBuilder();
         final UriBuilder uriBuilder = ub
