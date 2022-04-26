@@ -1,0 +1,12 @@
+{
+  "id" : "my-api",
+  "name" : "my-api",
+  "version" : "undefined",
+  "gravitee" : "1.0.0",
+  "execution_mode" : "jupiter",
+  "proxy": {
+    "context_path": "/my-api",
+    "endpoint": "http://localhost:1234",
+    "strip_context_path": false
+  }
+}

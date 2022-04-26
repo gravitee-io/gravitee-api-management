@@ -13,37 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model;
+package io.gravitee.rest.api.model.settings;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.gravitee.rest.api.model.annotations.ParameterKey;
+import io.gravitee.rest.api.model.parameters.Key;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum ExecutionMode {
-    @JsonEnumDefaultValue
-    V3("v3"),
-    JUPITER("jupiter");
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class JupiterMode {
 
-    private static final Map<String, ExecutionMode> BY_LABEL = Map.of(V3.label, V3, JUPITER.label, JUPITER);
+    @ParameterKey(Key.JUPITER_MODE_ENABLED)
+    private Boolean enabled;
 
-    @JsonValue
-    private final String label;
+    @ParameterKey(Key.JUPITER_MODE_DEFAULT)
+    private String isDefault;
 
-    ExecutionMode(final String label) {
-        this.label = label;
+    public Boolean getEnabled() {
+        return enabled;
     }
 
-    @JsonCreator
-    public static ExecutionMode fromLabel(final String label) {
-        return BY_LABEL.getOrDefault(label, V3);
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
-    public String getLabel() {
-        return label;
+    public String getIsDefault() {
+        return isDefault;
+    }
+
+    public void setIsDefault(String isDefault) {
+        this.isDefault = isDefault;
     }
 }

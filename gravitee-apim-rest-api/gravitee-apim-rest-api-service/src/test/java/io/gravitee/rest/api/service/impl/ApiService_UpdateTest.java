@@ -67,10 +67,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
@@ -160,10 +157,10 @@ public class ApiService_UpdateTest {
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
 
-    private final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+    private UpdateApiEntity updateApiEntity;
 
-    private final Api api = new Api();
-    private final Api updatedApi = new Api();
+    private Api api;
+    private Api updatedApi;
 
     @Mock
     private UserService userService;
@@ -239,14 +236,17 @@ public class ApiService_UpdateTest {
         SecurityContextHolder.setContext(securityContext);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
 
+        api = new Api();
         api.setId(API_ID);
         api.setDefinition("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
         api.setEnvironmentId(DEFAULT_ENVIRONMENT_ID);
 
+        updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setVersion("v1");
         updateApiEntity.setName(API_NAME);
         updateApiEntity.setDescription("Ma description");
 
+        updatedApi = new Api();
         updatedApi.setId(API_ID);
         updatedApi.setName(API_NAME);
         updatedApi.setEnvironmentId(DEFAULT_ENVIRONMENT_ID);
@@ -258,6 +258,7 @@ public class ApiService_UpdateTest {
         when(membershipService.getPrimaryOwner(eq(GraviteeContext.getCurrentOrganization()), eq(MembershipReferenceType.API), any()))
             .thenReturn(primaryOwner);
         reset(searchEngineService);
+        when(virtualHostService.sanitizeAndValidate(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     @After
@@ -1158,10 +1159,42 @@ public class ApiService_UpdateTest {
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
 
+    @Test
+    public void shouldUpdateExistingApiWithV3ExecutionModeWhenNoExecutionMode() throws TechnicalException {
+        prepareUpdate();
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        assertNotNull(apiEntity);
+        assertEquals(ExecutionMode.V3, apiEntity.getExecutionMode());
+    }
+
+    @Test
+    public void shouldUpdateExistingApiWithV3ExecutionMode() throws TechnicalException {
+        prepareUpdate();
+        updateApiEntity.setExecutionMode(ExecutionMode.V3);
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        assertNotNull(apiEntity);
+        assertEquals(ExecutionMode.V3, apiEntity.getExecutionMode());
+    }
+
+    @Test
+    public void shouldUpdateExistingApiWithJupiterExecutionMode() throws TechnicalException {
+        prepareUpdate();
+        updateApiEntity.setExecutionMode(ExecutionMode.JUPITER);
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        assertNotNull(apiEntity);
+        assertEquals(ExecutionMode.JUPITER, apiEntity.getExecutionMode());
+    }
+
     private void assertUpdate(
-        final ApiLifecycleState fromLifecycleState,
-        final io.gravitee.rest.api.model.api.ApiLifecycleState lifecycleState,
-        final boolean shouldFail
+            final ApiLifecycleState fromLifecycleState,
+            final io.gravitee.rest.api.model.api.ApiLifecycleState lifecycleState,
+            final boolean shouldFail
     ) {
         api.setApiLifecycleState(fromLifecycleState);
         updateApiEntity.setLifecycleState(lifecycleState);

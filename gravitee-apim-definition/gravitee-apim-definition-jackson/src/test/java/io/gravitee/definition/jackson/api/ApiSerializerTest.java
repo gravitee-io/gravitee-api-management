@@ -662,4 +662,52 @@ public class ApiSerializerTest extends AbstractTest {
             objectMapper().readTree(generatedJsonDefinition.getBytes())
         );
     }
+
+    @Test
+    public void shouldDefaultDefinitionExecutionModeEqualV3WhenApiContainsNull() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-default-executionmode.json", Api.class);
+        String expectedDefinition = "/io/gravitee/definition/jackson/api-default-executionmode-expected.json";
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
+
+        Assert.assertNotNull(generatedJsonDefinition);
+
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
+    }
+
+    @Test
+    public void shouldDefinitionExecutionModeEqualV3WhenApiContainsV3() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-executionmode-v3.json", Api.class);
+        String expectedDefinition = "/io/gravitee/definition/jackson/api-executionmode-v3-expected.json";
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
+
+        Assert.assertNotNull(generatedJsonDefinition);
+
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
+    }
+
+    @Test
+    public void shouldDefinitionExecutionModeEqualJupiterWhenApiContainsJupiter() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-executionmode-jupiter.json", Api.class);
+        String expectedDefinition = "/io/gravitee/definition/jackson/api-executionmode-jupiter-expected.json";
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
+
+        Assert.assertNotNull(generatedJsonDefinition);
+
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
+    }
 }

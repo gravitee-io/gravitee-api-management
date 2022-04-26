@@ -42,6 +42,7 @@ interface Api {
   tags: any[];
   groups: any[];
   lifecycle_state?: string;
+  execution_mode?: string;
 }
 
 class ApiCreationController {
@@ -111,6 +112,12 @@ class ApiCreationController {
       tags: [],
       groups: [],
     };
+
+    if (this.Constants.org.settings.jupiterMode.enabled && this.Constants.org.settings.jupiterMode.isDefault !== 'never') {
+      this.api.execution_mode = 'jupiter';
+    } else {
+      this.api.execution_mode = 'v3';
+    }
 
     this.contextPathInvalid = true;
     this.plan = {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson.api;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -633,5 +634,26 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test(expected = JsonMappingException.class)
     public void definition_v1_withFlow() throws Exception {
         load("/io/gravitee/definition/jackson/api-v1-withflow.json", Api.class);
+    }
+
+    @Test
+    public void shouldDefaultDefinitionExecutionModeEqualV3WhenJsonContainsNull() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-default-executionmode.json", Api.class);
+
+        assertEquals(api.getExecutionMode(), ExecutionMode.V3);
+    }
+
+    @Test
+    public void shouldDefinitionExecutionModeEqualV3WhenJsonContainsV3() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-executionmode-v3.json", Api.class);
+
+        assertEquals(ExecutionMode.V3, api.getExecutionMode());
+    }
+
+    @Test
+    public void shouldDefinitionExecutionModeEqualJupiterWhenJsonContainsJupiter() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-executionmode-jupiter.json", Api.class);
+
+        assertEquals(ExecutionMode.JUPITER, api.getExecutionMode());
     }
 }
