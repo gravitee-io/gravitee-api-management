@@ -148,6 +148,10 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByReferencesAndRoleId({}, {}, {})", referenceType, referenceIds, roleId);
         try {
+            if (CollectionUtils.isEmpty(referenceIds)) {
+                return Set.of();
+            }
+
             StringBuilder query = new StringBuilder("select m.* from " + this.tableName + " m ");
             boolean first = true;
             if (referenceType != null) {
