@@ -54,6 +54,11 @@ public class UpdateApiEntity {
     )
     private String description;
 
+    @Schema(description = "Api's execution mode. Define if the execution mode should use v3 or jupiter mode.", example = "v3")
+    @DeploymentRequired
+    @JsonProperty(value = "execution_mode")
+    private ExecutionMode executionMode;
+
     @NotNull
     @JsonProperty(value = "proxy", required = true)
     @Schema(description = "API's definition.")
@@ -374,5 +379,13 @@ public class UpdateApiEntity {
 
     public void setCrossId(String crossId) {
         this.crossId = crossId;
+    }
+
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(final ExecutionMode executionMode) {
+        this.executionMode = executionMode;
     }
 }

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f111e935-c2b6-4ffe-96d6-ac57b50fd553",
+		"_postman_id": "23d96be0-4990-404e-ba58-59ed8fa69cfd",
 		"name": "APIs",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -201,6 +201,10 @@
 											"    pm.expect(jsonData.lifecycle_state).to.eql(\"CREATED\");",
 											"});",
 											"",
+											"pm.test(\"API uses v3 execution mode\", function() {",
+											"    pm.expect(jsonData.execution_mode).to.eql(\"v3\");",
+											"});",
+											"",
 											"var jsonData = pm.response.json();",
 											"pm.collectionVariables.set(\"created_api\", JSON.stringify(jsonData));",
 											"pm.collectionVariables.set(\"created_api_id\", jsonData.id);"
@@ -293,6 +297,10 @@
 											"    pm.expect(jsonData.state).to.eql(\"STOPPED\");",
 											"    pm.expect(jsonData.visibility).to.eql(\"PRIVATE\");",
 											"    pm.expect(jsonData.lifecycle_state).to.eql(\"PUBLISHED\");",
+											"});",
+											"",
+											"pm.test(\"API uses v3 execution mode\", function() {",
+											"    pm.expect(jsonData.execution_mode).to.eql(\"v3\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -385,6 +393,10 @@
 											"    pm.expect(jsonData.state).to.eql(\"STOPPED\");",
 											"    pm.expect(jsonData.visibility).to.eql(\"PUBLIC\");",
 											"    pm.expect(jsonData.lifecycle_state).to.eql(\"PUBLISHED\");",
+											"});",
+											"",
+											"pm.test(\"API uses v3 execution mode\", function() {",
+											"    pm.expect(jsonData.execution_mode).to.eql(\"v3\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -3681,6 +3693,10 @@
 											"    pm.expect(jsonData.lifecycle_state).to.eql(\"CREATED\");",
 											"});",
 											"",
+											"pm.test(\"API uses jupiter execution mode\", function() {",
+											"    pm.expect(jsonData.execution_mode).to.eql(\"jupiter\");",
+											"});",
+											"",
 											"pm.collectionVariables.set(\"created_api_id\", jsonData.id);",
 											"pm.collectionVariables.set(\"created_api\", JSON.stringify(jsonData));"
 										],
@@ -3763,6 +3779,10 @@
 											"    pm.expect(jsonData.state).to.eql(\"STOPPED\");",
 											"    pm.expect(jsonData.visibility).to.eql(\"PUBLIC\");",
 											"    pm.expect(jsonData.lifecycle_state).to.eql(\"PUBLISHED\");",
+											"});",
+											"",
+											"pm.test(\"API uses jupiter execution mode\", function() {",
+											"    pm.expect(jsonData.execution_mode).to.eql(\"jupiter\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -5921,6 +5941,10 @@
 													"        pm.expect(jsonData.visibility).to.eql(\"PRIVATE\");",
 													"        pm.expect(jsonData.state).to.eql(\"STOPPED\");",
 													"    });",
+													"",
+													"    pm.test(\"Should use jupiter execution mode\", function() {",
+													"        pm.expect(jsonData.execution_mode).to.eql(\"jupiter\");",
+													"    });",
 													"} else {",
 													"    pm.test(\"API already imported, assertions skipped\");",
 													"}",
@@ -5996,6 +6020,10 @@
 													"",
 													"    pm.test(\"API must be private\", function () {",
 													"        pm.expect(jsonData.visibility).to.eql(\"PRIVATE\");",
+													"    });",
+													"",
+													"    pm.test(\"Should use jupiter execution mode\", function() {",
+													"        pm.expect(jsonData.execution_mode).to.eql(\"jupiter\");",
 													"    });",
 													"} else {",
 													"    pm.test(\"API already imported, assertions skipped\");",
@@ -6235,6 +6263,10 @@
 													"        pm.expect(jsonData.visibility).to.eql(\"PRIVATE\");",
 													"        pm.expect(jsonData.state).to.eql(\"STOPPED\");",
 													"    });",
+													"",
+													"    pm.test(\"Should use jupiter execution mode\", function() {",
+													"        pm.expect(jsonData.execution_mode).to.eql(\"jupiter\");",
+													"    });",
 													"} else {",
 													"    pm.test(\"API already imported, assertions skipped\");",
 													"}",
@@ -6310,6 +6342,10 @@
 													"",
 													"    pm.test(\"API must be private\", function () {",
 													"        pm.expect(jsonData.visibility).to.eql(\"PRIVATE\");",
+													"    });",
+													"",
+													"    pm.test(\"Should use jupiter execution mode\", function() {",
+													"        pm.expect(jsonData.execution_mode).to.eql(\"jupiter\");",
 													"    });",
 													"} else {",
 													"    pm.test(\"API already imported, assertions skipped\");",
@@ -6450,6 +6486,10 @@
 													"    pm.expect(jsonData.visibility).to.eql(\"PRIVATE\");",
 													"});",
 													"",
+													"pm.test(\"Should use v3 execution mode\", function() {",
+													"    pm.expect(jsonData.execution_mode).to.eql(\"v3\");",
+													"});",
+													"",
 													"pm.test(\"API must be created\", function () {",
 													"    pm.expect(jsonData.lifecycle_state).to.eql(\"CREATED\");",
 													"});",
@@ -6535,6 +6575,10 @@
 													"",
 													"pm.test(\"API must be private\", function () {",
 													"    pm.expect(jsonData.visibility).to.eql(\"PRIVATE\");",
+													"});",
+													"",
+													"pm.test(\"Should use v3 execution mode\", function() {",
+													"    pm.expect(jsonData.execution_mode).to.eql(\"v3\");",
 													"});",
 													""
 												],
@@ -6629,7 +6673,7 @@
 											"variable": [
 												{
 													"key": "apiId",
-													"value": "{{created_api_id}}"
+													"value": null
 												}
 											]
 										}
