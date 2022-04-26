@@ -331,6 +331,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setName(newApiEntity.getName());
         apiEntity.setDescription(newApiEntity.getDescription());
         apiEntity.setVersion(newApiEntity.getVersion());
+        apiEntity.setExecutionMode(newApiEntity.getExecutionMode());
 
         Set<String> groups = newApiEntity.getGroups();
         if (groups != null && !groups.isEmpty()) {
@@ -1713,6 +1714,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (apiDefinition == null || apiDefinition.isEmpty()) {
                 updateApiDefinition = new io.gravitee.definition.model.Api();
                 updateApiDefinition.setDefinitionVersion(DefinitionVersion.valueOfLabel(updateApiEntity.getGraviteeDefinitionVersion()));
+                updateApiDefinition.setExecutionMode(ExecutionMode.JUPITER);
             } else {
                 updateApiDefinition = objectMapper.readValue(apiDefinition, io.gravitee.definition.model.Api.class);
             }
@@ -1720,6 +1722,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             updateApiDefinition.setName(updateApiEntity.getName());
             updateApiDefinition.setVersion(updateApiEntity.getVersion());
             updateApiDefinition.setProxy(updateApiEntity.getProxy());
+
+            if (updateApiEntity.getExecutionMode() != null) {
+                updateApiDefinition.setExecutionMode(updateApiEntity.getExecutionMode());
+            }
 
             if (StringUtils.isNotEmpty(updateApiEntity.getGraviteeDefinitionVersion())) {
                 updateApiDefinition.setDefinitionVersion(DefinitionVersion.valueOfLabel(updateApiEntity.getGraviteeDefinitionVersion()));
@@ -2258,8 +2264,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     /**
      * Allows to deploy the last published API
-     * @param apiId the API id
-     * @param userId the user id
+     *
+     * @param apiId     the API id
+     * @param userId    the user id
      * @param eventType the event type
      * @return The persisted API or null
      * @throws TechnicalException if an exception occurs while saving the API
@@ -2445,6 +2452,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiModelEntity.setVisibility(apiEntity.getVisibility());
         apiModelEntity.setCategories(apiEntity.getCategories());
         apiModelEntity.setVersion(apiEntity.getVersion());
+        apiModelEntity.setExecutionMode(apiEntity.getExecutionMode());
         apiModelEntity.setState(apiEntity.getState());
         apiModelEntity.setTags(apiEntity.getTags());
         apiModelEntity.setServices(apiEntity.getServices());
@@ -2642,6 +2650,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     /**
      * This method use ApiQuery to search in indexer for fields in api definition
+     *
      * @param executionContext
      * @param apiQuery
      * @return Optional<List < String>> an optional list of api ids and Optional.empty()
@@ -2686,13 +2695,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             searchEngineQuery.setFilters(filters);
         }
 
-        if (!isBlank(query.getContextPath()) || !isBlank(query.getTag())) {
-            if (!isBlank(query.getContextPath())) {
-                searchEngineQuery.addExplicitFilter("paths", query.getContextPath());
-            }
-            if (!isBlank(query.getTag())) {
-                searchEngineQuery.addExplicitFilter("tag", query.getTag());
-            }
+        if (!isBlank(query.getContextPath())) {
+            searchEngineQuery.addExplicitFilter("paths", query.getContextPath());
+        }
+        if (!isBlank(query.getTag())) {
+            searchEngineQuery.addExplicitFilter("tag", query.getTag());
+        }
+        if (query.getExecutionMode() != null) {
+            searchEngineQuery.addExplicitFilter("executionMode", query.getExecutionMode().getLabel());
         }
         return searchEngineQuery;
     }

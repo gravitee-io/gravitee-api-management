@@ -20,6 +20,7 @@ import static java.util.Collections.emptyList;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.rest.api.model.*;
@@ -69,6 +70,11 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         if (apiEntity.getVersion() != null) {
             jsonGenerator.writeObjectField("version", apiEntity.getVersion());
+        }
+        if (apiEntity.getExecutionMode() != null) {
+            jsonGenerator.writeObjectField("execution_mode", apiEntity.getExecutionMode().getLabel());
+        } else {
+            jsonGenerator.writeObjectField("execution_mode", ExecutionMode.V3.getLabel());
         }
         if (apiEntity.getDescription() != null) {
             jsonGenerator.writeObjectField("description", apiEntity.getDescription());

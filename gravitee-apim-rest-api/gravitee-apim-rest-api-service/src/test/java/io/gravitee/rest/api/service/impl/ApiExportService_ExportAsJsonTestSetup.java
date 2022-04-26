@@ -102,6 +102,8 @@ public class ApiExportService_ExportAsJsonTestSetup {
     @Mock
     private MediaService mediaService;
 
+    protected ApiEntity apiEntity;
+
     @Before
     public void setUp() throws TechnicalException {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
@@ -152,10 +154,11 @@ public class ApiExportService_ExportAsJsonTestSetup {
         module.addSerializer(ApiEntity.class, apiCompositeSerializer);
         objectMapper.registerModule(module);
 
-        ApiEntity apiEntity = new ApiEntity();
+        apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
         apiEntity.setCrossId("test-api-cross-id");
         apiEntity.setDescription("Gravitee.io");
+        apiEntity.setExecutionMode(ExecutionMode.V3);
         apiEntity.setFlowMode(FlowMode.DEFAULT);
         apiEntity.setFlows(null);
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
@@ -344,6 +347,29 @@ public class ApiExportService_ExportAsJsonTestSetup {
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExport" + (filename != null ? "-" + filename : "") + ".json"
+        );
+        String expectedJson = Resources.toString(url, Charsets.UTF_8);
+
+        assertThat(jsonForExport).isNotNull();
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+    }
+
+    protected void shouldConvertAsJsonForExportWithExecutionMode(ApiSerializer.Version version, ExecutionMode executionMode)
+        throws IOException {
+        apiEntity.setExecutionMode(executionMode);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
+
+        String jsonForExport = apiExportService.exportAsJson(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            version.getVersion(),
+            SystemRole.PRIMARY_OWNER.name()
+        );
+
+        URL url = Resources.getResource(
+            "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithExecutionMode" +
+            (executionMode != null ? "-" + executionMode.getLabel() : "") +
+            ".json"
         );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 

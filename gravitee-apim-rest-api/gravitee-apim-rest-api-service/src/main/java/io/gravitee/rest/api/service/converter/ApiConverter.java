@@ -80,6 +80,9 @@ public class ApiConverter {
                 if (apiDefinition.getDefinitionVersion() != null) {
                     apiEntity.setGraviteeDefinitionVersion(apiDefinition.getDefinitionVersion().getLabel());
                 }
+                if (apiDefinition.getExecutionMode() != null) {
+                    apiEntity.setExecutionMode(apiDefinition.getExecutionMode());
+                }
                 if (apiDefinition.getFlowMode() != null) {
                     apiEntity.setFlowMode(apiDefinition.getFlowMode());
                 }

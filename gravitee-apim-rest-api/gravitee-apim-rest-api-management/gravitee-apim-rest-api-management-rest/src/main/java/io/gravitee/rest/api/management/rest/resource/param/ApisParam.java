@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.gravitee.definition.model.ExecutionMode;
 import io.swagger.v3.oas.annotations.Parameter;
 import javax.ws.rs.QueryParam;
 
@@ -56,6 +57,10 @@ public class ApisParam {
     @Parameter(description = "filter by version")
     @QueryParam("version")
     private String version;
+
+    @Parameter(description = "filter by execution mode")
+    @QueryParam("executionMode")
+    private ExecutionMode executionMode;
 
     @Parameter(description = "filter by full API Name")
     @QueryParam("name")
@@ -181,5 +186,13 @@ public class ApisParam {
 
     public void setCrossId(String crossId) {
         this.crossId = crossId;
+    }
+
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(final ExecutionMode executionMode) {
+        this.executionMode = executionMode;
     }
 }

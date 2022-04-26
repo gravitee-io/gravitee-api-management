@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.api;
 
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.rest.api.model.Visibility;
 import java.util.Collection;
 import java.util.List;
@@ -33,6 +34,7 @@ public class ApiQuery {
     private String label;
     private String state;
     private Visibility visibility;
+    private ExecutionMode executionMode;
     private String version;
     private String name;
     private String tag;
@@ -199,5 +201,13 @@ public class ApiQuery {
             crossId +
             '}'
         );
+    }
+
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(final ExecutionMode executionMode) {
+        this.executionMode = executionMode;
     }
 }
