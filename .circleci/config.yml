@@ -1353,6 +1353,8 @@ workflows:
                   type: approval
                   requires:
                       - Build Console Storybook
+                      - test-repository
+                      - test
             - console-webui-chromatic-deployment:
                   context: cicd-orchestrator
                   requires:
