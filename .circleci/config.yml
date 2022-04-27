@@ -440,37 +440,14 @@ jobs:
                       docker logout graviteeio.azurecr.io
             - notify-on-failure
 
-    e2e-install:
-        executor:
-            name: node-lts
-            class: small
-        steps:
-            - checkout
-            - restore_cache:
-                  name: Restore NPM cache
-                  keys:
-                      - gravitee-apim-e2e-cache-v1-{{ checksum "gravitee-apim-e2e/package-lock.json" }}
-            - run:
-                  name: Install dependencies
-                  command: npm install
-                  working_directory: gravitee-apim-e2e
-            - notify-on-failure
-            - save_cache:
-                  name: Save NPM cache
-                  key: gravitee-apim-e2e-cache-v1-{{ checksum "gravitee-apim-e2e/package-lock.json" }}
-                  paths:
-                      - ./gravitee-apim-e2e/node_modules
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - gravitee-apim-e2e/node_modules
-
-    e2e-lint-test:
+    e2e-lint:
         executor:
             name: node-lts
             class: medium
         steps:
             - checkout
+            - webui-install:
+                apim-ui-project: gravitee-apim-e2e
             - attach_workspace:
                   at: .
             - run:
@@ -480,10 +457,6 @@ jobs:
             - run:
                   name: Run Prettier and ESLint
                   command: npm run lint
-                  working_directory: gravitee-apim-e2e
-            - run:
-                  name: Run unit tests
-                  command: echo "Will run 'npm run test:ci' in the future"
                   working_directory: gravitee-apim-e2e
             - notify-on-failure
 
@@ -1211,6 +1184,54 @@ jobs:
                       make postman
             - notify-on-failure
 
+    e2e-test:
+      docker:
+        - image: cimg/openjdk:11.0-node
+          environment:
+            - tcp.port: 8083
+        - image: mongo:4.4
+        - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+          environment:
+            - transport.host: localhost #2
+            - network.host: 127.0.0.1 #3
+            - http.port: 9200 #4
+            - cluster.name: es-cluster #5
+            - discovery.type: single-node #6
+            - xpack.security.enabled: false #7
+            - ES_JAVA_OPTS: "-Xms256m -Xmx256m" #8
+      resource_class: medium
+      executor:
+        name: node-lts
+        class: medium
+      steps:
+        - checkout
+        - attach_workspace:
+            at: .
+        - webui-install:
+            apim-ui-project: gravitee-apim-e2e
+        - run:
+            name: Wait for Mongo to be up and running
+            command: timeout 15s bash -c 'until nc -vz localhost 27017; do sleep 2; done'
+        - run:
+            name: Run API & e2e tests
+            command: |
+              # Remove Enterprise edition features
+              # FIXME: add a licence to be able to run Enterprise edition
+              rm rest-api-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
+              rm rest-api-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
+              rm rest-api-docker-context/distribution/plugins/gravitee-notifier-*.zip
+              rm rest-api-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
+              rm rest-api-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
+              # Start APIM in background
+              GIO_MAX_MEM=1024m rest-api-docker-context/distribution/bin/gravitee > /dev/null 2>&1 &
+              echo "Gravitee rest-api started ! Waiting for a connection..."
+              # Wait for APIM to be up and running
+              timeout 60s bash -c 'until nc -vz localhost 8083; do sleep 2; done'
+              # Run e2e tests
+              cd gravitee-apim-e2e
+              npm run test:ci
+        - notify-on-failure
+
     publish_rpm_packages:
         parameters:
             dry_run:
@@ -1415,12 +1436,21 @@ workflows:
                               - master
                               - /^\d+\.\d+\.x$/
                   # To be modified when testing strategy will be defined
-            - e2e-install:
+            - e2e-lint:
+                  name: Lint APIM e2e
                   requires:
+                      - setup
+            - e2e-test:
+                  name: Test APIM e2e
+                  requires:
+                      - Lint APIM e2e
                       - build
-            - e2e-lint-test:
-                  requires:
-                      - e2e-install
+                  filters:
+                    branches:
+                      only:
+                        - master
+                        - /.*-run-e2e.*/
+
 
     build_rpm_&_docker_images:
         when:
