@@ -1449,7 +1449,7 @@ export class APIsApi extends runtime.BaseAPI {
      * User must have API_PUBLISHER or ADMIN role to create an API.
      * Create an API
      */
-    async createApiRaw(requestParameters: CreateApiRequest): Promise<runtime.ApiResponse<void>> {
+    async createApiRaw(requestParameters: CreateApiRequest): Promise<runtime.ApiResponse<ApiEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createApi.');
         }
@@ -1479,15 +1479,16 @@ export class APIsApi extends runtime.BaseAPI {
             body: NewApiEntityToJSON(requestParameters.newApiEntity),
         });
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
     }
 
     /**
      * User must have API_PUBLISHER or ADMIN role to create an API.
      * Create an API
      */
-    async createApi(requestParameters: CreateApiRequest): Promise<void> {
-        await this.createApiRaw(requestParameters);
+    async createApi(requestParameters: CreateApiRequest): Promise<ApiEntity> {
+        const response = await this.createApiRaw(requestParameters);
+        return await response.value();
     }
 
     /**
