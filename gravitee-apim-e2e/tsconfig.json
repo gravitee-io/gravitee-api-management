@@ -3,7 +3,7 @@
     "target": "ES2020",
     "lib": ["ES2020", "dom"],
     "types": ["./types", "cypress", "node", "node-fetch", "jsonwebtoken"],
-    "baseUrl": "./cypress",
+    "baseUrl": "./ui-test",
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
