@@ -18,8 +18,10 @@ package io.gravitee.gateway.reactive.policy.adapter.policy;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.async.AsyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
@@ -46,23 +48,23 @@ public class PolicyAdapter implements Policy {
     }
 
     @Override
-    public Completable onRequest(SyncExecutionContext ctx) {
+    public Completable onRequest(RequestExecutionContext ctx) {
         return execute(ctx, ExecutionPhase.REQUEST);
     }
 
     @Override
-    public Completable onResponse(SyncExecutionContext ctx) {
+    public Completable onResponse(RequestExecutionContext ctx) {
         return execute(ctx, ExecutionPhase.RESPONSE);
     }
 
     @Override
-    public Completable onAsyncRequest(AsyncExecutionContext ctx) {
-        return Completable.error(new RuntimeException("Cannot adapt v3 policy for async request execution"));
+    public Maybe<Message> onMessage(ExecutionContext ctx, Message message) {
+        return Maybe.error(new RuntimeException("Cannot adapt v3 policy for message request execution"));
     }
 
     @Override
-    public Completable onAsyncResponse(AsyncExecutionContext ctx) {
-        return Completable.error(new RuntimeException("Cannot adapt v3 policy for async response execution"));
+    public Flowable<Message> onMessageFlow(ExecutionContext ctx, Flowable<Message> messageFlow) {
+        return Flowable.error(new RuntimeException("Cannot adapt v3 policy for message response execution"));
     }
 
     /**
@@ -76,7 +78,7 @@ public class PolicyAdapter implements Policy {
      *
      * @return a {@link Completable} indicating the execution is completed.
      */
-    private Completable execute(SyncExecutionContext ctx, ExecutionPhase phase) {
+    private Completable execute(final RequestExecutionContext ctx, final ExecutionPhase phase) {
         Completable completable;
 
         if (policy.isRunnable()) {
@@ -94,85 +96,79 @@ public class PolicyAdapter implements Policy {
         return completable;
     }
 
-    private Completable policyExecute(SyncExecutionContext ctx) {
-        return Completable.create(
-            emitter -> {
-                try {
-                    policy.execute(new PolicyChainAdapter(ctx, emitter), ExecutionContextAdapter.create(ctx));
-                } catch (Throwable t) {
-                    emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
-                }
+    private Completable policyExecute(RequestExecutionContext ctx) {
+        return Completable.create(emitter -> {
+            try {
+                policy.execute(new PolicyChainAdapter(ctx, emitter), ExecutionContextAdapter.create(ctx));
+            } catch (Throwable t) {
+                emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
             }
-        );
+        });
     }
 
-    private Completable policyStream(SyncExecutionContext ctx, ExecutionPhase phase) {
+    private Completable policyStream(RequestExecutionContext ctx, ExecutionPhase phase) {
         Buffer newBuffer = Buffer.buffer();
 
         return Completable
-            .create(
-                emitter -> {
-                    try {
-                        // Invoke the policy to get the appropriate read/write stream.
-                        final ReadWriteStream<Buffer> stream = policy.stream(
-                            new PolicyChainAdapter(ctx, emitter),
-                            ExecutionContextAdapter.create(ctx)
-                        );
+            .create(emitter -> {
+                try {
+                    // Invoke the policy to get the appropriate read/write stream.
+                    final ReadWriteStream<Buffer> stream = policy.stream(
+                        new PolicyChainAdapter(ctx, emitter),
+                        ExecutionContextAdapter.create(ctx)
+                    );
 
-                        if (stream == null) {
-                            // Null stream means that the policy does nothing.
-                            emitter.onComplete();
-                        } else {
-                            // Add a body handler to capture all the chunks eventually written by the policy.
-                            stream.bodyHandler(newBuffer::appendBuffer);
+                    if (stream == null) {
+                        // Null stream means that the policy does nothing.
+                        emitter.onComplete();
+                    } else {
+                        // Add a body handler to capture all the chunks eventually written by the policy.
+                        stream.bodyHandler(newBuffer::appendBuffer);
 
-                            // Add an end handler to capture end of the legacy stream and continue the reactive chain.
-                            stream.endHandler(result -> emitter.onComplete());
+                        // Add an end handler to capture end of the legacy stream and continue the reactive chain.
+                        stream.endHandler(result -> emitter.onComplete());
 
-                            getBody(ctx, phase)
-                                .doOnNext(stream::write)
-                                .doFinally(stream::end)
-                                .doOnError(emitter::tryOnError)
-                                .onErrorResumeNext(s -> {})
-                                .subscribe();
-                        }
-                    } catch (Throwable t) {
-                        emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
+                        getBody(ctx, phase)
+                            .doOnNext(stream::write)
+                            .doFinally(stream::end)
+                            .doOnError(emitter::tryOnError)
+                            .onErrorResumeNext(s -> {})
+                            .subscribe();
                     }
+                } catch (Throwable t) {
+                    emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
                 }
-            )
+            })
             .andThen(
-                Completable.defer(
-                    () -> {
-                        if (ctx.isInterrupted()) {
-                            // The context can be interrupted if the policy has invoked the stream.failWith(...) method.
-                            return Completable.complete();
-                        }
-
-                        if (newBuffer == null || newBuffer.length() == 0) {
-                            return Completable.complete();
-                        }
-
-                        // Replace the chunks of the request or response if not interrupted.
-                        return setBody(ctx, phase, newBuffer);
+                Completable.defer(() -> {
+                    if (ctx.isInterrupted()) {
+                        // The context can be interrupted if the policy has invoked the stream.failWith(...) method.
+                        return Completable.complete();
                     }
-                )
+
+                    if (newBuffer == null || newBuffer.length() == 0) {
+                        return Completable.complete();
+                    }
+
+                    // Replace the chunks of the request or response if not interrupted.
+                    return setBody(ctx, phase, newBuffer);
+                })
             );
     }
 
-    private Flowable<Buffer> getBody(SyncExecutionContext ctx, ExecutionPhase phase) {
+    private Flowable<Buffer> getBody(RequestExecutionContext ctx, ExecutionPhase phase) {
         if (phase == ExecutionPhase.REQUEST) {
-            return ctx.request().getChunkedBody();
+            return ctx.request().chunks();
         } else {
-            return ctx.response().getChunkedBody();
+            return ctx.response().chunks();
         }
     }
 
-    private Completable setBody(SyncExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
+    private Completable setBody(RequestExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
         if (phase == ExecutionPhase.REQUEST) {
-            return ctx.request().setBody(Maybe.just(newBuffer));
+            return ctx.request().body(Maybe.just(newBuffer));
         } else {
-            return ctx.response().setBody(Maybe.just(newBuffer));
+            return ctx.response().body(Maybe.just(newBuffer));
         }
     }
 }

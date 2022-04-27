@@ -16,13 +16,17 @@
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import java.util.Map;
 
+/**
+ * Special {@link ExecutionContext} wrapper that can safely be exposed to template engine evaluation.
+ */
 public class EvaluableExecutionContext {
 
-    private final ExecutionContext<?, ?> executionContext;
+    private final RequestExecutionContext executionContext;
 
-    public EvaluableExecutionContext(ExecutionContext<?, ?> executionContext) {
+    public EvaluableExecutionContext(RequestExecutionContext executionContext) {
         this.executionContext = executionContext;
     }
 

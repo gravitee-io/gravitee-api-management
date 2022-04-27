@@ -13,18 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.reactor.processor;
+package io.gravitee.gateway.reactive.reactor.handler.context;
 
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
-import io.reactivex.Completable;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.Response;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Processor {
-    String getId();
+@ExtendWith(MockitoExtension.class)
+class DefaultSyncExecutionContextTest extends AbstractExecutionContextTest {
 
-    Completable execute(RequestExecutionContext ctx);
+    @Mock
+    protected Request request;
+
+    @Mock
+    protected Response response;
+
+    @BeforeEach
+    public void init() {
+        cut = new DefaultSyncExecutionContext(request, response, componentProvider, List.of(templateVariableProvider));
+    }
 }

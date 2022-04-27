@@ -19,7 +19,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.reactivex.CompletableEmitter;
 import io.reactivex.Flowable;
 
@@ -35,7 +35,7 @@ import io.reactivex.Flowable;
  */
 public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
 
-    private final SyncExecutionContext ctx;
+    private final RequestExecutionContext ctx;
     private final CompletableEmitter nextEmitter;
     private final FlowableProxyResponse chunks;
 
@@ -45,7 +45,7 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
      * @param ctx the current execution context.
      * @param nextEmitter the emitter that can be used to notify when completed or in error and allow the reactive chain to continue.
      */
-    public ConnectionHandlerAdapter(SyncExecutionContext ctx, CompletableEmitter nextEmitter) {
+    public ConnectionHandlerAdapter(RequestExecutionContext ctx, CompletableEmitter nextEmitter) {
         this.ctx = ctx;
         this.nextEmitter = nextEmitter;
         this.chunks = new FlowableProxyResponse();

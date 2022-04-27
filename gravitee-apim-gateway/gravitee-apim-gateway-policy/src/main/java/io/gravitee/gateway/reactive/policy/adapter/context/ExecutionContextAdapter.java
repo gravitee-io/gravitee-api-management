@@ -19,6 +19,7 @@ import static io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_ADA
 
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.tracing.api.Tracer;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -30,9 +31,13 @@ import java.util.Map;
  */
 public class ExecutionContextAdapter implements io.gravitee.gateway.api.ExecutionContext {
 
-    private final ExecutionContext<?, ?> ctx;
+    private final RequestExecutionContext ctx;
     private RequestAdapter adaptedRequest;
     private ResponseAdapter adaptedResponse;
+
+    private ExecutionContextAdapter(RequestExecutionContext ctx) {
+        this.ctx = ctx;
+    }
 
     /**
      * Creates an {@link ExecutionContextAdapter} from a {@link ExecutionContext}.
@@ -41,7 +46,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
      * @param ctx the context to adapt for v3 compatibility mode.
      * @return the v3 compatible {@link io.gravitee.gateway.api.ExecutionContext}.
      */
-    public static ExecutionContextAdapter create(ExecutionContext<?, ?> ctx) {
+    public static ExecutionContextAdapter create(RequestExecutionContext ctx) {
         ExecutionContextAdapter adaptedCtx = ctx.getInternalAttribute(ATTR_ADAPTED_CONTEXT);
 
         if (adaptedCtx == null) {
@@ -52,12 +57,8 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
         return adaptedCtx;
     }
 
-    private ExecutionContextAdapter(ExecutionContext<?, ?> ctx) {
-        this.ctx = ctx;
-    }
-
-    public <T extends ExecutionContext<?, ?>> T getDelegate() {
-        return (T) ctx;
+    public RequestExecutionContext getDelegate() {
+        return ctx;
     }
 
     @Override

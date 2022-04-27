@@ -20,8 +20,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.SimpleReadWriteStream;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.reactive.policy.adapter.context.RequestAdapter;
 import io.reactivex.CompletableEmitter;
@@ -43,18 +43,17 @@ class ReadWriteStreamAdapter extends SimpleReadWriteStream<Buffer> {
      * @param nextEmitter the reactive emitter that can be used to emit error in case of trouble.
      */
     public ReadWriteStreamAdapter(ExecutionContextAdapter ctx, CompletableEmitter nextEmitter) {
-        final RequestAdapter request = ctx.request();
-        final SyncRequest syncRequest = ((SyncExecutionContext) ctx.getDelegate()).request();
+        final RequestAdapter requestAdapter = ctx.request();
+        final Request delegateRequest = ctx.getDelegate().request();
 
-        request.onResume(
-            () ->
-                syncRequest
-                    .getChunkedBody()
-                    .doOnNext(this::write)
-                    .doOnComplete(this::end)
-                    .doOnError(nextEmitter::tryOnError)
-                    .onErrorResumeNext(e -> {})
-                    .subscribe()
+        requestAdapter.onResume(() ->
+            delegateRequest
+                .chunks()
+                .doOnNext(this::write)
+                .doOnComplete(this::end)
+                .doOnError(nextEmitter::tryOnError)
+                .onErrorResumeNext(e -> {})
+                .subscribe()
         );
     }
 }

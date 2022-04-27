@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
@@ -47,7 +47,7 @@ public class InvokerAdapter implements Invoker {
     }
 
     @Override
-    public Completable invoke(SyncExecutionContext ctx) {
+    public Completable invoke(RequestExecutionContext ctx) {
         return Completable.create(
             nextEmitter -> {
                 log.debug("Executing invoker {}", id);
@@ -60,7 +60,7 @@ public class InvokerAdapter implements Invoker {
                 final ConnectionHandlerAdapter connectionHandlerAdapter = new ConnectionHandlerAdapter(ctx, nextEmitter);
 
                 // Assign the chunks from the connection handler to the response.
-                ctx.response().setChunkedBody(connectionHandlerAdapter.getChunks());
+                ctx.response().chunks(connectionHandlerAdapter.getChunks());
 
                 try {
                     // Invoke to make the connection happen.
