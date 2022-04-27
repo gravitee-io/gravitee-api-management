@@ -27,7 +27,6 @@ import org.mockito.MockitoAnnotations;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiReactorHandlerFactoryTest {

@@ -20,8 +20,6 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
-import io.gravitee.policy.api.annotations.OnResponse;
-import io.gravitee.policy.api.annotations.OnResponseContent;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

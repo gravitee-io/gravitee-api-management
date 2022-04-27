@@ -24,7 +24,7 @@ import io.vertx.reactivex.core.http.HttpServerRequest;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class MockHttpRequestDispatcher implements HttpRequestDispatcher {
+public class DummyHttpRequestDispatcher implements HttpRequestDispatcher {
 
     @Override
     public Completable dispatch(HttpServerRequest httpServerRequest) {
@@ -42,7 +42,7 @@ public class MockHttpRequestDispatcher implements HttpRequestDispatcher {
     }
 
     @Override
-    public HttpRequestDispatcher stop() throws Exception {
+    public HttpRequestDispatcher stop() {
         return this;
     }
 }
