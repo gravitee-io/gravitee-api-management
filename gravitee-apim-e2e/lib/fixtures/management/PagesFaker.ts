@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import * as faker from 'faker';
-import { PageEntity, Visibility } from '../../management-webclient-sdk/src/lib';
+import { PageEntity } from '@management-models/PageEntity';
+import { Visibility } from '@management-models/Visibility';
 
 export enum PageType {
   ASCIIDOC = 'ASCIIDOC',

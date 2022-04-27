@@ -3,15 +3,19 @@
     "target": "ES2020",
     "lib": ["ES2020", "dom"],
     "types": ["./types", "cypress", "node", "node-fetch", "jsonwebtoken"],
-    "baseUrl": "./ui-test",
+    "baseUrl": ".",
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "paths": {
-      "@fakers/*": ["fixtures/fakers/*"],
-      "@keys/*": ["fixtures/keys/*"],
-      "@model/*": ["model/*"],
-      "@commands/*": ["commands/*"]
+      "@fakers/*": ["ui-test/fixtures/fakers/*"],
+      "@keys/*": ["ui-test/fixtures/keys/*"],
+      "@model/*": ["ui-test/model/*"],
+      "@commands/*": ["ui-test/commands/*"],
+      "@management-fakers/*": ["lib/fixtures/management/*"],
+      "@management-apis/*": ["lib/management-webclient-sdk/src/lib/apis/*"],
+      "@management-conf/*": ["lib/configuration"],
+      "@management-models/*": ["lib/management-webclient-sdk/src/lib/models/*"]
     }
   },
   "include": ["**/*.ts"]
