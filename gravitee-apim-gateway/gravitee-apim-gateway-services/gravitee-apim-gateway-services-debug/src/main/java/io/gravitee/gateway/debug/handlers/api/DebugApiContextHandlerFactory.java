@@ -16,6 +16,7 @@
 package io.gravitee.gateway.debug.handlers.api;
 
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFactory;
 import io.gravitee.gateway.debug.security.core.DebugSecurityPolicyResolver;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
@@ -79,7 +80,11 @@ public class DebugApiContextHandlerFactory extends ApiReactorHandlerFactory {
     }
 
     @Override
-    protected ExecutionContextFactory executionContextFactory(ComponentProvider componentProvider) {
+    protected ExecutionContextFactory v3ExecutionContextFactory(
+        Api api,
+        ComponentProvider componentProvider,
+        DefaultReferenceRegister referenceRegister
+    ) {
         return new DebugExecutionContextFactory(componentProvider);
     }
 }
