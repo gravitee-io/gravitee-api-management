@@ -26,16 +26,14 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
-import io.gravitee.gateway.reactive.api.context.async.AsyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
-import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
-import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
-import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyChainAdapter;
+import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.message.Message;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.observers.TestObserver;
+import io.reactivex.subscribers.TestSubscriber;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -48,43 +46,42 @@ class PolicyAdapterTest {
     protected static final String MOCK_EXCEPTION_MESSAGE = "Mock exception";
 
     @Test
-    public void shouldCompleteInErrorWhenAsyncRequest() {
+    public void shouldCompleteInErrorWhenOnMessage() {
         final Policy policy = mock(Policy.class);
-        final AsyncExecutionContext ctx = mock(AsyncExecutionContext.class);
+        final MessageExecutionContext ctx = mock(MessageExecutionContext.class);
+        final Message msg = mock(Message.class);
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
-        final TestObserver<Void> obs = cut.onAsyncRequest(ctx).test();
+        final TestObserver<Message> obs = cut.onMessage(ctx, msg).test();
 
-        obs.assertErrorMessage("Cannot adapt v3 policy for async request execution");
+        obs.assertErrorMessage("Cannot adapt v3 policy for message request execution");
     }
 
     @Test
-    public void shouldCompleteInErrorWhenAsyncResponse() {
+    public void shouldCompleteInErrorWhenOnMessageFlow() {
         final Policy policy = mock(Policy.class);
-        final AsyncExecutionContext ctx = mock(AsyncExecutionContext.class);
+        final MessageExecutionContext ctx = mock(MessageExecutionContext.class);
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
-        final TestObserver<Void> obs = cut.onAsyncResponse(ctx).test();
+        final TestSubscriber<Message> obs = cut.onMessageFlow(ctx, Flowable.empty()).test();
 
-        obs.assertErrorMessage("Cannot adapt v3 policy for async response execution");
+        obs.assertErrorMessage("Cannot adapt v3 policy for message response execution");
     }
 
     @Test
     public void shouldCompleteWhenExecuteRequest() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
 
         when(policy.isRunnable()).thenReturn(true);
 
-        doAnswer(
-                invocation -> {
-                    PolicyChainAdapter policyChain = invocation.getArgument(0);
-                    policyChain.doNext(mock(Request.class), mock(Response.class));
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                PolicyChainAdapter policyChain = invocation.getArgument(0);
+                policyChain.doNext(mock(Request.class), mock(Response.class));
+                return null;
+            })
             .when(policy)
             .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
 
@@ -98,7 +95,7 @@ class PolicyAdapterTest {
     @Test
     public void shouldErrorWhenExceptionOccursDuringRequest() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
 
         when(policy.isRunnable()).thenReturn(true);
         doThrow(new PolicyException(MOCK_EXCEPTION_MESSAGE))
@@ -115,7 +112,7 @@ class PolicyAdapterTest {
     @Test
     public void shouldCompleteWhenNullStream() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
 
         when(policy.isStreamable()).thenReturn(true);
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(null);
@@ -134,36 +131,32 @@ class PolicyAdapterTest {
         final Buffer policyChunk1 = Buffer.buffer("policyChunk1");
         final Buffer policyChunk2 = Buffer.buffer("policyChunk2");
         final Policy policy = mock(Policy.class);
-        final SyncRequest request = mock(SyncRequest.class);
-        final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
+        final io.gravitee.gateway.reactive.api.context.Request request = mock(io.gravitee.gateway.reactive.api.context.Request.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
         final ArgumentCaptor<Maybe<Buffer>> requestBodyCaptor = ArgumentCaptor.forClass(Maybe.class);
 
         when(ctx.request()).thenReturn(request);
-        when(request.getChunkedBody()).thenReturn(Flowable.just(requestChunk1, requestChunk2));
+        when(request.chunks()).thenReturn(Flowable.just(requestChunk1, requestChunk2));
         when(policy.isStreamable()).thenReturn(true);
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
-        when(request.setBody(requestBodyCaptor.capture())).thenReturn(Completable.complete());
+        when(request.body(requestBodyCaptor.capture())).thenReturn(Completable.complete());
 
         // Simulate a policy that produces multiple buffers in the stream.
-        doAnswer(
-                invocation -> {
-                    Handler<Buffer> bodyHandler = invocation.getArgument(0);
-                    bodyHandler.handle(policyChunk1);
-                    bodyHandler.handle(policyChunk2);
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                Handler<Buffer> bodyHandler = invocation.getArgument(0);
+                bodyHandler.handle(policyChunk1);
+                bodyHandler.handle(policyChunk2);
+                return null;
+            })
             .when(stream)
             .bodyHandler(any(Handler.class));
 
-        doAnswer(
-                invocation -> {
-                    Handler<Void> endHandler = invocation.getArgument(0);
-                    endHandler.handle(null);
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                Handler<Void> endHandler = invocation.getArgument(0);
+                endHandler.handle(null);
+                return null;
+            })
             .when(stream)
             .endHandler(any(Handler.class));
 
@@ -189,36 +182,32 @@ class PolicyAdapterTest {
         final Buffer policyChunk1 = Buffer.buffer("policyChunk1");
         final Buffer policyChunk2 = Buffer.buffer("policyChunk2");
         final Policy policy = mock(Policy.class);
-        final SyncResponse response = mock(SyncResponse.class);
-        final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
+        final io.gravitee.gateway.reactive.api.context.Response response = mock(io.gravitee.gateway.reactive.api.context.Response.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
         final ArgumentCaptor<Maybe<Buffer>> responseBodyCaptor = ArgumentCaptor.forClass(Maybe.class);
 
         when(ctx.response()).thenReturn(response);
-        when(response.getChunkedBody()).thenReturn(Flowable.just(responseChunk1, responseChunk2));
+        when(response.chunks()).thenReturn(Flowable.just(responseChunk1, responseChunk2));
         when(policy.isStreamable()).thenReturn(true);
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
-        when(response.setBody(responseBodyCaptor.capture())).thenReturn(Completable.complete());
+        when(response.body(responseBodyCaptor.capture())).thenReturn(Completable.complete());
 
         // Simulate a policy that produces multiple buffers in the stream.
-        doAnswer(
-                invocation -> {
-                    Handler<Buffer> bodyHandler = invocation.getArgument(0);
-                    bodyHandler.handle(policyChunk1);
-                    bodyHandler.handle(policyChunk2);
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                Handler<Buffer> bodyHandler = invocation.getArgument(0);
+                bodyHandler.handle(policyChunk1);
+                bodyHandler.handle(policyChunk2);
+                return null;
+            })
             .when(stream)
             .bodyHandler(any(Handler.class));
 
-        doAnswer(
-                invocation -> {
-                    Handler<Void> endHandler = invocation.getArgument(0);
-                    endHandler.handle(null);
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                Handler<Void> endHandler = invocation.getArgument(0);
+                endHandler.handle(null);
+                return null;
+            })
             .when(stream)
             .endHandler(any(Handler.class));
 
@@ -240,23 +229,21 @@ class PolicyAdapterTest {
     @Test
     public void shouldCompleteWithoutBodyWhenInterrupted() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final SyncRequest request = mock(SyncRequest.class);
-        final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
+        final io.gravitee.gateway.reactive.api.context.Request request = mock(io.gravitee.gateway.reactive.api.context.Request.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
 
         when(ctx.request()).thenReturn(request);
         when(policy.isStreamable()).thenReturn(true);
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
-        when(request.setBody(any(Maybe.class))).thenReturn(Completable.complete());
+        when(request.body(any(Maybe.class))).thenReturn(Completable.complete());
         when(ctx.isInterrupted()).thenReturn(true);
 
-        doAnswer(
-                invocation -> {
-                    Handler<Void> endHandler = invocation.getArgument(0);
-                    endHandler.handle(null);
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                Handler<Void> endHandler = invocation.getArgument(0);
+                endHandler.handle(null);
+                return null;
+            })
             .when(stream)
             .endHandler(any(Handler.class));
 
@@ -265,20 +252,20 @@ class PolicyAdapterTest {
 
         obs.assertComplete();
 
-        verify(request, times(0)).setBody(any(Maybe.class));
+        verify(request, times(0)).body(any(Maybe.class));
     }
 
     @Test
     public void shouldErrorWhenExceptionOccursDuringStream() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final SyncRequest request = mock(SyncRequest.class);
-        final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
+        final io.gravitee.gateway.reactive.api.context.Request request = mock(io.gravitee.gateway.reactive.api.context.Request.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
 
         when(ctx.request()).thenReturn(request);
         when(policy.isStreamable()).thenReturn(true);
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
-        when(request.setBody(any(Maybe.class))).thenReturn(Completable.complete());
+        when(request.body(any(Maybe.class))).thenReturn(Completable.complete());
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE)).when(stream).endHandler(any(Handler.class));
 

@@ -17,26 +17,26 @@ package io.gravitee.gateway.reactive.http.vertx;
 
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
-import io.reactivex.Flowable;
+import io.reactivex.*;
 import io.vertx.reactivex.core.http.HttpServerResponse;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractVertxHttpServerResponse<T> implements Response<T> {
+public class VertxHttpServerResponse implements Response {
 
-    protected final AbstractVertxHttpServerRequest<T> serverRequest;
+    protected final VertxHttpServerRequest serverRequest;
     protected final HttpHeaders headers;
     protected final HttpHeaders trailers;
     protected final HttpServerResponse nativeResponse;
-    protected Flowable<T> content;
+    protected Flowable<Buffer> chunks;
 
-    public AbstractVertxHttpServerResponse(AbstractVertxHttpServerRequest<T> serverRequest) {
+    public VertxHttpServerResponse(VertxHttpServerRequest serverRequest) {
         this.serverRequest = serverRequest;
         this.nativeResponse = serverRequest.nativeRequest.response();
         this.headers = new VertxHttpHeaders(nativeResponse.headers().getDelegate());
@@ -58,7 +58,7 @@ public abstract class AbstractVertxHttpServerResponse<T> implements Response<T> 
     }
 
     @Override
-    public AbstractVertxHttpServerResponse<T> reason(String reason) {
+    public VertxHttpServerResponse reason(String reason) {
         if (reason != null) {
             nativeResponse.setStatusMessage(reason);
         }
@@ -66,7 +66,7 @@ public abstract class AbstractVertxHttpServerResponse<T> implements Response<T> 
     }
 
     @Override
-    public AbstractVertxHttpServerResponse<T> status(int statusCode) {
+    public VertxHttpServerResponse status(int statusCode) {
         nativeResponse.setStatusCode(statusCode);
         return this;
     }
@@ -103,5 +103,89 @@ public abstract class AbstractVertxHttpServerResponse<T> implements Response<T> 
                 .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
                 .remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
         }
+    }
+
+    @Override
+    public Flowable<Buffer> chunks() {
+        if (this.chunks == null) {
+            this.chunks = Flowable.empty();
+        }
+
+        return this.chunks;
+    }
+
+    @Override
+    public Completable onChunk(FlowableTransformer<Buffer, Buffer> chunkTransformer) {
+        chunks = chunks.compose(chunkTransformer);
+
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable onBody(MaybeTransformer<Buffer, Buffer> bodyTransformer) {
+        return body(body().compose(bodyTransformer));
+    }
+
+    @Override
+    public synchronized Maybe<Buffer> body() {
+        // Reduce all the chunks to create a unique buffer containing all the content.
+        final Maybe<Buffer> buffer = chunks().reduce(Buffer::appendBuffer);
+        this.chunks = buffer.toFlowable();
+        return buffer;
+    }
+
+    @Override
+    public Single<Buffer> bodyOrEmpty() {
+        return body().switchIfEmpty(Single.just(Buffer.buffer()));
+    }
+
+    @Override
+    public Completable body(Maybe<Buffer> buffer) {
+        return setChunks(buffer.toFlowable());
+    }
+
+    @Override
+    public Completable body(Buffer buffer) {
+        return setChunks(Flowable.just(buffer));
+    }
+
+    @Override
+    public Completable chunks(final Flowable<Buffer> chunks) {
+        return setChunks(chunks);
+    }
+
+    @Override
+    public Completable end() {
+        if (!valid()) {
+            return Completable.error(new IllegalStateException("The response is already ended"));
+        }
+
+        if (!nativeResponse.headWritten()) {
+            writeHeaders();
+        }
+
+        if (chunks != null) {
+            return nativeResponse.rxSend(
+                chunks
+                    .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                    .doOnNext(
+                        buffer ->
+                            serverRequest
+                                .metrics()
+                                .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
+                    )
+            );
+        }
+
+        return nativeResponse.rxEnd();
+    }
+
+    private synchronized Completable setChunks(Flowable<Buffer> chunks) {
+        if (chunks != null) {
+            // Current chunks need to be drained before being replaced.
+            this.chunks = chunks().ignoreElements().andThen(chunks);
+        }
+
+        return Completable.complete();
     }
 }

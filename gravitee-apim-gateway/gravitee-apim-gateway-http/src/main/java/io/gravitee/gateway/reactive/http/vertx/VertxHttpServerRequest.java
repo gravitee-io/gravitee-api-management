@@ -35,21 +35,20 @@ import javax.net.ssl.SSLSession;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractVertxHttpServerRequest<T> implements Request<T> {
+public class VertxHttpServerRequest implements Request {
 
     protected final String id;
     protected final long timestamp;
-    protected MultiValueMap<String, String> queryParameters = null;
-    protected MultiValueMap<String, String> pathParameters = null;
-    protected HttpHeaders headers;
     protected final Metrics metrics;
     protected final String contextPath;
     protected final String pathInfo;
-
     protected final HttpServerRequest nativeRequest;
-    protected Flowable<T> content;
+    protected MultiValueMap<String, String> queryParameters = null;
+    protected MultiValueMap<String, String> pathParameters = null;
+    protected HttpHeaders headers;
+    protected Flowable<Buffer> chunks;
 
-    public AbstractVertxHttpServerRequest(HttpServerRequest nativeRequest, String contextPath, IdGenerator idGenerator) {
+    public VertxHttpServerRequest(HttpServerRequest nativeRequest, String contextPath, IdGenerator idGenerator) {
         this.nativeRequest = nativeRequest;
         this.timestamp = System.currentTimeMillis();
         this.id = idGenerator.randomString();
@@ -64,6 +63,13 @@ public abstract class AbstractVertxHttpServerRequest<T> implements Request<T> {
         this.metrics.setUserAgent(nativeRequest.getHeader(io.vertx.reactivex.core.http.HttpHeaders.USER_AGENT));
         this.contextPath = contextPath;
         this.pathInfo = path().substring((contextPath.length() == 1) ? 0 : contextPath.length() - 1);
+        // Make sure that any subscription to the request body will be cached to avoid multiple consumptions.
+        this.chunks =
+            nativeRequest
+                .toFlowable()
+                .doOnNext(buffer -> metrics.setRequestContentLength(metrics.getRequestContentLength() + buffer.length()))
+                .map(Buffer::buffer)
+                .cache();
     }
 
     @Override
@@ -187,5 +193,52 @@ public abstract class AbstractVertxHttpServerRequest<T> implements Request<T> {
     @Override
     public String host() {
         return this.nativeRequest.host();
+    }
+
+    @Override
+    public Maybe<Buffer> body() {
+        return chunks.reduce(Buffer::appendBuffer);
+    }
+
+    @Override
+    public Single<Buffer> bodyOrEmpty() {
+        // Reduce all the chunks to create a unique buffer containing all the content.
+        return body().switchIfEmpty(Single.just(Buffer.buffer()));
+    }
+
+    @Override
+    public Flowable<Buffer> chunks() {
+        return chunks;
+    }
+
+    @Override
+    public Completable onChunk(FlowableTransformer<Buffer, Buffer> chunkTransformer) {
+        chunks = chunks.compose(chunkTransformer);
+
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable onBody(MaybeTransformer<Buffer, Buffer> bodyTransformer) {
+        return body(body().compose(bodyTransformer));
+    }
+
+    @Override
+    public Completable body(Maybe<Buffer> buffer) {
+        return setChunks(buffer.toFlowable());
+    }
+
+    @Override
+    public Completable body(Buffer buffer) {
+        return setChunks(Flowable.just(buffer));
+    }
+
+    @Override
+    public synchronized Completable chunks(final Flowable<Buffer> chunks) {
+        return setChunks(chunks);
+    }
+
+    private synchronized Completable setChunks(Flowable<Buffer> chunks) {
+        return onChunk(upstream -> chunks);
     }
 }

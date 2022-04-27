@@ -15,17 +15,29 @@
  */
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
-import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.reactive.api.context.async.AsyncRequest;
-import io.gravitee.gateway.reactive.api.context.async.AsyncResponse;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.Response;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AsyncExecutionContext extends AbstractExecutionContext<AsyncRequest, AsyncResponse> {
+@ExtendWith(MockitoExtension.class)
+class DefaultAsyncExecutionContextTest extends AbstractExecutionContextTest {
 
-    public AsyncExecutionContext(AsyncRequest request, AsyncResponse response, ComponentProvider componentProvider) {
-        super(request, response, componentProvider);
+    @Mock
+    protected Request request;
+
+    @Mock
+    protected Response response;
+
+    @BeforeEach
+    public void init() {
+        cut = new DefaultMessageExecutionContext(request, response, componentProvider, List.of(templateVariableProvider));
     }
 }

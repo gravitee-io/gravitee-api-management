@@ -27,9 +27,9 @@ import io.reactivex.Completable;
  */
 public class ResponseAdapter implements io.gravitee.gateway.api.Response {
 
-    private final Response<?> response;
+    private final Response response;
 
-    public ResponseAdapter(Response<?> response) {
+    public ResponseAdapter(Response response) {
         this.response = response;
     }
 

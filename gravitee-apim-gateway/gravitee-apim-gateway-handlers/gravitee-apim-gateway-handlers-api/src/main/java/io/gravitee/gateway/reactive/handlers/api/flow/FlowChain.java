@@ -26,10 +26,11 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolver;
+import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
-import io.gravitee.gateway.reactive.policy.impl.PolicyChainImpl;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.List;
@@ -56,14 +57,14 @@ public class FlowChain {
         this.policyManager = policyManager;
     }
 
-    public Completable execute(ExecutionContext<?, ?> ctx, ExecutionPhase phase) {
+    public Completable execute(RequestExecutionContext ctx, ExecutionPhase phase) {
         return resolveFlows(ctx)
             .doOnNext(flow -> log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name()))
             .map(flow -> createPolicyChain(flow, phase))
             .flatMapCompletable(chain -> continueChain(ctx, chain), false, 1);
     }
 
-    private PolicyChainImpl createPolicyChain(Flow flow, ExecutionPhase phase) {
+    private PolicyChain createPolicyChain(Flow flow, ExecutionPhase phase) {
         final List<Step> steps = getSteps(flow, phase);
         final StreamType streamType = toStreamType(phase);
 
@@ -76,7 +77,7 @@ public class FlowChain {
             .map(PolicyAdapter::new)
             .collect(Collectors.toList());
 
-        return new PolicyChainImpl(flow.getName() + " " + phase.name(), policies, phase);
+        return new PolicyChain(flow.getName() + " " + phase.name(), policies, phase);
     }
 
     private List<Step> getSteps(Flow flow, ExecutionPhase phase) {
@@ -91,7 +92,7 @@ public class FlowChain {
         return phase == REQUEST || phase == ASYNC_REQUEST ? ON_REQUEST : ON_RESPONSE;
     }
 
-    private Flowable<Flow> resolveFlows(ExecutionContext<?, ?> ctx) {
+    private Flowable<Flow> resolveFlows(RequestExecutionContext ctx) {
         if (this.flows == null) {
             // Resolves the flows once. Subsequent resolutions will return the same flows.
             this.flows = resolver.resolve(ctx).cache();
@@ -100,7 +101,7 @@ public class FlowChain {
         return this.flows;
     }
 
-    private Completable continueChain(ExecutionContext<?, ?> ctx, PolicyChainImpl chain) {
+    private Completable continueChain(RequestExecutionContext ctx, PolicyChain chain) {
         if (!ctx.isInterrupted()) {
             return chain.execute(ctx);
         } else {

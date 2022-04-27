@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.reactor.processor;
 
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.List;
@@ -28,9 +29,8 @@ import org.slf4j.LoggerFactory;
  */
 public class ProcessorChain {
 
-    private final Logger log = LoggerFactory.getLogger(ProcessorChain.class);
-
     protected final String id;
+    private final Logger log = LoggerFactory.getLogger(ProcessorChain.class);
     protected Flowable<Processor> processors;
 
     public ProcessorChain(String id, List<Processor> processors) {
@@ -38,13 +38,13 @@ public class ProcessorChain {
         this.processors = Flowable.fromIterable(processors);
     }
 
-    public Completable execute(ExecutionContext<?, ?> ctx) {
+    public Completable execute(RequestExecutionContext ctx) {
         log.debug("Executing processor chain {}", id);
 
         return processors.flatMapCompletable(processor -> next(ctx, processor), false, 1);
     }
 
-    private Completable next(ExecutionContext<?, ?> ctx, Processor processor) {
+    private Completable next(RequestExecutionContext ctx, Processor processor) {
         if (ctx.isInterrupted()) {
             return Completable.complete();
         }

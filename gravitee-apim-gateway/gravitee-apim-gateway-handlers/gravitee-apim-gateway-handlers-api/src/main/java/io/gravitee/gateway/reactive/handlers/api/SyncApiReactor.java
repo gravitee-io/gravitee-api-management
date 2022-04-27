@@ -20,13 +20,12 @@ import static io.reactivex.Completable.defer;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
-import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
-import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
@@ -44,9 +43,7 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SyncApiReactor
-    extends AbstractLifecycleComponent<ReactorHandler>
-    implements ApiReactor<SyncRequest, SyncResponse>, ReactorHandler {
+public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor, ReactorHandler {
 
     private final Logger log = LoggerFactory.getLogger(SyncApiReactor.class);
     private final Api api;
@@ -73,8 +70,8 @@ public class SyncApiReactor
     }
 
     @Override
-    public Completable handle(SyncRequest request, SyncResponse response) {
-        final SyncExecutionContext ctx = ctxFactory.create(request, response);
+    public Completable handle(Request request, Response response) {
+        final RequestExecutionContext ctx = ctxFactory.createRequestContext(request, response);
 
         ctx.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setAttribute(ExecutionContext.ATTR_API, api.getId());
@@ -105,46 +102,42 @@ public class SyncApiReactor
      *
      * @return a {@link Completable} that will complete once the invoker has been invoked or that completes immediately if execution isn't required.
      */
-    private Completable invokeBackend(SyncExecutionContext ctx) {
-        return defer(
-            () -> {
-                if (!ctx.isInterrupted() && !(boolean) Boolean.FALSE.equals(ctx.getAttribute("invoker.skip"))) {
-                    Invoker invoker = this.getInvoker(ctx);
-                    return invoker.invoke(ctx);
-                }
-                return Completable.complete();
+    private Completable invokeBackend(RequestExecutionContext ctx) {
+        return defer(() -> {
+            if (!ctx.isInterrupted() && !(boolean) Boolean.FALSE.equals(ctx.getAttribute("invoker.skip"))) {
+                Invoker invoker = this.getInvoker(ctx);
+                return invoker.invoke(ctx);
             }
-        );
+            return Completable.complete();
+        });
     }
 
-    private long getApiResponseTime(SyncExecutionContext ctx) {
+    private long getApiResponseTime(RequestExecutionContext ctx) {
         return ctx.request().metrics().getApiResponseTimeMs();
     }
 
-    protected Invoker getInvoker(SyncExecutionContext context) {
+    protected Invoker getInvoker(RequestExecutionContext context) {
         return context.getAttribute(ExecutionContext.ATTR_INVOKER);
     }
 
-    private Completable end(SyncExecutionContext ctx) {
-        return defer(
-            () -> {
-                setApiResponseTime(ctx);
-                return ctx.response().end().timeout(10, TimeUnit.SECONDS, handleTimeout(ctx));
-            }
-        );
+    private Completable end(RequestExecutionContext ctx) {
+        return defer(() -> {
+            setApiResponseTime(ctx);
+            return ctx.response().end().timeout(10, TimeUnit.SECONDS, handleTimeout(ctx));
+        });
     }
 
-    private void setApiResponseTime(SyncExecutionContext ctx) {
+    private void setApiResponseTime(RequestExecutionContext ctx) {
         if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
             ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
         }
     }
 
-    private Completable handleTimeout(SyncExecutionContext ctx) {
+    private Completable handleTimeout(RequestExecutionContext ctx) {
         return defer(() -> handleError(ctx, null).andThen(defer(() -> ctx.response().end())));
     }
 
-    private Completable handleError(SyncExecutionContext ctx, Throwable t) {
+    private Completable handleError(RequestExecutionContext ctx, Throwable t) {
         if (t != null) {
             log.error("Unexpected error", t);
         }
@@ -209,11 +202,9 @@ public class SyncApiReactor
     protected void dumpVirtualHosts() {
         List<Entrypoint> entrypoints = api.entrypoints();
         log.debug("{} ready to accept requests on:", this);
-        entrypoints.forEach(
-            entrypoint -> {
-                log.debug("\t{}", entrypoint);
-            }
-        );
+        entrypoints.forEach(entrypoint -> {
+            log.debug("\t{}", entrypoint);
+        });
     }
 
     @Override

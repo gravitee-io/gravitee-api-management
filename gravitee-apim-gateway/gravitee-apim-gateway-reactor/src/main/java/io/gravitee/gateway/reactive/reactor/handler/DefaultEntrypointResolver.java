@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.reactor.handler.impl;
+package io.gravitee.gateway.reactive.reactor.handler;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
@@ -183,6 +183,11 @@ public class DefaultEntrypointResolver implements EntrypointResolver {
 
         @Override
         public Request customFrameHandler(Handler<HttpFrame> frameHandler) {
+            return null;
+        }
+
+        @Override
+        public Request closeHandler(Handler<Void> closeHandler) {
             return null;
         }
 
