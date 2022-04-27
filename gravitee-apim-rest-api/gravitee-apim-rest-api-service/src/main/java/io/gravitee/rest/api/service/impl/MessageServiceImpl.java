@@ -394,11 +394,6 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         Map<String, Object> model = new HashMap<>();
         model.put("api", apiEntity);
 
-        return this.notificationTemplateService.resolveInlineTemplateWithParam(
-                organizationId,
-                new Date().toString(),
-                message.getText(),
-                model
-            );
+        return this.notificationTemplateService.resolveInlineTemplateWithParam(new Date().toString(), message.getText(), model);
     }
 }

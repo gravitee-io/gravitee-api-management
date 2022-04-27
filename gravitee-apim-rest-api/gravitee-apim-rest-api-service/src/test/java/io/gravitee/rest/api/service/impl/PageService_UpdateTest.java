@@ -505,7 +505,7 @@ public class PageService_UpdateTest {
         when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
         when(page1.getReferenceId()).thenReturn(API_ID);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean()))
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
             .thenReturn(content);
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
@@ -526,7 +526,7 @@ public class PageService_UpdateTest {
 
         when(pageRepository.update(any())).thenReturn(page1);
 
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean()))
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
             .thenThrow(new TemplateProcessingException(new TemplateException(null)));
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);

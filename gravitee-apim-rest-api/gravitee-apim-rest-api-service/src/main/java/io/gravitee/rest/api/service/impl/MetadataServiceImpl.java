@@ -250,7 +250,6 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             if (entity != null && !isBlank(value) && value.startsWith("${")) {
                 decodedValue =
                     this.notificationTemplateService.resolveInlineTemplateWithParam(
-                            executionContext.getOrganizationId(),
                             value,
                             new StringReader(value),
                             singletonMap(referenceType.name().toLowerCase(), entity)

@@ -236,7 +236,7 @@ public class ApiService_UpdateTest {
             .thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
         when(api.getEnvironmentId()).thenReturn("DEFAULT");
 
-        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any()))
             .thenReturn("toDecode=decoded-value");
         MembershipEntity primaryOwner = new MembershipEntity();
         primaryOwner.setMemberType(MembershipMemberType.USER);

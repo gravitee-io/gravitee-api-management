@@ -93,13 +93,7 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         for (String mail : mails) {
             if (!mail.isEmpty()) {
                 if (mail.contains("$")) {
-                    String tmpMail =
-                        this.notificationTemplateService.resolveInlineTemplateWithParam(
-                                executionContext.getOrganizationId(),
-                                mail,
-                                mail,
-                                params
-                            );
+                    String tmpMail = this.notificationTemplateService.resolveInlineTemplateWithParam(mail, mail, params);
                     if (!tmpMail.isEmpty()) {
                         result.add(tmpMail);
                     }

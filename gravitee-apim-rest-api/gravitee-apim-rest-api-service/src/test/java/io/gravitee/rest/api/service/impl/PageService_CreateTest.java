@@ -490,7 +490,7 @@ public class PageService_CreateTest {
         when(newPage.getLastContributor()).thenReturn(contrib);
         when(newPage.getType()).thenReturn(PageType.MARKDOWN);
         when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean()))
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
             .thenReturn(content);
         this.pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
 
@@ -523,7 +523,7 @@ public class PageService_CreateTest {
 
         when(pageRepository.create(any())).thenReturn(page1);
 
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean()))
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
             .thenThrow(new TemplateProcessingException(new TemplateException(null)));
         this.pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
 

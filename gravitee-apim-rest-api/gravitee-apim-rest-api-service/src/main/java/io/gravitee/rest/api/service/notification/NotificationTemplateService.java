@@ -42,15 +42,14 @@ public interface NotificationTemplateService {
     String resolveTemplateWithParam(String organizationId, String templateName, Object params);
 
     /**
-     * call {@link #resolveInlineTemplateWithParam(String, String, String, Object)} with ignoreTplException set to true
-     * @param organizationId
+     * call {@link #resolveInlineTemplateWithParam(String, String, Object)} with ignoreTplException set to true
      * @param name
      * @param inlineTemplate
      * @param params
      * @return
      */
-    default String resolveInlineTemplateWithParam(String organizationId, String name, String inlineTemplate, Object params) {
-        return resolveInlineTemplateWithParam(organizationId, name, inlineTemplate, params, true);
+    default String resolveInlineTemplateWithParam(String name, String inlineTemplate, Object params) {
+        return resolveInlineTemplateWithParam(name, inlineTemplate, params, true);
     }
 
     /**
@@ -61,42 +60,28 @@ public interface NotificationTemplateService {
      * @param ignoreTplException if true, this method return empty string incase of TemplateException, otherwise a {@link io.gravitee.rest.api.service.exceptions.TemplateProcessingException} is thrown
      * @return
      */
-    default String resolveInlineTemplateWithParam(
-        String organizationId,
-        String name,
-        String inlineTemplate,
-        Object params,
-        boolean ignoreTplException
-    ) {
-        return resolveInlineTemplateWithParam(organizationId, name, new StringReader(inlineTemplate), params, ignoreTplException);
+    default String resolveInlineTemplateWithParam(String name, String inlineTemplate, Object params, boolean ignoreTplException) {
+        return resolveInlineTemplateWithParam(name, new StringReader(inlineTemplate), params, ignoreTplException);
     }
 
     /**
-     * call {@link #resolveInlineTemplateWithParam(String, String, Reader, Object)} with ignoreTplException set to true
-     * @param organizationId
+     * call {@link #resolveInlineTemplateWithParam(String, Reader, Object)} with ignoreTplException set to true
      * @param name
      * @param inlineTemplateReader
      * @param params
      * @return
      */
-    default String resolveInlineTemplateWithParam(String organizationId, String name, Reader inlineTemplateReader, Object params) {
-        return resolveInlineTemplateWithParam(organizationId, name, inlineTemplateReader, params, true);
+    default String resolveInlineTemplateWithParam(String name, Reader inlineTemplateReader, Object params) {
+        return resolveInlineTemplateWithParam(name, inlineTemplateReader, params, true);
     }
 
     /**
      *
-     * @param organizationId
      * @param name
      * @param inlineTemplateReader
      * @param params
      * @param ignoreTplException if true, this method return empty string incase of TemplateException, otherwise a {@link io.gravitee.rest.api.service.exceptions.TemplateProcessingException} is thrown
      * @return
      */
-    String resolveInlineTemplateWithParam(
-        String organizationId,
-        String name,
-        Reader inlineTemplateReader,
-        Object params,
-        boolean ignoreTplException
-    );
+    String resolveInlineTemplateWithParam(String name, Reader inlineTemplateReader, Object params, boolean ignoreTplException);
 }

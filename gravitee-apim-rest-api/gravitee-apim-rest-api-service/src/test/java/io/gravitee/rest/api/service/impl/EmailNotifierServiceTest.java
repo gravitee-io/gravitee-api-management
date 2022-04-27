@@ -180,8 +180,7 @@ public class EmailNotifierServiceTest {
         params.put((NotificationParamsBuilder.PARAM_API), api);
         params.put((NotificationParamsBuilder.PARAM_PLAN), plan);
 
-        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), anyString(), any()))
-            .thenReturn("primary@owner.com");
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any())).thenReturn("primary@owner.com");
 
         for (ApplicationHook hook : ApplicationHook.values()) {
             reset(mockEmailService);

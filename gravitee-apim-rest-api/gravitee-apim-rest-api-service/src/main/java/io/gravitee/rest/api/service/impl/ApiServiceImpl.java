@@ -2469,7 +2469,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 try {
                     String decodedValue =
                         this.notificationTemplateService.resolveInlineTemplateWithParam(
-                                executionContext.getOrganizationId(),
                                 apiModelEntity.getId(),
                                 new StringReader(mapMetadata.toString()),
                                 Collections.singletonMap("api", apiModelEntity)
@@ -2713,7 +2712,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (entity.getValue().contains("${")) {
                     String entityValue =
                         this.notificationTemplateService.resolveInlineTemplateWithParam(
-                                executionContext.getOrganizationId(),
                                 entity.getId() + entity.getUpdatedAt().toString(),
                                 entity.getValue(),
                                 model
@@ -2825,7 +2823,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         String decodedValue =
             this.notificationTemplateService.resolveInlineTemplateWithParam(
-                    executionContext.getOrganizationId(),
                     apiEntity.getId(),
                     new StringReader(mapMetadata.toString()),
                     Collections.singletonMap("api", apiEntity)

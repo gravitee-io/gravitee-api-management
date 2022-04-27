@@ -200,7 +200,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         SecurityContextHolder.setContext(securityContext);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
 
-        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any()))
             .thenReturn("toDecode=decoded-value");
         when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
             .thenReturn("USER");

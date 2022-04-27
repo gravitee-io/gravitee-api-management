@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundExcep
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Before;
@@ -215,5 +217,16 @@ public class NotificationTemplateServiceTest {
                 eq(toUpdate),
                 eq(notificationTemplate)
             );
+    }
+
+    @Test
+    public void shouldResolveInlineTemplateWithParam() {
+        ApiEntity apiEntity = mock(ApiEntity.class);
+        when(apiEntity.getId()).thenReturn("api-id");
+        Map<String, Object> params = Map.of("api", apiEntity);
+
+        String result = notificationTemplateService.resolveInlineTemplateWithParam("inline-template", "${api.id}", params);
+
+        assertEquals("api-id", result);
     }
 }

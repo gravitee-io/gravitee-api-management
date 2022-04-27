@@ -67,6 +67,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
     private static final String HTML_TEMPLATE_EXTENSION = "html";
     public static final String TEMPLATES_TO_INCLUDE_SCOPE = "TEMPLATES_TO_INCLUDE";
+    private static final String INTERNAL_CONFIGURATION_KEY = "_internal";
 
     private final Logger LOGGER = LoggerFactory.getLogger(NotificationTemplateServiceImpl.class);
 
@@ -123,14 +124,8 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     }
 
     @Override
-    public String resolveInlineTemplateWithParam(
-        String organizationId,
-        String name,
-        Reader inlineTemplateReader,
-        Object params,
-        boolean ignoreTplException
-    ) {
-        Configuration orgFreemarkerConfiguration = getCurrentOrgConfiguration(organizationId);
+    public String resolveInlineTemplateWithParam(String name, Reader inlineTemplateReader, Object params, boolean ignoreTplException) {
+        Configuration orgFreemarkerConfiguration = getInternalConfiguration();
         try {
             Template template = new Template(name, inlineTemplateReader, orgFreemarkerConfiguration);
             return FreeMarkerTemplateUtils.processTemplateIntoString(template, params);
@@ -149,7 +144,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
     @Override
     public String resolveTemplateWithParam(String organizationId, String templateName, Object params) {
-        Configuration orgFreemarkerConfiguration = getCurrentOrgConfiguration(organizationId);
+        Configuration orgFreemarkerConfiguration = getConfigurationByKey(organizationId);
         try {
             Template template = orgFreemarkerConfiguration.getTemplate(templateName);
             return FreeMarkerTemplateUtils.processTemplateIntoString(template, params);
@@ -162,17 +157,21 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         }
     }
 
+    private Configuration getInternalConfiguration() {
+        return getConfigurationByKey(INTERNAL_CONFIGURATION_KEY);
+    }
+
     @NotNull
-    private Configuration getCurrentOrgConfiguration(String currentOrganization) {
+    private Configuration getConfigurationByKey(String currentOrganization) {
         Configuration orgFreemarkerConfiguration = freemarkerConfigurationByOrg.get(currentOrganization);
         if (orgFreemarkerConfiguration == null) {
-            orgFreemarkerConfiguration = this.initCurrentOrgFreemarkerConfiguration(currentOrganization);
+            orgFreemarkerConfiguration = this.initFreemarkerConfiguration(currentOrganization);
             freemarkerConfigurationByOrg.put(currentOrganization, orgFreemarkerConfiguration);
         }
         return orgFreemarkerConfiguration;
     }
 
-    private Configuration initCurrentOrgFreemarkerConfiguration(String currentOrganization) {
+    private Configuration initFreemarkerConfiguration(String currentOrganization) {
         // Init the configuration
         final freemarker.template.Configuration configuration = new freemarker.template.Configuration(
             freemarker.template.Configuration.VERSION_2_3_22
@@ -180,10 +179,11 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
         configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
 
-        // Get template loaders
-        MultiTemplateLoader multiLoader = createMultiTemplateLoaderForOrganization(currentOrganization);
-        configuration.setTemplateLoader(multiLoader);
-
+        if (!currentOrganization.equals(INTERNAL_CONFIGURATION_KEY)) {
+            // Get template loaders
+            MultiTemplateLoader multiLoader = createMultiTemplateLoaderForOrganization(currentOrganization);
+            configuration.setTemplateLoader(multiLoader);
+        }
         return configuration;
     }
 
@@ -459,7 +459,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     private void updateFreemarkerCache(NotificationTemplateEntity notificationTemplate, String organization) {
         StringTemplateLoader orgCustomizedTemplatesLoader = stringTemplateLoaderMapByOrg.get(organization);
         if (orgCustomizedTemplatesLoader == null) {
-            Configuration orgFreemarkerConfiguration = this.initCurrentOrgFreemarkerConfiguration(organization);
+            Configuration orgFreemarkerConfiguration = this.initFreemarkerConfiguration(organization);
             freemarkerConfigurationByOrg.put(organization, orgFreemarkerConfiguration);
             orgCustomizedTemplatesLoader = stringTemplateLoaderMapByOrg.get(organization);
         }

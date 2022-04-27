@@ -701,7 +701,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             try {
                 String content =
                     this.notificationTemplateService.resolveInlineTemplateWithParam(
-                            executionContext.getOrganizationId(),
                             pageEntity.getId(),
                             pageEntity.getContent(),
                             model,

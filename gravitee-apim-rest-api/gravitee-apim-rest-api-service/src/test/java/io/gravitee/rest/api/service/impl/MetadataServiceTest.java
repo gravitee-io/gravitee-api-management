@@ -60,8 +60,7 @@ public class MetadataServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void checkMetadataFormat_badEmailFormat_EL() throws TemplateException {
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
-            .thenReturn("test");
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("test");
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail("test");
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
@@ -94,8 +93,7 @@ public class MetadataServiceTest {
 
     @Test
     public void checkMetadataFormat_userWithoutEmail() throws TemplateException {
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
-            .thenReturn("");
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("");
         UserEntity userEntity = new UserEntity();
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
