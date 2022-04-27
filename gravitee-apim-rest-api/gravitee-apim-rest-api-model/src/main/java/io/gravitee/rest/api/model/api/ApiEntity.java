@@ -91,12 +91,12 @@ public class ApiEntity implements Indexable {
     private List<Flow> flows = new ArrayList<>();
 
     @DeploymentRequired
-    @JsonProperty(value = "plans", required = true)
+    @JsonProperty(value = "plans")
     @Schema(description = "a list of plans with flows (the policies configuration)")
     private List<Plan> plans = new ArrayList<>();
 
     @DeploymentRequired
-    @JsonProperty(value = "gravitee", required = false)
+    @JsonProperty(value = "gravitee")
     @Schema(description = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
 
