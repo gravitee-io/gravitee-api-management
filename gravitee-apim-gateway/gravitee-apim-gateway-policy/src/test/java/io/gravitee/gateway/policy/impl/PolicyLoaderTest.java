@@ -26,18 +26,11 @@ import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.dummy.*;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
-import io.gravitee.plugin.core.api.PluginManager;
-import io.gravitee.plugin.core.api.PluginManifest;
-import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.policy.internal.PolicyClassLoaderFactoryImpl;
-import io.gravitee.plugin.policy.internal.PolicyPluginManagerImpl;
-import io.gravitee.policy.api.PolicyContext;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.policy.api.annotations.OnResponseContent;
-import java.net.URL;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,13 +63,13 @@ class PolicyLoaderTest {
     }
 
     @Test
-    public void should_return_empty_loaded_policies_from_empty_dependencies() {
+    public void shouldReturnEmptyLoadedPoliciesFromEmptyDependencies() {
         Map<String, PolicyManifest> load = policyLoader.load(Set.of());
         assertTrue(load.isEmpty());
     }
 
     @Test
-    public void should_return_loaded_policies() {
+    public void shouldReturnLoadedPolicies() {
         Policy dummyPolicy = new Policy();
         dummyPolicy.setName("dummy-policy");
         dummyPolicy.setConfiguration("{}");
