@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 import * as faker from 'faker';
-import { APIsApi } from '../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
-import { buildConfiguration } from '../../lib/configuration';
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { PlansFaker } from '../../lib/fixtures/management/PlansFaker';
-import { PagesFaker } from '../../lib/fixtures/management/PagesFaker';
-import { ApiMetadataFormat, ApisFaker } from '../../lib/fixtures/management/ApisFaker';
-import { APIDefinitionApi, APIPlansApi, JsonPatchOperationEnum, LifecycleAction } from '../../lib/management-webclient-sdk/src/lib';
-import { APIPagesApi } from '../../lib/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { fail } from '../../lib/jest-utils';
+import { APIPlansApi } from '@management-apis/APIPlansApi';
+import { APIDefinitionApi } from '@management-apis/APIDefinitionApi';
+import { APIsApi } from '@management-apis/APIsApi';
+import { JsonPatchOperationEnum } from '@management-models/JsonPatch';
+import { ApiMetadataFormat, ApisFaker } from '@management-fakers/ApisFaker';
+import { PlansFaker } from '@management-fakers/PlansFaker';
+import { LifecycleAction } from '@management-models/LifecycleAction';
+import { APIPagesApi } from '@management-apis/APIPagesApi';
+import { PagesFaker } from '@management-fakers/PagesFaker';
+import { buildConfiguration } from '@management-conf/*';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -305,7 +308,16 @@ describe('API definition', () => {
       },
     ];
 
-    await fail(apiDefinitionApi.patch({ orgId, envId, api, jsonPatch }), 400, '#/timeToIdleSeconds: -10 is not greater or equal to 0');
+    await fail(
+      apiDefinitionApi.patch({
+        orgId,
+        envId,
+        api,
+        jsonPatch,
+      }),
+      400,
+      '#/timeToIdleSeconds: -10 is not greater or equal to 0',
+    );
   });
 
   test('should update resource configuration', async () => {
@@ -353,7 +365,16 @@ describe('API definition', () => {
       },
     ];
 
-    await fail(apiDefinitionApi.patch({ orgId, envId, api, jsonPatch }), 400, '#/timeToLiveSeconds: -5 is not greater or equal to 0');
+    await fail(
+      apiDefinitionApi.patch({
+        orgId,
+        envId,
+        api,
+        jsonPatch,
+      }),
+      400,
+      '#/timeToLiveSeconds: -5 is not greater or equal to 0',
+    );
   });
 
   test('should add flows', async () => {
@@ -690,7 +711,16 @@ describe('API definition', () => {
       },
     ];
 
-    await fail(apiDefinitionApi.patch({ orgId, envId, api, jsonPatch }), 400, 'You are not allowed to downgrade definition version');
+    await fail(
+      apiDefinitionApi.patch({
+        orgId,
+        envId,
+        api,
+        jsonPatch,
+      }),
+      400,
+      'You are not allowed to downgrade definition version',
+    );
   });
 
   test('should not inject script', async () => {

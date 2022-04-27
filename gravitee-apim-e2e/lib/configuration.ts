@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Configuration } from './management-webclient-sdk/src/lib';
 import 'dotenv/config';
 import fetchApi from 'node-fetch';
 import { BasicAuthentication } from '@model/users';
+import { Configuration } from './management-webclient-sdk/src/lib';
 
 export const ADMIN_USER = {
   username: process.env.ADMIN_USERNAME,

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 import * as faker from 'faker';
-import { PlanEntity, PlanValidationType, PlanSecurityType, PlanType, PlanStatus } from '../../management-webclient-sdk/src/lib';
+import { PlanEntity } from '@management-models/PlanEntity';
+import { PlanValidationType } from '@management-models/PlanValidationType';
+import { PlanSecurityType } from '@management-models/PlanSecurityType';
+import { PlanType } from '@management-models/PlanType';
+import { PlanStatus } from '@management-models/PlanStatus';
 
 export class PlansFaker {
   static plan(attributes?: Partial<PlanEntity>): PlanEntity {
