@@ -60,7 +60,7 @@ class PolicyFactoryImplTest {
 
     @ParameterizedTest
     @EnumSource(ExecutionPhase.class)
-    public void should_create_reactive_policy_without_config(final ExecutionPhase phase) {
+    public void shouldCreateReactivePolicyWithoutConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder.setPolicy(DummyReactivePolicy.class).build();
         Policy policy = policyFactory.create(phase, policyManifest, null, policyMetadata);
         assertInstanceOf(DummyReactivePolicy.class, policy);
@@ -68,7 +68,7 @@ class PolicyFactoryImplTest {
 
     @ParameterizedTest
     @EnumSource(ExecutionPhase.class)
-    public void should_create_reactive_policy_with_config(final ExecutionPhase phase) {
+    public void shouldCreateReactivePolicyWithConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyReactivePolicyWithConfig.class)
             .setConfiguration(DummyPolicyConfiguration.class)
@@ -80,7 +80,7 @@ class PolicyFactoryImplTest {
     }
 
     @Test
-    public void should_create_once_reactive_policy() {
+    public void shouldCreateOnceReactivePolicy() {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyReactivePolicyWithConfig.class)
             .setConfiguration(DummyPolicyConfiguration.class)
@@ -96,7 +96,7 @@ class PolicyFactoryImplTest {
 
     @ParameterizedTest
     @EnumSource(value = ExecutionPhase.class, names = { "REQUEST", "RESPONSE" })
-    public void should_create_policy_adapter_without_config(final ExecutionPhase phase) {
+    public void shouldCreatePolicyAdapterWithoutConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyPolicy.class)
             .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
@@ -107,7 +107,7 @@ class PolicyFactoryImplTest {
 
     @ParameterizedTest
     @EnumSource(value = ExecutionPhase.class, names = { "REQUEST", "RESPONSE" }, mode = EnumSource.Mode.EXCLUDE)
-    public void should_fail_create_policy_adapter_without_config(final ExecutionPhase phase) {
+    public void shouldFailCreatePolicyAdapterWithoutConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyPolicy.class)
             .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
@@ -117,7 +117,7 @@ class PolicyFactoryImplTest {
 
     @ParameterizedTest
     @EnumSource(value = ExecutionPhase.class, names = { "ASYNC_REQUEST", "ASYNC_RESPONSE" })
-    public void should_create_policy_adapter_with_config(final ExecutionPhase phase) {
+    public void shouldCreatePolicyAdapterWithConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyPolicyWithConfig.class)
             .setConfiguration(DummyPolicyConfiguration.class)
@@ -131,7 +131,7 @@ class PolicyFactoryImplTest {
 
     @ParameterizedTest
     @EnumSource(value = ExecutionPhase.class, names = { "REQUEST", "RESPONSE" }, mode = EnumSource.Mode.EXCLUDE)
-    public void should_fail_create_policy_adapter_with_config(final ExecutionPhase phase) {
+    public void shouldFailCreatePolicyAdapterWithConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyPolicyWithConfig.class)
             .setConfiguration(DummyPolicyConfiguration.class)
@@ -144,7 +144,7 @@ class PolicyFactoryImplTest {
     }
 
     @Test
-    public void should_create_once_policy_adapter() {
+    public void shouldCreateOncePolicyAdapter() {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyPolicyWithConfig.class)
             .setConfiguration(DummyPolicyConfiguration.class)
@@ -161,7 +161,7 @@ class PolicyFactoryImplTest {
 
     @ParameterizedTest
     @MethodSource("wrongPhase")
-    public void should_return_null_while_creating_policy_adapter_on_wrong_phase(ExecutionPhase executionPhase, final Class<?> policyClass) {
+    public void shouldReturnNullWhileCreatingPolicyAdapterOnWrongPhase(ExecutionPhase executionPhase, final Class<?> policyClass) {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(policyClass)
             .setMethods(new PolicyMethodResolver().resolve(policyClass))
