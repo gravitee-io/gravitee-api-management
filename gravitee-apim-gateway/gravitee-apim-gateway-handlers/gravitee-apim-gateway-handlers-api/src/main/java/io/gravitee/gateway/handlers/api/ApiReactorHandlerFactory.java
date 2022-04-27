@@ -50,10 +50,10 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
-import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
@@ -68,7 +68,6 @@ import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
-import java.lang.reflect.InvocationTargetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -158,11 +157,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                     apiComponentProvider
                 );
 
-                if (
-                    !configuration.getProperty(API_JUPITER_MODE_ENABLED, Boolean.class, false) ||
-                    api.getExecutionMode() == null ||
-                    api.getExecutionMode() == ExecutionMode.V3
-                ) {
+                if (isV3ExecutionMode(api)) {
                     final ApiReactorHandler v3ApiReactor = getApiReactorHandler(api);
 
                     final FlowPolicyResolverFactory flowPolicyResolverFactory = new FlowPolicyResolverFactory();
@@ -191,21 +186,12 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                     v3ApiReactor.setGroupLifecycleManager(groupLifecycleManager);
                     v3ApiReactor.setResourceLifecycleManager(resourceLifecycleManager);
 
-                    ExecutionContextFactory executionContextFactory = executionContextFactory(apiComponentProvider);
-
-                    executionContextFactory.addTemplateVariableProvider(new ApiTemplateVariableProvider(api));
-                    executionContextFactory.addTemplateVariableProvider(referenceRegister);
-                    applicationContext
-                        .getBean(ApiTemplateVariableProviderFactory.class)
-                        .getTemplateVariableProviders()
-                        .forEach(executionContextFactory::addTemplateVariableProvider);
-
-                    v3ApiReactor.setExecutionContextFactory(executionContextFactory);
+                    v3ApiReactor.setExecutionContextFactory(v3ExecutionContextFactory(api, apiComponentProvider, referenceRegister));
                     return v3ApiReactor;
                 } else {
                     return new SyncApiReactor(
                         api,
-                        new io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory(apiComponentProvider),
+                        executionContextFactory(api, apiComponentProvider, referenceRegister),
                         new InvokerAdapter(invoker),
                         resourceLifecycleManager,
                         policyManager,
@@ -222,14 +208,51 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         return null;
     }
 
-    protected ExecutionContextFactory executionContextFactory(ComponentProvider componentProvider) {
-        return new ExecutionContextFactory(componentProvider);
+    private boolean isV3ExecutionMode(Api api) {
+        return (
+            !configuration.getProperty(API_JUPITER_MODE_ENABLED, Boolean.class, false) ||
+            api.getExecutionMode() == null ||
+            api.getExecutionMode() == ExecutionMode.V3
+        );
     }
 
-    protected ApiReactorHandler getApiReactorHandler(Api api)
-        throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        Class<?> handlerClass = this.getClass().getClassLoader().loadClass(ApiReactorHandler.class.getName());
-        return (ApiReactorHandler) handlerClass.getConstructor(Api.class).newInstance(api);
+    protected io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory v3ExecutionContextFactory(
+        Api api,
+        ComponentProvider componentProvider,
+        DefaultReferenceRegister referenceRegister
+    ) {
+        final io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory executionContextFactory = new io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory(
+            componentProvider
+        );
+
+        executionContextFactory.addTemplateVariableProvider(new ApiTemplateVariableProvider(api));
+        executionContextFactory.addTemplateVariableProvider(referenceRegister);
+        applicationContext
+            .getBean(ApiTemplateVariableProviderFactory.class)
+            .getTemplateVariableProviders()
+            .forEach(executionContextFactory::addTemplateVariableProvider);
+
+        return executionContextFactory;
+    }
+
+    private ExecutionContextFactory executionContextFactory(
+        Api api,
+        ComponentProvider componentProvider,
+        DefaultReferenceRegister referenceRegister
+    ) {
+        final ExecutionContextFactory executionContextFactory = new ExecutionContextFactory(componentProvider);
+        executionContextFactory.addTemplateVariableProvider(new ApiTemplateVariableProvider(api));
+        executionContextFactory.addTemplateVariableProvider(referenceRegister);
+        applicationContext
+            .getBean(ApiTemplateVariableProviderFactory.class)
+            .getTemplateVariableProviders()
+            .forEach(executionContextFactory::addTemplateVariableProvider);
+
+        return executionContextFactory;
+    }
+
+    protected ApiReactorHandler getApiReactorHandler(Api api) {
+        return new ApiReactorHandler(api);
     }
 
     public PolicyChainFactory policyChainFactory(PolicyManager policyManager) {
