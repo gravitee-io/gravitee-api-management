@@ -25,7 +25,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +115,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
         String referenceId
     ) {
         final ApiEntity apiEntity = apiService.findById(executionContext, referenceId);
-        metadataService.checkMetadataFormat(executionContext, format, value, referenceType, apiEntity);
+        metadataService.checkMetadataFormat(format, value, referenceType, apiEntity);
     }
 
     private ApiMetadataEntity convert(ReferenceMetadataEntity m, String apiId) {

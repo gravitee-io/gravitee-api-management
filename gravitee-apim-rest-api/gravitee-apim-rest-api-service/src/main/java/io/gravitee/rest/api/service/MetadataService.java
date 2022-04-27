@@ -36,15 +36,9 @@ public interface MetadataService {
 
     void delete(ExecutionContext executionContext, String metadataId);
 
-    void checkMetadataFormat(ExecutionContext executionContext, MetadataFormat format, String value);
+    void checkMetadataFormat(MetadataFormat format, String value);
 
-    void checkMetadataFormat(
-        ExecutionContext executionContext,
-        MetadataFormat format,
-        String value,
-        MetadataReferenceType referenceType,
-        Object entity
-    );
+    void checkMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, Object entity);
 
     MetadataEntity findDefaultByKey(String key);
 }

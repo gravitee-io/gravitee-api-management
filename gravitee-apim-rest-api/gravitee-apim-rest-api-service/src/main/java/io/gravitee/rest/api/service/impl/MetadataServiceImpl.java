@@ -106,7 +106,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             }
 
             checkMetadataValue(metadataEntity.getValue());
-            checkMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue());
+            checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue());
             final Metadata metadata = convert(metadataEntity);
             final Date now = new Date();
             metadata.setCreatedAt(now);
@@ -147,7 +147,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             }
 
             checkMetadataValue(metadataEntity.getValue());
-            checkMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue());
+            checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue());
 
             final Metadata metadata = convert(metadataEntity);
             final Date now = new Date();
@@ -233,13 +233,12 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
-    public void checkMetadataFormat(ExecutionContext executionContext, MetadataFormat format, String value) {
-        checkMetadataFormat(executionContext, format, value, null, null);
+    public void checkMetadataFormat(MetadataFormat format, String value) {
+        checkMetadataFormat(format, value, null, null);
     }
 
     @Override
     public void checkMetadataFormat(
-        ExecutionContext executionContext,
         final MetadataFormat format,
         final String value,
         final MetadataReferenceType referenceType,

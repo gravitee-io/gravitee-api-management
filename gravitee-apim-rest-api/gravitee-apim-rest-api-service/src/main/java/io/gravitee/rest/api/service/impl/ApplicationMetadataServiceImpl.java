@@ -83,7 +83,7 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
         String referenceId
     ) {
         final ApplicationEntity applicationEntity = applicationService.findById(executionContext, referenceId);
-        metadataService.checkMetadataFormat(executionContext, format, value, referenceType, applicationEntity);
+        metadataService.checkMetadataFormat(format, value, referenceType, applicationEntity);
     }
 
     private ApplicationMetadataEntity convert(ReferenceMetadataEntity m, String applicationId) {

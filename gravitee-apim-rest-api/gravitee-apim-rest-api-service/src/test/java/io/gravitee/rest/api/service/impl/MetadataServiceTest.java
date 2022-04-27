@@ -25,7 +25,6 @@ import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.io.Reader;
@@ -50,12 +49,12 @@ public class MetadataServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void checkMetadataFormat_badEmailFormat() {
-        metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.MAIL, "test");
+        metadataService.checkMetadataFormat(MetadataFormat.MAIL, "test");
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void checkMetadataFormat_badURLFormat() {
-        metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.URL, "test");
+        metadataService.checkMetadataFormat(MetadataFormat.URL, "test");
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -66,13 +65,7 @@ public class MetadataServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        metadataService.checkMetadataFormat(
-            GraviteeContext.getExecutionContext(),
-            MetadataFormat.MAIL,
-            "${api.primaryOwner.email}",
-            API,
-            apiEntity
-        );
+        metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${api.primaryOwner.email}", API, apiEntity);
     }
 
     @Test
@@ -82,13 +75,7 @@ public class MetadataServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        metadataService.checkMetadataFormat(
-            GraviteeContext.getExecutionContext(),
-            MetadataFormat.MAIL,
-            "${api.primaryOwner.email}",
-            API,
-            apiEntity
-        );
+        metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${api.primaryOwner.email}", API, apiEntity);
     }
 
     @Test
@@ -98,12 +85,6 @@ public class MetadataServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        metadataService.checkMetadataFormat(
-            GraviteeContext.getExecutionContext(),
-            MetadataFormat.MAIL,
-            "${(api.primaryOwner.email)!''}",
-            API,
-            apiEntity
-        );
+        metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${(api.primaryOwner.email)!''}", API, apiEntity);
     }
 }
