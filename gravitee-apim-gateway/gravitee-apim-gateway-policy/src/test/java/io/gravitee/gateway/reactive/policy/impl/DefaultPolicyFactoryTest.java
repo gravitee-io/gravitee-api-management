@@ -26,6 +26,7 @@ import io.gravitee.gateway.policy.impl.PolicyManifestBuilder;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -41,16 +42,16 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-class PolicyFactoryImplTest {
+class DefaultPolicyFactoryTest {
 
-    private PolicyFactoryImpl policyFactory;
+    private DefaultPolicyFactory policyFactory;
     private PolicyManifestBuilder policyManifestBuilder;
     private PolicyMetadata policyMetadata;
     private PolicyConfiguration policyConfiguration;
 
     @BeforeEach
     public void init() {
-        policyFactory = new PolicyFactoryImpl(new PolicyPluginFactoryImpl(), new ExpressionLanguageStringConditionEvaluator());
+        policyFactory = new DefaultPolicyFactory(new PolicyPluginFactoryImpl(), new ExpressionLanguageStringConditionEvaluator());
         policyConfiguration = new DummyPolicyConfiguration();
         ((DummyPolicyConfiguration) policyConfiguration).setValue(1);
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}");

@@ -39,7 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class PolicyFactoryImplTest extends TestCase {
+public class DefaultPolicyFactoryTest extends TestCase {
 
     @Mock
     private PolicyPluginFactory policyPluginFactory;

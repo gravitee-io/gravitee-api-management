@@ -21,8 +21,9 @@ import static org.mockito.Mockito.*;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.async.AsyncExecutionContext;
+import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.reactor.handler.context.SyncExecutionContext;
+import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.reactivex.Completable;
 import io.reactivex.observers.TestObserver;
 import java.util.ArrayList;
@@ -32,14 +33,14 @@ import org.junit.jupiter.api.Test;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class PolicyChainImplTest {
+class PolicyChainTest {
 
     protected static final String CHAIN_ID = "unit-test";
     protected static final String MOCK_ERROR_MESSAGE = "Mock error";
 
     @Test
     public void shouldExecuteNothingWithEmptyPolicyList() {
-        PolicyChainImpl cut = new PolicyChainImpl(CHAIN_ID, new ArrayList<>(), ExecutionPhase.REQUEST);
+        PolicyChain cut = new PolicyChain(CHAIN_ID, new ArrayList<>(), ExecutionPhase.REQUEST);
         final ExecutionContext<?, ?> ctx = mock(ExecutionContext.class);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
@@ -52,7 +53,7 @@ class PolicyChainImplTest {
         final Policy policy2 = mock(Policy.class);
         final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
 
-        final PolicyChainImpl cut = new PolicyChainImpl(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
+        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
 
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy2.onRequest(ctx)).thenReturn(Completable.complete());
@@ -74,7 +75,7 @@ class PolicyChainImplTest {
         final Policy policy2 = mock(Policy.class);
         final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
 
-        final PolicyChainImpl cut = new PolicyChainImpl(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.RESPONSE);
+        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.RESPONSE);
 
         when(policy1.onResponse(ctx)).thenReturn(Completable.complete());
         when(policy2.onResponse(ctx)).thenReturn(Completable.complete());
@@ -96,7 +97,7 @@ class PolicyChainImplTest {
         final Policy policy2 = mock(Policy.class);
         final AsyncExecutionContext ctx = mock(AsyncExecutionContext.class);
 
-        final PolicyChainImpl cut = new PolicyChainImpl(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.ASYNC_REQUEST);
+        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.ASYNC_REQUEST);
 
         when(policy1.onAsyncRequest(ctx)).thenReturn(Completable.complete());
         when(policy2.onAsyncRequest(ctx)).thenReturn(Completable.complete());
@@ -118,7 +119,7 @@ class PolicyChainImplTest {
         final Policy policy2 = mock(Policy.class);
         final AsyncExecutionContext ctx = mock(AsyncExecutionContext.class);
 
-        final PolicyChainImpl cut = new PolicyChainImpl(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.ASYNC_RESPONSE);
+        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.ASYNC_RESPONSE);
 
         when(policy1.onAsyncResponse(ctx)).thenReturn(Completable.complete());
         when(policy2.onAsyncResponse(ctx)).thenReturn(Completable.complete());
@@ -140,7 +141,7 @@ class PolicyChainImplTest {
         final Policy policy2 = mock(Policy.class);
         final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
 
-        final PolicyChainImpl cut = new PolicyChainImpl(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
+        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
 
         when(ctx.isInterrupted()).thenReturn(false).thenReturn(true);
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
@@ -160,7 +161,7 @@ class PolicyChainImplTest {
         final Policy policy2 = mock(Policy.class);
         final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
 
-        final PolicyChainImpl cut = new PolicyChainImpl(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
+        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
 
         when(policy1.onRequest(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 

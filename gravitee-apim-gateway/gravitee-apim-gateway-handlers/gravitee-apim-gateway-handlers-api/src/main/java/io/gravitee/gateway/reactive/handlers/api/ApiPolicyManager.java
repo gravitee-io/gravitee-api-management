@@ -20,9 +20,8 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.reactive.policy.AbstractPolicyManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
-import io.gravitee.gateway.reactive.policy.impl.AbstractPolicyManager;
-import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -32,11 +31,11 @@ import java.util.Set;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiPolicyManagerImpl extends AbstractPolicyManager {
+public class ApiPolicyManager extends AbstractPolicyManager {
 
     private final Api api;
 
-    public ApiPolicyManagerImpl(
+    public ApiPolicyManager(
         DefaultClassLoader classLoader,
         Api api,
         PolicyFactory policyFactory,

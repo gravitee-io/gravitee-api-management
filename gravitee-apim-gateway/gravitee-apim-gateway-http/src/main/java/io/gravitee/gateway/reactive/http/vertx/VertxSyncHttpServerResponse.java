@@ -44,13 +44,15 @@ public class VertxSyncHttpServerResponse extends AbstractVertxHttpServerResponse
     }
 
     @Override
-    public Completable onBuffer(FlowableTransformer<Buffer, Buffer> bufferTransformer) {
-        return null;
+    public Completable onChunk(FlowableTransformer<Buffer, Buffer> chunkTransformer) {
+        content = content.compose(chunkTransformer);
+
+        return Completable.complete();
     }
 
     @Override
-    public Completable onBody(FlowableTransformer<Buffer, Buffer> bodyTransformer) {
-        return null;
+    public Completable onBody(MaybeTransformer<Buffer, Buffer> bodyTransformer) {
+        return setBody(getBody().compose(bodyTransformer));
     }
 
     @Override
