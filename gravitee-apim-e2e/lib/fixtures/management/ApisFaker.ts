@@ -23,7 +23,6 @@ import {
   Visibility,
 } from '../../management-webclient-sdk/src/lib';
 import * as faker from 'faker';
-import { ApiFakers } from '@fakers/apis';
 
 export interface ApiImportEntity extends ApiEntity {
   members?: Array<MemberEntity>;
@@ -41,13 +40,20 @@ export enum ApiMetadataFormat {
 }
 
 export class ApisFaker {
+  static version() {
+    const major = faker.datatype.number({ min: 1, max: 5 });
+    const minor = faker.datatype.number({ min: 1, max: 10 });
+    const patch = faker.datatype.number({ min: 1, max: 30 });
+    return `${major}.${minor}.${patch}`;
+  }
+
   static apiImport(attributes?: Partial<ApiImportEntity>): ApiImportEntity {
     return this.api(attributes);
   }
 
   static api(attributes?: Partial<ApiEntity>): ApiEntity {
     const name = faker.commerce.productName();
-    const version = ApiFakers.version();
+    const version = this.version();
     const description = faker.commerce.productDescription();
 
     return {

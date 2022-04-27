@@ -22,8 +22,6 @@ import { PagesFaker } from '../../lib/fixtures/management/PagesFaker';
 import { ApiMetadataFormat, ApisFaker } from '../../lib/fixtures/management/ApisFaker';
 import { APIDefinitionApi, APIPlansApi, JsonPatchOperationEnum, LifecycleAction } from '../../lib/management-webclient-sdk/src/lib';
 import { APIPagesApi } from '../../lib/management-webclient-sdk/src/lib/apis/APIPagesApi';
-import { ApiFakers } from '@fakers/apis';
-import { PlanFakers } from '@fakers/plans';
 import { fail } from '../../lib/jest-utils';
 
 const orgId = 'DEFAULT';
@@ -116,7 +114,7 @@ beforeAll(async () => {
 describe('API definition', () => {
   test('should replace simple properties', async () => {
     const nameExpected = faker.commerce.productName();
-    const versionExpected = ApiFakers.version();
+    const versionExpected = ApisFaker.version();
     const descriptionExpected = faker.commerce.productDescription();
     const visibilityExpected = 'PUBLIC';
     const flowModeExpected = 'BEST_MATCH';
@@ -548,7 +546,7 @@ describe('API definition', () => {
       {
         jsonPath: `$.plans`,
         operation: JsonPatchOperationEnum.ADD,
-        value: PlanFakers.plan(),
+        value: PlansFaker.plan(),
       },
     ];
     const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
