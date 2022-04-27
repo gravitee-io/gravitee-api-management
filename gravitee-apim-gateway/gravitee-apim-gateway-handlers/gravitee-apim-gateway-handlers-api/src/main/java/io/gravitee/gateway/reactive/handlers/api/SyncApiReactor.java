@@ -20,7 +20,6 @@ import static io.reactivex.Completable.defer;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
-import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;

@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.policy.impl;
+package io.gravitee.gateway.reactive.policy;
 
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
-import io.gravitee.gateway.policy.impl.CachedPolicyFactory;
-import io.gravitee.gateway.policy.impl.tracing.TracingPolicyPluginFactory;
-import io.gravitee.gateway.reactive.policy.PolicyFactory;
-import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
-import io.gravitee.gateway.reactive.policy.impl.PolicyFactoryImpl;
 import io.gravitee.node.api.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,15 +25,15 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyFactoryCreatorImpl implements PolicyFactoryCreator {
+public class DefaultPolicyFactoryCreator implements PolicyFactoryCreator {
 
-    private final Logger logger = LoggerFactory.getLogger(PolicyFactoryCreatorImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultPolicyFactoryCreator.class);
 
     private final Configuration configuration;
     private final PolicyPluginFactory policyPluginFactory;
     private final ConditionEvaluator<String> conditionEvaluator;
 
-    public PolicyFactoryCreatorImpl(
+    public DefaultPolicyFactoryCreator(
         final Configuration configuration,
         final PolicyPluginFactory policyPluginFactory,
         ConditionEvaluator<String> conditionEvaluator
@@ -56,6 +51,6 @@ public class PolicyFactoryCreatorImpl implements PolicyFactoryCreator {
         //    logger.debug("Tracing is enabled, looking to decorate all policies...");
         // }
 
-        return new PolicyFactoryImpl(policyPluginFactory, conditionEvaluator);
+        return new DefaultPolicyFactory(policyPluginFactory, conditionEvaluator);
     }
 }

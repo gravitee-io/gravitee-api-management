@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.policy.impl;
+package io.gravitee.gateway.reactive.policy;
 
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Objects;
@@ -30,13 +29,13 @@ import java.util.concurrent.ConcurrentMap;
  * @author Guillaume Lamirand (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyFactoryImpl implements PolicyFactory {
+public class DefaultPolicyFactory implements PolicyFactory {
 
     private final ConcurrentMap<String, Policy> policies = new ConcurrentHashMap<>();
     private final PolicyPluginFactory policyPluginFactory;
     private final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
 
-    public PolicyFactoryImpl(final PolicyPluginFactory policyPluginFactory, final ConditionEvaluator<String> conditionEvaluator) {
+    public DefaultPolicyFactory(final PolicyPluginFactory policyPluginFactory, final ConditionEvaluator<String> conditionEvaluator) {
         this.policyPluginFactory = policyPluginFactory;
         v3PolicyFactory = new io.gravitee.gateway.policy.impl.PolicyFactoryImpl(policyPluginFactory, conditionEvaluator);
     }
