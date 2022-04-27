@@ -33,7 +33,7 @@
     ".tmp/**",
     ".vscode/**",
     "**/*.spec.ts.snap",
-    "cypress/fixtures/keys/**",
+    "ui-test/fixtures/keys/**",
     "lib/management-webclient-sdk",
     "api-test/resources/**"
   ],

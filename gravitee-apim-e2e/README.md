@@ -20,7 +20,7 @@ Then, the following NPM scripts are available:
 ## Structure
 ````
 |api-test
-|cypress
+|ui-test
 |_ assertions
 |_ fakers
 |_ fixtures
@@ -36,12 +36,12 @@ Then, the following NPM scripts are available:
 | api-test/management     	            | Api management e2e tests                                                           |
 | api-test/portal     	                | Api portal e2e tests (soon)                                                        |
 | api-test/gateway     	               | Api gateway e2e tests (soon)                                                       |
-| cypress/assertions     	             | Utils classes to do common assertions for a particular object     	                |
-| cypress/fakers     	                 | Utils classes to generate fake data for particular object  	                       |
-| cypress/fixtures     	               | Files containing static data to be used in tests through `cy.fixture(filePath)`  	 |
-| cypress/model       	                | Types of our objects            	                                                  |
-| cypress/plugins       	              | Load and configure plugins for cypress            	                                |
-| cypress/support       	              | Processed and loaded automatically before your test files.            	            |
+| ui-test/assertions     	             | Utils classes to do common assertions for a particular object     	                |
+| ui-test/fakers     	                 | Utils classes to generate fake data for particular object  	                       |
+| ui-test/fixtures     	               | Files containing static data to be used in tests through `cy.fixture(filePath)`  	 |
+| ui-test/model       	                | Types of our objects            	                                                  |
+| ui-test/plugins       	              | Load and configure plugins for cypress            	                                |
+| ui-test/support       	              | Processed and loaded automatically before your test files.            	            |
 | lib/management-webclient-sdk       	 | Generated client for management API                                                |
 
 ## About management API client 
