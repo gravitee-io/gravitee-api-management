@@ -26,20 +26,17 @@ import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.gravitee.tracing.api.Tracer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @SuppressWarnings("unchecked")
-public class AbstractExecutionContext<RQ extends Request<?>, RS extends Response<?>> implements ExecutionContext<RQ, RS> {
+class AbstractExecutionContext<RQ extends Request<?>, RS extends Response<?>> implements ExecutionContext<RQ, RS> {
 
     private static final String TEMPLATE_ATTRIBUTE_REQUEST = "request";
     private static final String TEMPLATE_ATTRIBUTE_RESPONSE = "response";
     private static final String TEMPLATE_ATTRIBUTE_CONTEXT = "context";
 
     private final ComponentProvider componentProvider;
-    private Collection<TemplateVariableProvider> providers;
+    private Collection<TemplateVariableProvider> templateVariableProviders;
     private TemplateEngine templateEngine;
 
     private final Map<String, Object> attributes = new HashMap<>();
@@ -49,10 +46,16 @@ public class AbstractExecutionContext<RQ extends Request<?>, RS extends Response
     private boolean interrupted;
     private ExecutionFailure executionFailure;
 
-    public AbstractExecutionContext(RQ request, RS response, ComponentProvider componentProvider) {
+    public AbstractExecutionContext(
+        RQ request,
+        RS response,
+        ComponentProvider componentProvider,
+        List<TemplateVariableProvider> templateVariableProviders
+    ) {
         this.request = request;
         this.response = response;
         this.componentProvider = componentProvider;
+        this.templateVariableProviders = templateVariableProviders;
     }
 
     @Override
@@ -156,8 +159,8 @@ public class AbstractExecutionContext<RQ extends Request<?>, RS extends Response
             templateContext.setVariable(TEMPLATE_ATTRIBUTE_RESPONSE, new EvaluableResponse(response()));
             templateContext.setVariable(TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
 
-            if (providers != null) {
-                providers.forEach(templateVariableProvider -> templateVariableProvider.provide(templateContext));
+            if (templateVariableProviders != null) {
+                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(templateContext));
             }
         }
 
@@ -169,7 +172,11 @@ public class AbstractExecutionContext<RQ extends Request<?>, RS extends Response
         return getComponent(Tracer.class);
     }
 
-    public void setProviders(Collection<TemplateVariableProvider> providers) {
-        this.providers = providers;
+    public void setTemplateVariableProviders(Collection<TemplateVariableProvider> templateVariableProviders) {
+        this.templateVariableProviders = templateVariableProviders;
+    }
+
+    public ExecutionFailure getExecutionFailure() {
+        return executionFailure;
     }
 }

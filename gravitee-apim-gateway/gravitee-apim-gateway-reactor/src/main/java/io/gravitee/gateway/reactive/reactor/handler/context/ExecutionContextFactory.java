@@ -17,25 +17,25 @@ package io.gravitee.gateway.reactive.reactor.handler.context;
 
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.api.context.async.AsyncExecutionContext;
+import io.gravitee.gateway.reactive.api.context.async.AsyncRequest;
+import io.gravitee.gateway.reactive.api.context.async.AsyncResponse;
+import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
 import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
 import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A factory of {@link ExecutionContext}. A single instance is created on per {@link io.gravitee.gateway.reactor.Reactable}
- * basis because {@link TemplateVariableProvider} providers list is containing provider specific to the reactable.
+ * A factory of {@link DefaultSyncExecutionContext} or {@link AsyncExecutionContext}.
+ * A single instance is created on per api basis because {@link TemplateVariableProvider} providers list is containing provider specific to the api.
  *
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ExecutionContextFactory {
 
-    protected final List<TemplateVariableProvider> providers = new ArrayList<>();
-
+    protected final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
     protected final ComponentProvider componentProvider;
 
     public ExecutionContextFactory(ComponentProvider componentProvider) {
@@ -43,7 +43,7 @@ public class ExecutionContextFactory {
     }
 
     /**
-     * Create a new {@link ExecutionContext} for each of the incoming sync request to the gateway.
+     * Creates a new {@link SyncExecutionContext} for each of the incoming sync request to the gateway.
      *
      * @param request the request to attach to the context.
      * @param response the response to attach to the context.
@@ -51,10 +51,22 @@ public class ExecutionContextFactory {
      * @return the created {@link SyncExecutionContext}.
      */
     public SyncExecutionContext create(SyncRequest request, SyncResponse response) {
-        return new SyncExecutionContext(request, response, componentProvider);
+        return new DefaultSyncExecutionContext(request, response, componentProvider, templateVariableProviders);
+    }
+
+    /**
+     * Creates a new {@link AsyncExecutionContext} for each of the incoming async request to the gateway.
+     *
+     * @param request the request to attach to the context.
+     * @param response the response to attach to the context.
+     *
+     * @return the created {@link AsyncExecutionContext}.
+     */
+    public AsyncExecutionContext create(AsyncRequest request, AsyncResponse response) {
+        return new DefaultAsyncExecutionContext(request, response, componentProvider, templateVariableProviders);
     }
 
     public void addTemplateVariableProvider(TemplateVariableProvider templateVariableProvider) {
-        this.providers.add(templateVariableProvider);
+        this.templateVariableProviders.add(templateVariableProvider);
     }
 }
