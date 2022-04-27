@@ -193,7 +193,7 @@ export interface ApiEntity {
      * @type {Array<Plan>}
      * @memberof ApiEntity
      */
-    plans: Array<Plan>;
+    plans?: Array<Plan>;
     /**
      * API's gravitee definition version
      * @type {string}
@@ -315,7 +315,7 @@ export function ApiEntityFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'flow_mode': !exists(json, 'flow_mode') ? undefined : json['flow_mode'],
         'paths': !exists(json, 'paths') ? undefined : json['paths'],
         'flows': !exists(json, 'flows') ? undefined : ((json['flows'] as Array<any>).map(FlowFromJSON)),
-        'plans': ((json['plans'] as Array<any>).map(PlanFromJSON)),
+        'plans': !exists(json, 'plans') ? undefined : ((json['plans'] as Array<any>).map(PlanFromJSON)),
         'gravitee': !exists(json, 'gravitee') ? undefined : json['gravitee'],
         'deployed_at': !exists(json, 'deployed_at') ? undefined : (new Date(json['deployed_at'])),
         'created_at': !exists(json, 'created_at') ? undefined : (new Date(json['created_at'])),
@@ -362,7 +362,7 @@ export function ApiEntityToJSON(value?: ApiEntity | null): any {
         'flow_mode': value.flow_mode,
         'paths': value.paths,
         'flows': value.flows === undefined ? undefined : ((value.flows as Array<any>).map(FlowToJSON)),
-        'plans': ((value.plans as Array<any>).map(PlanToJSON)),
+        'plans': value.plans === undefined ? undefined : ((value.plans as Array<any>).map(PlanToJSON)),
         'gravitee': value.gravitee,
         'deployed_at': value.deployed_at === undefined ? undefined : (value.deployed_at.toISOString()),
         'created_at': value.created_at === undefined ? undefined : (value.created_at.toISOString()),
