@@ -38,6 +38,14 @@ export const SIMPLE_USER = {
   password: process.env.SIMPLE_PASSWORD,
 };
 
+export const adminUserConfiguration = () => {
+  return buildConfiguration();
+};
+
+export const apiUserConfiguration = () => {
+  return buildConfiguration(API_USER);
+};
+
 export const buildConfiguration = (auth: BasicAuthentication = ADMIN_USER) => {
   return new Configuration({
     basePath: process.env.MANAGEMENT_BASE_PATH,

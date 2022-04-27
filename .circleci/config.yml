@@ -1229,7 +1229,7 @@ jobs:
               timeout 60s bash -c 'until nc -vz localhost 8083; do sleep 2; done'
               # Run e2e tests
               cd gravitee-apim-e2e
-              npm run test:ci
+              npm run test:api
         - notify-on-failure
 
     publish_rpm_packages:

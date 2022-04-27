@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import * as faker from 'faker';
 import { ApiEntity, ApiEntityFlowModeEnum } from '@management-models/ApiEntity';
 import { MemberEntity } from '@management-models/MemberEntity';
@@ -21,6 +20,7 @@ import { PageEntity } from '@management-models/PageEntity';
 import { Visibility } from '@management-models/Visibility';
 import { LoadBalancerTypeEnum } from '@management-models/LoadBalancer';
 import { Proxy } from '@management-models/Proxy';
+import { NewApiEntity } from '@management-models/NewApiEntity';
 
 export interface ApiImportEntity extends ApiEntity {
   members?: Array<MemberEntity>;
@@ -43,6 +43,10 @@ export class ApisFaker {
     const minor = faker.datatype.number({ min: 1, max: 10 });
     const patch = faker.datatype.number({ min: 1, max: 30 });
     return `${major}.${minor}.${patch}`;
+  }
+
+  static uniqueWord() {
+    return `${faker.random.word()}-${faker.datatype.uuid()}`;
   }
 
   static apiImport(attributes?: Partial<ApiImportEntity>): ApiImportEntity {
@@ -68,6 +72,21 @@ export class ApisFaker {
       path_mappings: [],
       proxy: this.proxy(),
       response_templates: {},
+      ...attributes,
+    };
+  }
+
+  static newApi(attributes?: Partial<NewApiEntity>): NewApiEntity {
+    const name = faker.commerce.productName();
+    const version = this.version();
+    const description = faker.commerce.productDescription();
+
+    return {
+      contextPath: `/${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}`,
+      name,
+      description,
+      version,
+      endpoint: 'https://api.gravitee.io/echo',
       ...attributes,
     };
   }
