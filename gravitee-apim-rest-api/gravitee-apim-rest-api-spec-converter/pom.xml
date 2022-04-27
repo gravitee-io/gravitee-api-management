@@ -24,7 +24,7 @@
     <parent>
         <artifactId>gravitee-apim-rest-api</artifactId>
         <groupId>io.gravitee.apim.rest.api</groupId>
-        <version>3.15.8</version>
+        <version>3.15.9-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
