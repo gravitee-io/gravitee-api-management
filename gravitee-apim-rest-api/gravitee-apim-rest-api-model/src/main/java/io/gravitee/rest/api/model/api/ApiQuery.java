@@ -34,7 +34,6 @@ public class ApiQuery {
     private String label;
     private String state;
     private Visibility visibility;
-    private ExecutionMode executionMode;
     private String version;
     private String name;
     private String tag;
@@ -201,13 +200,5 @@ public class ApiQuery {
             crossId +
             '}'
         );
-    }
-
-    public ExecutionMode getExecutionMode() {
-        return executionMode;
-    }
-
-    public void setExecutionMode(final ExecutionMode executionMode) {
-        this.executionMode = executionMode;
     }
 }
