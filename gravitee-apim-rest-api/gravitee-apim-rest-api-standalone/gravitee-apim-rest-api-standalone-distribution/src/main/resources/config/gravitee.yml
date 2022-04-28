@@ -546,8 +546,14 @@ notifiers:
 #cockpit:
 #  url: https://cockpit.gravitee.io
 
-# Encrypt API properties using this secret
 api:
+  # Jupiter's execution mode allows strict respect of the policy execution order, as it defines it the policy studio whereas, in "v3" mode, execution order may differ depending on policy REQUEST_CONTENT or RESPONSE_CONTENT scope.
+  # jupiterMode:
+    # Enable jupiter mode
+    # enabled: false
+    # Allow to use the jupiter mode by default when no execution mode is specified on an api
+    # default: always | creation_only | never
+  # Encrypt API properties using this secret
   properties:
     encryption:
       secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
