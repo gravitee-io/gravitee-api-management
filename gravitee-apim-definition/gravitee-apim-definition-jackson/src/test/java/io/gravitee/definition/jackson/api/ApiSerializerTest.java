@@ -664,7 +664,7 @@ public class ApiSerializerTest extends AbstractTest {
     }
 
     @Test
-    public void should_default_definition_executionMode_equal_v3_when_api_contains_null() throws Exception {
+    public void shouldDefaultDefinitionExecutionModeEqualV3WhenApiContainsNull() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-default-executionmode.json", Api.class);
         String expectedDefinition = "/io/gravitee/definition/jackson/api-default-executionmode-expected.json";
 
@@ -680,7 +680,7 @@ public class ApiSerializerTest extends AbstractTest {
     }
 
     @Test
-    public void should_definition_executionMode_equal_v3_when_api_contains_v3() throws Exception {
+    public void shouldDefinitionExecutionModeEqualV3WhenApiContainsV3() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-executionmode-v3.json", Api.class);
         String expectedDefinition = "/io/gravitee/definition/jackson/api-executionmode-v3-expected.json";
 
@@ -696,7 +696,7 @@ public class ApiSerializerTest extends AbstractTest {
     }
 
     @Test
-    public void should_definition_executionMode_equal_jupiter_when_api_contains_jupiter() throws Exception {
+    public void shouldDefinitionExecutionModeEqualJupiterWhenApiContainsJupiter() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-executionmode-jupiter.json", Api.class);
         String expectedDefinition = "/io/gravitee/definition/jackson/api-executionmode-jupiter-expected.json";
 

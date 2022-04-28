@@ -86,7 +86,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
     private static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
-
+    public static final String API_JUPITER_MODE_ENABLED = "api.jupiterMode.enabled";
     private final Logger logger = LoggerFactory.getLogger(ApiReactorHandlerFactory.class);
 
     private ApplicationContext applicationContext;
@@ -160,10 +160,16 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                     apiComponentProvider
                 );
 
-                if (api.getExecutionMode() == null || api.getExecutionMode() == ExecutionMode.V3) {
+                if (
+                    !configuration.getProperty(API_JUPITER_MODE_ENABLED, Boolean.class, false) ||
+                    api.getExecutionMode() == null ||
+                    api.getExecutionMode() == ExecutionMode.V3
+                ) {
                     final ApiReactorHandler v3ApiReactor = getApiReactorHandler(api);
                     v3ApiReactor.setNode(node);
-                    v3ApiReactor.setPendingRequestsTimeout(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L));
+                    v3ApiReactor.setPendingRequestsTimeout(
+                        configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)
+                    );
 
                     final FlowPolicyResolverFactory flowPolicyResolverFactory = new FlowPolicyResolverFactory();
 

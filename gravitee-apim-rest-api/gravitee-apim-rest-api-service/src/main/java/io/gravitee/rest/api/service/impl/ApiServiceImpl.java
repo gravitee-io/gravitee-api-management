@@ -292,6 +292,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private ResourceService resourceService;
 
+    @Autowired
+    private JupiterModeService jupiterModeService;
+
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
 
@@ -452,6 +455,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (apiDefinition != null) {
                 apiDefinition = ((ObjectNode) apiDefinition).put("id", id);
+            }
+            if (api.getExecutionMode() == null) {
+                api.setExecutionMode(jupiterModeService.getExecutionModeFor(apiDefinition));
             }
 
             Api repoApi = convert(executionContext, id, api, apiDefinition != null ? apiDefinition.toString() : null);
@@ -1749,7 +1755,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (apiDefinition == null || apiDefinition.isEmpty()) {
                 updateApiDefinition = new io.gravitee.definition.model.Api();
                 updateApiDefinition.setDefinitionVersion(DefinitionVersion.valueOfLabel(updateApiEntity.getGraviteeDefinitionVersion()));
-                updateApiDefinition.setExecutionMode(ExecutionMode.JUPITER);
             } else {
                 updateApiDefinition = objectMapper.readValue(apiDefinition, io.gravitee.definition.model.Api.class);
             }
