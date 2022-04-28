@@ -16,7 +16,8 @@
 import 'dotenv/config';
 import fetchApi from 'node-fetch';
 import { BasicAuthentication } from '@model/users';
-import { Configuration } from './management-webclient-sdk/src/lib';
+import { Configuration as ManagementConfiguration } from './management-webclient-sdk/src/lib';
+import { Configuration as PortalConfiguration } from './portal-webclient-sdk/src/lib';
 
 export const ADMIN_USER = {
   username: process.env.ADMIN_USERNAME,
@@ -38,17 +39,27 @@ export const SIMPLE_USER = {
   password: process.env.SIMPLE_PASSWORD,
 };
 
-export const adminUserConfiguration = () => {
-  return buildConfiguration();
+export const ANONYMOUS = null;
+
+export const forManagementAsAdminUser = () => {
+  return forManagement();
 };
 
-export const apiUserConfiguration = () => {
-  return buildConfiguration(API_USER);
+export const forManagementAsApiUser = () => {
+  return forManagement(API_USER);
 };
 
-export const buildConfiguration = (auth: BasicAuthentication = ADMIN_USER) => {
-  return new Configuration({
+export const forManagement = (auth: BasicAuthentication = ADMIN_USER) => {
+  return new ManagementConfiguration({
     basePath: process.env.MANAGEMENT_BASE_PATH,
+    fetchApi,
+    ...auth,
+  });
+};
+
+export const forPortal = (auth: BasicAuthentication = ANONYMOUS, envId: string = 'DEFAULT') => {
+  return new PortalConfiguration({
+    basePath: `${process.env.PORTAL_BASE_PATH}/${envId}`,
     fetchApi,
     ...auth,
   });

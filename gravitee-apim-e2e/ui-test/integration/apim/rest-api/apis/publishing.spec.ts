@@ -45,18 +45,6 @@ context('API - Publishing', () => {
     });
 
     describe('As ANONYMOUS user', () => {
-      it('Get APIs should not contain created api', () => {
-        gio
-          .portal()
-          .apis()
-          .getAll<CollectionResponse<PortalApi>>()
-          .ok()
-          .should((response) => {
-            let apiIds = response.body.data.map((api) => api.id);
-            expect(apiIds).to.not.contain(createdApi.id);
-          });
-      });
-
       it('Get API should return 404 - Not Found', () => {
         gio
           .portal()

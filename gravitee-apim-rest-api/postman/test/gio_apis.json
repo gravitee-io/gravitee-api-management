@@ -119,65 +119,6 @@
 							"name": "Anonymous",
 							"item": [
 								{
-									"name": "Get APIs does not contain created api",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"exec": [
-													"pm.test(\"Status code is 200\", function () {",
-													"    pm.response.to.have.status(200);",
-													"});",
-													"",
-													"var jsonData = pm.response.json();",
-													"var apiIds = jsonData.data.map(api => api.id);",
-													"",
-													"pm.test(\"APIs list must not contains created API\", function () {",
-													"    pm.expect(apiIds).to.not.include(pm.collectionVariables.get(\"created_api_id\"));",
-													"});",
-													""
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "X-Xsrf-Token",
-												"value": "d863d677-df33-4810-a28f-2f1bfe0789b1"
-											},
-											{
-												"key": "X-Requested-With",
-												"value": "XMLHttpRequest"
-											},
-											{
-												"key": "X-Recaptcha-Token",
-												"value": ""
-											},
-											{
-												"key": "User-Agent",
-												"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
-											}
-										],
-										"url": {
-											"raw": "{{GRAVITEEIO_PORTAL_URL}}/apis",
-											"host": [
-												"{{GRAVITEEIO_PORTAL_URL}}"
-											],
-											"path": [
-												"apis"
-											]
-										}
-									},
-									"response": []
-								},
-								{
 									"name": "Get API not found",
 									"event": [
 										{

@@ -14,8 +14,10 @@
       "@commands/*": ["ui-test/commands/*"],
       "@management-fakers/*": ["lib/fixtures/management/*"],
       "@management-apis/*": ["lib/management-webclient-sdk/src/lib/apis/*"],
-      "@management-conf/*": ["lib/configuration"],
-      "@management-models/*": ["lib/management-webclient-sdk/src/lib/models/*"]
+      "@client-conf/*": ["lib/configuration"],
+      "@management-models/*": ["lib/management-webclient-sdk/src/lib/models/*"],
+      "@portal-apis/*": ["lib/portal-webclient-sdk/src/lib/apis/*"],
+      "@portal-models/*": ["lib/portal-webclient-sdk/src/lib/models/*"]
     }
   },
   "include": ["**/*.ts"]

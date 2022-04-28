@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 import { APIsApi } from '@management-apis/APIsApi';
-import { adminUserConfiguration, apiUserConfiguration } from '@management-conf/*';
+import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
-const apisResourceUser = new APIsApi(apiUserConfiguration());
-const apisResourceAdmin = new APIsApi(adminUserConfiguration());
+const apisResourceUser = new APIsApi(forManagementAsApiUser());
+const apisResourceAdmin = new APIsApi(forManagementAsAdminUser());
 
 let userApi;
 let adminApi;
@@ -70,5 +70,5 @@ describe('API Search', () => {
 
 afterAll(async () => {
   await apisResourceAdmin.deleteApi({ orgId, envId, api: userApi.id });
-  await apisResourceAdmin.deleteApi({ orgId, envId, api: adminApi.id });
+  return await apisResourceAdmin.deleteApi({ orgId, envId, api: adminApi.id });
 });

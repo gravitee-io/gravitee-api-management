@@ -25,11 +25,11 @@ import { PlansFaker } from '@management-fakers/PlansFaker';
 import { LifecycleAction } from '@management-models/LifecycleAction';
 import { APIPagesApi } from '@management-apis/APIPagesApi';
 import { PagesFaker } from '@management-fakers/PagesFaker';
-import { buildConfiguration } from '@management-conf/*';
+import { forManagement } from '@client-conf/*';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
-const configuration = buildConfiguration();
+const configuration = forManagement();
 const apisApi = new APIsApi(configuration);
 const apiPlansApi = new APIPlansApi(configuration);
 const apiDefinitionApi = new APIDefinitionApi(configuration);
@@ -749,9 +749,8 @@ afterAll(async () => {
   });
   expect(apiStoppedResponse.raw.status).toEqual(204);
   const apiPagesApi = new APIPagesApi(configuration);
-  for (const pageId of pageIds.reverse()) {
-    await apiPagesApi.deleteApiPage({ orgId, envId, api, page: pageId });
-  }
 
-  await apisApi.deleteApi({ orgId, envId, api: api });
+  await Promise.all(pageIds.reverse().map((page) => apiPagesApi.deleteApiPage({ orgId, envId, api, page })));
+
+  return await apisApi.deleteApi({ orgId, envId, api: api });
 });

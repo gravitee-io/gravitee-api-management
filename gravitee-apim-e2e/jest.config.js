@@ -78,10 +78,12 @@ module.exports = {
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
+    '@client-conf/(.*)': '<rootDir>/lib/configuration',
     '@management-fakers/(.*)': '<rootDir>/lib/fixtures/management/$1',
     '@management-apis/(.*)': '<rootDir>/lib/management-webclient-sdk/src/lib/apis/$1',
-    '@management-conf/(.*)': '<rootDir>/lib/configuration',
     '@management-models/(.*)': '<rootDir>/lib/management-webclient-sdk/src/lib/models/$1',
+    '@portal-apis/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/apis/$1',
+    '@portal-models/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/models/$1',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
@@ -172,6 +174,8 @@ module.exports = {
     '^.+\\.ts$': 'ts-jest',
     '^.+\\.xml$': '<rootDir>/lib/jest-raw-loader.js',
   },
+
+  testTimeout: 30000,
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: ["/node_modules/", "\\.pnp\\.[^\\\/]+$"],
