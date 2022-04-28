@@ -301,7 +301,9 @@ public enum Key {
         "true",
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
-    CONSOLE_PATH_BASED_API_CREATION_ENABLED("console.pathBasedApiCreation.enabled", "false", Set.of(ORGANIZATION, SYSTEM));
+    CONSOLE_PATH_BASED_API_CREATION_ENABLED("console.pathBasedApiCreation.enabled", "false", Set.of(ORGANIZATION, SYSTEM)),
+    JUPITER_MODE_ENABLED("api.jupiterMode.enabled", "false", Set.of(SYSTEM)),
+    JUPITER_MODE_DEFAULT("api.jupiterMode.default", "always", Set.of(SYSTEM));
 
     String key;
     String defaultValue;
@@ -340,6 +342,15 @@ public enum Key {
         this.scopes = scopes;
     }
 
+    public static Key findByKey(String value) {
+        for (Key key : Key.values()) {
+            if (key.key.equals(value)) {
+                return key;
+            }
+        }
+        throw new IllegalArgumentException(value + " is not a valid Key");
+    }
+
     public String key() {
         return key;
     }
@@ -358,14 +369,5 @@ public enum Key {
 
     public Set<KeyScope> scopes() {
         return scopes;
-    }
-
-    public static Key findByKey(String value) {
-        for (Key key : Key.values()) {
-            if (key.key.equals(value)) {
-                return key;
-            }
-        }
-        throw new IllegalArgumentException(value + " is not a valid Key");
     }
 }
