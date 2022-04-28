@@ -49,11 +49,6 @@ public class NewApiEntity {
     )
     private String description;
 
-    @Schema(description = "Api's execution mode. Define if the execution mode should use v3 or jupiter mode.", example = "v3")
-    @DeploymentRequired
-    @JsonProperty(value = "execution_mode")
-    private ExecutionMode executionMode;
-
     @NotNull
     @Schema(description = "API's context path.", example = "/my-awesome-api")
     private String contextPath;
@@ -176,11 +171,4 @@ public class NewApiEntity {
         );
     }
 
-    public ExecutionMode getExecutionMode() {
-        return executionMode;
-    }
-
-    public void setExecutionMode(final ExecutionMode executionMode) {
-        this.executionMode = executionMode;
-    }
 }
