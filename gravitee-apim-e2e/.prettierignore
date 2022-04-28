@@ -19,5 +19,6 @@ Jenkinsfile
 .tmp
 .circleci
 lib/management-webclient-sdk
+lib/portal-webclient-sdk
 
 !.eslintrc.js
