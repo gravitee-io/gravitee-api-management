@@ -16,9 +16,7 @@
 package io.gravitee.repository.elasticsearch.log;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.gravitee.elasticsearch.model.SearchHit;
-import io.gravitee.elasticsearch.model.SearchHits;
-import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.model.*;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.QueryFilter;
@@ -73,58 +71,73 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 	@Autowired
 	protected RepositoryConfiguration configuration;
 
-	@Override
-	public TabularResponse query(final TabularQuery query) throws AnalyticsException {
-		final Long from = query.timeRange().range().from();
-		final Long to = query.timeRange().range().to();
-		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
-		try {
-			final TabularQueryBuilder tabularQueryBuilder = tabular()
-					.timeRange(query.timeRange().range(), query.timeRange().interval())
-					.page(query.page())
-					.size(query.size())
-					.sort(query.sort());
-			final String logQueryString = getQuery(query.query(), true);
-			if (isEmpty(logQueryString)) {
-				final Single<SearchResponse> result = this.client.search(
-						this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
+    @Override
+    public TabularResponse query(final TabularQuery query) throws AnalyticsException {
+        final Long from = query.timeRange().range().from();
+        final Long to = query.timeRange().range().to();
+        String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
+        try {
+
+            final String logQueryString = getQuery(query.query(), true);
+            if (isEmpty(logQueryString)) {
+
+                final Single<SearchResponse> result = this.client.search(
+                    this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
 						!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.REQUEST.getType(),
-						this.createElasticsearchJsonQuery(query));
+                    this.createElasticsearchJsonQuery(query));
 
-				return this.toTabularResponse(result.blockingGet());
-			} else {
-				final String sQuery = this.createElasticsearchJsonQuery(tabularQueryBuilder.query(logQueryString).build());
-				Single<SearchResponse> result = this.client.search(
-						this.indexNameGenerator.getIndexName(Type.LOG, from, to, clusters),
+                return this.toTabularResponse(result.blockingGet());
+
+            } else {
+                final TabularQuery logQuery = tabular()
+                    .timeRange(query.timeRange().range(), query.timeRange().interval())
+                    .page(query.page())
+                    .size(query.size())
+                    .query(logQueryString)
+                    .build();
+                final String sQuery = this.createElasticsearchJsonQuery(logQuery);
+
+                Single<SearchResponse> result = this.client.search(
+                    this.indexNameGenerator.getIndexName(Type.LOG, from, to, clusters),
 						!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.LOG.getType(),
-						sQuery);
+                    sQuery);
 
-				final SearchResponse searchResponse = result.blockingGet();
-				final String logIdsQuery = searchResponse.getSearchHits().getHits().stream()
-						.map(searchHit -> "_id:" + searchHit.getId())
-						.collect(joining(" OR "));
+                final SearchResponse searchResponseLog = result.blockingGet();
+                final String logIdsQuery = searchResponseLog.getSearchHits().getHits().stream()
+                    .map(searchHit -> "_id:" + searchHit.getId())
+                    .collect(joining(" OR "));
 
-				if (!logIdsQuery.isEmpty()) {
-					final String queryString = getQuery(query.query(), false);
-					final String requestQuery = isEmpty(queryString) ? logIdsQuery :
-							format("(%s) AND (%s)", queryString, logIdsQuery);
-					final TabularQueryBuilder tqb = tabularQueryBuilder.query(requestQuery);
-					if (query.root() != null) {
-						tqb.root(query.root().field(), query.root().id());
-					}
-					result = this.client.search(
-							this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
-							!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.REQUEST.getType(),
-							this.createElasticsearchJsonQuery(tqb.build()));
-				}
+                if (!logIdsQuery.isEmpty()) {
+                    final String queryString = getQuery(query.query(), false);
+                    final String requestQuery = isEmpty(queryString) ? logIdsQuery :
+                        format("(%s) AND (%s)", queryString, logIdsQuery);
+                    final TabularQueryBuilder requestQueryBuilder = tabular()
+                        .timeRange(query.timeRange().range(), query.timeRange().interval())
+                        .page(1)
+                        .size(query.size())
+                        .sort(query.sort())
+                        .query(requestQuery);
+                    if (query.root() != null) {
+                        requestQueryBuilder.root(query.root().field(), query.root().id());
+                    }
+                    result = this.client.search(
+                        this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.REQUEST.getType(),
+                        this.createElasticsearchJsonQuery(requestQueryBuilder.build()));
+                }
 
-				return this.toTabularResponse(result.blockingGet());
-			}
-		} catch (final Exception eex) {
-			logger.error("Impossible to perform log request", eex);
-			throw new AnalyticsException("Impossible to perform log request", eex);
-		}
-	}
+                SearchResponse searchResponseRequest = result.blockingGet();
+                return this.toTabularResponse(searchResponseRequest,
+                    searchResponseRequest.getSearchHits().getTotal().getValue() == query.size() || query.page() > 1 ?
+                        searchResponseLog.getSearchHits().getTotal().getValue() :
+                        searchResponseRequest.getSearchHits().getTotal().getValue()
+                );
+            }
+        } catch (final Exception eex) {
+            logger.error("Impossible to perform log request", eex);
+            throw new AnalyticsException("Impossible to perform log request", eex);
+        }
+    }
 
 	private String getQuery(final QueryFilter query, final boolean log) {
 		if (query == null) {
@@ -208,16 +221,20 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 		}
 	}
 
-	private TabularResponse toTabularResponse(final SearchResponse response) {
-		final SearchHits hits = response.getSearchHits();
-		final TabularResponse tabularResponse = new TabularResponse(hits.getTotal().getValue());
-		final List<Log> logs = new ArrayList<>(hits.getHits().size());
-		for (int i = 0; i < hits.getHits().size(); i++) {
-			logs.add(LogBuilder.createLog(hits.getHits().get(i)));
-		}
-		tabularResponse.setLogs(logs);
+    private TabularResponse toTabularResponse(final SearchResponse response) {
+        return toTabularResponse(response, response.getSearchHits().getTotal().getValue());
+    }
 
-		return tabularResponse;
+    private TabularResponse toTabularResponse(final SearchResponse response, final long total) {
+        final SearchHits hits = response.getSearchHits();
+        final TabularResponse tabularResponse = new TabularResponse(total);
+        final List<Log> logs = new ArrayList<>(hits.getHits().size());
+        for (int i = 0; i < hits.getHits().size(); i++) {
+            logs.add(LogBuilder.createLog(hits.getHits().get(i)));
+        }
+        tabularResponse.setLogs(logs);
 
-	}
+        return tabularResponse;
+
+    }
 }
