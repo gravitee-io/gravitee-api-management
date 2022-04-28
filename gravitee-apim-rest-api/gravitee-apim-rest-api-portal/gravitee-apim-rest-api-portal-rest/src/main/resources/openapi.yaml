@@ -3596,19 +3596,19 @@ components:
         ###################
         pages:
           description: |
-            Only returned with */apis/{apiId}*.
+            Only returned with (*)/apis/{apiId}*.
             Need *include* query param to contain 'pages'.
 
-            The documentation pages of this API. Same as */apis/{apiId}/pages*.
+            The documentation pages of this API. Same as (*)/apis/{apiId}/pages*.
           type: array
           items:
             $ref: '#/components/schemas/Page'
         plans:
           description: |
-            Only returned with */apis/{apiId}*.
+            Only returned with (*)/apis/{apiId}*.
             Need *include* query param to contain 'plans'.
 
-            The plans of this API. Same as */apis/{apiId}/plans*.
+            The plans of this API. Same as (*)/apis/{apiId}/plans*.
           type: array
           items:
             $ref: '#/components/schemas/Plan'
@@ -3697,7 +3697,7 @@ components:
         ###################
         content:
           description: |
-            Only returned with */apis/{apiId}/pages/{pageId}* and */pages/{pageId}*.
+            Only returned with (*)/apis/{apiId}/pages/{pageId}* and (*)/pages/{pageId}*.
             Need *include* query param to contain 'content'.
 
             The content of the page.
@@ -4105,7 +4105,7 @@ components:
         ###################
         keys:
           description: |
-            Only returned with */subscriptions/{subscriptionId}*.
+            Only returned with (*)/subscriptions/{subscriptionId}*.
             Need *include* query param to contain 'keys'.
 
             List of APIKeys of the subscription.

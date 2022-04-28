@@ -22,7 +22,8 @@
         "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
         "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
         "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
-        "update:sdk": "sh ./scripts/update-sdk.sh"
+        "update:sdk:management": "sh ./scripts/update-management-sdk.sh",
+        "update:sdk:portal": "sh ./scripts/update-portal-sdk.sh"
     },
     "license": "MIT License",
     "devDependencies": {

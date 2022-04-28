@@ -43,11 +43,13 @@ Then, the following NPM scripts are available:
 | ui-test/plugins       	              | Load and configure plugins for cypress            	                                |
 | ui-test/support       	              | Processed and loaded automatically before your test files.            	            |
 | lib/management-webclient-sdk       	 | Generated client for management API                                                |
+| lib/portal-webclient-sdk       	     | Generated client for portal API                                                    |
 
 ## About management API client 
 
 This project use project https://github.com/OpenAPITools/openapi-generator[openapi-generator] to generate a client sdk with openapi file.
-If you want to generate the client, start the management rest-api locally and run `npm run update:sdk`
+If you want to generate the client for management API, start the management rest-api locally and run `npm run update:sdk:management`
+If you want to generate the client for portal API, just run `npm run update:sdk:portal`
 
 ## Environment variables
 
