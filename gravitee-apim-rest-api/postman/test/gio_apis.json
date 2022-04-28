@@ -2145,6 +2145,9 @@
 													"    pm.expect(jsonData.visibility).to.eql(\"PRIVATE\");",
 													"    pm.expect(jsonData.lifecycle_state).to.eql(\"CREATED\");",
 													"});",
+													"pm.test(\"API uses jupiter execution mode\", function() {",
+													"    pm.expect(jsonData.execution_mode).to.eql(\"jupiter\");",
+													"});",
 													"",
 													"pm.collectionVariables.set(\"created_api_id\", jsonData.id);",
 													"pm.collectionVariables.set(\"created_api\", JSON.stringify(jsonData));"
@@ -2173,7 +2176,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n\t\"contextPath\": \"/api{{random_uid}}\",\n\t\"description\": \"The API {{random_uid}}\",\n\t\"endpoint\": \"http://api/{{random_uid}}\",\n\t\"name\": \"API {{random_uid}}\",\n\t\"version\": \"{{random_uid}}\"\n}"
+											"raw": "{\n\t\"contextPath\": \"/api{{random_uid}}\",\n\t\"description\": \"The API {{random_uid}}\",\n\t\"endpoint\": \"http://api/{{random_uid}}\",\n\t\"name\": \"API {{random_uid}}\",\n\t\"version\": \"{{random_uid}}\",\n    \"state\": \"STARTED\"\n}"
 										},
 										"url": {
 											"raw": "{{GRAVITEEIO_MGMT_URL}}/apis",
@@ -14943,7 +14946,6 @@
 											"    pm.expect(jsonData).to.be.an('array');",
 											"    pm.expect(jsonData.length).to.equal(1);",
 											"    pm.expect(jsonData[0].name).to.contains(\"search_API1\");",
-											"    pm.expect(jsonData[0].execution_mode).to.eql(\"jupiter\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -15023,7 +15025,6 @@
 											"    pm.expect(jsonData).to.be.an('array');",
 											"    pm.expect(jsonData.length).to.equal(1);",
 											"    pm.expect(jsonData[0].name).to.contains(\"search_ADMIN\");",
-											"    pm.expect(jsonData[0].execution_mode).to.eql(\"jupiter\");",
 											"});"
 										],
 										"type": "text/javascript"
