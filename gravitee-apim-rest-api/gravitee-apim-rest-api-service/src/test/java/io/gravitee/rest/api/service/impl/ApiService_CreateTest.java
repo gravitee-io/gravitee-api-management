@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.service.JupiterModeService.DefaultMode.ALWAYS;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -135,6 +136,9 @@ public class ApiService_CreateTest {
 
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+
+    @Spy
+    private JupiterModeService jupiterModeService = new JupiterModeServiceImpl(true, ALWAYS.getLabel());
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -356,45 +360,5 @@ public class ApiService_CreateTest {
         ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), apiToCreate, USER_NAME);
 
         assertEquals(ExecutionMode.JUPITER, apiEntity.getExecutionMode());
-    }
-
-    @Test
-    public void shouldCreateWithJupiterExecutionMode() throws TechnicalException {
-        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
-        when(apiRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        UserEntity admin = new UserEntity();
-        admin.setId(USER_NAME);
-        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
-
-        NewApiEntity apiToCreate = new NewApiEntity();
-        apiToCreate.setName(API_NAME);
-        apiToCreate.setVersion("v1");
-        apiToCreate.setDescription("Ma description");
-        apiToCreate.setContextPath("/context");
-        apiToCreate.setExecutionMode(ExecutionMode.JUPITER);
-
-        ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), apiToCreate, USER_NAME);
-
-        assertEquals(ExecutionMode.JUPITER, apiEntity.getExecutionMode());
-    }
-
-    @Test
-    public void shouldCreateWithV3ExecutionMode() throws TechnicalException {
-        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
-        when(apiRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        UserEntity admin = new UserEntity();
-        admin.setId(USER_NAME);
-        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
-
-        NewApiEntity apiToCreate = new NewApiEntity();
-        apiToCreate.setName(API_NAME);
-        apiToCreate.setVersion("v1");
-        apiToCreate.setDescription("Ma description");
-        apiToCreate.setContextPath("/context");
-        apiToCreate.setExecutionMode(ExecutionMode.V3);
-
-        ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), apiToCreate, USER_NAME);
-
-        assertEquals(ExecutionMode.V3, apiEntity.getExecutionMode());
     }
 }
