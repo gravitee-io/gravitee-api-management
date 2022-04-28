@@ -26,6 +26,7 @@ export interface ConsoleSettings {
   management?: ConsoleSettingsManagement;
   newsletter?: ConsoleSettingsNewsletter;
   theme?: ConsoleSettingsTheme;
+  jupiterMode?: ConsoleSettingsJupiterMode;
 }
 
 export interface ConsoleSettingsEmail {
@@ -126,4 +127,9 @@ export interface ConsoleSettingsTheme {
   logo?: string;
   loader?: string;
   css?: string;
+}
+
+export interface ConsoleSettingsJupiterMode {
+  enabled?: boolean;
+  isDefault?: string;
 }

@@ -30,6 +30,7 @@ public class ConsoleConfigEntity {
     private Management management;
     private Newsletter newsletter;
     private Theme theme;
+    private JupiterMode jupiterMode;
 
     public ConsoleConfigEntity() {
         super();
@@ -42,6 +43,7 @@ public class ConsoleConfigEntity {
         reCaptcha = new ConsoleReCaptcha();
         scheduler = new ConsoleScheduler();
         theme = new Theme();
+        jupiterMode = new JupiterMode();
     }
 
     // Getters & setters
@@ -115,5 +117,13 @@ public class ConsoleConfigEntity {
 
     public void setTheme(Theme theme) {
         this.theme = theme;
+    }
+
+    public JupiterMode getJupiterMode() {
+        return jupiterMode;
+    }
+
+    public void setJupiterMode(JupiterMode jupiterMode) {
+        this.jupiterMode = jupiterMode;
     }
 }
