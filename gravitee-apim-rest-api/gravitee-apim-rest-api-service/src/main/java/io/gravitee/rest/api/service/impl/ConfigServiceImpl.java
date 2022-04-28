@@ -26,10 +26,7 @@ import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.*;
-import io.gravitee.rest.api.service.ConfigService;
-import io.gravitee.rest.api.service.NewsletterService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.ReCaptchaService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -64,6 +61,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Autowired
     private ReCaptchaService reCaptchaService;
+
+    @Autowired
+    private JupiterModeService jupiterModeService;
 
     private static final String SENSITIVE_VALUE = "********";
 
@@ -396,6 +396,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getManagement(),
             consoleConfigEntity.getNewsletter(),
             consoleConfigEntity.getTheme(),
+            consoleConfigEntity.getJupiterMode(),
         };
     }
 }
