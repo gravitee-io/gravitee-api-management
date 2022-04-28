@@ -65,7 +65,7 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 			super.doStart();
 			LOGGER.info("Starting Elastic reporter engine...");
 
-			ElasticsearchInfo elasticsearchInfo = retreiveElasticSearchInfo();
+			ElasticsearchInfo elasticsearchInfo = retrieveElasticSearchInfo();
 			AbstractElasticBeanRegistrer elasticsearchBeanRegister = getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
 			if (elasticsearchBeanRegister == null) {
 				LOGGER.error("{} version {} is not supported by this connector", elasticsearchInfo.getVersion().isOpenSearch() ? "OpenSearch" : "ElasticSearch", elasticsearchInfo.getVersion().getNumber());
@@ -129,7 +129,7 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 		}
 	}
 
-	private ElasticsearchInfo retreiveElasticSearchInfo() {
+	private ElasticsearchInfo retrieveElasticSearchInfo() {
 		// Wait for a connection to ES and retry each 5 seconds
 		Single<ElasticsearchInfo> elasticsearchInfoSingle = client.getInfo()
 				.retryWhen(error -> error.flatMap(
