@@ -60,27 +60,60 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withLogQuery() throws Exception {
         TabularResponse response = logRepository.query(
-                tabular()
-                        .timeRange(lastDays(60), hours(1))
-                        .query("client-response.body:*not valid or is expired*")
-                        .page(1)
-                        .size(20)
-                        .build());
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("client-response.body:*not valid or is expired*")
+                .page(1)
+                .size(10)
+                .build());
 
         assertNotNull(response);
-        assertEquals(1, response.getSize());
+        assertEquals(6, response.getSize());
+        assertEquals(6, response.getLogs().size());
+    }
+
+    @Test
+    public void testTabular_withLogQuery_page1() throws Exception {
+        TabularResponse response = logRepository.query(
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("client-response.body:*not valid or is expired*")
+                .page(1)
+                .size(5)
+                .build());
+
+        assertNotNull(response);
+        assertEquals(6, response.getSize());
+        assertEquals(5, response.getLogs().size());
+    }
+
+    @Test
+    public void testTabular_withLogQuery_page2() throws Exception {
+        TabularResponse response = logRepository.query(
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("client-response.body:*not valid or is expired*")
+                .page(2)
+                .size(5)
+                .build());
+
+        assertNotNull(response);
+
+        assertEquals(6, response.getSize());
+        assertEquals(1, response.getLogs().size());
     }
 
     @Test
     public void testTabular_withoutQuery() throws Exception {
         TabularResponse response = logRepository.query(
-                tabular()
-                        .timeRange(lastDays(60), hours(1))
-                        .page(1)
-                        .size(20)
-                        .build());
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .page(1)
+                .size(100)
+                .build());
 
         assertNotNull(response);
-        assertTrue(response.getSize() >= 5);
+        assertEquals(response.getSize(), response.getLogs().size());
     }
+
 }
