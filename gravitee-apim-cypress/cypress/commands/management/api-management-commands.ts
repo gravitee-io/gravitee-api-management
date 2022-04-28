@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import { Api, ApiLifecycleState, ApiMember, UpdateApiEntity } from '@model/apis';
-import { ApiImport, ImportSwaggerDescriptorEntity } from '@model/api-imports';
+import {
+  ApiImport,
+  ImportSwaggerDescriptorEntity,
+  ImportSwaggerDescriptorEntityFormat,
+  ImportSwaggerDescriptorEntityType,
+} from '@model/api-imports';
 import { BasicAuthentication } from '@model/users';
 import { ProcessSubscriptionEntity } from '@model/api-subscriptions';
 import { requestGateway } from 'support/common/http.commands';
