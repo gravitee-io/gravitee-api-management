@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  stopApi,
-  deleteApi,
-  deployApi,
-  importSwaggerApi,
-  startApi,
-  createApi,
-  updateApi,
-} from '@commands/management/api-management-commands';
+import { stopApi, deleteApi, deployApi, importSwaggerApi, startApi, updateApi } from '@commands/management/api-management-commands';
 import { closePlan, createPlan, publishPlan } from '@commands/management/api-plan-management-commands';
 import { ApiImportFakers } from '@fakers/api-imports';
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
@@ -50,7 +42,6 @@ Cypress.Commands.add('teardownApi', (api) => {
 });
 
 Cypress.Commands.add('createAndStartApiFromSwagger', (swaggerImport: string, attributes?) => {
-  if (swaggerImport.startsWith('http')) attributes.type = ImportSwaggerDescriptorEntityType.URL;
   importSwaggerApi(API_PUBLISHER_USER, swaggerImport, attributes).then((response) => {
     if (response.status !== 201) return response;
     let api: ApiImport = response.body;
