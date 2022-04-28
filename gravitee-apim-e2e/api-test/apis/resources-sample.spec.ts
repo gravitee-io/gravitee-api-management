@@ -15,10 +15,15 @@
  */
 import { describe, expect, test } from '@jest/globals';
 import { src as testXml, filename } from '../resources/test.xml';
+import * as petstore_openapiv3 from '../resources/petstore_openapiv3.json';
 
 describe('Resources sample', () => {
   test('should load xml file', () => {
     expect(testXml).toBeDefined();
     expect(filename).toContain('api-test/resources/test.xml');
+  });
+
+  test('should load json', () => {
+    expect(petstore_openapiv3).toBeDefined();
   });
 });
