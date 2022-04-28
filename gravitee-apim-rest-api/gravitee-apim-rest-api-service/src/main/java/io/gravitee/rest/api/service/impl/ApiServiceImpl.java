@@ -331,8 +331,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setName(newApiEntity.getName());
         apiEntity.setDescription(newApiEntity.getDescription());
         apiEntity.setVersion(newApiEntity.getVersion());
-        apiEntity.setExecutionMode(newApiEntity.getExecutionMode());
-
         Set<String> groups = newApiEntity.getGroups();
         if (groups != null && !groups.isEmpty()) {
             checkGroupExistence(groups);
@@ -2701,9 +2699,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (!isBlank(query.getTag())) {
             searchEngineQuery.addExplicitFilter("tag", query.getTag());
         }
-        if (query.getExecutionMode() != null) {
-            searchEngineQuery.addExplicitFilter("executionMode", query.getExecutionMode().getLabel());
-        }
         return searchEngineQuery;
     }
 
@@ -3339,7 +3334,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 lifecycleState = LifecycleState.STOPPED;
                 break;
             default:
-                throw new IllegalArgumentException("Unknown EventType " + eventType.toString() + " to convert EventType into Lifecycle");
+                throw new IllegalArgumentException("Unknown EventType " + eventType + " to convert EventType into Lifecycle");
         }
         return lifecycleState;
     }
