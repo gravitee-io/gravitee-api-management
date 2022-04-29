@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 import { expect } from '@jest/globals';
+import * as faker from 'faker';
+import { APIsApi, ImportSwaggerApiRequest } from '@management-apis/APIsApi';
+import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
+import { PlansFaker } from '@management-fakers/PlansFaker';
+import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { APIPlansApi } from '@management-apis/APIPlansApi';
+import { LifecycleAction } from '@management-models/LifecycleAction';
+import { ApiEntity } from '@management-models/ApiEntity';
 
 export async function fail(promise, expectedStatus: number, expectedMessage?: string) {
   try {
@@ -26,4 +34,44 @@ export async function fail(promise, expectedStatus: number, expectedMessage?: st
       expect(message).toEqual(expectedMessage);
     }
   }
+}
+
+export async function createAndStartApiFromSwagger(
+  requestParameters: ImportSwaggerApiRequest,
+  externalEndpoint = 'https://api.gravitee.io/echo',
+) {
+  const { orgId, envId } = requestParameters;
+  const apisResourceApiUser = new APIsApi(forManagementAsApiUser());
+  const apiPlansResource = new APIPlansApi(forManagementAsApiUser());
+  let api = await apisResourceApiUser.importSwaggerApi(requestParameters);
+
+  const name = `swagger_${faker.datatype.number()}`;
+  api.name = name;
+  api.proxy.virtual_hosts = [{ path: `/${name}` }];
+  api.proxy.groups[0].endpoints.forEach((_value, index) => {
+    api.proxy.groups[0].endpoints[index].target = externalEndpoint;
+  });
+  const updateApiEntity = UpdateApiEntityFromJSON(api);
+  api = await apisResourceApiUser.updateApi({ orgId, envId, api: api.id, updateApiEntity });
+
+  const newPlanEntity = PlansFaker.newPlan();
+  const plan = await apiPlansResource.createApiPlan({ orgId, envId, api: api.id, newPlanEntity });
+  await apiPlansResource.publishApiPlan({ orgId, envId, api: api.id, plan: plan.id });
+  api = await apisResourceApiUser.deployApi({ orgId, envId, api: api.id });
+  await apisResourceApiUser.doApiLifecycleAction({ orgId, envId, api: api.id, action: LifecycleAction.START });
+  return api;
+}
+
+export async function teardownApi(orgId: string, envId: string, api: ApiEntity) {
+  const apiPlansResource = new APIPlansApi(forManagementAsAdminUser());
+  const apisResource = new APIsApi(forManagementAsApiUser());
+  console.log(`----- Removing API "${api.name}" -----`);
+  console.log(`Number of plans: ${api.plans.length}`);
+
+  if (api.plans.length > 0) {
+    await Promise.all(api.plans.map((plan) => apiPlansResource.closeApiPlan({ orgId, envId, api: api.id, plan: plan.id })));
+  }
+
+  await apisResource.doApiLifecycleAction({ orgId, envId, api: api.id, action: LifecycleAction.STOP });
+  await apisResource.deleteApi({ orgId, envId, api: api.id });
 }
