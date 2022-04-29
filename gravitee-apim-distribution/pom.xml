@@ -597,6 +597,7 @@
                 <gravitee-policy-basic-authentication.version>1.2.0</gravitee-policy-basic-authentication.version>
                 <gravitee-policy-circuit-breaker.version>1.0.1</gravitee-policy-circuit-breaker.version>
                 <gravitee-policy-geoip-filtering.version>1.1.0</gravitee-policy-geoip-filtering.version>
+                <gravitee-policy-javascript.version>1.1.1</gravitee-policy-javascript.version>
                 <gravitee-policy-wssecurity-authentication.version>1.0.0</gravitee-policy-wssecurity-authentication.version>
                 <gravitee-resource-auth-provider-http.version>1.1.0</gravitee-resource-auth-provider-http.version>
                 <gravitee-resource-auth-provider-inline.version>1.1.0</gravitee-resource-auth-provider-inline.version>
@@ -646,6 +647,13 @@
                     <groupId>io.gravitee.policy</groupId>
                     <artifactId>gravitee-policy-geoip-filtering</artifactId>
                     <version>${gravitee-policy-geoip-filtering.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>io.gravitee.policy</groupId>
+                    <artifactId>gravitee-policy-javascript</artifactId>
+                    <version>${gravitee-policy-javascript.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
