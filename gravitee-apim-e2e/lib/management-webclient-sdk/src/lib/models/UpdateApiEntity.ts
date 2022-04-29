@@ -161,19 +161,19 @@ export interface UpdateApiEntity {
      * @type {{ [key: string]: Array<Rule>; }}
      * @memberof UpdateApiEntity
      */
-    paths: { [key: string]: Array<Rule>; };
+    paths?: { [key: string]: Array<Rule>; };
     /**
      * a list of flows (the policies configuration)
      * @type {Array<Flow>}
      * @memberof UpdateApiEntity
      */
-    flows: Array<Flow>;
+    flows?: Array<Flow>;
     /**
      * a list of plans with flows (the policies configuration)
      * @type {Array<Plan>}
      * @memberof UpdateApiEntity
      */
-    plans: Array<Plan>;
+    plans?: Array<Plan>;
     /**
      * A dictionary (could be dynamic) of properties available in the API context.
      * @type {Array<PropertyEntity>}
@@ -255,9 +255,9 @@ export function UpdateApiEntityFromJSONTyped(json: any, ignoreDiscriminator: boo
         'metadata': !exists(json, 'metadata') ? undefined : ((json['metadata'] as Array<any>).map(ApiMetadataEntityFromJSON)),
         'background': !exists(json, 'background') ? undefined : json['background'],
         'proxy': ProxyFromJSON(json['proxy']),
-        'paths': json['paths'],
-        'flows': ((json['flows'] as Array<any>).map(FlowFromJSON)),
-        'plans': ((json['plans'] as Array<any>).map(PlanFromJSON)),
+        'paths': !exists(json, 'paths') ? undefined : json['paths'],
+        'flows': !exists(json, 'flows') ? undefined : ((json['flows'] as Array<any>).map(FlowFromJSON)),
+        'plans': !exists(json, 'plans') ? undefined : ((json['plans'] as Array<any>).map(PlanFromJSON)),
         'properties': !exists(json, 'properties') ? undefined : ((json['properties'] as Array<any>).map(PropertyEntityFromJSON)),
         'gravitee': !exists(json, 'gravitee') ? undefined : json['gravitee'],
         'flow_mode': !exists(json, 'flow_mode') ? undefined : json['flow_mode'],
@@ -295,8 +295,8 @@ export function UpdateApiEntityToJSON(value?: UpdateApiEntity | null): any {
         'background': value.background,
         'proxy': ProxyToJSON(value.proxy),
         'paths': value.paths,
-        'flows': ((value.flows as Array<any>).map(FlowToJSON)),
-        'plans': ((value.plans as Array<any>).map(PlanToJSON)),
+        'flows': value.flows === undefined ? undefined : ((value.flows as Array<any>).map(FlowToJSON)),
+        'plans': value.plans === undefined ? undefined : ((value.plans as Array<any>).map(PlanToJSON)),
         'properties': value.properties === undefined ? undefined : ((value.properties as Array<any>).map(PropertyEntityToJSON)),
         'gravitee': value.gravitee,
         'flow_mode': value.flow_mode,
