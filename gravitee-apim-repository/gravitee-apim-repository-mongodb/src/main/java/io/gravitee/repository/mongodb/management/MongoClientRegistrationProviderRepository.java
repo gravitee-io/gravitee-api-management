@@ -84,6 +84,7 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         }
 
         try {
+            clientRegistrationProviderMongo.setEnvironmentId(clientRegistrationProvider.getEnvironmentId());
             clientRegistrationProviderMongo.setName(clientRegistrationProvider.getName());
             clientRegistrationProviderMongo.setDescription(clientRegistrationProvider.getDescription());
             clientRegistrationProviderMongo.setUpdatedAt(clientRegistrationProvider.getUpdatedAt());

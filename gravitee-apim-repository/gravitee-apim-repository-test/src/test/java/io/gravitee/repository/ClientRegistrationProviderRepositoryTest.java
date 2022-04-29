@@ -54,6 +54,7 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
 
         final ClientRegistrationProvider clientRegistrationProvider = clientRegistrationProviderOpt.get();
         assertNotNull(clientRegistrationProvider);
+        assertEquals("envIdB", clientRegistrationProvider.getEnvironmentId());
         assertEquals("OIDC-3", clientRegistrationProvider.getName());
         assertEquals("OIDC Client registration provider", clientRegistrationProvider.getDescription());
         assertEquals("http://localhost:8092/oidc/.well-known/openid-configuration", clientRegistrationProvider.getDiscoveryEndpoint());
@@ -74,6 +75,7 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
     public void shouldCreate() throws Exception {
         final ClientRegistrationProvider clientRegistrationProvider = new ClientRegistrationProvider();
         clientRegistrationProvider.setId("new-dcr");
+        clientRegistrationProvider.setEnvironmentId("envId");
         clientRegistrationProvider.setName("new DCR");
         clientRegistrationProvider.setDescription("Description for my new DCR");
         clientRegistrationProvider.setDiscoveryEndpoint("http://localhost:8092/oidc/.well-known/openid-configuration");
@@ -94,6 +96,11 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         Assert.assertTrue("Client registration provider saved not found", optional.isPresent());
 
         final ClientRegistrationProvider clientRegistrationProviderSaved = optional.get();
+        Assert.assertEquals(
+            "Invalid saved client registration provider environmentId.",
+            clientRegistrationProvider.getEnvironmentId(),
+            clientRegistrationProviderSaved.getEnvironmentId()
+        );
         Assert.assertEquals(
             "Invalid saved client registration provider name.",
             clientRegistrationProvider.getName(),
@@ -162,6 +169,11 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         Assert.assertTrue("Client registration provider to update not found", optionalUpdated.isPresent());
 
         final ClientRegistrationProvider identityProviderUpdated = optionalUpdated.get();
+        Assert.assertEquals(
+            "Invalid saved client registration provider environmentId.",
+            identityProvider.getEnvironmentId(),
+            identityProviderUpdated.getEnvironmentId()
+        );
         Assert.assertEquals(
             "Invalid saved client registration provider name.",
             identityProvider.getName(),

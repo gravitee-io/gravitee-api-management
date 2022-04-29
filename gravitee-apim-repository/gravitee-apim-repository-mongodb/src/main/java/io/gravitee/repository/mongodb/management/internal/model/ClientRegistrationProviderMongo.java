@@ -30,6 +30,11 @@ public class ClientRegistrationProviderMongo extends Auditable {
     private String id;
 
     /**
+     * Client registration OIDC discovery endpoint
+     */
+    private String environmentId;
+
+    /**
      * Client registration provider name
      */
     private String name;
@@ -77,6 +82,14 @@ public class ClientRegistrationProviderMongo extends Auditable {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getName() {
