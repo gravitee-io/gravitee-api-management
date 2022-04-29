@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
 import {
   ApiImport,
   ApiImportMember,
@@ -27,7 +26,8 @@ import { Flow, FlowMode, OperatorType } from '@model/api-flows';
 import { ApiFakers } from './apis';
 import { ApiUser } from '@model/users';
 import { Role } from '@model/roles';
-import { PlanSecurityType, PlanStatus, PlanType, PlanValidation, Step } from '@model/plan';
+import { PlanSecurityType, PlanStatus, PlanType, PlanValidation } from '@model/plan';
+import faker from '@faker-js/faker';
 
 export class ApiImportFakers {
   static api(attributes?: Partial<ApiImport>): ApiImport {

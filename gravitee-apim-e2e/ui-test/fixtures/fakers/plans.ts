@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
 import { NewPlanEntity } from '@model/plan';
+import faker from '@faker-js/faker';
 
 export class PlanFakers {
   static plan(attributes?: Partial<NewPlanEntity>): NewPlanEntity {

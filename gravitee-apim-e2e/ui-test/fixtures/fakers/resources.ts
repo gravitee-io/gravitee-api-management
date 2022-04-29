@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as faker from 'faker';
+import faker from '@faker-js/faker';
 
 export class ResourceFakers {
   static oauth2AmResource(securityDomain: string, clientId: string, clientSecret: string, attributes?: any): any {

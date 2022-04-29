@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
 import { Application } from '@model/applications';
+import faker from '@faker-js/faker';
 
 export class ApplicationFakers {
   static application(attributes?: Partial<Application>): Application {

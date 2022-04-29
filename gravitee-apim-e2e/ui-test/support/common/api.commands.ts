@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-import {
-  stopApi,
-  deleteApi,
-  deployApi,
-  importSwaggerApi,
-  startApi,
-  createApi,
-  updateApi,
-} from '@commands/management/api-management-commands';
+import { stopApi, deleteApi, deployApi, importSwaggerApi, startApi, updateApi } from '@commands/management/api-management-commands';
 import { closePlan, createPlan, publishPlan } from '@commands/management/api-plan-management-commands';
 import { ApiImportFakers } from '@fakers/api-imports';
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { ApiImport, ImportSwaggerDescriptorEntity, ImportSwaggerDescriptorEntityType } from '@model/api-imports';
-import * as faker from 'faker';
+import faker from '@faker-js/faker';
 
 declare global {
   namespace Cypress {

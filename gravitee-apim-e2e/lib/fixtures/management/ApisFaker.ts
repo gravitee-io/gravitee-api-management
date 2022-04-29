@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
 import { ApiEntity, ApiEntityFlowModeEnum } from '@management-models/ApiEntity';
 import { MemberEntity } from '@management-models/MemberEntity';
 import { PageEntity } from '@management-models/PageEntity';
@@ -21,6 +20,7 @@ import { Visibility } from '@management-models/Visibility';
 import { LoadBalancerTypeEnum } from '@management-models/LoadBalancer';
 import { Proxy } from '@management-models/Proxy';
 import { NewApiEntity } from '@management-models/NewApiEntity';
+import faker from '@faker-js/faker';
 
 export interface ApiImportEntity extends ApiEntity {
   members?: Array<MemberEntity>;

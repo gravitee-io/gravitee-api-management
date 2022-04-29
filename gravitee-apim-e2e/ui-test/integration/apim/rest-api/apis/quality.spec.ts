@@ -26,9 +26,9 @@ import { Group, GroupEvent } from '@model/groups';
 import { Task, TaskQuality, TaskType, User } from '@model/users';
 import { Member } from '@model/members';
 import { ApiFakers } from '@fakers/apis';
-import * as faker from 'faker';
 import Response = Cypress.Response;
 import { gio } from '@commands/gravitee.commands';
+import faker from '@faker-js/faker';
 
 context('API - Quality', () => {
   let createdQualityRule: QualityRule;
