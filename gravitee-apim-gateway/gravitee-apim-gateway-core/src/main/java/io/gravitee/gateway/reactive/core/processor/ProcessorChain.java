@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.reactor.processor;
+package io.gravitee.gateway.reactive.core.processor;
 
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
@@ -29,22 +29,22 @@ import org.slf4j.LoggerFactory;
  */
 public class ProcessorChain {
 
-    protected final String id;
     private final Logger log = LoggerFactory.getLogger(ProcessorChain.class);
-    protected Flowable<Processor> processors;
+    private final String id;
+    private final Flowable<Processor> processors;
 
-    public ProcessorChain(String id, List<Processor> processors) {
+    public ProcessorChain(final String id, final List<Processor> processors) {
         this.id = id;
-        this.processors = Flowable.fromIterable(processors);
+        this.processors = processors != null ? Flowable.fromIterable(processors) : Flowable.empty();
     }
 
     public Completable execute(RequestExecutionContext ctx) {
         log.debug("Executing processor chain {}", id);
 
-        return processors.flatMapCompletable(processor -> next(ctx, processor), false, 1);
+        return processors.flatMapCompletable(processor -> executeNext(ctx, processor), false, 1);
     }
 
-    private Completable next(RequestExecutionContext ctx, Processor processor) {
+    private Completable executeNext(RequestExecutionContext ctx, Processor processor) {
         if (ctx.isInterrupted()) {
             return Completable.complete();
         }
