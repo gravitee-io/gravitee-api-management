@@ -32,9 +32,7 @@ public class ElasticsearchRepository implements Repository {
 
     @Override
     public Scope[] scopes() {
-        return new Scope [] {
-                Scope.ANALYTICS
-        };
+        return new Scope[] { Scope.ANALYTICS };
     }
 
     @Override

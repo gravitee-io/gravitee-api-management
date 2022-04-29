@@ -40,7 +40,7 @@ public abstract class AbstractElasticsearchRepository {
      */
     @Autowired
     protected FreeMarkerComponent freeMarkerComponent;
-    
+
     /**
      * Util component used to compute index name.
      */

@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository.elasticsearch.spring;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Properties;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PropertySourceFactory;
 import org.springframework.lang.Nullable;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Properties;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,8 +47,7 @@ public class YamlPropertySourceFactory implements PropertySourceFactory {
         } catch (IllegalStateException e) {
             // for ignoreResourceNotFound
             Throwable cause = e.getCause();
-            if (cause instanceof FileNotFoundException)
-                throw (FileNotFoundException) e.getCause();
+            if (cause instanceof FileNotFoundException) throw (FileNotFoundException) e.getCause();
             throw e;
         }
     }

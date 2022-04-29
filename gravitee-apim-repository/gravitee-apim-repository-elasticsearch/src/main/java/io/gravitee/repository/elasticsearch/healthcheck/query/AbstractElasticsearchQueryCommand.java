@@ -22,16 +22,15 @@ import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.elasticsearch.healthcheck.ElasticsearchQueryCommand;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.Response;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Abstract class used to execute an analytic Elasticsearch query.
- * 
+ *
  * Based on Command Design Pattern.
  *
  * @author Guillaume Waignier (Zenika)
@@ -39,60 +38,64 @@ import java.util.Map;
  */
 public abstract class AbstractElasticsearchQueryCommand<T extends Response> implements ElasticsearchQueryCommand<T> {
 
-	/**
-	 * Logger.
-	 */
-	private final Logger logger = LoggerFactory.getLogger(AbstractElasticsearchQueryCommand.class);
-	
-	/**
-	 * Elasticsearch component to perform search request.
-	 */
-	@Autowired
-	protected Client client;
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(AbstractElasticsearchQueryCommand.class);
 
-	/**
-	 * Templating component
-	 */
-	@Autowired
-	private FreeMarkerComponent freeMarkerComponent;
+    /**
+     * Elasticsearch component to perform search request.
+     */
+    @Autowired
+    protected Client client;
 
-	/**
-	 * Util component used to compute index name.
-	 */
-	@Autowired
-	protected IndexNameGenerator indexNameGenerator;
+    /**
+     * Templating component
+     */
+    @Autowired
+    private FreeMarkerComponent freeMarkerComponent;
 
-	@Autowired
-	protected ElasticsearchInfo info;
+    /**
+     * Util component used to compute index name.
+     */
+    @Autowired
+    protected IndexNameGenerator indexNameGenerator;
 
-	/**
-	 * Create the elasticsearch query
-	 * @param templateName Freemarker template name
-	 * @param query query parameter
-	 * @return the elasticsearch json query
-	 */
-	protected String createQuery(final String templateName, final Query<T> query) {
-		return this.createQuery(templateName, query, null, null);
-	}
+    @Autowired
+    protected ElasticsearchInfo info;
 
-	/**
-	 * Create the elasticsearch query
-	 * @param templateName Freemarker template name
-	 * @param query query parameter
-	 * @param roundedFrom from parameter
-	 * @param roundedTo to parameter
-	 * @return the elasticsearch json query
-	 */
-	String createQuery(final String templateName, final Query<T> query, Long roundedFrom, Long roundedTo ) {
-		final Map<String, Object> data = new HashMap<>();
-		data.put("query", query);
-		if (roundedFrom !=null) {data.put("roundedFrom", roundedFrom);}
-		if (roundedTo !=null) {data.put("roundedTo", roundedTo);}
+    /**
+     * Create the elasticsearch query
+     * @param templateName Freemarker template name
+     * @param query query parameter
+     * @return the elasticsearch json query
+     */
+    protected String createQuery(final String templateName, final Query<T> query) {
+        return this.createQuery(templateName, query, null, null);
+    }
 
-		final String request = this.freeMarkerComponent.generateFromTemplate(templateName, data);
+    /**
+     * Create the elasticsearch query
+     * @param templateName Freemarker template name
+     * @param query query parameter
+     * @param roundedFrom from parameter
+     * @param roundedTo to parameter
+     * @return the elasticsearch json query
+     */
+    String createQuery(final String templateName, final Query<T> query, Long roundedFrom, Long roundedTo) {
+        final Map<String, Object> data = new HashMap<>();
+        data.put("query", query);
+        if (roundedFrom != null) {
+            data.put("roundedFrom", roundedFrom);
+        }
+        if (roundedTo != null) {
+            data.put("roundedTo", roundedTo);
+        }
 
-		logger.debug("ES request {}", request);
+        final String request = this.freeMarkerComponent.generateFromTemplate(templateName, data);
 
-		return request;
-	}
+        logger.debug("ES request {}", request);
+
+        return request;
+    }
 }

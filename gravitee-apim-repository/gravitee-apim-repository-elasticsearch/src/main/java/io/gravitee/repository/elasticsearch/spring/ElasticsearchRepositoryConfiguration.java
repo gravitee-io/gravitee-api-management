@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.elasticsearch.spring;
 
+import static java.lang.String.format;
+
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.client.http.*;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
@@ -33,15 +35,12 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.vertx.reactivex.core.Vertx;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import java.util.concurrent.TimeUnit;
-
-import static java.lang.String.format;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,12 +49,7 @@ import static java.lang.String.format;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({
-        AnalyticsConfiguration.class,
-        HealthCheckConfiguration.class,
-        LogConfiguration.class,
-        MonitoringConfiguration.class
-})
+@Import({ AnalyticsConfiguration.class, HealthCheckConfiguration.class, LogConfiguration.class, MonitoringConfiguration.class })
 public class ElasticsearchRepositoryConfiguration {
 
     private final Logger logger = LoggerFactory.getLogger(ElasticsearchRepositoryConfiguration.class);
@@ -96,20 +90,23 @@ public class ElasticsearchRepositoryConfiguration {
 
         if (repositoryConfiguration.getSslKeystoreType() != null) {
             if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.JKS_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(new HttpClientJksSslConfiguration(
+                clientConfiguration.setSslConfig(
+                    new HttpClientJksSslConfiguration(
                         repositoryConfiguration.getSslKeystore(),
                         repositoryConfiguration.getSslKeystorePassword()
-                ));
+                    )
+                );
             } else if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PFX_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(new HttpClientPfxSslConfiguration(
+                clientConfiguration.setSslConfig(
+                    new HttpClientPfxSslConfiguration(
                         repositoryConfiguration.getSslKeystore(),
                         repositoryConfiguration.getSslKeystorePassword()
-                ));
+                    )
+                );
             } else if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PEM_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(new HttpClientPemSslConfiguration(
-                        repositoryConfiguration.getSslPemCerts(),
-                        repositoryConfiguration.getSslPemKeys()
-                ));
+                clientConfiguration.setSslConfig(
+                    new HttpClientPemSslConfiguration(repositoryConfiguration.getSslPemCerts(), repositoryConfiguration.getSslPemKeys())
+                );
             }
         }
         return new HttpClient(clientConfiguration);
@@ -129,16 +126,22 @@ public class ElasticsearchRepositoryConfiguration {
     @Bean
     public ElasticsearchInfo elasticsearchInfo(Client client) {
         // Wait for a connection to ES and retry each 5 seconds
-        Single<ElasticsearchInfo> singleVersion = client.getInfo()
-                .retryWhen(error -> error.flatMap(
-                        throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST)));
+        Single<ElasticsearchInfo> singleVersion = client
+            .getInfo()
+            .retryWhen(
+                error ->
+                    error.flatMap(
+                        throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST)
+                    )
+            );
 
         singleVersion.subscribe();
 
         final ElasticsearchInfo elasticsearchInfo = singleVersion.blockingGet();
         if (elasticsearchInfo.getStatus() != null && elasticsearchInfo.getStatus() != 200) {
-            throw new ElasticsearchException(format("Status '%d', reason: %s",
-                    elasticsearchInfo.getStatus(), elasticsearchInfo.getError().getReason()));
+            throw new ElasticsearchException(
+                format("Status '%d', reason: %s", elasticsearchInfo.getStatus(), elasticsearchInfo.getError().getReason())
+            );
         }
 
         return elasticsearchInfo;
