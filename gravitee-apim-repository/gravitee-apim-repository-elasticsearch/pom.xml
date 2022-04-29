@@ -37,12 +37,12 @@
     </properties>
 
     <dependencies>
-		<!-- Gravitee.io dependencies -->
-		<dependency>
-			<groupId>io.gravitee.apim.repository</groupId>
-			<artifactId>gravitee-apim-repository-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+        <!-- Gravitee.io dependencies -->
+        <dependency>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Gravitee.io Elasticsearch -->
         <dependency>
@@ -88,11 +88,11 @@
             <scope>provided</scope>
         </dependency>
 
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-rx-java2</artifactId>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-rx-java2</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.freemarker</groupId>
@@ -155,11 +155,11 @@
             <scope>test</scope>
         </dependency>
 
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
