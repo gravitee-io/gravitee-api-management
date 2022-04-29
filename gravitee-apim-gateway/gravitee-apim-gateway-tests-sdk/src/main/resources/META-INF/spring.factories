@@ -1,0 +1,2 @@
+io.gravitee.repository.Repository=\
+io.gravitee.gateway.MockRepository
