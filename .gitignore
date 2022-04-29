@@ -1,0 +1,43 @@
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# Eclipse files
+.settings/
+.classpath
+.project
+
+# Maven Files 
+target/
+/bin/
+
+.DS_Store
+.idea/
+*.iml
+# -- Cicd : Git ignore the [.circleci/**/*] which contains
+# files which do not need to be commited (password to artifactory)
+.circleci/**/*
+# -- Cicd : Do not git ignore the [!./.circleci/config.yml] which contains
+# the pipeline definition
+!./.circleci/config.yml
+# -- Cicd : Git ignore the [gpg.script.snippet.sh] which contains
+# secrets (password to artifactory)
+gpg.script.snippet.sh
+# -- Cicd : The [graviteebot.gpg.priv.key] file contains secrets 
+# which should not be commited
+graviteebot.gpg.priv.key
+# -- Cicd : The [.secrethub.credential] file contains secrets 
+# which should not be commited
+graviteebot.gpg.pub.key
+# -- Cicd : The [.secrets.json] file contains secrets 
+# which should not be commited
+.secrets.json
