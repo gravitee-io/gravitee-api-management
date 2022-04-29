@@ -15,19 +15,13 @@
  */
 package io.gravitee.repository.elasticsearch;
 
+import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDIATE;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.repository.elasticsearch.embedded.ElasticsearchNode;
 import io.gravitee.repository.elasticsearch.spring.ElasticsearchRepositoryConfigurationTest;
-import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequest;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Instant;
@@ -36,8 +30,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-
-import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDIATE;
+import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequest;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -81,31 +80,32 @@ public abstract class AbstractElasticsearchRepositoryTest {
         data.put("numberOfShards", 5);
         data.put("numberOfReplicas", 1);
 
-        this.embeddedNode.getNode().client()
-                .admin()
-                .indices().putTemplate(new PutIndexTemplateRequest("gravitee")
-                    .source(this.freeMarkerComponent.generateFromTemplate("index-template-es-5x.ftl", data), XContentType.JSON))
-                .get();
+        this.embeddedNode.getNode()
+            .client()
+            .admin()
+            .indices()
+            .putTemplate(
+                new PutIndexTemplateRequest("gravitee")
+                .source(this.freeMarkerComponent.generateFromTemplate("index-template-es-5x.ftl", data), XContentType.JSON)
+            )
+            .get();
 
         final String body = this.freeMarkerComponent.generateFromTemplate("bulk.json", data);
         String lines[] = body.split("\\r?\\n");
-        for (int i = 0 ; i < lines.length - 1; i += 2) {
+        for (int i = 0; i < lines.length - 1; i += 2) {
             String index = lines[i];
-            String value = lines[i+1];
+            String value = lines[i + 1];
 
             try {
                 JsonNode node = mapper.readTree(index);
                 JsonNode indexNode = node.get("index");
 
-                this.embeddedNode.getNode().client()
-                        .prepareIndex(
-                                indexNode.get("_index").asText(),
-                                indexNode.get("_type").asText(),
-                                indexNode.get("_id").asText()
-                        )
-                        .setSource(value, XContentType.JSON)
-                        .setRefreshPolicy(IMMEDIATE)
-                        .get();
+                this.embeddedNode.getNode()
+                    .client()
+                    .prepareIndex(indexNode.get("_index").asText(), indexNode.get("_type").asText(), indexNode.get("_id").asText())
+                    .setSource(value, XContentType.JSON)
+                    .setRefreshPolicy(IMMEDIATE)
+                    .get();
             } catch (IOException e) {
                 e.printStackTrace();
             }

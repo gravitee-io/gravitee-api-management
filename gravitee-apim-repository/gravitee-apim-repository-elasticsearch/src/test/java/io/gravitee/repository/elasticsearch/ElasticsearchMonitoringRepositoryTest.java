@@ -21,11 +21,10 @@ import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.elasticsearch.monitoring.ElasticsearchMonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
+import java.io.IOException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.unitils.reflectionassert.ReflectionAssert;
-
-import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,12 +43,12 @@ public class ElasticsearchMonitoringRepositoryTest extends AbstractElasticsearch
 
     @Test
     public void testQuery() throws AnalyticsException, IOException {
-    	//Do the call
+        //Do the call
         final MonitoringResponse monitoringResponse = elasticMonitoringRepository.query("1876c024-c6a2-409a-b6c0-24c6a2e09a5f");
 
         final ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        
+
         // assert
         final String expectedJson = this.freeMarkerComponent.generateFromTemplate("monitoringExpectedResponse.json");
         final MonitoringResponse expectedResponse = mapper.readValue(expectedJson, MonitoringResponse.class);

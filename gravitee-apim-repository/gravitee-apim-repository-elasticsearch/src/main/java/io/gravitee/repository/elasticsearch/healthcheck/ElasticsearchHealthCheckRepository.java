@@ -29,14 +29,13 @@ import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.Response;
 import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
 import io.reactivex.Single;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,7 +77,6 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
 
     @Override
     public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
-
         @SuppressWarnings("unchecked")
         final ElasticsearchQueryCommand<T> handler = (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
 
@@ -99,10 +97,12 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
         String[] clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
 
         try {
-            final Single<SearchResponse> result = this.client.search(
-                    this.indexNameGenerator.getWildcardIndexName(Type.HEALTH_CHECK, clusters),
-                    !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
-                    sQuery);
+            final Single<SearchResponse> result =
+                this.client.search(
+                        this.indexNameGenerator.getWildcardIndexName(Type.HEALTH_CHECK, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+                        sQuery
+                    );
 
             SearchResponse searchResponse = result.blockingGet();
             if (searchResponse.getSearchHits().getTotal().getValue() == 0) {

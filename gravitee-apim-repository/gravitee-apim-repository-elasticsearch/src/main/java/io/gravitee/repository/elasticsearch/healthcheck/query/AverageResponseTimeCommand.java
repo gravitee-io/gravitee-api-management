@@ -28,10 +28,6 @@ import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeQuery;
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeResponse;
 import io.reactivex.Single;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -39,6 +35,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Command used to handle AverageResponseTime.
@@ -49,92 +48,94 @@ import java.util.List;
  */
 public class AverageResponseTimeCommand extends AbstractElasticsearchQueryCommand<AverageResponseTimeResponse> {
 
-	/**
-	 * Logger.
-	 */
-	private final Logger logger = LoggerFactory.getLogger(AverageResponseTimeCommand.class);
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(AverageResponseTimeCommand.class);
 
-	private final static String TEMPLATE = "healthcheck/avg-response-time.ftl";
+    private static final String TEMPLATE = "healthcheck/avg-response-time.ftl";
 
-	@Autowired
-	protected RepositoryConfiguration configuration;
+    @Autowired
+    protected RepositoryConfiguration configuration;
 
-	@Override
-	public Class<? extends Query<AverageResponseTimeResponse>> getSupportedQuery() {
-		return AverageResponseTimeQuery.class;
-	}
+    @Override
+    public Class<? extends Query<AverageResponseTimeResponse>> getSupportedQuery() {
+        return AverageResponseTimeQuery.class;
+    }
 
-	@Override
-	public AverageResponseTimeResponse executeQuery(Query<AverageResponseTimeResponse> query) throws AnalyticsException {
-		final AverageResponseTimeQuery averageResponseTimeQuery = (AverageResponseTimeQuery) query;
+    @Override
+    public AverageResponseTimeResponse executeQuery(Query<AverageResponseTimeResponse> query) throws AnalyticsException {
+        final AverageResponseTimeQuery averageResponseTimeQuery = (AverageResponseTimeQuery) query;
 
-		final String sQuery = this.createQuery(TEMPLATE, averageResponseTimeQuery);
-		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(averageResponseTimeQuery, configuration);
+        final String sQuery = this.createQuery(TEMPLATE, averageResponseTimeQuery);
+        String[] clusters = ClusterUtils.extractClusterIndexPrefixes(averageResponseTimeQuery, configuration);
 
-		try {
-			final long now = System.currentTimeMillis();
-			final long from = ZonedDateTime
-					.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
-					.minus(1, ChronoUnit.MONTHS)
-					.toInstant()
-					.toEpochMilli();
+        try {
+            final long now = System.currentTimeMillis();
+            final long from = ZonedDateTime
+                .ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
+                .minus(1, ChronoUnit.MONTHS)
+                .toInstant()
+                .toEpochMilli();
 
-			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now, clusters),
-					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
-					sQuery);
-			return this.toAverageResponseTimeResponse(result.blockingGet());
-		} catch (Exception eex) {
-			logger.error("Impossible to perform AverageResponseTimeQuery", eex);
-			throw new AnalyticsException("Impossible to perform AverageResponseTimeQuery", eex);
-		}
-	}
+            final Single<SearchResponse> result =
+                this.client.search(
+                        this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+                        sQuery
+                    );
+            return this.toAverageResponseTimeResponse(result.blockingGet());
+        } catch (Exception eex) {
+            logger.error("Impossible to perform AverageResponseTimeQuery", eex);
+            throw new AnalyticsException("Impossible to perform AverageResponseTimeQuery", eex);
+        }
+    }
 
-	private AverageResponseTimeResponse toAverageResponseTimeResponse(final SearchResponse response) {
-		final AverageResponseTimeResponse averageResponseTime = new AverageResponseTimeResponse();
+    private AverageResponseTimeResponse toAverageResponseTimeResponse(final SearchResponse response) {
+        final AverageResponseTimeResponse averageResponseTime = new AverageResponseTimeResponse();
 
-		if (response.getAggregations() == null) {
-			averageResponseTime.setEndpointResponseTimes(Collections.emptyList());
-			return averageResponseTime;
-		}
+        if (response.getAggregations() == null) {
+            averageResponseTime.setEndpointResponseTimes(Collections.emptyList());
+            return averageResponseTime;
+        }
 
-		Aggregation termsAgg = response.getAggregations().get("terms");
+        Aggregation termsAgg = response.getAggregations().get("terms");
 
-		// Store buckets to avoid multiple unmodifiableList to be created
-		List<JsonNode> endpointsBucket = termsAgg.getBuckets();
-		List<FieldBucket<Long>> endpointsResponseTimes = new ArrayList<>(endpointsBucket.size());
-		for (JsonNode endpointBucket : endpointsBucket) {
-			String endpointKey = endpointBucket.get("key").asText();
-			FieldBucket<Long> endpoint = new FieldBucket<>(endpointKey);
+        // Store buckets to avoid multiple unmodifiableList to be created
+        List<JsonNode> endpointsBucket = termsAgg.getBuckets();
+        List<FieldBucket<Long>> endpointsResponseTimes = new ArrayList<>(endpointsBucket.size());
+        for (JsonNode endpointBucket : endpointsBucket) {
+            String endpointKey = endpointBucket.get("key").asText();
+            FieldBucket<Long> endpoint = new FieldBucket<>(endpointKey);
 
-			JsonNode dateRanges = endpointBucket.get("ranges");
-			JsonNode dateRangesBucketsNode = dateRanges.get("buckets");
-			List<Bucket<Long>> responseTimes = new ArrayList<>(dateRangesBucketsNode.size());
+            JsonNode dateRanges = endpointBucket.get("ranges");
+            JsonNode dateRangesBucketsNode = dateRanges.get("buckets");
+            List<Bucket<Long>> responseTimes = new ArrayList<>(dateRangesBucketsNode.size());
 
-			for (JsonNode dateRange : dateRangesBucketsNode) {
-				Bucket<Long> responseTime = new Bucket<>();
-				responseTime.setFrom(dateRange.get("from").asLong());
-				responseTime.setKey(dateRange.get("key").asText());
-				final JsonNode value = dateRange.get("results").get("value");
-				if (value.isNull()) {
-					responseTime.setValue(-1L);
-				} else {
-					responseTime.setValue(value.asLong());
-				}
+            for (JsonNode dateRange : dateRangesBucketsNode) {
+                Bucket<Long> responseTime = new Bucket<>();
+                responseTime.setFrom(dateRange.get("from").asLong());
+                responseTime.setKey(dateRange.get("key").asText());
+                final JsonNode value = dateRange.get("results").get("value");
+                if (value.isNull()) {
+                    responseTime.setValue(-1L);
+                } else {
+                    responseTime.setValue(value.asLong());
+                }
 
-				responseTimes.add(responseTime);
-			}
+                responseTimes.add(responseTime);
+            }
 
-			// If all response times are equals to 0, do not include this bucket
-			boolean include = responseTimes.stream().anyMatch(longBucket -> longBucket.getValue() != 0L);
+            // If all response times are equals to 0, do not include this bucket
+            boolean include = responseTimes.stream().anyMatch(longBucket -> longBucket.getValue() != 0L);
 
-			if (include) {
-				endpoint.setValues(responseTimes);
-				endpointsResponseTimes.add(endpoint);
-			}
-		}
+            if (include) {
+                endpoint.setValues(responseTimes);
+                endpointsResponseTimes.add(endpoint);
+            }
+        }
 
-		averageResponseTime.setEndpointResponseTimes(endpointsResponseTimes);
-		return averageResponseTime;
-	}
+        averageResponseTime.setEndpointResponseTimes(endpointsResponseTimes);
+        return averageResponseTime;
+    }
 }
