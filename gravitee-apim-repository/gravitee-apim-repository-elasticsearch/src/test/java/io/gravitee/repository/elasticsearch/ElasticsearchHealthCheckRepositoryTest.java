@@ -25,10 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Ignore
 public class ElasticsearchHealthCheckRepositoryTest extends AbstractElasticsearchRepositoryTest {
-    
+
     @Autowired
     private ElasticsearchHealthCheckRepository elasticHealthCheckRepository;
-
     /*
     @Test
     public void testQuery() throws AnalyticsException, IOException {

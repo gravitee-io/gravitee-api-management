@@ -15,22 +15,22 @@
  */
 package io.gravitee.repository.elasticsearch.utils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
-
 @RunWith(MockitoJUnitRunner.class)
 public class ClusterUtilsTest {
+
     @Mock
     RepositoryConfiguration configuration;
 

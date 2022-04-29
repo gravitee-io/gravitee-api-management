@@ -29,16 +29,15 @@ import io.gravitee.repository.elasticsearch.analytics.ElasticsearchQueryCommand;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.reactivex.Single;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Abstract class used to execute an analytic Elasticsearch query.
- * 
+ *
  * Based on Command Design Pattern.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -49,112 +48,123 @@ import java.util.Map;
  */
 public abstract class AbstractElasticsearchQueryCommand<T extends Response> implements ElasticsearchQueryCommand<T> {
 
-	/**
-	 * Logger.
-	 */
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    /**
+     * Logger.
+     */
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	/**
-	 * Elasticsearch client to perform search request.
-	 */
-	@Autowired
-	protected Client client;
+    /**
+     * Elasticsearch client to perform search request.
+     */
+    @Autowired
+    protected Client client;
 
-	/**
-	 * Templating component
-	 */
-	@Autowired
-	private FreeMarkerComponent freeMarkerComponent;
+    /**
+     * Templating component
+     */
+    @Autowired
+    private FreeMarkerComponent freeMarkerComponent;
 
-	/**
-	 * Util component used to compute index name.
-	 */
-	@Autowired
-	protected IndexNameGenerator indexNameGenerator;
+    /**
+     * Util component used to compute index name.
+     */
+    @Autowired
+    protected IndexNameGenerator indexNameGenerator;
 
-	@Autowired
-	protected RepositoryConfiguration configuration;
+    @Autowired
+    protected RepositoryConfiguration configuration;
 
-	@Autowired
-	protected ElasticsearchInfo info;
+    @Autowired
+    protected ElasticsearchInfo info;
 
+    /**
+     * Create the elasticsearch query
+     * @param templateName Freemarker template name
+     * @param query query parameter
+     * @return the elasticsearch json query
+     */
+    String createQuery(final String templateName, final Query<T> query) {
+        return this.createQuery(templateName, query, null, null);
+    }
 
-	/**
-	 * Create the elasticsearch query
-	 * @param templateName Freemarker template name
-	 * @param query query parameter
-	 * @return the elasticsearch json query
-	 */
-	String createQuery(final String templateName, final Query<T> query) {
-		return this.createQuery(templateName, query, null, null);
-	}
+    /**
+     * Create the elasticsearch query
+     * @param templateName Freemarker template name
+     * @param query query parameter
+     * @param roundedFrom from parameter
+     * @param roundedTo to parameter
+     * @return the elasticsearch json query
+     */
+    String createQuery(final String templateName, final Query<T> query, Long roundedFrom, Long roundedTo) {
+        final Map<String, Object> data = new HashMap<>();
+        data.put("query", query);
+        if (roundedFrom != null) {
+            data.put("roundedFrom", roundedFrom);
+        }
+        if (roundedTo != null) {
+            data.put("roundedTo", roundedTo);
+        }
 
-	/**
-	 * Create the elasticsearch query
-	 * @param templateName Freemarker template name
-	 * @param query query parameter
-	 * @param roundedFrom from parameter
-	 * @param roundedTo to parameter
-	 * @return the elasticsearch json query
-	 */
-	String createQuery(final String templateName, final Query<T> query, Long roundedFrom, Long roundedTo ) {
-		final Map<String, Object> data = new HashMap<>();
-		data.put("query", query);
-		if (roundedFrom !=null) {data.put("roundedFrom", roundedFrom);}
-		if (roundedTo !=null) {data.put("roundedTo", roundedTo);}
+        final String request = this.freeMarkerComponent.generateFromTemplate(templateName, data);
 
-		final String request = this.freeMarkerComponent.generateFromTemplate(templateName, data);
+        logger.debug("ES request {}", request);
 
-		logger.debug("ES request {}", request);
+        return request;
+    }
 
-		return request;
-	}
+    Single<SearchResponse> execute(AbstractQuery<T> query, Type type, String sQuery) {
+        final Single<SearchResponse> result;
 
-	Single<SearchResponse> execute(AbstractQuery<T> query, Type type, String sQuery) {
-		final Single<SearchResponse> result;
+        String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
 
-		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
+        sQuery = sQuery.replaceAll(":(((\\/)(\\w|-)*)|((\\w|-)*:(\\d)*))", ":\\\\\"$1\\\\\"");
+        if (query.timeRange() != null) {
+            final Long from = query.timeRange().range().from();
+            final Long to = query.timeRange().range().to();
 
-		sQuery = sQuery.replaceAll(":(((\\/)(\\w|-)*)|((\\w|-)*:(\\d)*))", ":\\\\\"$1\\\\\"");
-		if (query.timeRange() != null) {
-			final Long from = query.timeRange().range().from();
-			final Long to = query.timeRange().range().to();
+            result =
+                this.client.search(
+                        this.indexNameGenerator.getIndexName(type, from, to, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
+                        sQuery
+                    );
+        } else {
+            result =
+                this.client.search(
+                        this.indexNameGenerator.getTodayIndexName(type, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
+                        sQuery
+                    );
+        }
 
-			result = this.client.search(
-					this.indexNameGenerator.getIndexName(type, from, to, clusters),
-					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
-					sQuery);
-		} else {
-			result = this.client.search(
-					this.indexNameGenerator.getTodayIndexName(type, clusters),
-					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
-					sQuery);
-		}
+        return result;
+    }
 
-		return result;
-	}
+    Single<CountResponse> executeCount(AbstractQuery<T> query, Type type, String sQuery) {
+        final Single<CountResponse> result;
 
-	Single<CountResponse> executeCount(AbstractQuery<T> query, Type type, String sQuery) {
-		final Single<CountResponse> result;
+        String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
 
-		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
+        sQuery = sQuery.replaceAll(":(((\\/)(\\w|-)*)|((\\w|-)*:(\\d)*))", ":\\\\\"$1\\\\\"");
+        if (query.timeRange() != null) {
+            final Long from = query.timeRange().range().from();
+            final Long to = query.timeRange().range().to();
 
-		sQuery = sQuery.replaceAll(":(((\\/)(\\w|-)*)|((\\w|-)*:(\\d)*))", ":\\\\\"$1\\\\\"");
-		if (query.timeRange() != null) {
-			final Long from = query.timeRange().range().from();
-			final Long to = query.timeRange().range().to();
+            result =
+                this.client.count(
+                        this.indexNameGenerator.getIndexName(type, from, to, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
+                        sQuery
+                    );
+        } else {
+            result =
+                this.client.count(
+                        this.indexNameGenerator.getTodayIndexName(type, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
+                        sQuery
+                    );
+        }
 
-			result = this.client.count(
-					this.indexNameGenerator.getIndexName(type, from, to, clusters),
-					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
-					sQuery);
-		} else {
-			result = this.client.count(
-					this.indexNameGenerator.getTodayIndexName(type, clusters),
-					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
-					sQuery);
-		}
-
-		return result;
-	}
+        return result;
+    }
 }

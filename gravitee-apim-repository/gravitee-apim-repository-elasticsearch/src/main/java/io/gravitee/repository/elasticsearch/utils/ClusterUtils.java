@@ -16,15 +16,17 @@
 package io.gravitee.repository.elasticsearch.utils;
 
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
-
 import java.util.stream.Stream;
 
 public class ClusterUtils {
 
     private static final String TENANT_FIELD = "tenant";
-    private static final String[] ALL_CLUSTERS = {"*"};
+    private static final String[] ALL_CLUSTERS = { "*" };
 
-    public static String[] extractClusterIndexPrefixes(io.gravitee.repository.analytics.query.AbstractQuery query, RepositoryConfiguration configuration) {
+    public static String[] extractClusterIndexPrefixes(
+        io.gravitee.repository.analytics.query.AbstractQuery query,
+        RepositoryConfiguration configuration
+    ) {
         if (!configuration.hasCrossClusterMapping()) {
             return new String[0];
         }
@@ -37,7 +39,10 @@ public class ClusterUtils {
         return ALL_CLUSTERS;
     }
 
-    public static String[] extractClusterIndexPrefixes(io.gravitee.repository.healthcheck.query.AbstractQuery query, RepositoryConfiguration configuration) {
+    public static String[] extractClusterIndexPrefixes(
+        io.gravitee.repository.healthcheck.query.AbstractQuery query,
+        RepositoryConfiguration configuration
+    ) {
         if (!configuration.hasCrossClusterMapping()) {
             return new String[0];
         }
@@ -58,25 +63,17 @@ public class ClusterUtils {
                 idx += TENANT_FIELD.length() + 1;
                 int lastParenthesis = filter.indexOf(')', idx);
                 int and = filter.indexOf(" AND", idx);
-                String tenantQuery = filter.substring(idx,
-                        and < 0
-                                ? lastParenthesis < 0
-                                ? filter.length()
-                                : lastParenthesis
-                                :and
-            );
+                String tenantQuery = filter.substring(idx, and < 0 ? lastParenthesis < 0 ? filter.length() : lastParenthesis : and);
                 return Stream
-                        .of(tenantQuery.split(" OR "))
-                        .map(tenant -> {
+                    .of(tenantQuery.split(" OR "))
+                    .map(
+                        tenant -> {
                             //clear the tenant name
-                            tenant = tenant
-                                    .replaceAll("\\\\","")
-                                    .replaceAll("\\(","")
-                                    .replaceAll("\\)","")
-                                    .replaceAll("\"","");
+                            tenant = tenant.replaceAll("\\\\", "").replaceAll("\\(", "").replaceAll("\\)", "").replaceAll("\"", "");
                             return configuration.getCrossClusterMapping().get(tenant);
-                        })
-                        .toArray(String[]::new);
+                        }
+                    )
+                    .toArray(String[]::new);
             }
         }
         return ALL_CLUSTERS;

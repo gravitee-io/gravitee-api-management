@@ -28,10 +28,6 @@ import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.availability.AvailabilityQuery;
 import io.gravitee.repository.healthcheck.query.availability.AvailabilityResponse;
 import io.reactivex.Single;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -39,6 +35,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Command used to handle AverageResponseTime.
@@ -49,104 +48,106 @@ import java.util.List;
  */
 public class AverageAvailabilityCommand extends AbstractElasticsearchQueryCommand<AvailabilityResponse> {
 
-	/**
-	 * Logger.
-	 */
-	private final Logger logger = LoggerFactory.getLogger(AverageAvailabilityCommand.class);
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(AverageAvailabilityCommand.class);
 
-	private final static String TEMPLATE = "healthcheck/avg-availability.ftl";
+    private static final String TEMPLATE = "healthcheck/avg-availability.ftl";
 
-	@Autowired
-	protected RepositoryConfiguration configuration;
+    @Autowired
+    protected RepositoryConfiguration configuration;
 
-	@Override
-	public Class<? extends Query<AvailabilityResponse>> getSupportedQuery() {
-		return AvailabilityQuery.class;
-	}
+    @Override
+    public Class<? extends Query<AvailabilityResponse>> getSupportedQuery() {
+        return AvailabilityQuery.class;
+    }
 
-	@Override
-	public AvailabilityResponse executeQuery(Query<AvailabilityResponse> query) throws AnalyticsException {
-		final AvailabilityQuery availabilityQuery = (AvailabilityQuery) query;
+    @Override
+    public AvailabilityResponse executeQuery(Query<AvailabilityResponse> query) throws AnalyticsException {
+        final AvailabilityQuery availabilityQuery = (AvailabilityQuery) query;
 
-		final String sQuery = this.createQuery(TEMPLATE, availabilityQuery);
-		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(availabilityQuery, configuration);
+        final String sQuery = this.createQuery(TEMPLATE, availabilityQuery);
+        String[] clusters = ClusterUtils.extractClusterIndexPrefixes(availabilityQuery, configuration);
 
-		try {
-			final long now = System.currentTimeMillis();
-			final long from = ZonedDateTime
-					.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
-					.minus(1, ChronoUnit.MONTHS)
-					.toInstant()
-					.toEpochMilli();
+        try {
+            final long now = System.currentTimeMillis();
+            final long from = ZonedDateTime
+                .ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
+                .minus(1, ChronoUnit.MONTHS)
+                .toInstant()
+                .toEpochMilli();
 
-			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now, clusters),
-					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
-					sQuery);
+            final Single<SearchResponse> result =
+                this.client.search(
+                        this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+                        sQuery
+                    );
 
-			return this.toAvailabilityResponseResponse(result.blockingGet());
-		} catch (Exception eex) {
-			logger.error("Impossible to perform AverageResponseTimeQuery", eex);
-			throw new AnalyticsException("Impossible to perform AverageResponseTimeQuery", eex);
-		}
-	}
+            return this.toAvailabilityResponseResponse(result.blockingGet());
+        } catch (Exception eex) {
+            logger.error("Impossible to perform AverageResponseTimeQuery", eex);
+            throw new AnalyticsException("Impossible to perform AverageResponseTimeQuery", eex);
+        }
+    }
 
-	private AvailabilityResponse toAvailabilityResponseResponse(final SearchResponse response) {
-		final AvailabilityResponse availabilityResponse = new AvailabilityResponse();
+    private AvailabilityResponse toAvailabilityResponseResponse(final SearchResponse response) {
+        final AvailabilityResponse availabilityResponse = new AvailabilityResponse();
 
-		if (response.getAggregations() == null) {
-			availabilityResponse.setEndpointAvailabilities(Collections.emptyList());
-			return availabilityResponse;
-		}
+        if (response.getAggregations() == null) {
+            availabilityResponse.setEndpointAvailabilities(Collections.emptyList());
+            return availabilityResponse;
+        }
 
-		Aggregation termsAgg = response.getAggregations().get("terms");
+        Aggregation termsAgg = response.getAggregations().get("terms");
 
-		// Store buckets to avoid multiple unmodifiableList to be created
-		List<JsonNode> endpointsBucket = termsAgg.getBuckets();
-		List<FieldBucket<Double>> endpointAvailabilities = new ArrayList<>(endpointsBucket.size());
-		for (JsonNode endpointBucket : endpointsBucket) {
-			String endpointKey = endpointBucket.get("key").asText();
-			FieldBucket<Double> endpoint = new FieldBucket<>(endpointKey);
+        // Store buckets to avoid multiple unmodifiableList to be created
+        List<JsonNode> endpointsBucket = termsAgg.getBuckets();
+        List<FieldBucket<Double>> endpointAvailabilities = new ArrayList<>(endpointsBucket.size());
+        for (JsonNode endpointBucket : endpointsBucket) {
+            String endpointKey = endpointBucket.get("key").asText();
+            FieldBucket<Double> endpoint = new FieldBucket<>(endpointKey);
 
-			JsonNode dateRanges = endpointBucket.get("ranges");
-			JsonNode dateRangesBucketsNode = dateRanges.get("buckets");
+            JsonNode dateRanges = endpointBucket.get("ranges");
+            JsonNode dateRangesBucketsNode = dateRanges.get("buckets");
 
-			List<Bucket<Double>> availabilities = new ArrayList<>(dateRangesBucketsNode.size());
-			for (JsonNode dateRange : dateRangesBucketsNode) {
-				String range = dateRange.get("key").asText();
-				long from = dateRange.get("from").asLong();
+            List<Bucket<Double>> availabilities = new ArrayList<>(dateRangesBucketsNode.size());
+            for (JsonNode dateRange : dateRangesBucketsNode) {
+                String range = dateRange.get("key").asText();
+                long from = dateRange.get("from").asLong();
 
-				JsonNode results = dateRange.get("results");
+                JsonNode results = dateRange.get("results");
 
-				long successCount = 0;
-				long failureCount = 0;
+                long successCount = 0;
+                long failureCount = 0;
 
-				JsonNode resultsBucketNode = results.get("buckets");
-				for (JsonNode resultBucket : resultsBucketNode) {
-					long docCount = resultBucket.get("doc_count").asLong();
-					if (resultBucket.get("key_as_string").asBoolean()) {
-						successCount = docCount;
-					} else {
-						failureCount = docCount;
-					}
-				}
+                JsonNode resultsBucketNode = results.get("buckets");
+                for (JsonNode resultBucket : resultsBucketNode) {
+                    long docCount = resultBucket.get("doc_count").asLong();
+                    if (resultBucket.get("key_as_string").asBoolean()) {
+                        successCount = docCount;
+                    } else {
+                        failureCount = docCount;
+                    }
+                }
 
-				double total = successCount + failureCount;
-				double percent = (total == 0) ? -1 : (successCount / total) * 100;
+                double total = successCount + failureCount;
+                double percent = (total == 0) ? -1 : (successCount / total) * 100;
 
-				Bucket<Double> availability = new Bucket<>();
-				availability.setFrom(from);
-				availability.setKey(range);
-				availability.setValue(percent);
+                Bucket<Double> availability = new Bucket<>();
+                availability.setFrom(from);
+                availability.setKey(range);
+                availability.setValue(percent);
 
-				availabilities.add(availability);
-			}
+                availabilities.add(availability);
+            }
 
-			endpoint.setValues(availabilities);
-			endpointAvailabilities.add(endpoint);
-		}
+            endpoint.setValues(availabilities);
+            endpointAvailabilities.add(endpoint);
+        }
 
-		availabilityResponse.setEndpointAvailabilities(endpointAvailabilities);
-		return availabilityResponse;
-	}
+        availabilityResponse.setEndpointAvailabilities(endpointAvailabilities);
+        return availabilityResponse;
+    }
 }

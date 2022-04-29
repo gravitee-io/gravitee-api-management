@@ -24,14 +24,13 @@ import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.log.model.Log;
 import io.gravitee.repository.log.model.Request;
 import io.gravitee.repository.log.model.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Builder for log request.
@@ -41,50 +40,50 @@ import java.util.List;
  * @author Sebastien Devaux (Zenika)
  */
 final class LogBuilder {
-	
-	/**
-	 * Logger.
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(LogBuilder.class);
-	
-	/** Document simple date format **/
-	private static SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
-    private final static String FIELD_TRANSACTION_ID = "transaction";
-    private final static String FIELD_TIMESTAMP = "@timestamp";
-    private final static String FIELD_GATEWAY = "gateway";
+    /**
+     * Logger.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(LogBuilder.class);
 
-    private final static String FIELD_METHOD = "method";
-    private final static String FIELD_URI = "uri";
-    private final static String FIELD_ENDPOINT = "endpoint";
-    private final static String FIELD_REQUEST_CONTENT_LENGTH = "request-content-length";
-    private final static String FIELD_RESPONSE_CONTENT_LENGTH = "response-content-length";
-    private final static String FIELD_CLIENT_REQUEST = "client-request";
-    private final static String FIELD_PROXY_REQUEST = "proxy-request";
-    private final static String FIELD_CLIENT_RESPONSE = "client-response";
-    private final static String FIELD_PROXY_RESPONSE = "proxy-response";
-    private final static String FIELD_BODY = "body";
-    private final static String FIELD_HEADERS = "headers";
-    private final static String FIELD_STATUS = "status";
-    private final static String FIELD_RESPONSE_TIME = "response-time";
-    private final static String FIELD_API_RESPONSE_TIME = "api-response-time";
+    /** Document simple date format **/
+    private static SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
-    private final static String FIELD_LOCAL_ADDRESS = "local-address";
-    private final static String FIELD_REMOTE_ADDRESS = "remote-address";
+    private static final String FIELD_TRANSACTION_ID = "transaction";
+    private static final String FIELD_TIMESTAMP = "@timestamp";
+    private static final String FIELD_GATEWAY = "gateway";
 
-    private final static String FIELD_TENANT = "tenant";
-    private final static String FIELD_APPLICATION = "application";
-    private final static String FIELD_API = "api";
-    private final static String FIELD_PLAN = "plan";
-    private final static String FIELD_HOST = "host";
+    private static final String FIELD_METHOD = "method";
+    private static final String FIELD_URI = "uri";
+    private static final String FIELD_ENDPOINT = "endpoint";
+    private static final String FIELD_REQUEST_CONTENT_LENGTH = "request-content-length";
+    private static final String FIELD_RESPONSE_CONTENT_LENGTH = "response-content-length";
+    private static final String FIELD_CLIENT_REQUEST = "client-request";
+    private static final String FIELD_PROXY_REQUEST = "proxy-request";
+    private static final String FIELD_CLIENT_RESPONSE = "client-response";
+    private static final String FIELD_PROXY_RESPONSE = "proxy-response";
+    private static final String FIELD_BODY = "body";
+    private static final String FIELD_HEADERS = "headers";
+    private static final String FIELD_STATUS = "status";
+    private static final String FIELD_RESPONSE_TIME = "response-time";
+    private static final String FIELD_API_RESPONSE_TIME = "api-response-time";
 
-    private final static String FIELD_MESSAGE = "message";
-    private final static String FIELD_USER = "user";
+    private static final String FIELD_LOCAL_ADDRESS = "local-address";
+    private static final String FIELD_REMOTE_ADDRESS = "remote-address";
 
-    private final static String FIELD_SECURITY_TYPE = "security-type";
-    private final static String FIELD_SECURITY_TOKEN = "security-token";
+    private static final String FIELD_TENANT = "tenant";
+    private static final String FIELD_APPLICATION = "application";
+    private static final String FIELD_API = "api";
+    private static final String FIELD_PLAN = "plan";
+    private static final String FIELD_HOST = "host";
 
-    private final static String FIELD_ERROR_KEY = "error-key";
+    private static final String FIELD_MESSAGE = "message";
+    private static final String FIELD_USER = "user";
+
+    private static final String FIELD_SECURITY_TYPE = "security-type";
+    private static final String FIELD_SECURITY_TOKEN = "security-token";
+
+    private static final String FIELD_ERROR_KEY = "error-key";
 
     static Log createLog(final SearchHit hit) {
         return createLog(hit, new Log());
@@ -104,11 +103,11 @@ final class LogBuilder {
         return extentedLog;
     }
 
-    private static <T extends Log> T  createLog(final SearchHit hit, final T log) {
+    private static <T extends Log> T createLog(final SearchHit hit, final T log) {
         final JsonNode source = hit.getSource();
         log.setId(hit.getId());
         log.setTransactionId(source.get(FIELD_TRANSACTION_ID).asText());
-        log.setGateway( source.get(FIELD_GATEWAY).asText());
+        log.setGateway(source.get(FIELD_GATEWAY).asText());
 
         try {
             log.setTimestamp(dtf.parse((source.get(FIELD_TIMESTAMP).asText())).getTime());
@@ -136,57 +135,57 @@ final class LogBuilder {
         log.setRemoteAddress(source.get(FIELD_REMOTE_ADDRESS).asText());
 
         final JsonNode tenantNode = source.get(FIELD_TENANT);
-        if (tenantNode != null && ! tenantNode.isNull()) {
+        if (tenantNode != null && !tenantNode.isNull()) {
             log.setTenant(tenantNode.asText());
         }
 
         final JsonNode applicationNode = source.get(FIELD_APPLICATION);
-        if (applicationNode != null && ! applicationNode.isNull()) {
+        if (applicationNode != null && !applicationNode.isNull()) {
             log.setApplication(applicationNode.asText());
         }
 
         final JsonNode apiNode = source.get(FIELD_API);
-        if (apiNode != null && ! apiNode.isNull()) {
+        if (apiNode != null && !apiNode.isNull()) {
             log.setApi(apiNode.asText());
         }
 
         final JsonNode planNode = source.get(FIELD_PLAN);
-        if (planNode != null && ! planNode.isNull()) {
+        if (planNode != null && !planNode.isNull()) {
             log.setPlan(planNode.asText());
         }
 
         final JsonNode endpointNode = source.get(FIELD_ENDPOINT);
-        if (endpointNode != null && ! endpointNode.isNull()) {
+        if (endpointNode != null && !endpointNode.isNull()) {
             log.setEndpoint(endpointNode.asText());
         }
 
         final JsonNode messageNode = source.get(FIELD_MESSAGE);
-        if (messageNode != null && ! messageNode.isNull()) {
+        if (messageNode != null && !messageNode.isNull()) {
             log.setMessage(messageNode.asText());
         }
 
         final JsonNode hostNode = source.get(FIELD_HOST);
-        if (hostNode != null && ! hostNode.isNull()) {
+        if (hostNode != null && !hostNode.isNull()) {
             log.setHost(hostNode.asText());
         }
 
         final JsonNode userNode = source.get(FIELD_USER);
-        if (userNode != null && ! userNode.isNull()) {
+        if (userNode != null && !userNode.isNull()) {
             log.setUser(userNode.asText());
         }
 
         final JsonNode secTypeNode = source.get(FIELD_SECURITY_TYPE);
-        if (secTypeNode != null && ! secTypeNode.isNull()) {
+        if (secTypeNode != null && !secTypeNode.isNull()) {
             log.setSecurityType(secTypeNode.asText());
         }
 
         final JsonNode secTokenNode = source.get(FIELD_SECURITY_TOKEN);
-        if (secTokenNode != null && ! secTokenNode.isNull()) {
+        if (secTokenNode != null && !secTokenNode.isNull()) {
             log.setSecurityToken(secTokenNode.asText());
         }
 
         final JsonNode errorKeyNode = source.get(FIELD_ERROR_KEY);
-        if (errorKeyNode != null && ! errorKeyNode.isNull()) {
+        if (errorKeyNode != null && !errorKeyNode.isNull()) {
             log.setErrorKey(errorKeyNode.asText());
         }
 

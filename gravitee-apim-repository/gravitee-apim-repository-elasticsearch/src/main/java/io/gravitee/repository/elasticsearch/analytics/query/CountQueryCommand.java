@@ -23,37 +23,37 @@ import io.gravitee.repository.analytics.query.count.CountResponse;
 
 /**
  * Commmand used to handle CountQuery
- * 
+ *
  * @author Guillaume Waignier (Zenika)
  * @author Sebastien Devaux (Zenika)
  *
  */
 public class CountQueryCommand extends AbstractElasticsearchQueryCommand<CountResponse> {
 
-	private final static String TEMPLATE = "count.ftl";
+    private static final String TEMPLATE = "count.ftl";
 
-	@Override
-	public Class<? extends Query<CountResponse>> getSupportedQuery() {
-		return CountQuery.class;
-	}
+    @Override
+    public Class<? extends Query<CountResponse>> getSupportedQuery() {
+        return CountQuery.class;
+    }
 
-	@Override
-	public CountResponse executeQuery(Query<CountResponse> query) throws AnalyticsException {
-		final CountQuery countQuery = (CountQuery) query;
-		final String sQuery = this.createQuery(TEMPLATE, query);
-		
-		try {
-			io.gravitee.elasticsearch.model.CountResponse response = executeCount(countQuery, Type.REQUEST, sQuery).blockingGet();
-			return this.toCountResponse(response);
-		} catch (final Exception eex) {
-			logger.error("Impossible to perform CountQuery", eex);
-			throw new AnalyticsException("Impossible to perform CountQuery", eex);
-		}
-	}
+    @Override
+    public CountResponse executeQuery(Query<CountResponse> query) throws AnalyticsException {
+        final CountQuery countQuery = (CountQuery) query;
+        final String sQuery = this.createQuery(TEMPLATE, query);
 
-	private CountResponse toCountResponse(final io.gravitee.elasticsearch.model.CountResponse response) {
-		final CountResponse countResponse = new CountResponse();
-		countResponse.setCount(response.getCount());
-		return countResponse;
-	}
+        try {
+            io.gravitee.elasticsearch.model.CountResponse response = executeCount(countQuery, Type.REQUEST, sQuery).blockingGet();
+            return this.toCountResponse(response);
+        } catch (final Exception eex) {
+            logger.error("Impossible to perform CountQuery", eex);
+            throw new AnalyticsException("Impossible to perform CountQuery", eex);
+        }
+    }
+
+    private CountResponse toCountResponse(final io.gravitee.elasticsearch.model.CountResponse response) {
+        final CountResponse countResponse = new CountResponse();
+        countResponse.setCount(response.getCount());
+        return countResponse;
+    }
 }

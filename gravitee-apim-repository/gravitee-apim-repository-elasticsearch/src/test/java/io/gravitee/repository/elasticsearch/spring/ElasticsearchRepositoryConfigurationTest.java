@@ -19,15 +19,14 @@ import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.embedded.ElasticsearchNode;
 import io.vertx.core.Vertx;
+import java.util.Collections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import java.util.Collections;
-
 /**
  * Spring configuration for the test.
- * 
+ *
  * @author Guillaume Waignier
  * @author Sebastien Devaux
  */
@@ -48,8 +47,7 @@ public class ElasticsearchRepositoryConfigurationTest {
     @Bean
     public RepositoryConfiguration repositoryConfiguration() {
         RepositoryConfiguration elasticConfiguration = new RepositoryConfiguration();
-        elasticConfiguration.setEndpoints(Collections.singletonList(
-                new Endpoint("http://localhost:" + elasticsearchNode().getHttpPort())));
+        elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://localhost:" + elasticsearchNode().getHttpPort())));
         return elasticConfiguration;
     }
 }

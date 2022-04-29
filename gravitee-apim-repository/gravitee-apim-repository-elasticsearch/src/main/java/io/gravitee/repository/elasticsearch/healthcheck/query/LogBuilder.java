@@ -21,9 +21,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.repository.healthcheck.query.log.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -31,6 +28,8 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,36 +45,37 @@ public final class LogBuilder {
     /** Document simple date format **/
     private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
-    private final static String FIELD_TIMESTAMP = "@timestamp";
+    private static final String FIELD_TIMESTAMP = "@timestamp";
 
-    private final static String FIELD_GATEWAY = "gateway";
-    private final static String FIELD_ENDPOINT = "endpoint";
-    private final static String FIELD_RESPONSE_TIME = "response-time";
-    private final static String FIELD_AVAILABLE = "available";
-    private final static String FIELD_SUCCESS = "success";
-    private final static String FIELD_STATE = "state";
+    private static final String FIELD_GATEWAY = "gateway";
+    private static final String FIELD_ENDPOINT = "endpoint";
+    private static final String FIELD_RESPONSE_TIME = "response-time";
+    private static final String FIELD_AVAILABLE = "available";
+    private static final String FIELD_SUCCESS = "success";
+    private static final String FIELD_STATE = "state";
 
-    private final static String FIELD_STEPS = "steps";
-    private final static String FIELD_METHOD = "method";
-    private final static String FIELD_URI = "uri";
-    private final static String FIELD_STATUS = "status";
-    private final static String FIELD_MESSAGE = "message";
+    private static final String FIELD_STEPS = "steps";
+    private static final String FIELD_METHOD = "method";
+    private static final String FIELD_URI = "uri";
+    private static final String FIELD_STATUS = "status";
+    private static final String FIELD_MESSAGE = "message";
 
-    private final static String FIELD_BODY = "body";
-    private final static String FIELD_HEADERS = "headers";
-    private final static String FIELD_RESPONSE = "response";
-    private final static String FIELD_REQUEST = "request";
+    private static final String FIELD_BODY = "body";
+    private static final String FIELD_HEADERS = "headers";
+    private static final String FIELD_RESPONSE = "response";
+    private static final String FIELD_REQUEST = "request";
 
     static Log createLog(final SearchHit hit) {
         final JsonNode node = hit.getSource();
         final Log log = new Log();
 
         log.setId(hit.getId());
-        log.setGateway( node.get(FIELD_GATEWAY).asText());
+        log.setGateway(node.get(FIELD_GATEWAY).asText());
 
         try {
-            log.setTimestamp(LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault())
-                    .toInstant().toEpochMilli());
+            log.setTimestamp(
+                LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            );
         } catch (final DateTimeParseException e) {
             logger.error("Impossible to parse date", e);
             throw new IllegalArgumentException("Impossible to parse timestamp field", e);
@@ -89,7 +89,6 @@ public final class LogBuilder {
 
         JsonNode steps = node.get(FIELD_STEPS);
         if (steps != null && steps.isArray() && steps.size() != 0) {
-
             JsonNode step = steps.get(0);
             JsonNode request = step.get(FIELD_REQUEST);
             JsonNode response = step.get(FIELD_RESPONSE);
@@ -117,8 +116,9 @@ public final class LogBuilder {
         log.setGateway(node.get(FIELD_GATEWAY).asText());
 
         try {
-            log.setTimestamp(LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault())
-                    .toInstant().toEpochMilli());
+            log.setTimestamp(
+                LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            );
         } catch (final DateTimeParseException e) {
             logger.error("Impossible to parse date", e);
             throw new IllegalArgumentException("Impossible to parse timestamp field", e);
