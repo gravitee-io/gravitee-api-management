@@ -51,6 +51,7 @@ public class JdbcClientRegistrationProviderRepository
         return JdbcObjectMapper
             .builder(ClientRegistrationProvider.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("discovery_endpoint", Types.NVARCHAR, String.class)

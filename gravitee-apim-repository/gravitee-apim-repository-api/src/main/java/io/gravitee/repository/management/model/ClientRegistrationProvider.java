@@ -33,6 +33,11 @@ public class ClientRegistrationProvider {
     private String id;
 
     /**
+     * The ID of the environment the registration provider is attached to
+     */
+    private String environmentId;
+
+    /**
      * Client registration provider name
      */
     private String name;
@@ -90,6 +95,14 @@ public class ClientRegistrationProvider {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getName() {

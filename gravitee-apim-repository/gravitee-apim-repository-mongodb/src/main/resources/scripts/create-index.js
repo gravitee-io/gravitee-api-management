@@ -123,3 +123,8 @@ db.getCollection(`${prefix}alert_events`).reIndex();
 db.getCollection(`${prefix}custom_user_fields`).dropIndexes();
 db.getCollection(`${prefix}custom_user_fields`).createIndex( {"_id.referenceId":1, "_id.referenceType":1}, { unique: false, name: "iri1irt1" } );
 db.getCollection(`${prefix}custom_user_fields`).reIndex();
+
+// "clientRegistrationProviders" collection
+db.getCollection(`${prefix}client_registration_providers`).dropIndexes();
+clientRegistrationProviders.createIndex({ environmentId: 1 }, { name: "e1" });
+db.getCollection(`${prefix}client_registration_providers`).reIndex();

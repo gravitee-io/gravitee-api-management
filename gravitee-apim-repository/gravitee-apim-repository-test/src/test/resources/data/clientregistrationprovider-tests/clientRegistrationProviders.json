@@ -1,6 +1,7 @@
 [
   {
     "id": "oidc1",
+    "environmentId": "envIdA",
     "name": "OIDC-1",
     "description": "OIDC Client registration provider",
     "discoveryEndpoint": "http://localhost:8092/oidc/.well-known/openid-configuration",
@@ -13,6 +14,7 @@
   },
   {
     "id": "oidc2",
+    "environmentId": "envIdA",
     "name": "OIDC-2",
     "description": "OIDC Client registration provider",
     "discoveryEndpoint": "http://localhost:8092/oidc/.well-known/openid-configuration",
@@ -24,6 +26,7 @@
   },
   {
     "id": "oidc3",
+    "environmentId": "envIdB",
     "name": "OIDC-3",
     "description": "OIDC Client registration provider",
     "discoveryEndpoint": "http://localhost:8092/oidc/.well-known/openid-configuration",

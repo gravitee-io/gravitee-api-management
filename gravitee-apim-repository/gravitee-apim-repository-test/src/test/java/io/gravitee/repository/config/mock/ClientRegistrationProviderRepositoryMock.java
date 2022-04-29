@@ -42,6 +42,7 @@ public class ClientRegistrationProviderRepositoryMock extends AbstractRepository
     @Override
     void prepare(ClientRegistrationProviderRepository clientRegistrationProviderRepository) throws Exception {
         final ClientRegistrationProvider newClientRegistrationProvider = mock(ClientRegistrationProvider.class);
+        when(newClientRegistrationProvider.getEnvironmentId()).thenReturn("envId");
         when(newClientRegistrationProvider.getName()).thenReturn("new DCR");
         when(newClientRegistrationProvider.getDescription()).thenReturn("Description for my new DCR");
         when(newClientRegistrationProvider.getDiscoveryEndpoint())
@@ -109,6 +110,7 @@ public class ClientRegistrationProviderRepositoryMock extends AbstractRepository
     private ClientRegistrationProvider createMock() {
         final ClientRegistrationProvider clientRegistrationProvider3 = new ClientRegistrationProvider();
         clientRegistrationProvider3.setId("oidc3");
+        clientRegistrationProvider3.setEnvironmentId("envIdB");
         clientRegistrationProvider3.setName("OIDC-3");
         clientRegistrationProvider3.setDescription("OIDC Client registration provider");
         clientRegistrationProvider3.setDiscoveryEndpoint("http://localhost:8092/oidc/.well-known/openid-configuration");

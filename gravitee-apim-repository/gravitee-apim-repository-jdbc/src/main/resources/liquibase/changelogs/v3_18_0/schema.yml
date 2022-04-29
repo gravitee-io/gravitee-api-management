@@ -3,6 +3,9 @@ databaseChangeLog:
       id: 3.18.0
       author: GraviteeSource Team
       changes:
+        # ################
+        # Alert Changes
+        # ################
         - addColumn:
             tableName: ${gravitee_prefix}alert_triggers
             columns:
@@ -11,6 +14,9 @@ databaseChangeLog:
                   type: nvarchar(64)
                   constraints:
                     nullable: true
+        # ################
+        # Commands Changes
+        # ################
         - addColumn:
             tableName: ${gravitee_prefix}commands
             columns:
@@ -23,6 +29,9 @@ databaseChangeLog:
                   columnDataType: nvarchar(64)
                   columnName: environment_id
                   tableName: ${gravitee_prefix}commands
+        # ################
+        # Audits Changes
+        # ################
         - addColumn:
             tableName: ${gravitee_prefix}audits
             columns:
@@ -133,3 +142,25 @@ databaseChangeLog:
               LEFT JOIN ${gravitee_prefix}environments e on e.id = app.environment_id
               SET a.organization_id = coalesce(e.organization_id, 'DEFAULT'), a.environment_id = coalesce(e.id, 'DEFAULT')
               WHERE a.reference_type = 'APPLICATION';
+        # ################
+        # ClientRegistrationProvider Changes
+        # ################
+        - addColumn:
+              tableName: ${gravitee_prefix}client_registration_providers
+              columns:
+                  - column:
+                        name: environment_id
+                        type: nvarchar(64)
+                        constraints:
+                            nullable: true
+        - addDefaultValue:
+              tableName: ${gravitee_prefix}client_registration_providers
+              columnName: environment_id
+              defaultValue: DEFAULT
+        - createIndex:
+              tableName: ${gravitee_prefix}client_registration_providers
+              indexName: idx_${gravitee_prefix}environment
+              columns:
+                  - column:
+                        name: environment_id
+                        type: nvarchar(64)
