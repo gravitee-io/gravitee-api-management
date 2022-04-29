@@ -28,7 +28,6 @@
     "license": "MIT License",
     "devDependencies": {
         "@jest/create-cache-key-function": "^28.0.0",
-        "@types/faker": "5.5.9",
         "@types/jest": "27.4.1",
         "@types/node": "16.10.9",
         "@types/node-fetch": "2.6.1",
@@ -47,6 +46,6 @@
     },
     "dependencies": {
         "@types/jsonwebtoken": "8.5.8",
-        "faker": "5.5.3"
+        "@faker-js/faker": "6.2.0"
     }
 }
