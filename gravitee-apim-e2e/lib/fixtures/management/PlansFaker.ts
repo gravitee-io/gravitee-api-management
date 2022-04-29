@@ -19,9 +19,30 @@ import { PlanValidationType } from '@management-models/PlanValidationType';
 import { PlanSecurityType } from '@management-models/PlanSecurityType';
 import { PlanType } from '@management-models/PlanType';
 import { PlanStatus } from '@management-models/PlanStatus';
+import { NewPlanEntity } from '@management-models/NewPlanEntity';
 
 export class PlansFaker {
   static plan(attributes?: Partial<PlanEntity>): PlanEntity {
+    const name = faker.commerce.productName();
+    const description = faker.commerce.productDescription();
+
+    return {
+      name,
+      description,
+      validation: PlanValidationType.AUTO,
+      security: PlanSecurityType.KEYLESS,
+      type: PlanType.API,
+      status: PlanStatus.STAGING,
+      order: 1,
+      characteristics: [],
+      paths: {},
+      flows: [],
+      comment_required: false,
+      ...attributes,
+    };
+  }
+
+  static newPlan(attributes?: Partial<NewPlanEntity>): NewPlanEntity {
     const name = faker.commerce.productName();
     const description = faker.commerce.productDescription();
 
