@@ -1,0 +1,3 @@
+elastic.protocol:http
+elastic.hosts:localhost:9300
+elastic.cluster:gravitee
