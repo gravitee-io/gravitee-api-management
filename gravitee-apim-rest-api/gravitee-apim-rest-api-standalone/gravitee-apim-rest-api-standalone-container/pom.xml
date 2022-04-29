@@ -308,15 +308,15 @@
                                         </artifactItem>
                                         <!-- REPOSITORIES -->
                                         <artifactItem>
-                                            <groupId>io.gravitee.repository</groupId>
-                                            <artifactId>gravitee-repository-mongodb</artifactId>
+                                            <groupId>io.gravitee.apim.repository</groupId>
+                                            <artifactId>gravitee-apim-repository-mongodb</artifactId>
                                             <version>LATEST</version>
                                             <type>zip</type>
                                             <overWrite>false</overWrite>
                                         </artifactItem>
                                         <artifactItem>
-                                            <groupId>io.gravitee.repository</groupId>
-                                            <artifactId>gravitee-repository-elasticsearch</artifactId>
+                                            <groupId>io.gravitee.apim.repository</groupId>
+                                            <artifactId>gravitee-apim-repository-elasticsearch</artifactId>
                                             <version>LATEST</version>
                                             <type>zip</type>
                                             <overWrite>false</overWrite>
