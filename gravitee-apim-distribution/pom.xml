@@ -64,6 +64,7 @@
         <gravitee-policy-html-json.version>1.6.0</gravitee-policy-html-json.version>
         <gravitee-policy-http-signature.version>1.3.0</gravitee-policy-http-signature.version>
         <gravitee-policy-ipfiltering.version>1.8.0</gravitee-policy-ipfiltering.version>
+        <gravitee-policy-javascript.version>1.1.1</gravitee-policy-javascript.version>
         <gravitee-policy-json-threat-protection.version>1.2.3</gravitee-policy-json-threat-protection.version>
         <gravitee-policy-json-to-json.version>1.6.1</gravitee-policy-json-to-json.version>
         <gravitee-policy-json-validation.version>1.6.1</gravitee-policy-json-validation.version>
@@ -341,6 +342,12 @@
                                         <groupId>io.gravitee.policy</groupId>
                                         <artifactId>gravitee-policy-ipfiltering</artifactId>
                                         <version>${gravitee-policy-ipfiltering.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.policy</groupId>
+                                        <artifactId>gravitee-policy-javascript</artifactId>
+                                        <version>${gravitee-policy-javascript.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
