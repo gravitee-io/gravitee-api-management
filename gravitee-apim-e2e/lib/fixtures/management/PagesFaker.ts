@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
 import { PageEntity } from '@management-models/PageEntity';
 import { Visibility } from '@management-models/Visibility';
+import faker from '@faker-js/faker';
 
 export enum PageType {
   ASCIIDOC = 'ASCIIDOC',

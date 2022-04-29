@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
 import { PlanEntity } from '@management-models/PlanEntity';
 import { PlanValidationType } from '@management-models/PlanValidationType';
 import { PlanSecurityType } from '@management-models/PlanSecurityType';
 import { PlanType } from '@management-models/PlanType';
 import { PlanStatus } from '@management-models/PlanStatus';
+import faker from '@faker-js/faker';
 
 export class PlansFaker {
   static plan(attributes?: Partial<PlanEntity>): PlanEntity {

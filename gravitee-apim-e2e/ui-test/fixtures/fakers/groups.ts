@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
 import { Group } from '@model/groups';
+import faker from '@faker-js/faker';
 
 export class GroupFakers {
   static group(attributes?: Partial<Group>): Group {

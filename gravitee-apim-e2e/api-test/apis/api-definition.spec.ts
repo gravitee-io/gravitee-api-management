@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { fail } from '../../lib/jest-utils';
 import { APIPlansApi } from '@management-apis/APIPlansApi';
@@ -26,6 +25,7 @@ import { LifecycleAction } from '@management-models/LifecycleAction';
 import { APIPagesApi } from '@management-apis/APIPagesApi';
 import { PagesFaker } from '@management-fakers/PagesFaker';
 import { forManagement } from '@client-conf/*';
+import faker from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

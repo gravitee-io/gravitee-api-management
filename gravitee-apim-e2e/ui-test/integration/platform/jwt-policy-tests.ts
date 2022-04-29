@@ -19,13 +19,13 @@ import { deployApi, importCreateApi, startApi } from '@commands/management/api-m
 import { publishPlan } from '@commands/management/api-plan-management-commands';
 import { ApiImport } from '@model/api-imports';
 import { requestGateway } from 'support/common/http.commands';
-import * as faker from 'faker';
 import { ApiFakers } from '@fakers/apis';
 import { am_createApplication, am_deleteApplication } from '@commands/am_management/am_application-management-commands';
 import { am_createDomain, am_deleteDomain, am_enableDomain } from '@commands/am_management/am_domain-management-commands';
 import { am_getApiToken } from '@commands/am_management/am_token-management-commands';
 import { AM_ADMIN_USER } from '@fakers/users/am_users';
 import { Application } from '@model/applications';
+import faker from '@faker-js/faker';
 
 context('Create and test JWT policy', () => {
   let hs256Api: ApiImport;

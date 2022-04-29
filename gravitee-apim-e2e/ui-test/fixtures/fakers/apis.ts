@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as faker from 'faker';
 import { Api, ApiDefinition } from '@model/apis';
 import { Plan, PlanSecurityType, PlanStatus, PlanValidation } from '@model/plan';
 
 import { ApiImportFakers } from '@fakers/api-imports';
 import { PolicyFakers } from '@fakers/policies';
 import { ResourceFakers } from '@fakers/resources';
-import { API_PUBLISHER_USER } from '@fakers/users/users';
 import { Step } from '@model/plan';
-import { importCreateApi } from '@commands/management/api-management-commands';
 import { ApiImport } from '@model/api-imports';
+import faker from '@faker-js/faker';
 
 export class ApiFakers {
   static version() {
