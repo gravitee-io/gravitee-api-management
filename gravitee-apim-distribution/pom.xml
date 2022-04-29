@@ -97,7 +97,6 @@
         <gravitee-fetcher-github.version>1.5.0</gravitee-fetcher-github.version>
         <gravitee-fetcher-gitlab.version>1.10.0</gravitee-fetcher-gitlab.version>
         <gravitee-fetcher-http.version>1.11.0</gravitee-fetcher-http.version>
-        <gravitee-repository-elasticsearch.version>3.5.6-SNAPSHOT</gravitee-repository-elasticsearch.version>
         <!-- Gateway Only -->
         <gravitee-reporter-elasticsearch.version>3.5.6-SNAPSHOT</gravitee-reporter-elasticsearch.version>
         <gravitee-reporter-file.version>2.0.5</gravitee-reporter-file.version>
@@ -472,9 +471,9 @@
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
-                                        <groupId>io.gravitee.repository</groupId>
-                                        <artifactId>gravitee-repository-elasticsearch</artifactId>
-                                        <version>${gravitee-repository-elasticsearch.version}</version>
+                                        <groupId>io.gravitee.apim.repository</groupId>
+                                        <artifactId>gravitee-apim-repository-elasticsearch</artifactId>
+                                        <version>${project.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                 </artifactItems>

@@ -99,7 +99,7 @@
                 <include>*.zip</include>
             </includes>
             <excludes>
-                <exclude>*gravitee-repository-elasticsearch*</exclude>
+                <exclude>*gravitee-apim-repository-elasticsearch*</exclude>
             </excludes>
         </fileSet>
         <!-- Just to create an empty data directory -->
