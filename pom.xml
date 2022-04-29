@@ -28,7 +28,7 @@
 
     <groupId>io.gravitee.apim</groupId>
     <artifactId>gravitee-api-management</artifactId>
-    <version>3.16.4</version>
+    <version>3.16.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM</name>
