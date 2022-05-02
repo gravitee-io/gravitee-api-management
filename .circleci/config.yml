@@ -1222,8 +1222,13 @@ jobs:
               rm rest-api-docker-context/distribution/plugins/gravitee-notifier-*.zip
               rm rest-api-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
               rm rest-api-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
+              rm gateway-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
+              rm gateway-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
+              rm gateway-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
+              rm gateway-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
               # Start APIM in background
               GIO_MAX_MEM=1024m rest-api-docker-context/distribution/bin/gravitee &
+              GIO_MAX_MEM=1024m gateway-docker-context/distribution/bin/gravitee &
               echo "Gravitee rest-api started ! Waiting for a connection..."
               # Wait for APIM to be up and running
               timeout 60s bash -c 'until nc -vz localhost 8083; do sleep 2; done'
