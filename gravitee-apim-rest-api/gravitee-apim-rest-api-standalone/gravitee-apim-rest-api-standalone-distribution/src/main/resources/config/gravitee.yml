@@ -433,7 +433,7 @@ user:
       # Must contains 32 chars (256 bits)
       #secret:
   anonymize-on-delete:
-    #enabled: true
+    #enabled: false
 
 # Enable / disable documentation sanitize. Enabled by default.
 documentation:
