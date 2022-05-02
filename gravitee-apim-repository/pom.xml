@@ -34,6 +34,7 @@
 
     <modules>
         <module>gravitee-apim-repository-api</module>
+        <module>gravitee-apim-repository-elasticsearch</module>
         <module>gravitee-apim-repository-test</module>
         <module>gravitee-apim-repository-mongodb</module>
         <module>gravitee-apim-repository-jdbc</module>
