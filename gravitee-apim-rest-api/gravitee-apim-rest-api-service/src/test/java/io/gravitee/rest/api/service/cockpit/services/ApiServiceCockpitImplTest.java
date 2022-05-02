@@ -56,6 +56,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 public class ApiServiceCockpitImplTest {
 
     private static final String API_ID = "api#id";
+    private static final String API_CROSS_ID = "api#crossId";
     private static final List<String> LABELS = List.of("label1", "label2");
     private static final String USER_ID = "user#id";
     private static final String ENVIRONMENT_ID = "environment#id";
@@ -135,6 +136,7 @@ public class ApiServiceCockpitImplTest {
         swaggerApi.setProxy(proxy);
 
         ApiEntity api = new ApiEntity();
+        api.setCrossId(API_CROSS_ID);
         api.setId(API_ID);
         api.setLabels(LABELS);
 
@@ -143,13 +145,13 @@ public class ApiServiceCockpitImplTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED, LABELS);
+        service.createApi(API_CROSS_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED, LABELS);
 
         verify(swaggerService).createAPI(descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
         verify(apiService).createWithApiDefinition(eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
-        assertThat(apiDefinitionCaptor.getValue().get("id")).isEqualTo(new JsonNodeFactory(false).textNode(API_ID));
+        assertThat(apiDefinitionCaptor.getValue().get("crossId")).isEqualTo(new JsonNodeFactory(false).textNode(API_CROSS_ID));
 
         verify(pageService).createAsideFolder(API_ID, ENVIRONMENT_ID);
         verify(pageService).createOrUpdateSwaggerPage(eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
@@ -200,13 +202,13 @@ public class ApiServiceCockpitImplTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
+        service.createApi(API_CROSS_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
 
         verify(swaggerService).createAPI(descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
         verify(apiService).createWithApiDefinition(eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
-        assertThat(apiDefinitionCaptor.getValue().get("id")).isEqualTo(new JsonNodeFactory(false).textNode(API_ID));
+        assertThat(apiDefinitionCaptor.getValue().get("crossId")).isEqualTo(new JsonNodeFactory(false).textNode(API_CROSS_ID));
 
         verify(pageService).createAsideFolder(API_ID, ENVIRONMENT_ID);
         verify(pageService).createOrUpdateSwaggerPage(eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
@@ -255,6 +257,7 @@ public class ApiServiceCockpitImplTest {
 
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
+        api.setCrossId(API_CROSS_ID);
 
         when(swaggerService.createAPI(any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -264,13 +267,13 @@ public class ApiServiceCockpitImplTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        service.createApi(API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
+        service.createApi(API_CROSS_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
         verify(swaggerService).createAPI(descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
         verify(apiService).createWithApiDefinition(eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
-        assertThat(apiDefinitionCaptor.getValue().get("id")).isEqualTo(new JsonNodeFactory(false).textNode(API_ID));
+        assertThat(apiDefinitionCaptor.getValue().get("crossId")).isEqualTo(new JsonNodeFactory(false).textNode(API_CROSS_ID));
 
         verify(pageService).createAsideFolder(API_ID, ENVIRONMENT_ID);
         verify(pageService).createOrUpdateSwaggerPage(eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -22,17 +23,25 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.InstallationEntity;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -46,7 +55,24 @@ public class ApiLoggingConditionUpgraderTest {
     private InstallationService installationService;
 
     @Mock
+    private ApiService apiService;
+
+    @Mock
+    private EventService eventService;
+
+    @Mock
     private ApiRepository apiRepository;
+
+    @Mock
+    private EnvironmentRepository environmentRepository;
+
+    @Before
+    public void setUp() throws TechnicalException {
+        when(apiRepository.update(any(Api.class))).thenAnswer((Answer<Api>) invocation -> (Api) invocation.getArguments()[0]);
+        Environment environment = new Environment();
+        environment.setId(GraviteeContext.getDefaultEnvironment());
+        when(environmentRepository.findAll()).thenReturn(Collections.singleton(environment));
+    }
 
     @Test
     public void upgrade_should_not_run_cause_already_executed_successfull() {
@@ -71,7 +97,7 @@ public class ApiLoggingConditionUpgraderTest {
     @Test
     public void upgrade_should_run_and_set_failure_status_on_exception() throws Exception {
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doThrow(new Exception("test exception")).when(upgrader).fixApis();
+        doThrow(new Exception("test exception")).when(upgrader).fixApis(any());
 
         boolean success = upgrader.upgrade();
 
@@ -84,7 +110,7 @@ public class ApiLoggingConditionUpgraderTest {
     @Test
     public void upgrade_should_run_and_set_success_status() throws Exception {
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).fixApis();
+        doNothing().when(upgrader).fixApis(any());
 
         boolean success = upgrader.upgrade();
 
@@ -97,7 +123,7 @@ public class ApiLoggingConditionUpgraderTest {
     @Test
     public void fixApis_should_fix_only_apis_with_wrong_condition() throws Exception {
         ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
-        doNothing().when(upgrader).fixLoggingCondition(any(), any(), any());
+        doNothing().when(upgrader).fixLoggingCondition(any(), any(), any(), any());
 
         Api apiEmpty = new Api();
         apiEmpty.setId("api1");
@@ -119,9 +145,9 @@ public class ApiLoggingConditionUpgraderTest {
         Api apiBooleanCondition = new Api();
         apiBooleanCondition.setId("api6");
         apiBooleanCondition.setDefinition("{\"proxy\": {\"logging\": {\"condition\": \"true\"}}}");
-        when(apiRepository.findAll())
+        when(apiRepository.search(any()))
             .thenReturn(
-                Set.of(
+                List.of(
                     apiEmpty,
                     apiProxyEmpty,
                     apiProxyLoggingEmpty,
@@ -131,14 +157,14 @@ public class ApiLoggingConditionUpgraderTest {
                 )
             );
 
-        upgrader.fixApis();
+        upgrader.fixApis(GraviteeContext.getDefaultEnvironment());
 
-        verify(upgrader, never()).fixLoggingCondition(same(apiEmpty), any(), any());
-        verify(upgrader, never()).fixLoggingCondition(same(apiProxyEmpty), any(), any());
-        verify(upgrader, never()).fixLoggingCondition(same(apiProxyLoggingEmpty), any(), any());
-        verify(upgrader, never()).fixLoggingCondition(same(apiProxyLoggingCondition), any(), any());
+        verify(upgrader, never()).fixLoggingCondition(any(), same(apiEmpty), any(), any());
+        verify(upgrader, never()).fixLoggingCondition(any(), same(apiProxyEmpty), any(), any());
+        verify(upgrader, never()).fixLoggingCondition(any(), same(apiProxyLoggingEmpty), any(), any());
+        verify(upgrader, never()).fixLoggingCondition(any(), same(apiProxyLoggingCondition), any(), any());
 
-        verify(upgrader, times(1)).fixLoggingCondition(same(apiProxyLoggingWrongCondition), any(), eq("#request.timestamp < 1"));
+        verify(upgrader, times(1)).fixLoggingCondition(any(), same(apiProxyLoggingWrongCondition), any(), eq("#request.timestamp < 1"));
     }
 
     @Test
@@ -157,9 +183,46 @@ public class ApiLoggingConditionUpgraderTest {
         proxy.setLogging(logging);
         apiDefinition.setProxy(proxy);
 
-        upgrader.fixLoggingCondition(api, apiDefinition, logging.getCondition());
+        upgrader.fixLoggingCondition(GraviteeContext.getDefaultEnvironment(), api, apiDefinition, logging.getCondition());
 
         verify(apiRepository, times(1)).update(argThat(apiUpdated -> apiUpdated.getDefinition().contains("{#request.timestamp < 1}")));
+        verify(eventService, times(0))
+            .create(
+                any(),
+                eq(PUBLISH_API),
+                argThat(apiDefinitionUpdated -> apiDefinitionUpdated.contains("{#request.timestamp < 1}")),
+                any()
+            );
+    }
+
+    @Test
+    public void fixLoggingCondition_should_update_deploy_api() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        ReflectionTestUtils.setField(upgrader, "objectMapper", objectMapper);
+        Api api = new Api();
+        api.setId("api5");
+        api.setDefinition("{\"proxy\": {\"logging\": {\"condition\": \"#request.timestamp < 1\"}}}");
+
+        io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
+        Proxy proxy = new Proxy();
+        Logging logging = new Logging();
+        logging.setCondition("#request.timestamp < 1");
+        proxy.setLogging(logging);
+        apiDefinition.setProxy(proxy);
+
+        when(apiService.isSynchronized(api.getId())).thenReturn(true);
+
+        upgrader.fixLoggingCondition(GraviteeContext.getDefaultEnvironment(), api, apiDefinition, logging.getCondition());
+
+        verify(apiRepository, times(1)).update(argThat(apiUpdated -> apiUpdated.getDefinition().contains("{#request.timestamp < 1}")));
+        verify(eventService, times(1))
+            .create(
+                any(),
+                eq(PUBLISH_API),
+                argThat(apiDefinitionUpdated -> apiDefinitionUpdated.contains("{#request.timestamp < 1}")),
+                any()
+            );
     }
 
     private InstallationEntity mockInstallationWithExecutionStatus(String status) {

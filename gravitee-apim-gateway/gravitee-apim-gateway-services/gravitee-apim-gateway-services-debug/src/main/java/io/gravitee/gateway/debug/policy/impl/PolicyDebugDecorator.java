@@ -84,6 +84,7 @@ public class PolicyDebugDecorator implements Policy {
 
             if (stream == null) {
                 debugContext.saveNoTransformationDebugStep(debugStep);
+                return null;
             }
 
             return new DebugReadWriteStream(debugContext, stream, debugStep);
