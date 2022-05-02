@@ -14,18 +14,31 @@
  * limitations under the License.
  */
 import { APIsApi } from '@management-apis/APIsApi';
-import { forManagementAsApiUser, forPortal } from '@client-conf/*';
-import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
+import {
+  forManagementAsApiUser,
+  forPortalAsAdminUser,
+  forPortalAsAnonymous,
+  forPortalAsApiUser,
+  forPortalAsAppUser,
+  forPortalAsSimpleUser,
+} from '@client-conf/*';
+import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { ApiApi } from '@portal-apis/ApiApi';
+import { ApiEntity } from '@management-models/ApiEntity';
+import { fail, succeed } from '../../lib/jest-utils';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
 const apisResourceUser = new APIsApi(forManagementAsApiUser());
-const apiResource = new ApiApi(forPortal());
+const apiResourceAnonymous = new ApiApi(forPortalAsAnonymous());
+const apiResourceAdmin = new ApiApi(forPortalAsAdminUser());
+const apiResourceApiUser = new ApiApi(forPortalAsApiUser());
+const apiResourceAppUser = new ApiApi(forPortalAsAppUser());
+const apiResourceSimpleUser = new ApiApi(forPortalAsSimpleUser());
 
-let userApi;
+let userApi: ApiEntity;
 
 describe('API - Publishing', () => {
   describe('Not published', () => {
@@ -35,18 +48,33 @@ describe('API - Publishing', () => {
         envId,
         newApiEntity: ApisFaker.newApi(),
       });
-      return userApi;
+    });
+
+    describe.each`
+      user             | apiResource
+      ${'ANONYMOUS'}   | ${apiResourceAnonymous}
+      ${'ADMIN'}       | ${apiResourceAdmin}
+      ${'API_USER'}    | ${apiResourceApiUser}
+      ${'APP_USER'}    | ${apiResourceAppUser}
+      ${'SIMPLE_USER'} | ${apiResourceSimpleUser}
+    `('As $user user', ({ apiResource }) => {
+      test('Get APIs should not contain created api', async () => {
+        const apisResponse = await succeed(apiResource.getApisRaw({}));
+        expect(apisResponse.data.find((api) => api.id === userApi.id)).not.toBeDefined();
+      });
+
+      test('Get API by id should return not found', async () => {
+        await fail(
+          apiResource.getApiByApiId({
+            apiId: userApi.id,
+          }),
+          404,
+        );
+      });
     });
 
     afterAll(async () => {
-      return await apisResourceUser.deleteApi({ orgId, envId, api: userApi.id });
-    });
-
-    describe('As ANONYMOUS user', () => {
-      it('Get APIs should not contain created api', async () => {
-        const apisResponse = await apiResource.getApis({});
-        expect(apisResponse.data.find((api) => api.id === userApi.id)).not.toBeDefined();
-      });
+      await apisResourceUser.deleteApi({ orgId, envId, api: userApi.id });
     });
   });
 });

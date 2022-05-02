@@ -68,3 +68,23 @@ export const forPortal = (auth: BasicAuthentication = ANONYMOUS, envId: string =
     ...auth,
   });
 };
+
+export const forPortalAsAnonymous = () => {
+  return forPortal(ANONYMOUS);
+};
+
+export const forPortalAsAdminUser = () => {
+  return forPortal(ADMIN_USER);
+};
+
+export const forPortalAsApiUser = () => {
+  return forPortal(API_USER);
+};
+
+export const forPortalAsAppUser = () => {
+  return forPortal(APP_USER);
+};
+
+export const forPortalAsSimpleUser = () => {
+  return forPortal(SIMPLE_USER);
+};
