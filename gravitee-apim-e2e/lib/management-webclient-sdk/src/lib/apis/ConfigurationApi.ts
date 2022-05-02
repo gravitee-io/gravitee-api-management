@@ -1615,7 +1615,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * Create a new group.
      * Create group
      */
-    async createGroupRaw(requestParameters: CreateGroupRequest): Promise<runtime.ApiResponse<void>> {
+    async createGroupRaw(requestParameters: CreateGroupRequest): Promise<runtime.ApiResponse<GroupEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createGroup.');
         }
@@ -1645,15 +1645,16 @@ export class ConfigurationApi extends runtime.BaseAPI {
             body: NewGroupEntityToJSON(requestParameters.newGroupEntity),
         });
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => GroupEntityFromJSON(jsonValue));
     }
 
     /**
      * Create a new group.
      * Create group
      */
-    async createGroup(requestParameters: CreateGroupRequest): Promise<void> {
-        await this.createGroupRaw(requestParameters);
+    async createGroup(requestParameters: CreateGroupRequest): Promise<GroupEntity> {
+        const response = await this.createGroupRaw(requestParameters);
+        return await response.value();
     }
 
     /**
