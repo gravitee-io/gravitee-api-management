@@ -67,6 +67,8 @@
 @import 'user/newsletter/newsletter-subscription';
 @import 'user/login/login';
 
+@import '../node_modules/@fontsource/libre-franklin/scss/mixins';
+
 @import './scss/material-layout-compatibility.scss';
 
 @include gio.import-fonts(true);

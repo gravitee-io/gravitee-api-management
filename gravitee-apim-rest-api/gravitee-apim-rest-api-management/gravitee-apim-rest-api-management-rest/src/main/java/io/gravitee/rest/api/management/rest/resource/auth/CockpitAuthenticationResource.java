@@ -27,8 +27,10 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.jwt.proc.JWTProcessor;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
+import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -40,6 +42,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
@@ -87,6 +90,9 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
+
+    @Autowired
+    private ApiService apiService;
 
     @PostConstruct
     public void afterPropertiesSet() {
@@ -139,18 +145,23 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             // Cockpit user is authenticated, connect user (ie: generate cookie).
             super.connectUser(user, httpResponse);
 
+            final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
+            final String apiId = Optional
+                .ofNullable(apiCrossId)
+                .flatMap(crossId -> this.apiService.findByEnvironmentIdAndCrossId(environmentId, crossId))
+                .map(ApiEntity::getId)
+                .orElse(null);
+
             String url = String.format(
                 "%s?organization=%s/#!/environments/%s/%s",
                 jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM),
                 jwtClaimsSet.getStringClaim(ORG_CLAIM),
-                jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM),
-                jwtClaimsSet.getStringClaim(API_CLAIM) == null
-                    ? ""
-                    : URLEncoder.encode(String.format("apis/%s/portal", jwtClaimsSet.getStringClaim(API_CLAIM)), "UTF-8")
+                environmentId,
+                apiId == null ? "" : URLEncoder.encode(String.format("apis/%s/portal", apiId), "UTF-8")
             );
 
             // Redirect the user.
-            return Response.temporaryRedirect(new URI(url)).build();
+            return Response.temporaryRedirect(new URI(URLEncoder.encode(url, "UTF-8"))).build();
         } catch (Exception e) {
             LOGGER.error("Error occurred when trying to log user using cockpit.", e);
             return Response.serverError().build();
