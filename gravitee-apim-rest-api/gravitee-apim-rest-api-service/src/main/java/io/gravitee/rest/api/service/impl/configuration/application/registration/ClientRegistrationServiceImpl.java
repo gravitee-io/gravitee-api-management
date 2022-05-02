@@ -112,13 +112,6 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 );
             }
 
-            Optional<ClientRegistrationProvider> optClientRegistrationProvider = clientRegistrationProviderRepository.findById(
-                IdGenerator.generate(newClientRegistrationProvider.getName())
-            );
-            if (optClientRegistrationProvider.isPresent()) {
-                throw new ClientRegistrationProviderAlreadyExistsException(newClientRegistrationProvider.getName());
-            }
-
             if (
                 newClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.INITIAL_ACCESS_TOKEN &&
                 (
