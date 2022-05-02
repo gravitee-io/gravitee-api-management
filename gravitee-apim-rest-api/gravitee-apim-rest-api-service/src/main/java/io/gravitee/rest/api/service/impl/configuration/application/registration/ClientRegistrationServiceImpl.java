@@ -196,6 +196,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             renewClientSecretSupport(clientRegistrationProvider);
 
             clientRegistrationProvider.setId(id);
+            clientRegistrationProvider.setEnvironmentId(executionContext.getEnvironmentId());
 
             DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(true, convert(clientRegistrationProvider));
 
@@ -217,7 +218,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             auditService.createAuditLog(
                 executionContext,
                 singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
-                ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
+                ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED,
                 clientRegistrationProvider.getUpdatedAt(),
                 clientProviderToUpdate,
                 updatedClientRegistrationProvider
