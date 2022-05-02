@@ -26,10 +26,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
+import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.EmptyInitialAccessTokenException;
 import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
@@ -113,6 +115,13 @@ public class ClientRegistrationService_CreateTest {
             .thenReturn(Collections.singleton(new ClientRegistrationProvider()));
 
         NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
+        clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+    }
+
+    @Test(expected = EmptyInitialAccessTokenException.class)
+    public void shouldThrowWithTypeInitialAccessTokenAndWithoutToken() {
+        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
+        providerPayload.setInitialAccessTokenType(InitialAccessTokenType.INITIAL_ACCESS_TOKEN);
         clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
     }
 }
