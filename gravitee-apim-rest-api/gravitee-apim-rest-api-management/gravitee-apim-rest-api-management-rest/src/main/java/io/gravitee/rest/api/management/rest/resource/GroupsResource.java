@@ -78,7 +78,11 @@ public class GroupsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create group", description = "Create a new group.")
-    @ApiResponse(responseCode = "201", description = "Group successfully created")
+    @ApiResponse(
+        responseCode = "201",
+        description = "Group successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = GroupEntity.class))
+    )
     @ApiResponse(responseCode = "500", description = "Internal Server Error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE) })
     public Response createGroup(@Parameter(name = "group", required = true) @Valid @NotNull final NewGroupEntity newGroupEntity) {
