@@ -995,6 +995,7 @@ public class UserServiceTest {
         setField(userService, "anonymizeOnDelete", true);
 
         String userId = "userId";
+        String organizationId = "DEFAULT";
         String firstName = "first";
         String lastName = "last";
         String email = "email";
@@ -1003,6 +1004,7 @@ public class UserServiceTest {
             .thenReturn(Collections.emptySet());
         User user = new User();
         user.setId(userId);
+        user.setOrganizationId(organizationId);
         user.setSourceId("sourceId");
         Date updatedAt = new Date(1234567890L);
         user.setUpdatedAt(updatedAt);
@@ -1026,6 +1028,7 @@ public class UserServiceTest {
                         public boolean matches(User user) {
                             return (
                                 userId.equals(user.getId()) &&
+                                organizationId.equals(user.getOrganizationId()) &&
                                 UserStatus.ARCHIVED.equals(user.getStatus()) &&
                                 ("deleted-" + userId).equals(user.getSourceId()) &&
                                 !updatedAt.equals(user.getUpdatedAt()) &&
