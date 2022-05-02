@@ -105,6 +105,9 @@ public class ClientRegistrationProviderRepositoryMock extends AbstractRepository
 
         when(clientRegistrationProviderRepository.update(argThat(o -> o == null || o.getId().equals("unknown"))))
             .thenThrow(new IllegalStateException());
+
+        when(clientRegistrationProviderRepository.findAllByEnvironment(any()))
+            .thenReturn(newSet(clientRegistrationProvider1, createMock()));
     }
 
     private ClientRegistrationProvider createMock() {

@@ -122,6 +122,23 @@ public class JdbcClientRegistrationProviderRepository
     }
 
     @Override
+    public Set<ClientRegistrationProvider> findAllByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcClientRegistrationProviderRepository.findAllByEnvironment({})", environmentId);
+        try {
+            Set<ClientRegistrationProvider> providers = new HashSet<>(
+                jdbcTemplate.query(getOrm().getSelectAllSql() + " where environment_id = ?", getOrm().getRowMapper(), environmentId)
+            );
+            for (ClientRegistrationProvider provider : providers) {
+                addScopes(provider);
+            }
+            return providers;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find client registration provider by environment:", ex);
+            throw new TechnicalException("Failed to find client registration provider by environment", ex);
+        }
+    }
+
+    @Override
     public ClientRegistrationProvider create(ClientRegistrationProvider item) throws TechnicalException {
         LOGGER.debug("JdbcClientRegistrationProviderRepository.create({})", item);
         try {

@@ -216,4 +216,15 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         clientRegistrationProviderRepository.update(null);
         fail("A null client registration provider should not be updated");
     }
+
+    @Test
+    public void shouldFindAllByEnvironment() throws Exception {
+        String environmentId = "envIdA";
+        final Set<ClientRegistrationProvider> clientRegistrationProviders = clientRegistrationProviderRepository.findAllByEnvironment(
+            environmentId
+        );
+
+        assertNotNull(clientRegistrationProviders);
+        assertEquals(2, clientRegistrationProviders.size());
+    }
 }

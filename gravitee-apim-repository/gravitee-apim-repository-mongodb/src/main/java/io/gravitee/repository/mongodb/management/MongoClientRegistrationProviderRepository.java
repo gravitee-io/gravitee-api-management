@@ -134,6 +134,23 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         return res;
     }
 
+    @Override
+    public Set<ClientRegistrationProvider> findAllByEnvironment(String environmentId) {
+        LOGGER.debug("Find all client registration providers by environment");
+        final List<ClientRegistrationProviderMongo> clientRegistrationProviders = internalClientRegistrationProviderRepository.findByEnvironmentId(
+            environmentId
+        );
+
+        Set<ClientRegistrationProvider> res = mapper.collection2set(
+            clientRegistrationProviders,
+            ClientRegistrationProviderMongo.class,
+            ClientRegistrationProvider.class
+        );
+
+        LOGGER.debug("Find all client registration providers by environment - Done");
+        return res;
+    }
+
     private ClientRegistrationProvider map(ClientRegistrationProviderMongo provider) {
         return (provider == null) ? null : mapper.map(provider, ClientRegistrationProvider.class);
     }

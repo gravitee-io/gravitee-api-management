@@ -35,6 +35,11 @@ public class ClientRegistrationProviderRepositoryProxy
         return target.findAll();
     }
 
+    @Override
+    public Set<ClientRegistrationProvider> findAllByEnvironment(String environmentId) throws TechnicalException {
+        return target.findAllByEnvironment(environmentId);
+    }
+
     public Optional<ClientRegistrationProvider> findById(String s) throws TechnicalException {
         return target.findById(s);
     }
