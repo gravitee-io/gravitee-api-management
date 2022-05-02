@@ -49,6 +49,10 @@ export const forManagementAsApiUser = () => {
   return forManagement(API_USER);
 };
 
+export const forManagementAsSimpleUser = () => {
+  return forManagement(SIMPLE_USER);
+};
+
 export const forManagement = (auth: BasicAuthentication = ADMIN_USER) => {
   return new ManagementConfiguration({
     basePath: process.env.MANAGEMENT_BASE_PATH,
