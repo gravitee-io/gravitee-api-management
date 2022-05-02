@@ -853,6 +853,105 @@ public class ApiService_UpdateTest {
         apiService.update(API_ID, updateApiEntity);
     }
 
+    @Test
+    public void shouldCreateAuditApiLoggingDisabledWhenSwitchingLogging() throws TechnicalException {
+        when(parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
+
+        api.setDefinition(
+            "{\"id\": \"" +
+            API_ID +
+            "\",\"name\": \"" +
+            API_NAME +
+            "\"," +
+            "   \"proxy\": {" +
+            "    \"logging\": {\n" +
+            "      \"mode\":\"CLIENT_PROXY\",\n" +
+            "      \"condition\":\"condition\"\n" +
+            "    },\n" +
+            "\"context_path\": \"/old\"}}"
+        );
+        updatedApi.setDefinition("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
+
+        prepareUpdate();
+
+        updateApiEntity.getProxy().setLogging(null);
+
+        apiService.update(API_ID, updateApiEntity);
+
+        verify(auditService)
+            .createApiAuditLog(eq(API_ID), eq(emptyMap()), eq(Api.AuditEvent.API_LOGGING_DISABLED), any(Date.class), any(), any());
+    }
+
+    @Test
+    public void shouldCreateAuditApiLoggingEnabledWhenSwitchingLogging() throws TechnicalException {
+        when(parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
+
+        api.setDefinition("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
+        updatedApi.setDefinition(
+            "{\"id\": \"" +
+            API_ID +
+            "\",\"name\": \"" +
+            API_NAME +
+            "\"," +
+            "   \"proxy\": {" +
+            "    \"logging\": {\n" +
+            "      \"mode\":\"CLIENT_PROXY\",\n" +
+            "      \"condition\":\"condition\"\n" +
+            "    },\n" +
+            "\"context_path\": \"/old\"}}"
+        );
+
+        prepareUpdate();
+
+        updateApiEntity.getProxy().setLogging(null);
+
+        apiService.update(API_ID, updateApiEntity);
+
+        verify(auditService)
+            .createApiAuditLog(eq(API_ID), eq(emptyMap()), eq(Api.AuditEvent.API_LOGGING_ENABLED), any(Date.class), any(), any());
+    }
+
+    @Test
+    public void shouldCreateAuditApiLoggingUpdatedWhenSwitchingLogging() throws TechnicalException {
+        when(parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
+
+        api.setDefinition(
+            "{\"id\": \"" +
+            API_ID +
+            "\",\"name\": \"" +
+            API_NAME +
+            "\"," +
+            "   \"proxy\": {" +
+            "    \"logging\": {\n" +
+            "      \"mode\":\"CLIENT_PROXY\",\n" +
+            "      \"condition\":\"condition\"\n" +
+            "    },\n" +
+            "\"context_path\": \"/old\"}}"
+        );
+        updatedApi.setDefinition(
+            "{\"id\": \"" +
+            API_ID +
+            "\",\"name\": \"" +
+            API_NAME +
+            "\"," +
+            "   \"proxy\": {" +
+            "    \"logging\": {\n" +
+            "      \"mode\":\"CLIENT_PROXY\",\n" +
+            "      \"condition\":\"condition2\"\n" +
+            "    },\n" +
+            "\"context_path\": \"/old\"}}"
+        );
+
+        prepareUpdate();
+
+        updateApiEntity.getProxy().setLogging(null);
+
+        apiService.update(API_ID, updateApiEntity);
+
+        verify(auditService)
+            .createApiAuditLog(eq(API_ID), eq(emptyMap()), eq(Api.AuditEvent.API_LOGGING_UPDATED), any(Date.class), any(), any());
+    }
+
     private void assertUpdate(
         final ApiLifecycleState fromLifecycleState,
         final io.gravitee.rest.api.model.api.ApiLifecycleState lifecycleState,

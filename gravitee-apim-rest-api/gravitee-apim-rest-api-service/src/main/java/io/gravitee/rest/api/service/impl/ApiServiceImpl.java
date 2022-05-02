@@ -3392,12 +3392,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api.AuditEvent auditEvent;
             if (
                 (loggingToUpdate == null || loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
-                (!loggingUpdated.getMode().equals(LoggingMode.NONE))
+                (loggingUpdated != null && !loggingUpdated.getMode().equals(LoggingMode.NONE))
             ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_ENABLED;
             } else if (
                 (loggingToUpdate != null && !loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
-                (loggingUpdated.getMode().equals(LoggingMode.NONE))
+                (loggingUpdated == null || loggingUpdated.getMode().equals(LoggingMode.NONE))
             ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_DISABLED;
             } else {
