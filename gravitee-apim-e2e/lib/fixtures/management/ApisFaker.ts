@@ -21,6 +21,7 @@ import { LoadBalancerTypeEnum } from '@management-models/LoadBalancer';
 import { Proxy } from '@management-models/Proxy';
 import { NewApiEntity } from '@management-models/NewApiEntity';
 import faker from '@faker-js/faker';
+import { UpdateApiEntity, UpdateApiEntityFlowModeEnum } from '@management-models/UpdateApiEntity';
 
 export interface ApiImportEntity extends ApiEntity {
   members?: Array<MemberEntity>;
@@ -128,6 +129,28 @@ export class ApisFaker {
           },
         },
       ],
+      ...attributes,
+    };
+  }
+
+  static updateApiFromApiEntity(apiEntity: ApiEntity, attributes?: Partial<UpdateApiEntity>): UpdateApiEntity {
+    return {
+      name: apiEntity.name,
+      version: apiEntity.version,
+      description: apiEntity.description,
+      visibility: apiEntity.visibility,
+      tags: apiEntity.tags,
+      proxy: apiEntity.proxy,
+      flow_mode: UpdateApiEntityFlowModeEnum.DEFAULT,
+      gravitee: apiEntity.gravitee,
+      properties: apiEntity.properties,
+      path_mappings: apiEntity.path_mappings,
+      response_templates: apiEntity.response_templates,
+      lifecycle_state: apiEntity.lifecycle_state,
+      paths: apiEntity.paths ?? {},
+      flows: apiEntity.flows ?? [],
+      plans: apiEntity.plans ?? [],
+      disable_membership_notifications: apiEntity.disable_membership_notifications,
       ...attributes,
     };
   }
