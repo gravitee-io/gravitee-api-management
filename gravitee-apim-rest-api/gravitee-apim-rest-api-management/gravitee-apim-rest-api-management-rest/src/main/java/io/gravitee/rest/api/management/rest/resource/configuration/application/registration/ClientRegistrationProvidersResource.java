@@ -76,7 +76,7 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<ClientRegistrationProviderListItem> getClientRegistrationProviders() {
         return clientRegistrationService
-            .findAll()
+            .findAll(GraviteeContext.getExecutionContext())
             .stream()
             .map(
                 clientRegistrationProvider -> {
