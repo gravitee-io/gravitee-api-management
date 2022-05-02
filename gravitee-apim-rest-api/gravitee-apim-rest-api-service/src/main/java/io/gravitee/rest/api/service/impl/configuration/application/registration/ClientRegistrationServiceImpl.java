@@ -135,6 +135,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             renewClientSecretSupport(clientRegistrationProvider);
 
             clientRegistrationProvider.setId(UuidString.generateRandom());
+            clientRegistrationProvider.setEnvironmentId(executionContext.getEnvironmentId());
 
             DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(true, convert(clientRegistrationProvider));
 
