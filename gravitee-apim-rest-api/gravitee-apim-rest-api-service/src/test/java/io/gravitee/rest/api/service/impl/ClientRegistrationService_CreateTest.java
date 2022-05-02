@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
@@ -30,10 +29,8 @@ import io.gravitee.rest.api.model.configuration.application.registration.ClientR
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationProviderAlreadyExistsException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
 import java.util.Collections;
-import java.util.Optional;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,16 +72,38 @@ public class ClientRegistrationService_CreateTest {
         providerPayload.setName("name");
         providerPayload.setDiscoveryEndpoint("http://localhost:8080/am");
 
-        stubFor(get(urlEqualTo("/am")).willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")));
-
+        stubFor(
+            get(urlEqualTo("/am"))
+                .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
+        );
         ClientRegistrationProvider providerCreatedMock = new ClientRegistrationProvider();
-        when(mockClientRegistrationProviderRepository.create(argThat(p -> p.getEnvironmentId() == GraviteeContext.getExecutionContext().getEnvironmentId() && p.getName() == providerPayload.getName() && p.getCreatedAt() != null))).thenReturn(providerCreatedMock);
+        when(
+            mockClientRegistrationProviderRepository.create(
+                argThat(
+                    p ->
+                        p.getEnvironmentId() == GraviteeContext.getExecutionContext().getEnvironmentId() &&
+                        p.getName() == providerPayload.getName() &&
+                        p.getCreatedAt() != null
+                )
+            )
+        )
+            .thenReturn(providerCreatedMock);
 
-        ClientRegistrationProviderEntity providerCreated = clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+        ClientRegistrationProviderEntity providerCreated = clientRegistrationService.create(
+            GraviteeContext.getExecutionContext(),
+            providerPayload
+        );
         assertNotNull("Result is null", providerCreated);
 
         verify(mockAuditService, times(1))
-            .createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(CLIENT_REGISTRATION_PROVIDER_CREATED), any(), isNull(), any());
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(CLIENT_REGISTRATION_PROVIDER_CREATED),
+                any(),
+                isNull(),
+                any()
+            );
         verify(mockClientRegistrationProviderRepository, times(1)).create(any());
     }
 
@@ -93,16 +112,6 @@ public class ClientRegistrationService_CreateTest {
         when(mockClientRegistrationProviderRepository.findAll()).thenReturn(Collections.singleton(new ClientRegistrationProvider()));
 
         NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
-        clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
-    }
-
-    @Test(expected = ClientRegistrationProviderAlreadyExistsException.class)
-    public void shouldNotCreateProviderIfNameAlreadyExist() throws TechnicalException {
-        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
-        providerPayload.setName("name");
-
-        when(mockClientRegistrationProviderRepository.findById(eq(IdGenerator.generate(providerPayload.getName())))).thenReturn(Optional.of(new ClientRegistrationProvider()));
-
         clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
     }
 }
