@@ -85,9 +85,13 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         .build();
 
     @Override
-    public Set<ClientRegistrationProviderEntity> findAll() {
+    public Set<ClientRegistrationProviderEntity> findAll(ExecutionContext executionContext) {
         try {
-            return clientRegistrationProviderRepository.findAll().stream().map(this::convert).collect(Collectors.toSet());
+            return clientRegistrationProviderRepository
+                .findAllByEnvironment(executionContext.getEnvironmentId())
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to retrieve client registration providers", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve client registration providers", ex);
@@ -102,7 +106,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         try {
             LOGGER.debug("Create client registration provider {}", newClientRegistrationProvider);
 
-            Set<ClientRegistrationProviderEntity> clientRegistrationProviders = this.findAll();
+            Set<ClientRegistrationProviderEntity> clientRegistrationProviders = this.findAll(executionContext);
             // For now, we are supporting only a single client registration provider.
             if (clientRegistrationProviders.size() == 1) {
                 throw new IllegalStateException(
@@ -297,9 +301,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     @Override
-    public ClientRegistrationResponse register(NewApplicationEntity application) {
+    public ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application) {
         // Create an OAuth client
-        Set<ClientRegistrationProviderEntity> providers = findAll();
+        Set<ClientRegistrationProviderEntity> providers = findAll(executionContext);
         if (providers == null || providers.isEmpty()) {
             throw new MissingDynamicClientRegistrationProviderException();
         }
@@ -367,7 +371,11 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     @Override
-    public ClientRegistrationResponse update(String previousRegistrationResponse, UpdateApplicationEntity application) {
+    public ClientRegistrationResponse update(
+        ExecutionContext executionContext,
+        String previousRegistrationResponse,
+        UpdateApplicationEntity application
+    ) {
         try {
             ClientRegistrationResponse registrationResponse = mapper.readValue(
                 previousRegistrationResponse,
@@ -383,7 +391,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 throw new RegisteredClientNotUpdatableException();
             }
             // Update an OAuth client
-            Set<ClientRegistrationProviderEntity> providers = findAll();
+            Set<ClientRegistrationProviderEntity> providers = findAll(executionContext);
             if (providers == null || providers.isEmpty()) {
                 throw new MissingDynamicClientRegistrationProviderException();
             }
@@ -411,7 +419,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     @Override
-    public ClientRegistrationResponse renewClientSecret(String previousRegistrationResponse) {
+    public ClientRegistrationResponse renewClientSecret(ExecutionContext executionContext, String previousRegistrationResponse) {
         try {
             ClientRegistrationResponse registrationResponse = mapper.readValue(
                 previousRegistrationResponse,
@@ -427,7 +435,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 throw new RegisteredClientNotUpdatableException();
             }
 
-            Set<ClientRegistrationProviderEntity> providers = findAll();
+            Set<ClientRegistrationProviderEntity> providers = findAll(executionContext);
             if (providers == null || providers.isEmpty()) {
                 throw new MissingDynamicClientRegistrationProviderException();
             }

@@ -29,7 +29,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ClientRegistrationService {
-    Set<ClientRegistrationProviderEntity> findAll();
+    Set<ClientRegistrationProviderEntity> findAll(ExecutionContext executionContext);
 
     ClientRegistrationProviderEntity create(
         ExecutionContext executionContext,
@@ -46,9 +46,13 @@ public interface ClientRegistrationService {
 
     void delete(ExecutionContext executionContext, String id);
 
-    ClientRegistrationResponse register(NewApplicationEntity application);
+    ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application);
 
-    ClientRegistrationResponse update(String previousRegistrationResponse, UpdateApplicationEntity application);
+    ClientRegistrationResponse update(
+        ExecutionContext executionContext,
+        String previousRegistrationResponse,
+        UpdateApplicationEntity application
+    );
 
-    ClientRegistrationResponse renewClientSecret(String previousRegistrationResponse);
+    ClientRegistrationResponse renewClientSecret(ExecutionContext executionContext, String previousRegistrationResponse);
 }

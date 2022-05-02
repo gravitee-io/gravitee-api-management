@@ -17,22 +17,31 @@ package io.gravitee.rest.api.service.impl;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.internal.util.collections.Sets.newSet;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
 import java.util.Collections;
-import org.junit.After;
-import org.junit.Before;
+import java.util.HashSet;
+import java.util.Set;
+import org.apache.http.client.HttpClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -43,7 +52,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ClientRegistrationService_CreateTest {
+public class ClientRegistrationService_FindAllTest {
 
     @InjectMocks
     private ClientRegistrationServiceImpl clientRegistrationService = new ClientRegistrationServiceImpl();
@@ -54,65 +63,21 @@ public class ClientRegistrationService_CreateTest {
     @Mock
     private AuditService mockAuditService;
 
-    private WireMockServer wireMockServer = new WireMockServer();
-
-    @Before
-    public void setup() {
-        wireMockServer.start();
-    }
-
-    @After
-    public void tearDown() {
-        wireMockServer.stop();
-    }
-
     @Test
-    public void shouldCreateProvider() throws TechnicalException {
-        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
-        providerPayload.setName("name");
-        providerPayload.setDiscoveryEndpoint("http://localhost:8080/am");
+    public void shouldFindAll() throws TechnicalException {
+        when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+            .thenReturn(newSet(new ClientRegistrationProvider()));
 
-        stubFor(
-            get(urlEqualTo("/am"))
-                .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
-        );
-        ClientRegistrationProvider providerCreatedMock = new ClientRegistrationProvider();
-        when(
-            mockClientRegistrationProviderRepository.create(
-                argThat(
-                    p ->
-                        p.getEnvironmentId() == GraviteeContext.getExecutionContext().getEnvironmentId() &&
-                        p.getName() == providerPayload.getName() &&
-                        p.getCreatedAt() != null
-                )
-            )
-        )
-            .thenReturn(providerCreatedMock);
-
-        ClientRegistrationProviderEntity providerCreated = clientRegistrationService.create(
-            GraviteeContext.getExecutionContext(),
-            providerPayload
-        );
-        assertNotNull("Result is null", providerCreated);
-
-        verify(mockAuditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(CLIENT_REGISTRATION_PROVIDER_CREATED),
-                any(),
-                isNull(),
-                any()
-            );
-        verify(mockClientRegistrationProviderRepository, times(1)).create(any());
+        Set<ClientRegistrationProviderEntity> providers = clientRegistrationService.findAll(GraviteeContext.getExecutionContext());
+        assertNotNull("Result is null", providers);
+        assertThat(providers).hasSize(1);
+        verify(mockClientRegistrationProviderRepository, times(1)).findAllByEnvironment(any());
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldNotCreateMoreThanOneProvider() throws TechnicalException {
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldThrowException() throws Exception {
         when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
-            .thenReturn(Collections.singleton(new ClientRegistrationProvider()));
-
-        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
-        clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+            .thenThrow(TechnicalException.class);
+        clientRegistrationService.findAll(GraviteeContext.getExecutionContext());
     }
 }

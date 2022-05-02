@@ -388,7 +388,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             checkClientSettings(newApplicationEntity.getSettings().getoAuthClient());
 
             // Create an OAuth client
-            ClientRegistrationResponse registrationResponse = clientRegistrationService.register(newApplicationEntity);
+            ClientRegistrationResponse registrationResponse = clientRegistrationService.register(executionContext, newApplicationEntity);
             try {
                 metadata.put("client_id", registrationResponse.getClientId());
                 metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
@@ -468,7 +468,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 notificationConfigEntity.setConfig(userEntity.getEmail());
                 genericNotificationConfigService.create(notificationConfigEntity);
             }
-            return convert(createdApplication, userEntity);
+            return convert(executionContext, createdApplication, userEntity);
         } catch (TechnicalException ex) {
             LOGGER.error(
                 "An error occurs while trying to create {} for user {} in environment {}",
@@ -589,6 +589,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 final String registrationPayload = applicationToUpdate.getMetadata().get("registration_payload");
                 if (registrationPayload != null) {
                     ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
+                        executionContext,
                         registrationPayload,
                         updateApplicationEntity
                     );
@@ -677,6 +678,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 applicationEntity.getSettings().getoAuthClient().isRenewClientSecretSupported()
             ) {
                 ClientRegistrationResponse registrationResponse = clientRegistrationService.renewClientSecret(
+                    executionContext,
                     application.getMetadata().get("registration_payload")
                 );
 
@@ -782,7 +784,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 restoredApplication
             );
 
-            return convert(restoredApplication, userEntity);
+            return convert(executionContext, restoredApplication, userEntity);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to restore {}", applicationId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to restore %s", applicationId), ex);
@@ -921,7 +923,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         return applications
             .stream()
-            .map(publicApplication -> convert(publicApplication, userIdToUserEntity.get(applicationToUser.get(publicApplication.getId()))))
+            .map(
+                publicApplication ->
+                    convert(executionContext, publicApplication, userIdToUserEntity.get(applicationToUser.get(publicApplication.getId())))
+            )
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -975,14 +980,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         .filter(application -> application.getId().equals(applicationEntity.getId()))
                         .findFirst()
                         .get();
-                    item.setSettings(getSettings(app));
+                    item.setSettings(getSettings(executionContext, app));
                     return item;
                 }
             )
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    private ApplicationEntity convert(Application application, UserEntity primaryOwner) {
+    private ApplicationEntity convert(final ExecutionContext executionContext, Application application, UserEntity primaryOwner) {
         if (primaryOwner == null) {
             // add a default unknown user
             primaryOwner = new UserEntity();
@@ -1008,7 +1013,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
         applicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
 
-        applicationEntity.setSettings(getSettings(application));
+        applicationEntity.setSettings(getSettings(executionContext, application));
         applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
         if (application.getApiKeyMode() != null) {
             applicationEntity.setApiKeyMode(ApiKeyMode.valueOf(application.getApiKeyMode().name()));
@@ -1016,7 +1021,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return applicationEntity;
     }
 
-    private ApplicationSettings getSettings(Application application) {
+    private ApplicationSettings getSettings(final ExecutionContext executionContext, Application application) {
         final ApplicationSettings settings = new ApplicationSettings();
         if (application.getType() == ApplicationType.SIMPLE) {
             SimpleApplicationSettings simpleSettings = new SimpleApplicationSettings();
@@ -1050,7 +1055,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     }
 
                     Iterator<ClientRegistrationProviderEntity> clientRegistrationProviderIte = clientRegistrationService
-                        .findAll()
+                        .findAll(executionContext)
                         .iterator();
                     if (clientRegistrationProviderIte.hasNext()) {
                         clientSettings.setRenewClientSecretSupported(clientRegistrationProviderIte.next().isRenewClientSecretSupport());
@@ -1188,9 +1193,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
                 LOGGER.error("The Application {} doesn't have any primary owner.", application.getId());
             }
-            return convert(application, null);
+            return convert(executionContext, application, null);
         }
 
-        return convert(application, userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()));
+        return convert(executionContext, application, userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()));
     }
 }
