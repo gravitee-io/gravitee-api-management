@@ -27,7 +27,6 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.Single;
-import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -41,12 +40,16 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
 
     private static final String UI_URL = "UI_URL";
     private static final String API_URL = "API_URL";
+    private static final String INSTALLATION_TYPE = "INSTALLATION_TYPE";
 
     @Value("${console.ui.url:http://localhost:3000}")
     private String uiURL;
 
     @Value("${console.api.url:http://localhost:8083/management}")
     private String apiURL;
+
+    @Value("${installation.type:onprem}")
+    private String installationType;
 
     private final Node node;
     private final InstallationService installationService;
@@ -79,6 +82,7 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
         command.getPayload().getAdditionalInformation().putAll(installation.getAdditionalInformation());
         command.getPayload().getAdditionalInformation().put(UI_URL, uiURL);
         command.getPayload().getAdditionalInformation().put(API_URL, apiURL);
+        command.getPayload().getAdditionalInformation().put(INSTALLATION_TYPE, installationType);
         command.getPayload().setDefaultOrganizationId(GraviteeContext.getDefaultOrganization());
         command.getPayload().setDefaultEnvironmentId(GraviteeContext.getDefaultEnvironment());
 
