@@ -34,6 +34,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -51,12 +52,10 @@ import org.springframework.util.StringUtils;
 public class InstanceServiceImpl implements InstanceService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceServiceImpl.class);
+    private static final Pattern PROPERTY_SPLITTER = Pattern.compile(", ");
 
     @Autowired
     private EventService eventService;
-
-    @Autowired
-    private EnvironmentService environmentService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -145,7 +144,6 @@ public class InstanceServiceImpl implements InstanceService {
 
             EventEntity event = eventService.findById(executionContext, eventId);
             List<String> environments = extractProperty(event, Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue());
-
             List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
 
             return convert(event, environments, organizations);
@@ -176,7 +174,11 @@ public class InstanceServiceImpl implements InstanceService {
     }
 
     private List<String> extractProperty(EventEntity event, String property) {
-        return Stream.of(event.getProperties().get(property).split(", ")).filter(StringUtils::hasText).collect(Collectors.toList());
+        final String extractedProperty = event.getProperties().get(property);
+
+        return extractedProperty == null
+            ? List.of()
+            : Stream.of(PROPERTY_SPLITTER.split(extractedProperty)).filter(StringUtils::hasText).collect(Collectors.toList());
     }
 
     private InstanceEntity convert(EventEntity event) {

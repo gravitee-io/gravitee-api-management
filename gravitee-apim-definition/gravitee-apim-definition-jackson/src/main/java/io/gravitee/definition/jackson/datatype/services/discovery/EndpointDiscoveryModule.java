@@ -19,19 +19,13 @@ import io.gravitee.definition.jackson.datatype.GraviteeModule;
 import io.gravitee.definition.jackson.datatype.services.discovery.deser.EndpointDiscoveryDeserializer;
 import io.gravitee.definition.jackson.datatype.services.discovery.ser.EndpointDiscoverySerializer;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
-import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
 public class EndpointDiscoveryModule extends GraviteeModule {
 
     private static final long serialVersionUID = 1L;
 
-    @SuppressWarnings("unchecked")
     public EndpointDiscoveryModule() {
-        super(DynamicPropertyService.SERVICE_KEY);
+        super(EndpointDiscoveryService.SERVICE_KEY);
         // first deserializers
         addDeserializer(EndpointDiscoveryService.class, new EndpointDiscoveryDeserializer(EndpointDiscoveryService.class));
 

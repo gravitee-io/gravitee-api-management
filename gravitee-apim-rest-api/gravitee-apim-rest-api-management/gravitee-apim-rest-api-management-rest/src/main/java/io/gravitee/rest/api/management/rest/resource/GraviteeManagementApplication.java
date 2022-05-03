@@ -21,6 +21,7 @@ import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.*;
 import io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.organization.OrganizationsResource;
+import io.gravitee.rest.api.management.rest.resource.swagger.OpenAPIResource;
 import io.gravitee.rest.api.management.rest.resource.swagger.Swagger_3_17_Resource;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
@@ -105,8 +106,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);
 
-        register(OpenApiResource.class);
-        register(SwaggerSerializers.class);
+        register(OpenAPIResource.class);
         register(Swagger_3_17_Resource.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
