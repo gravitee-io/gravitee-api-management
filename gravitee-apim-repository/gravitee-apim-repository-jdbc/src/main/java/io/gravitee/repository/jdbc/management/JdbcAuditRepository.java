@@ -278,7 +278,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
                 LOGGER.debug("argsList after ref type = {}", argsList);
 
                 if (ref.getValue() != null && !ref.getValue().isEmpty()) {
-                    StringJoiner inReferenceIdsQueryString = new StringJoiner(",", "and reference_id in (", ")");
+                    StringJoiner inReferenceIdsQueryString = new StringJoiner(",", " and reference_id in (", ")");
 
                     for (String id : ref.getValue()) {
                         inReferenceIdsQueryString.add("?");
