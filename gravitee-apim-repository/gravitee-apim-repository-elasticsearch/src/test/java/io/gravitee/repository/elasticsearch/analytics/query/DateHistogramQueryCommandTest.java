@@ -15,6 +15,10 @@
  */
 package io.gravitee.repository.elasticsearch.analytics.query;
 
+import static io.reactivex.Single.just;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.model.SearchResponse;
@@ -32,10 +36,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static io.reactivex.Single.just;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
@@ -48,21 +48,28 @@ public class DateHistogramQueryCommandTest {
 
     @Mock
     private FreeMarkerComponent freeMarkerComponent;
+
     @Mock
     private RepositoryConfiguration repositoryConfiguration;
+
     @Mock
     private IndexNameGenerator indexNameGenerator;
+
     @Mock
     private Client client;
 
     @Mock
     private DateHistogramQuery dateHistogramQuery;
+
     @Mock
     private TimeRangeFilter timeRangeFilter;
+
     @Mock
     private DateRange dateRange;
+
     @Mock
     protected ElasticsearchInfo info;
+
     @Mock
     protected Version version;
 
@@ -85,11 +92,17 @@ public class DateHistogramQueryCommandTest {
         when(dateRange.to()).thenReturn(to);
         dateHistogramQueryCommand.executeQuery(dateHistogramQuery);
 
-        verify(freeMarkerComponent).generateFromTemplate(anyString(), argThat(argument -> {
-            final Long roundedFrom = (Long) argument.get("roundedFrom");
-            final Long roundedTo = (Long) argument.get("roundedTo");
-            return roundedFrom.compareTo(from) <= 0 && roundedTo.compareTo(to) >= 0;
-        }));
+        verify(freeMarkerComponent)
+            .generateFromTemplate(
+                anyString(),
+                argThat(
+                    argument -> {
+                        final Long roundedFrom = (Long) argument.get("roundedFrom");
+                        final Long roundedTo = (Long) argument.get("roundedTo");
+                        return roundedFrom.compareTo(from) <= 0 && roundedTo.compareTo(to) >= 0;
+                    }
+                )
+            );
         clearInvocations(freeMarkerComponent);
     }
 }

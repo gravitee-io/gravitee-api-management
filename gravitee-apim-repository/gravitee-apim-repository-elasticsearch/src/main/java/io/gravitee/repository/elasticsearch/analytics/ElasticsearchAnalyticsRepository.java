@@ -15,21 +15,18 @@
  */
 package io.gravitee.repository.elasticsearch.analytics;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,7 +45,7 @@ public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepos
     /**
      * List of all supported command
      */
-	@Autowired
+    @Autowired
     private List<ElasticsearchQueryCommand<?>> listQueryCommands;
 
     private final Map<Class<? extends Query<?>>, ElasticsearchQueryCommand<?>> queryCommands = new HashMap<>();
@@ -56,21 +53,20 @@ public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepos
     /**
      * Initialize the map of command.
      */
-	@PostConstruct
+    @PostConstruct
     private void init() {
-    	this.listQueryCommands.forEach(command -> this.queryCommands.put(command.getSupportedQuery(), command));
+        this.listQueryCommands.forEach(command -> this.queryCommands.put(command.getSupportedQuery(), command));
     }
 
     @Override
     public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
+        @SuppressWarnings("unchecked")
+        final ElasticsearchQueryCommand<T> handler = (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
 
-    	@SuppressWarnings("unchecked")
-		final ElasticsearchQueryCommand<T> handler = (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
-
-    	if (handler == null) {
-    		logger.error("No command found to handle query of type {}", query.getClass());
-    		throw new AnalyticsException("No command found to handle query of type " + query.getClass());
-    	}
-    	return handler.executeQuery(handler.prepareQuery(query));
+        if (handler == null) {
+            logger.error("No command found to handle query of type {}", query.getClass());
+            throw new AnalyticsException("No command found to handle query of type " + query.getClass());
+        }
+        return handler.executeQuery(handler.prepareQuery(query));
     }
 }

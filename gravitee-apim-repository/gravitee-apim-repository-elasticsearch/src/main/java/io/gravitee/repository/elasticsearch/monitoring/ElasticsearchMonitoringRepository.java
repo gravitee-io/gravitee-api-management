@@ -27,13 +27,12 @@ import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import io.reactivex.Single;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -44,23 +43,23 @@ import java.util.Map;
  */
 public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepository implements MonitoringRepository {
 
-	 /**
+    /**
      * Logger.
      */
     private final Logger logger = LoggerFactory.getLogger(ElasticsearchAnalyticsRepository.class);
-    
-	/**
-	 * Name of the FreeMarker template used to query monitoring document types.
-	 */
-    private final static String MONITORING_TEMPLATE = "monitor/monitoringRequest.ftl";
 
-    private final static String FIELD_GATEWAY_NAME = "gateway";
-    private final static String FIELD_TIMESTAMP = "@timestamp";
-    private final static String FIELD_HOSTNAME = "hostname";
+    /**
+     * Name of the FreeMarker template used to query monitoring document types.
+     */
+    private static final String MONITORING_TEMPLATE = "monitor/monitoringRequest.ftl";
 
-    private final static String FIELD_JVM = "jvm";
-    private final static String FIELD_PROCESS = "process";
-    private final static String FIELD_OS = "os";
+    private static final String FIELD_GATEWAY_NAME = "gateway";
+    private static final String FIELD_TIMESTAMP = "@timestamp";
+    private static final String FIELD_HOSTNAME = "hostname";
+
+    private static final String FIELD_JVM = "jvm";
+    private static final String FIELD_PROCESS = "process";
+    private static final String FIELD_OS = "os";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -69,22 +68,24 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
 
     @Override
     public MonitoringResponse query(final String gatewayId) {
-    	final String sQuery = this.createElasticsearchJsonQuery(gatewayId);
+        final String sQuery = this.createElasticsearchJsonQuery(gatewayId);
         String[] clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
 
         try {
-            final Single<SearchResponse> result = this.client.search(
-                    this.indexNameGenerator.getTodayIndexName(Type.MONITOR, clusters),
-                    !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.MONITOR.getType(),
-                    sQuery);
+            final Single<SearchResponse> result =
+                this.client.search(
+                        this.indexNameGenerator.getTodayIndexName(Type.MONITOR, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.MONITOR.getType(),
+                        sQuery
+                    );
 
             final SearchHits hits = result.blockingGet().getSearchHits();
             if (hits != null && hits.getHits().size() > 0) {
                 return this.convert(hits.getHits().get(0).getSource());
             }
-        } catch(Exception eex) {
-        	logger.error("Impossible to make query for monitoring", eex);
-        	return null;
+        } catch (Exception eex) {
+            logger.error("Impossible to make query for monitoring", eex);
+            return null;
         }
         //TODO return null?
         return null;
@@ -95,12 +96,12 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
      * @param gatewayId id of the gateway
      * @return JSON Elasticsearch query
      */
-	private String createElasticsearchJsonQuery(final String gatewayId) {
-		final Map<String, Object> data = new HashMap<>();
-		data.put("gateway", gatewayId);
+    private String createElasticsearchJsonQuery(final String gatewayId) {
+        final Map<String, Object> data = new HashMap<>();
+        data.put("gateway", gatewayId);
 
-		return this.freeMarkerComponent.generateFromTemplate(MONITORING_TEMPLATE, data);
-	}
+        return this.freeMarkerComponent.generateFromTemplate(MONITORING_TEMPLATE, data);
+    }
 
     /**
      * Convert the raw Elasticsearch response
@@ -109,7 +110,6 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
      */
     @SuppressWarnings("unchecked")
     private MonitoringResponse convert(final JsonNode source) {
-
         final MonitoringResponse monitoringResponse = new MonitoringResponse();
         monitoringResponse.setGatewayId(source.get(FIELD_GATEWAY_NAME).asText());
         monitoringResponse.setTimestamp(ZonedDateTime.parse(source.get(FIELD_TIMESTAMP).asText()));
@@ -144,7 +144,7 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
         monitoringResponse.setJvmUptimeInMillis(jvm.get("uptime_in_millis").asLong());
         monitoringResponse.setJvmTimestamp(jvm.get("timestamp").asLong());
 
-        final JsonNode jvmMem =  jvm.get("mem");
+        final JsonNode jvmMem = jvm.get("mem");
         monitoringResponse.setJvmHeapCommittedInBytes(jvmMem.get("heap_committed_in_bytes").asLong());
         monitoringResponse.setJvmHeapUsedPercent(jvmMem.get("heap_used_percent").asInt());
         monitoringResponse.setJvmHeapMaxInBytes(jvmMem.get("heap_max_in_bytes").asLong());

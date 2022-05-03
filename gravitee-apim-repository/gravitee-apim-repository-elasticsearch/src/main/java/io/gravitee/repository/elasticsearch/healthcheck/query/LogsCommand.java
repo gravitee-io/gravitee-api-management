@@ -28,16 +28,15 @@ import io.gravitee.repository.healthcheck.query.log.Log;
 import io.gravitee.repository.healthcheck.query.log.LogsQuery;
 import io.gravitee.repository.healthcheck.query.log.LogsResponse;
 import io.reactivex.Single;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Command used to handle AverageResponseTime.
@@ -48,60 +47,64 @@ import java.util.List;
  */
 public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse> {
 
-	/**
-	 * Logger.
-	 */
-	private final Logger logger = LoggerFactory.getLogger(LogsCommand.class);
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(LogsCommand.class);
 
-	private final static String TEMPLATE = "healthcheck/logs.ftl";
+    private static final String TEMPLATE = "healthcheck/logs.ftl";
 
-	@Autowired
-	protected RepositoryConfiguration configuration;
+    @Autowired
+    protected RepositoryConfiguration configuration;
 
-	@Override
-	public Class<? extends Query<LogsResponse>> getSupportedQuery() {
-		return LogsQuery.class;
-	}
+    @Override
+    public Class<? extends Query<LogsResponse>> getSupportedQuery() {
+        return LogsQuery.class;
+    }
 
-	@Override
-	public LogsResponse executeQuery(Query<LogsResponse> query) throws AnalyticsException {
-		final LogsQuery logsQuery = (LogsQuery) query;
+    @Override
+    public LogsResponse executeQuery(Query<LogsResponse> query) throws AnalyticsException {
+        final LogsQuery logsQuery = (LogsQuery) query;
 
-		long queryFrom = logsQuery.from();
-		long queryTo = logsQuery.to();
-		
-		final String sQuery = this.createQuery(TEMPLATE, logsQuery, queryFrom, queryTo);
-		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(logsQuery, configuration);
+        long queryFrom = logsQuery.from();
+        long queryTo = logsQuery.to();
 
-		try {
-			final long to = queryTo > 0 ? queryTo : System.currentTimeMillis();
-			final long from = queryFrom > 0 ? queryFrom : ZonedDateTime
-					.ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
-					.minus(1, ChronoUnit.MONTHS)
-					.toInstant()
-					.toEpochMilli();
+        final String sQuery = this.createQuery(TEMPLATE, logsQuery, queryFrom, queryTo);
+        String[] clusters = ClusterUtils.extractClusterIndexPrefixes(logsQuery, configuration);
 
-			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to, clusters),
-					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
-					sQuery);
-			return this.toLogsResponse(result.blockingGet());
-		} catch (ElasticsearchException eex) {
-			logger.error("Impossible to perform AverageResponseTimeQuery", eex);
-			throw new AnalyticsException("Impossible to perform AverageResponseTimeQuery", eex);
-		}
-	}
+        try {
+            final long to = queryTo > 0 ? queryTo : System.currentTimeMillis();
+            final long from = queryFrom > 0
+                ? queryFrom
+                : ZonedDateTime
+                    .ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
+                    .minus(1, ChronoUnit.MONTHS)
+                    .toInstant()
+                    .toEpochMilli();
 
-	private LogsResponse toLogsResponse(final SearchResponse response) {
-		SearchHits hits = response.getSearchHits();
-		LogsResponse logsResponse = new LogsResponse(hits.getTotal().getValue());
+            final Single<SearchResponse> result =
+                this.client.search(
+                        this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+                        sQuery
+                    );
+            return this.toLogsResponse(result.blockingGet());
+        } catch (ElasticsearchException eex) {
+            logger.error("Impossible to perform AverageResponseTimeQuery", eex);
+            throw new AnalyticsException("Impossible to perform AverageResponseTimeQuery", eex);
+        }
+    }
 
-		List<Log> logs = new ArrayList<>(hits.getHits().size());
-		for (SearchHit hit : hits.getHits()) {
-			logs.add(LogBuilder.createLog(hit));
-		}
-		logsResponse.setLogs(logs);
+    private LogsResponse toLogsResponse(final SearchResponse response) {
+        SearchHits hits = response.getSearchHits();
+        LogsResponse logsResponse = new LogsResponse(hits.getTotal().getValue());
 
-		return logsResponse;
-	}
+        List<Log> logs = new ArrayList<>(hits.getHits().size());
+        for (SearchHit hit : hits.getHits()) {
+            logs.add(LogBuilder.createLog(hit));
+        }
+        logsResponse.setLogs(logs);
+
+        return logsResponse;
+    }
 }

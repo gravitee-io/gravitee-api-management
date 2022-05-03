@@ -29,33 +29,31 @@ import io.gravitee.repository.analytics.query.response.Response;
  *
  */
 public interface ElasticsearchQueryCommand<T extends Response> {
+    /**
+     * Update Elasticsearch query settings before executing it
+     * @param query
+     * @return
+     * @throws AnalyticsException
+     */
+    default Query<T> prepareQuery(final Query<T> query) throws AnalyticsException {
+        return query;
+    }
 
-	/**
-	 * Update Elasticsearch query settings before executing it
-	 * @param query
-	 * @return
-	 * @throws AnalyticsException
-	 */
-	default Query<T> prepareQuery(final Query<T> query) throws AnalyticsException {
-		return query;
-	}
+    /**
+     * Execute an analytic Elasticsearch query.
+     *
+     * @param query
+     *            query to execute
+     * @return response
+     * @throws AnalyticsException
+     *             in case of analytic exception
+     */
+    T executeQuery(final Query<T> query) throws AnalyticsException;
 
-	/**
-	 * Execute an analytic Elasticsearch query.
-	 *
-	 * @param query
-	 *            query to execute
-	 * @return response
-	 * @throws AnalyticsException
-	 *             in case of analytic exception
-	 */
-	T executeQuery(final Query<T> query) throws AnalyticsException;
-
-	/**
-	 * Get the supported query
-	 *
-	 * @return the query supported by this handler
-	 */
-	Class<? extends Query<T>> getSupportedQuery();
-
+    /**
+     * Get the supported query
+     *
+     * @return the query supported by this handler
+     */
+    Class<? extends Query<T>> getSupportedQuery();
 }

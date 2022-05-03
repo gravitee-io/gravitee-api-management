@@ -29,15 +29,14 @@ import io.gravitee.repository.healthcheck.query.DateHistogramQuery;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
 import io.reactivex.Single;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Command used to handle DateHistogramResponse.
@@ -48,145 +47,159 @@ import java.util.*;
  */
 public class AverageDateHistogramCommand extends AbstractElasticsearchQueryCommand<DateHistogramResponse> {
 
-	/**
-	 * Logger.
-	 */
-	private final Logger logger = LoggerFactory.getLogger(AverageDateHistogramCommand.class);
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(AverageDateHistogramCommand.class);
 
-	private final static String TEMPLATE = "healthcheck/avg-date-histogram.ftl";
+    private static final String TEMPLATE = "healthcheck/avg-date-histogram.ftl";
 
-	@Autowired
-	protected RepositoryConfiguration configuration;
+    @Autowired
+    protected RepositoryConfiguration configuration;
 
-	@Override
-	public Class<? extends Query<DateHistogramResponse>> getSupportedQuery() {
-		return DateHistogramQuery.class;
-	}
+    @Override
+    public Class<? extends Query<DateHistogramResponse>> getSupportedQuery() {
+        return DateHistogramQuery.class;
+    }
 
-	@Override
-	public DateHistogramResponse executeQuery(Query<DateHistogramResponse> query) throws AnalyticsException {
-		final DateHistogramQuery dateHistogramQuery = (DateHistogramQuery) query;
+    @Override
+    public DateHistogramResponse executeQuery(Query<DateHistogramResponse> query) throws AnalyticsException {
+        final DateHistogramQuery dateHistogramQuery = (DateHistogramQuery) query;
 
-		try {
-			final long to;
-			final long from;
-			if (dateHistogramQuery.timeRange().range().to() != null) {
-				to = dateHistogramQuery.timeRange().range().to();
-				from = dateHistogramQuery.timeRange().range().from();
-			} else {
-				to = System.currentTimeMillis();
-				from = ZonedDateTime
-						.ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
-						.minus(1, ChronoUnit.MONTHS)
-						.toInstant()
-						.toEpochMilli();
-			}
+        try {
+            final long to;
+            final long from;
+            if (dateHistogramQuery.timeRange().range().to() != null) {
+                to = dateHistogramQuery.timeRange().range().to();
+                from = dateHistogramQuery.timeRange().range().from();
+            } else {
+                to = System.currentTimeMillis();
+                from =
+                    ZonedDateTime
+                        .ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
+                        .minus(1, ChronoUnit.MONTHS)
+                        .toInstant()
+                        .toEpochMilli();
+            }
 
-			String[] clusters = ClusterUtils.extractClusterIndexPrefixes(dateHistogramQuery, configuration);
+            String[] clusters = ClusterUtils.extractClusterIndexPrefixes(dateHistogramQuery, configuration);
 
-			//"from" and "to" are rounded according to the internal. It allows to exec the same request during the "interval" and make use of ES cache
-			final long interval = dateHistogramQuery.timeRange().interval().toMillis();
-			final long roundedFrom = (from / interval) * interval;
-			final long roundedTo = ((to / interval) * interval) + interval;
+            //"from" and "to" are rounded according to the internal. It allows to exec the same request during the "interval" and make use of ES cache
+            final long interval = dateHistogramQuery.timeRange().interval().toMillis();
+            final long roundedFrom = (from / interval) * interval;
+            final long roundedTo = ((to / interval) * interval) + interval;
 
-			final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery, roundedFrom, roundedTo);
-			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to, clusters),
-					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
-					sQuery);
-			return this.toAvailabilityResponseResponse(result.blockingGet(), dateHistogramQuery);
-		} catch (Exception eex) {
-			logger.error("Impossible to perform AverageResponseTimeQuery", eex);
-			throw new AnalyticsException("Impossible to perform AverageResponseTimeQuery", eex);
-		}
-	}
+            final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery, roundedFrom, roundedTo);
+            final Single<SearchResponse> result =
+                this.client.search(
+                        this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to, clusters),
+                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+                        sQuery
+                    );
+            return this.toAvailabilityResponseResponse(result.blockingGet(), dateHistogramQuery);
+        } catch (Exception eex) {
+            logger.error("Impossible to perform AverageResponseTimeQuery", eex);
+            throw new AnalyticsException("Impossible to perform AverageResponseTimeQuery", eex);
+        }
+    }
 
-	private DateHistogramResponse toAvailabilityResponseResponse(final SearchResponse response,
-																 final DateHistogramQuery query) {
-		final DateHistogramResponse dateHistogramResponse = new DateHistogramResponse();
+    private DateHistogramResponse toAvailabilityResponseResponse(final SearchResponse response, final DateHistogramQuery query) {
+        final DateHistogramResponse dateHistogramResponse = new DateHistogramResponse();
 
-		if (response.getAggregations() == null) {
-			return dateHistogramResponse;
-		}
+        if (response.getAggregations() == null) {
+            return dateHistogramResponse;
+        }
 
-		// Prepare data
-		final Map<String, Bucket> fieldBuckets = new HashMap<>();
+        // Prepare data
+        final Map<String, Bucket> fieldBuckets = new HashMap<>();
 
-		final Aggregation dateHistogram = response.getAggregations().get("by_date");
-		for (JsonNode dateBucket : dateHistogram.getBuckets()) {
-			final long keyAsDate = dateBucket.get("key").asLong();
-			dateHistogramResponse.timestamps().add(keyAsDate);
+        final Aggregation dateHistogram = response.getAggregations().get("by_date");
+        for (JsonNode dateBucket : dateHistogram.getBuckets()) {
+            final long keyAsDate = dateBucket.get("key").asLong();
+            dateHistogramResponse.timestamps().add(keyAsDate);
 
-			final Iterator<String> fieldNamesInDateBucket = dateBucket.fieldNames();
-			while (fieldNamesInDateBucket.hasNext()) {
-				final String fieldNameInDateBucket = fieldNamesInDateBucket.next();
-				this.handleSubAggregation(fieldBuckets, fieldNameInDateBucket, dateBucket, keyAsDate);
-			}
-		}
+            final Iterator<String> fieldNamesInDateBucket = dateBucket.fieldNames();
+            while (fieldNamesInDateBucket.hasNext()) {
+                final String fieldNameInDateBucket = fieldNamesInDateBucket.next();
+                this.handleSubAggregation(fieldBuckets, fieldNameInDateBucket, dateBucket, keyAsDate);
+            }
+        }
 
-		if (!query.aggregations().isEmpty()) {
-			query.aggregations().forEach(aggregation -> {
-				String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
-				if (aggregation.type() == AggregationType.FIELD) {
-					key = "by_" + aggregation.field();
-				}
+        if (!query.aggregations().isEmpty()) {
+            query
+                .aggregations()
+                .forEach(
+                    aggregation -> {
+                        String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
+                        if (aggregation.type() == AggregationType.FIELD) {
+                            key = "by_" + aggregation.field();
+                        }
 
-				dateHistogramResponse.values().add(fieldBuckets.get(key));
-			});
-		}
-		return dateHistogramResponse;
-	}
+                        dateHistogramResponse.values().add(fieldBuckets.get(key));
+                    }
+                );
+        }
+        return dateHistogramResponse;
+    }
 
-	private void handleSubAggregation(final Map<String, Bucket> fieldBuckets, final String fieldNameInDateBucket,
-									  final JsonNode dateBucket, final long keyAsDate) {
-		if (!fieldNameInDateBucket.startsWith("by_") && !fieldNameInDateBucket.startsWith("avg_")
-				&& !fieldNameInDateBucket.startsWith("min_") && !fieldNameInDateBucket.startsWith("max_")) {
-			return;
-		}
+    private void handleSubAggregation(
+        final Map<String, Bucket> fieldBuckets,
+        final String fieldNameInDateBucket,
+        final JsonNode dateBucket,
+        final long keyAsDate
+    ) {
+        if (
+            !fieldNameInDateBucket.startsWith("by_") &&
+            !fieldNameInDateBucket.startsWith("avg_") &&
+            !fieldNameInDateBucket.startsWith("min_") &&
+            !fieldNameInDateBucket.startsWith("max_")
+        ) {
+            return;
+        }
 
-		final String kindAggregation = fieldNameInDateBucket.split("_")[0];
-		final String fieldName = fieldNameInDateBucket.split("_")[1];
+        final String kindAggregation = fieldNameInDateBucket.split("_")[0];
+        final String fieldName = fieldNameInDateBucket.split("_")[1];
 
-		Bucket fieldBucket = fieldBuckets.get(fieldNameInDateBucket);
-		if (fieldBucket == null) {
-			fieldBucket = new Bucket(fieldNameInDateBucket, fieldName);
-			fieldBuckets.put(fieldNameInDateBucket, fieldBucket);
-		}
+        Bucket fieldBucket = fieldBuckets.get(fieldNameInDateBucket);
+        if (fieldBucket == null) {
+            fieldBucket = new Bucket(fieldNameInDateBucket, fieldName);
+            fieldBuckets.put(fieldNameInDateBucket, fieldBucket);
+        }
 
-		final Map<String, List<Data>> bucketData = fieldBucket.data();
-		List<Data> data;
+        final Map<String, List<Data>> bucketData = fieldBucket.data();
+        List<Data> data;
 
-		switch (kindAggregation) {
-			case "by":
-				long successCount = 0;
-				long failureCount = 0;
-				for (final JsonNode termBucket : dateBucket.get(fieldNameInDateBucket).get("buckets")) {
-					if (termBucket.get("key").asText().equals("1")) {
-						successCount = termBucket.get("doc_count").asLong();
-					} else {
-						failureCount = termBucket.get("doc_count").asLong();
-					}
-					double total = successCount + failureCount;
-					double percent = (total == 0) ? 100 : (successCount / total) * 100;
+        switch (kindAggregation) {
+            case "by":
+                long successCount = 0;
+                long failureCount = 0;
+                for (final JsonNode termBucket : dateBucket.get(fieldNameInDateBucket).get("buckets")) {
+                    if (termBucket.get("key").asText().equals("1")) {
+                        successCount = termBucket.get("doc_count").asLong();
+                    } else {
+                        failureCount = termBucket.get("doc_count").asLong();
+                    }
+                    double total = successCount + failureCount;
+                    double percent = (total == 0) ? 100 : (successCount / total) * 100;
 
-					data = bucketData.computeIfAbsent(fieldNameInDateBucket, k -> new ArrayList<>());
-					data.add(new Data(keyAsDate, percent));
-				}
-				break;
-			case "min":
-			case "max":
-			case "avg":
-				final JsonNode numericBucket = dateBucket.get(fieldNameInDateBucket);
-				if (numericBucket.get("value") != null && numericBucket.get("value").isNumber()) {
-					final double value = numericBucket.get("value").asDouble();
-					data = bucketData.get(fieldNameInDateBucket);
-					if (data == null) {
-						data = new ArrayList<>();
-						bucketData.put(fieldNameInDateBucket, data);
-					}
-					data.add(new Data(keyAsDate, (long) value));
-				}
-				break;
-		}
-	}
+                    data = bucketData.computeIfAbsent(fieldNameInDateBucket, k -> new ArrayList<>());
+                    data.add(new Data(keyAsDate, percent));
+                }
+                break;
+            case "min":
+            case "max":
+            case "avg":
+                final JsonNode numericBucket = dateBucket.get(fieldNameInDateBucket);
+                if (numericBucket.get("value") != null && numericBucket.get("value").isNumber()) {
+                    final double value = numericBucket.get("value").asDouble();
+                    data = bucketData.get(fieldNameInDateBucket);
+                    if (data == null) {
+                        data = new ArrayList<>();
+                        bucketData.put(fieldNameInDateBucket, data);
+                    }
+                    data.add(new Data(keyAsDate, (long) value));
+                }
+                break;
+        }
+    }
 }
