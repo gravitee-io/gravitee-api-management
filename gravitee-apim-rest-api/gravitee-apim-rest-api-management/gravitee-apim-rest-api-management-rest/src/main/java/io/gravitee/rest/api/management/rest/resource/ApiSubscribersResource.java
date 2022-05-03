@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.SubscriptionStatus.*;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -34,6 +37,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -89,6 +93,7 @@ public class ApiSubscribersResource extends AbstractResource {
 
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApi(api);
+        subscriptionQuery.setStatuses(Set.of(PENDING, ACCEPTED));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
         return subscriptions

@@ -70,8 +70,8 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
   $scope.types = [ConditionType];
   $scope.conditions = [];
 
-  $scope.types.push(new ConditionType('Plan', 'plan', '#context.plan'));
-  $scope.types.push(new ConditionType('Application', 'application', '#context.application'));
+  $scope.types.push(new ConditionType('Plan', 'plan', '#context.attributes.plan'));
+  $scope.types.push(new ConditionType('Application', 'application', '#context.attributes.application'));
   $scope.types.push(new ConditionType('Request header', 'request-header', '#request.headers'));
   $scope.types.push(new ConditionType('Request query-parameter', 'request-param', '#request.params'));
   $scope.types.push(new ConditionType('HTTP Method', 'request-method', '#request.method'));
@@ -83,8 +83,9 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
     const type: ConditionType = _.find($scope.types, (conditionType: ConditionType) => conditionType.id === $scope.selectedType);
     if (type !== undefined) {
       $scope.conditions.push(new Condition(type, '==', ''));
+    } else {
+      $scope.selectedType = null;
     }
-    $scope.selectedType = null;
   };
 
   this.removeCondition = (idx: number) => {
