@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee.apim.distribution</groupId>
         <artifactId>gravitee-apim-distribution</artifactId>
-        <version>3.17.2</version>
+        <version>3.17.3-SNAPSHOT</version>
         <relativePath>../../../gravitee-apim-distribution/pom.xml</relativePath>
     </parent>
 
