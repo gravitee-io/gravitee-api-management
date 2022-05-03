@@ -66,7 +66,8 @@ paths:
         By default the list is sorted by alphabetic order.
         If a **cat** query param is sent, a specific sorting can be applied. Please refer to **cat** description for detail.
       operationId: getApis
-      security: []
+      security:
+        - BasicAuth: []
       responses:
         200:
           description: List accessible APIs for current user
@@ -136,7 +137,8 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiByApiId
-      security: []
+      security:
+        - BasicAuth: []
       responses:
         200:
           description: API definition
