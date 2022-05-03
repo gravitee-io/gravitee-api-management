@@ -15,6 +15,11 @@
  */
 package io.gravitee.repository.elasticsearch;
 
+import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
+import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
+import static io.gravitee.repository.analytics.query.QueryBuilders.*;
+import static java.lang.Float.valueOf;
+
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.AggregationType;
 import io.gravitee.repository.analytics.query.Order;
@@ -29,11 +34,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
-import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
-import static io.gravitee.repository.analytics.query.QueryBuilders.*;
-import static java.lang.Float.valueOf;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -47,10 +47,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     public void testDateHistogram() throws Exception {
         Assert.assertNotNull(analyticsRepository);
 
-        DateHistogramResponse response = analyticsRepository.query(
-                dateHistogram()
-                        .timeRange(lastDays(30), hours(1))
-                        .build());
+        DateHistogramResponse response = analyticsRepository.query(dateHistogram().timeRange(lastDays(30), hours(1)).build());
 
         Assert.assertNotNull(response);
     }
@@ -60,10 +57,8 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         DateHistogramResponse response = analyticsRepository.query(
-                dateHistogram()
-                        .timeRange(lastDays(90), hours(1))
-                        .root("api", "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
-                        .build());
+            dateHistogram().timeRange(lastDays(90), hours(1)).root("api", "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").build()
+        );
 
         Assert.assertNotNull(response);
     }
@@ -73,10 +68,8 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         DateHistogramResponse response = analyticsRepository.query(
-                dateHistogram()
-                        .timeRange(lastDays(60), hours(1))
-                        .aggregation(AggregationType.AVG, "response-time")
-                        .build());
+            dateHistogram().timeRange(lastDays(60), hours(1)).aggregation(AggregationType.AVG, "response-time").build()
+        );
 
         Assert.assertNotNull(response);
     }
@@ -86,12 +79,13 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         DateHistogramResponse response = analyticsRepository.query(
-                dateHistogram()
-                        .timeRange(lastDays(30), hours(1))
-                        .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
-                        .aggregation(AggregationType.AVG, "response-time")
-                        .aggregation(AggregationType.AVG, "api-response-time")
-                        .build());
+            dateHistogram()
+                .timeRange(lastDays(30), hours(1))
+                .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                .aggregation(AggregationType.AVG, "response-time")
+                .aggregation(AggregationType.AVG, "api-response-time")
+                .build()
+        );
 
         Assert.assertNotNull(response);
     }
@@ -101,12 +95,13 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         DateHistogramResponse response = analyticsRepository.query(
-                dateHistogram()
-                        .timeRange(lastDays(30), hours(1))
-                        .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
-                        .aggregation(AggregationType.AVG, "response-time")
-                        .aggregation(AggregationType.FIELD, "application")
-                        .build());
+            dateHistogram()
+                .timeRange(lastDays(30), hours(1))
+                .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                .aggregation(AggregationType.AVG, "response-time")
+                .aggregation(AggregationType.FIELD, "application")
+                .build()
+        );
 
         Assert.assertNotNull(response);
     }
@@ -116,11 +111,8 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         GroupByResponse response = analyticsRepository.query(
-                groupBy()
-                        .timeRange(lastDays(60), hours(1))
-                        .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
-                        .field("application")
-                        .build());
+            groupBy().timeRange(lastDays(60), hours(1)).query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").field("application").build()
+        );
 
         Assert.assertNotNull(response);
     }
@@ -130,12 +122,13 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         GroupByResponse response = analyticsRepository.query(
-                groupBy()
-                        .timeRange(lastDays(30), hours(1))
-                        .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
-                        .field("application")
-                        .sort(SortBuilder.on("response-time", Order.DESC, SortType.AVG))
-                        .build());
+            groupBy()
+                .timeRange(lastDays(30), hours(1))
+                .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                .field("application")
+                .sort(SortBuilder.on("response-time", Order.DESC, SortType.AVG))
+                .build()
+        );
 
         Assert.assertNotNull(response);
     }
@@ -145,30 +138,31 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         GroupByResponse response = analyticsRepository.query(
-                groupBy()
-                        .timeRange(lastDays(30), hours(1))
-                        .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
-                        .field("status")
-                        .range(100, 199)
-                        .range(200, 299)
-                        .range(300, 399)
-                        .range(400, 499)
-                        .build());
+            groupBy()
+                .timeRange(lastDays(30), hours(1))
+                .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                .field("status")
+                .range(100, 199)
+                .range(200, 299)
+                .range(300, 399)
+                .range(400, 499)
+                .build()
+        );
 
         Assert.assertNotNull(response);
-        for(Bucket bucket : response.getValues()) {
-        	if( bucket.name().startsWith("100")) {
-        		Assert.assertEquals(0,  bucket.value());
-        	}
-        	if( bucket.name().startsWith("200")) {
-        		Assert.assertEquals(6,  bucket.value()); //line 56 in bulk.json
-        	}
-        	if( bucket.name().startsWith("300")) {
-        		Assert.assertEquals(0,  bucket.value());
-        	}
-        	if( bucket.name().startsWith("400")) {
-        		Assert.assertEquals(1,  bucket.value()); //line 42 in bulk.json
-        	}
+        for (Bucket bucket : response.getValues()) {
+            if (bucket.name().startsWith("100")) {
+                Assert.assertEquals(0, bucket.value());
+            }
+            if (bucket.name().startsWith("200")) {
+                Assert.assertEquals(6, bucket.value()); //line 56 in bulk.json
+            }
+            if (bucket.name().startsWith("300")) {
+                Assert.assertEquals(0, bucket.value());
+            }
+            if (bucket.name().startsWith("400")) {
+                Assert.assertEquals(1, bucket.value()); //line 42 in bulk.json
+            }
         }
     }
 
@@ -177,10 +171,8 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         CountResponse response = analyticsRepository.query(
-                count()
-                        .timeRange(lastDays(30), hours(1))
-                        .query("api:4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1")
-                        .build());
+            count().timeRange(lastDays(30), hours(1)).query("api:4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1").build()
+        );
 
         Assert.assertNotNull(response);
         Assert.assertEquals(3, response.getCount());
@@ -190,11 +182,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     public void testCountByPath() throws Exception {
         Assert.assertNotNull(analyticsRepository);
 
-        CountResponse response = analyticsRepository.query(
-                count()
-                        .timeRange(lastDays(30), hours(1))
-                        .query("(path:/mypath)")
-                        .build());
+        CountResponse response = analyticsRepository.query(count().timeRange(lastDays(30), hours(1)).query("(path:/mypath)").build());
 
         Assert.assertNotNull(response);
         Assert.assertEquals(1, response.getCount());
@@ -205,10 +193,8 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         CountResponse response = analyticsRepository.query(
-                count()
-                        .timeRange(lastDays(30), hours(1))
-                        .query("(host:localhost:8082)")
-                        .build());
+            count().timeRange(lastDays(30), hours(1)).query("(host:localhost:8082)").build()
+        );
 
         Assert.assertNotNull(response);
         Assert.assertEquals(1, response.getCount());
@@ -219,10 +205,8 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         CountResponse response = analyticsRepository.query(
-                count()
-                        .timeRange(lastDays(30), hours(1))
-                        .query("((path:/mypath) AND (host:localhost:8082))")
-                        .build());
+            count().timeRange(lastDays(30), hours(1)).query("((path:/mypath) AND (host:localhost:8082))").build()
+        );
 
         Assert.assertNotNull(response);
         Assert.assertEquals(1, response.getCount());
@@ -233,11 +217,8 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         final StatsResponse response = analyticsRepository.query(
-                stats()
-                        .timeRange(lastDays(30), hours(1))
-                        .query("api:4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1")
-                        .field("response-time")
-                        .build());
+            stats().timeRange(lastDays(30), hours(1)).query("api:4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1").field("response-time").build()
+        );
 
         Assert.assertNotNull(response);
         Assert.assertEquals(valueOf(3), response.getCount());

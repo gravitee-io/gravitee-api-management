@@ -15,16 +15,16 @@
  */
 package io.gravitee.repository.elasticsearch;
 
+import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
+import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
+import static io.gravitee.repository.analytics.query.QueryBuilders.tabular;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.elasticsearch.log.ElasticLogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
-import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
-import static io.gravitee.repository.analytics.query.QueryBuilders.tabular;
-import static org.junit.Assert.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,7 +38,7 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testFindById() throws Exception {
         // 29381bce-df59-47b2-b81b-cedf59c7b23e request is stored in the yesterday index
-        ExtendedLog log = logRepository.findById("29381bce-df59-47b2-b81b-cedf59c7b23e", System.currentTimeMillis() - 24*60*60*1000);
+        ExtendedLog log = logRepository.findById("29381bce-df59-47b2-b81b-cedf59c7b23e", System.currentTimeMillis() - 24 * 60 * 60 * 1000);
 
         assertNotNull(log);
     }
@@ -46,12 +46,8 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withQuery() throws Exception {
         TabularResponse response = logRepository.query(
-                tabular()
-                        .timeRange(lastDays(60), hours(1))
-                        .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
-                        .page(1)
-                        .size(20)
-                        .build());
+            tabular().timeRange(lastDays(60), hours(1)).query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").page(1).size(20).build()
+        );
 
         assertNotNull(response);
         assertTrue(response.getSize() > 0);
@@ -60,12 +56,8 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withLogQuery() throws Exception {
         TabularResponse response = logRepository.query(
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("client-response.body:*not valid or is expired*")
-                .page(1)
-                .size(10)
-                .build());
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(1).size(10).build()
+        );
 
         assertNotNull(response);
         assertEquals(6, response.getSize());
@@ -75,12 +67,8 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withLogQuery_page1() throws Exception {
         TabularResponse response = logRepository.query(
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("client-response.body:*not valid or is expired*")
-                .page(1)
-                .size(5)
-                .build());
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(1).size(5).build()
+        );
 
         assertNotNull(response);
         assertEquals(6, response.getSize());
@@ -90,12 +78,8 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withLogQuery_page2() throws Exception {
         TabularResponse response = logRepository.query(
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("client-response.body:*not valid or is expired*")
-                .page(2)
-                .size(5)
-                .build());
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(2).size(5).build()
+        );
 
         assertNotNull(response);
 
@@ -105,15 +89,9 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
 
     @Test
     public void testTabular_withoutQuery() throws Exception {
-        TabularResponse response = logRepository.query(
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .page(1)
-                .size(100)
-                .build());
+        TabularResponse response = logRepository.query(tabular().timeRange(lastDays(60), hours(1)).page(1).size(100).build());
 
         assertNotNull(response);
         assertEquals(response.getSize(), response.getLogs().size());
     }
-
 }

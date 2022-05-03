@@ -34,6 +34,7 @@ public class ElasticsearchRepositoryConfigurationTest {
     @Configuration
     @PropertySource(factory = YamlPropertySourceFactory.class, value = "classpath:configuration/gravitee.yml")
     static class ContextConfiguration {
+
         @Bean
         public RepositoryConfiguration repositoryConfiguration() {
             return new RepositoryConfiguration();

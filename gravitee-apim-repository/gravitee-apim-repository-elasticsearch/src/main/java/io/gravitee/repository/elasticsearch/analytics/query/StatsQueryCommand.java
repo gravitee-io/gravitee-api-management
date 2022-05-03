@@ -31,37 +31,37 @@ import io.gravitee.repository.analytics.query.stats.StatsResponse;
  */
 public class StatsQueryCommand extends AbstractElasticsearchQueryCommand<StatsResponse> {
 
-	private final static String TEMPLATE = "stats.ftl";
+    private static final String TEMPLATE = "stats.ftl";
 
-	@Override
-	public Class<? extends Query<StatsResponse>> getSupportedQuery() {
-		return StatsQuery.class;
-	}
+    @Override
+    public Class<? extends Query<StatsResponse>> getSupportedQuery() {
+        return StatsQuery.class;
+    }
 
-	@Override
-	public StatsResponse executeQuery(Query<StatsResponse> query) throws AnalyticsException {
-		final StatsQuery statsQuery = (StatsQuery) query;
-		final String sQuery = this.createQuery(TEMPLATE, query);
-		
-		try {
-			SearchResponse searchResponse = execute(statsQuery, Type.REQUEST, sQuery).blockingGet();
-			return this.toStatsResponse(searchResponse);
-		} catch (final Exception eex) {
-			logger.error("Impossible to perform StatsQuery", eex);
-			throw new AnalyticsException("Impossible to perform StatsQuery", eex);
-		}
-	}
+    @Override
+    public StatsResponse executeQuery(Query<StatsResponse> query) throws AnalyticsException {
+        final StatsQuery statsQuery = (StatsQuery) query;
+        final String sQuery = this.createQuery(TEMPLATE, query);
 
-	private StatsResponse toStatsResponse(final SearchResponse response) {
-		final StatsResponse statsResponse = new StatsResponse();
-		if (response.getAggregations() != null && !response.getAggregations().isEmpty()) {
-			final Aggregation aggregation = response.getAggregations().entrySet().iterator().next().getValue();
-			statsResponse.setAvg(aggregation.getAvg());
-			statsResponse.setCount(aggregation.getCount());
-			statsResponse.setMax(aggregation.getMax());
-			statsResponse.setMin(aggregation.getMin());
-			statsResponse.setSum(aggregation.getSum());
-		}
-		return statsResponse;
-	}
+        try {
+            SearchResponse searchResponse = execute(statsQuery, Type.REQUEST, sQuery).blockingGet();
+            return this.toStatsResponse(searchResponse);
+        } catch (final Exception eex) {
+            logger.error("Impossible to perform StatsQuery", eex);
+            throw new AnalyticsException("Impossible to perform StatsQuery", eex);
+        }
+    }
+
+    private StatsResponse toStatsResponse(final SearchResponse response) {
+        final StatsResponse statsResponse = new StatsResponse();
+        if (response.getAggregations() != null && !response.getAggregations().isEmpty()) {
+            final Aggregation aggregation = response.getAggregations().entrySet().iterator().next().getValue();
+            statsResponse.setAvg(aggregation.getAvg());
+            statsResponse.setCount(aggregation.getCount());
+            statsResponse.setMax(aggregation.getMax());
+            statsResponse.setMin(aggregation.getMin());
+            statsResponse.setSum(aggregation.getSum());
+        }
+        return statsResponse;
+    }
 }
