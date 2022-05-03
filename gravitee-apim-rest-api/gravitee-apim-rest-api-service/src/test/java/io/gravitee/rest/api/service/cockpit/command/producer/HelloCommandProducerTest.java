@@ -105,6 +105,7 @@ public class HelloCommandProducerTest {
                 assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
                 assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("UI_URL"));
                 assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("API_URL"));
+                assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("INSTALLATION_TYPE"));
 
                 assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
                 assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());
