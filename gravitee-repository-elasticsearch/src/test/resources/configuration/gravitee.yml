@@ -1,0 +1,13 @@
+analytics:
+  type: elasticsearch
+  elasticsearch:
+    endpoints:
+      - http://localhost:9200
+#    index: gravitee
+#    index_per_type: true
+    cross_cluster:
+      mapping:
+        tenant1: cluster1
+        tenant2: cluster2
+    http:
+      timeout: 30000

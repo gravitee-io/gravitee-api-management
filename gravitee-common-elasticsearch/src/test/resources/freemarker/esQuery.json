@@ -1,0 +1,18 @@
+{
+	"size": 3,
+	"query": {
+		"range": {
+			"@timestamp": {
+				"lte": "${indexDateToday?string['yyyy-MM-dd']}T18:33:11.079+01:00",
+				"gte" : "${indexDateToday?string['yyyy-MM-dd']}T09:33:11.079+01:00"
+			}
+		}
+	},
+   "aggregations":{
+      "by_api":{
+         "terms":{
+            "field":"api"
+         }
+      }
+   }
+}
