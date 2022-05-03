@@ -1,0 +1,16 @@
+= Gravitee Elasticsearch Reporter
+
+ifdef::env-github[]
+image:https://img.shields.io/static/v1?label=Available%20at&message=Gravitee.io&color=1EC9D2["Gravitee.io", link="https://download.gravitee.io/#/gravitee-reporter-elasticsearch/"]
+image:https://img.shields.io/badge/License-Apache%202.0-blue.svg["License", link="https://github.com/gravitee-io/gravitee-reporter-elasticsearch/blob/master/LICENSE.txt"]
+image:https://img.shields.io/badge/semantic--release-conventional%20commits-e10079?logo=semantic-release["Releases", link="https://github.com/gravitee-io/gravitee-reporter-elasticsearch/releases"]
+image:https://circleci.com/gh/gravitee-io/gravitee-reporter-elasticsearch.svg?style=svg["CircleCI", link="https://circleci.com/gh/gravitee-io/gravitee-reporter-elasticsearch"]
+image:https://f.hubspotusercontent40.net/hubfs/7600448/gravitee-github-button.jpg["Join the community forum", link="https://community.gravitee.io?utm_source=readme", height=20]
+endif::[]
+
+
+== Presentation
+This reporter write access logs to an Elasticsearch instance
+
+== Configuration
+To be completed
