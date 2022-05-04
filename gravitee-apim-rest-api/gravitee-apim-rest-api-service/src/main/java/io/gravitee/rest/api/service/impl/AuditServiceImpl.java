@@ -100,6 +100,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private UserService userService;
 
     @Autowired
+    @Lazy
     private PermissionService permissionService;
 
     @Autowired
