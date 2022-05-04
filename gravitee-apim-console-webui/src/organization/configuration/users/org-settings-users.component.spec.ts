@@ -77,7 +77,7 @@ describe('OrgSettingsUsersComponent', () => {
       const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
 
       const rows = await table.getRows();
-      const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+      const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
 
       expect(headerCells).toEqual([
         {
@@ -100,7 +100,7 @@ describe('OrgSettingsUsersComponent', () => {
       const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
 
       const rows = await table.getRows();
-      const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+      const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
 
       expect(headerCells).toEqual([
         {
