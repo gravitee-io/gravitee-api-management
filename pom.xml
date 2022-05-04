@@ -132,6 +132,7 @@
         <wiremock.version>2.27.2</wiremock.version>
         <wiremock-jre8.version>2.32.0</wiremock-jre8.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
+        <lombok.version>1.18.24</lombok.version>
         <!-- Plugins version -->
         <gatling-maven-plugin.version>4.0.1</gatling-maven-plugin.version>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
@@ -754,6 +755,12 @@
                 <groupId>wsdl4j</groupId>
                 <artifactId>wsdl4j</artifactId>
                 <version>${wsdl4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
