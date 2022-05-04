@@ -17,132 +17,339 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.gravitee</groupId>
+        <artifactId>gravitee-parent</artifactId>
+        <version>20.0</version>
+    </parent>
 
-	<parent>
-		<groupId>io.gravitee.elasticsearch</groupId>
-		<artifactId>gravitee-elasticsearch</artifactId>
-    <version>3.13.0-SNAPSHOT</version>
-	</parent>
+    <groupId>io.gravitee.reporter</groupId>
+    <artifactId>gravitee-reporter-elasticsearch</artifactId>
+    <version>3.12.0</version>
 
-	<groupId>io.gravitee.reporter</groupId>
-	<artifactId>gravitee-reporter-elasticsearch</artifactId>
-    <version>3.13.0-SNAPSHOT</version>
+    <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
-	<name>Gravitee.io APIM - Reporter - Elasticsearch</name>
+    <properties>
+        <gravitee-bom.version>1.1</gravitee-bom.version>
+        <gravitee-common-elasticsearch.version>3.12.0</gravitee-common-elasticsearch.version>
+        <gravitee-gateway-api.version>1.31.2</gravitee-gateway-api.version>
+        <gravitee-node-api.version>1.10.3</gravitee-node-api.version>
+        <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
+        <gravitee-reporter-api.version>1.22.0</gravitee-reporter-api.version>
+        <commons-validator.version>1.7</commons-validator.version>
+        <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
+        <log4j-core.version>2.9.1</log4j-core.version>
+        <unitils-core.version>3.4.2</unitils-core.version>
 
-	<dependencies>
-		<!-- Gravitee.io Elasticsearch -->
-		<dependency>
-			<groupId>io.gravitee.elasticsearch</groupId>
-			<artifactId>gravitee-common-elasticsearch</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+        <publish-folder-path>graviteeio-apim/plugins/reporters</publish-folder-path>
+    </properties>
 
-		<!-- Gravitee internal dependencies -->
-		<dependency>
-			<groupId>io.gravitee.gateway</groupId>
-			<artifactId>gravitee-gateway-api</artifactId>
-		</dependency>
+	<dependencyManagement>
+		<dependencies>
+			<!-- Import bom to properly inherit all dependencies -->
+			<dependency>
+				<groupId>io.gravitee</groupId>
+				<artifactId>gravitee-bom</artifactId>
+				<version>${gravitee-bom.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
-		<dependency>
-			<groupId>io.gravitee.reporter</groupId>
-			<artifactId>gravitee-reporter-api</artifactId>
-		</dependency>
+    <dependencies>
+        <!-- Gravitee.io Elasticsearch -->
+        <dependency>
+            <groupId>io.gravitee.elasticsearch</groupId>
+            <artifactId>gravitee-common-elasticsearch</artifactId>
+            <version>${gravitee-common-elasticsearch.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.policy</groupId>
-			<artifactId>gravitee-policy-api</artifactId>
-		</dependency>
+        <!-- Gravitee internal dependencies -->
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-api</artifactId>
+            <version>${gravitee-gateway-api.version}</version>
+        </dependency>
 
-		<!-- Used to consume JSON REST services -->
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-api</artifactId>
+            <version>${gravitee-node-api.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>commons-validator</groupId>
-			<artifactId>commons-validator</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-api</artifactId>
+            <version>${gravitee-reporter-api.version}</version>
+        </dependency>
 
-		<!-- Unit Tests -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-api</artifactId>
+            <version>${gravitee-policy-api.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <!-- Used to consume JSON REST services -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
 
-		<dependency>
-			<groupId>com.fasterxml.jackson.datatype</groupId>
-			<artifactId>jackson-datatype-jsr310</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>${commons-validator.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.unitils</groupId>
-			<artifactId>unitils-core</artifactId>
-			<version>3.4.2</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>${javax.annotation-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
-	<build>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-		<plugins>
-			<plugin>
-				<groupId>com.hubspot.maven.plugins</groupId>
-				<artifactId>prettier-maven-plugin</artifactId>
-				<version>0.17</version>
-				<configuration>
-					<nodeVersion>12.13.0</nodeVersion>
-					<prettierJavaVersion>1.6.1</prettierJavaVersion>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.3</version>
-				<configuration>
-					<appendAssemblyId>false</appendAssemblyId>
-					<descriptors>
-						<descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-					</descriptors>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-plugin-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+        <!-- Vert.x dependencies -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-rx-java2</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <!-- Unit Tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.unitils</groupId>
+            <artifactId>unitils-core</artifactId>
+            <version>${unitils-core.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j-core.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptors>
+                        <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-plugin-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.hubspot.maven.plugins</groupId>
+                <artifactId>prettier-maven-plugin</artifactId>
+                <version>0.17</version>
+                <configuration>
+                    <nodeVersion>12.13.0</nodeVersion>
+                    <prettierJavaVersion>1.6.1</prettierJavaVersion>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <es.set.netty.runtime.available.processors>false</es.set.netty.runtime.available.processors>
+                        <vertx.disableFileCPResolving>false</vertx.disableFileCPResolving>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>es5x</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <elasticsearch>5x</elasticsearch>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>es6x</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <elasticsearch>6x</elasticsearch>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>es7x</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <elasticsearch>7x</elasticsearch>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>es-5x</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>elasticsearch</name>
+                    <value>5x</value>
+                </property>
+            </activation>
+            <properties>
+                <elasticsearch.version>5.6.3</elasticsearch.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch</artifactId>
+                    <version>${elasticsearch.version}</version>
+                    <scope>test</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.elasticsearch.client</groupId>
+                    <artifactId>transport</artifactId>
+                    <version>${elasticsearch.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>es-6x</id>
+            <activation>
+                <property>
+                    <name>elasticsearch</name>
+                    <value>6x</value>
+                </property>
+            </activation>
+            <properties>
+                <elasticsearch.version>6.2.2</elasticsearch.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch</artifactId>
+                    <version>${elasticsearch.version}</version>
+                    <scope>test</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.elasticsearch.client</groupId>
+                    <artifactId>transport</artifactId>
+                    <version>${elasticsearch.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>es-7x</id>
+            <activation>
+                <property>
+                    <name>elasticsearch</name>
+                    <value>7x</value>
+                </property>
+            </activation>
+            <properties>
+                <elasticsearch.version>7.3.0</elasticsearch.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch</artifactId>
+                    <version>${elasticsearch.version}</version>
+                    <scope>test</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.elasticsearch.client</groupId>
+                    <artifactId>transport</artifactId>
+                    <version>${elasticsearch.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

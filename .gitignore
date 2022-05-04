@@ -23,12 +23,6 @@ target/
 .DS_Store
 .idea/
 *.iml
-# -- Cicd : Git ignore the [.circleci/**/*] which contains
-# files which do not need to be commited (password to artifactory)
-.circleci/**/*
-# -- Cicd : Do not git ignore the [!./.circleci/config.yml] which contains
-# the pipeline definition
-!./.circleci/config.yml
 # -- Cicd : Git ignore the [gpg.script.snippet.sh] which contains
 # secrets (password to artifactory)
 gpg.script.snippet.sh
