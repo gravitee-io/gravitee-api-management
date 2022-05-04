@@ -15,6 +15,10 @@
  */
 package io.gravitee.reporter.elasticsearch;
 
+import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
@@ -33,6 +37,9 @@ import io.gravitee.reporter.elasticsearch.spring.context.*;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.TestScheduler;
+import java.time.Instant;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,14 +50,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.time.Instant;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -67,11 +66,10 @@ public class ElasticsearchReporterTest {
 
     @Configuration
     @Import(ElasticsearchReporterConfigurationTest.class) // the actual configuration
-    public static class TestConfig
-    {
+    public static class TestConfig {
+
         @Bean
-        public ElasticsearchReporter reporter()
-        {
+        public ElasticsearchReporter reporter() {
             return new ElasticsearchReporter();
         }
     }
@@ -142,11 +140,13 @@ public class ElasticsearchReporterTest {
         final Request defaultRequest = new Request();
         defaultRequest.setUri("https://api.gravitee.io/echo/echo");
         defaultRequest.setMethod(HttpMethod.GET);
-        final Step defaultStep = EndpointStatus.forStep("default-step")
-                .responseTime(117)
-                .success()
-                .request(defaultRequest)
-                .response(defaultResponse).build();
+        final Step defaultStep = EndpointStatus
+            .forStep("default-step")
+            .responseTime(117)
+            .success()
+            .request(defaultRequest)
+            .response(defaultResponse)
+            .build();
 
         final Response anotherResponse = new Response();
         anotherResponse.setStatus(500);
@@ -154,18 +154,20 @@ public class ElasticsearchReporterTest {
         anotherRequest.setUri("https://api.gravitee.io/echo/echo");
         anotherRequest.setMethod(HttpMethod.GET);
 
-        final Step anotherStep = EndpointStatus.forStep("another-step")
-                .responseTime(57)
-                .fail("NPE")
-                .request(defaultRequest)
-                .response(defaultResponse).build();
+        final Step anotherStep = EndpointStatus
+            .forStep("another-step")
+            .responseTime(57)
+            .fail("NPE")
+            .request(defaultRequest)
+            .response(defaultResponse)
+            .build();
 
         final EndpointStatus endpointHealthStatus = EndpointStatus
-                .forEndpoint("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab", "https://api.gravitee.io/echo/")
-                .on(Instant.now().toEpochMilli())
-                .step(defaultStep)
-                .step(anotherStep)
-                .build();
+            .forEndpoint("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab", "https://api.gravitee.io/echo/")
+            .on(Instant.now().toEpochMilli())
+            .step(defaultStep)
+            .step(anotherStep)
+            .build();
 
         endpointHealthStatus.setAvailable(true);
         endpointHealthStatus.setState(3);
@@ -182,7 +184,6 @@ public class ElasticsearchReporterTest {
 
     @Test
     public void shouldReportMonitor() throws Exception {
-
         final JvmInfo jvmInfo = new JvmInfo(100, 20000);
 
         JvmInfo.GarbageCollector youngInfo = new JvmInfo.GarbageCollector();
@@ -196,7 +197,7 @@ public class ElasticsearchReporterTest {
         oldInfo.name = "old";
 
         jvmInfo.gc = new JvmInfo.GarbageCollectors();
-        jvmInfo.gc.collectors = new JvmInfo.GarbageCollector[]{youngInfo, oldInfo};
+        jvmInfo.gc.collectors = new JvmInfo.GarbageCollector[] { youngInfo, oldInfo };
 
         jvmInfo.mem = new JvmInfo.Mem();
         jvmInfo.mem.heapCommitted = 1;
@@ -207,7 +208,7 @@ public class ElasticsearchReporterTest {
         JvmInfo.MemoryPool young = new JvmInfo.MemoryPool("young", 85549752, 137363456, 134742016, 137363456);
         JvmInfo.MemoryPool survivor = new JvmInfo.MemoryPool("survivor", 16821208, 137363456, 134742016, 137363456);
         JvmInfo.MemoryPool old = new JvmInfo.MemoryPool("old", 17060240, 137363456, 134742016, 137363456);
-        jvmInfo.mem.pools = new JvmInfo.MemoryPool[]{young, survivor, old};
+        jvmInfo.mem.pools = new JvmInfo.MemoryPool[] { young, survivor, old };
 
         jvmInfo.threads = new JvmInfo.Threads();
         jvmInfo.threads.count = 3;
@@ -233,12 +234,13 @@ public class ElasticsearchReporterTest {
         processInfo.openFileDescriptors = 1;
         processInfo.timestamp = 10;
 
-        final Monitor monitor = Monitor.on("b187fe8f-98fa-4aa9-87fe-8f98facaa956")
-                .at(Instant.now().toEpochMilli())
-                .jvm(jvmInfo)
-                .os(osInfo)
-                .process(processInfo)
-                .build();
+        final Monitor monitor = Monitor
+            .on("b187fe8f-98fa-4aa9-87fe-8f98facaa956")
+            .at(Instant.now().toEpochMilli())
+            .jvm(jvmInfo)
+            .os(osInfo)
+            .process(processInfo)
+            .build();
 
         TestObserver metrics1 = reporter.rxReport(monitor).test();
 

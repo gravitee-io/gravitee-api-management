@@ -15,6 +15,15 @@
  */
 package io.gravitee.reporter.elasticsearch.embedded;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.ExecutionException;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.InternalSettingsPreparer;
@@ -25,100 +34,89 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.FileSystemUtils;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.File;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.ExecutionException;
-
 /**
  * Elasticsearch server for the test.
- * 
+ *
  * @author Guillaume Waignier
  * @author Sebastien Devaux
  */
 public class ElasticsearchNode {
-	
-	/**
+
+    /**
      * Logger.
      */
     private final Logger logger = LoggerFactory.getLogger(ElasticsearchNode.class);
-    
-	/**
-	 * ES node.
-	 */
-	private Node node;
 
-	private int httpPort;
+    /**
+     * ES node.
+     */
+    private Node node;
 
-	/**
-	 * Start ES.
-	 * @throws ExecutionException 
-	 * @throws InterruptedException
-	 */
-	@PostConstruct
-	private void init() throws Exception {
-		this.start();
-		Thread.sleep(2000);
-	}
-	
-	/**
-	 * Start ES node.
-	 */
-	private void start() throws Exception {
-		this.httpPort = generateFreePort();
+    private int httpPort;
 
-		final Settings settings = Settings.builder()
-				.put("cluster.name", "gravitee_test")
-				.put("node.name", "test")
-				.put("http.port", httpPort)
-				.put("http.type", "netty4")
-				//.put("transport.type", "local")
-				.put("path.data","target/data_gravitee_" + httpPort)
-				.put("path.home","target/data_gravitee_" + httpPort)
-				.build();
+    /**
+     * Start ES.
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    @PostConstruct
+    private void init() throws Exception {
+        this.start();
+        Thread.sleep(2000);
+    }
 
-		this.node = new PluginConfigurableNode(
-				settings,
-				Collections.singletonList(Netty4Plugin.class)).start();
-		
-		logger.info("Elasticsearch server for test started");
-	}
+    /**
+     * Start ES node.
+     */
+    private void start() throws Exception {
+        this.httpPort = generateFreePort();
 
-	public int getHttpPort() {
-		return httpPort;
-	}
+        final Settings settings = Settings
+            .builder()
+            .put("cluster.name", "gravitee_test")
+            .put("node.name", "test")
+            .put("http.port", httpPort)
+            .put("http.type", "netty4")
+            //.put("transport.type", "local")
+            .put("path.data", "target/data_gravitee_" + httpPort)
+            .put("path.home", "target/data_gravitee_" + httpPort)
+            .build();
 
-	/**
-	 * Stop ES
-	 */
-	@PreDestroy
-	private void shutdown() throws Exception {
-		// remove all index
-		this.node.client().admin().indices().delete(new DeleteIndexRequest("_all")).actionGet();
+        this.node = new PluginConfigurableNode(settings, Collections.singletonList(Netty4Plugin.class)).start();
 
-		this.node.close();
+        logger.info("Elasticsearch server for test started");
+    }
 
-		File dataDir = Paths.get(node.settings().get("path.data")).toFile();
-		FileSystemUtils.deleteRecursively(dataDir);
-	}
+    public int getHttpPort() {
+        return httpPort;
+    }
 
-	private int generateFreePort() {
-		try (ServerSocket socket = new ServerSocket(0)) {
-			int port = socket.getLocalPort();
-			return port;
-		} catch (IOException e) {
-		}
-		return -1;
-	}
+    /**
+     * Stop ES
+     */
+    @PreDestroy
+    private void shutdown() throws Exception {
+        // remove all index
+        this.node.client().admin().indices().delete(new DeleteIndexRequest("_all")).actionGet();
 
-	private static class PluginConfigurableNode extends Node {
-		public PluginConfigurableNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins) {
-			super(InternalSettingsPreparer.prepareEnvironment(settings, null), classpathPlugins);
-		}
-	}
+        this.node.close();
+
+        File dataDir = Paths.get(node.settings().get("path.data")).toFile();
+        FileSystemUtils.deleteRecursively(dataDir);
+    }
+
+    private int generateFreePort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            int port = socket.getLocalPort();
+            return port;
+        } catch (IOException e) {}
+        return -1;
+    }
+
+    private static class PluginConfigurableNode extends Node {
+
+        public PluginConfigurableNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins) {
+            super(InternalSettingsPreparer.prepareEnvironment(settings, null), classpathPlugins);
+        }
+    }
 }

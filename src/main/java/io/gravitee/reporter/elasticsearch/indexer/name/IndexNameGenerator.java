@@ -22,7 +22,6 @@ import io.gravitee.reporter.api.Reportable;
  * @author GraviteeSource Team
  */
 public interface IndexNameGenerator {
-
     /**
      * Create the ES index name given the timestamp inside the metric.
      * @param reportable the metric

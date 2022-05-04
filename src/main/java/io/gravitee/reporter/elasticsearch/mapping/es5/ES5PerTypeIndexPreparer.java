@@ -21,9 +21,8 @@ import io.gravitee.reporter.elasticsearch.mapping.PerTypeIndexPreparer;
 import io.reactivex.Completable;
 import io.reactivex.CompletableSource;
 import io.reactivex.functions.Function;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,8 +52,7 @@ public class ES5PerTypeIndexPreparer extends PerTypeIndexPreparer {
             Map<String, Object> data = getTemplateData();
             data.put("indexName", configuration.getIndexName() + '-' + typeName);
 
-            final String template = freeMarkerComponent.generateFromTemplate(
-                    "/es5x/mapping/index-template-" + typeName + ".ftl", data);
+            final String template = freeMarkerComponent.generateFromTemplate("/es5x/mapping/index-template-" + typeName + ".ftl", data);
 
             return client.putTemplate(templateName, template);
         };
@@ -64,8 +62,9 @@ public class ES5PerTypeIndexPreparer extends PerTypeIndexPreparer {
         String pipelineTemplate = pipelineConfiguration.createPipeline();
 
         if (pipelineTemplate != null && pipelineConfiguration.getPipelineName() != null) {
-            return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate)
-                    .doOnComplete(() -> pipelineConfiguration.valid());
+            return client
+                .putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate)
+                .doOnComplete(() -> pipelineConfiguration.valid());
         }
 
         return Completable.complete();

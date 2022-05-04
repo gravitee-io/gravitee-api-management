@@ -28,12 +28,20 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 public abstract class AbstractElasticBeanRegistrer {
 
     protected abstract Class<? extends AbstractIndexer> getIndexerClass();
+
     protected abstract Class<? extends AbstractIndexPreparer> getIndexPreparerClass(ReporterConfiguration configuration);
+
     protected abstract Class<? extends AbstractIndexNameGenerator> getIndexNameGeneratorClass(ReporterConfiguration configuration);
 
     public void register(DefaultListableBeanFactory beanFactory, ReporterConfiguration configuration) {
         beanFactory.registerBeanDefinition("indexer", BeanDefinitionBuilder.rootBeanDefinition(getIndexerClass()).getBeanDefinition());
-        beanFactory.registerBeanDefinition("indexPreparer", BeanDefinitionBuilder.rootBeanDefinition(getIndexPreparerClass(configuration)).getBeanDefinition());
-        beanFactory.registerBeanDefinition("indexNameGenerator", BeanDefinitionBuilder.rootBeanDefinition(getIndexNameGeneratorClass(configuration)).getBeanDefinition());
+        beanFactory.registerBeanDefinition(
+            "indexPreparer",
+            BeanDefinitionBuilder.rootBeanDefinition(getIndexPreparerClass(configuration)).getBeanDefinition()
+        );
+        beanFactory.registerBeanDefinition(
+            "indexNameGenerator",
+            BeanDefinitionBuilder.rootBeanDefinition(getIndexNameGeneratorClass(configuration)).getBeanDefinition()
+        );
     }
 }

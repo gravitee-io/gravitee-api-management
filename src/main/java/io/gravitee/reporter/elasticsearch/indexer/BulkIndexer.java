@@ -24,11 +24,10 @@ import io.reactivex.processors.PublishProcessor;
 import io.reactivex.schedulers.Schedulers;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.reactivex.core.Vertx;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -37,42 +36,39 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class BulkIndexer extends AbstractIndexer {
 
-	/**
-	 * Elasticsearch client.
-	 */
-	@Autowired
-	private Client client;
+    /**
+     * Elasticsearch client.
+     */
+    @Autowired
+    private Client client;
 
-	@Autowired
-	private Vertx vertx;
+    @Autowired
+    private Vertx vertx;
 
     /**
-	 * Configuration of Elasticsearch (cluster name, addresses, ...)
-	 */
-	@Autowired
-	private ReporterConfiguration configuration;
+     * Configuration of Elasticsearch (cluster name, addresses, ...)
+     */
+    @Autowired
+    private ReporterConfiguration configuration;
 
-	private final PublishProcessor<Reportable> bulkProcessor = PublishProcessor.create();
+    private final PublishProcessor<Reportable> bulkProcessor = PublishProcessor.create();
 
-	@PostConstruct
-	public void initialize() {
-		bulkProcessor
-				.onBackpressureBuffer()
-				.observeOn(Schedulers.io())
-				.flatMap((Function<Reportable, Publisher<Buffer>>) reportable ->
-						Flowable.just(reportable)
-							.map(this::transform)
-							.onErrorResumeNext(Flowable.empty()))
-				.buffer(
-						configuration.getFlushInterval(),
-						TimeUnit.SECONDS,
-						configuration.getBulkActions())
-				.filter(payload -> !payload.isEmpty())
-				.subscribe(new DocumentBulkProcessor(client, vertx));
-	}
+    @PostConstruct
+    public void initialize() {
+        bulkProcessor
+            .onBackpressureBuffer()
+            .observeOn(Schedulers.io())
+            .flatMap(
+                (Function<Reportable, Publisher<Buffer>>) reportable ->
+                    Flowable.just(reportable).map(this::transform).onErrorResumeNext(Flowable.empty())
+            )
+            .buffer(configuration.getFlushInterval(), TimeUnit.SECONDS, configuration.getBulkActions())
+            .filter(payload -> !payload.isEmpty())
+            .subscribe(new DocumentBulkProcessor(client, vertx));
+    }
 
-	@Override
-	public void index(Reportable reportable) {
-		bulkProcessor.onNext(reportable);
-	}
+    @Override
+    public void index(Reportable reportable) {
+        bulkProcessor.onNext(reportable);
+    }
 }

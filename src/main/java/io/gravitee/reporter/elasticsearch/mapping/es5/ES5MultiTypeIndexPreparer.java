@@ -42,8 +42,7 @@ public class ES5MultiTypeIndexPreparer extends AbstractIndexPreparer {
 
         logger.debug("Trying to put template mapping [{}] name[{}]", templateName);
 
-        final String template = freeMarkerComponent.generateFromTemplate(
-                "/es5x/mapping/index-template.ftl", getTemplateData());
+        final String template = freeMarkerComponent.generateFromTemplate("/es5x/mapping/index-template.ftl", getTemplateData());
 
         return client.putTemplate(templateName, template);
     }
@@ -52,8 +51,9 @@ public class ES5MultiTypeIndexPreparer extends AbstractIndexPreparer {
         String pipelineTemplate = pipelineConfiguration.createPipeline();
 
         if (pipelineTemplate != null && pipelineConfiguration.getPipelineName() != null) {
-            return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate)
-                    .doOnComplete(() -> pipelineConfiguration.valid());
+            return client
+                .putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate)
+                .doOnComplete(() -> pipelineConfiguration.valid());
         }
 
         return Completable.complete();

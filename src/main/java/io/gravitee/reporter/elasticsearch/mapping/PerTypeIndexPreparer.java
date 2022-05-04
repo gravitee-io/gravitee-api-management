@@ -28,10 +28,7 @@ import io.reactivex.functions.Function;
 public abstract class PerTypeIndexPreparer extends AbstractIndexPreparer {
 
     protected Completable indexMapping() {
-        return Completable.merge(
-                Flowable
-                        .fromArray(Type.TYPES)
-                        .map(indexTypeMapper()));
+        return Completable.merge(Flowable.fromArray(Type.TYPES).map(indexTypeMapper()));
     }
 
     /**

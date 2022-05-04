@@ -21,12 +21,11 @@ import io.gravitee.elasticsearch.model.bulk.Failure;
 import io.reactivex.Single;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.reactivex.core.Vertx;
+import java.util.List;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  *
@@ -60,17 +59,18 @@ class DocumentBulkProcessor implements Subscriber<List<Buffer>> {
     @Override
     public void onNext(List<Buffer> items) {
         try {
-            client.bulk(items)
-                    .onErrorResumeNext(t -> {
-                        logger.error("Unexpected error while indexing data", t);
-                        Failure failure = new Failure();
-                        failure.setReason(t.getMessage());
-                        BulkResponse bulkResponse = new BulkResponse();
-                        bulkResponse.setErrors(true);
-                        bulkResponse.setError(failure);
-                        return Single.just(bulkResponse);
-                    })
-                    .subscribe();
+            client
+                .bulk(items)
+                .onErrorResumeNext(t -> {
+                    logger.error("Unexpected error while indexing data", t);
+                    Failure failure = new Failure();
+                    failure.setReason(t.getMessage());
+                    BulkResponse bulkResponse = new BulkResponse();
+                    bulkResponse.setErrors(true);
+                    bulkResponse.setError(failure);
+                    return Single.just(bulkResponse);
+                })
+                .subscribe();
         } catch (Exception ex) {
             logger.error("Unexpected error while bulking data with the ES client", ex);
         } finally {

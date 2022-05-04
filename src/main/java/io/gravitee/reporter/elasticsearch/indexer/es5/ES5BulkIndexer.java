@@ -17,7 +17,6 @@ package io.gravitee.reporter.elasticsearch.indexer.es5;
 
 import io.gravitee.reporter.elasticsearch.indexer.BulkIndexer;
 import io.vertx.core.buffer.Buffer;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -33,10 +32,7 @@ public class ES5BulkIndexer extends BulkIndexer {
     @Override
     protected Buffer generateData(String templateName, Map<String, Object> data) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            freeMarkerComponent.generateFromTemplate(
-                    "/es5x/index/" + templateName,
-                    data,
-                    new OutputStreamWriter(baos));
+            freeMarkerComponent.generateFromTemplate("/es5x/index/" + templateName, data, new OutputStreamWriter(baos));
 
             return Buffer.buffer(baos.toByteArray());
         } catch (IOException e) {

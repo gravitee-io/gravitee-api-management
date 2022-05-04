@@ -16,10 +16,9 @@
 package io.gravitee.reporter.elasticsearch.indexer.name;
 
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

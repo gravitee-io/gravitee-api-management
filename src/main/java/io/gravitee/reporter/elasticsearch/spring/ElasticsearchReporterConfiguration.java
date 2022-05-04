@@ -53,29 +53,32 @@ public class ElasticsearchReporterConfiguration {
 
         if (reporterConfiguration.getSslKeystoreType() != null) {
             if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.JKS_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(new HttpClientJksSslConfiguration(
+                clientConfiguration.setSslConfig(
+                    new HttpClientJksSslConfiguration(
                         reporterConfiguration.getSslKeystore(),
                         reporterConfiguration.getSslKeystorePassword()
-                ));
+                    )
+                );
             } else if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PFX_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(new HttpClientPfxSslConfiguration(
+                clientConfiguration.setSslConfig(
+                    new HttpClientPfxSslConfiguration(
                         reporterConfiguration.getSslKeystore(),
                         reporterConfiguration.getSslKeystorePassword()
-                ));
+                    )
+                );
             } else if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PEM_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(new HttpClientPemSslConfiguration(
-                        reporterConfiguration.getSslPemCerts(),
-                        reporterConfiguration.getSslPemKeys()
-                ));
+                clientConfiguration.setSslConfig(
+                    new HttpClientPemSslConfiguration(reporterConfiguration.getSslPemCerts(), reporterConfiguration.getSslPemKeys())
+                );
             }
         }
 
         return new HttpClient(clientConfiguration);
     }
 
-    @Bean 
-    public ReporterConfiguration configuration(){
-    	return new ReporterConfiguration();
+    @Bean
+    public ReporterConfiguration configuration() {
+        return new ReporterConfiguration();
     }
 
     @Bean

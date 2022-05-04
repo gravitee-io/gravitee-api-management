@@ -48,5 +48,4 @@ public class DummyNode implements Node {
     public Node stop() throws Exception {
         return this;
     }
-
 }
